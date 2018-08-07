@@ -1,0 +1,79 @@
+.panelBotonNuevo {
+  overflow: hidden;
+  height: 204px;
+  padding: 0px !important;
+  background-color: white !important;
+}
+
+.backgroundNuevo {
+  position: relative;
+  bottom: -300px;
+  height: 230px;
+  background-color: #4DB6AC !important;
+
+  transition: all 200ms 100ms;
+}
+
+.backgroundEnlace {
+  position: relative;
+  bottom: -300px;
+  height: 204px;
+  background-color: #4FC3F7 !important;
+
+  transition: all 200ms 100ms;
+}
+
+.imgNuevo {
+  position: relative;
+  top: -435px;
+  width: 130px;
+  z-index: 1;
+
+  transition: all 200ms 0ms;
+}
+
+.txtLogo {
+  position: relative;
+  top: -344px;
+  font-family: "Roboto-Thin" !important;
+  font-weight: lighter !important;
+  font-size: 180px !important;
+  color: #ccc !important;
+
+  transition: all 200ms 100ms;
+}
+
+.txtNuevo {
+  position: relative;
+  top: -382px;
+  font-family: "Roboto-BoldCondensed" !important;
+  font-size: 15px;
+  color: #ccc !important;
+
+  transition: all 200ms 100ms;
+}
+
+.panelBotonNuevo:hover .backgroundNuevo{
+  transition: all 200ms;
+  bottom: 87px;
+}
+
+.panelBotonNuevo:hover .backgroundEnlace{
+  transition: all 200ms;
+  bottom: 86px;
+}
+
+.panelBotonNuevo:hover .txtLogo {
+  transition: all 200ms;
+  top: -480px;
+}
+
+.panelBotonNuevo:hover .txtNuevo {
+  transition: all 200ms;
+  color: white !important;
+}
+
+.panelBotonNuevo:hover .imgNuevo {
+  transition: all 200ms 100ms;
+  top: 40px;
+}
