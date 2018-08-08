@@ -13,6 +13,10 @@ use Illuminate\Http\Request;
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
+<link rel="stylesheet" href="/css/perfect-scrollbar.css">
+<!-- Mesaje de notificación -->
+<link rel="stylesheet" href="/css/mensajeExito.css">
+<link rel="stylesheet" href="/css/mensajeError.css">
 @endsection
 
       <div class="row">
@@ -199,8 +203,8 @@ use Illuminate\Http\Request;
 <!--Modal nuevo para ajustes-->
 
 <div class="modal fade" id="modalCargaProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 70%">
-    <div class="modal-content">
+  <div class="modal-dialog" style="width: 60%;">
+    <div class="modal-content" >
       <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -211,17 +215,16 @@ use Illuminate\Http\Request;
         <div class="modal-body" style="font-family: Roboto;">
 
           <div class="row" >
-            <div class="col-md-3" >
+            <div class="col-md-3">
               <h6><b>MÁQUINAS</b></h6>
-              <table id="tablaMaquinas" class="table">
-                <thead>
+              <table id="tablaMaquinas" class="table" style="display: block;">
+                <thead style="display: block;position: relative;">
                   <tr >
                     <th class="col-xs-2">Nº ADMIN</th>
                     <th class="col-xs-2"></th>
                   </tr>
                 </thead>
-                <tbody id="cuerpoTabla" >
-
+                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
                 </tbody>
               </table>
               <table>
@@ -234,8 +237,10 @@ use Illuminate\Http\Request;
               </table>
             </div> <!-- tablafechas -->
 
-            <div id="columnaDetalle" class="col-md-9" style="border-left:2px solid #ccc; border-right:2px solid #ccc;" hidden>
-              <h6><b>DETALLES</b></h6>
+            <div id="columnaDetalle" class="col-md-9" style="border-right:2px solid #ccc;" hidden>
+              <h6 id="detallesEs"><b>DETALLES</b></h6>
+              <br>
+              <br>
               <div class="detalleMaq" >
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
 
@@ -265,6 +270,8 @@ use Illuminate\Http\Request;
                   </div>
 
                   <div class="row" style="border-left:1px solid #ccc;border-right:1px solid #ccc;">
+
+                    <br>
 
                     <div class="col-lg-3">
                       <h5>COININ FINAL</h5>
@@ -361,6 +368,14 @@ use Illuminate\Http\Request;
             <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
             <span style="font-family:'Roboto'; color:#555;">Presione GUARDAR TEMPORALMENTE para guardando los cambios y luego SALIR.</span>
         </div>
+
+        <div class="mensajeFin" hidden>
+            <br>
+            <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
+            <br>
+
+        </div>
+
         <input type="hidden" id="id_producido" value="0">
 
           </div> <!-- modal body -->
@@ -404,7 +419,6 @@ use Illuminate\Http\Request;
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                    <!-- <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> -->
                     <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
                     <input type="hidden" id="id_producido" value="0">
                   </div>
@@ -465,7 +479,9 @@ use Illuminate\Http\Request;
     <!-- JavaScript personalizado -->
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
 
-    <link rel="stylesheet" href="/css/perfect-scrollbar.css">
+    <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
+
+
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
@@ -475,5 +491,9 @@ use Illuminate\Http\Request;
     <script src="js/fileinput.min.js" type="text/javascript"></script>
     <script src="js/locales/es.js" type="text/javascript"></script>
     <script src="/themes/explorer/theme.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+    var ps = new PerfectScrollbar('.opcionesMenu');
+    </script>
 
     @endsection

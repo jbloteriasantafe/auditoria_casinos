@@ -1,0 +1,71 @@
+/* Contenedor exterior (solo el borde)*/
+.zona-file {
+    border: 1px solid;
+    border-color: rgb(204, 204, 204);
+    box-shadow: rgba(0, 0, 0, 0.075) 0px 1px 1px 0px inset;
+    height: 370px;
+    width: 100%;
+}
+
+.file-preview {
+  border: none !important;
+  border-radius: 0px !important;
+  height: 150px !important;
+}
+
+.file-preview-text {
+  font-size: 11px !important;
+}
+
+/* Ocultar los botones no necesarios en el input- file */
+.file-footer-buttons,
+.file-upload-indicator,
+.file-drag-handle {
+  display: none;
+}
+
+.file-other-icon, .kv-file-content {
+    font-size: 30px !important;
+}
+
+.file-drop-disabled, .file-preview-disable {
+  height: 80px !important;
+}
+
+.file-thumbnail-footer {
+  height: 40px !important;
+}
+
+.file-preview-other, .kv-file-content{
+  width: 100% !important;
+  height: 50px !important;
+}
+
+/* Contenedor principal */
+.file-preview-frame {
+  position: relative !important;
+  top: 20px;
+  left: -3px;
+  width: 96% !important;
+  height: 300px !important;
+}
+
+/* Contenedor de la vista previa */
+.kv-preview-data {
+  width: 100% !important;
+  height: 250px !important;
+}
+
+/* Footer nombre del archivo */
+.file-thumbnail-footer {
+    position: relative;
+    top: 196px;
+}
+
+/* Modificar los botones del file-input */
+.btn-file{
+  position: absolute !important;
+  left: 25px;
+  top: 50px;
+  display: inline;
+}

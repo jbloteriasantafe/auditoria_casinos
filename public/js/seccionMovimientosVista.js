@@ -2264,6 +2264,17 @@ $('#mensajeExito .confirmar').click(function(e){
     $('#maquinas_pendientes').text(' ' + cantidad + ' MÁQUINAS PENDIENTES');
     $('#modalMaquina').modal('show');
 
+    ocultarErrorValidacion($('#tipo_maquina'));
+    ocultarErrorValidacion($('#nro_admin'));
+    ocultarErrorValidacion($('#nro_serie'));
+    ocultarErrorValidacion($('#marca'));
+    ocultarErrorValidacion($('#modelo'));
+    ocultarErrorValidacion($('#desc_marca'));
+    ocultarErrorValidacion($('#unidad_medida'));
+    ocultarErrorValidacion($('#tipo_gabinete'));
+    ocultarErrorValidacion($('#mac'));
+    ocultarErrorValidacion($('#tipo_maquina'));
+
 });
 
 /* Detecta la negativa para seguir cargando máquinas en movimientos */

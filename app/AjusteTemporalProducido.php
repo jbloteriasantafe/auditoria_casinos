@@ -11,7 +11,7 @@ class AjusteTemporalProducido extends Model
   protected $primaryKey = 'id_ajuste_temporal_producido';
   protected $visible = array('id_ajuste_temporal_producido','producido_sistema','producido_calculado','diferencia',
                               'id_producido', 'id_maquina','id_tipo_ajuste',
-                              'coinin_ini','coinin_fin' ,'coinuot_ini' ,'coinuot_fin',
+                              'coinin_ini','coinin_fin' ,'coinout_ini' ,'coinout_fin',
                               'jackpot_ini' ,'jackpot_fin','progresivo_ini','progresivo_fin',
                               'id_detalle_producido','id_detalle_contador_final','id_detalle_contador_inicial',
                               'id_contador_horario_ini','id_contador_horario_fin'

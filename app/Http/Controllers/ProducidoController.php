@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Producido;
 use App\Casino;
+use App\Maquina;
 use App\DetalleProducido;
 use App\AjusteProducido;
 use App\DetalleContadorHorario;
@@ -214,7 +215,7 @@ class ProducidoController extends Controller
 
     //si no trae los datos es porque se guardó temporalmente el ajuste
     if(empty($mtm_datos)){
-      $ajusteTemporal = AjusteTemporalProducido::where([['id_producido','=',$id_producido],['id_maquina','=',$id_maquina]])->get();
+      $ajusteTemporal = AjusteTemporalProducido::where([['id_producido','=',$id_producido],['id_maquina','=',$id_maquina]])->first();
       $mtm = Maquina::find($id_maquina);
       $conDiferencia = ['id_maquina' => $id_maquina,
                         'nro_admin' => $mtm->nro_admin,
@@ -673,36 +674,43 @@ class ProducidoController extends Controller
             $contador_horario = $detalle_final->contador_horario;
             $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
             $contador_horario->save();
+        }else{
+          $estado = 1;// validacion finalizada para esta mtm
         }
       }elseif ($request->estado == 2) {//esta pausado
         //por mas que no haya puesto todavia una justificación para el ajuste
         //se guarda como temporal (no se valida nada) y se guarda en una tabla aparte
         //todos los datos que se mostraon en pantalla y ocultos para poder reabrir
         //en la proxima oportunidad para ajustar finalmente el producido.
-        $id_maquina = $request['producidos_ajustados'][0]->id_maquina;
+
+        $id_maquina = $request['producidos_ajustados'][0]['id_maquina'];
         $mtm = Maquina::find($id_maquina);
         $denominacion = $mtm->denominacion;
         $input  = $request['producidos_ajustados'][0];
 
         $ajusteTemporal = new AjusteTemporalProducido;
         $ajusteTemporal->producido()->associate($request->id_producido);
-        $ajusteTemporal->tipo_ajuste()->associate($input->id_tipo_ajuste);
+
+        if(!empty($input->id_tipo_ajuste)){
+          $ajusteTemporal->tipo_ajuste()->associate($input->id_tipo_ajuste);
+        }
         $ajusteTemporal->maquina()->associate($id_maquina);
         $ajusteTemporal->id_contador_horario_ini = $request->id_contador_inicial;
         $ajusteTemporal->id_contador_horario_fin = $request->id_contador_final;
-        $ajusteTemporal->coinin_ini = $input->coinin_inicial;
-        $ajusteTemporal->coinin_fin = $input->coinin_final;
-        $ajusteTemporal->coinout_ini = $input->coinout_inicial;
-        $ajusteTemporal->coinout_fin = $input->coinout_final;
-        $ajusteTemporal->jackpot_ini = $input->jackpot_inicial;
-        $ajusteTemporal->jackpot_fin = $input->jackpot_final;
-        $ajusteTemporal->progresivo_ini = $input->progresivo_inicial;
-        $ajusteTemporal->progresivo_fin = $input->progresivo_final;
+        $ajusteTemporal->coinin_ini = $input['coinin_inicial'];
+        $ajusteTemporal->coinin_fin = $input['coinin_final'];
+        $ajusteTemporal->coinout_ini = $input['coinout_inicial'];
+        $ajusteTemporal->coinout_fin = $input['coinout_final'];
+        $ajusteTemporal->jackpot_ini = $input['jackpot_inicial'];
+        $ajusteTemporal->jackpot_fin = $input['jackpot_final'];
+        $ajusteTemporal->progresivo_ini = $input['progresivo_inicial'];
+        $ajusteTemporal->progresivo_fin = $input['progresivo_final'];
 
-        $ajusteTemporal->id_detalle_producido = $input->id_detalle_producido;
-        $ajusteTemporal->id_detalle_contador_inicial = $input->id_detalle_contador_inicial;
-        $ajusteTemporal->id_detalle_contador_final = $input->id_detalle_contador_final;
-        $ajusteTemporal->producido_sistema = $input->producido; //es el producido importado
+        $ajusteTemporal->id_detalle_producido = $input['id_detalle_producido'];
+        $ajusteTemporal->id_detalle_contador_inicial = $input['id_detalle_contador_inicial'];
+        $ajusteTemporal->id_detalle_contador_final = $input['id_detalle_contador_final'];
+        $ajusteTemporal->producido_sistema = $input['producido']; //es el producido importado
+
 
         //calculo el producido calculado
         $valor_inicio= $ajusteTemporal->coinin_ini * $denominacion - $ajusteTemporal->coinout_ini * $denominacion - $ajusteTemporal->ackpot_ini * $denominacion- $ajusteTemporal->progresivo_ini * $denominacion;//plata
@@ -715,6 +723,7 @@ class ProducidoController extends Controller
         //calculo la DIFERENCIAS
         $ajusteTemporal->diferencia = $delta - $ajusteTemporal->producido_sistema ;
         $ajusteTemporal->save();
+        $estado=2;
       }
 
 
