@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'RobotoMediumItalic';
+    src: url('fonts/RobotoMediumItalic.eot');
+    src: url('fonts/RobotoMediumItalic.eot') format('embedded-opentype'),
+         url('fonts/RobotoMediumItalic.woff2') format('woff2'),
+         url('fonts/RobotoMediumItalic.woff') format('woff'),
+         url('fonts/RobotoMediumItalic.ttf') format('truetype'),
+         url('fonts/RobotoMediumItalic.svg#RobotoMediumItalic') format('svg');
+}
