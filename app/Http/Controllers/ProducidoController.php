@@ -675,9 +675,8 @@ class ProducidoController extends Controller
             $contador_horario = $detalle_final->contador_horario;
             $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
             $contador_horario->save();
-        }
-        else {
-          $estado=1;
+        }else{
+          $estado = 1;// validacion finalizada para esta mtm
         }
       }elseif ($request->estado == 2) {//esta pausado
         //por mas que no haya puesto todavia una justificación para el ajuste

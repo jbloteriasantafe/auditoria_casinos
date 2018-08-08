@@ -1,0 +1,183 @@
+
+/*
+
+When editing make sure the margin, padding, and border sizes are the same for the
+header cells, week header cells, and day cells. If they are different the calendar
+will look messed up.
+
+*/
+
+/*
+Root calendar element
+*/
+.JFrontierCal {
+	border: 0px solid #dddddd;
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	/*width: 1024px;*/
+	/*
+	If you want a background image for the entire calendar than you must comment out the
+	individual background-images for the day cells below. Then you can uncomment this
+	line and use your image of choice. You may also want to enable borders on the day
+	cells.
+	*/
+	/*background-image:url('images/bw-tree.jpg');*/
+}
+/*
+Style shared by all day cells.
+*/
+.JFrontierCal .JFrontierCal-Day-Cell,
+.JFrontierCal .JFrontierCal-Day-Cell-Last,
+.JFrontierCal .JFrontierCal-PrevMonth-Day-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Day-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Day-Cell-Last,
+.JFrontierCal .JFrontierCal-Day-Cell-Droppable,
+.JFrontierCal .JFrontierCal-Day-Cell-Today {
+	padding: 0px;
+	border-bottom: 0px solid #ffffff;
+	border-left: 0px solid #ffffff;
+	font: 13px verdana;
+	float: left;
+	clear: right;
+	/*
+	height is only used for initialization. heights are calculated by aspect 
+	ratio relative to width of calendar parent div.
+	*/
+	height: 80px;
+	text-align: right;
+}
+/*
+Style for day cells on the current month.
+*/
+.JFrontierCal .JFrontierCal-Day-Cell,
+.JFrontierCal .JFrontierCal-Day-Cell-Last{
+	background-color: #efefef;
+	color: #444444;	
+	background-image:url('images/dayCellCurrentMonth.png');
+	background-repeat:repeat-y;
+}
+/*
+Style for previous month and next month day cells.
+*/
+.JFrontierCal .JFrontierCal-PrevMonth-Day-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Day-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Day-Cell-Last {
+	background-color: #cccccc;
+	color: #999999;
+	background-image:url('images/dayCellOtherMonth.png');
+	background-repeat:repeat-y;
+}
+/*
+Style for Saturday cells.
+*/
+.JFrontierCal .JFrontierCal-Day-Cell-Last,
+.JFrontierCal .JFrontierCal-NextMonth-Day-Cell-Last {
+	border-right: 0px solid #ffffff;
+}
+/*
+Style for hover effect on droppable day cells (drag and drop agenda items.)
+*/
+.JFrontierCal .JFrontierCal-Day-Cell-Droppable {
+	background-color: #a6c7ff;
+	background-image: none;
+}
+/*
+Style for current date day cell
+*/
+.JFrontierCal .JFrontierCal-Day-Cell-Today {
+	background-color: #d6e2ff;
+	color: #444444;
+	/*background-image: none;*/
+	background-image:url('images/dayCellToday.png');
+}
+/*
+Style for header cells (day name cells at top of calendar)
+*/
+.JFrontierCal .JFrontierCal-Header-Cell,
+.JFrontierCal .JFrontierCal-Header-Cell-Last {
+	padding: 0px;	
+	border-top: 0px solid #ffffff;
+	border-bottom: 0px solid #ffffff;
+	border-left: 0px solid #ffffff;
+	background-color: #777777;
+	color: white;
+	font: 13px verdana;
+	/*font-weight: bold;*/
+	float: left;
+	clear: right;
+	height: 17px;
+}
+/*
+Style for Saturday header cell at top of calendar.
+*/
+.JFrontierCal .JFrontierCal-Header-Cell-Last {
+	border-right: 0px solid #ffffff;
+}
+/*
+Style for week Header cells (cells for day numbers above each week)
+*/
+.JFrontierCal .JFrontierCal-Week-Header-Cell, 
+.JFrontierCal .JFrontierCal-Week-Header-Cell-Last,
+.JFrontierCal .JFrontierCal-PrevMonth-Week-Header-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Week-Header-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Week-Header-Cell-Last {
+	padding: 0px;
+	border-left: 0px solid #ffffff;
+	background-color: #dedede;
+	color: #000000;
+	font: 13px verdana;
+	float: left;
+	clear: right;
+	height: 17px;
+	text-align: right;
+}
+/*
+Style for week header cells for the previous and next month. Make them a little darker.
+*/
+.JFrontierCal .JFrontierCal-PrevMonth-Week-Header-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Week-Header-Cell,
+.JFrontierCal .JFrontierCal-NextMonth-Week-Header-Cell-Last  {
+	background-color: #aaaaaa;
+	color: #333333;
+}
+/*
+Style for Saturday week header cell.
+*/
+.JFrontierCal .JFrontierCal-Week-Header-Cell-Last,
+.JFrontierCal .JFrontierCal-NextMonth-Week-Header-Cell-Last {
+	border-right: 0px solid #ffffff;
+}
+/*
+Style for agenda items. These are simply default values. Some values can be configured through the API (height, color, background-color, font, etc...)
+*/
+.JFrontierCal-Modal-Agenda-Item,
+.JFrontierCal .JFrontierCal-Day-Cell .JFrontierCal-Agenda-Item {
+	height: 15px;
+	/*
+	Don't let text creep outside div
+	*/
+	overflow: hidden;
+	font: 11px verdana;
+	background-color: #7fad00;
+	color: #ffffff;
+	margin: 0px;
+	white-space: nowrap;
+	text-align: left;
+}
+/*
+Style for the "more" link seen when not all agenda items fit within a day cell.
+*/
+.JFrontierCal .JFrontierCal-Day-Cell .JFrontierCal-Agenda-More-Link {
+	height: 15px;
+	/*
+	Don't let text creep outside div
+	*/
+	overflow: hidden;
+	font: 11px verdana;
+	color: blue;
+	margin: 0px;
+	white-space: nowrap;
+	text-align: center;
+}
+

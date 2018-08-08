@@ -394,16 +394,13 @@ class MTMController extends Controller
         // }else{
         //  $duplicados = Maquina::where('nro_admin', $validator->getData()['nro_admin'])->whereIn('id_casino' , [1,2])->get(); // 1 -> Melincue, 2 -> Santa Fe
         // }
-<<<<<<< HEAD
-        $duplicados = Maquina::where([['id_casino','=' , $id_casino] , ['nro_admin' ,'=', $validator->getData()['nro_admin']]])->get();
-       
-=======
+
         $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
                                       ['nro_admin' ,'=', $validator->getData()['nro_admin']]])
                                       ->whereNull('deleted_at')
                                       ->get();
 
->>>>>>> 497fff5796ac3e109b5f03190e631d4bf91454f9
+
         if($duplicados->count() >= 1){
           $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
         }
