@@ -1,9 +1,0 @@
-@font-face {
-    font-family: 'RobotoThin';
-    src: url('fonts/RobotoThin.eot');
-    src: url('fonts/RobotoThin.eot') format('embedded-opentype'),
-         url('fonts/RobotoThin.woff2') format('woff2'),
-         url('fonts/RobotoThin.woff') format('woff'),
-         url('fonts/RobotoThin.ttf') format('truetype'),
-         url('fonts/RobotoThin.svg#RobotoThin') format('svg');
-}
