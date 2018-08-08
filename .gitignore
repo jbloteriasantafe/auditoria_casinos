@@ -1,0 +1,6 @@
+config/database.php
+/vendor
+/Backups
+.env
+/public/js/lista-datos-backup.js
+/app/Http/Controllers/pruebaController.php
