@@ -1733,7 +1733,7 @@ $("#btn-enviar-ingreso").click(function(e){
           $('#mensajeExito').show();
         },
         error: function(data){
-          $('#mensajeError h3').text('ENVÍO EXITOSO');
+          $('#mensajeError h3').text('ERROR');
           $('#mensajeError p').text('No hay máquinas seleccionadas');
           //$('#modalEnviarFiscalizarIngreso').modal('hide');
           $('#mensajeError').show();
