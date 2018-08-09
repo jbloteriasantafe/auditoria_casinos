@@ -1694,7 +1694,7 @@ $(document).on('click','.enviarIngreso',function(e){
 
 //dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
 $("#btn-enviar-ingreso").click(function(e){
-
+  $('#mensajeError').hide();
   $('#mensajeExito').hide();
   var id=$("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
   var maquinas_seleccionadas=[];
@@ -1733,7 +1733,10 @@ $("#btn-enviar-ingreso").click(function(e){
           $('#mensajeExito').show();
         },
         error: function(data){
-          alert('No se seleccionaron máquinas.');
+          $('#mensajeError h3').text('ENVÍO EXITOSO');
+          $('#mensajeError p').text('No hay máquinas seleccionadas');
+          //$('#modalEnviarFiscalizarIngreso').modal('hide');
+          $('#mensajeError').show();
         },
   })
 })
