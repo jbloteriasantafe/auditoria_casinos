@@ -433,11 +433,15 @@ class MTMController extends Controller
     //SI EXISTE FORMULA LA BUSCA SI NO CREA
     $formula=null;
     switch ($request->formula['id_formula']){
-      case 'undefined':break;
-      case '':break;
-      case 0:
-        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['formula']);
+      case 'undefined':
+        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
         break;
+      case '':
+        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
+      break;
+      case null:
+        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
+      break;
       default:
         $formula=Formula::find($request->formula['id_formula']);
         break;

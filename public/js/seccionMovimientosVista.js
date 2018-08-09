@@ -1733,7 +1733,7 @@ $("#btn-enviar-ingreso").click(function(e){
           $('#mensajeExito').show();
         },
         error: function(data){
-          alert('No hay máquinas cargadas para enviar a fiscalizar.');
+          alert('No se seleccionaron máquinas.');
         },
   })
 })
