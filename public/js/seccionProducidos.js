@@ -218,6 +218,7 @@ $(document).on('click','.carga',function(e){
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){
 
+
   $('#cuerpoTabla tr').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
@@ -226,6 +227,7 @@ $(document).on('click','.idMaqTabla',function(e){
   e.preventDefault();
   var id_maq=$(this).val();
   var id_prod= $('#modalCargaProducidos #id_producido').val();
+
 
   //ME TRAE TODOS LOS DATOS DE UNA MÁQUINA DETERMINADA, AL PŔESIONAR EL OJO
     $.get('producidos/ajustarProducido/' + id_maq + '/' + id_prod, function(data){
@@ -271,6 +273,7 @@ $("#btn-guardar").click(function(e){
 $("#btn-finalizar").click(function(e){
   e.preventDefault();
   var id_maquina=$(this).attr('data-id');
+
 
   //Se evnía el relevamiento para guardar con estado 2 = 'Carga parcial'
   guardarFilaDiferenciaCero(3,id_maquina);
@@ -320,18 +323,19 @@ function generarFilaMaquina(nro_admin, id_maquina_final){//CARGA LA TABLA DE MÁ
 
 function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
 
-console.log('est',estado);
   $('#mensajeExito').hide();
   //estado -> generado, carga parcial, finalizado
   var detalles_sin_diferencia = [];
   var errores = 0 ;
    // $('#tablaMaquinas tbody tr').each(function(index){
-     //if($('#modalCargaProducidos #diferencias').text()== 0){
+   //if($('#modalCargaProducidos #diferencias').text()== 0){
+
 
        var id_detalle_contador_final = $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null;
        var id_detalle_contador_inicial = $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null;
 
        // if($('#observacionesAjuste').val() = 0){
+
           var producido={
             id_maquina : id,
             id_detalle_producido :  $('#data-producido').val(),
@@ -349,6 +353,7 @@ console.log('est',estado);
             denominacion: $('#data-denominacion').val(),
             id_tipo_ajuste: $('#observacionesAjuste').val(),
           }
+
       // }else{
       //   $('#observacionesAjuste').addClass('alerta');
       //   errores++;

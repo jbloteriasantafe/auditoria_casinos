@@ -225,7 +225,6 @@ use Illuminate\Http\Request;
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
-
                 </tbody>
               </table>
               <table>
@@ -271,7 +270,9 @@ use Illuminate\Http\Request;
                   </div>
 
                   <div class="row" style="border-left:1px solid #ccc;border-right:1px solid #ccc;">
+
                     <br>
+
                     <div class="col-lg-3">
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
@@ -367,12 +368,14 @@ use Illuminate\Http\Request;
             <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
             <span style="font-family:'Roboto'; color:#555;">Presione GUARDAR TEMPORALMENTE para guardando los cambios y luego SALIR.</span>
         </div>
+
         <div class="mensajeFin" hidden>
             <br>
             <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
             <br>
 
         </div>
+
         <input type="hidden" id="id_producido" value="0">
 
           </div> <!-- modal body -->
@@ -475,7 +478,9 @@ use Illuminate\Http\Request;
     @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
+
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
+
 
 
     <!-- DateTimePicker JavaScript -->

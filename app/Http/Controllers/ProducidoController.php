@@ -666,7 +666,6 @@ class ProducidoController extends Controller
         }
         //DETERMINAR ESTADO
         $estado = $this->determinarEstadoAjuste($request->id_producido);
-
         if($estado == 3){ //si todas las diferencias estan ajustadas contadores finales quedan validados y producido validado
             $producido = Producido::find($request->id_producido);
             $producido->validado = 1 ;
@@ -683,6 +682,7 @@ class ProducidoController extends Controller
         //se guarda como temporal (no se valida nada) y se guarda en una tabla aparte
         //todos los datos que se mostraon en pantalla y ocultos para poder reabrir
         //en la proxima oportunidad para ajustar finalmente el producido.
+
         $id_maquina = $request['producidos_ajustados'][0]['id_maquina'];
         $mtm = Maquina::find($id_maquina);
         $denominacion = $mtm->denominacion;
@@ -690,6 +690,7 @@ class ProducidoController extends Controller
 
         $ajusteTemporal = new AjusteTemporalProducido;
         $ajusteTemporal->producido()->associate($request->id_producido);
+
         if(!empty($input->id_tipo_ajuste)){
           $ajusteTemporal->tipo_ajuste()->associate($input->id_tipo_ajuste);
         }
@@ -709,6 +710,7 @@ class ProducidoController extends Controller
         $ajusteTemporal->id_detalle_contador_inicial = $input['id_detalle_contador_inicial'];
         $ajusteTemporal->id_detalle_contador_final = $input['id_detalle_contador_final'];
         $ajusteTemporal->producido_sistema = $input['producido']; //es el producido importado
+
 
         //calculo el producido calculado
         $valor_inicio= $ajusteTemporal->coinin_ini * $denominacion - $ajusteTemporal->coinout_ini * $denominacion - $ajusteTemporal->ackpot_ini * $denominacion- $ajusteTemporal->progresivo_ini * $denominacion;//plata

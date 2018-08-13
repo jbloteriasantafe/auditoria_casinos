@@ -661,8 +661,7 @@
                 </tbody>
               </table>
             </div> <!-- tablafechas -->
-            <br>
-            <br>
+
             <div id="columnaMaq" class="col-md-2" style="border-left:2px solid #4FC3F7; border-right:2px solid #4FC3F7;" hidden>
               <h6><b>MÁQUINAS</b></h6>
               <table id="tablaMaquinasFiscalizacion" class="table">

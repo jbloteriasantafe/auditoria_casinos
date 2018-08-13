@@ -268,7 +268,7 @@ class LogMovimientoController extends Controller
       CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
       return 1;
     }
-    return response()->json(['maquinas' => 'No hay máquinas cargadas para enviar a fiscalizar.'], 422);
+    return response()->json(['maquinas' => 'No hay máquinas seleccionadas.'], 422);
 
   }
 
@@ -585,9 +585,9 @@ class LogMovimientoController extends Controller
   public function obtenerMTMFiscalizacion($id_maquina, $id_fiscalizacion){
     $mtm = DB::table('maquina')
               ->select('maquina.*','isla.nro_isla','formula.*')
-              ->join('isla','isla.id_isla','=','maquina.id_isla')
-              ->join('formula','formula.id_formula','=','maquina.id_formula')
-              ->join('relevamiento_movimiento','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
+              ->leftJoin('isla','isla.id_isla','=','maquina.id_isla')
+              ->leftJoin('formula','formula.id_formula','=','maquina.id_formula')
+              ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
               ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_fiscalizacion_movimiento','=','relevamiento_movimiento.id_fiscalizacion_movimiento')
               ->where('fiscalizacion_movimiento.id_fiscalizacion_movimiento','=',$id_fiscalizacion)
               ->where('maquina.id_maquina','=',$id_maquina)
@@ -1748,7 +1748,7 @@ class LogMovimientoController extends Controller
   public function pruebasVarias(Request $req){
     //  NotaController::getInstancia()->guardarNota($req);
 
-    return $this->obtenerMaquinasIsla(2968);
+    return $this->guardarRelevamientoMovimientoIngreso(624,4666);
     //return ExpedienteController::getInstancia()->obtenerExpediente(1747);
 
   }

@@ -257,6 +257,7 @@ $(document).on('click','.modificar',function(e,id_maquina){
       var id_maquina = $('#modalMaquina input#id_maquina').val();
 
       $("button.modificar[value='"+ id_maquina +"']").prop('disabled', false);
+
 })
 
 //Mostrar modal con los datos del Casino cargados
