@@ -277,9 +277,23 @@ class UsuarioController extends Controller
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
   }
 
+  //sin la session iniciada usa esta funcion ----
   public function buscarUsuario($id){
     $usuario=Usuario::find($id);
     return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
+  }
+  //en la seccion usuarios (ajaxUsuarios.js)
+  public function buscarUsuarioSecUsuarios($id){
+    $usuario=Usuario::find($id);
+    $user = session('id_usuario');
+    $esSuper = DB::table('usuario_tiene_rol')->where([['id_rol','=',1],['id_usuario','=',$user]])->get();
+    $bool = 0;
+    if(count($esSuper)>0){
+      $bool = 1;
+    }
+    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos,
+            'superusuario' => $bool
+            ];
   }
 
   public function configUsuario(){

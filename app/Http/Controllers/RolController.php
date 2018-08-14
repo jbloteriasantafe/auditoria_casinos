@@ -22,8 +22,22 @@ class RolController extends Controller
   }
 
   public function buscarTodo(){
-    $roles= Rol::orderBy('descripcion' , 'asc')->get();
-    $permisos= Permiso::orderBy('descripcion' , 'asc')->get();
+    $usuario = session('id_usuario');
+    $id_rol= DB::table('usuario_tiene_rol')->select('id_rol')
+                  ->where('id_usuario','=',$usuario)
+                  ->min('id_rol');
+    if($id_rol != 1 || $id_rol != 5){
+      $roles= Rol::orderBy('id_rol' , 'desc')->where([['id_rol','>',$id_rol],['id_rol','!=',5]])->get();
+    }else{
+      $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>',$id_rol)->get();
+    }
+
+
+    $permisos = DB::table("permiso")->select("permiso.id_permiso","permiso.descripcion")
+                                    ->join("rol_tiene_permiso","permiso.id_permiso","=","rol_tiene_permiso.id_permiso")
+                                    ->where("rol_tiene_permiso.id_rol",'=',$id_rol)
+                                    ->orderBy('permiso.descripcion' , 'asc')
+                                    ->distinct()->get();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Roles y Permisos' , 'roles');
     return view('seccionRolesPermisos' , ['roles' => $roles , 'permisos' => $permisos]);
