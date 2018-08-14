@@ -1316,7 +1316,7 @@ $(document).on('click','.ajustar',function(e){
         if (denominacion.val() != '') {
             fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
             fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
-            boton.find('i').addClass('fa-life-ring').removeClass('fa-usd'); //Cambia el icono del botón
+            boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
 
 
             enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
@@ -1329,7 +1329,7 @@ $(document).on('click','.ajustar',function(e){
     else {
         fila.attr('data-medida', 2);
         fila.attr('data-denominacion', 0.01) //Cambia la denominacion
-        boton.find('i').removeClass('fa-life-ring').addClass('fa-usd');
+        boton.find('i').removeClass('fa-life-ring').addClass('fa-usd-circle');
 
         enviarCambioDenominacion(fila.attr('id'), 2, 0.01);
     }
@@ -1400,7 +1400,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos">'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-usd"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-fw fa-usd-circle"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación"><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1414,7 +1414,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos" checked>'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-usd"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-fw fa-usd-circle"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1436,7 +1436,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       //Si la unidad de medida es CRÉDITO
       if (unidadMedida == 1) botonDenominacion.append($('<i>').addClass('fa fa-fw fa-life-ring'));
       //Si la unidad de medida es PESOS
-      else botonDenominacion.append($('<i>').addClass('fa fa-fw fa-usd'));
+      else botonDenominacion.append($('<i>').addClass('fas fa-fw fa-usd-circle'));
 
 
       // var columna = $('<td>');

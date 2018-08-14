@@ -108,6 +108,9 @@ $('#btn-guardar').click(function(e){
   var gli_soft = obtenerDatosGliSoft();
   var gli_hard = obtenerDatosGliHard();
   var formula = obtenerDatosFormula();
+  
+  console.log('form',formula);
+
   var isla = obtenerDatosIsla();
 
   var state = $('#btn-guardar').val();

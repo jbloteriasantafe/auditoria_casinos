@@ -78,6 +78,7 @@ $('#inputFormula').on("keypress" , function(e){
 
 $('.agregarFormula').click(function(){
     var inputFormula = $('#inputFormula').val() ;
+    console.log('inp',inputFormula);
     if(typeof inputFormula.split(/[-+]+/)[1] != 'undefined' && inputFormula.split(/[-+]+/)[1] != ""){
       $('#formulaSeleccionada').text($('#inputFormula').val());
       $('#formulaSeleccionada').attr('data-id', $('#inputFormula').obtenerElementoSeleccionado());
