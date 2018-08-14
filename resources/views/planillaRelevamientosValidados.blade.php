@@ -103,6 +103,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
       -->
       </div><br><br>
       <div class="primerEncabezado" style="padding-left: 555px;">________________________________________</div><br>
-      <div class="primerEncabezado" style="padding-left: 563px;">Fiscalizador en centro de monitoreo del Casino</div>
+      <div class="primerEncabezado" style="padding-left: 563px;">Firma Responsable</div>
       </body>
 </html>
