@@ -266,7 +266,8 @@
                               <div class="col-md-12" id="contenedorRoles">
                                 <h5>Roles</h5>
                                 @foreach($roles as $rol)
-                                <input style="margin-left:40px;" id="rol{{$rol->id_rol}}" type="checkbox" name="" value="{{$rol->id_rol}}" disabled> {{$rol->descripcion}}
+                                <input style="margin-left:40px;" id="rol{{$rol->id_rol}}" type="checkbox" name="" value="{{$rol->id_rol}}" disabled>
+                                <h4 id="d{{$rol->id_rol}}">{{$rol->descripcion}}</h4>
                                 @endforeach
                               </div>
                           </div>
@@ -356,7 +357,8 @@
                           <div class="col-md-12" id="contenedorRoles">
                             <h5>Roles</h5>
                             @foreach($roles as $rol)
-                            <input style="margin-left:40px;" id="rol{{$rol->id_rol}}" type="checkbox" name="" value="{{$rol->id_rol}}"> {{$rol->descripcion}}
+                            <input style="margin-left:40px;" id="rol{{$rol->id_rol}}" type="checkbox" name="" value="{{$rol->id_rol}}">
+                              <span id="d{{$rol->id_rol}}">{{$rol->descripcion}}</span>
                             @endforeach
                           </div>
                       </div>

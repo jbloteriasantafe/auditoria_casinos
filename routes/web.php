@@ -540,3 +540,7 @@ Route::get('plano',function(){
 Route::get('calendario_eventos',function(){
     return view('calendar');
 });
+
+
+//nuevo buscador de usuarios para la seccion de USUARIOS
+Route::get('usuarios/get/{id}','UsuarioController@buscarUsuarioSecUsuarios');

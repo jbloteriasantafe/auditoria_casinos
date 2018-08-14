@@ -28,6 +28,8 @@ $(document).ready(function() {
       }
   });
 
+  $('#modalModificar #contenedorCasino').prop('disabled',false);
+  $('#modalModificar #rol' + 1 ).prop('visible' ,true);
 
 });
 
@@ -414,11 +416,14 @@ $(document).on('click','.modificar',function(){
   $('#modAlertaEmail').hide();
   $('#modAlertaPassword').hide();
 
+  $('#modalModificar #contenedorCasino').prop('disabled',false);
+  $('#modalModificar #rol' + 1 ).prop('visible' ,true);
+
     id_usuario = $(this).val();
 
     $('#modalModificar input:checked').prop('checked' ,false);
 
-  $.get('/usuarios/buscar/' + id_usuario, function (data) {
+  $.get('/usuarios/get/' + id_usuario, function (data) {
 
     console.log(data);
     $('#modNombre').val(data.usuario.nombre);
@@ -428,13 +433,25 @@ $(document).on('click','.modificar',function(){
     $('#btn-modificiar').val(data.usuario.id_usuario);
     // $('#modalModificar #contenedorPermisos').empty();
 
+    //si el usuario no es superusuario, que se deshabilite seleccionar casinos y
+    //que no le figure el rol superusuario
+
+
     //Setear los roles del usuario
     for (var i = 0; i < data.roles.length; i++) {
       $('#modalModificar #rol' + data.roles[i].id_rol ).prop('checked' ,true);
     }
 
+    if(!data.superusuario){
+      $('#modalModificar #contenedorCasino').attr('style','display:none;');
+      $('#modalModificar #rol' + 1 ).attr('style','display:none;');
+      $('#modalModificar #rol' + 5 ).attr('style','display:none;');
+      $('#modalModificar #d' + 5 ).remove();
+      $('#modalModificar #d' + 1 ).remove();
+    }
+
     //Setear los permisos del usuario
-    mostrarPermisos(data.roles,$('#modalModificar #contenedorPermisos'))  ;
+    mostrarPermisos(data.roles,$('#modalModificar #contenedorPermisos'));
 
     //Setear los casinos del usuario
     for (var i = 0; i < data.casinos.length; i++) {
