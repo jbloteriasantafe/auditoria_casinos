@@ -691,38 +691,35 @@ class RelevamientoController extends Controller
         // $producido = DetalleProducido::join('producido' , 'producido.id_producido' , '=' , 'detalle_producido.id_producido')
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
-        try{
+
         if($detalle->maquina->moneda->id_tipo_moneda == 1){//ars
           $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
         }else{//es 2 entonces es dolares
           $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
         }
-
-        $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
-      }catch(Exception $e){
-        $aa= new \stdClass();
-        $aa->detalles = 'No hay contadores importados.';
-        $view = View::make('error', compact('aa'));
-        $dompdf = new Dompdf();
-        $dompdf->set_paper('A4','landscape');
-        $dompdf->loadHtml($view->render());
-        $dompdf->render();
-        $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
-        $dompdf->getCanvas()->page_text(750,565,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
-        return $dompdf;
-        //return view('error', ['detalles' => 'No hay contadores importados.']);
-        //return response()->json(['error' => 'No hay contadores importados.'], 404);
-      }
-        $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
-
-        if($diferencia != 0){
+        //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
+        if($detalle_contador_horario == null){
           $det = new \stdClass();
           $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
           $det->nro_admin = $detalle->maquina->nro_admin;
-          $det->producido = $producido;
+          $det->producido = 0;
           $detalles[] = $det;
+
+        }else{
+          $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
+
+          $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
+
+          if($diferencia != 0){
+            $det = new \stdClass();
+            $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+            $det->nro_admin = $detalle->maquina->nro_admin;
+            $det->producido = $producido;
+            $detalles[] = $det;
+          }
         }
+
       }
     }
 
@@ -741,7 +738,12 @@ class RelevamientoController extends Controller
     foreach ($estados_habilitados as $key => $estado){
       $estados_habilitados[$key] = $estado->id_estado_maquina;
     }
-    $rel->cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))->where('id_casino',$casino->id_casino)->whereIn('id_estado_maquina',$estados_habilitados)->first()->cantidad;
+    $rel->cantidad_habilitadas = DB::table('maquina')
+                                    ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+                                    ->where('id_casino',$casino->id_casino)
+                                    ->whereIn('id_estado_maquina',$estados_habilitados)
+                                    ->whereNull('deleted_at')
+                                    ->first()->cantidad;
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','landscape');
