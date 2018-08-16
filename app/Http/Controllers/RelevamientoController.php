@@ -692,34 +692,34 @@ class RelevamientoController extends Controller
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
 
-        if($detalle->maquina->moneda->id_tipo_moneda == 1){//ars
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        //ars
+        $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
-        }else{//es 2 entonces es dolares
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
-        }
-        //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
-        if($detalle_contador_horario == null){
-          $det = new \stdClass();
-          $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
-          $det->nro_admin = $detalle->maquina->nro_admin;
-          $det->producido = 0;
-          $detalles[] = $det;
-
-        }else{
-          $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
-
-          $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
-
-          if($diferencia != 0){
+          if($detalle_contador_horario == null){
+            //es 2 entonces es dolares
+            $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+          }
+          //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
+          if($detalle_contador_horario == null){
             $det = new \stdClass();
             $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
             $det->nro_admin = $detalle->maquina->nro_admin;
-            $det->producido = $producido;
+            $det->producido = 0;
             $detalles[] = $det;
-          }
-        }
 
+          }else{
+            $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
+
+            $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
+
+            if($diferencia != 0){
+              $det = new \stdClass();
+              $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+              $det->nro_admin = $detalle->maquina->nro_admin;
+              $det->producido = $producido;
+              $detalles[] = $det;
+            }
+          }
       }
     }
 
