@@ -650,17 +650,31 @@ class RelevamientoController extends Controller
     foreach ($relevamientos as $unRelevamiento){
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
 
-      $contador_horario = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],['id_casino','=',$unRelevamiento->sector->casino->id_casino]])->first();
+      $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
+                                                      ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
+                                                      ['id_tipo_moneda','=',1]
+                                                      ])->first();
+      $contador_horario_USD = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
+                                                    ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
+                                                    ['id_tipo_moneda','=',2]
+                                                    ])->first();
 
 
-      if($unRelevamiento->observacion_validacion != null)
+
+
+      if($unRelevamiento->observacion_validacion != null){
         $observaciones[] = ['zona' => $unRelevamiento->sector->descripcion, 'observacion' =>  $unRelevamiento->observacion_validacion ];
+      }
       foreach ($unRelevamiento->detalles as $detalle){
         // $producido = DetalleProducido::join('producido' , 'producido.id_producido' , '=' , 'detalle_producido.id_producido')
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
+        if($detalle->maquina->moneda->id_tipo_moneda == 1){//ars
+          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
-        $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        }else{//es 2 entonces es dolares
+          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        }
 
         $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
 
