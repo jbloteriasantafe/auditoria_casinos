@@ -541,7 +541,20 @@ class RelevamientoController extends Controller
 
     $relevamiento = Relevamiento::find($request->id_relevamiento);
     $relevamiento->observacion_validacion = $request->observacion_validacion;
-    $relevamiento->estado_relevamiento()->associate(4);
+
+    $casino = $relevamiento->sector->casino;
+    foreach($casino->sectores as $sector){
+      $sectores[] = $sector->id_sector;
+    }
+    $fecha = $relevamiento->fecha;
+    $todes = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->count();
+    $visades = Relevamiento::where([['fecha', $fecha],['backup',0],['id_estado_relevamiento',4]])->whereIn('id_sector',$sectores)->count();
+
+    if($todes  == $visades){ 
+      $relevamiento->estado_relevamiento()->associate(6);
+    }else{
+      $relevamiento->estado_relevamiento()->associate(4);
+    }
     $relevamiento->save();
 
     $mtm_controller = MaquinaAPedidoController::getInstancia();
