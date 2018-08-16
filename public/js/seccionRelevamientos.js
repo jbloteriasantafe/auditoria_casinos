@@ -2195,7 +2195,7 @@ function crearFilaTabla(relevamiento){
           icono_planilla.hide();
           icono_validado.hide();
           break;
-      case 'RelValidado':
+      case 'Rel. Visado':
             fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
 
             icono_impirmir.show();

@@ -544,6 +544,23 @@ class RelevamientoController extends Controller
     $relevamiento->estado_relevamiento()->associate(4);
     $relevamiento->save();
 
+    ///controlo que todos esten visados para habilitar el informe
+    $casino = $relevamiento->sector->casino;
+    foreach($casino->sectores as $sector){
+      $sectores[] = $sector->id_sector;
+    }
+    $fecha = $relevamiento->fecha;
+    $todes = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->count();
+    $visades = Relevamiento::where([['fecha', $fecha],['backup',0],['id_estado_relevamiento',4]])->whereIn('id_sector',$sectores)->get();
+
+    if($todes  == count($visades)){
+      foreach ($visades as $vis) {
+        $vis->estado_relevamiento()->associate(7);
+        $vis->save();
+      }
+    }
+
+
     $mtm_controller = MaquinaAPedidoController::getInstancia();
     if(!empty($request->maquinas_a_pedido)){
       foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
@@ -684,8 +701,18 @@ class RelevamientoController extends Controller
 
         $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
       }catch(Exception $e){
+        $aa= new \stdClass();
+        $aa->detalles = 'No hay contadores importados.';
+        $view = View::make('error', compact('aa'));
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4','landscape');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
+        $dompdf->getCanvas()->page_text(750,565,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
+        return $dompdf;
         //return view('error', ['detalles' => 'No hay contadores importados.']);
-        return response()->json(['error' => 'No hay contadores importados.'], 404);
+        //return response()->json(['error' => 'No hay contadores importados.'], 404);
       }
         $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
 
