@@ -43,7 +43,17 @@ p {
 
     <h5> ERROR! </h5>
     <h5>{{$aa->detalles}}</h5>
-
+  <h5>  $aa= new \stdClass();
+    $aa->detalles = 'No hay contadores importados.';
+    $view = View::make('error', compact('aa'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4','landscape');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
+    $dompdf->getCanvas()->page_text(750,565,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
+    return $dompdf;
+    </h5>
   </div>
 
 
