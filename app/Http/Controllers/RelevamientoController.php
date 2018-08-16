@@ -160,7 +160,7 @@ class RelevamientoController extends Controller
       $posicion->unidad_medida = $det->maquina->unidad_medida;
       $posicion->denominacion = $det->maquina->denominacion;
 
-      if($contador_horario != null){
+      if($contador_horario_USD != null || $contador_horario_ARS){
         if($det->maquina->moneda->id_tipo_moneda == 1){//ars
           $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
 
