@@ -2147,7 +2147,7 @@ function crearFilaTabla(relevamiento){
           )
           .append($('<span>').text(' '))
           .append($('<button>').addClass('btn btn-success validado').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR VALIDADO','data-delay':'{"show":"300", "hide":"100"}'})
+              .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR VISADO','data-delay':'{"show":"300", "hide":"100"}'})
               .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-bookmark'))
           )
       )
@@ -2187,14 +2187,23 @@ function crearFilaTabla(relevamiento){
           icono_validado.hide();
           break;
       case 'Visado':
-          fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
+          fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
 
           icono_impirmir.show();
           icono_validacion.hide();
           icono_carga.hide();
           icono_planilla.hide();
-          icono_validado.show();
+          icono_validado.hide();
           break;
+      case 'RelValidado':
+            fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
+
+            icono_impirmir.show();
+            icono_validacion.hide();
+            icono_carga.hide();
+            icono_planilla.hide();
+            icono_validado.show();
+            break;
     }
 
     return fila;
