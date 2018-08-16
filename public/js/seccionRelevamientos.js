@@ -2187,14 +2187,23 @@ function crearFilaTabla(relevamiento){
           icono_validado.hide();
           break;
       case 'Visado':
-          fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
+          fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
 
           icono_impirmir.show();
           icono_validacion.hide();
           icono_carga.hide();
           icono_planilla.hide();
-          icono_validado.show();
+          icono_validado.hide();
           break;
+      case 'RelValidado':
+            fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
+
+            icono_impirmir.show();
+            icono_validacion.hide();
+            icono_carga.hide();
+            icono_planilla.hide();
+            icono_validado.show();
+            break;
     }
 
     return fila;
