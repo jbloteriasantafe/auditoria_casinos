@@ -128,7 +128,14 @@ class RelevamientoController extends Controller
     $usuario_actual = UsuarioController::getInstancia()->quienSoy();
     $relevamiento = Relevamiento::find($id_relevamiento);
 
-    $contador_horario = ContadorHorario::where([['fecha','=',$relevamiento->fecha],['id_casino','=',$relevamiento->sector->casino->id_casino]])->first();
+    $contador_horario_ARS = ContadorHorario::where([['fecha','=',$relevamiento->fecha],
+                                                    ['id_casino','=',$relevamiento->sector->casino->id_casino],
+                                                    ['id_tipo_moneda','=',1]
+                                                    ])->first();
+    $contador_horario_USD = ContadorHorario::where([['fecha','=',$relevamiento->fecha],
+                                                  ['id_casino','=',$relevamiento->sector->casino->id_casino],
+                                                  ['id_tipo_moneda','=',2]
+                                                  ])->first();
 
     // $relevamiento->fecha = date("d-M-Y", strtotime($relevamiento->fecha));
 
@@ -150,8 +157,12 @@ class RelevamientoController extends Controller
       $posicion->denominacion = $det->maquina->denominacion;
 
       if($contador_horario != null){
+        if($det->maquina->moneda->id_tipo_moneda == 1){//ars
+          $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
 
-        $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
+        }else{//es 2 entonces es dolares
+          $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
+        }
 
         if($detalle != null){
           $posicion->producido = $detalle->coinin - $detalle->coinout - $detalle->jackpot - $detalle->progresivo;//APLICO FORMULA
