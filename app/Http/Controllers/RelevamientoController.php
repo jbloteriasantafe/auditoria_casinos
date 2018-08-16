@@ -161,10 +161,11 @@ class RelevamientoController extends Controller
       $posicion->denominacion = $det->maquina->denominacion;
 
       if($contador_horario_USD != null || $contador_horario_ARS != null){
-        if($det->maquina->moneda->id_tipo_moneda == 1){//ars
+        if($det->maquina->moneda->id_tipo_moneda == 1 && $contador_horario_ARS != null){//ars
           $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
 
         }else{//es 2 entonces es dolares
+          if( $contador_horario_USD != null)
           $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
         }
 
