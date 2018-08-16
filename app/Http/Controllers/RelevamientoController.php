@@ -28,6 +28,10 @@ use DateTime;
 use App\TipoCantidadMaquinasPorRelevamiento;
 use App\CantidadMaquinasPorRelevamiento;
 
+use Exception;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+
 class RelevamientoController extends Controller
 {
   private static $atributos = [
@@ -654,6 +658,7 @@ class RelevamientoController extends Controller
                                                       ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
                                                       ['id_tipo_moneda','=',1]
                                                       ])->first();
+
       $contador_horario_USD = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
                                                     ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
                                                     ['id_tipo_moneda','=',2]
@@ -669,6 +674,7 @@ class RelevamientoController extends Controller
         // $producido = DetalleProducido::join('producido' , 'producido.id_producido' , '=' , 'detalle_producido.id_producido')
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
+        try{
         if($detalle->maquina->moneda->id_tipo_moneda == 1){//ars
           $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
@@ -677,7 +683,10 @@ class RelevamientoController extends Controller
         }
 
         $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
-
+      }catch(Exception $e){
+        //return view('error', ['detalles' => 'No hay contadores importados.']);
+        return response()->json(['error' => 'No hay contadores importados.'], 404);
+      }
         $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
 
         if($diferencia != 0){
