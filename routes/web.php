@@ -544,3 +544,5 @@ Route::get('calendario_eventos',function(){
 
 //nuevo buscador de usuarios para la seccion de USUARIOS
 Route::get('usuarios/get/{id}','UsuarioController@buscarUsuarioSecUsuarios');
+
+Route::get('error','RelevamientoController@crearPlanillaValidado');

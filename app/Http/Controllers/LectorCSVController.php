@@ -18,6 +18,10 @@ use App\Http\Controllers\ContadorController;
 use App\Http\Controllers\ProducidoController;
 use App\Http\Controllers\BeneficioController;
 
+use Exception;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+
 class LectorCSVController extends Controller
 {
   private static $instance;
@@ -802,6 +806,7 @@ class LectorCSVController extends Controller
         }
 
         $path = $archivoCSV->getRealPath();
+
         $query = sprintf("LOAD DATA local INFILE '%s'
                           INTO TABLE contadores_temporal
                           FIELDS TERMINATED BY ';'
@@ -819,6 +824,8 @@ class LectorCSVController extends Controller
                           ",$path,$contador->id_contador_horario);
 
         $pdo->exec($query);
+
+
 
         $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
