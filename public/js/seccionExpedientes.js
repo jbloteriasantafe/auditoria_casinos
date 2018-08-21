@@ -463,6 +463,9 @@ $('#btn-nuevo').click(function(e){
 
 
     limpiarModal();
+    $('#concepto').val(' ');
+    $('#tema').val(' ');
+
     habilitarControles(true);
     $('.modal-title').text('NUEVO EXPEDIENTE');
     $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
@@ -503,7 +506,7 @@ $(document).on('click','.detalle',function(){
       var id_expediente = $(this).val();
 
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-          console.log(data);
+          console.log('aqui',data);
           generarListaMovimientos(id_expediente);
           mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
           habilitarControles(false);
@@ -1255,11 +1258,12 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
   $('#nro_cuerpos').val(expediente.nro_cuerpos);
   $('#nro_folios').val(expediente.nro_folios);
   $('#anexo').val(expediente.anexo);
+
   if(resolucion != null){
     $('#nro_resolucion').val(resolucion.nro_resolucion);
     $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
   }
-  if(disposiciones != null){
+  if(disposiciones.length != 0){
     for(var index=0; index<disposiciones.length; index++){
       agregarDisposicion(disposiciones[index],editable);
     }
@@ -1339,23 +1343,14 @@ function agregarDisposicion(disposicion, editable){
     moldeDisposicion.removeAttr('id');
 
     //Para el modificar
-    // moldeDisposicion.attr('id', disposicion.id_disposicion);
-    // moldeDisposicion.find('.nro_resolucion').val();
-    // moldeDisposicion.find('.nro_resolucion_anio').val();
-    // moldeDisposicion.find('.descripcion_disposicion').val();
+     moldeDisposicion.attr('id', disposicion.id_disposicion);
+     moldeDisposicion.find('.nro_resolucion').val(disposicion.nro_disposicion);
+     moldeDisposicion.find('.nro_resolucion_anio').val(disposicion.nro_disposicion_anio);
+     moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion);
 
     moldeDisposicion.show();
 
-
-
-
     $('#columnaDisposicion').append(moldeDisposicion);
-
-
-
-
-
-
 
 
   // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
@@ -1409,25 +1404,27 @@ function agregarDisposicion(disposicion, editable){
   //         )
   //     )
 
-      // if(editable){
-      //   $('#columnaDisposicion .Disposicion:last')
-      //         .append($('<div>')
-      //         .addClass('col-xs-1')
-      //         .append($('<button>')
-      //             .addClass('borrarDisposicion')
-      //             .addClass('btn')
-      //             .addClass('borrarInput')
-      //             .addClass('btn-danger')
-      //             .css('margin-top','6px')
-      //             .attr('type','button')
-      //             .append($('<i>')
-      //                 .addClass('fa')
-      //                 .addClass('fa-fw')
-      //                 .addClass('fa-trash')
-      //             )
-      //         )
-      //       )
-      // }
+      if(editable){
+        moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
+
+        // $('#columnaDisposicion .Disposicion:last')
+        //       .append($('<div>')
+        //       .addClass('col-xs-1')
+        //       .append($('<button>')
+        //           .addClass('borrarDisposicion')
+        //           .addClass('btn')
+        //           .addClass('borrarInput')
+        //           .addClass('btn-danger')
+        //           .css('margin-top','6px')
+        //           .attr('type','button')
+        //           .append($('<i>')
+        //               .addClass('fa')
+        //               .addClass('fa-fw')
+        //               .addClass('fa-trash')
+        //           )
+        //       )
+        //     )
+      }
 }
 
 function agregarMovimientos(movimiento, editable){

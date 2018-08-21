@@ -355,7 +355,7 @@ $id_usuario = session('id_usuario');
 
                               <div class="row">
 
-                                <div class="col-md-6 col-lg-6" style="margin-top:8px;">
+                                <div class="col-md-6 col-lg-6" >
                                   <h5>Iniciador</h5>
                                   <input id="iniciador" type="text" class="form-control" maxlength="60" placeholder="Ingresar iniciador">
                                   <br>
@@ -375,13 +375,13 @@ $id_usuario = session('id_usuario');
 
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Concepto</h5>
-                                  <input id="concepto" type="text" class="form-control" maxlength="150" style="height:60px" placeholder="Ingresar concepto">
+                                  <textarea id="concepto" type="text" class="form-control" maxlength="150" style="height:80px;" placeholder="Ingresar concepto"></textarea>
                                   <br>
                                   <span id="alerta-concepto" class="alertaSpan"></span>
                                 </div>
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Tema</h5>
-                                  <input id="tema" type="text" class="form-control" maxlength="100" style="height:60px" placeholder="Ingresar tema">
+                                  <textarea id="tema" type="text" class="form-control" maxlength="100" style="height:80px" placeholder="Ingresar tema"></textarea>
                                   <br>
                                   <span id="alerta-tema" class="alertaSpan"></span>
                                 </div>
