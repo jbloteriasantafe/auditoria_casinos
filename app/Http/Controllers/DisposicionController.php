@@ -42,6 +42,7 @@ class DisposicionController extends Controller
     $disposicion = new Disposicion;
     $disposicion->nro_disposicion = $disp['nro_disposicion'];
     $disposicion->nro_disposicion_anio = $disp['nro_disposicion_anio'];
+    $disposicion->descripcion = $disp['descripcion'];
     $disposicion->expediente()->associate($id_expediente);
     $disposicion->save();
   }

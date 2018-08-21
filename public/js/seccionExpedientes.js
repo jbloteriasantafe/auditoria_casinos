@@ -157,7 +157,6 @@ function movimientosSinExpediente() {
 
 }
 
-
 function habilitarNotasNuevas() {
   $('#secNotas .mensajeNotas').hide();
   $('#secNotas .formularioNotas').show();
@@ -166,24 +165,8 @@ function habilitarNotasNuevas() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function obtenerTiposMovimientos() {
-    var id_expediente = $('#id_expediente').val();
+    var id_expediente = $('#modalExpediente #id_expediente').val();
 
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
@@ -194,9 +177,6 @@ function obtenerTiposMovimientos() {
           }
     });
 }
-
-
-
 
 
 function mostrarMovimientosDisponibles(cantidadMovimientos) {
@@ -295,7 +275,7 @@ $(document).on('click','.borrarMovimiento',function(){
 
 function generarListaMovimientos(expediente){
 
-  $.get("expedientes/tiposMovimientos/" + id_expediente, function(data){
+  $.get("expedientes/tiposMovimientos/" + expediente, function(data){
       console.log(data);
         selectMov.children().remove();
         for(i=0 ; i<data.length ; i++){
@@ -463,6 +443,9 @@ $('#btn-nuevo').click(function(e){
 
 
     limpiarModal();
+    $('#concepto').val(' ');
+    $('#tema').val(' ');
+
     habilitarControles(true);
     $('.modal-title').text('NUEVO EXPEDIENTE');
     $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
@@ -501,9 +484,10 @@ $(document).on('click','.detalle',function(){
       $('#navConfig').click(); //Empezar por la sección de configuración
 
       var id_expediente = $(this).val();
+      console.log('id',id_expediente);
 
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-          console.log(data);
+          console.log('aqui',data);
           generarListaMovimientos(id_expediente);
           mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
           habilitarControles(false);
@@ -544,7 +528,7 @@ $(document).on('click','.modificar',function(){
     $('#error_nav_mov').hide();
 
     var id_expediente = $(this).val();
-    $('#id_expediente').val(id_expediente);
+    $('#modalExpediente #id_expediente').val(id_expediente);
 
     obtenerTiposMovimientos();
 
@@ -1255,11 +1239,12 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
   $('#nro_cuerpos').val(expediente.nro_cuerpos);
   $('#nro_folios').val(expediente.nro_folios);
   $('#anexo').val(expediente.anexo);
+
   if(resolucion != null){
     $('#nro_resolucion').val(resolucion.nro_resolucion);
     $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
   }
-  if(disposiciones != null){
+  if(disposiciones.length != 0){
     for(var index=0; index<disposiciones.length; index++){
       agregarDisposicion(disposiciones[index],editable);
     }
@@ -1346,17 +1331,25 @@ function agregarDisposicion(disposicion, editable){
 
     moldeDisposicion.show();
 
+    if(editable==false){
+      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
+      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
+      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
+      moldeDisposicion.find('.borrarDisposicion').hide();
+
+      $('#columnaDisposicion').append(moldeDisposicion);
+
+    }
+    else {
+      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion);
+      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio);
+      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion);
+      moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
 
 
+      $('#columnaDisposicion').append(moldeDisposicion);
 
-    $('#columnaDisposicion').append(moldeDisposicion);
-
-
-
-
-
-
-
+    }
 
   // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
   // var nro_disposicion = ((disposicion != null) ? disposicion.nro_disposicion: null);
