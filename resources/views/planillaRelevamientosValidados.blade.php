@@ -77,31 +77,57 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
           <table>
                   <tr>
                     <th class="tablaInicio">N° DE MÁQUINA</th>
+                    <th class="tablaInicio">SECTOR</th>
+                    <th class="tablaInicio">ISLA</th>
                     <th class="tablaInicio">PRODUCIDO CALCULADO OBSERVADO</th>
                     <th class="tablaInicio">PRODUCIDO CALCULADO DEL SISTEMA</th>
+                    <th class="tablaInicio">CAUSA DE NO TOMA</th>
                   </tr>
                   @if(isset($rel->detalles))
                     @foreach($rel->detalles as $detalle)
                     <tr>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->nro_admin}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->sector}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->isla}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->producido_calculado_relevado}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->producido}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
                     </tr>
                     @endforeach
                   @endif
           </table>
         </div>
-        <br><div class="primerEncabezado" style="padding-left: 120px;">Observaciones generales del proceso:</div><br>
-        <div style=" padding-left: 130px; width: 65%;">
-        @foreach($rel->observaciones as $unaObservacion)
-        <div class="primerEncabezado" style="padding-left: 120px;">
-          <b>{{$unaObservacion['zona']}} :</b> <i>{{$unaObservacion['observacion']}} </div><br>
-        @endforeach
+        <br><div class="primerEncabezado" style="padding-left: 120px;">Referencias:</div><br>
+        <div style="padding-left: 230px;">
+          <table>
+                  <tr>
+                    <th class="tablaInicio">CAUSA DE NO TOMA</th>
+                    <th class="tablaInicio">CÓDIGO</th>
+                  </tr>
+                    @foreach($rel->referencias as $causaNT)
+                    <tr>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$causaNT->descripcion}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$causaNT->codigo}}</td>
+
+                    </tr>
+                    @endforeach
+          </table>
       <!--  @for($i = 0; $i<450; $i++)
         .
         @endfor
       -->
       </div><br><br>
+      <br><div class="primerEncabezado" style="padding-left: 120px;">Observaciones generales del proceso:</div><br>
+      <div style=" padding-left: 130px; width: 65%;">
+      @foreach($rel->observaciones as $unaObservacion)
+      <div class="primerEncabezado" style="padding-left: 120px;">
+        <b>{{$unaObservacion['zona']}} :</b> <i>{{$unaObservacion['observacion']}} </div><br>
+      @endforeach
+    <!--  @for($i = 0; $i<450; $i++)
+      .
+      @endfor
+    -->
+    </div><br><br>
       <div class="primerEncabezado" style="padding-left: 555px;">________________________________________</div><br>
       <div class="primerEncabezado" style="padding-left: 563px;">Firma Responsable</div>
       </body>
