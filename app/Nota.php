@@ -10,7 +10,7 @@ class Nota extends Model
   protected $connection = 'mysql';
   protected $table = 'nota';
   protected $primaryKey = 'id_nota';
-  protected $visible = array('id_nota','fecha','detalle','identificacion');
+  protected $visible = array('id_nota','fecha','detalle','identificacion','id_expediente');
   public $timestamps = false;
 
   public function expediente(){
@@ -30,6 +30,10 @@ class Nota extends Model
   }
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
+  }
+
+  public function maquinas(){
+    return $this->belongsToMany('App\Maquina','maquina_tiene_nota','id_nota','id_maquina');
   }
 
   public static function boot(){

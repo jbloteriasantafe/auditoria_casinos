@@ -38,7 +38,7 @@ class Expediente extends Model
   }
 
   public function notas(){
-    return $this->HasMany('App\Nota' , 'id_nota', 'id_nota');
+    return $this->HasMany('App\Nota' , 'id_expediente', 'id_expediente');
   }
 
   public function tipo_movimiento(){

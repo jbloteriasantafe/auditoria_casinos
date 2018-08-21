@@ -116,7 +116,7 @@ class ExpedienteController extends Controller
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'integer|exists:tipo_movimiento,id_tipo_movimiento|required',
+        'notas.*.id_tipo_movimiento' => 'nullable|integer',
         'notas_asociadas'  => 'nullable',
         'notas_asociadas.*.fecha'=>'required|date',
         'notas_asociadas.*.identificacion'=>'required',
@@ -411,6 +411,7 @@ class ExpedienteController extends Controller
       }
     }
     $notas = $expediente->notas;
+    //dd($notas);
     if(!empty($notas)){
       foreach($notas as $nota){
         NotaController::getInstancia()->eliminarNota($nota->id_nota);
