@@ -250,7 +250,13 @@ function habilitarDTP() {
 
 //Agregar nueva disposicion en el modal
 $('#btn-agregarDisposicion').click(function(){
-  agregarDisposicion(null,true);
+
+  var moldeDisposicion = $('#moldeDisposicion').clone();
+
+  moldeDisposicion.removeAttr('id');
+  moldeDisposicion.show();
+  $('#columnaDisposicion').append(moldeDisposicion);
+
 });
 
 //Agregar nuevo movimiento en el modal
@@ -536,7 +542,7 @@ $(document).on('click','.modificar',function(){
         console.log(data);
         generarListaMovimientos(id_expediente);
         // mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.log_movimientos,data.tipos_movimientos,true);
-        mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
+        mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
         habilitarControles(true);
         $('#btn-guardar').val("modificar");
         $('#modalExpediente').modal('show');
@@ -1340,17 +1346,22 @@ function agregarDisposicion(disposicion, editable){
       $('#columnaDisposicion').append(moldeDisposicion);
 
     }
-    else {
-      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion);
-      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio);
-      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion);
-      moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
+    if(editable==true) {
+      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',false);
+      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',false);
+      if(disposicion.descripcion != null){
+      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
+      else {
+        moldeDisposicion.find('.descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
+      }
+      moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion).prop('readonly',false);
 
 
       $('#columnaDisposicion').append(moldeDisposicion);
 
     }
-
+    if(editable=='vacia') {
+      $('#columnaDisposicion').append(moldeDisposicion);  }
   // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
   // var nro_disposicion = ((disposicion != null) ? disposicion.nro_disposicion: null);
   // var nro_disposicion_anio = ((disposicion != null) ? disposicion.nro_disposicion_anio: null);
