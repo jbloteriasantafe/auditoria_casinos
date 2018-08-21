@@ -339,49 +339,49 @@ $id_usuario = session('id_usuario');
                                   </div>
 
                                 </div>
-                                <div class="col-md-6 col-lg-4">
+                                <div class="col-md-6 col-lg-6">
                                   <h5>Destino</h5>
                                   <input id="destino" type="text" class="form-control" maxlength="45" placeholder="Ingresar destino">
                                   <span id="alerta-destino" class="alertaSpan"></span>
+                                </div>
+                                <div class="col-md-6 col-lg-6" >
+                                  <h5>Ubicación</h5>
+                                  <input id="ubicacion" type="text" class="form-control" maxlength="100" placeholder="Ingresar ubicación física">
+                                  <br>
+                                  <span id="alerta-ubicacion" class="alertaSpan"></span>
                                 </div>
 
                               </div>
 
                               <div class="row">
 
-                                <div class="col-md-6 col-lg-6" style="margin-top:8px;">
-                                  <h5>Ubicación</h5>
-                                  <input id="ubicacion" type="text" class="form-control" maxlength="100" placeholder="Ingresar ubicación física">
-                                  <br>
-                                  <span id="alerta-ubicacion" class="alertaSpan"></span>
-                                </div>
                                 <div class="col-md-6 col-lg-6" style="margin-top:8px;">
                                   <h5>Iniciador</h5>
                                   <input id="iniciador" type="text" class="form-control" maxlength="60" placeholder="Ingresar iniciador">
                                   <br>
                                   <span id="alerta-iniciador" class="alertaSpan"></span>
                                 </div>
+                                <div class="col-md-6 col-lg-6">
+                                  <h5>Remitente</h5>
+                                  <input id="remitente" type="text" class="form-control" maxlength="45" placeholder="Ingresar remitente">
+                                  <br>
+                                  <span id="alerta-remitente" class="alertaSpan"></span>
+                                </div>
 
                               </div>
 
 
                               <div class="row">
 
-                                <div class="col-md-6 col-lg-4">
-                                  <h5>Remitente</h5>
-                                  <input id="remitente" type="text" class="form-control" maxlength="45" placeholder="Ingresar remitente">
-                                  <br>
-                                  <span id="alerta-remitente" class="alertaSpan"></span>
-                                </div>
-                                <div class="col-md-6 col-lg-4">
+                                <div class="col-md-6 col-lg-6">
                                   <h5>Concepto</h5>
-                                  <input id="concepto" type="text" class="form-control" maxlength="45" placeholder="Ingresar concepto">
+                                  <input id="concepto" type="text" class="form-control" maxlength="150" style="height:60px" placeholder="Ingresar concepto">
                                   <br>
                                   <span id="alerta-concepto" class="alertaSpan"></span>
                                 </div>
-                                <div class="col-md-6 col-lg-4">
+                                <div class="col-md-6 col-lg-6">
                                   <h5>Tema</h5>
-                                  <input id="tema" type="text" class="form-control" maxlength="45" placeholder="Ingresar tema">
+                                  <input id="tema" type="text" class="form-control" maxlength="100" style="height:60px" placeholder="Ingresar tema">
                                   <br>
                                   <span id="alerta-tema" class="alertaSpan"></span>
                                 </div>
