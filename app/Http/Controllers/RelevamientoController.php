@@ -160,12 +160,12 @@ class RelevamientoController extends Controller
       $posicion->unidad_medida = $det->maquina->unidad_medida;
       $posicion->denominacion = $det->maquina->denominacion;
 
-      if($contador_horario != null){
-        if($det->maquina->moneda->id_tipo_moneda == 1){//ars
+      if($contador_horario_USD != null || $contador_horario_ARS != null){
+        if ($contador_horario_ARS != null){//ars
           $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
-
-        }else{//es 2 entonces es dolares
-          $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
+          if($detalle == null && $contador_horario_USD != null){//es 2 entonces es dolares
+            $detalle = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$det->id_maquina]])->first();
+          }
         }
 
         if($detalle != null){
@@ -544,6 +544,23 @@ class RelevamientoController extends Controller
     $relevamiento->estado_relevamiento()->associate(4);
     $relevamiento->save();
 
+    ///controlo que todos esten visados para habilitar el informe
+    $casino = $relevamiento->sector->casino;
+    foreach($casino->sectores as $sector){
+      $sectores[] = $sector->id_sector;
+    }
+    $fecha = $relevamiento->fecha;
+    $todes = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->count();
+    $visades = Relevamiento::where([['fecha', $fecha],['backup',0],['id_estado_relevamiento',4]])->whereIn('id_sector',$sectores)->get();
+
+    if($todes  == count($visades)){
+      foreach ($visades as $vis) {
+        $vis->estado_relevamiento()->associate(7);
+        $vis->save();
+      }
+    }
+
+
     $mtm_controller = MaquinaAPedidoController::getInstancia();
     if(!empty($request->maquinas_a_pedido)){
       foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
@@ -674,28 +691,35 @@ class RelevamientoController extends Controller
         // $producido = DetalleProducido::join('producido' , 'producido.id_producido' , '=' , 'detalle_producido.id_producido')
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
-        try{
-        if($detalle->maquina->moneda->id_tipo_moneda == 1){//ars
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
-        }else{//es 2 entonces es dolares
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
-        }
+        //ars
+        $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
 
-        $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
-      }catch(Exception $e){
-        //return view('error', ['detalles' => 'No hay contadores importados.']);
-        return response()->json(['error' => 'No hay contadores importados.'], 404);
-      }
-        $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
+          if($detalle_contador_horario == null){
+            //es 2 entonces es dolares
+            $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+          }
+          //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
+          if($detalle_contador_horario == null){
+            $det = new \stdClass();
+            $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+            $det->nro_admin = $detalle->maquina->nro_admin;
+            $det->producido = 0;
+            $detalles[] = $det;
 
-        if($diferencia != 0){
-          $det = new \stdClass();
-          $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
-          $det->nro_admin = $detalle->maquina->nro_admin;
-          $det->producido = $producido;
-          $detalles[] = $det;
-        }
+          }else{
+            $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
+
+            $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
+
+            if($diferencia != 0){
+              $det = new \stdClass();
+              $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+              $det->nro_admin = $detalle->maquina->nro_admin;
+              $det->producido = $producido;
+              $detalles[] = $det;
+            }
+          }
       }
     }
 
@@ -714,7 +738,12 @@ class RelevamientoController extends Controller
     foreach ($estados_habilitados as $key => $estado){
       $estados_habilitados[$key] = $estado->id_estado_maquina;
     }
-    $rel->cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))->where('id_casino',$casino->id_casino)->whereIn('id_estado_maquina',$estados_habilitados)->first()->cantidad;
+    $rel->cantidad_habilitadas = DB::table('maquina')
+                                    ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+                                    ->where('id_casino',$casino->id_casino)
+                                    ->whereIn('id_estado_maquina',$estados_habilitados)
+                                    ->whereNull('deleted_at')
+                                    ->first()->cantidad;
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','landscape');
