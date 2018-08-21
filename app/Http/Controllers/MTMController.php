@@ -372,6 +372,7 @@ class MTMController extends Controller
           'juego.*.id_juego' => 'required', //validar que es id valido
           'juego.*.nombre_juego' => 'required',
           'juego.*.activo' => 'in:1,0',
+          'juego.*.cod_identificacion' => ['nullable','regex:/^\d(.|-|_|\d)*$/','unique:juego,cod_identificacion','max:100'],
           'juego.*.tabla.*.id_tabla' => 'nullable',
           'juego.*.tabla.*.nombre_tabla' => 'required',
           'progresivo.id_progresivo' => 'nullable',
