@@ -70,13 +70,16 @@ class ExpedienteController extends Controller
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->join('log_movimiento','log_movimiento.id_log_movimiento','=' , 'nota.id_log_movimiento')
                 ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                ->where('expediente.id_expediente','=',$id)->get();
+                ->where('expediente.id_expediente','=',$id)
+                ->orderBy('nota.fecha','DESC')
+                ->get();
 
     $notas = DB::table('expediente')
                 ->select('nota.*', 'expediente.tema')
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->where('expediente.id_expediente','=',$id)
                 ->whereNull('nota.id_log_movimiento')
+                ->orderBy('nota.fecha','DESC')
                 ->get();
 
     return ['expediente' => $expediente,
