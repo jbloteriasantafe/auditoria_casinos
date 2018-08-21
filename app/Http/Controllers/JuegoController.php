@@ -88,7 +88,7 @@ class JuegoController extends Controller
       //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
     Validator::make($request->all(), [
       'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
-      'cod_identificacion' => 'nullable|alpha_dash|unique:juego,cod_identificacion|max:100',
+      'cod_identificacion' => ['nullable','regex:/^\d(.|-|_|\d)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
       'tabla_pago.*.codigo' => 'required',

@@ -318,6 +318,7 @@ function obtenerDatosJuego(){
       id_juego: $(this).attr('id'),
       nombre_juego: $(this).find('td:eq(1)').text(),
       tablas: tablas,
+      cod_identificacion: $('#inputCodigo').val(),
       denominacion: denominacion,
       porcentaje_devolucion: porcentaje_devolucion,
     }
