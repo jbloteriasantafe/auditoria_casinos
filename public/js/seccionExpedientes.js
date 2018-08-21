@@ -157,7 +157,6 @@ function movimientosSinExpediente() {
 
 }
 
-
 function habilitarNotasNuevas() {
   $('#secNotas .mensajeNotas').hide();
   $('#secNotas .formularioNotas').show();
@@ -166,24 +165,8 @@ function habilitarNotasNuevas() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function obtenerTiposMovimientos() {
-    var id_expediente = $('#id_expediente').val();
+    var id_expediente = $('#modalExpediente #id_expediente').val();
 
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
@@ -194,9 +177,6 @@ function obtenerTiposMovimientos() {
           }
     });
 }
-
-
-
 
 
 function mostrarMovimientosDisponibles(cantidadMovimientos) {
@@ -295,7 +275,7 @@ $(document).on('click','.borrarMovimiento',function(){
 
 function generarListaMovimientos(expediente){
 
-  $.get("expedientes/tiposMovimientos/" + id_expediente, function(data){
+  $.get("expedientes/tiposMovimientos/" + expediente, function(data){
       console.log(data);
         selectMov.children().remove();
         for(i=0 ; i<data.length ; i++){
@@ -504,6 +484,7 @@ $(document).on('click','.detalle',function(){
       $('#navConfig').click(); //Empezar por la sección de configuración
 
       var id_expediente = $(this).val();
+      console.log('id',id_expediente);
 
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
           console.log('aqui',data);
@@ -547,7 +528,7 @@ $(document).on('click','.modificar',function(){
     $('#error_nav_mov').hide();
 
     var id_expediente = $(this).val();
-    $('#id_expediente').val(id_expediente);
+    $('#modalExpediente #id_expediente').val(id_expediente);
 
     obtenerTiposMovimientos();
 
@@ -1343,15 +1324,32 @@ function agregarDisposicion(disposicion, editable){
     moldeDisposicion.removeAttr('id');
 
     //Para el modificar
-     moldeDisposicion.attr('id', disposicion.id_disposicion);
-     moldeDisposicion.find('.nro_resolucion').val(disposicion.nro_disposicion);
-     moldeDisposicion.find('.nro_resolucion_anio').val(disposicion.nro_disposicion_anio);
-     moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion);
+    // moldeDisposicion.attr('id', disposicion.id_disposicion);
+    // moldeDisposicion.find('.nro_resolucion').val();
+    // moldeDisposicion.find('.nro_resolucion_anio').val();
+    // moldeDisposicion.find('.descripcion_disposicion').val();
 
     moldeDisposicion.show();
 
-    $('#columnaDisposicion').append(moldeDisposicion);
+    if(editable==false){
+      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
+      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
+      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
+      moldeDisposicion.find('.borrarDisposicion').hide();
 
+      $('#columnaDisposicion').append(moldeDisposicion);
+
+    }
+    else {
+      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion);
+      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio);
+      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion);
+      moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
+
+
+      $('#columnaDisposicion').append(moldeDisposicion);
+
+    }
 
   // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
   // var nro_disposicion = ((disposicion != null) ? disposicion.nro_disposicion: null);
@@ -1404,27 +1402,25 @@ function agregarDisposicion(disposicion, editable){
   //         )
   //     )
 
-      if(editable){
-        moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
-
-        // $('#columnaDisposicion .Disposicion:last')
-        //       .append($('<div>')
-        //       .addClass('col-xs-1')
-        //       .append($('<button>')
-        //           .addClass('borrarDisposicion')
-        //           .addClass('btn')
-        //           .addClass('borrarInput')
-        //           .addClass('btn-danger')
-        //           .css('margin-top','6px')
-        //           .attr('type','button')
-        //           .append($('<i>')
-        //               .addClass('fa')
-        //               .addClass('fa-fw')
-        //               .addClass('fa-trash')
-        //           )
-        //       )
-        //     )
-      }
+      // if(editable){
+      //   $('#columnaDisposicion .Disposicion:last')
+      //         .append($('<div>')
+      //         .addClass('col-xs-1')
+      //         .append($('<button>')
+      //             .addClass('borrarDisposicion')
+      //             .addClass('btn')
+      //             .addClass('borrarInput')
+      //             .addClass('btn-danger')
+      //             .css('margin-top','6px')
+      //             .attr('type','button')
+      //             .append($('<i>')
+      //                 .addClass('fa')
+      //                 .addClass('fa-fw')
+      //                 .addClass('fa-trash')
+      //             )
+      //         )
+      //       )
+      // }
 }
 
 function agregarMovimientos(movimiento, editable){
