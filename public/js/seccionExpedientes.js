@@ -164,7 +164,6 @@ function habilitarNotasNuevas() {
   $('#secMov .formularioNotas').hide();
 }
 
-
 function obtenerTiposMovimientos() {
     var id_expediente = $('#modalExpediente #id_expediente').val();
 
@@ -178,16 +177,10 @@ function obtenerTiposMovimientos() {
     });
 }
 
-
 function mostrarMovimientosDisponibles(cantidadMovimientos) {
   if (cantidadMovimientos == 1) $('#cantidadMovimientos').text('1 Movimiento disponible');
   else $('#cantidadMovimientos').text(cantidadMovimientos + ' Movimientos disponibles');
 }
-
-
-
-
-
 
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){
@@ -356,8 +349,6 @@ $('#modalExpediente').on('click','.borrarNotaMov', function(){
     $('#secMov .agregarNota').show();                                           //Mostrar el botón para agregar notas
     $('#movimientosDisponibles option[value="'+ id_movimiento +'"]').show();    //Mostrar el movimiento borrado nuevamente en el selector
 });
-
-
 
 
 $('#btn-notaMov').click(function(e){
@@ -546,9 +537,11 @@ $(document).on('click','.modificar',function(){
         habilitarControles(true);
         $('#btn-guardar').val("modificar");
         $('#modalExpediente').modal('show');
+        $('[rel=tooltip]').tooltip('disable');
     });
 
 });
+
 
 //Borrar Casino y remover de la tabla
 $(document).on('click','.eliminar',function(){
@@ -587,13 +580,18 @@ $('#btn-eliminarModal').click(function (e) {
 
 function obtenerNotasNuevas() {
   var notas_nuevas = [];
-
+  var mov = null;
   $.each($('.notaNueva').not('#moldeNotaNueva'), function (index, value) {
+    if($(this).find('.tiposMovimientos').val() != 0){
+      mov = $(this).find('.tiposMovimientos').val();
+    }else{
+      mov = null;
+    }
       var nota = {
         fecha: $(this).find('.fecha_notaNueva').val(),
         identificacion: $(this).find('.identificacion').val(),
         detalle: $(this).find('.detalleNota').val(),
-        id_tipo_movimiento: $(this).find('.tiposMovimientos').val(),
+        id_tipo_movimiento: mov,
       }
 
       notas_nuevas.push(nota);
@@ -654,7 +652,13 @@ $('#btn-guardar').click(function (e) {
 
     var notas = obtenerNotasNuevas();
     var notas_asociadas = obtenerNotasMov();
+    var tablaNotas=[];
+    var tabla= $('#tablaNotasCreadas tbody > tr');
 
+    $.each(tabla, function(index, value){
+      console.log(value.id);
+      tablaNotas.push(value.id);
+    });
 
     var state = $('#btn-guardar').val();
     var type = "POST";
@@ -680,6 +684,7 @@ $('#btn-guardar').click(function (e) {
       disposiciones: disposiciones,
       notas: notas,
       notas_asociadas: notas_asociadas,
+      tablaNotas: tablaNotas,
     }
     console.log(formData);
 
@@ -988,6 +993,11 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
+$(document).on('click','.borrarNotaCargada',function(e){
+  $(this).parent().parent().remove();
+});
+
+
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
@@ -1219,7 +1229,6 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
-  console.log('ddddd',casinos);
 
   for (var i = 0; i < casinos.length; i++) {
     $('#'+ casinos[i].id_casino).prop('checked',true).prop('disabled',true);
@@ -1263,8 +1272,8 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
 
 
   //MOSTRAR NOTAS!!!!
-  console.log(notas);
-  console.log(notasConMovimientos);
+  console.log('notas',notas);
+  console.log('notas con mov',notasConMovimientos);
   var i = 0;
   var j = 0;
 
@@ -1298,10 +1307,13 @@ function agregarNotaSinMovimiento(nota) {
   fila.removeAttr('moldeFilaNota');
 
   fila.attr('id',nota.id_nota);
+  fila.find('.borrarNotaCargada').attr('id',nota.id_nota);
 
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
   fila.find('.movimiento').text('-');
+  fila.find('.detalle').text(nota.detalle);
+
   // fila.find('.detalleNota').text(nota.detalle);
 
   $('#tablaNotasCreadas tbody').append(fila);
@@ -1314,15 +1326,17 @@ function agregarNotaConMovimiento(nota) {
   fila.removeAttr('moldeFilaNota');
 
   fila.attr('id',nota.id_nota);
+  fila.find('.borrarNotaCargada').attr('id',nota.id_nota).prop('disabled', true);
 
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
   fila.find('.movimiento').text(nota.movimiento);
+  fila.find('.detalle').text(nota.detalle);
+
   // fila.find('.detalleNota').text(nota.detalle);
 
   $('#tablaNotasCreadas tbody').append(fila);
 }
-
 
 function agregarDisposicion(disposicion, editable){
     var moldeDisposicion = $('#moldeDisposicion').clone();

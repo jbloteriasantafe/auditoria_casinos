@@ -1400,7 +1400,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos">'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-fw fa-usd-circle"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="far fa-fw fa-usd-square"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación"><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1414,7 +1414,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos" checked>'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-fw fa-usd-circle"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="far fa-fw fa-usd-square"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1436,7 +1436,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       //Si la unidad de medida es CRÉDITO
       if (unidadMedida == 1) botonDenominacion.append($('<i>').addClass('fa fa-fw fa-life-ring'));
       //Si la unidad de medida es PESOS
-      else botonDenominacion.append($('<i>').addClass('fas fa-fw fa-usd-circle'));
+      else botonDenominacion.append($('<i>').addClass('far fa-fw fa-usd-square'));
 
 
       // var columna = $('<td>');
