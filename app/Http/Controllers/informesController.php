@@ -407,7 +407,7 @@ class informesController extends Controller
     }
     $mtm = Maquina::find($id_mtm);
     // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino]);
+    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino, 'nombre'=> $mtm->casino->nombre]);
   }
 
   public function obtenerEstadisticasNoToma($id){

@@ -3,7 +3,7 @@ var datos = [];
 var estado ;
 $(document).ready(function(){
     //Resetear componentes
-    $('#selectCasino').val(0);
+
     habilitarBusquedaMTM(false);
     $('#btn-buscarMTM').prop('disabled',true);
 

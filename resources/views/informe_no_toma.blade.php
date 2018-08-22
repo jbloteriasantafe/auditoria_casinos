@@ -33,13 +33,13 @@
                             @endif
                             @if($nro_admin != null)
                             <select id="selectCasino" class="form-control" name="">
-                                  <option value="0">- Seleccione el casino -</option>
+                                  <option value="{{$casino}}" selected> {{$nombre}} </option>
                                       @foreach($casinos as $casino)
                                         <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                       @endforeach
                             </select>
                             <br>
-                            <input id="inputMaquina" class="form-control" type="text" placeholder="N° de administración" disabled>
+                            <input id="inputMaquina" class="form-control" type="text" placeholder="{{$nro_admin}}" disabled>
 
                             @endif
                             <br>
