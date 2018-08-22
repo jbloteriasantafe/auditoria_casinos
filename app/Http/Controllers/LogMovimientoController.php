@@ -207,7 +207,7 @@ class LogMovimientoController extends Controller
     $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMovimiento->casino->id_casino,$id_usuario);
     foreach ($usuarios as $user){
       $u = Usuario::find($user->id_usuario);
-      $u->notify(new NuevoMovimiento($logMovimiento));
+      if($u != null) $u->notify(new NuevoMovimiento($logMovimiento));
     }
 
     return $logMovimiento;

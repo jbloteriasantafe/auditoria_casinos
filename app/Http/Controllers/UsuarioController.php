@@ -91,6 +91,7 @@ class UsuarioController extends Controller
                          ->where('usuario_tiene_casino.id_casino','=',$id_casino)
                          ->whereIn('usuario_tiene_rol.id_rol',[2,4])
                          ->whereNotIn('usuario.id_usuario',[$id_usuario])
+                         ->whereNotNull('usuario.deleted_at')
                          ->distinct('usuario.id_usuario')
                          ->get();
     return $controladores;

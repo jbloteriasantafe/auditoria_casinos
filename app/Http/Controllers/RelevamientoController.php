@@ -618,6 +618,7 @@ class RelevamientoController extends Controller
       $det = new \stdClass();
       $det->maquina = $detalle->maquina->nro_admin;
       $det->isla = $detalle->maquina->isla->nro_isla;
+      $det->sector= $detalle->maquina->isla->sector->descripcion;
       $det->marca = $detalle->maquina->marca_juego;
       $det->unidad_medida = $detalle->maquina->unidad_medida->descripcion;
       $det->formula = $detalle->maquina->formula;//abreviar nombre de contadores de formula
@@ -691,11 +692,13 @@ class RelevamientoController extends Controller
         // $producido = DetalleProducido::join('producido' , 'producido.id_producido' , '=' , 'detalle_producido.id_producido')
         //                                ->where([['detalle_producido.id_maquina' , $detalle->id_maquina] , ['fecha' , $fecha]])
         //                                ->first();
-
+        $detalle_contador_horario = null;
         //ars
-        $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        if($contador_horario_ARS != null){
+          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        }
 
-          if($detalle_contador_horario == null){
+          if($detalle_contador_horario == null && $contador_horario_USD != null ){
             //es 2 entonces es dolares
             $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
           }
@@ -704,7 +707,15 @@ class RelevamientoController extends Controller
             $det = new \stdClass();
             $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
             $det->nro_admin = $detalle->maquina->nro_admin;
+            $det->isla = $detalle->maquina->isla->nro_isla;
+            $det->sector= $detalle->maquina->isla->sector->descripcion;
             $det->producido = 0;
+            if($detalle->tipo_causa_no_toma != null){
+                $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
+            }else{
+                $det->no_toma = '---';
+            }
+
             $detalles[] = $det;
 
           }else{
@@ -716,7 +727,14 @@ class RelevamientoController extends Controller
               $det = new \stdClass();
               $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
               $det->nro_admin = $detalle->maquina->nro_admin;
+              $det->isla = $detalle->maquina->isla->nro_isla;
+              $det->sector= $detalle->maquina->isla->sector->descripcion;
               $det->producido = $producido;
+              if($detalle->tipo_causa_no_toma != null){
+                  $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
+              }else{
+                  $det->no_toma = '---';
+              }
               $detalles[] = $det;
             }
           }
@@ -724,6 +742,8 @@ class RelevamientoController extends Controller
     }
 
     $rel->observaciones = $observaciones;
+
+    $rel->referencias = TipoCausaNoToma::all();
 
     if(!empty($detalles)){
       $rel->detalles = $detalles;
