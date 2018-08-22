@@ -727,6 +727,8 @@ class RelevamientoController extends Controller
               $det = new \stdClass();
               $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
               $det->nro_admin = $detalle->maquina->nro_admin;
+              $det->isla = $detalle->maquina->isla->nro_isla;
+              $det->sector= $detalle->maquina->isla->sector->descripcion;
               $det->producido = $producido;
               $detalles[] = $det;
             }
