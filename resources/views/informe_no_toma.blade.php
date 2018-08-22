@@ -21,6 +21,7 @@
 
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
+                          @if($nro_admin == null)
                             <select id="selectCasino" class="form-control" name="">
                                   <option value="0">- Seleccione el casino -</option>
                                       @foreach($casinos as $casino)
@@ -29,6 +30,18 @@
                             </select>
                             <br>
                             <input id="inputMaquina" class="form-control" type="text" placeholder="N° de administración" disabled>
+                            @endif
+                            @if($nro_admin != null)
+                            <select id="selectCasino" class="form-control" name="">
+                                  <option value="0">- Seleccione el casino -</option>
+                                      @foreach($casinos as $casino)
+                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                      @endforeach
+                            </select>
+                            <br>
+                            <input id="inputMaquina" class="form-control" type="text" placeholder="N° de administración" disabled>
+
+                            @endif
                             <br>
                             <button id="btn-buscarMTM" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
                         </div>
