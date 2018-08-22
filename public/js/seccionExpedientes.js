@@ -580,13 +580,18 @@ $('#btn-eliminarModal').click(function (e) {
 
 function obtenerNotasNuevas() {
   var notas_nuevas = [];
-
+  var mov = null;
   $.each($('.notaNueva').not('#moldeNotaNueva'), function (index, value) {
+    if($(this).find('.tiposMovimientos').val() != 0){
+      mov = $(this).find('.tiposMovimientos').val();
+    }else{
+      mov = null;
+    }
       var nota = {
         fecha: $(this).find('.fecha_notaNueva').val(),
         identificacion: $(this).find('.identificacion').val(),
         detalle: $(this).find('.detalleNota').val(),
-        id_tipo_movimiento: $(this).find('.tiposMovimientos').val(),
+        id_tipo_movimiento: mov,
       }
 
       notas_nuevas.push(nota);

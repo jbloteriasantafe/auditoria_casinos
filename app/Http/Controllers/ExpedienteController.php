@@ -8,6 +8,7 @@ use App\Expediente;
 use App\Casino;
 use App\LogMovimiento;
 use App\TipoMovimiento;
+use App\Nota;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\ExpedienteController;
@@ -219,7 +220,7 @@ class ExpedienteController extends Controller
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'integer|exists:tipo_movimiento,id_tipo_movimiento|required',
+        'notas.*.id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
         'notas_asociadas'  => 'nullable',
         'notas_asociadas.*.fecha'=>'required|date',
         'notas_asociadas.*.identificacion'=>'required',
@@ -287,6 +288,20 @@ class ExpedienteController extends Controller
     //     }
     //   }
     // }
+
+    //tablaNotas contiene todas las notas que existian - o sea con // ID
+    if(!empty($request->tablaNotas)){
+      $listita = array();
+      foreach ($request->tablaNotas as $tn) {
+        if(ctype_digit($tn)){
+          $listita[] = $tn;
+        }
+      }
+      Nota::whereNotIn('id_nota',$listita)
+            ->where('id_expediente',$expediente->id_expediente)
+            ->whereNull('id_log_movimiento')
+            ->delete();
+    }
 
     //chequeo si recibe notas y movimientos nuevos
 
