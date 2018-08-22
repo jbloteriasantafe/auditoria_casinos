@@ -399,14 +399,15 @@ class informesController extends Controller
   }
 
   //BUSCA TODA LA INFORMACION PARA CARGAR MODAL
-  public function mostrarEstadisticasNoToma(){
+  public function mostrarEstadisticasNoToma($id_mtm){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
     $casinos=array();
     foreach($usuario['usuario']->casinos as $casino){
       $casinos[]=$casino;
     }
+    $mtm = Maquina::find($id_mtm);
     // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos]);
+    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino]);
   }
 
   public function obtenerEstadisticasNoToma($id){
