@@ -730,6 +730,11 @@ class RelevamientoController extends Controller
               $det->isla = $detalle->maquina->isla->nro_isla;
               $det->sector= $detalle->maquina->isla->sector->descripcion;
               $det->producido = $producido;
+              if($detalle->tipo_causa_no_toma != null){
+                  $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
+              }else{
+                  $det->no_toma = '---';
+              }
               $detalles[] = $det;
             }
           }
