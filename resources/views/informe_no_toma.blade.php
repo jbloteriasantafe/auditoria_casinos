@@ -58,34 +58,34 @@
                         <div class="col-md-6" style="border-right:1px solid #ccc;">
                             <div class="row" style="text-align:center;">
                                 <div class="col-md-12">
-                                  <span id="nro_admin" class="infoResaltada">2010</span>
+                                  <span id="nro_admin" class="infoResaltada"></span>
                                   <img src="/img/logos/tragaperras_blue.png" alt="" width="140px;" style="position:relative;left:10px;top:-14px;">
-                                  <span id="marca" class="infoResaltada">ARISTOCRAT</span>
+                                  <span id="marca" class="infoResaltada"></span>
                                 </div>
                                 <div class="col-md-12">
                                   <h5>JUEGO ACTIVO</h5>
-                                  <span id="juego" class="infoResaltada">LUCKY LARRYS LOBSTERMANIA</span>
+                                  <span id="juego" class="infoResaltada"></span>
                                 </div>
                                 <div class="col-md-12" style="border-top:1px solid #ccc;">
                                   <h5>CASINO</h5>
-                                  <span id="casino" class="infoResaltada">ROSARIO</span>
+                                  <span id="casino" class="infoResaltada"></span>
                                 </div>
                                 <br>
                                 <div class="col-md-6">
                                   <h5>SECTOR</h5>
-                                  <span id="sector" class="infoResaltada">SUBSUELO</span>
+                                  <span id="sector" class="infoResaltada"></span>
                                 </div>
                                 <div class="col-md-6">
                                   <h5>ISLA</h5>
-                                  <span id="isla" class="infoResaltada">23</span>
+                                  <span id="isla" class="infoResaltada"></span>
                                 </div>
                                 <div class="col-md-6" style="border-top:1px solid #ccc;">
                                   <h5>DENOMINACIÓN</h5>
-                                  <span id="denominacion" class="infoResaltada">0.1</span>
+                                  <span id="denominacion" class="infoResaltada"></span>
                                 </div>
                                 <div class="col-md-6" style="border-top:1px solid #ccc;">
                                   <h5>% DEVOLUCIÓN</h5>
-                                  <span id="devolucion" class="infoResaltada">83 %</span>
+                                  <span id="devolucion" class="infoResaltada"></span>
                                 </div>
                             </div>
                         </div>

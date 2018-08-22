@@ -112,18 +112,19 @@ function eventoModal(id_maquina){
   $('#modalMaquinaContable').modal('show');
 
   $.get('http://' + window.location.host +"/estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data){
-    console.log(data);
+
     $('#nro_admin').text(data.maquina.nro_admin);
     $('#casino').text(data.maquina.casino);
     $('#marca').text(data.maquina.marca);
     $('#sector').text(data.maquina.sector);
 
     var isla = data.maquina.nro_isla;
+    isla += ' - ';
     if(data.maquina.codigo != null) isla += data.maquina.codigo;
     $('#isla').text(isla);
     $('#juego').text(data.maquina.juego);
     $('#denominacion').text(data.maquina.denominacion);
-    $('#devolucion').text(data.maquina.devolucion);
+    $('#devolucion').text(data.maquina.porcentaje_devolucion);
     llenarTablaNoToma(data.resultados);
   })
 
