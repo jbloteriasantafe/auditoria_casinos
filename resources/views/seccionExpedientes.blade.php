@@ -248,8 +248,6 @@ $id_usuario = session('id_usuario');
                       }
                   </style>
 
-
-
                   <div class="navModal" style="position:relative; bottom:-15px; text-align:center; font-family: Roboto-Regular; font-size: 20px; color: #999;">
 
                         <div style="width:25%;">
@@ -388,7 +386,7 @@ $id_usuario = session('id_usuario');
 
                               </div>
 
-                              <div class="row" style="padding-bottom: 8px; padding-top: 8px; border-bottom: 1px solid #eee;">
+                              <div class="row" style="padding-bottom: 4px; padding-top: 4px; border-bottom: 1px solid #eee;">
 
                                 <div class="col-md-6 col-lg-4">
                                   <h5>Cantidad de Cuerpos</h5>
@@ -430,7 +428,9 @@ $id_usuario = session('id_usuario');
                                     </div>
                                   </div> -->
                                 </div>
-
+                              </div>
+                              <br>
+                              <div class="row">
                                 <div class="col-lg-9" style="margin-top:8px;">
                                   <h5 style="display:inline;">Disposición(es)</h5>
                                   <button id="btn-agregarDisposicion" class="btn btn-success borrarFila" type="button" style="display:inline;position:relative;top:-2px;">
@@ -485,17 +485,22 @@ $id_usuario = session('id_usuario');
                                   <table id="tablaNotasCreadas" class="table">
                                       <thead>
                                          <tr>
-                                           <th class="col-xs-2"><h5>IDENT.</h5></th>
+                                           <th class="col-xs-1"></th>
+                                           <th class="col-xs-1"><h5>IDENT.</h5></th>
                                            <th class="col-xs-3"><h5>FECHA</h5></th>
                                            <th class="col-xs-3"><h5>MOVIMIENTO</h5></th>
+                                           <th class="col-xs-4"><h5>DETALLE</h5></th>
                                            <!-- <th class="col-xl-6"><h5>DETALLE</h5></th> -->
                                          </tr>
                                       </thead>
                                       <tbody>
                                          <tr id="moldeFilaNota" class="filaNota" style="display:none;">
-                                           <td class="col-xs-2 identificacion">9</td>
+                                           <td class="col-xs-1"><button class="btn btn-danger borrarFila borrarNotaCargada" type="button">
+                                             <i class="fas fa-fw fa-trash-alt"></i> </td>
+                                           <td class="col-xs-1 identificacion">9</td>
                                            <td class="col-xs-3 fecha">11 AGO 2018</td>
                                            <td class="col-xs-3 movimiento">EGRESO</td>
+                                           <td class="col-xs-4 detalle" style="resize:vertical;">det</td>
                                            <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
                                          </tr>
                                       </tbody>
@@ -529,6 +534,7 @@ $id_usuario = session('id_usuario');
                               </div>
 
                               <div id="moldeNotaNueva" class="row notaNueva" hidden>
+                                <form id="frmNotas" name="frmNotas" class="form-horizontal">
                                 <div class="col-md-4">
                                   <h5>FECHA</h5>
                                   <!-- FORM GROUP -->
@@ -562,7 +568,7 @@ $id_usuario = session('id_usuario');
                                   <textarea class="form-control detalleNota" name="name" style="resize:vertical; height:36px;min-height:35px;"></textarea>
                                 </div>
                               </div>
-
+                            </form>
                               <!-- btn agregar nota -->
                               <div class="row agregarNota" style="text-align:center;height:40px;border-top:1px solid #ddd;">
                                   <a id="btn-notaNueva" href="#">
