@@ -279,7 +279,11 @@ class JuegoController extends Controller
 
   public function obtenerTablasDePago($id){
     $juego=Juego::find($id);
+    if($juego != null){
     return['tablasDePago' => $juego->tablasPago];
+  }else{
+    return['tablasDePago' => null];
+  }
   }
 
 }

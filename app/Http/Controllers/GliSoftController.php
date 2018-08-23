@@ -176,7 +176,7 @@ class GliSoftController extends Controller
 
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
-        'nro_certificado' => 'required|alpha_dash|unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft',
+        'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'juegos' => 'nullable'
