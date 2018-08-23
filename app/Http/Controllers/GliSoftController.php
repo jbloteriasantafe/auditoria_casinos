@@ -65,7 +65,7 @@ class GliSoftController extends Controller
   public function guardarGliSoft(Request $request){
 
     Validator::make($request->all(), [
-      'nro_certificado' => 'required|alpha_dash',
+      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
       'juego' => 'nullable|exists:juego,id_juego'
