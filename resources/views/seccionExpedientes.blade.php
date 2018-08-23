@@ -447,7 +447,7 @@ $id_usuario = session('id_usuario');
                                             </div>
                                           </div>
                                           <div class="col-md-6">
-                                            <input class="form-control descripcion_disposicion" type="text" name="" value="" placeholder="Descripción">
+                                            <input class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción">
                                           </div>
                                           <div class="col-md-2">
                                             <button class="btn btn-danger borrarFila borrarDisposicion" type="button" name="button">

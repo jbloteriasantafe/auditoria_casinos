@@ -645,7 +645,7 @@ $('#btn-guardar').click(function (e) {
         var disposicion = {
           nro_disposicion: $(this).find('.nro_disposicion').val(),
           nro_disposicion_anio: $(this).find('.nro_disposicion_anio').val(),
-          descripcion: $(this).find('.descripcion_disposicion').val(),
+          descripcion: $(this).find('#descripcion_disposicion').val(),
         }
         disposiciones.push(disposicion);
     });
@@ -844,7 +844,7 @@ $('#btn-guardar').click(function (e) {
                 $('#error_nav_config').show();
               }
               if(typeof response['disposiciones.'+ i +'.descripcion'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('.descripcion_disposicion'),response['disposiciones.'+ i +'.descripcion'][0],false);
+                mostrarErrorValidacion($(this).find('#descripcion_disposicion'),response['disposiciones.'+ i +'.descripcion'][0],false);
                 $('#error_nav_config').show();
               }
 
@@ -1354,7 +1354,7 @@ function agregarDisposicion(disposicion, editable){
     if(editable==false){
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
-      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
+      moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
 
       $('#columnaDisposicion').append(moldeDisposicion);
@@ -1364,9 +1364,9 @@ function agregarDisposicion(disposicion, editable){
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',false);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',false);
       if(disposicion.descripcion != null){
-      moldeDisposicion.find('.descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
+      moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
       else {
-        moldeDisposicion.find('.descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
+        moldeDisposicion.find('#descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
       }
       moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion).prop('readonly',false);
 
