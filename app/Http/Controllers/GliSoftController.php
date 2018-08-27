@@ -56,9 +56,9 @@ class GliSoftController extends Controller
   public function leerArchivoGliSoft($id){
     $data = DB::table('gli_soft')->select('archivo.archivo')
                                 ->join('archivo','archivo.id_archivo','=','gli_soft.id_archivo')
-                                ->where('gli_soft.id_gli_soft','=',$id)->first();
+                                ->where('gli_soft.id_gli_soft','=',$id)->get();
 
-
+                                dd($data);
     return Response::make(base64_decode($data), 200, [ 'Content-Type' => 'application/pdf',
                                                       'Content-Disposition' => 'inline; filename="'. $file->nombre_archivo  . '"']);
   }
