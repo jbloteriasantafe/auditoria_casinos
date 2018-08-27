@@ -58,7 +58,7 @@ class GliSoftController extends Controller
 
     $data = Archivo::find($file->id_archivo);
 
-    dd([$file,$data]);
+    //dd([$file,$data]);
     return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
                                                       'Content-Disposition' => 'inline; filename="'. $file->nombre_archivo  . '"']);
   }
