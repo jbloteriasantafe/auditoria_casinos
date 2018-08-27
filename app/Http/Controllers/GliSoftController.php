@@ -54,13 +54,13 @@ class GliSoftController extends Controller
   }
 
   public function leerArchivoGliSoft($id){
-    $data = DB::table('gli_soft')->select('archivo.archivo')
+    $data = DB::table('gli_soft')->select('archivo.archivo','archivo.nombre_archivo')
                                 ->join('archivo','archivo.id_archivo','=','gli_soft.id_archivo')
-                                ->where('gli_soft.id_gli_soft','=',$id)->get();
+                                ->where('gli_soft.id_gli_soft','=',$id)->first();
 
-                                dd($data);
-    return Response::make(base64_decode($data), 200, [ 'Content-Type' => 'application/pdf',
-                                                      'Content-Disposition' => 'inline; filename="'. $file->nombre_archivo  . '"']);
+
+    return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
+                                                      'Content-Disposition' => 'inline; filename="'. $data->nombre_archivo  . '"']);
   }
 
   //METODO QUE RESPONDEN A GUARDAR
