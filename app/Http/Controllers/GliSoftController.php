@@ -59,7 +59,7 @@ class GliSoftController extends Controller
                                 ->where('gli_soft.id_gli_soft','=',$id)->first();
 
 
-    return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
+    return Response::make(base64_decode($data), 200, [ 'Content-Type' => 'application/pdf',
                                                       'Content-Disposition' => 'inline; filename="'. $file->nombre_archivo  . '"']);
   }
 
