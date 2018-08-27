@@ -10,7 +10,7 @@ class GliSoft extends Model
   protected $connection = 'mysql';
   protected $table = 'gli_soft';
   protected $primaryKey = 'id_gli_soft';
-  protected $visible = array('id_gli_soft','observaciones','nro_archivo');
+  protected $visible = array('id_gli_soft','observaciones','nro_archivo','id_archivo');
   public $timestamps = false;
 
   //si esta fk en la entidad es belongs to, si esta en la otra es has one
