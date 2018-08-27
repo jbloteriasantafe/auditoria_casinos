@@ -55,9 +55,9 @@ class GliSoftController extends Controller
 
   public function leerArchivoGliSoft($id){
     $file = GliSoft::find($id);
-    $data = $file->archivo->archivo;
+    $data = Archivo::find($file->id_archivo);
 
-    return Response::make(base64_decode($data), 200, [ 'Content-Type' => 'application/pdf',
+    return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
                                                       'Content-Disposition' => 'inline; filename="'. $file->nombre_archivo  . '"']);
   }
 
@@ -65,7 +65,7 @@ class GliSoftController extends Controller
   public function guardarGliSoft(Request $request){
 
     Validator::make($request->all(), [
-      'nro_certificado' => 'required|alpha_dash',
+      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
       'juego' => 'nullable|exists:juego,id_juego'
@@ -176,7 +176,7 @@ class GliSoftController extends Controller
 
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
-        'nro_certificado' => 'required|alpha_dash|unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft',
+        'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'juegos' => 'nullable'

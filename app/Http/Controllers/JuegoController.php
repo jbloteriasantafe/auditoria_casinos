@@ -88,7 +88,7 @@ class JuegoController extends Controller
       //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
     Validator::make($request->all(), [
       'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
-      'cod_identificacion' => ['nullable','regex:/^\d(.|-|_|\d)*$/','unique:juego,cod_identificacion','max:100'],
+      'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
       'tabla_pago.*.codigo' => 'required',
@@ -150,7 +150,7 @@ class JuegoController extends Controller
 
     Validator::make($request->all(), [
       'nombre_juego' => 'required|max:100',
-      'cod_identificacion' => 'nullable|alpha_dash|max:100',
+      'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
       'tabla_pago.*.codigo' => 'required',
@@ -279,7 +279,11 @@ class JuegoController extends Controller
 
   public function obtenerTablasDePago($id){
     $juego=Juego::find($id);
+    if($juego != null){
     return['tablasDePago' => $juego->tablasPago];
+  }else{
+    return['tablasDePago' => null];
+  }
   }
 
 }

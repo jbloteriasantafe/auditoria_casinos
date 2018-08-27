@@ -395,7 +395,8 @@ class ExpedienteController extends Controller
     $result = false;
     for($i = 0;$i<count($disposiciones);$i++){
       if($disp['nro_disposicion'] == $disposiciones[$i]['nro_disposicion']
-      && $disp['nro_disposicion_anio'] == $disposiciones[$i]['nro_disposicion_anio']){
+      && $disp['nro_disposicion_anio'] == $disposiciones[$i]['nro_disposicion_anio']
+      && $disp['descripcion'] == $disposiciones[$i]['descripcion']){
         $result = true;
         break;
       }
