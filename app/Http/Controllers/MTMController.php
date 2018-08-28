@@ -911,10 +911,10 @@ class MTMController extends Controller
     $MTM->formula()->dissociate();
     $MTM->gliSoft()->dissociate();
     $MTM->gliHard()->dissociate();
-    $MTM->isla()->dissociate();
-    $MTM->tipoMaquina()->dissociate();
-    $MTM->casino()->dissociate();
-    $MTM->expedientes()->detach();
+    // $MTM->isla()->dissociate();
+    // $MTM->tipoMaquina()->dissociate();
+    // $MTM->casino()->dissociate();
+    //$MTM->expedientes()->detach();
     $MTM->notas()->detach();
     $MTM->estado_maquina()->associate(3);
     $razon = "La maquina se eliminó definitivamente.";
