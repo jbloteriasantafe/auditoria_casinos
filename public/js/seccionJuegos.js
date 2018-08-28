@@ -121,9 +121,14 @@ $(document).on('click','.detalle', function(){
   $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       $('#id_juego').val(data.juego.id_juego);
-      $('#nombre_juego').val(data.juego.nombre_juego);
-      $('#cod_identificacion').val(data.juego.cod_identificacion);
+      $('#inputJuego').val(data.juego.nombre_juego);
+      $('#inputCodigo').val(data.juego.cod_identificacion);
       $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
+
+      // for (var i = 0; i < data.tablasDePago.length; i++) {
+      //   $('#tablas_de_pago').append('<tr>').text('TABLAS DE PAGO');
+      //   $('#tablas_de_pago').append('<tr>').text(data.tablasDePago[i].codigo);
+      // }
       $('#btn-guardar').val("modificar");
       $('#modalJuego').modal('show');
 
@@ -208,6 +213,7 @@ $(document).on('click','.modificar',function(){
     $('#btn-guardar').val('modificar');
     $('#id_juego').val(id_juego);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
+      console.log(data);
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas);
 
     });
@@ -407,7 +413,6 @@ $('#btn-guardar').click(function (e) {
       url = 'juegos/modificarJuego';
       formData.id_juego =  $('#id_juego').val();
     }
-    console.log(formData);
 
     $.ajax({
         type: type,
