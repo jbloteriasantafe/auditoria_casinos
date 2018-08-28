@@ -431,6 +431,7 @@ class informesController extends Controller
                                         ->join('tipo_causa_no_toma','detalle_relevamiento.id_tipo_causa_no_toma','=','tipo_causa_no_toma.id_tipo_causa_no_toma')
                                         ->where([['id_maquina','=',$id],['backup','=',0]])
                                         ->whereNotNull('detalle_relevamiento.id_tipo_causa_no_toma')
+                                        ->orderBy('relevamiento.fecha', 'DESC')
                                         ->get();
 
     return ['maquina' => $aux , 'resultados' => $resultados];

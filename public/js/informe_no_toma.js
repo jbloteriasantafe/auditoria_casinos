@@ -119,8 +119,11 @@ function eventoModal(id_maquina){
     $('#sector').text(data.maquina.sector);
 
     var isla = data.maquina.nro_isla;
-    isla += ' - ';
-    if(data.maquina.codigo != null) isla += data.maquina.codigo;
+
+    if(data.maquina.codigo != null){
+      isla += ' - ';
+     isla += data.maquina.codigo;
+    }
     $('#isla').text(isla);
     $('#juego').text(data.maquina.juego);
     $('#denominacion').text(data.maquina.denominacion);

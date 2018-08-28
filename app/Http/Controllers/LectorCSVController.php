@@ -837,7 +837,7 @@ class LectorCSVController extends Controller
                            ",$contador->id_contador_horario);
 
         $pdo->exec($query);
-
+       // dd(['holis',$contador->id_contador_horario]);
         $query = sprintf(" DELETE FROM contadores_temporal
                            WHERE id_contador_horario = '%d'
                            ",$contador->id_contador_horario);

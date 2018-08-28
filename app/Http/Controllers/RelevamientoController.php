@@ -711,7 +711,7 @@ class RelevamientoController extends Controller
             $det->sector= $detalle->maquina->isla->sector->descripcion;
             $det->producido = 0;
             if($detalle->tipo_causa_no_toma != null){
-                $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
+                $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
             }else{
                 $det->no_toma = '---';
             }
@@ -731,7 +731,7 @@ class RelevamientoController extends Controller
               $det->sector= $detalle->maquina->isla->sector->descripcion;
               $det->producido = $producido;
               if($detalle->tipo_causa_no_toma != null){
-                  $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
+                  $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
               }else{
                   $det->no_toma = '---';
               }

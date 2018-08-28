@@ -181,7 +181,7 @@ $(document).on('click','.detalle',function(){
           overwriteInitial: true,
           initialPreviewAsData: true,
           initialPreview: [
-            "http://localhost:8000/glisofts/pdf/" + id,
+            "http://" + window.location.host + "/glisofts/pdf/" + id,
           ],
           initialPreviewConfig: [
             {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -410,7 +410,7 @@ $(document).on('click','.modificarGLI',function(){
               overwriteInitial: true,
               initialPreviewAsData: true,
               initialPreview: [
-                "http://localhost:8000/glisofts/pdf/" + id,
+                "http://" + window.location.host +"/glisofts/pdf/" + id,
               ],
               initialPreviewConfig: [
                 {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},

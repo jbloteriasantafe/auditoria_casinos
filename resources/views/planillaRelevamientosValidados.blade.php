@@ -97,21 +97,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                   @endif
           </table>
         </div>
-        <br><div class="primerEncabezado" style="padding-left: 120px;">Referencias:</div><br>
-        <div style="padding-left: 230px;">
-          <table>
-                  <tr>
-                    <th class="tablaInicio">CAUSA DE NO TOMA</th>
-                    <th class="tablaInicio">CÓDIGO</th>
-                  </tr>
-                    @foreach($rel->referencias as $causaNT)
-                    <tr>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$causaNT->descripcion}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$causaNT->codigo}}</td>
-
-                    </tr>
-                    @endforeach
-          </table>
       <!--  @for($i = 0; $i<450; $i++)
         .
         @endfor
