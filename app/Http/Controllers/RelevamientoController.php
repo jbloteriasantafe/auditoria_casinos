@@ -568,6 +568,18 @@ class RelevamientoController extends Controller
         $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias'],$request->id_relevamiento);
       }
     }
+
+
+    foreach ($data as $dat) {
+      $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
+      $dett->denominacion = $dat['denominacion'];
+      $dett->diferencia = $dat['diferencia'];
+      if(!empty($dat['importado'])){
+        $dett->producido_importado = $dat['importado'];
+      }
+      $dett->save();
+    }
+
     return ['relevamiento' => $relevamiento,
             'casino' => $relevamiento->sector->casino->nombre,
             'sector' => $relevamiento->sector->descripcion,
@@ -612,8 +624,8 @@ class RelevamientoController extends Controller
             'casino' => $relevamiento->sector->casino->nombre,
             'sector' => $relevamiento->sector->descripcion,
             'estado' => $relevamiento->estado_relevamiento->descripcion,
-            'fiscalizador' => $relevamiento->usuario_fiscalizador,
-            'cargador' => $relevamiento->usuario_cargador,
+            'fiscalizador' => $relevamiento->usuario_fiscalizador->user_name,
+            'cargador' => $relevamiento->usuario_cargador->user_name,
             ];
   }
 
