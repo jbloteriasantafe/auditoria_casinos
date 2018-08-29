@@ -341,6 +341,7 @@ Route::get('relevamientos/obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','R
 Route::post('relevamientos/eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
 Route::post('relevamientos/modificarDenominacionYUnidad','RelevamientoController@modificarDenominacionYUnidad');
 Route::post('relevamientos/buscarRelevamientos','RelevamientoController@buscarRelevamientos');
+Route::get('relevamientos/verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
 
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
