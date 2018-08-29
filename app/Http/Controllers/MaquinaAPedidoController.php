@@ -154,6 +154,8 @@ class MaquinaAPedidoController extends Controller
   }
 
   public function eliminarMTMAPedido(Request $request , $id){
+      $mtm = MaquinaAPedido::find($id);
+      $mtm->relevamiento()->dissociate();
       $MTM_a_pedido=MaquinaAPedido::destroy($id);
       return $MTM_a_pedido;
   }
