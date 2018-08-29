@@ -138,7 +138,7 @@ $(document).on('click','.detalle',function(){
       if($(this).attr("id")!=0)
       $(this).remove();
     })
-    $('#cuerpoTablaDePago').empty();
+    $('#cuerpoTablaDePago tr').remove();
     $('#modalGLI').modal('show');
     $('.btn-default').text('SALIR');
 

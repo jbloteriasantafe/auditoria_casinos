@@ -48,8 +48,8 @@ class JuegoController extends Controller
       $maquina->denominacion = $mtm->pivot->denominacion;
       $maquinas[] = $maquina;
     }
-
-    return ['juego' => $juego , 'tablasDePago' => $juego->tablasPago, 'maquinas' => $maquinas];
+    $tabla = TablaPago::where('id_juego', '=', $id)->get();
+    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas];
   }
 
   public function encontrarOCrear($juego){
@@ -118,8 +118,8 @@ class JuegoController extends Controller
       }
     }
 
-    if(!empty($request->tablasDePago)){
-      foreach ($request->tablasDePago as $tabla){
+    if(!empty($request->tabla_pago)){
+      foreach ($request->tabla_pago as $tabla){
         TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
       }
     }

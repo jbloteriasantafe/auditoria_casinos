@@ -1502,7 +1502,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
 
       var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
 
-      if(data.detalles[i].tipo_causa_no_toma != null) {
+      if(data.detalles[i].tipo_causa_no_toma == null) {
         var a_pedido = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
                                     .attr('type' , 'button')
                                     .val(data.detalles[i].detalle.id_maquina)

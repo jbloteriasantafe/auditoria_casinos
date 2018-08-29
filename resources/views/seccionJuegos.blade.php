@@ -26,7 +26,7 @@
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
                                   <div class="col-md-4">
-                                    <h5>Código de identificación</h5>
+                                    <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
                                   </div>
                                   <div class="col-md-4">
@@ -118,8 +118,8 @@
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
                       <div class="col-md-4">
-                          <h5>Código de identificación</h5>
-                          <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de identificación"/>
+                          <h5>Código de Certificado</h5>
+                          <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de certificado"/>
                       </div>
                   </div>
                   <br>
