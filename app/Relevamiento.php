@@ -33,6 +33,10 @@ class Relevamiento extends Model
     return $this->HasMany('App\DetalleRelevamiento','id_relevamiento','id_relevamiento');
   }
 
+  public function mtm_a_pedido(){
+    return $this->hasMany('App\MaquinaAPedido','id_relevamiento','id_relevamiento');
+  }
+
   public static function boot(){
     parent::boot();
     Relevamiento::observe(new RelevamientoObserver());
