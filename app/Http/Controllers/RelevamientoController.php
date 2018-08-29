@@ -521,7 +521,8 @@ class RelevamientoController extends Controller
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'observacion_validacion' => 'nullable|max:200'
+        'observacion_validacion' => 'nullable|max:200',
+        'data' => 'required',///trae datos para guardar en el detalle relevamiento
     ], array(), self::$atributos)->after(function($validator){
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
       $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
@@ -586,10 +587,20 @@ class RelevamientoController extends Controller
     $detalles = array();
     foreach ($relevamiento->detalles as $det) {
       $mtm_a_pedido = $this->chequearMTMpedida($det->id_maquina, $relevamiento->id_relevamiento);
+
+      $mtmm = Maquina::find($det->id_maquina);
       if($mtm_a_pedido != null){
-        $detalles[] = ['detalle' => $det, 'mtm_a_pedido' => $mtm_a_pedido];
+
+        $detalles[] = ['detalle' => $det,
+                       'mtm_a_pedido' => $mtm_a_pedido,
+                       'denominacion' => $det->denominacion,
+                       'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                       'producido_importado' => $det->producido_importado,
+                       'diferencia' => $det->diferencia,
+                     ];
       }else{
-        $detalles[] = ['detalle' => $det, 'mtm_a_pedido' => null];
+        $detalles[] = ['detalle' => $det,
+                      'mtm_a_pedido' => null];
       }
     }
 
