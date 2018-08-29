@@ -601,6 +601,8 @@ class RelevamientoController extends Controller
             'casino' => $relevamiento->sector->casino->nombre,
             'sector' => $relevamiento->sector->descripcion,
             'estado' => $relevamiento->estado_relevamiento->descripcion,
+            'fiscalizador' => $relevamiento->usuario_fiscalizador,
+            'cargador' => $relevamiento->usuario_cargador,
             ];
   }
 

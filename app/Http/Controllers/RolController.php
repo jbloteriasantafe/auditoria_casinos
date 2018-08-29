@@ -28,7 +28,9 @@ class RolController extends Controller
                   ->min('id_rol');
 
     if($id_rol != 1 && $id_rol != 5){
-      $roles= Rol::orderBy('id_rol' , 'desc')->where(['id_rol','>',$id_rol])->whereNotIn('id_rol',[5,6])->get();
+      $roles= Rol::whereNotIn('id_rol',[5,6])
+                  ->where(['id_rol','>',$id_rol])
+                  ->orderBy('id_rol' , 'desc')->get();
     }else{
       $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>=',$id_rol)->get();
     }
