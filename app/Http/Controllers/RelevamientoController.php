@@ -766,11 +766,11 @@ class RelevamientoController extends Controller
                                     ->first()->cantidad;
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
-    $dompdf->set_paper('A4','landscape');
+    $dompdf->set_paper('A4','portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
-    $dompdf->getCanvas()->page_text(750,565,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
     return $dompdf;
   }
 
