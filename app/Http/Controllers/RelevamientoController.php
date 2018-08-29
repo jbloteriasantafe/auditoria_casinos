@@ -564,7 +564,7 @@ class RelevamientoController extends Controller
     $mtm_controller = MaquinaAPedidoController::getInstancia();
     if(!empty($request->maquinas_a_pedido)){
       foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
-        $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias']);
+        $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias'],$request->id_relevamiento);
       }
     }
     return ['relevamiento' => $relevamiento,
@@ -573,6 +573,42 @@ class RelevamientoController extends Controller
             'estado' => $relevamiento->estado_relevamiento->descripcion,
             'detalles' => $relevamiento->detalles];
   }
+
+  public function obtenerRelevamientoVisado($id_relevamiento){
+
+    $relevamiento = Relevamiento::find($id_relevamiento);
+
+    ///controlo que todos esten visados para habilitar el informe
+    $casino = $relevamiento->sector->casino;
+    foreach($casino->sectores as $sector){
+      $sectores[] = $sector->id_sector;
+    }
+    $detalles = array();
+    foreach ($relevamiento->detalles as $det) {
+      $mtm_a_pedido = $this->chequearMTMpedida($det->id_maquina, $relevamiento->id_relevamiento);
+      if($mtm_a_pedido != null){
+        $detalles[] = ['detalle' => $det, 'mtm_a_pedido' => $mtm_a_pedido];
+      }else{
+        $detalles[] = ['detalle' => $det, 'mtm_a_pedido' => null];
+      }
+    }
+
+
+    //buscar mtm que fueron pedidas
+
+    return ['relevamiento' => $relevamiento,
+            'detalles' => $detalles,
+            'casino' => $relevamiento->sector->casino->nombre,
+            'sector' => $relevamiento->sector->descripcion,
+            'estado' => $relevamiento->estado_relevamiento->descripcion,
+            ];
+  }
+
+  private function chequearMTMpedida($id_mtm, $id_relevamiento){
+    return  MaquinaAPedido::where([['id_relevamiento','=', $id_relevamiento],
+                                            ['id_maquina','=',$id_mtm]])->first();
+  }
+
 
   private function guardarPlanilla($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);

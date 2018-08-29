@@ -135,7 +135,7 @@ class MaquinaAPedidoController extends Controller
           $mtm_a_pedido->id_maquina= $MTM[0]->id_maquina;
           $mtm_a_pedido->save();
       }
-    }else {
+    }else{
       $mtm_a_pedido= new MaquinaAPedido;
       $mtm_a_pedido->fecha=   date('Y-m-d', $inicio);
       $mtm_a_pedido->id_maquina= $MTM[0]->id_maquina;
@@ -145,10 +145,11 @@ class MaquinaAPedidoController extends Controller
     return $mtm_a_pedido;
   }
 
-  public function crearPedidoEn($id_maquina,$dias){
+  public function crearPedidoEn($id_maquina,$dias,$id_relevamiento){
     $mtm_a_pedido= new MaquinaAPedido;
     $mtm_a_pedido->fecha=   date('Y-m-d', strtotime(date('Y-m-d') . ' + ' . $dias . ' days'));
     $mtm_a_pedido->id_maquina= $id_maquina;
+    $mtm_a_pedido->relevamiento()->associate($id_relevamiento);
     $mtm_a_pedido->save();
   }
 
