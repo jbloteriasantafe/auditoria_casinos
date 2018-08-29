@@ -29,7 +29,7 @@ class RolController extends Controller
 
     if($id_rol != 1 && $id_rol != 5){
       $roles= Rol::whereNotIn('id_rol',[5,6])
-                  ->where(['id_rol','>',$id_rol])
+                  ->where('id_rol','>',$id_rol)
                   ->orderBy('id_rol' , 'desc')->get();
     }else{
       $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>=',$id_rol)->get();
@@ -148,7 +148,7 @@ class RolController extends Controller
         //dd(['mi_Rol'=> $id_rol,'hola']);
 
         if($id_rol != 1 && $id_rol != 5){
-          $roles= Rol::orderBy('id_rol' , 'desc')->where(['id_rol','>',$id_rol])->where($reglas)->whereNotIn('id_rol',[5,6])->get();
+          $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>',$id_rol)->where($reglas)->whereNotIn('id_rol',[5,6])->get();
         }else{
           $roles= Rol::orderBy('id_rol' , 'desc')->where('id_rol','>=',$id_rol)->where($reglas)->get();
         }
