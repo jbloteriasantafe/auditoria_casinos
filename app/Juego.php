@@ -10,12 +10,14 @@ class Juego extends Model
   protected $connection = 'mysql';
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
-  protected $visible = array('id_juego','nombre_juego', 'id_progresivo');
+  protected $visible = array('id_juego','nombre_juego', 'id_progresivo','id_gli_soft','cod_identificacion');
   public $timestamps = false;
   protected $appends = array('cod_identificacion');
 
-  public function getCodIdentifAttribute(){
-      return Maquina::where('id_isla','=',$this->id_isla)->whereNull('deleted_at')->count();
+  public function getCodIdentificacionAttribute(){
+    if($this->id_gli_soft != null){
+      return GliSoft::find($this->id_gli_soft)->nro_archivo;}
+      return null;
   }
   public function gliSoft(){
     return $this->belongsTo('App\GliSoft','id_gli_soft','id_gli_soft');

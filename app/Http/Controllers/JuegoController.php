@@ -102,7 +102,7 @@ class JuegoController extends Controller
 
     $juego = new Juego;
     $juego->nombre_juego = $request->nombre_juego;
-    $juego->cod_identificacion= $request->cod_identificacion;
+    //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
 
     if(isset($request->maquinas)){
@@ -170,7 +170,7 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
     $juego->nombre_juego= $request->nombre_juego;
-    $juego->cod_identificacion= $request->cod_identificacion;
+    //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
 
     if(isset($request->tabla_pago)){
@@ -223,8 +223,8 @@ class JuegoController extends Controller
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, cod_identificacion
   public function buscarJuegoPorCodigoYNombre($busqueda){
-    $resultados=Juego::where('nombre_juego' , 'like' , $busqueda . '%')
-                      ->orWhere('cod_identificacion' , 'like' , $busqueda . '%')->get();
+    $resultados=Juego::where('nombre_juego' , 'like' , $busqueda . '%')->get();
+                      //->orWhere('cod_identificacion' , 'like' , $busqueda . '%')->get();
 
     return ['resultados' => $resultados];
   }
@@ -247,12 +247,13 @@ class JuegoController extends Controller
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
     if(!empty($request->codigoId)){
-      $reglas[]=['juego.cod_identificacion', 'like' , '%' . $request->codigoId  .'%'];
+      $reglas[]=['gli_soft.cod_identificacion', 'like' , '%' . $request->codigoId  .'%'];
     }
 
     $sort_by = $request->sort_by;
 
     $resultados=DB::table('juego')->select('juego.*')
+    ->leftJoin('gli_soft','gli_soft.id_gli_soft','=','juego.id_gli_soft')
     ->when($sort_by,function($query) use ($sort_by){
                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                 })
