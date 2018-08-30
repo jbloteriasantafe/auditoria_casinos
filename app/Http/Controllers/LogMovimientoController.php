@@ -129,7 +129,7 @@ class LogMovimientoController extends Controller
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }else{
-      $sort_by = ['columna' => 'log_movimiento.fecha', 'orden' => 'desc'];
+      $sort_by = ['columna' => 'log_movimiento.fecha', 'orden' => 'DESC'];
     }
       //busca en logs con expedientes
       if(empty($request->fecha)){
