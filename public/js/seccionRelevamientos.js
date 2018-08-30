@@ -616,7 +616,16 @@ $('#btn-finalizarValidacion').click(function(e){
     $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
     var id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();
     var maquinas_a_pedido=[];
+    var data=[];
+
     $('#tablaValidarRelevamiento tbody tr').each(function(){
+      var datos={
+        id_detalle_relevamiento: $(this).find('#id'),
+        denominacion: $(this).find('data-denominacion'),
+        diferencia: $(this).find('.diferencia').val(),
+        importado: $(this).find('.producido').val()
+      }
+      data.push(datos)
       if($(this).find('.a_pedido').length){
         if($(this).find('.a_pedido').val() != 0){
           var maquina = {
@@ -632,6 +641,7 @@ $('#btn-finalizarValidacion').click(function(e){
       id_relevamiento: id_relevamiento,
       observacion_validacion: $('#observacion_validacion').val(),
       maquinas_a_pedido: maquinas_a_pedido,
+      data
     }
 
     $.ajax({
@@ -652,6 +662,75 @@ $('#btn-finalizarValidacion').click(function(e){
           $("#modalValidarRelevamiento").animate({ scrollTop: $('#mensajeValidacion').offset().top }, "slow");
         },
     });
+
+});
+
+
+$(document).on('click','.verDetalle',function(e){
+  e.preventDefault();
+
+  var id_rel=$(this).val();
+
+  $.get('relevamientos/verRelevamientoVisado/' + id_rel, function(data){
+    console.log('rv', data);
+    $('#modalValidarRelevamiento .modal-title').text('DETALLES RELEVAMIENTO VISADO');
+
+    $('#frmValidarRelevamiento').trigger('reset');
+    $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha_generacion));
+    $('#validarCasino').val(data.casino);
+    $('#validarSector').val(data.sector);
+    $('#validarFiscaToma').val(data.fiscalizador);
+    $('#validarFiscaCarga').val(data.cargador );
+    $('#validarTecnico').val(data.relevamiento.tecnico);
+    $('#observacion_validacion').val(data.relevamiento.observacion_validacion);
+    $('#tablaValidarRelevamiento tbody tr').remove();
+
+    for (var i = 0; i < data.detalle.length; i++) {
+
+        var fila= $(document.createElement('tr'));
+
+        fila.attr('id', data.detalle[i].id_detalle_relevamiento)
+            .append($('<td>')
+            .addClass('col-xs-2')
+            .text(data.detalle[i].id_maquina))
+            .append($('<td>')
+            .text(data.detalle[i].cont2))
+            .append($('<td>')
+            .text(data.detalle[i].cont3))
+            .append($('<td>')
+            .text(data.detalle[i].cont4))
+            .append($('<td>')
+            .text(data.detalle[i].cont5))
+            .append($('<td>')
+            .text(data.detalle[i].cont6))
+            .append($('<td>')
+            .text(data.detalle[i].cont7))
+            .append($('<td>')
+            .text(data.detalle[i].cont8))
+            .append($('<td>')
+            .text(data.detalle[i].producido_calculado_relevado))
+            .append($('<td>')
+            .text(data.detalle[i].producido_importado))
+            .append($('<td>')
+            .text(data.detalle[i].diferencia))
+            .append($('<td>')
+            .text(data.detalle[i].tipo_no_toma).prop('disabled', true))
+            .append($('<td>')
+            .text(data.detalle[i].denominacion).prop('disabled', true))
+            if(data.detalle[i].mtm_pedido != null){
+            fila.append($('<td>')
+            .text(data.detalle[i].mtm_pedido.fecha).prop('disabled', true))}
+            else{
+              fila.append($('<td>')
+              .text(' ').prop('disabled', true))
+            }
+
+            $('#tablaValidarRelevamiento tbody').append(fila);
+    }
+
+    $('#modalValidarRelevamiento').modal('show');
+  })
+
 
 });
 
@@ -2102,7 +2181,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     }
   });
 });
-
+//fila lista principal de relevamientos
 function crearFilaTabla(relevamiento){
 
   var subrelevamiento;
@@ -2141,6 +2220,11 @@ function crearFilaTabla(relevamiento){
               .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
           )
           .append($('<span>').text(' '))
+          .append($('<button>').addClass('btn btn-success verDetalle').attr('type','button').val(relevamiento.id_relevamiento)
+              .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
+          )
+          .append($('<span>').text(' '))
           .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(relevamiento.id_relevamiento)
               .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
               .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
@@ -2157,6 +2241,7 @@ function crearFilaTabla(relevamiento){
       var icono_validacion = fila.find('.validar');
       var icono_impirmir = fila.find('.imprimir');
       var icono_validado = fila.find('.validado');
+      var icono_verDetalle = fila.find('.verDetalle');
 
 
     //Qué ESTADO e ICONOS mostrar
@@ -2168,6 +2253,8 @@ function crearFilaTabla(relevamiento){
           icono_validacion.hide();
           icono_impirmir.hide();
           icono_validado.hide();
+          icono_verDetalle.hide();
+
           break;
       case 'Cargando':
           fila.find('.iconoEstadoRelevamiento').addClass('faCargando');
@@ -2176,6 +2263,7 @@ function crearFilaTabla(relevamiento){
           icono_validacion.hide();
           icono_impirmir.show();
           icono_validado.hide();
+          icono_verDetalle.hide();
           break;
       case 'Finalizado':
           fila.find('.iconoEstadoRelevamiento').addClass('faFinalizado');
@@ -2185,6 +2273,7 @@ function crearFilaTabla(relevamiento){
           icono_carga.hide();
           icono_planilla.hide();
           icono_validado.hide();
+          icono_verDetalle.hide();
           break;
       case 'Visado':
           fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
@@ -2194,6 +2283,7 @@ function crearFilaTabla(relevamiento){
           icono_carga.hide();
           icono_planilla.hide();
           icono_validado.hide();
+          icono_verDetalle.show();
           break;
       case 'Rel. Visado':
             fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
@@ -2203,6 +2293,7 @@ function crearFilaTabla(relevamiento){
             icono_carga.hide();
             icono_planilla.hide();
             icono_validado.show();
+            icono_verDetalle.show();
             break;
     }
 
