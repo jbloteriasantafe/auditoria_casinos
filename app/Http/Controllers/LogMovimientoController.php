@@ -294,7 +294,8 @@ class LogMovimientoController extends Controller
      $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$id_usuario);
      foreach ($usuarios as $user){
        $u = Usuario::find($user->id_usuario);
-       $u->notify(new RelevamientoGenerado($fiscalizacion));
+       if($u != null){
+       $u->notify(new RelevamientoGenerado($fiscalizacion));}
      }
 
      $date = date('Y-m-d h:i:s', time());
