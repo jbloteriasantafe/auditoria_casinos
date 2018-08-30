@@ -612,7 +612,11 @@ class RelevamientoController extends Controller
                      ];
       }else{
         $detalles[] = ['detalle' => $det,
-                      'mtm_a_pedido' => null];
+                      'mtm_a_pedido' => null,
+                      'denominacion' => $det->denominacion,
+                      'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                      'producido_importado' => $det->producido_importado,
+                      'diferencia' => $det->diferencia,];
       }
     }
 
