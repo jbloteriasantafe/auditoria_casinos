@@ -612,11 +612,21 @@ class RelevamientoController extends Controller
                        'diferencia' => $det->diferencia,
                      ];
       }else{
+        if(!empty($det->producido_importado)){
+          $importt = $det->producido_importado;
+        }else {
+          $importt = null;
+        }
+        if(!empty($det->tipo_causa_no_toma)){
+          $tc = $det->tipo_causa_no_toma->descripcion;
+        }else {
+          $tc = null;
+        }
         $detalles[] = ['detalle' => $det,
                       'mtm_a_pedido' => null,
                       'denominacion' => $det->denominacion,
-                      'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
-                      'producido_importado' => $det->producido_importado,
+                      'tipo_no_toma' => $tc,
+                      'producido_importado' => $importt,
                       'diferencia' => $det->diferencia,];
       }
     }

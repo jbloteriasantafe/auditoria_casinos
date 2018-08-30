@@ -685,7 +685,7 @@ $(document).on('click','.verDetalle',function(e){
     $('#validarFiscaToma').val(data.fiscalizador);
     $('#validarFiscaCarga').val(data.cargador );
     $('#validarTecnico').val(data.relevamiento.tecnico);
-    $('#observacion_validacion').val(data.relevamiento.observacion_validacion);
+    $('#observacion_validacion').val(data.relevamiento.observacion_validacion).prop('disabled',true);
     $('#tablaValidarRelevamiento tbody tr').remove();
 
     for (var i = 0; i < data.detalles.length; i++) {
@@ -701,22 +701,55 @@ $(document).on('click','.verDetalle',function(e){
             .text(data.detalles[i].detalle.cont2))
             .append($('<td>')
             .text(data.detalles[i].detalle.cont3))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont4))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont5))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont6))
-            .append($('<td>')
+
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont4))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont5))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont6))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont7 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont7))}
+            if(data.detalles[i].detalle.cont8 != null){
+                fila.append($('<td>')
+                .text(data.detalles[i].detalle.cont8))}
+
+            fila.append($('<td>')
             .text(data.detalles[i].detalle.producido_calculado_relevado))
-            .append($('<td>')
+            fila.append($('<td>')
             .text(data.detalles[i].detalle.producido_importado))
-            .append($('<td>')
+
+            fila.append($('<td>')
             .text(data.detalles[i].detalle.diferencia))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.tipo_no_toma).prop('disabled', true))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.denominacion).prop('disabled', true))
+
+            fila.append($('<td>')
+            .text(' '))
+
+            if(data.detalles[i].tipo_no_toma != null){
+            fila.append($('<td>')
+            .text(data.detalles[i].tipo_no_toma).prop('disabled', true))}
+            else{
+              fila.append($('<td>')
+              .text(' - ').prop('disabled', true))
+            }
+            fila.append($('<td>')
+            .text(data.detalles[i].denominacion).prop('disabled', true))
             if(data.detalles[i].mtm_pedido != null){
             fila.append($('<td>')
             .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))}
