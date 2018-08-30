@@ -570,8 +570,9 @@ class RelevamientoController extends Controller
     }
 
 
-    foreach ($data as $dat) {
+    foreach ($request['data'] as $dat) {
       $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
+      //dd($dat['id_detalle_relevamiento']);
       $dett->denominacion = $dat['denominacion'];
       $dett->diferencia = $dat['diferencia'];
       if(!empty($dat['importado'])){

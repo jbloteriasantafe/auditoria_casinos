@@ -588,10 +588,11 @@ $(document).on('click','.validar',function(e){
   var id_relevamiento = $(this).val();
   console.log(id_relevamiento);
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
+
   $('#mensajeValidacion').hide();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
-      console.log(data);
+
       $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha));
       $('#validarCasino').val(data.casino);
       $('#validarSector').val(data.sector);
@@ -620,12 +621,14 @@ $('#btn-finalizarValidacion').click(function(e){
 
     $('#tablaValidarRelevamiento tbody tr').each(function(){
       var datos={
-        id_detalle_relevamiento: $(this).find('#id'),
-        denominacion: $(this).find('data-denominacion'),
+        id_detalle_relevamiento: $(this).attr('id'),
+        denominacion: $(this).attr('data-denominacion'),
         diferencia: $(this).find('.diferencia').val(),
         importado: $(this).find('.producido').val()
       }
+      console.log('da',datos);
       data.push(datos)
+
       if($(this).find('.a_pedido').length){
         if($(this).find('.a_pedido').val() != 0){
           var maquina = {
@@ -685,41 +688,38 @@ $(document).on('click','.verDetalle',function(e){
     $('#observacion_validacion').val(data.relevamiento.observacion_validacion);
     $('#tablaValidarRelevamiento tbody tr').remove();
 
-    for (var i = 0; i < data.detalle.length; i++) {
+    for (var i = 0; i < data.detalles.length; i++) {
 
         var fila= $(document.createElement('tr'));
 
-        fila.attr('id', data.detalle[i].id_detalle_relevamiento)
+        fila.attr('id', data.detalles[i].id_detalle_relevamiento)
             .append($('<td>')
-            .addClass('col-xs-2')
-            .text(data.detalle[i].id_maquina))
+            .text(data.detalles[i].detalle.id_maquina))
             .append($('<td>')
-            .text(data.detalle[i].cont2))
+            .text(data.detalles[i].detalle.cont1))
             .append($('<td>')
-            .text(data.detalle[i].cont3))
+            .text(data.detalles[i].detalle.cont2))
             .append($('<td>')
-            .text(data.detalle[i].cont4))
+            .text(data.detalles[i].detalle.cont3))
             .append($('<td>')
-            .text(data.detalle[i].cont5))
+            .text(data.detalles[i].detalle.cont4))
             .append($('<td>')
-            .text(data.detalle[i].cont6))
+            .text(data.detalles[i].detalle.cont5))
             .append($('<td>')
-            .text(data.detalle[i].cont7))
+            .text(data.detalles[i].detalle.cont6))
             .append($('<td>')
-            .text(data.detalle[i].cont8))
+            .text(data.detalles[i].detalle.producido_calculado_relevado))
             .append($('<td>')
-            .text(data.detalle[i].producido_calculado_relevado))
+            .text(data.detalles[i].detalle.producido_importado))
             .append($('<td>')
-            .text(data.detalle[i].producido_importado))
+            .text(data.detalles[i].detalle.diferencia))
             .append($('<td>')
-            .text(data.detalle[i].diferencia))
+            .text(data.detalles[i].detalle.tipo_no_toma).prop('disabled', true))
             .append($('<td>')
-            .text(data.detalle[i].tipo_no_toma).prop('disabled', true))
-            .append($('<td>')
-            .text(data.detalle[i].denominacion).prop('disabled', true))
-            if(data.detalle[i].mtm_pedido != null){
+            .text(data.detalles[i].detalle.denominacion).prop('disabled', true))
+            if(data.detalles[i].mtm_pedido != null){
             fila.append($('<td>')
-            .text(data.detalle[i].mtm_pedido.fecha).prop('disabled', true))}
+            .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))}
             else{
               fila.append($('<td>')
               .text(' ').prop('disabled', true))

@@ -828,6 +828,7 @@ $id_usuario = session('id_usuario');
                   <button type="button" class="btn btn-default" id="btn-salirValidacion" data-dismiss="modal">SALIR</button>
                   <input type="hidden" id="id_relevamiento" value="0">
 
+
                   <div id="mensajeValidacion" hidden>
                       <br>
                       <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">NO SE PUEDE VISAR</span>
