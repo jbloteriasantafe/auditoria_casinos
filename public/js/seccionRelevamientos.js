@@ -588,10 +588,11 @@ $(document).on('click','.validar',function(e){
   var id_relevamiento = $(this).val();
   console.log(id_relevamiento);
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
+
   $('#mensajeValidacion').hide();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
-      console.log(data);
+
       $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha));
       $('#validarCasino').val(data.casino);
       $('#validarSector').val(data.sector);
@@ -616,7 +617,18 @@ $('#btn-finalizarValidacion').click(function(e){
     $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
     var id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();
     var maquinas_a_pedido=[];
+    var data=[];
+
     $('#tablaValidarRelevamiento tbody tr').each(function(){
+      var datos={
+        id_detalle_relevamiento: $(this).attr('id'),
+        denominacion: $(this).attr('data-denominacion'),
+        diferencia: $(this).find('.diferencia').val(),
+        importado: $(this).find('.producido').val()
+      }
+      console.log('da',datos);
+      data.push(datos)
+
       if($(this).find('.a_pedido').length){
         if($(this).find('.a_pedido').val() != 0){
           var maquina = {
@@ -632,6 +644,7 @@ $('#btn-finalizarValidacion').click(function(e){
       id_relevamiento: id_relevamiento,
       observacion_validacion: $('#observacion_validacion').val(),
       maquinas_a_pedido: maquinas_a_pedido,
+      data
     }
 
     $.ajax({
@@ -652,6 +665,105 @@ $('#btn-finalizarValidacion').click(function(e){
           $("#modalValidarRelevamiento").animate({ scrollTop: $('#mensajeValidacion').offset().top }, "slow");
         },
     });
+
+});
+
+
+$(document).on('click','.verDetalle',function(e){
+  e.preventDefault();
+
+  var id_rel=$(this).val();
+
+  $.get('relevamientos/verRelevamientoVisado/' + id_rel, function(data){
+    console.log('rv', data);
+    $('#modalValidarRelevamiento .modal-title').text('DETALLES RELEVAMIENTO VISADO');
+
+    $('#frmValidarRelevamiento').trigger('reset');
+    $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha_generacion));
+    $('#validarCasino').val(data.casino);
+    $('#validarSector').val(data.sector);
+    $('#validarFiscaToma').val(data.fiscalizador);
+    $('#validarFiscaCarga').val(data.cargador );
+    $('#validarTecnico').val(data.relevamiento.tecnico);
+    $('#observacion_validacion').val(data.relevamiento.observacion_validacion).prop('disabled',true);
+    $('#tablaValidarRelevamiento tbody tr').remove();
+
+    for (var i = 0; i < data.detalles.length; i++) {
+
+        var fila= $(document.createElement('tr'));
+
+        fila.attr('id', data.detalles[i].id_detalle_relevamiento)
+            .append($('<td>')
+            .text(data.detalles[i].detalle.id_maquina))
+            .append($('<td>')
+            .text(data.detalles[i].detalle.cont1))
+            .append($('<td>')
+            .text(data.detalles[i].detalle.cont2))
+            .append($('<td>')
+            .text(data.detalles[i].detalle.cont3))
+
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont4))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont5))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont4 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont6))}
+            else{
+              fila.append($('<td>')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont7 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont7))}
+            if(data.detalles[i].detalle.cont8 != null){
+                fila.append($('<td>')
+                .text(data.detalles[i].detalle.cont8))}
+
+            fila.append($('<td>')
+            .text(data.detalles[i].detalle.producido_calculado_relevado))
+            fila.append($('<td>')
+            .text(data.detalles[i].detalle.producido_importado))
+
+            fila.append($('<td>')
+            .text(data.detalles[i].detalle.diferencia))
+
+            fila.append($('<td>')
+            .text(' '))
+
+            if(data.detalles[i].tipo_no_toma != null){
+            fila.append($('<td>')
+            .text(data.detalles[i].tipo_no_toma).prop('disabled', true))}
+            else{
+              fila.append($('<td>')
+              .text(' - ').prop('disabled', true))
+            }
+            fila.append($('<td>')
+            .text(data.detalles[i].denominacion).prop('disabled', true))
+            if(data.detalles[i].mtm_pedido != null){
+            fila.append($('<td>')
+            .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))}
+            else{
+              fila.append($('<td>')
+              .text(' ').prop('disabled', true))
+            }
+
+            $('#tablaValidarRelevamiento tbody').append(fila);
+    }
+
+    $('#modalValidarRelevamiento').modal('show');
+  })
+
 
 });
 
@@ -2102,7 +2214,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     }
   });
 });
-
+//fila lista principal de relevamientos
 function crearFilaTabla(relevamiento){
 
   var subrelevamiento;
@@ -2141,6 +2253,11 @@ function crearFilaTabla(relevamiento){
               .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
           )
           .append($('<span>').text(' '))
+          .append($('<button>').addClass('btn btn-success verDetalle').attr('type','button').val(relevamiento.id_relevamiento)
+              .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
+          )
+          .append($('<span>').text(' '))
           .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(relevamiento.id_relevamiento)
               .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
               .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
@@ -2157,6 +2274,7 @@ function crearFilaTabla(relevamiento){
       var icono_validacion = fila.find('.validar');
       var icono_impirmir = fila.find('.imprimir');
       var icono_validado = fila.find('.validado');
+      var icono_verDetalle = fila.find('.verDetalle');
 
 
     //Qué ESTADO e ICONOS mostrar
@@ -2168,6 +2286,8 @@ function crearFilaTabla(relevamiento){
           icono_validacion.hide();
           icono_impirmir.hide();
           icono_validado.hide();
+          icono_verDetalle.hide();
+
           break;
       case 'Cargando':
           fila.find('.iconoEstadoRelevamiento').addClass('faCargando');
@@ -2176,6 +2296,7 @@ function crearFilaTabla(relevamiento){
           icono_validacion.hide();
           icono_impirmir.show();
           icono_validado.hide();
+          icono_verDetalle.hide();
           break;
       case 'Finalizado':
           fila.find('.iconoEstadoRelevamiento').addClass('faFinalizado');
@@ -2185,6 +2306,7 @@ function crearFilaTabla(relevamiento){
           icono_carga.hide();
           icono_planilla.hide();
           icono_validado.hide();
+          icono_verDetalle.hide();
           break;
       case 'Visado':
           fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
@@ -2194,6 +2316,7 @@ function crearFilaTabla(relevamiento){
           icono_carga.hide();
           icono_planilla.hide();
           icono_validado.hide();
+          icono_verDetalle.show();
           break;
       case 'Rel. Visado':
             fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
@@ -2203,6 +2326,7 @@ function crearFilaTabla(relevamiento){
             icono_carga.hide();
             icono_planilla.hide();
             icono_validado.show();
+            icono_verDetalle.show();
             break;
     }
 

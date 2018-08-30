@@ -521,7 +521,8 @@ class RelevamientoController extends Controller
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'observacion_validacion' => 'nullable|max:200'
+        'observacion_validacion' => 'nullable|max:200',
+        'data' => 'required',///trae datos para guardar en el detalle relevamiento
     ], array(), self::$atributos)->after(function($validator){
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
       $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
@@ -564,15 +565,90 @@ class RelevamientoController extends Controller
     $mtm_controller = MaquinaAPedidoController::getInstancia();
     if(!empty($request->maquinas_a_pedido)){
       foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
-        $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias']);
+        $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias'],$request->id_relevamiento);
       }
     }
+
+
+    foreach ($request['data'] as $dat) {
+      $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
+      //dd($dat['id_detalle_relevamiento']);
+      $dett->denominacion = $dat['denominacion'];
+      $dett->diferencia = $dat['diferencia'];
+      if(!empty($dat['importado'])){
+        $dett->producido_importado = $dat['importado'];
+      }
+      $dett->save();
+    }
+
     return ['relevamiento' => $relevamiento,
             'casino' => $relevamiento->sector->casino->nombre,
             'sector' => $relevamiento->sector->descripcion,
             'estado' => $relevamiento->estado_relevamiento->descripcion,
             'detalles' => $relevamiento->detalles];
   }
+
+  public function obtenerRelevamientoVisado($id_relevamiento){
+
+    $relevamiento = Relevamiento::find($id_relevamiento);
+
+    ///controlo que todos esten visados para habilitar el informe
+    $casino = $relevamiento->sector->casino;
+    foreach($casino->sectores as $sector){
+      $sectores[] = $sector->id_sector;
+    }
+    $detalles = array();
+    foreach ($relevamiento->detalles as $det) {
+      $mtm_a_pedido = $this->chequearMTMpedida($det->id_maquina, $relevamiento->id_relevamiento);
+
+      $mtmm = Maquina::find($det->id_maquina);
+      if($mtm_a_pedido != null){
+
+        $detalles[] = ['detalle' => $det,
+                       'mtm_a_pedido' => $mtm_a_pedido,
+                       'denominacion' => $det->denominacion,
+                       'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                       'producido_importado' => $det->producido_importado,
+                       'diferencia' => $det->diferencia,
+                     ];
+      }else{
+        if(!empty($det->producido_importado)){
+          $importt = $det->producido_importado;
+        }else {
+          $importt = null;
+        }
+        if(!empty($det->tipo_causa_no_toma)){
+          $tc = $det->tipo_causa_no_toma->descripcion;
+        }else {
+          $tc = null;
+        }
+        $detalles[] = ['detalle' => $det,
+                      'mtm_a_pedido' => null,
+                      'denominacion' => $det->denominacion,
+                      'tipo_no_toma' => $tc,
+                      'producido_importado' => $importt,
+                      'diferencia' => $det->diferencia,];
+      }
+    }
+
+
+    //buscar mtm que fueron pedidas
+
+    return ['relevamiento' => $relevamiento,
+            'detalles' => $detalles,
+            'casino' => $relevamiento->sector->casino->nombre,
+            'sector' => $relevamiento->sector->descripcion,
+            'estado' => $relevamiento->estado_relevamiento->descripcion,
+            'fiscalizador' => $relevamiento->usuario_fiscalizador->user_name,
+            'cargador' => $relevamiento->usuario_cargador->user_name,
+            ];
+  }
+
+  private function chequearMTMpedida($id_mtm, $id_relevamiento){
+    return  MaquinaAPedido::where([['id_relevamiento','=', $id_relevamiento],
+                                            ['id_maquina','=',$id_mtm]])->first();
+  }
+
 
   private function guardarPlanilla($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
@@ -766,11 +842,11 @@ class RelevamientoController extends Controller
                                     ->first()->cantidad;
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
-    $dompdf->set_paper('A4','landscape');
+    $dompdf->set_paper('A4','portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
-    $dompdf->getCanvas()->page_text(750,565,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
     return $dompdf;
   }
 

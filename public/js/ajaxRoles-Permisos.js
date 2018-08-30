@@ -263,7 +263,7 @@ $(document).on('click','.detallePermiso',function(){
 
   $.get('/permiso/' + id_permiso, function (data) {
 
-    console.log(data);
+
     $('#commentPermiso').val(data.permiso.descripcion);
     $('#id_permiso').val(data.permiso.id_permiso);
 

@@ -6,7 +6,7 @@
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
-  width: 70%;
+  width: 80%;
 }
 
 td, th {
@@ -54,16 +54,16 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape_medium.png" width="900">
-              <h2><span style="color: #9c9c9c; padding-left: 200px;">PMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
+              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <h2><span style="color: #9c9c9c; ">PMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
         </div>
         <div class="primerEncabezado" style="padding-left: 120px;">Datos del relevamiento para la fecha de producción - <b><i><?php echo $fecha_final;?> </i></b></div><br>
-                  <div style="padding-left: 230px;">
+                  <div style="padding-left: 150px;">
                     <table>
                             <tr>
-                              <th class="tablaInicio">CANTIDAD DE MÁQUINAS RELEVADAS</th>
-                              <th class="tablaInicio">CANTIDAD DE MÁQUINAS CON DIFERENCIAS</th>
-                              <th class="tablaInicio">MÁQUINAS HABILITADAS</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MÁQUINAS RELEVADAS</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MÁQUINAS CON DIFERENCIAS</th>
+                              <th class="tablaInicio" style="text-align: center;">MÁQUINAS HABILITADAS</th>
                             </tr>
                             <tr>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->cantidad_relevadas}}</td>
@@ -73,30 +73,36 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                     </table>
                   </div><br>
         <div class="primerEncabezado" style="padding-left: 120px;">A continuación se detallan diferencias con relación al sistema, en los contadores observados</div><br>
-        <div style="padding-left: 230px;">
-          <table>
+        <div >
+          <table STYLE="width: 100%;">
                   <tr>
-                    <th class="tablaInicio">N° DE MÁQUINA</th>
-                    <th class="tablaInicio">SECTOR</th>
-                    <th class="tablaInicio">ISLA</th>
-                    <th class="tablaInicio">PRODUCIDO CALCULADO OBSERVADO</th>
-                    <th class="tablaInicio">PRODUCIDO CALCULADO DEL SISTEMA</th>
-                    <th class="tablaInicio">CAUSA DE NO TOMA</th>
+                    <th class="tablaInicio" style="text-align: center;">N° DE MÁQUINA</th>
+                    <th class="tablaInicio" style="text-align: center;">SECTOR</th>
+                    <th class="tablaInicio" style="text-align: center;">ISLA</th>
+                    <th class="tablaInicio" style="text-align: center;">PRODUCIDO CALCULADO OBSERVADO</th>
+                    <th class="tablaInicio" style="text-align: center;">PRODUCIDO CALCULADO DEL SISTEMA</th>
+                    <th class="tablaInicio" style="text-align: center;">CAUSA DE NO TOMA</th>
+                    <th class="tablaInicio" style="text-align: center;">OBSERVACIONES</th>
                   </tr>
                   @if(isset($rel->detalles))
                     @foreach($rel->detalles as $detalle)
                     <tr>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->nro_admin}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->sector}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->isla}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->producido_calculado_relevado}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$detalle->producido}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">{{$detalle->nro_admin}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">{{$detalle->sector}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">{{$detalle->isla}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido_calculado_relevado}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 30%;"></td>
                     </tr>
                     @endforeach
                   @endif
           </table>
         </div>
+
+      </div><br><br>
+        <div class="primerEncabezado" style="padding-left: 450px;">________________________________________</div><br>
+        <div class="primerEncabezado" style="padding-left: 520px;">Firma Responsable</div>
       <!--  @for($i = 0; $i<450; $i++)
         .
         @endfor
@@ -112,8 +118,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
       .
       @endfor
     -->
-    </div><br><br>
-      <div class="primerEncabezado" style="padding-left: 555px;">________________________________________</div><br>
-      <div class="primerEncabezado" style="padding-left: 563px;">Firma Responsable</div>
+
       </body>
 </html>
