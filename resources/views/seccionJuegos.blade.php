@@ -117,9 +117,9 @@
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-4" id="cod_inp">
                           <h5>Código de Certificado</h5>
-                          <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de certificado"/>
+                          <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />
                       </div>
                   </div>
                   <br>
