@@ -94,7 +94,7 @@ class LogMovimientoController extends Controller
     $gabinetes = TipoGabinete::all();
     $tipo_progresivos = ['LINKEADO', 'INDIVIDUAL'];
     $estados = EstadoMaquina::all();
-    $logs = LogMovimiento::whereIn('id_casino',$casinos)->get();
+    $logs = LogMovimiento::whereIn('id_casino',$casinos)->orderBy('fecha','DESC')->get();
     $casinos=$usuario['usuario']->casinos;
     $tiposMovimientos = TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7,8])->get();
     UsuarioController::getInstancia()->agregarSeccionReciente('Asignación Movimientos' ,'movimientos');
@@ -129,7 +129,7 @@ class LogMovimientoController extends Controller
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }else{
-      $sort_by = ['columna' => 'log_movimiento.fecha', 'orden' => 'desc'];
+      $sort_by = ['columna' => 'log_movimiento.fecha', 'orden' => 'DESC'];
     }
       //busca en logs con expedientes
       if(empty($request->fecha)){
@@ -228,7 +228,7 @@ class LogMovimientoController extends Controller
     $usuarios = UsuarioController::getInstancia()->obtenerControladores($logs->casino->id_casino,$id_usuario);
     foreach ($usuarios as $user){
       $u = Usuario::find($user->id_usuario);
-      $u->notify(new NuevoMovimiento($logs));
+     if($u != null) $u->notify(new NuevoMovimiento($logs));
     }
     return $logs;
   }
@@ -259,7 +259,7 @@ class LogMovimientoController extends Controller
       $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$id_usuario );
       foreach ($usuarios as $user){
         $u = Usuario::find($user->id_usuario);
-        $u->notify(new RelevamientoGenerado($fiscalizacion));
+       if($u != null)  $u->notify(new RelevamientoGenerado($fiscalizacion));
       }
 
       $date = date('Y-m-d h:i:s', time());
@@ -294,6 +294,7 @@ class LogMovimientoController extends Controller
      $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$id_usuario);
      foreach ($usuarios as $user){
        $u = Usuario::find($user->id_usuario);
+
        if($u != null){
        $u->notify(new RelevamientoGenerado($fiscalizacion));}
      }
@@ -782,7 +783,7 @@ class LogMovimientoController extends Controller
       $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
       foreach ($usuarios as $user){
         $u = Usuario::find($user->id_usuario);
-        $u->notify(new RelevamientoCargado($fiscalizacion));
+       if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
       }
       CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
     }
@@ -1638,7 +1639,7 @@ class LogMovimientoController extends Controller
        $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,$id_usuario);
        foreach ($usuarios as $user){
          $u = Usuario::find($user->id_usuario);
-         $u->notify(new NuevaIntervencionMTM($log));
+        if($u != null)  $u->notify(new NuevaIntervencionMTM($log));
        }
      }else{
        $log->estado_movimiento()->associate(8);//cargando
