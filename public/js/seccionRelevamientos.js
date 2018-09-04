@@ -1888,6 +1888,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
 
       //si no se importaron contadores muestra = ?
       if(data.detalles[i].producido == null) {
+        diferencia.val(data.detalles[i].detalle.producido_calculado_relevado).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
         iconoPregunta.show();
         iconoCruz.hide();
         iconoCheck.hide();

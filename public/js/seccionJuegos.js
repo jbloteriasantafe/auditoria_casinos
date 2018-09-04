@@ -82,9 +82,11 @@ $('#btn-nuevo').click(function(e){
   $('#alertaTabla').remove();
   $('#modalJuego').modal('show');
   $('#boton-salir').text('CANCELAR');
+  $('#cod_inp').hide();
 
   //Agregar el boton para guardar
   $('#btn-guardar').css('display','inline-block');
+  $('#btn-agregarMaquina').show();
   $('#tablaPagosEncabezado').hide();
   $('#btn-agregarTablaDePago').show();
 
@@ -104,6 +106,7 @@ $('#btn-nuevo').click(function(e){
 
 //Muestra el modal con todos los datos del JUEGO
 $(document).on('click','.detalle', function(){
+
   $('.modal-title').text('| VER MÁS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -111,7 +114,8 @@ $(document).on('click','.detalle', function(){
   $('#columna > .alertaSpan').remove();
   $('#columna > #unaTablaDePago').remove();
   $('#btn-agregarTablaDePago').hide();
-
+  $('#btn-agregarMaquina').hide();
+  $('.borrarFila').hide();
   $('#agregarProgresivo').hide();
 
   $('#boton-salir').text('SALIR');
@@ -121,7 +125,7 @@ $(document).on('click','.detalle', function(){
   $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       $('#id_juego').val(data.juego.id_juego);
-      $('#inputJuego').val(data.juego.nombre_juego);
+      $('#inputJuego').val(data.juego.nombre_juego).prop('readonly',true);
       $('#inputCodigo').val(data.juego.cod_identificacion);
       $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
 
@@ -131,6 +135,7 @@ $(document).on('click','.detalle', function(){
       // }
       $('#btn-guardar').val("modificar");
       $('#modalJuego').modal('show');
+
 
       $('#nombre_juego').prop('readonly',true);
       $('#cod_identificacion').prop('readonly',true);
@@ -142,54 +147,31 @@ $(document).on('click','.detalle', function(){
       $('#cod_identificacion').removeClass('alerta');
       $('#nro_niv_progresivos').removeClass('alerta');
 
-      for (var i = 0; i < data.tablasDePago.length; i++) {
+         for (var i = 0; i < data.tablasDePago.length; i++) {
+           $('#btn-agregarTablaDePago').trigger('click');
+           $('#tablas_pago input:last').val(data.tablasDePago[i].codigo).attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
+           $('#borrarTablaPago').css('display','none');
 
-        $('#columna')
-            .append($('<div>')
-                .addClass('row')
-                .css('margin-bottom','15px')
-                .attr('id','unaTablaDePago')
-
-                .append($('<div>')
-                    .addClass('col-xs-3')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                        .attr('id','codigo')
-                        .attr('type','text')
-                        .attr('placeholder','Código Tabla de Pago')
-                        .addClass('form-control')
-                        .val(data.tablasDePago[i].codigo)
-                        .attr('readonly','true')
-                    )
-                )
-
-            )
-
-      }
-
-      var cant_filas=0;
-      $('#columna #unaTablaDePago').each(function(){
-          cant_filas++;
-      });
-
-      console.log('Cantidad de filas: ' + cant_filas);
-
-      if(cant_filas == 0){
-        $('#tablaPagosEncabezado').hide();
-      }
-      else{
-        $('#tablaPagosEncabezado').show();
-      }
+         }
+         for (var i = 0; i < data.maquinas.length; i++) {
+           agregarRenglonMaquina();
+           var div = $('.copia:last');
+           div.attr('data-id' ,data.maquinas[i].id_maquina);
+           div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true);
+           div.find('.nro_admin').val(data.maquinas[i].nro_admin).prop('readonly',true);
+           div.find('.denominacion').val(data.maquinas[i].denominacion).prop('readonly',true);
+           div.find('.porcentaje').val(data.maquinas[i].porcentaje_devolucion).prop('readonly',true);
+         }
 
   });
 
-  $('#alertaNombre').hide();
-  $('#alertaCodigo').hide();
-  $('#alertaNiveles').hide();
-  $('#cancelarProgresivo').hide();
+    $('#alertaNombre').hide();
+    $('#alertaCodigo').hide();
+    $('#alertaNiveles').hide();
+    $('#cancelarProgresivo').hide();
 
-  //Remover el boton para guardar
-  $('#btn-guardar').css('display','none');
+    //Remover el boton para guardar
+    $('#btn-guardar').css('display','none');
 
 });
 
@@ -206,6 +188,7 @@ $('.modal').on('hidden.bs.modal', function() {
 
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
+
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('MODIFICAR JUEGO');
@@ -248,7 +231,7 @@ $('#btn-agregarTablaDePago').click(function(){
                           .append($('<div>')
                               .addClass('col-xs-2')
                               .append($('<button>')
-                                  .addClass('btn').addClass('btn-danger').addClass('borrarFila').addClass('borrarTablaPago')
+                                  .addClass('btn').addClass('btn-danger').addClass('borrarFila').attr('id','borrarTablaPago').css('display','block')
                                   .append($('<i>')
                                       .addClass('fa fa-fw fa-trash')
                                   )
@@ -259,7 +242,7 @@ $('#btn-agregarTablaDePago').click(function(){
 });
 
 //borrar Tabla de Pago
-$(document).on('click' , '.borrarTablaPago' , function(){
+$(document).on('click' , '#borrarTablaPago' , function(){
   var fila = $(this).parent().parent();
   fila.next().remove(); //Remueve el salto de linea
   fila.remove();
@@ -368,6 +351,7 @@ $('#btn-eliminarModal').click(function (e) {
 
 //Crear nuevo Juego / actualizar si existe
 $('#btn-guardar').click(function (e) {
+  $('#mensajeExito').hide();
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -422,6 +406,10 @@ $('#btn-guardar').click(function (e) {
         success: function (data) {
             $('#btn-buscar').trigger('click');
             $('#modalJuego').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text(' ');
+            $('#mensajeExito').show();
+
         },
         error: function (data) {
             var response = JSON.parse(data.responseText);
@@ -699,12 +687,18 @@ function habilitarControles(valor){
 
 
 function mostrarJuego(juego, tablas, maquinas){
+
   $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego);
   $('#inputCodigo').val(juego.cod_identificacion);
+
   for (var i = 0; i < tablas.length; i++) {
     $('#btn-agregarTablaDePago').trigger('click');
     $('#tablas_pago input:last').val(tablas[i].codigo).attr('data-id' , tablas[i].id_tabla_pago);
+
+    console.log('dd',tablas);
+    console.log($('#tablas_pago'));
+
   }
   for (var i = 0; i < maquinas.length; i++) {
     agregarRenglonMaquina();
