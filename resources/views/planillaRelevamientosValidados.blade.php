@@ -93,7 +93,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido_calculado_relevado}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 30%;"></td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 30%;">{{$detalle->observacion}}</td>
                     </tr>
                     @endforeach
                   @endif
