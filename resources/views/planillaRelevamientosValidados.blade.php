@@ -92,15 +92,15 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">{{$detalle->isla}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido_calculado_relevado}}</td>
                       <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">{{$detalle->producido}}</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 10%;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
-                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 30%;">{{$detalle->observacion}}</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 15%;">@if($detalle->no_toma != null){{$detalle->no_toma}}@endif</td>
+                      <td class="tablaInicio" style="background-color: #fff; text-align: center; width: 25%;">{{$detalle->observacion}}</td>
                     </tr>
                     @endforeach
                   @endif
           </table>
         </div>
 
-      </div><br><br>
+      </div><br><br><br><br>
         <div class="primerEncabezado" style="padding-left: 450px;">________________________________________</div><br>
         <div class="primerEncabezado" style="padding-left: 520px;">Firma Responsable</div>
       <!--  @for($i = 0; $i<450; $i++)
