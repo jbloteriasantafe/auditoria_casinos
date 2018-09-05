@@ -83,44 +83,13 @@ class DisposicionController extends Controller
       $reglas[]=['resolucion.nro_resolucion_anio', 'like' , '%' . $request->nro_resolucion_anio . '%'];
     }
 
-      $resultados1=DB::table('expediente')
+      $resultados=DB::table('expediente')
       ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
       ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
+      ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
       ->where($reglas)
       ->get();
 
-      $reglas2 = array();
-      if(!empty($request->nro_exp_org)){
-        $reglas2[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
-      }
-      if(!empty($request->nro_exp_interno)){
-        $reglas2[]=['expediente.nro_exp_interno', 'like' , '%' . $request->nro_exp_interno . '%'];
-      }
-      if(!empty($request->nro_exp_control)){
-        $reglas2[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
-      }
-      if($request->casino!= 0){
-        $reglas2[]=['expediente.id_casino', '=' ,  $request->casino ];
-      }
-      if(!empty($request->nro_disposicion)){
-        $reglas2[]=['resolucion.nro_resolucion', 'like' ,'%' . $request->nro_resolucion . '%'];
-      }
-      if(!empty($request->nro_disposicion_anio)){
-        $reglas2[]=['resolucion.nro_resolucion_anio', 'like' , '%' . $request->nro_resolucion_anio . '%'];
-      }
-
-        $resultados2=DB::table('expediente')
-        ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
-        ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
-        ->where($reglas2)
-        ->get();
-
-      $resultados = array();
-      if(!empty($resultados1)){
-      $resultados = array_merge($resultados, $resultados1);}
-      if(!empty($resultados2)){
-      $resultados = array_merge($resultados, $resultados2);}
       return ['resultados' => $resultados];
 
 
