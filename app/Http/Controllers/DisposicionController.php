@@ -110,15 +110,17 @@ class DisposicionController extends Controller
       }
 
         $resultados2=DB::table('expediente')
-        ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
+        ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
         ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
         ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
         ->where($reglas2)
         ->get();
 
       $resultados = array();
-      $resultados = array_merge($resultados, $resultados1);
-      $resultados = array_merge($resultados, $resultados2);
+      if(!empty($resultados1)){
+      $resultados = array_merge($resultados, $resultados1);}
+      if(!empty($resultados2)){
+      $resultados = array_merge($resultados, $resultados2);}
       return ['resultados' => $resultados];
 
 
