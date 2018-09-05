@@ -63,15 +63,6 @@ $id_usuario = session('id_usuario');
                                    </div>
                                    <input class="form-control" type="hidden" id="fecha_inicio1" value=""/>
                                 </div>
-
-
-                                <!-- <div class='input-group date' id='B_dtpFechaInicio' data-link-field="fecha_inicio1" data-link-format="yyyy-mm">
-                                  <input type='text' class="form-control" id="B_fecha_inicio" placeholder="Fecha de Inicio"/>
-                                  <span class="input-group-addon">
-                                    <span class="fa fa-calendar"></span>
-                                  </span>
-                                  <input type="hidden" id="fecha_inicio1" value=""/>
-                                </div> -->
                               </div>
                               <div class="col-lg-3">
                                 <h5>Ubicación</h5>
@@ -103,9 +94,17 @@ $id_usuario = session('id_usuario');
                             <br>
 
                             <div class="row">
-                              <div class="col-md-12">
+                              <div class="col-lg-4">
+                                <h5>IDENTIFICACIÓN NOTA</h5>
+                                <input id="B_nota" type="text" class="form-control" maxlength="45" placeholder="Identificación">
+                              </div>
+                              <div class="col-lg-4">
+                                <br>
                                 <center><button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button></center>
                               </div>
+                            </div>
+                            <div class="row">
+
                             </div>
 
                           </div>
@@ -208,7 +207,7 @@ $id_usuario = session('id_usuario');
 
     <!-- Modal Expediente -->
     <div class="modal fade" id="modalExpediente" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
+          <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
                 <div class="modal-header modalNuevo">
                   <a class="btn-ayuda" type="button" name="button" data-toggle="popover" title="Ayuda - NUEVO EXPEDIENTE" data-html="true"

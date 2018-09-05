@@ -18,7 +18,6 @@ $(document).ready(function(){
 
   if(prueba == '/movimientos'){
 
-
       $('#barraMaquinas').attr('aria-expanded','true');
       $('#maquinas').removeClass();
       $('#maquinas').addClass('subMenu1 collapse in');

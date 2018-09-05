@@ -315,12 +315,12 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
   });
 
   //muestro redireccion a maquina si existe algun cambio
-  if(bandera){
-    filaMaquinaLayout.find('.gestion_maquina').popover({
-      html:true,
-    })
+  // if(bandera){
+  //   filaMaquinaLayout.find('.gestion_maquina').popover({
+  //     html:true,
+  //   })
     filaMaquinaLayout.find('.gestion_maquina').show();
-  }
+  //}
 }
 
 //Eventos cuando cierra el modal

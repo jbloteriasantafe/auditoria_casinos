@@ -18,6 +18,12 @@ $(document).ready(function() {
         $('#btn-buscarDisposiciones').click();
       }
   });
+  $('#collapseFiltros #nro_exp_org').val("");
+  $('#collapseFiltros #nro_exp_interno').val("");
+  $('#collapseFiltros #nro_exp_control').val("");
+  $('#collapseFiltros #sel1').val("0");
+  $('#collapseFiltros #nro_disposicion').val("");
+  $('#collapseFiltros #nro_disposicion_anio').val("");
 
 });
 
@@ -73,13 +79,13 @@ $('#buscarDisposiciones').click(function(){
        for (var i = 0; i < data.resultados.length; i++) {
          $('tbody')
             .append($('<tr>')
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nro_exp_org + '-' + data.resultados[i].nro_exp_interno + '-' + data.resultados[i].nro_exp_control)
                 )
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nombre)
                 )
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nro_disposicion+'-'+data.resultados[i].nro_disposicion_anio)
 
               )

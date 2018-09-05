@@ -791,7 +791,7 @@ class RelevamientoController extends Controller
             }else{
                 $det->no_toma = '---';
             }
-
+            $det->observacion = 'No se importaron contadores';
             $detalles[] = $det;
 
           }else{
@@ -811,6 +811,7 @@ class RelevamientoController extends Controller
               }else{
                   $det->no_toma = '---';
               }
+              $det->observacion = '';
               $detalles[] = $det;
             }
           }
