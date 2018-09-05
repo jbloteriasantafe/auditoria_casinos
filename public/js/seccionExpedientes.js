@@ -946,6 +946,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     concepto: $('#B_concepto').val(),
     tema: $('#B_tema').val(),
     destino: $('#B_destino').val(),
+    nota: $('#B_nota').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,

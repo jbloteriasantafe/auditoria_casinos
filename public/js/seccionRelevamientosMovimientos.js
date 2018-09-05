@@ -169,7 +169,6 @@ $('.btn-cargarRelMov').click(function(e){
         $('#tablaMaquinasFiscalizacion tbody').append(fila);
       }
 
-
       $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
       $('#fiscaToma').setearElementoSeleccionado(0,"");
       if (data.usuario_fiscalizador)

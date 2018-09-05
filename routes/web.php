@@ -220,7 +220,6 @@ Route::get('movimientos/ValidarFiscalizacion/{id}', 'LogMovimientoController@Val
 Route::get('movimientos/ValidarMaquinaFiscalizacion/{id}', 'LogMovimientoController@ValidarMaquinaFiscalizacion');
 Route::post('movimientos/validarTomaRelevamiento', 'LogMovimientoController@validarTomaRelevamiento');
 Route::post('movimientos/guardarRelevamientosMovimientosMaquinas', 'LogMovimientoController@guardarRelevamientosMovimientosMaquinas');
-Route::get('movimientos/buscarMaquinasMovimiento/{id}', 'LogMovimientoController@buscarMaquinasMovimiento');
 Route::post('movimientos/guardarLogClickMov', 'LogMovimientoController@guardarLogClickMov');
 Route::get('movimientos/mostrarMaquinasMovimientoLogClick/{id}','LogMovimientoController@mostrarMaquinasMovimientoLogClick');
 Route::post('movimientos/guardarRelevamientosMovimientos','LogMovimientoController@guardarRelevamientosMovimientos');

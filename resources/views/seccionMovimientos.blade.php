@@ -9,7 +9,6 @@
 @section('estilos')
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
   <link rel="stylesheet" href="css/paginacion.css">
-
   <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
   <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
   <link rel="stylesheet" href="/css/lista-datos.css">
@@ -18,87 +17,72 @@
 @section('contenidoVista')
 
   <div class="row">
-      <div class="col-xl-9">
-            <!-- FILTROS -->
-            <div class="row">
+    <div class="col-xl-9">
+      <!-- FILTROS -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+              <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+            </div>
+
+            <div id="collapseFiltros" class="panel-collapse collapse">
+              <div class="panel-body">
+                <div class="row">
+                  <div class="col-lg-3">
+                    <h5>Número de expediente</h5>
+                    <div class="input-group triple-input">
+                      <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
+                      <input id="B_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
+                      <input id="B_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
+                    </div>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Tipo Movimiento</h5>
+                    <select class="form-control" id="B_TipoMovimiento">
+                      <option value="" selected>- Seleccione tipo movimiento -</option>
+                      @foreach ($tiposMovimientos as $tipoMovimiento)
+                      <option value="{{$tipoMovimiento->id_tipo_movimiento}}">{{$tipoMovimiento->descripcion}}</option>
+                      @endforeach
+                      <option value="0" >- Todos los movimientos -</option>
+                    </select>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Fecha</h5>
+                    <div class="form-group">
+                      <div class='input-group date' id='dtpFechaMov' data-link-field="fecha_movimiento" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                        <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=" "/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                      </div>
+                      <input class="form-control" type="hidden" id="fecha_movimiento" value=""/>
+                    </div>
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Casino</h5>
+                    <select class="form-control" id="dtpCasinoMov">
+                      <option value="0" selected>- Seleccione casino -</option>
+                      @foreach ($casinos as $casino)
+                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                </div> <!-- row / formulario -->
+                <br>
+                <div class="row">
                   <div class="col-md-12">
-
-
-                    <div class="panel panel-default">
-
-                        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-                        </div>
-
-                      <div id="collapseFiltros" class="panel-collapse collapse">
-
-                          <div class="panel-body">
-
-                            <div class="row">
-                              <div class="col-lg-3">
-                                <h5>Número de expediente</h5>
-                                <div class="input-group triple-input">
-                                    <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
-                                    <input id="B_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
-                                    <input id="B_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
-                                </div>
-                              </div>
-                              <div class="col-lg-3">
-                                    <h5>Tipo Movimiento</h5>
-                                    <select class="form-control" id="B_TipoMovimiento">
-                                      <option value="" selected>- Seleccione tipo movimiento -</option>
-                                      @foreach ($tiposMovimientos as $tipoMovimiento)
-                                      <option value="{{$tipoMovimiento->id_tipo_movimiento}}">{{$tipoMovimiento->descripcion}}</option>
-                                      @endforeach
-                                      <option value="0" >- Todos los movimientos -</option>
-                                    </select>
-                              </div>
-
-                              <div class="col-lg-3">
-                                <h5>Fecha</h5>
-                                <div class="form-group">
-                                   <div class='input-group date' id='dtpFechaMov' data-link-field="fecha_movimiento" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                                       <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=" "/>
-                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                   </div>
-                                   <input class="form-control" type="hidden" id="fecha_movimiento" value=""/>
-                                </div>
-                              </div>
-
-                              <div class="col-lg-3">
-                                <h5>Casino</h5>
-                                <select class="form-control" id="dtpCasinoMov">
-                                  <option value="0" selected>- Seleccione casino -</option>
-                                  @foreach ($casinos as $casino)
-                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                  @endforeach
-                                  <!-- <option value=" " >- Todos los movimientos -</option> -->
-                                </select>
-                              </div>
-
-                            </div> <!-- row / formulario -->
-
-                            <br>
-                            <div class="row">
-                                  <div class="col-md-12">
-                                       <center>
-                                         <button id="btn-buscarMovimiento" class="btn btn-infoBuscar" type="button" name="button">
-                                           <i class="fa fa-fw fa-search"></i> BUSCAR
-                                         </button>
-                                       </center>
-                                  </div>
-                            </div> <!-- row / botón buscar -->
-
-                          </div> <!-- panel-body -->
-                      </div> <!-- collapse -->
-
-
-
-                    </div> <!-- .panel-default -->
-                  </div> <!-- .col-md-12 -->
-
-            </div> <!-- .row / FILTROS -->
+                    <center>
+                      <button id="btn-buscarMovimiento" class="btn btn-infoBuscar" type="button" name="button">
+                        <i class="fa fa-fw fa-search"></i> BUSCAR
+                      </button>
+                    </center>
+                  </div>
+                </div> <!-- row / botón buscar -->
+              </div> <!-- panel-body -->
+            </div> <!-- collapse -->
+          </div> <!-- .panel-default -->
+        </div> <!-- .col-md-12 -->
+      </div> <!-- .row / FILTROS -->
 
             <!-- TABLA -->
             <div class="row">
@@ -150,14 +134,13 @@
               </div>
           </div> <!-- .row -->
 
-
       </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
 
 
 
    <!-- ********************* MODALES ************************************ -->
 
-    <!-- **************Modal para ingresos*****************************-->
+<!-- **************Modal para ingresos*****************************-->
 <div class="modal fade" id="modalLogMovimiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
       <div class="modal-content">
@@ -413,7 +396,7 @@
                       <div class="row">
 
                          <div class="input-group">
-                           <input id="inputMaq2" class="form-control" type="text" value="" autocomplete="off" placeholder="Buscar máquinas a modificar">
+                           <input id="inputMaq2" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro. Admin">
                            <span class="input-group-btn">
                              <button id="agregarMaq2" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                            </span>
