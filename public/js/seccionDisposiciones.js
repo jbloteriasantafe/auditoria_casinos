@@ -79,13 +79,13 @@ $('#buscarDisposiciones').click(function(){
        for (var i = 0; i < data.resultados.length; i++) {
          $('tbody')
             .append($('<tr>')
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nro_exp_org + '-' + data.resultados[i].nro_exp_interno + '-' + data.resultados[i].nro_exp_control)
                 )
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nombre)
                 )
-                .append($('<td>')
+                .append($('<td>').addClass('col-xs-4')
                   .text(data.resultados[i].nro_disposicion+'-'+data.resultados[i].nro_disposicion_anio)
 
               )
