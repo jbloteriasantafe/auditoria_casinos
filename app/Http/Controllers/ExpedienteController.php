@@ -465,6 +465,8 @@ class ExpedienteController extends Controller
       $reglas[]=['tema', 'like', '%'.$request->tema.'%'];
     if(isset($request->destino))
       $reglas[]=['destino', 'like', '%'.$request->destino.'%'];
+    if(isset($request->nota))
+      $reglas[]=['nota.identificacion', 'like', '%'.$request->nota.'%'];
 
       if($request->id_casino==0){
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -490,6 +492,7 @@ class ExpedienteController extends Controller
           ->select('expediente.*','casino.*')
           ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
           ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+          ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
           ->whereIn('casino.id_casino',$casinos)
           ->where($reglas)
           ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
@@ -503,6 +506,7 @@ class ExpedienteController extends Controller
           ->select('expediente.*','casino.*')
           ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
           ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+          ->leftJoin('nota','nota.id_expediente','=','expediente.id_expediente')
           ->where($reglas)
           ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
           ->whereIn('casino.id_casino',$casinos)
