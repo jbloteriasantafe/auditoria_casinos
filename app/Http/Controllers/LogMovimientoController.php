@@ -929,8 +929,10 @@ class LogMovimientoController extends Controller
     $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
     $maquinasYJuegos = array();
     foreach ($maquinas as $maq) {
-        $juegos = (Maquina::find($maq->id_maquina))->juegos;
-      $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos];
+        $mtmm=  Maquina::find($maq->id_maquina);
+	$juego_select = $mtmm->juego_activo();
+	$juegos = $mtmm->juegos;
+      $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos, 'juego_seleccionado' => $juego_select];
     }
 
     return ['maquinas' => $maquinasYJuegos,'unidades' => $unidades];
