@@ -18,6 +18,12 @@ $(document).ready(function() {
         $('#btn-buscarDisposiciones').click();
       }
   });
+  $('#collapseFiltros #nro_exp_org').val("");
+  $('#collapseFiltros #nro_exp_interno').val("");
+  $('#collapseFiltros #nro_exp_control').val("");
+  $('#collapseFiltros #sel1').val("0");
+  $('#collapseFiltros #nro_disposicion').val("");
+  $('#collapseFiltros #nro_disposicion_anio').val("");
 
 });
 
