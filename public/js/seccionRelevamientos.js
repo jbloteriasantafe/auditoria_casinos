@@ -1839,14 +1839,18 @@ function calculoDiferencia(tablaRelevamientos){
               if(renglon_actual.attr('data-medida') == 1){//si trabjo en credito
                 //suma es creditos
                 var denominacion = renglon_actual.attr('data-denominacion');
-                var diferencia = Math.round((suma * denominacion) * 100) / 100 - (Math.round(producido * 100) / 100);//pesos - pesos
-                diferencia = Math.round(diferencia * 100) / 100;
+                var sumaxdenom = Number((suma * denominacion) );
+                var producidoxcien = Number(producido);
+                var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
+                // var diferencia = Math.round((suma * denominacion) * 100) / 100 - (Math.round(producido * 100) / 100);//pesos - pesos
+                // diferencia = Math.round(diferencia * 100) / 100;
 
               }else{
-
-                var diferencia = Math.round(suma * 100) / 100 - (Math.round(producido * 100) / 100);
-                diferencia = Math.round(diferencia * 100) / 100;
-
+                var sumatrunc = Number(suma);
+                var producidoxcien = Number(producido);
+                var diferencia = Number(sumatrunc.toFixed(2)) - Number(producidoxcien.toFixed(2));
+                // Math.round(suma * 100) / 100 - (Math.round(producido * 100) / 100);
+                // diferencia = Math.round(diferencia * 100) / 100;
               }
 
               if (diferencia == 0) {
