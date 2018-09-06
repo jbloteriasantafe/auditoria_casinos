@@ -496,6 +496,7 @@ class ExpedienteController extends Controller
           ->whereIn('casino.id_casino',$casinos)
           ->where($reglas)
           ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
+          ->distinct('expediente.id_expediente')
           ->when($sort_by,function($query) use ($string_busqueda){
                           return $query->orderByRaw($string_busqueda);
                       })
@@ -511,6 +512,7 @@ class ExpedienteController extends Controller
           ->where('expediente.concepto','<>','expediente_auxiliar_para_movimientos')
           ->whereIn('casino.id_casino',$casinos)
           ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
+          ->distinct('expediente.id_expediente')
           ->whereMonth('fecha_iniciacion','=', $fecha[1])
           ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
