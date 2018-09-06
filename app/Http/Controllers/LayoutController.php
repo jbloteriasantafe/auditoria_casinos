@@ -1007,7 +1007,7 @@ class LayoutController extends Controller
 
     $layout = LayoutParcial::find($request->id_layout_parcial);
     $layout->observacion_validacion = $request->observacion_validacion;
-    $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Validado')->get()[0]->id_estado_relevamiento;
+    $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Validado')->first()->id_estado_relevamiento;
     $layout->save();
 
     return ['layout' => $layout];
