@@ -1209,8 +1209,8 @@
                     <!-- CREAR O BUSCAR Isla-->
                     <div id="agregarIsla" style="cursor:pointer;" data-toggle="collapse" data-target="#islaPlegado">
                         <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                            <div class="col-md-12">
-                                <h6>AGREGAR ISLA<i class="fa fa-fw fa-angle-down"></i></h6>
+                            <div class="col-md-12" >
+                                <h6 >AGREGAR ISLA<i class="fa fa-fw fa-angle-down"></i></h6>
                             </div>
                         </div>
                     </div>

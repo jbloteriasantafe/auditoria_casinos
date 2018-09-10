@@ -383,7 +383,9 @@ function clickEditarIsla(e) {
 
       //Mostrar datos
       $('#tablaIslaActiva').hide();
-      $('#noexiste_isla').show();
+      $('#noexiste_isla').text('Modificando Isla Activa').show();
+      console.log('dd',$('#tituloAgregar'));
+      $('#tituloAgregar').text('EDICIÓN DE ISLA ACTIVA').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-angle-down'));
       $('#agregarIsla').show();
       $('#islaPlegado').show();
 

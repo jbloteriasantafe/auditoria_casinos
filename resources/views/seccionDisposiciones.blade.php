@@ -52,7 +52,7 @@ $id_usuario = session('id_usuario');
                                       </div>
                                     </div>
                                     <div class="col-md-3">
-                                      <h5 style="color:#f5f5f5;">Búsqueda</h5>
+                                      <br>
                                       <button id="buscarDisposiciones" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                     </div>
                                   </div>

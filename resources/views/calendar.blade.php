@@ -14,7 +14,6 @@ $cas = $usuario['usuario']->casinos;
  @endsection
 
 @section('estilos')
-<link href="css/bootstrap-datetimepicker.css" rel="stylesheet"/>
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
