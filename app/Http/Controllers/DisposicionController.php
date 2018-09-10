@@ -77,10 +77,10 @@ class DisposicionController extends Controller
       $reglas[]=['expediente.id_casino', '=' ,  $request->casino ];
     }
     if(!empty($request->nro_disposicion)){
-      $reglas[]=['resolucion.nro_resolucion', 'like' ,'%' . $request->nro_resolucion . '%'];
+      $reglas[]=['disposicion.nro_disposicion', 'like' ,'%' . $request->nro_disposicion . '%'];
     }
     if(!empty($request->nro_disposicion_anio)){
-      $reglas[]=['resolucion.nro_resolucion_anio', 'like' , '%' . $request->nro_resolucion_anio . '%'];
+      $reglas[]=['disposicion.nro_disposicion_anio', 'like' , '%' . $request->nro_disposicion_anio . '%'];
     }
 
       $resultados=DB::table('expediente')
