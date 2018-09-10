@@ -179,7 +179,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                         </div>
                         <div width="10%">
                               <i id="error_nav_isla" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navIsla"><h4>ISLA</h4></a>
+                              <a href="" id="navIsla" hidden><h4>ISLA</h4></a>
                         </div>
                         <div width="10%">
                               <i id="error_nav_juego" class="fa fa-times" style="color:#F44336;"></i>
