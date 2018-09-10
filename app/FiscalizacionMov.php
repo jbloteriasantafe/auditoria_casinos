@@ -15,7 +15,7 @@ class FiscalizacionMov extends Model
   protected $connection = 'mysql';
   protected $table = 'fiscalizacion_movimiento';
   protected $primaryKey = 'id_fiscalizacion_movimiento';
-  protected $visible = array('id_fiscalizacion_movimiento','id_log_movimiento','fecha_envio_fiscalizar', 'id_cargador', 'id_fiscalizador', 'id_estado_relevamiento', 'id_nota','es_reingreso');
+  protected $visible = array('id_fiscalizacion_movimiento','identificacion_nota','id_log_movimiento','fecha_envio_fiscalizar', 'id_cargador', 'id_fiscalizador', 'id_estado_relevamiento', 'id_nota','es_reingreso');
   public $timestamps = false;
 
   public function log_movimiento(){
