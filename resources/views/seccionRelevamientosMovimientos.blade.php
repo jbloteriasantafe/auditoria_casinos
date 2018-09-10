@@ -87,15 +87,17 @@
             <table id="tablaRelevamientosMovimientos" class="table">
               <thead>
                 <!-- fecha | tipo_mov | casino | accion -->
-                <th class="col-xs-3">FECHA</th>
-                <th class="col-xs-4" >TIPO DE MOVIMIENTO</th>
-                <th class="col-xs-3">CASINO</th>
+                <th class="col-xs-2">FECHA</th>
+                <th class="col-xs-3">NOTA</th>
+                <th class="col-xs-3">TIPO DE MOVIMIENTO</th>
+                <th class="col-xs-2">CASINO</th>
                 <th class="col-xs-2">ACCIÓN</th>
               </thead>
               <tbody id="cuerpoTablaRel">
                 @foreach($fiscalizaciones as $fiscalizacion)
                 <tr>
                   <td>{{$fiscalizacion->fecha_envio_fiscalizar}}</td>
+                  <td>{{$fiscalizacion->identificacion_nota}}</td>
                   <td>{{$fiscalizacion->descripcion}}</td>
                   <td>{{$fiscalizacion->nombre}} </td>
                   <td>
