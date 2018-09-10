@@ -1643,12 +1643,12 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
 
       var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
 
-      if(data.detalles[i].tipo_causa_no_toma == null) {
-        var a_pedido = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
+      // if(data.detalles[i].tipo_causa_no_toma == null) {
+        var a_pedido_button = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
                                     .attr('type' , 'button')
                                     .val(data.detalles[i].detalle.id_maquina)
                                     .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
-      }else {
+      // }else {
         var a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,data.detalles[i].detalle.id_maquina)
                                                                        .append($('<option>').val(0).text('NO'))
                                                                        .append($('<option>').val(1).text('1 día'))
@@ -1656,7 +1656,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                                                        .append($('<option>').val(10).text('10 días'))
                                                                        .append($('<option>').val(15).text('15 días')).hide();
 
-      }
+      // }
 
 console.log('data es:', data);
 
@@ -1728,7 +1728,9 @@ console.log('data es:', data);
       .append(formulaOper8)
       .append($('<td>').append(tipoNoToma))
       .append($('<td>').append(botonDenominacion).hide())
-      .append($('<td>').append(a_pedido).hide())
+      .append($('<td>').append(a_pedido_button))
+      .append($('<td>').append(a_pedido))
+
       );
 
 
