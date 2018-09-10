@@ -246,13 +246,13 @@ function eventoModificar(id_maquina){
 
 //Mostrar modal con los datos del Casino cargados
 $(document).on('click','.modificar',function(e,id_maquina){
+  console.log('sii');
   $(this).prop('disabled', true);
 
     var id_maquina = (id_maquina != null) ? id_maquina : $(this).val();
     console.log('click .modificar');
     eventoModificar(id_maquina);
   });
-
   $('#modalMaquina').on('shown.bs.modal', function() {
       var id_maquina = $('#modalMaquina input#id_maquina').val();
 
@@ -267,6 +267,7 @@ $(document).on('click','.detalle',function(){
       $('.modal-title').text('DETALLES MÁQUINA');
       $('.modal-header').attr('style','background: #4FC3F7');
       $('.navModal').removeClass('nuevo modificar').addClass('detalle');
+        $('#modalMaquina').find('#navIsla').show();
 
       $('#btn-guardar').removeClass('btn-success');
       $('#btn-guardar').addClass('btn-warning');

@@ -116,7 +116,6 @@ $('.btn-cargarRelMov').click(function(e){
 
   var id_fiscalizacion = $(this).val();
 
-
   $('#tablaCargarRelevamiento tbody tr').remove();
   $('#tablaMaquinasFiscalizacion tbody tr').remove();
   $('.modal-title').text('CARGAR RELEVAMIENTOS');
@@ -530,15 +529,28 @@ console.log('generar',rel);
   casino=rel.nombre;
   estado=rel.id_estado_relevamiento;
 
-
+console.log('re',rel);
 
   fila.attr('id', rel.id_fiscalizacion_movimiento)
       .append($('<td>')
       .addClass('col-xs-2')
       .text(convertirDate(fecha))
       )
-      .append($('<td>')
-      .addClass('col-xs-2')
+      if(rel.identificacion_nota != null){
+        fila.append($('<td>')
+          .addClass('col-xs-3')
+          .text(rel.identificacion_nota).css('text-align','center')
+          )
+      }
+      else{
+        fila.append($('<td>')
+          .addClass('col-xs-3')
+          .text(' - ').css('text-align','center')
+          )
+      }
+
+      fila.append($('<td>')
+      .addClass('col-xs-3')
       .text(tipo_mov)
       )
       .append($('<td>')
@@ -550,7 +562,7 @@ console.log('generar',rel);
         .append($('<span>').text(' '))
         .append($('<button>')
         .addClass('btn-generarRelMov')
-        .append($('<i>').addClass('fa fa-file-text-o ')
+        .append($('<i>').addClass('far').addClass('fa-file')
         )
         .append($('<span>').text('GENERAR'))
         .addClass('btn').addClass('btn-success')
@@ -567,16 +579,16 @@ console.log('generar',rel);
         )
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('boton_imprimirEv')
-        .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
+        .addClass('btn-imprimirRelMov')
+        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print')
         )
         .append($('<span>').text('IMPRIMIR'))
         .addClass('btn').addClass('btn-success')
         .attr('value',rel.id_fiscalizacion_movimiento))
         )
 
-        if(estado < 3  ){ fila.find('.boton_imprimirEv').hide();}
-        if(estado > 2  ){ fila.find('.boton_imprimirEv').show();
+        if(estado < 3  ){ fila.find('.btn-imprimirRelMov').hide();}
+        if(estado > 2  ){ fila.find('.btn-imprimirRelMov').show();
                           fila.find('.btn-generarRelMov').hide();
                           fila.find('.btn-cargarRelMov').hide();}
 
