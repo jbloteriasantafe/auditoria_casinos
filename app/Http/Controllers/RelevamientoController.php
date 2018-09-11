@@ -526,13 +526,15 @@ class RelevamientoController extends Controller
     ], array(), self::$atributos)->after(function($validator){
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
       $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
+      //dd(ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count());
       switch ($rel->sector->id_casino) {
-        case 3: // rosario
-          if($count < 2){ // son 2 contadores, 1 por tipo de moneda
-            $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar contadores para dicha fecha.');
-          }
-          break;
-        default: // sfe - mel
+        //se ignora el caso de rosario porque el tipo es "responsable"
+        // case 3: // rosario
+        //   if($count < 2){ // son 2 contadores, 1 por tipo de moneda
+        //     $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar contadores para dicha fecha.');
+        //   }
+        //   break;
+        case 2: // sfe - mel
           if($count < 1){ // 1 solo contador ya que no usan dolares por ahora
             $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar los contadores para dicha fecha.');
           }

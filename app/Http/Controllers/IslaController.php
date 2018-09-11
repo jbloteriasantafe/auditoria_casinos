@@ -296,7 +296,7 @@ class IslaController extends Controller
         'nro_isla' => 'required|integer|max:9999999999',
         'sector' => 'required|exists:sector,id_sector',
         'casino' => 'required|exists:casino,id_casino',
-        'codigo' => 'nullable|alpha_dash',
+        'codigo' => 'nullable',
         'maquinas' => 'nullable',
         'maquinas.*' => 'required|exists:maquina,id_maquina'
     ], array(), self::$atributos)->after(function ($validator){
@@ -391,7 +391,7 @@ class IslaController extends Controller
   public function modificarIsla(Request $request){
     Validator::make($request->all(), [
         'nro_isla' => 'required|integer|max:9999999999',
-        'codigo' => 'nullable|alpha_dash',
+        'codigo' => 'nullable',
         'sector' => 'required|exists:sector,id_sector',
         'casino' => 'required|exists:casino,id_casino',
         'maquinas' => 'nullable',

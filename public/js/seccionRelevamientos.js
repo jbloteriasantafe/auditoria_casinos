@@ -482,6 +482,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
         var producidoxcien = Number(producido);
         var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
       }
+      console.log('acac');
 
       if (diferencia == 0) {
           renglon_actual.find('i.fa-question').hide();
@@ -692,50 +693,86 @@ $(document).on('click','.verDetalle',function(e){
         var fila= $(document.createElement('tr'));
 
         fila.attr('id', data.detalles[i].id_detalle_relevamiento)
-            .append($('<td>')
+            .append($('<td>').css('align','center')
             .text(data.detalles[i].detalle.id_maquina))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont1))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont2))
-            .append($('<td>')
-            .text(data.detalles[i].detalle.cont3))
+
+            if(data.detalles[i].detalle.cont1 != null){
+              fila.append($('<td>').css('align','center')
+              .text(data.detalles[i].detalle.cont1))}
+            else{
+              fila.append($('<td>')
+              .text(' - ')).css('align','center')
+            }
+            if(data.detalles[i].detalle.cont2 != null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont2).css('text-align','center'))}
+            else{
+              fila.append($('<td>').css('text-align','center')
+              .text(' - '))
+            }
+            if(data.detalles[i].detalle.cont3!= null){
+              fila.append($('<td>')
+              .text(data.detalles[i].detalle.cont3).css('text-align','center'))}
+            else{
+              fila.append($('<td>').css('text-align','center')
+              .text(' - '))
+            }
 
             if(data.detalles[i].detalle.cont4 != null){
               fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont4))}
+              .text(data.detalles[i].detalle.cont4).css('text-align','center'))}
             else{
-              fila.append($('<td>')
+              fila.append($('<td>').css('text-align','center')
               .text(' - '))
             }
-            if(data.detalles[i].detalle.cont4 != null){
+            if(data.detalles[i].detalle.cont5 != null){
               fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont5))}
+              .text(data.detalles[i].detalle.cont5).css('text-align','center'))}
             else{
-              fila.append($('<td>')
+              fila.append($('<td>').css('text-align','center')
               .text(' - '))
             }
-            if(data.detalles[i].detalle.cont4 != null){
+            if(data.detalles[i].detalle.cont6 != null){
               fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont6))}
+              .text(data.detalles[i].detalle.cont6).css('text-align','center'))}
             else{
-              fila.append($('<td>')
+              fila.append($('<td>').css('text-align','center')
               .text(' - '))
             }
             if(data.detalles[i].detalle.cont7 != null){
               fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont7))}
+              .text(data.detalles[i].detalle.cont7).css('text-align','center'))}
             if(data.detalles[i].detalle.cont8 != null){
-                fila.append($('<td>')
-                .text(data.detalles[i].detalle.cont8))}
+                fila.append($('<td>').css('text-align','center')
+                .text(data.detalles[i].detalle.cont8).css('text-align','center'))}
 
-            fila.append($('<td>')
-            .text(data.detalles[i].detalle.producido_calculado_relevado))
-            fila.append($('<td>')
-            .text(data.detalles[i].detalle.producido_importado))
 
-            fila.append($('<td>')
-            .text(data.detalles[i].detalle.diferencia))
+                if(data.detalles[i].detalle.producido_calculado_relevado != null){
+                  fila.append($('<td>').css('text-align','center')
+                  .text(data.detalles[i].detalle.producido_calculado_relevado))}
+                else{
+                  fila.append($('<td>').css('text-align','center')
+                  .text(' - '))
+                }
+
+                if(data.detalles[i].detalle.producido_importado != null){
+                  fila.append($('<td>')
+                  .text(data.detalles[i].detalle.producido_importado))}
+                else{
+                  fila.append($('<td>').css('text-align','center')
+                  .text(' - '))
+                }
+
+                if(data.detalles[i].detalle.diferencia != null){
+                  fila.append($('<td>')
+                  .text(data.detalles[i].detalle.diferencia))}
+                else{
+                  fila.append($('<td>').css('text-align','center')
+                  .text(' - '))
+                }
+
+
+
 
             fila.append($('<td>')
             .text(' '))
@@ -1613,12 +1650,12 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
 
       var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
 
-      // if(data.detalles[i].tipo_causa_no_toma == null) {
-        var a_pedido_button = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
+      if(data.detalles[i].tipo_causa_no_toma == null) {
+        var a_pedido = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
                                     .attr('type' , 'button')
                                     .val(data.detalles[i].detalle.id_maquina)
                                     .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
-      // }else {
+      }else {
         var a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,data.detalles[i].detalle.id_maquina)
                                                                        .append($('<option>').val(0).text('NO'))
                                                                        .append($('<option>').val(1).text('1 día'))
@@ -1626,7 +1663,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                                                        .append($('<option>').val(10).text('10 días'))
                                                                        .append($('<option>').val(15).text('15 días')).hide();
 
-      // }
+      }
 
 console.log('data es:', data);
 
@@ -1698,9 +1735,7 @@ console.log('data es:', data);
       .append(formulaOper8)
       .append($('<td>').append(tipoNoToma))
       .append($('<td>').append(botonDenominacion).hide())
-      .append($('<td>').append(a_pedido_button))
-      .append($('<td>').append(a_pedido))
-
+      .append($('<td>').append(a_pedido).hide())
       );
 
 
@@ -1853,7 +1888,7 @@ function calculoDiferencia(tablaRelevamientos){
                 // Math.round(suma * 100) / 100 - (Math.round(producido * 100) / 100);
                 // diferencia = Math.round(diferencia * 100) / 100;
               }
-
+              console.log('acac',diferencia);
               if (diferencia == 0) {
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').hide();
@@ -1887,6 +1922,13 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       var iconoAdmiracion = tablaValidarRelevamiento.find('#' + id_detalle + ' i.fa-exclamation').hide();
       var diferencia = tablaValidarRelevamiento.find('#' + id_detalle + ' td input.diferencia');
 
+      if(data.detalles[i].detalle.producido_calculado_relevado == null){
+        diferencia.val(data.detalles[i].producido).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
+        iconoPregunta.hide();
+        iconoCruz.show();
+        iconoCheck.hide();
+        iconoAdmiracion.hide();
+      }
       //si no se importaron contadores muestra = ?
       if(data.detalles[i].producido == null) {
         diferencia.val(data.detalles[i].detalle.producido_calculado_relevado).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
@@ -1925,7 +1967,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCheck.hide();
               iconoAdmiracion.hide();
 
-              diferencia.val(math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido)).css('border','2px solid #EF5350').css('color','#EF5350');
+              diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
             }
           }
           else {

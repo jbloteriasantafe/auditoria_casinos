@@ -46,6 +46,12 @@ class FiscalizacionMovController extends Controller
     $fiscalizacion->fecha_envio_fiscalizar = date("Y-m-d"); // fecha de hoy_ que seria la misma que la fecha_envio_fiscalizar_X del relevamiento
     $fiscalizacion->save();
     $fiscalizacion->log_movimiento()->associate($id_log_movimiento);
+    $nota = Nota::where('id_log_movimiento','=', $id_log_movimiento)->get();
+    if($nota != null){
+      $fiscalizacion->identificacion_nota = $nota->identificacion;
+    }else{
+      $fiscalizacion->identificacion_nota = '---';
+    }
     $fiscalizacion->estado_relevamiento()->associate(1);//generado
     $fiscalizacion->save();
     return $fiscalizacion;
