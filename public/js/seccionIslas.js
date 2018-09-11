@@ -123,7 +123,7 @@ $('.agregarMaquina').click(function(){
       console.log('agregar maquina');
       var id = $('#buscadorMaquina').obtenerElementoSeleccionado(); // 25 - KONAMI (ASD-123)
       if(!existeEnDataList(id)){
-        $.get('maquinas/obtenerMTMReducido/' + id , function(data){
+       $.get('http://' + window.location.host +"/maquinas/obtenerMTMReducido/" + id, function(data) {
 
           agregarMaquina(data.id_maquina,data.nro_admin,data.marca,data.modelo);
 

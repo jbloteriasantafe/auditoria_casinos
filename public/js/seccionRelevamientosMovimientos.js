@@ -534,22 +534,13 @@ console.log('re',rel);
   fila.attr('id', rel.id_fiscalizacion_movimiento)
       .append($('<td>')
       .addClass('col-xs-2')
-      .text(convertirDate(fecha))
+      .text(fecha)
       )
-      if(rel.identificacion_nota != null){
-        fila.append($('<td>')
+      .append($('<td>')
           .addClass('col-xs-3')
-          .text(rel.identificacion_nota).css('text-align','center')
+          .text(rel.identificacion_nota)
           )
-      }
-      else{
-        fila.append($('<td>')
-          .addClass('col-xs-3')
-          .text(' - ').css('text-align','center')
-          )
-      }
-
-      fila.append($('<td>')
+      .append($('<td>')
       .addClass('col-xs-3')
       .text(tipo_mov)
       )
