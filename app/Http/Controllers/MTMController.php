@@ -915,7 +915,7 @@ class MTMController extends Controller
     // $MTM->tipoMaquina()->dissociate();
     // $MTM->casino()->dissociate();
     //$MTM->expedientes()->detach();
-    $MTM->notas()->detach();
+    //$MTM->notas()->detach();
     $MTM->estado_maquina()->associate(3);
     $razon = "La maquina se eliminó definitivamente.";
     LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,2);//tipo mov EGRESO
