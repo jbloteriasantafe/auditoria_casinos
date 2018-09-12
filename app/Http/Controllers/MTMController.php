@@ -479,7 +479,7 @@ class MTMController extends Controller
         $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
         break;
       default:
-        $gli_soft=GliSoftController::find($request->gli_soft['id_gli_soft']);
+        $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
         break;
     }
 

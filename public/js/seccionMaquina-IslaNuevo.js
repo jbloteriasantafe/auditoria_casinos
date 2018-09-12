@@ -294,6 +294,17 @@ function clickLimpiarCampos(e) {
   $('#btn-cancelarIsla').hide();
 }
 
+function clickLimpiarCamposModalIsla(e) {
+  deshabilitarComponentesIsla();
+  $('#selectCasino').val(0);
+  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
+  $('#nro_isla').val(0);
+  //Ocultar botones
+  $('#btn-crearIsla').hide();
+  $('#btn-agregarIsla').hide();
+  $('#btn-cancelarIsla').hide();
+}
+
 function clickAgregarIsla(e) {
   modificado = 1;
 
