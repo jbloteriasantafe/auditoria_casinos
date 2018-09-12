@@ -499,7 +499,9 @@ $id_usuario = session('id_usuario');
                                            <td class="col-xs-1 identificacion">9</td>
                                            <td class="col-xs-3 fecha">11 AGO 2018</td>
                                            <td class="col-xs-3 movimiento">EGRESO</td>
-                                           <td class="col-xs-4 detalle" style="resize:vertical;">det</td>
+                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class="">
+
+                                           </div> </td>
                                            <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
                                          </tr>
                                       </tbody>

@@ -69,15 +69,13 @@ function agregarFilaJuego(juego, tablas) {
   }
 
 
-  fila.append($('<td>').addClass('col-xs-3')
+  fila.append($('<td>').addClass('col-xs-4')
                        .text(juego.nombre_juego)
   );
-  fila.append($('<td>').addClass('col-xs-2')
+  fila.append($('<td>').addClass('col-xs-4')
                        .append(tablas_pago)
   );
-  fila.append($('<td>').addClass('col-xs-2'));
-  fila.append($('<td>').addClass('col-xs-2'));
-  fila.append($('<td>').addClass('col-xs-2')
+  fila.append($('<td>').addClass('col-xs-4')
                        .append($('<button>').addClass('btn btn-danger borrarJuego')
                                             .append($('<i>').addClass('fa fa-fw fa-trash'))
                               )

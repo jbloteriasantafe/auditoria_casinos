@@ -814,7 +814,14 @@ $id_usuario = session('id_usuario');
                           <br>
                           <div class="row">
                               <div class="col-md-8 col-md-offset-2">
-                                <h5>OBSERVACIONES</h5>
+                                <h5>OBSERVACIONES FISCALIZADOR</h5>
+                                <textarea id="observacion_fisca_validacion" class="form-control" style="resize:vertical;" readonly="true">Hola</textarea>
+                              </div>
+                          </div>
+                          <br>
+                          <div class="row">
+                              <div class="col-md-8 col-md-offset-2">
+                                <h5>OBSERVACIONES DE VISADO</h5>
                                 <textarea id="observacion_validacion" class="form-control" style="resize:vertical;"></textarea>
                               </div>
                           </div>

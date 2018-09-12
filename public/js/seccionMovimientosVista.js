@@ -295,6 +295,8 @@ $("#btn-aceptar-ingreso").click(function(e){
 $(document).on('click', '.boton_cargar', function(e){
 
     e.preventDefault();
+    $(this).tooltip('hide');
+
     var mov = $(this).val();
     $('#modalMaquina').find('#id_movimiento').val(mov);
 
@@ -1936,10 +1938,7 @@ function generarFilaTabla(movimiento){
                 .append($('<span>').text(' REDIRIGIR'))
                   .addClass('btn').addClass('btn-warning')
                   .attr('value',movimiento.id_log_movimiento)
-                  .attr('data-toggle',"tooltip")
-                  .attr('data-placement',"top")
-                  .attr('title', "ISLAS")
-                  .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<button>')
                   .addClass('boton_nuevo')
@@ -1952,10 +1951,7 @@ function generarFilaTabla(movimiento){
                       .attr('value',movimiento.id_log_movimiento)
                       .attr('data-casino',movimiento.id_casino)
                       .attr('data-tipo',movimiento.id_tipo_movimiento)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "CARGAR MTMS")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<span>').text(' '))
                   .append($('<button>')
@@ -1965,11 +1961,9 @@ function generarFilaTabla(movimiento){
                       )
                       .append($('<span>').text(' CARGAR'))
                       .addClass('btn').addClass('btn-success')
+                      .attr('type','button')
                       .attr('value',movimiento.id_log_movimiento)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "ALTA MTMS")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<span>').text(' '))
                   .append($('<button>')
@@ -1980,10 +1974,7 @@ function generarFilaTabla(movimiento){
                       .append($('<span>').text(' ENVIAR A FISCALIZAR'))
                       .addClass('btn').addClass('btn-success')
                       .attr('value',movimiento.id_log_movimiento)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "ENVIAR A FISCALIZAR")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<span>').text(' '))
                   .append($('<button>')
@@ -1996,10 +1987,7 @@ function generarFilaTabla(movimiento){
                       .attr('value',movimiento.id_log_movimiento)
                       .attr('data-tmov',movimiento.id_tipo_movimiento)
                       .attr('data-cas',movimiento.id_casino)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "MODIFICAR")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<span>').text(' '))
                   .append($('<button>')
@@ -2010,10 +1998,7 @@ function generarFilaTabla(movimiento){
                       .append($('<span>').text(' VALIDAR'))
                       .addClass('btn').addClass('btn-success')
                       .attr('value',movimiento.id_log_movimiento)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "VALIDAR")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
                   )
                   .append($('<span>').text(' '))
                   .append($('<button>')
@@ -2025,10 +2010,7 @@ function generarFilaTabla(movimiento){
                       .attr('value',movimiento.id_log_movimiento)
                       .attr('data-casino', movimiento.id_casino)
                       .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
-                      .attr('data-toggle',"tooltip")
-                      .attr('data-placement',"top")
-                      .attr('title', "BAJA MTM")
-                      .attr('data-delay',{"show":"300", "hide":"100"})
+
 
                  )
 
@@ -2043,10 +2025,6 @@ function generarFilaTabla(movimiento){
                      .attr('data-casino', movimiento.id_casino)
                      .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
                      .attr('data-estado',movimiento.id_estado_movimiento)
-                     .attr('data-toggle',"tooltip")
-                     .attr('data-placement',"top")
-                     .attr('title', "VOLVER A RELEVAR")
-                     .attr('data-delay',{"show":"300", "hide":"100"})
 
                 )
 
@@ -2061,10 +2039,7 @@ function generarFilaTabla(movimiento){
                    .attr('value',movimiento.id_log_movimiento)
                    .attr('data-casino', movimiento.id_casino)
                    .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
-                   .attr('data-toggle',"tooltip")
-                   .attr('data-placement',"top")
-                   .attr('title', "ELIMINAR MOVIMIENTO")
-                   .attr('data-delay',{"show":"300", "hide":"100"})
+                   
 
            )
              .append($('<span>').text(' '))

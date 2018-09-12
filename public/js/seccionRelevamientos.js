@@ -686,6 +686,7 @@ $(document).on('click','.verDetalle',function(e){
     $('#validarFiscaCarga').val(data.cargador );
     $('#validarTecnico').val(data.relevamiento.tecnico);
     $('#observacion_validacion').val(data.relevamiento.observacion_validacion).prop('disabled',true);
+    $('#observacion_fisca_validacion').val(data.relevamiento.observacion_carga);
     $('#tablaValidarRelevamiento tbody tr').remove();
 
     for (var i = 0; i < data.detalles.length; i++) {
@@ -1513,6 +1514,9 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
   var data = dataRelevamiento;
   var tabla = tablaRelevamientos;
 
+  //se cargan las observaciones del fiscalizador si es que hay
+  $('#observaciones_fisca_validacion').val(data.observacion_carga);
+
   for (var i = 0; i < data.detalles.length; i++) {
       //Hacer un for por todo los tipos de no toma para cargar el select
       var tipoNoToma = $('<select>').addClass('tipo_causa_no_toma form-control');
@@ -1651,7 +1655,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
 
       if(data.detalles[i].tipo_causa_no_toma == null) {
-        var a_pedido = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
+        var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
                                     .attr('type' , 'button')
                                     .val(data.detalles[i].detalle.id_maquina)
                                     .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
@@ -1662,7 +1666,10 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                                                        .append($('<option>').val(5).text('5 días'))
                                                                        .append($('<option>').val(10).text('10 días'))
                                                                        .append($('<option>').val(15).text('15 días')).hide();
-
+        var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
+                                    .attr('type' , 'button')
+                                    .val(data.detalles[i].detalle.id_maquina)
+                                    .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
       }
 
 console.log('data es:', data);
@@ -1736,6 +1743,7 @@ console.log('data es:', data);
       .append($('<td>').append(tipoNoToma))
       .append($('<td>').append(botonDenominacion).hide())
       .append($('<td>').append(a_pedido).hide())
+      .append($('<td>').append(a_pedido_dos).hide())
       );
 
 
