@@ -1947,9 +1947,11 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
           //SI HAY DIFERENCIA
-          if (math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2) != 0) {
-            var diferenciaProducido =  math.abs(math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2)) >= 1000000;
-            var moduloDiferencia = math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2) % 1000000;
+          Number(sumaxdenom.toFixed(2))
+          var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
+          if (Number(resta.ToFixed(2)) != 0) {
+            var diferenciaProducido =  math.abs(Number(resta.ToFixed(2))) >= 1000000;
+            var moduloDiferencia = Number(resta.ToFixed(2)) % 1000000;
 
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
@@ -1959,7 +1961,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
-              diferencia.val(math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido, 2)).css('border','2px solid #FFA726').css('color','#FFA726');
+              diferencia.val(resta.ToFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
               iconoPregunta.hide();
