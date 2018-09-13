@@ -460,14 +460,16 @@ class MTMController extends Controller
       IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
 
     }else if( $request->modificado == 1){
-      $unaIsla= new Isla();
-      $unaIsla->nro_isla = $request->nro_isla;
-      $unaIsla->codigo = $request->codigo;
-      $unaIsla->id_sector = $request->id_sector;
-      $unaIsla->id_casino = $request->id_casino;
-      //modifica isla creada
-      $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
+      // $unaIsla= new Isla();
+      // $unaIsla->nro_isla = $request->nro_isla;
+      // $unaIsla->codigo = $request->codigo;
+      // $unaIsla->id_sector = $request->id_sector;
+      // $unaIsla->id_casino = $request->id_casino;
+      // //modifica isla creada
+      // $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
+      $unaIsla= Isla::find($request->id_isla);
     }else {//estoy usando una isla ya creada (sin modificar)
+
       $unaIsla= Isla::find($request->id_isla);
     }
 
