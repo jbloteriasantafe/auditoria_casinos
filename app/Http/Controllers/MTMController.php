@@ -493,7 +493,7 @@ class MTMController extends Controller
         $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
         break;
       default:
-        $gli_hard=GliHardController::find($request->gli_hard['id_gli_hard']);
+        $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
         break;
     }
 
