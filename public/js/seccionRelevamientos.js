@@ -1552,7 +1552,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos">'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="far fa-fw fa-usd-square"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación"><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1566,7 +1566,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
                       +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
                       +   '<input type="radio" name="medida" value="pesos" checked>'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="far fa-fw fa-usd-square"></i>'
+                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
                       +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
@@ -1588,7 +1588,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       //Si la unidad de medida es CRÉDITO
       if (unidadMedida == 1) botonDenominacion.append($('<i>').addClass('fa fa-fw fa-life-ring'));
       //Si la unidad de medida es PESOS
-      else botonDenominacion.append($('<i>').addClass('far fa-fw fa-usd-square'));
+      else botonDenominacion.append($('<i>').addClass('fas fa-dollar-sign'));
 
 
       // var columna = $('<td>');
@@ -1955,9 +1955,10 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
           //SI HAY DIFERENCIA
-          if (math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2) != 0) {
-            var diferenciaProducido =  math.abs(math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2)) >= 1000000;
-            var moduloDiferencia = math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido , 2) % 1000000;
+          var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
+          if (Number(resta.toFixed(2)) != 0) {
+            var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
+            var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
 
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
@@ -1967,7 +1968,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
-              diferencia.val(math.round(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido, 2)).css('border','2px solid #FFA726').css('color','#FFA726');
+              diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
               iconoPregunta.hide();

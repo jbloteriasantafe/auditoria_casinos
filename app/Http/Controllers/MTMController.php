@@ -460,14 +460,16 @@ class MTMController extends Controller
       IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
 
     }else if( $request->modificado == 1){
-      $unaIsla= new Isla();
-      $unaIsla->nro_isla = $request->nro_isla;
-      $unaIsla->codigo = $request->codigo;
-      $unaIsla->id_sector = $request->id_sector;
-      $unaIsla->id_casino = $request->id_casino;
-      //modifica isla creada
-      $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
+      // $unaIsla= new Isla();
+      // $unaIsla->nro_isla = $request->nro_isla;
+      // $unaIsla->codigo = $request->codigo;
+      // $unaIsla->id_sector = $request->id_sector;
+      // $unaIsla->id_casino = $request->id_casino;
+      // //modifica isla creada
+      // $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
+      $unaIsla= Isla::find($request->id_isla);
     }else {//estoy usando una isla ya creada (sin modificar)
+
       $unaIsla= Isla::find($request->id_isla);
     }
 
@@ -479,7 +481,7 @@ class MTMController extends Controller
         $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
         break;
       default:
-        $gli_soft=GliSoftController::find($request->gli_soft['id_gli_soft']);
+        $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
         break;
     }
 
@@ -491,7 +493,7 @@ class MTMController extends Controller
         $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
         break;
       default:
-        $gli_hard=GliHardController::find($request->gli_hard['id_gli_hard']);
+        $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
         break;
     }
 
@@ -915,7 +917,7 @@ class MTMController extends Controller
     // $MTM->tipoMaquina()->dissociate();
     // $MTM->casino()->dissociate();
     //$MTM->expedientes()->detach();
-    $MTM->notas()->detach();
+    //$MTM->notas()->detach();
     $MTM->estado_maquina()->associate(3);
     $razon = "La maquina se eliminó definitivamente.";
     LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,2);//tipo mov EGRESO

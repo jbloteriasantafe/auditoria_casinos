@@ -1073,6 +1073,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">Crear MÁQUINA</button>
                   <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
                   <input type="hidden" id="id_maquina" value="0">
+                  <input type="hidden" id="id_expediente_mov" value="0" data-nro="" data-interno="" data-fin="">
                 </div>
             </div>
           </div>

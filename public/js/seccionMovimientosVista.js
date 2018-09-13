@@ -2239,6 +2239,15 @@ $('#mensajeExito .confirmar').click(function(e){
     //Setear la cantidad de máquinas pendiente
     var cantidad = $('#cantidad_maquinas_restantes').text();
     $('#maquinas_pendientes').text(' ' + cantidad + ' MÁQUINAS PENDIENTES');
+    // //pero hay que limpiarlo .. entonces
+    // $('#boton_cargar').trigger('click');
+
+    limpiarModalJuego();
+    limpiarModalProgresivo();
+    limpiarModalGliSoft();
+    limpiarModalGliHard();
+    limpiarModalFormula();
+    clickLimpiarCamposModalIsla();
     $('#modalMaquina').modal('show');
 
     ocultarErrorValidacion($('#tipo_maquina'));

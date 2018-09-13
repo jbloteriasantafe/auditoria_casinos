@@ -294,6 +294,21 @@ function clickLimpiarCampos(e) {
   $('#btn-cancelarIsla').hide();
 }
 
+function clickLimpiarCamposModalIsla(e) {
+  deshabilitarComponentesIsla();
+  $('#selectCasino').val(0);
+  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
+  $('#activa_datos').attr('data-isla',''),
+  $('#activa_datos').attr('data-casino',''),
+  $('#activa_nro_isla span').text(''),
+  $('#activa_sub_isla').text(''),
+  $('#activa_datos').attr('data-sector',''),
+  //Ocultar botones
+  $('#btn-crearIsla').hide();
+  $('#btn-agregarIsla').hide();
+  $('#btn-cancelarIsla').hide();
+}
+
 function clickAgregarIsla(e) {
   modificado = 1;
 
