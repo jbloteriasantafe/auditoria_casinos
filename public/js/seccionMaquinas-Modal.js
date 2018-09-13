@@ -265,7 +265,7 @@ $('#btn-guardar').click(function(e){
                   }else {
                     p = '<p>La máquina se dio de alta correctamente. Quedan '
                             +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">'+ data.cantidad +'</span> '
-                            +'máquinas pendientes para cargar.'
+                            +'máquinas pendientes para cargar. Los datos de DETALLE MTM serán los de la MTM anterior, para facilitar la carga. Deberá modificar los que corresponda.'
                   }
               }
               else {
