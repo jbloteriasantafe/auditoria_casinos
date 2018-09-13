@@ -1,11 +1,11 @@
 .contenedor-data-list {
     position: relative;
-    top: -2px; lo cambié recién
+    top: -2px;
     /*top:33px;*/
 }
 
 .contenedor-data-list.grupo {
-  top: 33px !important;
+  top: 30px !important;
 }
 
 .lista-data-list {

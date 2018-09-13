@@ -63,7 +63,7 @@
         //Se crea el icono (check) y se agrega al input. Luego se muestra.
         var icono = $(document.createElement('i'));
         icono.insertAfter(element);
-        icono.addClass('fa fa-search check-data-list');
+        icono.addClass('fas fa-search check-data-list');
         icono.show();
 
         //Se crea el contenedor de la lista. Luego se oculta.

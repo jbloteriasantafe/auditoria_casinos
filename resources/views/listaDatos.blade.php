@@ -1,5 +1,5 @@
-@extends('includes.nuevaBarraNavegacion')
-@section('contenidoVista')
+@extends('layouts.dashboard')
+@section('headerLogo')
 
 @section('estilos')
 <link rel="stylesheet" href="css/lista-datos.css">

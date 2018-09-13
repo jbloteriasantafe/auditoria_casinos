@@ -158,7 +158,7 @@
                     <div class="row">
                           <div class="col-md-12">
                               <h5>CONCEPTO DEL EXPEDIENTE</h5>
-                              <textarea class="form-control" readonly style="resize:none; height:100px;">Agregar 30 máquinas al sector 2 del CASINO Santa Fe.</textarea>
+                              <textarea class="form-control" id="conceptoExpediente" readonly style="resize:none; height:100px;">Agregar 30 máquinas al sector 2 del CASINO Santa Fe.</textarea>
                           </div>
                     </div>
                       <br>
