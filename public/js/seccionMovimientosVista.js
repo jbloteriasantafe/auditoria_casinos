@@ -192,7 +192,7 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('#modalLogMovimiento').modal('show');
 
   $.get('movimientos/obtenerDatos/'+ id_movimiento, function(data){
-
+      $('#conceptoExpediente').text(data.expediente.concepto);
       if(data.tipo!=null){
         $('#modalLogMovimiento #cantMaqCargar').show();
 
@@ -2039,7 +2039,7 @@ function generarFilaTabla(movimiento){
                    .attr('value',movimiento.id_log_movimiento)
                    .attr('data-casino', movimiento.id_casino)
                    .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
-                   
+
 
            )
              .append($('<span>').text(' '))
