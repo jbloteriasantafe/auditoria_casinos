@@ -793,7 +793,13 @@ class RelevamientoController extends Controller
             }else{
                 $det->no_toma = '---';
             }
-            $det->observacion = 'No se importaron contadores';
+            $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
+            if($check != null){
+              $det->observacion = 'No se importaron contadores. Se pidió para el '.$check->fecha.'.';
+            }else{
+              $det->observacion = 'No se importaron contadores.';
+            }
+
             $detalles[] = $det;
 
           }else{
@@ -813,7 +819,14 @@ class RelevamientoController extends Controller
               }else{
                   $det->no_toma = '---';
               }
-              $det->observacion = '';
+              //chequearMTMpedida
+              $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
+              if($check != null){
+                $det->observacion = ' Se pidió para el '.$check->fecha.'.';
+              }else{
+                $det->observacion = '';
+              }
+
               $detalles[] = $det;
             }
           }
