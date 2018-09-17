@@ -1,5 +1,5 @@
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-var truncadas=0;
+//var truncadas=0;
 $(document).ready(function(){
 
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -585,7 +585,7 @@ $(document).on('click','.planilla',function(){
 //VALIDAR EL RELEVAMIENTO
 $(document).on('click','.validar',function(e){
   e.preventDefault();
-  truncadas=0;
+  //truncadas=0;
   var id_relevamiento = $(this).val();
   console.log(id_relevamiento);
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
@@ -1265,7 +1265,7 @@ function enviarRelevamiento(estado) {
     hora_ejecucion: $('#fecha_ejecucion').val(),
     estado: estado,
     detalles: detalles,
-    truncadas:truncadas
+  //  truncadas:truncadas
   }
 
 
@@ -1669,18 +1669,21 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                   .attr('type' , 'button')
                                   .val(data.detalles[i].detalle.id_maquina)
                                   .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'));
+      if(estadoRelevamiento == 'validar'){
+        if(data.detalles[i].tipo_causa_no_toma != null || data.detalles[i].detalle.producido_importado==null) {
 
-      if(data.detalles[i].tipo_causa_no_toma != null || data.detalles[i].detalle.producido_importado==null) {
+          a_pedido_dos.show();
+          a_pedido.show();
 
-        a_pedido_dos.show();
-        a_pedido.show();
-
-      }
-      else{
+        }
+        else{
+          a_pedido_dos.hide();
+          a_pedido.hide();
+        }
+      }else{
         a_pedido_dos.hide();
         a_pedido.hide();
       }
-
       //Habilita los inputs necesarios según la fórmula
       if (estadoRelevamiento == 'Carga') {
           if (data.detalles[i].formula != null) {
@@ -1975,7 +1978,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
-              truncadas++;
+            //  truncadas++;
               diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
