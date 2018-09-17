@@ -1,5 +1,5 @@
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
+var truncadas=0;
 $(document).ready(function(){
 
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -585,6 +585,7 @@ $(document).on('click','.planilla',function(){
 //VALIDAR EL RELEVAMIENTO
 $(document).on('click','.validar',function(e){
   e.preventDefault();
+  truncadas=0;
   var id_relevamiento = $(this).val();
   console.log(id_relevamiento);
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
@@ -601,11 +602,13 @@ $(document).on('click','.validar',function(e){
       $('#validarTecnico').val(data.relevamiento.tecnico);
       $('#observacion_validacion').val('');
       $('#tablaValidarRelevamiento tbody tr').remove();
+      //$('#observacion_fisca_validacion')-val(data.relevamiento.observacion_carga);
 
       var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
 
       cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
       calculoDiferenciaValidar(tablaValidarRelevamiento, data);
+
   });
 
   $('#modalValidarRelevamiento').modal('show');
@@ -688,6 +691,7 @@ $(document).on('click','.verDetalle',function(e){
     $('#observacion_validacion').val(data.relevamiento.observacion_validacion).prop('disabled',true);
     $('#observacion_fisca_validacion').val(data.relevamiento.observacion_carga);
     $('#tablaValidarRelevamiento tbody tr').remove();
+    $('#btn-finalizarValidacion').hide();
 
     for (var i = 0; i < data.detalles.length; i++) {
 
@@ -1261,6 +1265,7 @@ function enviarRelevamiento(estado) {
     hora_ejecucion: $('#fecha_ejecucion').val(),
     estado: estado,
     detalles: detalles,
+    truncadas:truncadas
   }
 
 
@@ -1515,7 +1520,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
   var tabla = tablaRelevamientos;
 
   //se cargan las observaciones del fiscalizador si es que hay
-  $('#observaciones_fisca_validacion').val(data.observacion_carga);
+  $('#observacion_fisca_validacion').val(data.relevamiento.observacion_carga);
 
   for (var i = 0; i < data.detalles.length; i++) {
       //Hacer un for por todo los tipos de no toma para cargar el select
@@ -1654,25 +1659,27 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
 
       var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
 
-      if(data.detalles[i].tipo_causa_no_toma == null) {
-        var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
-                                    .attr('type' , 'button')
-                                    .val(data.detalles[i].detalle.id_maquina)
-                                    .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
-      }else {
-        var a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,data.detalles[i].detalle.id_maquina)
-                                                                       .append($('<option>').val(0).text('NO'))
-                                                                       .append($('<option>').val(1).text('1 día'))
-                                                                       .append($('<option>').val(5).text('5 días'))
-                                                                       .append($('<option>').val(10).text('10 días'))
-                                                                       .append($('<option>').val(15).text('15 días')).hide();
-        var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
-                                    .attr('type' , 'button')
-                                    .val(data.detalles[i].detalle.id_maquina)
-                                    .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt')).hide();
-      }
+      var a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,data.detalles[i].detalle.id_maquina)
+                                                                     .append($('<option>').val(0).text('NO'))
+                                                                     .append($('<option>').val(1).text('1 día'))
+                                                                     .append($('<option>').val(5).text('5 días'))
+                                                                     .append($('<option>').val(10).text('10 días'))
+                                                                     .append($('<option>').val(15).text('15 días'));
+      var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
+                                  .attr('type' , 'button')
+                                  .val(data.detalles[i].detalle.id_maquina)
+                                  .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'));
 
-console.log('data es:', data);
+      if(data.detalles[i].tipo_causa_no_toma != null || data.detalles[i].detalle.producido_importado==null) {
+
+        a_pedido_dos.show();
+        a_pedido.show();
+
+      }
+      else{
+        a_pedido_dos.hide();
+        a_pedido.hide();
+      }
 
       //Habilita los inputs necesarios según la fórmula
       if (estadoRelevamiento == 'Carga') {
@@ -1742,8 +1749,8 @@ console.log('data es:', data);
       .append(formulaOper8)
       .append($('<td>').append(tipoNoToma))
       .append($('<td>').append(botonDenominacion).hide())
-      .append($('<td>').append(a_pedido).hide())
-      .append($('<td>').append(a_pedido_dos).hide())
+      .append($('<td>').append(a_pedido))
+      .append($('<td>').append(a_pedido_dos))
       );
 
 
@@ -1767,8 +1774,6 @@ console.log('data es:', data);
           $('.diferencia').parent().show();
 
 
-          $('.acciones_validacion').show();
-          $('.acciones_validacion').parent().show();
 
           var causa_notoma = '';
 
@@ -1919,6 +1924,7 @@ function calculoDiferencia(tablaRelevamientos){
 }
 
 function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
+
     for (var i = 0; i < data.detalles.length; i++) {
 
       var id_detalle = data.detalles[i].detalle.id_detalle_relevamiento;
@@ -1950,6 +1956,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
         iconoPregunta.hide();
         iconoCruz.show();
         iconoCheck.hide();
+
         iconoAdmiracion.hide();
       }
       //Si no, calcular la diferencia entre lo calculado y lo importado
@@ -1968,6 +1975,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
+              truncadas++;
               diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{

@@ -11,6 +11,7 @@ use App\FiscalizacionMov;
 use App\TipoMovimiento;
 use App\TomaRelevamientoMovimiento;
 use App\LogMovimiento;
+use App\Nota;
 use Illuminate\Support\Facades\DB;
 
 use Validator;
