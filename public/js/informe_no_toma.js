@@ -113,22 +113,22 @@ function eventoModal(id_maquina){
 
   $.get('http://' + window.location.host +"/estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data){
 
-    $('#nro_admin').text(data.maquina.nro_admin);
-    $('#casino').text(data.maquina.casino);
-    $('#marca').text(data.maquina.marca);
-    $('#sector').text(data.maquina.sector);
+    $('#nro_admin').text(data.nro_admin);
+    $('#casino').text(data.casino);
+    $('#marca').text(data.marca);
+    $('#sector').text(data.sector);
 
-    var isla = data.maquina.nro_isla;
+    var isla = data.isla.nro_isla;
 
-    if(data.maquina.codigo != null){
+    if(data.isla.codigo != null){
       isla += ' - ';
      isla += data.maquina.codigo;
     }
     $('#isla').text(isla);
-    $('#juego').text(data.maquina.juego);
-    $('#denominacion').text(data.maquina.denominacion);
-    $('#devolucion').text(data.maquina.porcentaje_devolucion);
-    llenarTablaNoToma(data.resultados);
+    $('#juego').text(data.juego);
+    $('#denominacion').text(data.denominacion);
+    $('#devolucion').text(data.porcentaje_devolucion);
+    //llenarTablaNoToma(data.resultados);
   })
 
 }
