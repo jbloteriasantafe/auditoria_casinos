@@ -1,5 +1,5 @@
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
+var truncadas=0;
 $(document).ready(function(){
 
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -585,6 +585,7 @@ $(document).on('click','.planilla',function(){
 //VALIDAR EL RELEVAMIENTO
 $(document).on('click','.validar',function(e){
   e.preventDefault();
+  truncadas=0;
   var id_relevamiento = $(this).val();
   console.log(id_relevamiento);
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
@@ -607,6 +608,7 @@ $(document).on('click','.validar',function(e){
 
       cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
       calculoDiferenciaValidar(tablaValidarRelevamiento, data);
+
   });
 
   $('#modalValidarRelevamiento').modal('show');
@@ -1263,6 +1265,7 @@ function enviarRelevamiento(estado) {
     hora_ejecucion: $('#fecha_ejecucion').val(),
     estado: estado,
     detalles: detalles,
+    truncadas:truncadas
   }
 
 
@@ -1921,6 +1924,7 @@ function calculoDiferencia(tablaRelevamientos){
 }
 
 function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
+
     for (var i = 0; i < data.detalles.length; i++) {
 
       var id_detalle = data.detalles[i].detalle.id_detalle_relevamiento;
@@ -1952,6 +1956,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
         iconoPregunta.hide();
         iconoCruz.show();
         iconoCheck.hide();
+
         iconoAdmiracion.hide();
       }
       //Si no, calcular la diferencia entre lo calculado y lo importado
@@ -1970,6 +1975,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
+              truncadas++;
               diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
