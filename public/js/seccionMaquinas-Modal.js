@@ -359,9 +359,9 @@ $('#btn-guardar').click(function(e){
 
 
 
-          if(typeof response.estado !== 'undefined'){
+          if(typeof response.id_estado_maquina !== 'undefined'){
             $('#estado').addClass('alerta');
-            $('#alerta_estado').text(response.estado[0]).show();
+            $('#alerta_estado').text(response.id_estado_maquina[0]).show();
           }
 
           if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined'){
