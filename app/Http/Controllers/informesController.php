@@ -346,7 +346,7 @@ class informesController extends Controller
     $i= 0;
     $suma = 0;
     $datos = $arreglo = array();
-    $logs = LogMaquina::where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->take(5)->get();
+    $logs = LogMaquina::where('id_maquina' , $id_maquina)->withTipoMovimiento()->orderBy('fecha', 'desc')->take(5)->get();
 
     while($fin){
       $estado = $this->checkEstadoMaquina($fecha, $maquina->id_maquina);
@@ -372,7 +372,10 @@ class informesController extends Controller
             'sector' => $sector,
             'juego' => $maquina->juego_activo->nombre_juego,
             'producido' => $suma,
-            'movimientos' => $logs];
+            'movimientos' => $logs
+            'denominacion' => $maquina->denominacion,
+            'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
+            ];
   }
 
   public function checkEstadoMaquina($fecha , $id_maquina){

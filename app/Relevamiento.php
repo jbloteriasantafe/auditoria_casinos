@@ -10,7 +10,9 @@ class Relevamiento extends Model
   protected $connection = 'mysql';
   protected $table = 'relevamiento';
   protected $primaryKey = 'id_relevamiento';
-  protected $visible = array('id_relevamiento','nro_relevamiento','subrelevamiento','backup','fecha','fecha_generacion','fecha_ejecucion','fecha_carga','tecnico','observacion_carga','observacion_validacion');
+  protected $visible = array('id_relevamiento','nro_relevamiento','subrelevamiento',
+  'backup','fecha','fecha_generacion','fecha_ejecucion','fecha_carga','tecnico',
+  'observacion_carga','observacion_validacion','truncadas');
   public $timestamps = false;
 
   public function sector(){
