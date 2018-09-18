@@ -76,16 +76,22 @@ $('#btn-buscarMTM').click(function(e){
   $('#modalMaquinaContable').modal('show');
   var id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
   $.get('http://' + window.location.host +"/obtenerInformeContableDeMaquina/" + id_maquina, function(data){
+    console.log(data);
     $('#nro_admin').text(data.nro_admin);
     $('#casino').text(data.casino);
     $('#marca').text(data.marca);
     $('#sector').text(data.sector);
     var isla = data.isla.nro_isla;
-    if(data.isla.codigo != null) isla += data.isla.codigo;
+
+    if(data.isla.codigo != null){
+      isla += ' - ';
+     isla += data.isla.codigo;
+    }
+
     $('#isla').text(isla);
     $('#juego').text(data.juego);
     $('#denominacion').text(data.denominacion);
-    $('#devolucion').text(data.devolucion);
+    $('#devolucion').text(data.porcentaje_devolucion);
     $('#producido').text(addCommas(data.producido));
     for (var i = 0; i < data.datos.length; i++) {
        fechas.push(data.datos[i].fecha);

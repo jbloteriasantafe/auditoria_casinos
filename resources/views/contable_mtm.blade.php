@@ -76,15 +76,15 @@
                                 </div>
                             </div>
                             <div class="row" style="padding-top:20px;">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <h5>JUEGO ACTIVO</h5>
                                     <span id="juego" class="infoResaltada">LUCKY LARRYS LOBSTERMANIA</span>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <h5>DENOMINACIÓN</h5>
                                     <span id="denominacion" class="infoResaltada">0.1</span>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <h5>% DEVOLUCIÓN</h5>
                                     <span id="devolucion" class="infoResaltada">83 %</span>
                                 </div>
