@@ -481,6 +481,7 @@ class RelevamientoController extends Controller
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
+  //  $relevamiento->truncadas = 
     $relevamiento->save();
 
     foreach($detalles as $det){
