@@ -364,6 +364,11 @@ class informesController extends Controller
       if($i == 15) $fin = false;
     }
 
+    $detalles_5 = DB::table('detalle_relevamiento')->select('detalle_relevamiento.*','maquina.nro_admin')->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+                                      ->where('maquina.id_maquina','=',$id_maquina)
+                                      ->orderBy('id_detalle_relevamiento','desc')
+                                      ->take(5)->get();
+
     return ['arreglo' => array_reverse($arreglo),
             'datos' => array_reverse($datos),
             'nro_admin' => $maquina->nro_admin  ,
@@ -376,6 +381,7 @@ class informesController extends Controller
             'movimientos' => $logs,
             'denominacion' => $maquina->denominacion,
             'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
+            'relevamientos' => $detalles_5,
             ];
   }
 
