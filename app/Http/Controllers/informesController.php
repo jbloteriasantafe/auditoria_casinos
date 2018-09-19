@@ -369,7 +369,7 @@ class informesController extends Controller
                                   ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
                                       ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
                                       ->where('maquina.id_maquina','=',$id_maquina)
-                                      ->orderBy('id_detalle_relevamiento','desc')
+                                      ->orderBy('relevamiento.fecha_carga','desc')
                                       ->take(5)->get();
 
     return ['arreglo' => array_reverse($arreglo),
