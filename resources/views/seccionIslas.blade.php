@@ -76,6 +76,7 @@
                                 <th class="col-xs-2" value="cantidad_maquinas" estado="">MÁQUINAS <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-3" value="" estado="">ACCIONES</th>
                               </tr>
+
                             </thead>
                             <tbody id="cuerpoTabla" style="height: 350px;">
                             </tbody>

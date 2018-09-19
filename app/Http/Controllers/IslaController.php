@@ -39,7 +39,7 @@ class IslaController extends Controller
       }
       UsuarioController::getInstancia()->agregarSeccionReciente('Islas' , 'islas');
 
-      return view('seccionIslas' , ['casinos' => $casinos, 'esRosario' => ]);
+      return view('seccionIslas' , ['casinos' => $casinos, 'esRosario' => $esRosario ]);
   }
 
   public static function getInstancia(){
