@@ -1060,7 +1060,7 @@ class RelevamientoController extends Controller
     $maq->nro_admin = $maquina->nro_admin;
 
     $detalles = DB::table('detalle_relevamiento')
-                    ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma',
+                    ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
                             'detalle_relevamiento.cont1','detalle_relevamiento.cont2','detalle_relevamiento.cont3','detalle_relevamiento.cont4',
                             'detalle_relevamiento.cont5','detalle_relevamiento.cont6','detalle_relevamiento.cont7','detalle_relevamiento.cont8',
                             'detalle_relevamiento.producido_calculado_relevado',
