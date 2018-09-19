@@ -1059,23 +1059,26 @@ class RelevamientoController extends Controller
     $maq->isla = $maquina->isla->nro_isla;
     $maq->nro_admin = $maquina->nro_admin;
 
-    $detalles = DB::table('detalle_relevamiento')->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma',
-                                                          'detalle_relevamiento.cont1','detalle_relevamiento.cont2','detalle_relevamiento.cont3','detalle_relevamiento.cont4',
-                                                          'detalle_relevamiento.cont5','detalle_relevamiento.cont6','detalle_relevamiento.cont7','detalle_relevamiento.cont8',
-                                                          'detalle_relevamiento.producido_calculado_relevado',
-                                                          'detalle_contador_horario.coinin','detalle_contador_horario.coinout','detalle_contador_horario.jackpot','detalle_contador_horario.progresivo')
-                                                 ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
-                                                 ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
-                                                 ->join('sector','relevamiento.id_sector','=','sector.id_sector')
-                                                 ->leftJoin('contador_horario',function ($leftJoin){
-                                                   $leftJoin->on('contador_horario.fecha','=','relevamiento.fecha');
-                                                   $leftJoin->on('contador_horario.id_casino','=','sector.id_casino');})
-                                                 ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
-                                                 ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
-                                                 ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
-                                                 ->where('maquina.id_maquina',$maquina->id_maquina)
-                                                 ->orderBy('relevamiento.fecha','desc')
-                                                 ->take($request->cantidad_relevamientos)->get();
+    $detalles = DB::table('detalle_relevamiento')
+                    ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma',
+                            'detalle_relevamiento.cont1','detalle_relevamiento.cont2','detalle_relevamiento.cont3','detalle_relevamiento.cont4',
+                            'detalle_relevamiento.cont5','detalle_relevamiento.cont6','detalle_relevamiento.cont7','detalle_relevamiento.cont8',
+                            'detalle_relevamiento.producido_calculado_relevado',
+                            'detalle_contador_horario.coinin','detalle_contador_horario.coinout','detalle_contador_horario.jackpot','detalle_contador_horario.progresivo')
+                     ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
+                     ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+                     ->join('sector','relevamiento.id_sector','=','sector.id_sector')
+                     ->leftJoin('contador_horario',function ($leftJoin){
+                                 $leftJoin->on('contador_horario.fecha','=','relevamiento.fecha');
+                                 $leftJoin->on('contador_horario.id_casino','=','sector.id_casino');
+                               })
+                     ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
+                     ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
+                     ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
+                     ->where('maquina.id_maquina',$maquina->id_maquina)
+                     ->distinct('detalle_relevamiento.id_detalle_relevamiento')
+                     ->orderBy('relevamiento.fecha','desc')
+                     ->take(5)->get();
     return ['maquina' => $maq,
             'formula' => $formula,
             'detalles' => $detalles];
