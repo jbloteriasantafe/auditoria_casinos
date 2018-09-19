@@ -874,7 +874,7 @@ class RelevamientoController extends Controller
     //dentro de un año este if va a ser innecesario, pasa que hoy 19/09 estamos agregando campos, y pueden ser nullable
     //y quizas siempre pase jaja
     if($habilitadas_en_tal_fecha == 0){
-      $this->calcularMTMsHabilitadas($casino->id_casino);
+        $rel->cantidad_habilitadas = $this->calcularMTMsHabilitadas($casino->id_casino);
     }else{
       $rel->cantidad_habilitadas = $habilitadas_en_tal_fecha;
     }
