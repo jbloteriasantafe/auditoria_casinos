@@ -612,6 +612,7 @@ class RelevamientoController extends Controller
           $cosix = '';
         }
         $detalles[] = ['detalle' => $det,
+                       'nro_admin' => $mtmm->nro_admin,
                        'mtm_a_pedido' => $mtm_a_pedido,
                        'denominacion' => $det->denominacion,
                        'tipo_no_toma' => $cosix,
@@ -630,11 +631,12 @@ class RelevamientoController extends Controller
           $tc = null;
         }
         $detalles[] = ['detalle' => $det,
-                      'mtm_a_pedido' => null,
-                      'denominacion' => $det->denominacion,
-                      'tipo_no_toma' => $tc,
-                      'producido_importado' => $importt,
-                      'diferencia' => $det->diferencia,];
+                       'nro_admin' => $mtmm->nro_admin,
+                       'mtm_a_pedido' => null,
+                       'denominacion' => $det->denominacion,
+                       'tipo_no_toma' => $tc,
+                       'producido_importado' => $importt,
+                       'diferencia' => $det->diferencia,];
       }
     }
 
@@ -861,6 +863,9 @@ class RelevamientoController extends Controller
                                     ->whereIn('id_estado_maquina',$estados_habilitados)
                                     ->whereNull('deleted_at')
                                     ->first()->cantidad;
+
+
+
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','portrait');
