@@ -477,11 +477,16 @@ class RelevamientoController extends Controller
     //
     // $fecha = DateTime::createFromFormat('HH:ii', '');
 
+    $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
+    $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
+
     $relevamiento->fecha_ejecucion = $request->hora_ejecucion ;
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
     $relevamiento->truncadas = $request->truncadas;
+    $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
+    $relevamiento->mtms_sin_isla = $sin_isla;
     $relevamiento->save();
 
     foreach($detalles as $det){
@@ -606,11 +611,16 @@ class RelevamientoController extends Controller
 
       $mtmm = Maquina::find($det->id_maquina);
       if($mtm_a_pedido != null){
-
+        if(!empty($det->tipo_causa_no_toma)){
+          $cosix = $det->tipo_causa_no_toma->descripcion;
+        }else{
+          $cosix = '';
+        }
         $detalles[] = ['detalle' => $det,
+                       'nro_admin' => $mtmm->nro_admin,
                        'mtm_a_pedido' => $mtm_a_pedido,
                        'denominacion' => $det->denominacion,
-                       'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                       'tipo_no_toma' => $cosix,
                        'producido_importado' => $det->producido_importado,
                        'diferencia' => $det->diferencia,
                      ];
@@ -626,11 +636,12 @@ class RelevamientoController extends Controller
           $tc = null;
         }
         $detalles[] = ['detalle' => $det,
-                      'mtm_a_pedido' => null,
-                      'denominacion' => $det->denominacion,
-                      'tipo_no_toma' => $tc,
-                      'producido_importado' => $importt,
-                      'diferencia' => $det->diferencia,];
+                       'nro_admin' => $mtmm->nro_admin,
+                       'mtm_a_pedido' => null,
+                       'denominacion' => $det->denominacion,
+                       'tipo_no_toma' => $tc,
+                       'producido_importado' => $importt,
+                       'diferencia' => $det->diferencia,];
       }
     }
 
@@ -748,8 +759,17 @@ class RelevamientoController extends Controller
     $detalles = array();
     $relevadas = 0;
     $observaciones = array();
+    $sumatruncadas=0;
+    $detallesOK = 0;
+    $no_tomadas = 0;
+    $habilitadas_en_tal_fecha=0;
+    $sin_isla = 0;
     foreach ($relevamientos as $unRelevamiento){
+      if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
+      $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
+      if($unRelevamiento->mtms_habilitadas_hoy != null) $habilitadas_en_tal_fecha = $unRelevamiento->mtms_habilitadas_hoy;
+      if($unRelevamiento->mtm_sin_isla != null) $sin_isla = $unRelevamiento->mtm_sin_isla;
 
       $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
                                                       ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
@@ -791,6 +811,7 @@ class RelevamientoController extends Controller
             $det->producido = 0;
             if($detalle->tipo_causa_no_toma != null){
                 $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                $no_tomadas++;
             }else{
                 $det->no_toma = '---';
             }
@@ -817,6 +838,7 @@ class RelevamientoController extends Controller
               $det->producido = $producido;
               if($detalle->tipo_causa_no_toma != null){
                   $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                  $no_tomadas++;
               }else{
                   $det->no_toma = '---';
               }
@@ -851,12 +873,27 @@ class RelevamientoController extends Controller
     foreach ($estados_habilitados as $key => $estado){
       $estados_habilitados[$key] = $estado->id_estado_maquina;
     }
-    $rel->cantidad_habilitadas = DB::table('maquina')
-                                    ->select(DB::raw('COUNT(id_maquina) as cantidad'))
-                                    ->where('id_casino',$casino->id_casino)
-                                    ->whereIn('id_estado_maquina',$estados_habilitados)
-                                    ->whereNull('deleted_at')
-                                    ->first()->cantidad;
+
+    //dentro de un año este if va a ser innecesario, pasa que hoy 19/09 estamos agregando campos, y pueden ser nullable
+    //y quizas siempre pase jaja
+    if($habilitadas_en_tal_fecha == 0){
+        $rel->cantidad_habilitadas = $this->calcularMTMsHabilitadas($casino->id_casino);
+    }else{
+      $rel->cantidad_habilitadas = $habilitadas_en_tal_fecha;
+    }
+
+    if($sin_isla == 0){
+        $rel->sin_isla = $this->calcular_sin_isla($casino->id_casino);
+    }else{
+      $rel->sin_isla = $sin_isla;
+    }
+
+    $rel->truncadas = $sumatruncadas;
+    $rel->verificadas = $detallesOK;
+    $rel->sin_relevar = $no_tomadas;
+    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
+
+
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','portrait');
@@ -867,6 +904,33 @@ class RelevamientoController extends Controller
     return $dompdf;
   }
 
+  private function calcularMTMsHabilitadas($id_casino){
+    $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
+                                          ->orWhere('descripcion' , 'Reingreso')
+                                          ->orWhere('descripcion' , 'Eventualidad Observada')
+                                          ->get();
+    foreach ($estados_habilitados as $key => $estado){
+      $estados_habilitados[$key] = $estado->id_estado_maquina;
+    }
+    return DB::table('maquina')
+              ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+              ->join('isla','isla.id_isla','=','maquina.id_isla')
+              ->where('maquina.id_casino',$id_casino)
+              ->whereIn('maquina.id_estado_maquina',$estados_habilitados)
+              ->whereNull('maquina.deleted_at')
+              ->whereNull('isla.deleted_at')
+              ->first()->cantidad;
+
+  }
+
+  private function calcular_sin_isla($id_casino){
+    return DB::table('maquina')
+              ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+              ->where('maquina.id_casino',$id_casino)
+              ->whereNull('maquina.deleted_at')
+              ->whereNull('maquina.id_isla')
+              ->first()->cantidad;
+  }
   public function generarPlanilla($id_relevamiento){
 
     $dompdf = $this->crearPlanilla($id_relevamiento);
