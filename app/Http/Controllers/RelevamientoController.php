@@ -754,7 +754,12 @@ class RelevamientoController extends Controller
     $detalles = array();
     $relevadas = 0;
     $observaciones = array();
+    $sumatruncadas=0;
+    $detallesOK = 0;
+    $no_tomadas = 0;
     foreach ($relevamientos as $unRelevamiento){
+      if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
+      $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
 
       $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
@@ -797,6 +802,7 @@ class RelevamientoController extends Controller
             $det->producido = 0;
             if($detalle->tipo_causa_no_toma != null){
                 $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                $no_tomadas++;
             }else{
                 $det->no_toma = '---';
             }
@@ -823,6 +829,7 @@ class RelevamientoController extends Controller
               $det->producido = $producido;
               if($detalle->tipo_causa_no_toma != null){
                   $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                  $no_tomadas++;
               }else{
                   $det->no_toma = '---';
               }
@@ -864,6 +871,11 @@ class RelevamientoController extends Controller
                                     ->whereNull('deleted_at')
                                     ->first()->cantidad;
 
+
+    $rel->truncadas = $sumatruncadas;
+    $rel->verificadas = $detallesOK;
+    $rel->sin_relevar = $no_tomadas;
+    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
 
 
     $view = View::make('planillaRelevamientosValidados', compact('rel'));

@@ -58,16 +58,22 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
               <h2><span style="color: #9c9c9c; ">PMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
         </div>
         <div class="primerEncabezado" style="padding-left: 120px;">Datos del relevamiento para la fecha de producción - <b><i><?php echo $fecha_final;?> </i></b></div><br>
-                  <div style="padding-left: 150px;">
+                  <div style="padding-left: 70px;">
                     <table>
                             <tr>
-                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MÁQUINAS RELEVADAS</th>
-                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MÁQUINAS CON DIFERENCIAS</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MTMs RELEVADAS</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MTMs VERIFICADAS</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MTMs CON ERRORES GENERALES</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MTMs CON ERRORES DE TRUNCAMIENTO</th>
+                              <th class="tablaInicio" style="text-align: center;">CANTIDAD DE MTMs NO RELEVADAS</th>
                               <th class="tablaInicio" style="text-align: center;">MÁQUINAS HABILITADAS</th>
                             </tr>
                             <tr>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->cantidad_relevadas}}</td>
-                              <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->cantidad_con_diferencia}}</td>
+                              <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->verificadas}}</td>
+                              <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->errores_generales}}</td>
+                              <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->truncadas}}</td>
+                              <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->sin_relevar}}</td>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->cantidad_habilitadas}}</td>
                             </tr>
                     </table>
