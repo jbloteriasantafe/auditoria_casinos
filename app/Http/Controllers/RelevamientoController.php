@@ -606,11 +606,15 @@ class RelevamientoController extends Controller
 
       $mtmm = Maquina::find($det->id_maquina);
       if($mtm_a_pedido != null){
-
+        if(!empty($det->tipo_causa_no_toma)){
+          $cosix = $det->tipo_causa_no_toma->descripcion;
+        }else{
+          $cosix = '';
+        }
         $detalles[] = ['detalle' => $det,
                        'mtm_a_pedido' => $mtm_a_pedido,
                        'denominacion' => $det->denominacion,
-                       'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                       'tipo_no_toma' => $cosix,
                        'producido_importado' => $det->producido_importado,
                        'diferencia' => $det->diferencia,
                      ];
