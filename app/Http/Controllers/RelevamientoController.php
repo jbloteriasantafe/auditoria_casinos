@@ -481,7 +481,7 @@ class RelevamientoController extends Controller
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
-  //  $relevamiento->truncadas = 
+    $relevamiento->truncadas = $request->truncadas;
     $relevamiento->save();
 
     foreach($detalles as $det){
@@ -1271,7 +1271,7 @@ class RelevamientoController extends Controller
             $detalle= null;
     }
 
-  return ['relevado' => $relevado, 'validado' => $validado, 'detalle' => $detalle];
+    return ['relevado' => $relevado, 'validado' => $validado, 'detalle' => $detalle];
   }
 
   public function agregarTresPuntosFormula($formula){ // abrevia los nombres de las formulas para que se vean mejor en la planilla
