@@ -907,9 +907,11 @@ class RelevamientoController extends Controller
     }
     return DB::table('maquina')
               ->select(DB::raw('COUNT(id_maquina) as cantidad'))
-              ->where('id_casino',$id_casino)
-              ->whereIn('id_estado_maquina',$estados_habilitados)
-              ->whereNull('deleted_at')
+              ->join('isla','isla.id_isla','=','maquina.id_isla')
+              ->where('maquina.id_casino',$id_casino)
+              ->whereIn('maquina.id_estado_maquina',$estados_habilitados)
+              ->whereNull('maquina.deleted_at')
+              ->whereNull('isla.deleted_at')
               ->first()->cantidad;
 
   }
