@@ -189,11 +189,15 @@ $('.modal').on('hidden.bs.modal', function() {
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
 
+    ocultarErrorValidacion($('#inputJuego'));
+    ocultarErrorValidacion($('#inputCodigo'));
+    ocultarErrorValidacion($('#tablas_pago'));
+
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('MODIFICAR JUEGO');
     $('#modalJuego .modal-header').attr('style','background: #ff9d2d');
-    $('#btn-guardar').val('modificar');
+    $('#btn-guardar').val('modificar').show();
     $('#id_juego').val(id_juego);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
@@ -415,16 +419,16 @@ $('#btn-guardar').click(function (e) {
             var response = JSON.parse(data.responseText);
 
             if(typeof response.nombre_juego !== 'undefined'){
-
+              mostrarErrorValidacion($('#inputJuego'),response.nombre_juego,false);
             }
 
             if(typeof response.cod_identificacion !== 'undefined'){
-
+              mostrarErrorValidacion($('#inputCodigo'),response.cod_identificacion,false);
             }
 
-            if(typeof response.nro_niv_progresivos !== 'undefined'){
 
-            };
+            // if(typeof response.nro_niv_progresivos !== 'undefined'){
+            //   mostrarErrorValidacion($('#tablas_pago'),response.nro_niv_progresivos,false);            }
 
             var i=0;
             var error=' ';
