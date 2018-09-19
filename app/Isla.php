@@ -20,7 +20,7 @@ class Isla extends Model
   protected $appends = array('cantidad_maquinas');
 
   public function getCantidadMaquinasAttribute(){
-      return Maquina::where('id_isla','=',$this->id_isla)->whereNull('deleted_at')->count();
+      return Maquina::where('id_isla','=',$this->id_isla)->whereIn('id_estado_maquina',[1,2,7])->whereNull('deleted_at')->count();
   }
 
   public function maquinas(){
