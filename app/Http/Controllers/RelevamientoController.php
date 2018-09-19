@@ -481,7 +481,7 @@ class RelevamientoController extends Controller
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
-  //  $relevamiento->truncadas = 
+    $relevamiento->truncadas = $request->truncadas;
     $relevamiento->save();
 
     foreach($detalles as $det){
@@ -606,11 +606,16 @@ class RelevamientoController extends Controller
 
       $mtmm = Maquina::find($det->id_maquina);
       if($mtm_a_pedido != null){
-
+        if(!empty($det->tipo_causa_no_toma)){
+          $cosix = $det->tipo_causa_no_toma->descripcion;
+        }else{
+          $cosix = '';
+        }
         $detalles[] = ['detalle' => $det,
+                       'nro_admin' => $mtmm->nro_admin,
                        'mtm_a_pedido' => $mtm_a_pedido,
                        'denominacion' => $det->denominacion,
-                       'tipo_no_toma' => $det->tipo_causa_no_toma->descripcion,
+                       'tipo_no_toma' => $cosix,
                        'producido_importado' => $det->producido_importado,
                        'diferencia' => $det->diferencia,
                      ];
@@ -626,11 +631,12 @@ class RelevamientoController extends Controller
           $tc = null;
         }
         $detalles[] = ['detalle' => $det,
-                      'mtm_a_pedido' => null,
-                      'denominacion' => $det->denominacion,
-                      'tipo_no_toma' => $tc,
-                      'producido_importado' => $importt,
-                      'diferencia' => $det->diferencia,];
+                       'nro_admin' => $mtmm->nro_admin,
+                       'mtm_a_pedido' => null,
+                       'denominacion' => $det->denominacion,
+                       'tipo_no_toma' => $tc,
+                       'producido_importado' => $importt,
+                       'diferencia' => $det->diferencia,];
       }
     }
 
@@ -748,7 +754,12 @@ class RelevamientoController extends Controller
     $detalles = array();
     $relevadas = 0;
     $observaciones = array();
+    $sumatruncadas=0;
+    $detallesOK = 0;
+    $no_tomadas = 0;
     foreach ($relevamientos as $unRelevamiento){
+      if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
+      $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
 
       $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
@@ -791,6 +802,7 @@ class RelevamientoController extends Controller
             $det->producido = 0;
             if($detalle->tipo_causa_no_toma != null){
                 $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                $no_tomadas++;
             }else{
                 $det->no_toma = '---';
             }
@@ -817,6 +829,7 @@ class RelevamientoController extends Controller
               $det->producido = $producido;
               if($detalle->tipo_causa_no_toma != null){
                   $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
+                  $no_tomadas++;
               }else{
                   $det->no_toma = '---';
               }
@@ -857,6 +870,14 @@ class RelevamientoController extends Controller
                                     ->whereIn('id_estado_maquina',$estados_habilitados)
                                     ->whereNull('deleted_at')
                                     ->first()->cantidad;
+
+
+    $rel->truncadas = $sumatruncadas;
+    $rel->verificadas = $detallesOK;
+    $rel->sin_relevar = $no_tomadas;
+    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
+
+
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','portrait');
@@ -1271,7 +1292,7 @@ class RelevamientoController extends Controller
             $detalle= null;
     }
 
-  return ['relevado' => $relevado, 'validado' => $validado, 'detalle' => $detalle];
+    return ['relevado' => $relevado, 'validado' => $validado, 'detalle' => $detalle];
   }
 
   public function agregarTresPuntosFormula($formula){ // abrevia los nombres de las formulas para que se vean mejor en la planilla

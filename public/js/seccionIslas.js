@@ -751,10 +751,12 @@ function existeMaquina(id_maquina){ // devuelve true si ya existe esa maquina en
 }
 
 function generarFilaTabla(isla,sector){
-
+  console.log('44',isla);
   var fila = $(document.createElement('tr'));
   var codigo;
   isla.codigo == null ? codigo = '-' : codigo= isla.codigo;
+
+  if(isla.id_casino != 3){
   fila.attr('id','isla' + isla.id_isla)
       .append($('<td>')
           .addClass('col-xs-1')
@@ -762,9 +764,10 @@ function generarFilaTabla(isla,sector){
       )
       .append($('<td>')
           .addClass('col-xs-2')
-          .text(codigo)
+          .text(codigo).css('text-align','center')
       )
-      .append($('<td>')
+
+      fila.append($('<td>')
           .addClass('col-xs-2')
           .text(isla.casino)
       )
@@ -774,9 +777,10 @@ function generarFilaTabla(isla,sector){
       )
       .append($('<td>')
           .addClass('col-xs-2')
-          .text(isla.cantidad_maquinas)
+          .text(isla.cantidad_maquinas).css('text-align','center')
       )
-      .append($('<td>')
+
+      fila.append($('<td>')
           .addClass('col-xs-3')
           .append($('<button>')
               .append($('<i>')
@@ -813,7 +817,60 @@ function generarFilaTabla(isla,sector){
               .addClass('btn').addClass('btn-danger').addClass('eliminar')
               .attr('value', isla.id_isla)
           )
-      )
+      )}
+      else{
+        fila.attr('id','isla' + isla.id_isla)
+            .append($('<td>')
+                .addClass('col-xs-1')
+                .text(isla.nro_isla)
+            )
+            .append($('<td>')
+                .addClass('col-xs-2')
+                .text(' - ').css('text-align','center')
+            )
+            .append($('<td>')
+                .addClass('col-xs-2')
+                .text(isla.casino)
+            )
+            .append($('<td>')
+                .addClass('col-xs-2')
+                .text(sector)
+            )
+            .append($('<td>')
+                .addClass('col-xs-2')
+                .text(isla.cantidad_maquinas).css('text-align','center')
+            )
+
+          .append($('<td>')
+            .addClass('col-xs-3')
+            .append($('<button>')
+                .append($('<i>')
+                    .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+                )
+                .append($('<span>').text(' VER MÁS'))
+                .addClass('btn').addClass('btn-info').addClass('detalle')
+                .attr('value', isla.id_isla)
+            )
+            .append($('<span>').text(' '))
+            .append($('<button>')
+                .append($('<i>')
+                    .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
+                )
+                .append($('<span>').text(' MODIFICAR'))
+                .addClass('btn').addClass('btn-warning').addClass('modificar')
+                .attr('value', isla.id_isla)
+            )
+
+            .append($('<span>').text(' '))
+            .append($('<button>')
+                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
+                )
+                .append($('<span>').text(' ELIMINAR'))
+                .addClass('btn').addClass('btn-danger').addClass('eliminar')
+                .attr('value', isla.id_isla)
+            )
+        )
+      }
     return fila;
 }
 

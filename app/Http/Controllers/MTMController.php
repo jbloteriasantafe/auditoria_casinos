@@ -356,7 +356,7 @@ class MTMController extends Controller
           'id_tipo_maquina' => 'nullable',
           'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-          //  'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
+          'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' => 'nullable',//'required_if:notas,null',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
           'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
@@ -546,7 +546,7 @@ class MTMController extends Controller
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
     $MTM->formula()->associate($formula);
-    $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada
+    $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->biene a ser un estado PENDIENTE DE HABILITACION
     if($request->id_tipo_gabinete != 0)$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
