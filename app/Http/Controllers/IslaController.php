@@ -32,10 +32,14 @@ class IslaController extends Controller
       }
 
       $casinos= Casino::whereIn('id_casino',$casinos)->get();
-
+      if(count($casinos)== 1 && $casinos->first()->id_casino == 3){
+         $esRosario =1;
+      }else{
+        $esRosario = 0;
+      }
       UsuarioController::getInstancia()->agregarSeccionReciente('Islas' , 'islas');
 
-      return view('seccionIslas' , ['casinos' => $casinos]);
+      return view('seccionIslas' , ['casinos' => $casinos, 'esRosario' => ]);
   }
 
   public static function getInstancia(){
