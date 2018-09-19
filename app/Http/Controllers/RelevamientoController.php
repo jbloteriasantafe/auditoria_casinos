@@ -478,7 +478,7 @@ class RelevamientoController extends Controller
     // $fecha = DateTime::createFromFormat('HH:ii', '');
 
     $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
-
+    $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
 
     $relevamiento->fecha_ejecucion = $request->hora_ejecucion ;
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
@@ -486,6 +486,7 @@ class RelevamientoController extends Controller
     $relevamiento->observacion_carga = $request->observacion_carga;
     $relevamiento->truncadas = $request->truncadas;
     $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
+    $relevamiento->mtms_sin_isla = $sin_isla;
     $relevamiento->save();
 
     foreach($detalles as $det){
@@ -762,11 +763,13 @@ class RelevamientoController extends Controller
     $detallesOK = 0;
     $no_tomadas = 0;
     $habilitadas_en_tal_fecha=0;
+    $sin_isla = 0;
     foreach ($relevamientos as $unRelevamiento){
       if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
       $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
       if($unRelevamiento->mtms_habilitadas_hoy != null) $habilitadas_en_tal_fecha = $unRelevamiento->mtms_habilitadas_hoy;
+      if($unRelevamiento->mtm_sin_isla != null) $sin_isla = $unRelevamiento->mtm_sin_isla;
 
       $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
                                                       ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
@@ -879,7 +882,11 @@ class RelevamientoController extends Controller
       $rel->cantidad_habilitadas = $habilitadas_en_tal_fecha;
     }
 
-
+    if($sin_isla == 0){
+        $rel->sin_isla = $this->calcular_sin_isla($casino->id_casino);
+    }else{
+      $rel->sin_isla = $sin_isla;
+    }
 
     $rel->truncadas = $sumatruncadas;
     $rel->verificadas = $detallesOK;
@@ -916,6 +923,14 @@ class RelevamientoController extends Controller
 
   }
 
+  private function calcular_sin_isla($id_casino){
+    return DB::table('maquina')
+              ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+              ->where('maquina.id_casino',$id_casino)
+              ->whereNull('maquina.deleted_at')
+              ->whereNull('maquina.id_isla')
+              ->first()->cantidad;
+  }
   public function generarPlanilla($id_relevamiento){
 
     $dompdf = $this->crearPlanilla($id_relevamiento);
