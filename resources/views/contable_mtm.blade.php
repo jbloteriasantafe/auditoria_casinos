@@ -174,6 +174,39 @@
 
                         </div>
                     </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5>Contadores Tomados en los últimos 5 días:</h5>
+                        <br>
+                        <table id="tablaContadoresTomados" class="table">
+                          <thead>
+                            <tr>
+                              <th>FECHA</th>
+                              <th width="3%">MÁQ</th>
+                              <th>CONTADOR 1</th>
+                              <th>CONTADOR 2</th>
+                              <th>CONTADOR 3</th>
+                              <th>CONTADOR 4</th>
+                              <th>CONTADOR 5</th>
+                              <th>CONTADOR 6</th>
+                              <!-- <th>CONTADOR 7</th> -->
+                              <!-- <th>CONTADOR 8</th> -->
+                              <!-- <th>P. CALCULADO ($)</th>
+                              <th>P. IMPORTADO ($)</th>
+                              <th>DIFERENCIA</th>
+                              <th></th>
+                              <th>TIPO NO TOMA</th>
+                              <th>DEN</th>
+                              <th>-</th> -->
+                            </tr>
+                          </thead>
+                          <tbody>
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
 
 
 
