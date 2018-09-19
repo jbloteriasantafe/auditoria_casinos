@@ -364,7 +364,10 @@ class informesController extends Controller
       if($i == 15) $fin = false;
     }
 
-    $detalles_5 = DB::table('detalle_relevamiento')->select('detalle_relevamiento.*','maquina.nro_admin')->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+    $detalles_5 = DB::table('detalle_relevamiento')
+                              ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
+                                  ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+                                      ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
                                       ->where('maquina.id_maquina','=',$id_maquina)
                                       ->orderBy('id_detalle_relevamiento','desc')
                                       ->take(5)->get();
