@@ -477,11 +477,15 @@ class RelevamientoController extends Controller
     //
     // $fecha = DateTime::createFromFormat('HH:ii', '');
 
+    $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
+
+
     $relevamiento->fecha_ejecucion = $request->hora_ejecucion ;
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
     $relevamiento->truncadas = $request->truncadas;
+    $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
     $relevamiento->save();
 
     foreach($detalles as $det){
@@ -757,10 +761,12 @@ class RelevamientoController extends Controller
     $sumatruncadas=0;
     $detallesOK = 0;
     $no_tomadas = 0;
+    $habilitadas_en_tal_fecha=0;
     foreach ($relevamientos as $unRelevamiento){
       if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
       $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
+      if($unRelevamiento->mtms_habilitadas_hoy != null) $habilitadas_en_tal_fecha = $unRelevamiento->mtms_habilitadas_hoy;
 
       $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
                                                       ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
@@ -864,12 +870,15 @@ class RelevamientoController extends Controller
     foreach ($estados_habilitados as $key => $estado){
       $estados_habilitados[$key] = $estado->id_estado_maquina;
     }
-    $rel->cantidad_habilitadas = DB::table('maquina')
-                                    ->select(DB::raw('COUNT(id_maquina) as cantidad'))
-                                    ->where('id_casino',$casino->id_casino)
-                                    ->whereIn('id_estado_maquina',$estados_habilitados)
-                                    ->whereNull('deleted_at')
-                                    ->first()->cantidad;
+
+    //dentro de un año este if va a ser innecesario, pasa que hoy 19/09 estamos agregando campos, y pueden ser nullable
+    //y quizas siempre pase jaja
+    if($habilitadas_en_tal_fecha == 0){
+      $this->calcularMTMsHabilitadas($casino->id_casino);
+    }else{
+      $rel->cantidad_habilitadas = $habilitadas_en_tal_fecha;
+    }
+
 
 
     $rel->truncadas = $sumatruncadas;
@@ -886,6 +895,23 @@ class RelevamientoController extends Controller
     $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
     $dompdf->getCanvas()->page_text(515, 815,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
     return $dompdf;
+  }
+
+  private function calcularMTMsHabilitadas($id_casino){
+    $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
+                                          ->orWhere('descripcion' , 'Reingreso')
+                                          ->orWhere('descripcion' , 'Eventualidad Observada')
+                                          ->get();
+    foreach ($estados_habilitados as $key => $estado){
+      $estados_habilitados[$key] = $estado->id_estado_maquina;
+    }
+    return DB::table('maquina')
+              ->select(DB::raw('COUNT(id_maquina) as cantidad'))
+              ->where('id_casino',$id_casino)
+              ->whereIn('id_estado_maquina',$estados_habilitados)
+              ->whereNull('deleted_at')
+              ->first()->cantidad;
+
   }
 
   public function generarPlanilla($id_relevamiento){
