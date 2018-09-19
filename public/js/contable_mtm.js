@@ -75,6 +75,7 @@ $('#btn-buscarMTM').click(function(e){
   $('.detalleEstados').hide();
   $('#modalMaquinaContable').modal('show');
   var id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
+
   $.get('http://' + window.location.host +"/obtenerInformeContableDeMaquina/" + id_maquina, function(data){
     console.log(data);
     $('#nro_admin').text(data.nro_admin);
@@ -122,6 +123,59 @@ $('#btn-buscarMTM').click(function(e){
       $('#mensajeMovimiento').show();
     }
 
+    for (var i = 0; i < data.relevamientos.length; i++) {
+
+      var fila= $(document.createElement('tr'));
+
+      fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].fecha_carga))
+          .append($('<td>').css('align','center')
+          .text(data.relevamientos[i].nro_admin))
+          if(data.relevamientos[i].cont1 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont1))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+          if(data.relevamientos[i].cont2 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont2))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+          if(data.relevamientos[i].cont3 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont3))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+          if(data.relevamientos[i].cont4 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont4))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+          if(data.relevamientos[i].cont5 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont5))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+          if(data.relevamientos[i].cont6 != null){
+          fila.append($('<td>').css('align','center')
+          .text(data.relevamientos[i].cont6))}
+          else{
+          fila.append($('<td>').css('align','center')
+          .text('-'))
+          }
+
+      $('#tablaContadoresTomados tbody').append(fila);
+    }
   })
 
 
