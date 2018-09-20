@@ -549,6 +549,8 @@ $('#btn-finalizar').click(function(e){
   e.preventDefault();
   //Se evnía el relevamiento para guardar con estado 3 = 'Finalizado'
   enviarRelevamiento(3);
+  $('#modalValidarRelevamiento').modal('hide');
+
 });
 
 //GUARDAR TEMPORALMENTE EL RELEVAMIENTO
@@ -557,6 +559,8 @@ $('#btn-guardar').click(function(e){
   //Se evnía el relevamiento para guardar con estado 2 = 'Carga parcial'
   enviarRelevamiento(2);
   $('#modalCargaRelevamiento .mensajeSalida').hide();
+  $('#modalValidarRelevamiento').modal('hide');
+
 });
 
 $('select').focusin(function(e){
@@ -616,6 +620,8 @@ $(document).on('click','.validar',function(e){
 
 //validar
 $('#btn-finalizarValidacion').click(function(e){
+
+    $('#modalValidarRelevamiento').modal('hide');
 
     $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
     var id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();

@@ -72,6 +72,8 @@ function habilitarBotonDetalle(valor){
 }
 
 $('#btn-buscarMTM').click(function(e){
+
+  $('#tablaContadoresTomados tbody tr').remove();
   $('.detalleEstados').hide();
   $('#modalMaquinaContable').modal('show');
   var id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
