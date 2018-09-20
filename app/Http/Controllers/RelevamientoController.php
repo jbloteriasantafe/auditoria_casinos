@@ -1073,12 +1073,12 @@ class RelevamientoController extends Controller
                      ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
                      ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
                      ->join('sector','relevamiento.id_sector','=','sector.id_sector')
-                     ->leftJoin('contador_horario','=','sector.id_casino')
+                     ->leftJoin('contador_horario','contador_horario.id_casino','=','sector.id_casino')
                      ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                      ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
                      ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                      ->where('maquina.id_maquina',$maquina->id_maquina)
-                     ->where('contador_horario.id_casino','contador_horario.fecha','=','relevamiento.fecha')
+                     ->where('contador_horario.fecha','=','relevamiento.fecha')
                      //->groupby()
                      ->distinct('relevamiento.id_relevamiento',
                                'detalle_relevamiento.id_detalle_relevamiento',
