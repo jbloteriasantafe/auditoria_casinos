@@ -363,12 +363,13 @@ class informesController extends Controller
       $i++;
       if($i == 15) $fin = false;
     }
-
+    $fechax = Carbon::now()->format('Y-m-d');
     $detalles_5 = DB::table('detalle_relevamiento')
                               ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
                                   ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
                                       ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
                                       ->where('maquina.id_maquina','=',$id_maquina)
+                                      ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
                                       ->orderBy('relevamiento.fecha_carga','desc')
                                       ->take(5)->get();
 
