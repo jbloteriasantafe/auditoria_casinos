@@ -14,7 +14,7 @@ use Dompdf\Dompdf;
 use App\Maquina;
 use App\DetalleRelevamiento;
 use App\EstadoMaquina;
-
+use Carbon\Carbon;
 
 class informesController extends Controller
 {
