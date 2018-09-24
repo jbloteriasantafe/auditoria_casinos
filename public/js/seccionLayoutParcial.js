@@ -799,6 +799,7 @@ $(document).on('click','.imprimir',function(){
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
+  /*
   //Si existe relevamiento para el sector seleccionado se muestra un modal de confirmación
   if ($('#modalLayoutParcial #existeLayoutParcial').val() == 1) {
       $('#modalLayoutParcial').modal('hide');
@@ -806,7 +807,10 @@ $('#btn-generar').click(function(e){
       $('#modalConfirmacion').modal('show');
   }
   //Si no existe relevamiento para el sector se genera normalmente
+  
   else {
+    antes se evaluaba esto pero al ser lento el metodo ajax , no funcionba correctamente
+    */
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -836,7 +840,7 @@ $('#btn-generar').click(function(e){
           $('#iconoCarga').show();
         },
         success: function (data) {
-
+          if(data.existeLayoutParcial==0){
               $('#frmLayoutParcial').trigger('reset');
               $('#modalLayoutParcial').modal('hide');
               $('#btn-buscar').trigger('click',[1,10,'layout_parcial.fecha' ,'desc']);
@@ -851,8 +855,13 @@ $('#btn-generar').click(function(e){
                   document.body.appendChild(iframe);
               }
               iframe.src = data.url_zip;
+            }else{
+              $('#modalLayoutParcial').modal('hide');
+              $('#modalConfirmacion').modal('show');
+          }
         },
         error: function (data) {
+          console.log('entro al err');
           $('#modalLayoutParcial').find('.modal-footer').children().show();
           $('#modalLayoutParcial').find('.modal-body').children().show();
           $('#iconoCarga').hide();
@@ -871,13 +880,13 @@ $('#btn-generar').click(function(e){
 
     });
   }
-});
+);
 
 //GENERAR RELEVAMIENTO SOBRE SECTOR CON RELEVAMIENTO EXISTENTE
 $('#btn-generarIgual').click(function(){
   $('#modalConfirmacion').modal('hide');
   $('#modalLayoutParcial').modal('show');
-  $('#btn-generar').trigger('click');
+  //$('#btn-generar').trigger('click');
 });
 
 //SALIR DEL RELEVAMIENTO
@@ -922,26 +931,50 @@ $('.selectCasinos').on('change',function(){
               .text(data.sectores[i].descripcion)
           )
     }
-    existeLayoutParcial();
+    //existeLayoutParcialGenerado();
   });
 
 });
 
+/*
+esto se ejecutara cuando toquen el boton generar, antes se ejecutaba por cada cambio, puede llegar a afectar otra ventana, tener en cuenta
 $('#modalLayoutParcial #sector').on('change',function(){
     //Acá se pregunta si para el sector ya existe una generación de relevamiento
-    existeLayoutParcial();
+    existeLayout();
 });
+*/
 
 function existeLayoutParcial(){
   var id_sector = $('#modalLayoutParcial #sector option:selected').val();
   $.get('/layouts/existeLayoutParcial/' + id_sector, function(data){
       //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
+      console.log("esto me llega de la base para el sector " + id_sector);
+      console.log(data);
       if (data == 1) {
           $('#modalLayoutParcial #existeLayoutParcial').val(1);
       }else {
           $('#modalLayoutParcial #existeLayoutParcial').val(0);
       }
   });
+}
+
+function existeLayoutParcialGenerado(){
+
+  var id_sector = $('#modalLayoutParcial #sector option:selected').val();
+  $.get('/layouts/existeLayoutParcialGenerado/' + id_sector, function(data){
+      //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
+      console.log("esto me llega de la base para el sector " + id_sector);
+      console.log(data);
+      if (data == 1) {
+          $('#modalLayoutParcial #existeLayoutParcial').val(1);
+      }else {
+        console.log("cambio el valor de la ventana")
+          $('#modalLayoutParcial #existeLayoutParcial').val(0);
+      }
+      return data;
+  }
+  );
+  
 }
 
 //Se usa Todo busqueda
