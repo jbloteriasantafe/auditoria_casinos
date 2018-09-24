@@ -417,15 +417,29 @@ class LayoutController extends Controller
         'id_sector' => 'required|exists:sector,id_sector'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
-
     $fecha_hoy = date("Y-m-d");
     $rel_sobresescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();//si esta generado
     $resultados = $rel_sobresescribir > 0 ? 1 : 0;
     $rel_no_sobrescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'<>' ,1]])->count();//cargando, finalizado, validado
     $resultados = $rel_no_sobrescribir > 0 ? 2 : $resultados;
-
+    //si dentro de la fecha de hoy se tiene uno distinto a generado, siempre va devolver 2, en este punto no sirve para decir si hay uno generado
     return $resultados;
   }
+
+  public function existeLayoutParcialGenerado($id_sector){
+    //devuelve 1 si ya existe un layasout generado para el dia de hoy y para ese sector
+    Validator::make(['id_sector' => $id_sector],[
+        'id_sector' => 'required|exists:sector,id_sector'
+    ], array(), self::$atributos)->after(function($validator){
+    })->validate();
+    $fecha_hoy = date("Y-m-d");
+    $rel_sobresescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();//si esta generado
+    $resultados = $rel_sobresescribir > 0 ? 1 : 0;
+    
+    return $resultados;
+  }
+
+  
 
   public function crearLayoutParcial(Request $request){
 
@@ -439,6 +453,12 @@ class LayoutController extends Controller
         $validator->errors()->add('layout_en_carga','El control de layout para esa fecha ya está en carga y no se puede reemplazar.');
       }
     })->validate();
+
+    $fecha_hoy = date("Y-m-d");
+    $rel_sobresescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$request->id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();//si esta generado
+    $existeLayout = $rel_sobresescribir > 0 ? 1 : 0;
+    if($existeLayout==0){
+    
 
     $fecha_hoy = date("Y-m-d"); // fecha de hoy
     $id_layouts_viejos = array();
@@ -462,7 +482,7 @@ class LayoutController extends Controller
                        ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
                        ->inRandomOrder()->take($request->cantidad_maquinas)->get();
 
-
+    //ordena por número de isla, recuperando la isla para saber su número
     $maquinas = $maquinas->sortBy(function($maquina,$key){
       return Isla::find($maquina->id_isla)->nro_isla;
     });
@@ -577,7 +597,11 @@ class LayoutController extends Controller
             'casino' => $sector->casino->nombre,
             'sector' => $sector->descripcion,
             'estado' => 'Generado',
+            'existeLayoutParcial' => 0,
             'url_zip' => '/layouts/descargarLayoutParcialZip/'.$nombreZip];
+    }else{
+    return['existeLayoutParcial' => 1];
+     }
   }
 
   public function buscarLayoutsParciales(Request $request){
