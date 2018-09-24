@@ -100,9 +100,10 @@ p {
                 <?php $pos += 1; ?>
                 <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
                 @else
-                <?php $pos = 0; ?>
+                <?php $pos = 1; ?>
               </div>
               <div class="divTableRow">
+                <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
                 @endif
                 @endforeach
               </div>
