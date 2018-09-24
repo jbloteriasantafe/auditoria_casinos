@@ -1020,7 +1020,7 @@ class LogMovimientoController extends Controller
       if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) == count($fiscalizacion->relevamientos_movimientos)){
         if(!isset($logMov->fiscalizaciones))
         {
-          $logMov->estado_movimiento()->associate(4);//validado
+          $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
         }
 
       }else{

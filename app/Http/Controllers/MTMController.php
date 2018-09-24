@@ -360,7 +360,7 @@ class MTMController extends Controller
           'expedientes' => 'nullable',//'required_if:notas,null',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
           'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
-          'id_sector' => 'required',
+          'id_sector' => 'required|exists:sector,id_sector',
           'nro_isla' => 'required',
           'codigo' => 'nullable', //codigo sub isla
           'maquinas' => 'nullable',
