@@ -273,6 +273,7 @@ use Illuminate\Http\Request;
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
                   </div>
+                  <!-- esto funcinaba en el momento que se dejaba generar de todas formas el relevamiento, se cambio para evitar que el usuario puede regenerarlo
                   <div class="modal-body">
                         <h5 style="padding:10px;font-family:Roboto-Condensed;color:#FF1744 !important;font-size:24px;">ATENCIÓN</h5>
                         <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">YA EXISTE RELEVAMIENTO PARA EL SECTOR SELECCIONADO</h5>
@@ -280,7 +281,7 @@ use Illuminate\Http\Request;
                       <p style="font-family:Roboto-Regular;font-size:16px;margin:20px 0px;">
                         Si vuelve a generar el relevamiento se sobreescribirán los datos anteriores y se perderán las planillas de relevamiento generadas anteriormente.
                       </p>
-
+                       
                       <p style="font-family:Roboto-Regular;font-size:16px;margin-bottom:20px;">
                         ¿Desea generar el relevamiento de todas formas?
                       </p>
@@ -289,6 +290,21 @@ use Illuminate\Http\Request;
                     <button id="btn-generarIgual" type="button" class="btn btn-successAceptar" value="nuevo">GENERAR DE TODAS FORMAS</button>
                     <button id="btn-cancelarConfirmacion" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                   </div>
+
+                   Modal Relevamientos -->
+                  <!-- para reutilizar el modal anterior se cambio el nombre del boton cancelar a aceptar, donde se comporta como el cancelar antiguo -->
+                   <div class="modal-body">
+                    <h5 style="padding:10px;font-family:Roboto-Condensed;color:#FF1744 !important;font-size:24px;">ATENCIÓN</h5>
+                    <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">YA EXISTE RELEVAMIENTO PARA EL SECTOR SELECCIONADO</h5>
+
+                  <p style="font-family:Roboto-Regular;font-size:16px;margin:20px 0px;">
+                    Deberá finalizar el relevamiento existente para poder generar uno nuevo.
+                  </p>
+              </div>
+              <div class="modal-footer">
+                <button id="btn-cancelarConfirmacion" type="button" class="btn btn-successAceptar" data-dismiss="modal">ACEPTAR</button>
+              </div>
+
               </div>
             </div>
       </div>
