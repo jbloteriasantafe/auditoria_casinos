@@ -170,6 +170,8 @@ $(document).on('click','#btn-impr',function(e){
             $('#mensajeCargarMTM').hide();
             $('#mensajeExito h3').text('CARGA EXITOSA');
             $("#modalNuevaEvMTM").modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('La Intervención fue creada EXITOSAMENTE');
             $('#mensajeExito').show();
             $('#btn-buscarEventualidadMTM').trigger('click',['log_movimiento.fecha','desc']);
 
@@ -549,6 +551,8 @@ $(document).on('click','#guardarEv',function(){
       $('#modalCargarMaqEv #select_tevent').val('');
       $('#modalCargarMaqEv #macEv').val('');
       // $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
+      $('#mensajeExito h3').text('ÉXITO DE CARGA');
+      $('#mensajeExito p').text(' ');
       $('#mensajeExitoCarga').show();
       $('#'+id_log_movimiento).find('.btn_borrarEvmtm').remove();
       $('#'+id_log_movimiento).find('.btn_validarEvmtm').show();

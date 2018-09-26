@@ -364,7 +364,7 @@ $('#btn-guardar').click(function(e){
             $('#alerta_estado').text(response.id_estado_maquina[0]).show();
           }
 
-          if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined'){
+          if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined' || typeof response.id_sector !== 'undefined'){
             $('#error_nav_isla').show();
           }
 

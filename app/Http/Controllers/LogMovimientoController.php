@@ -978,7 +978,7 @@ class LogMovimientoController extends Controller
       //cambio el estado de la máquina
       switch ($logMov->id_tipo_movimiento) {
         case 1: // ingreso
-            //$maquina->estado_maquina()->associate(1);
+           $maquina->estado_maquina()->associate(1);
             //crear log maquina
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Ingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
@@ -1020,7 +1020,7 @@ class LogMovimientoController extends Controller
       if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) == count($fiscalizacion->relevamientos_movimientos)){
         if(!isset($logMov->fiscalizaciones))
         {
-          $logMov->estado_movimiento()->associate(4);//validado
+          $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
         }
 
       }else{
