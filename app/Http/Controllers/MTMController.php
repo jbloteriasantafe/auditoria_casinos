@@ -702,7 +702,9 @@ class MTMController extends Controller
           case 'undefined':break;
           case '':break;
           case 0:
-            $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['formula']);
+            //el 0 es una bandera, una formula generica que se asigna al dar de alta una maquinia sin determinar formula
+            //buscaba con "formula" en el json pero era "cuerpoFormula"
+            $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
             break;
           default:
             $formula=Formula::find($request->formula['id_formula']);
@@ -766,7 +768,11 @@ class MTMController extends Controller
         /*
           Checkeo de cambios
         */
-        if($MTM->estado_maquina->id_estado_maquina != $request->id_estado_maquina){
+        //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
+        //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
+        if(is_null($MTM->id_estado_maquina)){
+          $MTM->id_estado_maquina=$request->id_estado_maquina;
+        }elseif($MTM->id_estado_maquina != $request->id_estado_maquina){
           $razon .= "Cambió el estado. ";
           switch($request->id_estado_maquina){
             case 1:

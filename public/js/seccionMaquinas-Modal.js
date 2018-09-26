@@ -110,7 +110,7 @@ $('#btn-guardar').click(function(e){
   var formula = obtenerDatosFormula();
 
   console.log('form',formula);
-
+  
   var isla = obtenerDatosIsla();
 
   var state = $('#btn-guardar').val();
@@ -224,7 +224,7 @@ $('#btn-guardar').click(function(e){
   // for (var pair of formData.entries()) {
   //   console.log(pair[0]+ ', ' + pair[1]);
   // }
-
+  console.log('informacion enviada en el data',formData);
   $.ajax({
       type: 'POST',
       url: url,
