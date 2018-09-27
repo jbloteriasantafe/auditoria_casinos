@@ -1076,6 +1076,8 @@ class RelevamientoController extends Controller
                      ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
                      ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                      ->where('maquina.id_maquina',$maquina->id_maquina)
+                     ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
+                     ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
                      //->groupby()
                      ->distinct('relevamiento.id_relevamiento',
                                'detalle_relevamiento.id_detalle_relevamiento',
