@@ -1343,6 +1343,10 @@ class LogMovimientoController extends Controller
         $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
       }
 
+      if(isset($request->nro_admin)){
+        $reglas[]=['relevamiento_movimiento.id_tipo_movimiento','=', $request->nro_admin];
+      }
+
       $casinos = array();
 
       if(isset($request->id_casino)){
@@ -1361,6 +1365,8 @@ class LogMovimientoController extends Controller
         $resultados= DB::table('log_movimiento')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+                        ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
+                        ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                         ->where($reglas)
                         ->whereNull('log_movimiento.id_expediente')
                         ->where('log_movimiento.tiene_expediente','=', 0)
@@ -1372,6 +1378,8 @@ class LogMovimientoController extends Controller
         $resultados= DB::table('log_movimiento')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+                        ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
+                        ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                         ->where($reglas)
                         ->whereNull('log_movimiento.id_expediente')
                         ->whereIn('log_movimiento.id_casino',$casinos)
@@ -1406,6 +1414,7 @@ class LogMovimientoController extends Controller
     $resultados= DB::table('log_movimiento')
                     ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                     ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+                    ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
                     ->whereNull('log_movimiento.id_expediente')
                     ->where('log_movimiento.tiene_expediente','=',0)
                     ->whereIn('log_movimiento.id_casino',$casinos)
