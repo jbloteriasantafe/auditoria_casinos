@@ -125,35 +125,35 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
                     <!-- una maquina -->
                       <tr class="infoMaquina">
-                        <td class="mtm">
+                        <td class="mtm" style="background-color: white;">
                             <span class="titulo">MTM</span>
                             <span class="nro_admin">{{$detalle->maquina}}</span>
                         </td>
-                        <td class="isla">
+                        <td class="isla" style="background-color: white;">
                             <span class="titulo">ISLA</span>
                             <span class="nro_isla">{{$detalle->isla}}</span>
                         </td>
-                        <td class="marca" colspan="2">
+                        <td class="marca" colspan="2" style="background-color: white;">
                             <span class="titulo">MARCA</span>
                             <span class="nombre_juego">{{$detalle->marca}}</span>
                         </td>
-                        <td class="unidad">
+                        <td class="unidad" style="background-color: white;">
                             <span class="titulo">UNIDAD</span>
                             <span class="unidad_medida">{{$detalle->unidad_medida}}</span>
                         </td>
-                        <td class="no_toma borde_negro">
-                            <span class="titulo">NO SE RELEVÓ POR </span>
+                        <td class="no_toma borde_negro" style="background-color: white;">
+                            <span class="titulo">NO SE RELEVÓ POR: </span>
                             <span class="unidad_medida">@if($detalle->no_toma != null) {{$detalle->no_toma}} @endif</span>
                         </td>
                       </tr>
                       <tr class="detalleContadores">
                         <!-- <td>Un detalle de contador que tiene seguramente dos lineas en el campo</td> -->
-                        <td>@if($detalle->formula->cont1 != null) {{$detalle->formula->cont1}} @endif</td>
-                        <td>@if($detalle->formula->cont2 != null) {{$detalle->formula->cont2}} @endif</td>
-                        <td>@if($detalle->formula->cont3 != null) {{$detalle->formula->cont3}} @endif</td>
-                        <td>@if($detalle->formula->cont4 != null) {{$detalle->formula->cont4}} @endif</td>
-                        <td>@if($detalle->formula->cont5 != null) {{$detalle->formula->cont5}} @endif</td>
-                        <td class="borde_negro">@if($detalle->formula->cont6 != null) {{$detalle->formula->cont6}} @endif</td>
+                        <td style="font-size: 11px;">@if($detalle->formula->cont1 != null) {{$detalle->formula->cont1}} @endif</td>
+                        <td style="font-size: 11px;">@if($detalle->formula->cont2 != null) {{$detalle->formula->cont2}} @endif</td>
+                        <td style="font-size: 11px;">@if($detalle->formula->cont3 != null) {{$detalle->formula->cont3}} @endif</td>
+                        <td style="font-size: 11px;">@if($detalle->formula->cont4 != null) {{$detalle->formula->cont4}} @endif</td>
+                        <td style="font-size: 11px;">@if($detalle->formula->cont5 != null) {{$detalle->formula->cont5}} @endif</td>
+                        <td class="borde_negro" style="font-size: 11px;">@if($detalle->formula->cont6 != null) {{$detalle->formula->cont6}} @endif</td>
                         <!-- <td rowspan="2"></td> -->
                       </tr>
 

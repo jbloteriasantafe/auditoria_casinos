@@ -738,7 +738,7 @@ class RelevamientoController extends Controller
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
   }
