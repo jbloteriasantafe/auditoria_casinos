@@ -140,6 +140,9 @@ $(document).on('click','.detalle',function(){
     $('#modalGLI').modal('show');
     $('.btn-default').text('SALIR');
 
+    //limpia la tabla de juegos
+    $('#tablaJuegos tbody').empty();
+
     //obtenerGli
     var id=$(this).val();
 
@@ -195,7 +198,12 @@ $(document).on('click','.detalle',function(){
       // var file = new File([new Blob([data.archivo.archivo])], "sistemaAuditoria.pdf", {type: "application/pdf"});
       // var objurl = window.URL.createObjectURL(file);
       // console.log(objurl);
-
+       //Cargar los juegos
+       for (var i = 0; i < data.juegos.length; i++) {
+        console.log(data.juegos[i]);
+        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
+      }
+/* esto no estaba funcionando, al aprecer la idea era cargar lo juegos, pero ya habia funciones para realizar esa accion
     $.each(data.juegos, function(index, juego){
       $.get('juegos/obtenerTablasDePago/' + juego.id_juego , function(data_juego){
         $('#listaJuegos')
@@ -248,6 +256,7 @@ $(document).on('click','.detalle',function(){
 
   })
   })
+  */
   })
 
   $('#inputExpediente').prop('readonly' , true);
