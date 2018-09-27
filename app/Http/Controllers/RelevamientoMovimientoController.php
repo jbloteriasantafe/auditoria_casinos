@@ -40,7 +40,7 @@ class RelevamientoMovimientoController extends Controller
      $relevMov = new RelevamientoMovimiento;
      $relevMov->log_movimiento()->associate($id_log_mov);
      $relevMov->maquina()->associate($id_maq);
-     $relevMov->nro_admin = $maquina->nro_admin;
+    // $relevMov->nro_admin = $maquina->nro_admin;
      $relevMov->estado_relevamiento()->associate(1);//generado
      $relevMov->save();
      return $relevMov;
