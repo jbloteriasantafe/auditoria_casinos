@@ -154,8 +154,8 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
         //ME PERMITE QUE SE EJECUTE EL COD. QUE MUESTRA LOS NOMBRES DE LOS BOT.
         $('[data-toggle="tooltip"]').tooltip();
 
-        $('#mensajeExito h3').text('ÉXITO DE CREACIÓN');
-        $('#mensajeExito p').text('El Movimiento fue creado EXITOSAMENTE');
+        $('#mensajeExito h3').text('ÉXITO');
+        $('#mensajeExito p').text('El Movimiento fue creado correctamente');
 
         $('#modalCas').modal('hide');
         $('#mensajeExito').show();
@@ -485,8 +485,8 @@ function enviarFiscalizarToma2(id_mov,maq){
         data: formData,
         dataType: 'json',
         success: function (data) {
-          $('#mensajeExito h3').text('ÉXITO DE ENVÍO');
-          $('#mensajeExito p').text('Las máquinas han sido enviadas exitosamente');
+          $('#mensajeExito h3').text('ÉXITO');
+          $('#mensajeExito p').text('Las máquinas han sido enviadas correctamente');
           $("#modalLogMovimiento2").modal('hide');
           $('#mensajeExito').show();
           },
@@ -697,8 +697,8 @@ function enviarFiscalizar(id_mov,maq,fin,reingreso){
         dataType: 'json',
         success: function (data) {
           if(fin==true){
-            $('#mensajeExito h3').text('ÉXITO DE ENVÍO');
-            $('#mensajeExito p').text('Las máquinas han sido enviadas exitosamente');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('Las máquinas han sido enviadas');
             $("#modalLogMovimiento2").modal('hide');
             $('#mensajeExito').show();
           }
@@ -1188,15 +1188,15 @@ function enviarDenominacion(id_mov,maq,fin){
         success: function (data) {
             if(fin==true){
 
-            $('#mensajeExito h3').text('ENVÍO EXITOSO');
-            $('#mensajeExito p').text('Las máquinas han sido enviadas exitosamente');
+            $('#mensajeExito h3').text('ENVÍO');
+            $('#mensajeExito p').text('Las máquinas han sido enviadas correctamente');
             $('#modalDenominacion').modal('hide');
             $('#mensajeExito').show();
             }
 
             if(fin==false){
 
-              $('#mensajeExito h3').text('GUARDADO EXITOSAMENTE');
+              $('#mensajeExito h3').text('GUARDADO');
               $('#mensajeExito p').text('Las máquinas han sido guardadas en el movimiento');
               $('#modalDenominacion').modal('hide');
               $('#mensajeExito').show();
