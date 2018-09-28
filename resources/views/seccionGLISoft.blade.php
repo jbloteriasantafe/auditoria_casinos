@@ -262,7 +262,7 @@ $id_usuario = session('id_usuario');
                         <table id="tablaJuegos" class="table">
                           <thead>
                               <th class="col-xs-3">NOMBRE</th>
-                              <th class="col-xs-3">Código Juego</th>
+                              <th class="col-xs-3">CÓDIGO JUEGO</th>
                               <th class="col-xs-3">TABLA PAGOS</th>
                               <th class="col-xs-3">ACCIÓN</th>
                           </thead>

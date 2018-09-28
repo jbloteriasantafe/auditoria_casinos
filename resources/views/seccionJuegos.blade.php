@@ -124,7 +124,7 @@
                       </div>
                       <div class="col-md-4">
                         <h5>Código Juego</h5>
-                        <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" />
+                        <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                     </div>
                       <div class="col-md-4" id="cod_inp">
                           <h5>Código de Certificado</h5>
