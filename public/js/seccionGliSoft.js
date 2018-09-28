@@ -69,13 +69,23 @@ function agregarFilaJuego(juego, tablas) {
   }
 
 
-  fila.append($('<td>').addClass('col-xs-4')
+  fila.append($('<td>').addClass('col-xs-3')
                        .text(juego.nombre_juego)
   );
-  fila.append($('<td>').addClass('col-xs-4')
+  if(juego.cod_juego==null){
+    fila.append($('<td>').addClass('col-xs-3')
+                       .text('')
+  );
+  }else{
+    fila.append($('<td>').addClass('col-xs-3')
+                       .text(juego.cod_juego)
+  );
+  }
+  
+  fila.append($('<td>').addClass('col-xs-3')
                        .append(tablas_pago)
   );
-  fila.append($('<td>').addClass('col-xs-4')
+  fila.append($('<td>').addClass('col-xs-3')
                        .append($('<button>').addClass('btn btn-danger borrarJuego')
                                             .append($('<i>').addClass('fa fa-fw fa-trash'))
                               )

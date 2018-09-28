@@ -10,7 +10,7 @@ class Juego extends Model
   protected $connection = 'mysql';
   protected $table = 'juego';
   protected $primaryKey = 'id_juego';
-  protected $visible = array('id_juego','nombre_juego', 'id_progresivo','id_gli_soft','cod_identificacion');
+  protected $visible = array('id_juego','nombre_juego', 'id_progresivo','id_gli_soft','cod_identificacion','cod_juego');
   public $timestamps = false;
   protected $appends = array('cod_identificacion');
 
