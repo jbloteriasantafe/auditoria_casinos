@@ -95,7 +95,7 @@ class FiscalizacionMovController extends Controller
     }
 
     if(isset($request->nro_admin) && $request->nro_admin != ""){
-      $reglas[]=['relevamiento_movimiento.nro_admin','=', $request->nro_admin];
+      $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
     }
 
     if(!isset($request->fecha)){
