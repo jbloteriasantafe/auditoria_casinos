@@ -86,9 +86,13 @@ $('#inputJuego').on('seleccionado',function(){
 $('#inputJuego').on('deseleccionado',function(){
       console.log('deseleccionado');
       if($('#inputJuego').val() != ''){
+           
+            //se dispuso que no se pueda crear los juegos desde esta pantalla, por lo que se elimina la opcion de crear juego
+            /*
             $('#btn-crearJuego').show();
             $('#btn-agregarJuegoLista').hide();
             $('#btn-cancelarJuego').show();
+            */
       }else{
             $('#btn-agregarJuegoLista').hide();
             $('#btn-crearJuego').hide();
