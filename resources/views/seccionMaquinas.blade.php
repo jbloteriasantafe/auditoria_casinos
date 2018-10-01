@@ -611,7 +611,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                           <div id="agregarJuego" style="cursor:pointer;" data-toggle="collapse" data-target="#juegoPlegado">
                               <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                                   <div class="col-md-12">
-                                      <h6>AGREGAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
+                                      <h6>ASOCIAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
                                   </div>
                               </div>
                           </div>
@@ -658,7 +658,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                           <i class="fa fa-fw fa-plus"></i> CREAR JUEGO
                                       </button>
                                       <button id="btn-agregarJuegoLista" class="btn btn-successAceptar" type="button" name="button">
-                                          <i class="fa fa-fw fa-arrow-up"></i> AGREGAR JUEGO
+                                          <i class="fa fa-fw fa-arrow-up"></i> ASOCIAR JUEGO
                                       </button>
                                   </div>
                               </div>

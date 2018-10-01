@@ -71,7 +71,7 @@ $('#inputJuego').on('seleccionado',function(){
     });
 
     //Mostrar los botones correspondientes
-    $('#btn-cancelarJuego').show();
+    //$('#btn-cancelarJuego').show(); se comenta porque no tiene funcionalidad
     $('#btn-agregarJuegoLista').show();
     $('#btn-crearJuego').hide();
 
