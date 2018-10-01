@@ -90,6 +90,7 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
       'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
+      'cod_juego' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
       'tabla_pago.*.codigo' => 'required',
       'maquinas.*' => 'nullable',
@@ -102,6 +103,7 @@ class JuegoController extends Controller
 
     $juego = new Juego;
     $juego->nombre_juego = $request->nombre_juego;
+    $juego->cod_juego = $request->cod_juego;
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
 
@@ -170,6 +172,10 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
     $juego->nombre_juego= $request->nombre_juego;
+    if($request->cod_juego!=null){
+      $juego->cod_juego= $request->cod_juego;
+    }
+    
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
 
@@ -246,8 +252,12 @@ class JuegoController extends Controller
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
+    //se cambio la referencia al atributo, el correcto es nro_archivo
     if(!empty($request->codigoId)){
-      $reglas[]=['gli_soft.cod_identificacion', 'like' , '%' . $request->codigoId  .'%'];
+      $reglas[]=['gli_soft.nro_archivo', 'like' , '%' . $request->codigoId  .'%'];
+    }
+    if(!empty($request->cod_Juego)){
+      $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
     }
 
     $sort_by = $request->sort_by;
