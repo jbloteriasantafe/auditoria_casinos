@@ -1903,6 +1903,7 @@ function generarFilaTabla(movimiento){
   var nro_org;
   var nro_int;
   var nro_cont;
+  var islas;
 
   estado_movimiento=movimiento.id_estado_movimiento;
   t_carga=movimiento.tipo_carga;
@@ -1910,6 +1911,11 @@ function generarFilaTabla(movimiento){
   t_mov=movimiento.descripcion;
   fecha=movimiento.fecha;
   cant=movimiento.cant_maquinas;
+  if(movimiento.islas != null){
+    islas=movimiento.islas;
+  }else{
+    islas ="-";
+  }
 
     if(movimiento.nro_exp_org != null){
         nro_org=movimiento.nro_exp_org;
@@ -1923,11 +1929,15 @@ function generarFilaTabla(movimiento){
         .text(convertirDate(fecha))
         )
         .append($('<td>')
-        .addClass('col-xs-3')
+        .addClass('col-xs-2')
         .text(nro_org + '-' + nro_int + '-' + nro_cont)
         )
         .append($('<td>')
-        .addClass('col-xs-3')
+        .addClass('col-xs-2')
+        .text(islas)
+        )
+        .append($('<td>')
+        .addClass('col-xs-2')
         .text(t_mov)
         )
             .append($('<td>')

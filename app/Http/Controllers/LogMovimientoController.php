@@ -138,6 +138,7 @@ class LogMovimientoController extends Controller
       //busca en logs con expedientes
       if(empty($request->fecha)){
           $resultados=DB::table('log_movimiento')
+                    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
                     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
                     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
                     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
@@ -145,15 +146,16 @@ class LogMovimientoController extends Controller
                     ->where($reglas)
                     ->whereIn('log_movimiento.id_casino' , $casinos)
                     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
-                    //->distinct('log_movimiento.id_log_movimiento')
+                    ->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
 
-                    ->paginate($request->page_size);
+                    ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
       }else{
           $fecha=explode("-", $request->fecha);
           $resultados=DB::table('log_movimiento')
+          ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
           ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
           ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
           ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
@@ -163,12 +165,12 @@ class LogMovimientoController extends Controller
           ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
           ->whereYear('log_movimiento.fecha' , '=' ,$fecha[0])
           ->whereMonth('log_movimiento.fecha','=', $fecha[1])
-          //->distinct('log_movimiento.id_log_movimiento')
+          ->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
           ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                       })
 
-          ->paginate($request->page_size);
+          ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
         }
 
         $cas = DB::table('casino')
@@ -318,8 +320,7 @@ class LogMovimientoController extends Controller
     return $todos;
   }
 
-  //crear los relevamientos movimientos por cada máquina que el controlador creó o modificó para fiscalizar
-  //ESTA FUNCION SE LLAMARIA DESDE MTMController CUANDO SE CREA LA MAQUINA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!BORRAR CUANDO ESTE HECHO
+  //crear los relevamientos movimientos por cada máquina que el controlador creó  para fiscalizar
   public function guardarRelevamientoMovimientoIngreso($id_log_mov,$id_maquina){
     $logMov = LogMovimiento::find($id_log_mov);
     $logMov->estado_relevamiento()->associate(1);//generado
@@ -329,10 +330,37 @@ class LogMovimientoController extends Controller
     }
     $logMov->cant_maquinas = $logMov->cant_maquinas - 1; // cree una maquina, resto de las que quedan
     $logMov->save();
-    $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($id_log_mov, Maquina::find($id_maquina));
+
+    $mtm = Maquina::find($id_maquina);
+    $this->guardarIslasMovimiento($logMov,$mtm);
+
+    $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($id_log_mov, $mtm);
+
     return  $logMov->cant_maquinas;
   }
 
+  //guarda que islas fueron afectadas en el movimiento para que se muestren en
+  //los listados
+  private function guardarIslasMovimiento($log_mov,$mtm){
+    $islas = $log_mov->islas;
+    $isla_mtm =$mtm->isla->nro_isla;
+    $countiguales = 0;
+    if($islas != null){
+      $islasArray = explode('-',$islas);
+      foreach ($islasArray as $isla) {
+        if($isla == $isla_mtm){
+          $countiguales++;
+        }
+      }
+      if($countiguales == 0){
+        $islas = $islas."-".$mtm->isla->nro_isla."";
+      }
+    }else{
+      $islas = "".$mtm->isla->nro_isla."";
+    }
+    $log_mov->islas=$islas;
+    $log_mov->save();
+  }
 
   private function generarToma2($id_log_movimiento,$maquinas){
     $logMov = LogMovimiento::find($id_log_movimiento);
@@ -346,6 +374,7 @@ class LogMovimientoController extends Controller
     foreach ($maquinas as $maquina) {
       $maq= Maquina::find($maquina['id_maquina']);
       $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($id_log_movimiento, $maq);
+      $this->guardarIslasMovimiento($logMov,$maq);
     }
     $this->enviarAFiscalizar2($id_log_movimiento,true);
   }
@@ -371,6 +400,7 @@ class LogMovimientoController extends Controller
     }
 
     //chequeo si se elimino alguna maquina de la lista
+    //ver por que no anda
     if($logMov->id_tipo_movimiento == 7 || $logMov->id_tipo_movimiento == 2){
       foreach ($logMov->relevamientos_movimientos as $rel) {
         if($this->fueEliminada($rel->id_maquina,$request['maquinas'])){
@@ -393,6 +423,8 @@ class LogMovimientoController extends Controller
           $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($request['id_log_movimiento'], $maq);
         }
       }
+
+      $this->guardarIslasMovimiento($logMov,$maq);
     }
 
 
@@ -469,37 +501,40 @@ class LogMovimientoController extends Controller
         case 5: //denominacion
           foreach ($req['maquinas'] as $maquina)
           {
-
-              MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
+            $logMov = LogMovimiento::find($logMov->id_log_movimiento);
+            MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
 
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
               $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($req['id_log_movimiento'], $maq);
+              $this->guardarIslasMovimiento($logMov,$maq);
             }
           }
           break;
         case 6: //% devolucion
           foreach ($req['maquinas'] as $maquina)
           {
-
-
+            $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
               $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($req['id_log_movimiento'], $maq);
+              $this->guardarIslasMovimiento($logMov,$maq);
             }
           }
           break;
         case 7: //juego
           foreach ($req['maquinas'] as $maquina)
           {
+            $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             MTMController::getInstancia()->modificarJuego($maquina['id_juego'],$maquina['id_maquina']);
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
               $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($req['id_log_movimiento'], $maq);
+              $this->guardarIslasMovimiento($logMov,$maq);
             }
           }
           break;
@@ -1521,7 +1556,9 @@ class LogMovimientoController extends Controller
     foreach ($request['maquinas'] as $mtm) {
       $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm['id_maquina']],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
       if($relevamiento == null){
-       RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $mtm['id_maquina']);
+        $maq =Maquina::find($mtm['id_maquina']);
+       RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
+       $this->guardarIslasMovimiento($logMovimiento,$maq);
       }
     }
 
