@@ -123,6 +123,10 @@ class LogMovimientoController extends Controller
       }
     }
 
+    if(isset($request->nro_admin) && $request->nro_admin != ""){
+      $reglas[]=['relevamiento_movimiento.nro_admin','=', $request->nro_admin];
+    }
+
     if(!empty($request->tipo_movimiento))
       $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request['tipo_movimiento']];
 
@@ -137,6 +141,7 @@ class LogMovimientoController extends Controller
                     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
                     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
                     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
+                    ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                     ->where($reglas)
                     ->whereIn('log_movimiento.id_casino' , $casinos)
                     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
@@ -152,6 +157,7 @@ class LogMovimientoController extends Controller
           ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
           ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
           ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
+          ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
           ->where($reglas)
           ->whereIn('log_movimiento.id_casino' , $casinos)
           ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])

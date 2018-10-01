@@ -12,6 +12,7 @@ $(document).ready(function(){
   $('#collapseFiltros #B_TipoMovimiento').val("0");
   $('#collapseFiltros #dtpFechaMov').val("");
   $('#collapseFiltros #dtpCasinoMov').val("0");
+  $('#busqueda_maquina').val("");
 
 
   var prueba = window.location.pathname;
@@ -1821,6 +1822,7 @@ $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
     tipo_movimiento: $('#B_TipoMovimiento').val(),
     casino: $('#dtpCasinoMov').val(),
     fecha: $('#fecha_movimiento').val(),
+    nro_admin: $('#busqueda_maquina').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,

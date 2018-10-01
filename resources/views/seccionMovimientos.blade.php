@@ -30,6 +30,10 @@
               <div class="panel-body">
                 <div class="row">
                   <div class="col-lg-3">
+                    <h5>Nro. de Máquina</h5>
+                    <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
+                  </div>
+                  <div class="col-lg-3">
                     <h5>Número de expediente</h5>
                     <div class="input-group triple-input">
                       <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
@@ -67,6 +71,7 @@
                       @endforeach
                     </select>
                   </div>
+
                 </div> <!-- row / formulario -->
                 <br>
                 <div class="row">
