@@ -1405,6 +1405,10 @@ class LogMovimientoController extends Controller
       $resultados = null;
       if(!isset($request->fecha)){
         $resultados= DB::table('log_movimiento')
+                        ->select('log_movimiento.*','tipo_movimiento.*',
+                          'estado_movimiento.descripcion as estado_descripcion',
+                          'casino.*',
+                          'tipo_movimiento.*')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
                         ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
@@ -1418,6 +1422,10 @@ class LogMovimientoController extends Controller
       }else{
         $fecha=explode("-", $request->fecha);
         $resultados= DB::table('log_movimiento')
+                        ->select('log_movimiento.*','tipo_movimiento.*',
+                          'estado_movimiento.descripcion as estado_descripcion',
+                          'casino.*',
+                          'tipo_movimiento.*')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
                         ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
@@ -1454,6 +1462,10 @@ class LogMovimientoController extends Controller
     }
 
     $resultados= DB::table('log_movimiento')
+                    ->select('log_movimiento.*','tipo_movimiento.*',
+                      'estado_movimiento.descripcion as estado_descripcion',
+                      'casino.*',
+                      'tipo_movimiento.*')
                     ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                     ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
                     ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
