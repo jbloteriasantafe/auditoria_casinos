@@ -625,8 +625,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <!-- <datalist id="juego"> </datalist> -->
                                   </div>
                                   <div class="col-md-3">
-                                      <h5>Código de identificación</h5>
-                                      <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de identificación"/>
+                                      <h5>Código de Juego</h5>
+                                      <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                   </div>
                                   <div class="col-md-3">
                                       <h5>Den. de Sala</h5>

@@ -37,7 +37,7 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-        $('#inputCodigo').val(data.juego.cod_identificacion).prop('readonly',true);
+        $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
         $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
         //Si no tiene tablas de pagos ocultar esa zona
