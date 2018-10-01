@@ -47,7 +47,7 @@ class FiscalizacionMovController extends Controller
     $fiscalizacion->fecha_envio_fiscalizar = date("Y-m-d"); // fecha de hoy_ que seria la misma que la fecha_envio_fiscalizar_X del relevamiento
     $fiscalizacion->save();
     $fiscalizacion->log_movimiento()->associate($id_log_movimiento);
-    $nota = null;// Nota::where('id_log_movimiento','=', $id_log_movimiento)->get();
+    $nota =  Nota::where('id_log_movimiento','=', $id_log_movimiento)->get()->first();
     if($nota != null){
       $fiscalizacion->identificacion_nota = $nota->identificacion;
     }else{
@@ -94,6 +94,9 @@ class FiscalizacionMovController extends Controller
       $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
     }
 
+    if(isset($request->nro_admin) && $request->nro_admin != ""){
+      $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
+    }
 
     if(!isset($request->fecha)){
       $resultados = DB::table('fiscalizacion_movimiento')
@@ -101,6 +104,7 @@ class FiscalizacionMovController extends Controller
                         ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
+                        ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
                         ->whereIn('log_movimiento.id_casino',$casinos)
                         ->where('log_movimiento.id_expediente','<>','null')
                         ->where($reglas)
@@ -114,6 +118,7 @@ class FiscalizacionMovController extends Controller
                         ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
                         ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
                         ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
+                        ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
                         ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
                         ->where('log_movimiento.id_expediente','<>','null')
                         ->whereIn('log_movimiento.id_casino',$casinos)

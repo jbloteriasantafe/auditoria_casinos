@@ -48,7 +48,10 @@ $(document).ready(function(){
 
 
 $('#B_TipoMovimientoRel').val("");
+$('#busqueda_maquina').val("");
   });
+
+
 
   $('#fechaRel').on('change', function (e) {
     $(this).trigger('focusin');
@@ -487,7 +490,8 @@ $('#btn-buscarRelMov').click(function(e){
 
     var formData = {
       id_tipo_movimiento: $('#B_TipoMovimientoRel').val(),
-      fecha: $('#fechaRelMov').val()
+      fecha: $('#fechaRelMov').val(),
+      nro_admin: $('#busqueda_maquina').val()
     }
 
     $.ajax({
