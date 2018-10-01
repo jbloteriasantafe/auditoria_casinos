@@ -1059,10 +1059,14 @@ class LogMovimientoController extends Controller
         break;
 
       }
-      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) == count($fiscalizacion->relevamientos_movimientos)){
-        if(!isset($logMov->fiscalizaciones))
+
+      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
+         count($fiscalizacion->relevamientos_movimientos)){
+        if(isset($logMov->fiscalizaciones))
         {
           $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
+          $fiscalizacion->estado_relevamiento()->associate(4);
+          $fiscalizacion->save();
         }
 
       }else{
