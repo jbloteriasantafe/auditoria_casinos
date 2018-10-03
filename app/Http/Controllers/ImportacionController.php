@@ -8,10 +8,12 @@ use App\Producido;
 use App\Beneficio;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\RelevamientoController;
 use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Casino;
+
 use App\Services\LengthPager;
 
 class ImportacionController extends Controller
@@ -337,8 +339,16 @@ class ImportacionController extends Controller
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
+
+
         }
     })->validate();
+
+    
+
+    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
+      return ['resultado' => 'existeRel'];
+    }
 
     switch($request->id_casino){
       case 1:
@@ -353,6 +363,7 @@ class ImportacionController extends Controller
       default:
         break;
     }
+    
   }
 
   public function importarProducido(Request $request){

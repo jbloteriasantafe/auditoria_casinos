@@ -541,6 +541,10 @@ $('#btn-guardarContador').on('click', function(e){
         //   if (typeof contador !== 'undefined') contador.replaceWith(fila);
         //   // Insertar arriba
         //   else $('#tablaContadores tbody tr:first').before(fila);
+        
+        //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
+        console.log("esto llega del servidor ", data.resultado);
+        if(data.resultado!='existeRel'){
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
           $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del CONTADOR fueron importados');
@@ -566,6 +570,14 @@ $('#btn-guardarContador').on('click', function(e){
         $('#casinoInfoImportacion').change();
 
         $('#mensajeExito').show();
+
+        }
+        if(data.resultado == 'existeRel'){
+          //se debe cambiar el modal para que sea homogeneo con el resto 
+          $('#modalImportacionContadores').modal('hide'); 
+          $('#modalErrorVisado').modal(true);
+          
+        }
       },
       error: function (data) {
         //Mostrar: mensajeError
