@@ -1361,12 +1361,13 @@ class RelevamientoController extends Controller
   public function existeRelVisado($fecha, $id_casino){
     
     $relevamientoVisado=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
-    ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ],['id_estado_relevamiento','=','4'])
-    ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ],['id_estado_relevamiento','=','7'])
+    ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
+    ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
     ->get();
 
     if(count($relevamientoVisado)>0){
       return true;
+      
     }
     return false;
   }

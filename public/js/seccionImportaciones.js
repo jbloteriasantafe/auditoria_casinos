@@ -544,6 +544,7 @@ $('#btn-guardarContador').on('click', function(e){
         
         //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
         console.log("esto llega del servidor ", data.resultado);
+        
         if(data.resultado!='existeRel'){
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
