@@ -35,12 +35,11 @@ class RelevamientoMovimientoController extends Controller
 
   //crea los relevamientos_movimientos cuando el controlador selecciono las maquinas que desea relevar
 
-   public function crearRelevamientoMovimiento($id_log_mov, $id_maq){
-     $mtmm = Maquina::find($id_maq);
+   public function crearRelevamientoMovimiento($id_log_mov, $maquina){
      $relevMov = new RelevamientoMovimiento;
      $relevMov->log_movimiento()->associate($id_log_mov);
-     $relevMov->maquina()->associate($id_maq);
-     $relevMov->nro_admin = $mtmm[0]->nro_admin;
+     $relevMov->maquina()->associate($maquina->id_maquina);
+     $relevMov->nro_admin = $maquina->nro_admin;
      $relevMov->estado_relevamiento()->associate(1);//generado
      $relevMov->save();
      return $relevMov;

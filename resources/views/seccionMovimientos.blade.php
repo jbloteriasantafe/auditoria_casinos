@@ -101,8 +101,9 @@
                         <thead>
                           <tr>
                             <th class="col-md-2" value="log_movimiento.fecha" estado="">FECHA <i class="fa fa-sort"></i></th>
-                            <th class="col-md-3" value="expediente.nro_exp_org" estado="">EXPEDIENTE <i class="fa fa-sort"></i></th>
-                            <th class="col-md-3" value="tipo_movimiento" estado="">TIPO MOVIMIENTO <i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE <i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="tipo_movimiento" estado="">TIPO MOVIMIENTO <i class="fa fa-sort"></i></th>
                             <th class="col-md-4" >ACCIÓN </th>
 
                           </tr>

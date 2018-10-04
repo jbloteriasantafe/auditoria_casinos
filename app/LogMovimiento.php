@@ -12,7 +12,10 @@ class LogMovimiento extends Model
   protected $table = 'log_movimiento';
   protected $primaryKey = 'id_log_movimiento';
 
-  protected $visible = array('id_log_movimiento','fecha','id_casino','id_expediente','id_estado_movimiento','id_estado_relevamiento','id_tipo_movimiento','carga_finalizada', 'cant_maquinas', 'tipo_carga');
+  protected $visible = array('id_log_movimiento','fecha','id_casino',
+  'id_expediente','id_estado_movimiento','id_estado_relevamiento',
+  'id_tipo_movimiento','carga_finalizada', 'cant_maquinas', 'tipo_carga',
+  'islas');
 
   public $timestamps = false;
 
@@ -34,7 +37,7 @@ class LogMovimiento extends Model
   public function relevamientos_movimientos(){
     return $this->hasMany('App\RelevamientoMovimiento', 'id_log_movimiento','id_log_movimiento');
   }
-  
+
   public function expediente(){
     return $this->belongsTo('App\Expediente','id_expediente','id_expediente');
   }
