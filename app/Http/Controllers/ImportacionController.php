@@ -345,9 +345,13 @@ class ImportacionController extends Controller
     })->validate();
 
     
-
+    //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
     if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
-      return ['resultado' => 'existeRel'];
+      $id_usuario=session('id_usuario');
+      if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
+        return ['resultado' => 'existeRel'];
+      }
+      
     }
 
     switch($request->id_casino){
