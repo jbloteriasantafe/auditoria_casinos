@@ -336,9 +336,15 @@ class ImportacionController extends Controller
           if($validator->getData()['id_tipo_moneda'] != null){
             $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
           }
+
+          //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
+          
+        if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
+        }
+          
 
 
         }
