@@ -268,9 +268,12 @@ class RelevamientoController extends Controller
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-        //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por isla a pedido del de rosario
-        return Isla::find($maquina->id_isla)->nro_isla;
+        //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
+        $maq=Isla::find($maquina->id_isla);
+        return [$maq->orden, $maq->nro_isla];
       });
+
+
     }else{
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
         return Isla::find($maquina->id_isla)->nro_isla;
