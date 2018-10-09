@@ -190,9 +190,10 @@ $(document).on('click','.carga',function(e){
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
 
           $('#cuerpoTabla').append(fila);
-
+    $('#btn-salir-validado').hide();
         }
     }else {
+      $('#btn-minimizar').hide();
       $('#cuerpoTabla')
           .append($('<div>')
               .addClass('row')
@@ -205,6 +206,7 @@ $(document).on('click','.carga',function(e){
 
       )
       $('#textoExito').hide();
+      $('#btn-salir-validado').show();
       cerrarContadoresYValidar($('#id_producido').val() ,data.validado.producido_fin);//como no hubo diferencias producido validado y contadores finales cerrados
     }
 
@@ -215,6 +217,9 @@ $(document).on('click','.carga',function(e){
 
 });
 
+$('#btn-salir-validado').on('click', function(e){
+  $('#btn-buscar').trigger('click');
+})
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){
 
