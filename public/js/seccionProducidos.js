@@ -218,7 +218,7 @@ $(document).on('click','.carga',function(e){
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){
 
-
+  $('#observacionesAjuste option').not('.default1').remove();
   $('#cuerpoTabla tr').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
