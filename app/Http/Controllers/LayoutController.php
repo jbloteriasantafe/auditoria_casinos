@@ -1236,7 +1236,16 @@ class LayoutController extends Controller
       // foreach ($sector->islas as $isla) {
       //   $islas[] = $isla->nro_isla;
       // }
-      $det->islas = $sector->islas;
+      //si el casino es de rosario lo ordeno por islote e isla
+      if($layout_total->id_casino==3){
+        $det->islas = $sector->islas->sortBy(function($isl,$key){
+          return [$isl->orden,$isl->nro_isla];
+        });
+      }else{
+        $det->islas = $sector->islas;
+      };
+      
+      
       $detalles[] = $det;
     };
     $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas'));
