@@ -191,6 +191,7 @@ $(document).on('click','.carga',function(e){
 
           $('#cuerpoTabla').append(fila);
     $('#btn-salir-validado').hide();
+    $('#btn-salir').show();
         }
     }else {
       $('#btn-minimizar').hide();
@@ -207,6 +208,8 @@ $(document).on('click','.carga',function(e){
       )
       $('#textoExito').hide();
       $('#btn-salir-validado').show();
+      $('#btn-salir').hide();
+
       cerrarContadoresYValidar($('#id_producido').val() ,data.validado.producido_fin);//como no hubo diferencias producido validado y contadores finales cerrados
     }
 
@@ -218,7 +221,9 @@ $(document).on('click','.carga',function(e){
 });
 
 $('#btn-salir-validado').on('click', function(e){
-  $('#btn-buscar').trigger('click');
+
+    $('#modalCargaProducidos').modal('hide');
+    $('#btn-buscar').trigger('click');
 })
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){

@@ -361,7 +361,7 @@ use Illuminate\Http\Request;
         <button type="button" class="btn btn-warningModificar" id="btn-guardar" value="nuevo">GUARDAR TEMPORALMENTE</button>
         <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR AJUSTES</button>
         <button type="button" class="btn btn-default" id="btn-salir" >SALIR</button>
-        <button type="button" class="btn btn-default" id="btn-salir-validado" hidden="true">SALIR</button>
+        <button type="button" class="btn btn-info success" id="btn-salir-validado" hidden="true">VALIDAR</button>
 
         <div class="mensajeSalida">
             <br>
