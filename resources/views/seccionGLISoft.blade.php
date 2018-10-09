@@ -261,9 +261,10 @@ $id_usuario = session('id_usuario');
                         <h6>JUEGOS DEL CERTIFICADO</h6>
                         <table id="tablaJuegos" class="table">
                           <thead>
-                              <th class="col-xs-4">NOMBRE</th>
-                              <th class="col-xs-4">TABLA PAGOS</th>
-                              <th class="col-xs-4">ACCIÓN</th>
+                              <th class="col-xs-3">NOMBRE</th>
+                              <th class="col-xs-3">CÓDIGO JUEGO</th>
+                              <th class="col-xs-3">TABLA PAGOS</th>
+                              <th class="col-xs-3">ACCIÓN</th>
                           </thead>
                           <tbody>
 

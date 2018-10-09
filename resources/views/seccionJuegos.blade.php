@@ -21,15 +21,19 @@
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-                                  <div class="col-md-4">
+                                  <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
-                                  <div class="col-md-4">
+                                  <div class="col-md-3">
+                                    <h5>Código del Juego</h5>
+                                    <input id="buscadorCodigoJuego" class="form-control" placeholder="Código del Juego">
+                                  </div>
+                                  <div class="col-md-3">
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
                                   </div>
-                                  <div class="col-md-4">
+                                  <div class="col-md-3">
                                     <h5 style="color:#ffffff;">Buscar</h5>
                                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                   </div>
@@ -51,9 +55,10 @@
                               <table id="tablaResultados" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-4" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-4" value="juego.cod_identificacion" estado="">CÓDIGO IDENTIFICACIÓN  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-4" value="" estado="">ACCIONES</th>
+                                    <th class="col-xs-3" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="" estado="">ACCIONES</th>
                                   </tr>
                                 </thead>
                                 <tbody id="cuerpoTabla" style="height: 350px;">
@@ -113,10 +118,14 @@
             <div id="juegoPlegado" class="row">
                 <div class="row">
                   <div class="row" style="padding-bottom: 15px;">
-                      <div class="col-md-8">
+                      <div class="col-md-4">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
+                      <div class="col-md-4">
+                        <h5>Código Juego</h5>
+                        <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
+                    </div>
                       <div class="col-md-4" id="cod_inp">
                           <h5>Código de Certificado</h5>
                           <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />

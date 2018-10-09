@@ -268,7 +268,8 @@ class RelevamientoController extends Controller
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-        return Isla::find($maquina->id_isla)->orden;
+        //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por isla a pedido del de rosario
+        return Isla::find($maquina->id_isla)->nro_isla;
       });
     }else{
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
@@ -738,7 +739,7 @@ class RelevamientoController extends Controller
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
   }
@@ -1076,6 +1077,8 @@ class RelevamientoController extends Controller
                      ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
                      ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                      ->where('maquina.id_maquina',$maquina->id_maquina)
+                     ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
+                     ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
                      //->groupby()
                      ->distinct('relevamiento.id_relevamiento',
                                'detalle_relevamiento.id_detalle_relevamiento',
@@ -1356,6 +1359,18 @@ class RelevamientoController extends Controller
     return $formula_nueva;
   }
 
+  public function existeRelVisado($fecha, $id_casino){
+    
+    $relevamientoVisado=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
+    ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
+    ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
+    ->get();
 
+    if(count($relevamientoVisado)>0){
+      return true;
+      
+    }
+    return false;
+  }
 
 }

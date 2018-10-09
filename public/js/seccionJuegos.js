@@ -127,6 +127,7 @@ $(document).on('click','.detalle', function(){
       $('#id_juego').val(data.juego.id_juego);
       $('#inputJuego').val(data.juego.nombre_juego).prop('readonly',true);
       $('#inputCodigo').val(data.juego.cod_identificacion);
+      $('#inputCodigoJuego').val(data.juego.cod_juego).prop('readonly',true);
       $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
 
       // for (var i = 0; i < data.tablasDePago.length; i++) {
@@ -182,6 +183,7 @@ $('.modal').on('hidden.bs.modal', function() {
   $('#id_juego').val(0);
   $('#inputCodigo').val('');
   $('#inputJuego').val('');
+  $('#inputCodigoJuego').val('');
   $('.copia').remove();
   $('#tablas_pago').empty();
 })
@@ -191,7 +193,13 @@ $(document).on('click','.modificar',function(){
 
     ocultarErrorValidacion($('#inputJuego'));
     ocultarErrorValidacion($('#inputCodigo'));
+    ocultarErrorValidacion($('#inputCodigoJuego'));
     ocultarErrorValidacion($('#tablas_pago'));
+    //se restrablece los botones despues de salir del ver detalle
+    $('#btn-agregarTablaDePago').show();
+    $('#btn-agregarMaquina').show();
+    $('.borrarFila').show();
+    $('#agregarProgresivo').show();
 
     var id_juego = $(this).val();
     //Modificar los colores del modal
@@ -277,6 +285,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   formData={
     nombreJuego: $('#buscadorNombre').val(),
+    cod_Juego: $('#buscadorCodigoJuego').val(),
     codigoId: $('#buscadorCodigo').val(),
     nombre_progresivo: $('#buscadorProgresivos').val(),
     page: page_number,
@@ -393,6 +402,7 @@ $('#btn-guardar').click(function (e) {
     var formData = {
       nombre_juego: $('#inputJuego').val(),
       cod_identificacion: $('#inputCodigo').val(),
+      cod_juego:$('#inputCodigoJuego').val(),
       tabla_pago: tablas,
       maquinas: maquinas
     }
@@ -619,20 +629,25 @@ function crearFilaJuego(juego){
   var codigo;
   juego.nro_niv_progresivos == null ? progresivos = '-' : progresivos= juego.nro_niv_progresivos;
   juego.cod_identificacion == null ?  codigo = '-' :   codigo= juego.cod_identificacion;
+  juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
 
 
                     fila.attr('id',juego.id_juego)
                     .append($('<td>')
-                        .addClass('col-xs-4')
+                        .addClass('col-xs-3')
                         .text(juego.nombre_juego)
                     )
                     .append($('<td>')
-                        .addClass('col-xs-4')
+                        .addClass('col-xs-3')
+                        .text(codigojuego)
+                    )
+                    .append($('<td>')
+                        .addClass('col-xs-3')
                         .text(codigo)
                     )
 
                     .append($('<td>')
-                        .addClass('col-xs-4')
+                        .addClass('col-xs-3')
                         .append($('<button>')
                             .append($('<i>')
                                 .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
@@ -691,10 +706,11 @@ function habilitarControles(valor){
 
 
 function mostrarJuego(juego, tablas, maquinas){
-
+  console.log("estoy intentando imprimir el cofigo de juego", juego.cod_juego);
   $('#modalJuego').modal('show');
-  $('#inputJuego').val(juego.nombre_juego);
+  $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);;
   $('#inputCodigo').val(juego.cod_identificacion);
+  $('#inputCodigoJuego').val(juego.cod_juego).prop('readonly',false);;
 
   for (var i = 0; i < tablas.length; i++) {
     $('#btn-agregarTablaDePago').trigger('click');

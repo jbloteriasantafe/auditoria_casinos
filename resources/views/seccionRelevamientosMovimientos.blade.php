@@ -55,6 +55,11 @@
                   </div>
                 </div>
 
+                <div class="col-lg-3">
+                  <h5>Nro. de Máquina</h5>
+                  <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
+                </div>
+
               </div> <!-- row / formulario -->
 
               <br>

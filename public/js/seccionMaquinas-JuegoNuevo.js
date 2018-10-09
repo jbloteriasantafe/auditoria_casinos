@@ -37,7 +37,7 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-        $('#inputCodigo').val(data.juego.cod_identificacion).prop('readonly',true);
+        $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
         $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
         //Si no tiene tablas de pagos ocultar esa zona
@@ -71,7 +71,7 @@ $('#inputJuego').on('seleccionado',function(){
     });
 
     //Mostrar los botones correspondientes
-    $('#btn-cancelarJuego').show();
+    //$('#btn-cancelarJuego').show(); se comenta porque no tiene funcionalidad
     $('#btn-agregarJuegoLista').show();
     $('#btn-crearJuego').hide();
 
@@ -86,9 +86,13 @@ $('#inputJuego').on('seleccionado',function(){
 $('#inputJuego').on('deseleccionado',function(){
       console.log('deseleccionado');
       if($('#inputJuego').val() != ''){
+           
+            //se dispuso que no se pueda crear los juegos desde esta pantalla, por lo que se elimina la opcion de crear juego
+            /*
             $('#btn-crearJuego').show();
             $('#btn-agregarJuegoLista').hide();
             $('#btn-cancelarJuego').show();
+            */
       }else{
             $('#btn-agregarJuegoLista').hide();
             $('#btn-crearJuego').hide();

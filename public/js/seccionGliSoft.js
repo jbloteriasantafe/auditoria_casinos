@@ -69,13 +69,23 @@ function agregarFilaJuego(juego, tablas) {
   }
 
 
-  fila.append($('<td>').addClass('col-xs-4')
+  fila.append($('<td>').addClass('col-xs-3')
                        .text(juego.nombre_juego)
   );
-  fila.append($('<td>').addClass('col-xs-4')
+  if(juego.cod_juego==null){
+    fila.append($('<td>').addClass('col-xs-3')
+                       .text('')
+  );
+  }else{
+    fila.append($('<td>').addClass('col-xs-3')
+                       .text(juego.cod_juego)
+  );
+  }
+  
+  fila.append($('<td>').addClass('col-xs-3')
                        .append(tablas_pago)
   );
-  fila.append($('<td>').addClass('col-xs-4')
+  fila.append($('<td>').addClass('col-xs-3')
                        .append($('<button>').addClass('btn btn-danger borrarJuego')
                                             .append($('<i>').addClass('fa fa-fw fa-trash'))
                               )
@@ -140,6 +150,9 @@ $(document).on('click','.detalle',function(){
     $('#modalGLI').modal('show');
     $('.btn-default').text('SALIR');
 
+    //limpia la tabla de juegos
+    $('#tablaJuegos tbody').empty();
+
     //obtenerGli
     var id=$(this).val();
 
@@ -195,7 +208,12 @@ $(document).on('click','.detalle',function(){
       // var file = new File([new Blob([data.archivo.archivo])], "sistemaAuditoria.pdf", {type: "application/pdf"});
       // var objurl = window.URL.createObjectURL(file);
       // console.log(objurl);
-
+       //Cargar los juegos
+       for (var i = 0; i < data.juegos.length; i++) {
+        console.log(data.juegos[i]);
+        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
+      }
+/* esto no estaba funcionando, al aprecer la idea era cargar lo juegos, pero ya habia funciones para realizar esa accion
     $.each(data.juegos, function(index, juego){
       $.get('juegos/obtenerTablasDePago/' + juego.id_juego , function(data_juego){
         $('#listaJuegos')
@@ -248,6 +266,7 @@ $(document).on('click','.detalle',function(){
 
   })
   })
+  */
   })
 
   $('#inputExpediente').prop('readonly' , true);

@@ -66,10 +66,12 @@ footer
               </table>
               <br>
               <table>
-                <tr><th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA TOMA</th>
+                <tr>
+                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)FECHA Y HORA EGRESO @else FECHA Y HORA TOMA 1 @endif</th>
+                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)FECHA Y HORA REINGRESO @else FECHA Y HORA TOMA 2 @endif</th>
                 </tr>
                 <td class="tablaInicio" style="border-color: gray;" >@if($relevamiento->fecha_relev_sala != null) {{$relevamiento->fecha_relev_sala}} @else ____/____/____, ____:____ @endif</td>
-
+                <td class="tablaInicio" style="border-color: gray;" > ____/____/____, ____:____ </td>
               </table>
               <br>
               <table>

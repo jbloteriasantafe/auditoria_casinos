@@ -467,6 +467,8 @@ $id_usuario = session('id_usuario');
                           </div>
                       </div>
 
+                      
+
                   <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                             <div class="col-xs-12" align="center">
                                 <i class="fa fa-fw fa-exclamation-triangle"></i>
@@ -642,6 +644,7 @@ $id_usuario = session('id_usuario');
                               <button id="btn-reintentarContador" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
                           </div>
                       </div>
+                      
 
                   <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                             <div class="col-xs-12" align="center">
@@ -684,6 +687,29 @@ $id_usuario = session('id_usuario');
             </div>
           </div>
     </div>
+
+    <!-- Modal ErrorVisado -->
+    <div class="modal fade" id="modalErrorVisado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+           <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h3 class="modal-titleEliminar">DENEGADO</h3>
+              </div>
+
+              <div class="modal-body franjaRojaModal">
+                <p>No es posible importar contadores ya que existen relevamientos visados para el casino y fecha seleccionado</p>
+              </div>
+
+              <div class="modal-footer">
+                
+                <button type="button" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
+              </div>
+          </div>
+        </div>
+  </div>
+
+    
 
     
     <meta name="_token" content="{!! csrf_token() !!}" />

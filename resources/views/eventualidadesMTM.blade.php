@@ -113,10 +113,9 @@
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
                   @foreach($eventualidades as $eventualidad)
                   <tr id="{{$eventualidad->id_log_movimiento}}">
-                    <td class="col-xs-2 fecha_eventualidad">{{$eventualidad->fecha}}</td>
-                    <td class="col-xs-3">{{$eventualidad->descripcion}}</td>
-                    <td class="col-xs-3">{{$eventualidad->estado->descripcion}}</td>
-                    <td class="col-xs-2">{{$eventualidad->nombre}}</td>
+                    <td class="col-xs-3 fecha_eventualidad">{{$eventualidad->fecha}}</td>
+                    <td class="col-xs-3">{{$eventualidad->estado_descripcion}}</td>
+                    <td class="col-xs-3">{{$eventualidad->nombre}}</td>
                     <td class="col-xs-3">
 
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>

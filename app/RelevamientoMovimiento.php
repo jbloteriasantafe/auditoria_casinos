@@ -10,7 +10,9 @@ class RelevamientoMovimiento extends Model
   protected $connection = 'mysql';
   protected $table = 'relevamiento_movimiento';
   protected $primaryKey = 'id_relev_mov';
-  protected $visible = array('id_relev_mov','id_fiscalizacion_movimiento','id_fisca','id_cargador', 'id_maquina', 'fecha_relev_sala','fecha_fecha_carga', 'id_estado_relevamiento','id_log_movimiento');
+  protected $visible = array('id_relev_mov','id_fiscalizacion_movimiento',
+  'id_fisca','id_cargador', 'id_maquina', 'fecha_relev_sala','fecha_fecha_carga',
+   'id_estado_relevamiento','id_log_movimiento','nro_admin');
   public $timestamps = false;
 
   public function maquina(){

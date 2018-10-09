@@ -705,7 +705,7 @@ $(document).on('click','.verDetalle',function(e){
 
         fila.attr('id', data.detalles[i].id_detalle_relevamiento)
             .append($('<td>').css('align','center')
-            .text(data.detalles[i].detalle.nro_admin))
+            .text(data.detalles[i].nro_admin))
 
             if(data.detalles[i].detalle.cont1 != null){
               fila.append($('<td>').css('align','center')
