@@ -1238,10 +1238,14 @@ class LayoutController extends Controller
     $detalles = array();
     $progresivos = array();
 
+    //cargado significa que entreo luego que se finalizo, en ese punto solo lo puede ver el administrador
+    //mostrar maquinas es una bandera para mostrar en el formulario la cantidad de maquinas
     if($cargado){
       $maquinas_apagadas = $layout_total->detalles;
+      $mostrar_maquinas=true;
     }else{
       $maquinas_apagadas = array();
+      $mostrar_maquinas=false;
     }
 
     foreach($layout_total->casino->sectores as $sector){
@@ -1254,7 +1258,7 @@ class LayoutController extends Controller
       $det->islas = $sector->islas;
       $detalles[] = $det;
     };
-    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas'));
+    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
