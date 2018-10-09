@@ -344,9 +344,6 @@ class ImportacionController extends Controller
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
         }
-          
-
-
         }
     })->validate();
 
