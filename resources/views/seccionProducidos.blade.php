@@ -215,6 +215,9 @@ use Illuminate\Http\Request;
         <div class="modal-body" style="font-family: Roboto;">
 
           <div class="row" >
+            <h6 style="padding-left:15px" id="fecha_produccion_validacion"></h6>
+          </div>
+          <div class="row" >
             <div class="col-md-3">
               <h6><b>MÁQUINAS</b></h6>
               <table id="tablaMaquinas" class="table" style="display: block;">

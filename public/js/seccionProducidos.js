@@ -53,6 +53,9 @@ $(function () {
     $('#fecha_inicio').val(" ");
     $('#fecha_fin').val(" ");
     $('#validado').val("-");
+    $('#B_fecha_inicio').val(" ");
+    $('#B_fecha_fin').val(" ");
+
 
 });
 
@@ -186,6 +189,9 @@ $(document).on('click','.carga',function(e){
   $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
 
     if(data.validado.estaValidado == 0){
+
+      $('#fecha_produccion_validacion').text('FECHA DE PRODUCCIÓN: ' + data.fecha_produccion);
+
       for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
 
