@@ -481,11 +481,26 @@ class LayoutController extends Controller
     $maquinas = Maquina::whereIn('id_isla',$islas)
                        ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
                        ->inRandomOrder()->take($request->cantidad_maquinas)->get();
-
+   
+                       /*
     //ordena por número de isla, recuperando la isla para saber su número
     $maquinas = $maquinas->sortBy(function($maquina,$key){
       return Isla::find($maquina->id_isla)->nro_isla;
-    });
+    });*/
+
+    //evaluo si es de rosario para ordenar por islote e isla , sino solo por isla
+    $id_casino_orden=Sector::find($request->id_sector)->id_casino;
+    if($id_casino_orden==3){
+      $maquinas = $maquinas->sortBy(function($maquina,$key){
+        $maq=Isla::find($maquina->id_isla);
+         return [$maq->orden, $maq->nro_isla];
+        
+      });
+    }else{
+      $maquinas = $maquinas->sortBy(function($maquina,$key){
+        return Isla::find($maquina->id_isla)->nro_isla;
+      });
+    };
 
     $arregloRutas = array();
 
