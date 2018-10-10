@@ -268,18 +268,13 @@ class RelevamientoController extends Controller
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-<<<<<<< HEAD
         //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por isla a pedido del de rosario
         return Isla::find($maquina->id_isla)->nro_isla;
          //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
          //$maq=Isla::find($maquina->id_isla);
          //return [$maq->orden, $maq->nro_isla];
        //});
-=======
-        //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
-        $maq=Isla::find($maquina->id_isla);
-        return [$maq->orden, $maq->nro_isla];
->>>>>>> 20728043bd76fa0cf38f391fda39fe8f77021128
+
       });
 
 
@@ -1372,7 +1367,7 @@ class RelevamientoController extends Controller
   }
 
   public function existeRelVisado($fecha, $id_casino){
-    
+
     $relevamientoVisado=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
     ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
     ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
@@ -1380,7 +1375,7 @@ class RelevamientoController extends Controller
 
     if(count($relevamientoVisado)>0){
       return true;
-      
+
     }
     return false;
   }
