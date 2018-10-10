@@ -87,13 +87,14 @@ p {
         <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / h:i');
         print_r($hoy); ?></div>
 
-        <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(tachar aquellas ya observadas)</i>:</div>
+        <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(Ingresar total de máquinas observadas por isla)</i>:</div>
         <br>
         @foreach($detalles as $detalle)
         <div class="recuadroLista" style="padding-left: 10px;"> {{$detalle->descripcion}}</div>
         <?php $pos = 0; ?>
         <div class="divTable">
         <div class="divTableBody">
+          @if($mostrar_maquinas)
               <div class="divTableRow">
                 @foreach($detalle->islas as $isla)
                 @if($pos != 23)
@@ -107,6 +108,24 @@ p {
                 @endif
                 @endforeach
               </div>
+
+              @else
+              <div class="divTableRow">
+                  @foreach($detalle->islas as $isla)
+                  @if($pos != 23)
+                  <?php $pos += 1; ?>
+                  <div class="divTableCell">{{$isla->nro_isla}} ___</div>
+                  @else
+                  <?php $pos = 1; ?>
+                </div>
+                <div class="divTableRow">
+                  <div class="divTableCell">{{$isla->nro_isla}} ___</div>
+                  @endif
+                  @endforeach
+                </div>
+            
+            @endif
+
         </div>
       </div><br>
         @endforeach

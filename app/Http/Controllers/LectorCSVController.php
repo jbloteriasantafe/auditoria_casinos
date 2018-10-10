@@ -541,7 +541,8 @@ class LectorCSVController extends Controller
     $cont_temporal = DB::table('contadores_temporal')->where('id_contador_horario','=',$contador->id_contador_horario)->first();
     $contador->fecha = date('Y-m-d' , strtotime($cont_temporal->fecha  . ' + 1 days'));
     $contador->save();
-
+    //se esta volviendo a validar, algo que se hizo en importacion controller, se anula ya que esto lo verifica el controlador superior
+    /*
     $contador_cerrado = ContadorHorario::where([['id_casino','=',$casino],['fecha','=',$contador->fecha],['cerrado','=',1]])->count();
     if($contador_cerrado > 0){
       $query = sprintf(" DELETE FROM contadores_temporal WHERE id_contador_horario = '%d'",$contador->id_contador_horario);
@@ -554,7 +555,7 @@ class LectorCSVController extends Controller
               $validator->errors()->add('contador_cerrado','El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
       })->validate();
-    }
+    }*/
 
     $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario],['id_casino','=',$casino],['fecha','=',$contador->fecha]])->get();
     if($contadores != null){
