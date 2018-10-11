@@ -33,7 +33,7 @@ class ProducidoController extends Controller
           join maquina on (detalle_producido.id_maquina = maquina.id_maquina)
           join contador_horario as cont_ini on (cont_ini.fecha = producido.fecha and cont_ini.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_ini.id_tipo_moneda)
           left join detalle_contador_horario as detalle_contador_inicial on (detalle_contador_inicial.id_contador_horario = cont_ini.id_contador_horario and detalle_contador_inicial.id_maquina = maquina.id_maquina)
-          join contador_horario as cont_final on (cont_final.fecha ='%s' AND cont_final.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_ini.id_tipo_moneda)
+          join contador_horario as cont_final on (cont_final.fecha ='%s' AND cont_final.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_final.id_tipo_moneda)
           left join detalle_contador_horario as detalle_contador_final on (detalle_contador_final.id_contador_horario = cont_final.id_contador_horario and detalle_contador_final.id_maquina = maquina.id_maquina)
           where detalle_producido.id_tipo_ajuste is NULL
           order by maquina.nro_admin asc
@@ -46,7 +46,7 @@ class ProducidoController extends Controller
           join maquina on (detalle_producido.id_maquina = maquina.id_maquina)
           join contador_horario as cont_ini on (cont_ini.fecha = producido.fecha and cont_ini.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_ini.id_tipo_moneda)
           left join detalle_contador_horario as detalle_contador_inicial on (detalle_contador_inicial.id_contador_horario = cont_ini.id_contador_horario and detalle_contador_inicial.id_maquina = maquina.id_maquina)
-          join contador_horario as cont_final on (cont_final.fecha ='%s' AND cont_final.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_ini.id_tipo_moneda)
+          join contador_horario as cont_final on (cont_final.fecha ='%s' AND cont_final.id_casino = producido.id_casino and producido.id_tipo_moneda= cont_final.id_tipo_moneda)
           left join detalle_contador_horario as detalle_contador_final on (detalle_contador_final.id_contador_horario = cont_final.id_contador_horario and detalle_contador_final.id_maquina = maquina.id_maquina)
           where detalle_producido.id_tipo_ajuste is NULL AND maquina.id_maquina = %d
           order by maquina.nro_admin asc
@@ -207,7 +207,6 @@ class ProducidoController extends Controller
 
     $query = sprintf(self::$string_query_con_mtm , $id_producido,$fecha_fin,$id_maquina);
     $mtm_datos=$pdo->query($query);
-
     $conDiferencia=array();
     $id_contador_final = null;
     $id_contador_inicial = null;
@@ -271,6 +270,9 @@ class ProducidoController extends Controller
     }
   }
 
+  //método en proceso de analisis
+  //considerar que el problema solo se presenta en rosario, donde los contadores finales son 0
+  //
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
 
       $producido=Producido::find($id_producido);
@@ -280,13 +282,18 @@ class ProducidoController extends Controller
       $tipos_ajuste = TipoAjuste::all();
       $pdo = DB::connection('mysql')->getPdo();
 
+      //ver a que refiere
+      //
       $primera_vez=0;
 
       $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
       $resultados=$pdo->query($query);
-
+      
+      //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
+      //
       $conDiferencia=array();
-
+      //en el foreach me llegan las maquinas duplicadas, una con contadores null para operar de forma auxiliar
+      //
       foreach ($resultados as $row) {
           $diferencia = $this->calcularDiferencia($row['id_maquina'],$row['nro_admin'],
                                                   $row['id_detalle_producido'],
@@ -298,15 +305,23 @@ class ProducidoController extends Controller
                                                   $row['jackpot_fin'],$row['progresivo_fin'],
                                                   $row['valor_producido'],$row['denominacion']
                                                 );
+          //devuelve array vacio si el valor calculado por sistema es igual al producido(creo que es el importado)
+          //
           if(!empty($diferencia))
           {
             $conDiferencia[]=$diferencia;
           }
+
+          //al estar deentro del for, solo contara el valor final
+          //
           $id_contador_final = $row['id_contador_final'];
           $id_contador_inicial = $row['id_contador_inicial'];
       }
       //dd($producido->ajustes_producido);
       //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
+
+      //ajustes_producido esta previamente cargado, ahi estan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido
+      //
       if($producido->ajustes_producido->count() == 0){
           $primera_vez=1;
           $conDiferencia2=array();
@@ -355,39 +370,42 @@ class ProducidoController extends Controller
   }
 
   public function calcularDiferencia($id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion){
-      $cantidad=0;
-
-      $valor_inicio= $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata
-      $valor_final= $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata
-
-      $delta = $valor_final - $valor_inicio;//plata - plata
-
-      $diferencia = round($delta, 2) - $valor_producido; //plata - plata
       $resultado=array();
+      //if($id_detalle_contador_final!=null){
+            $cantidad=0;
 
-      // si diferencia redondeado con dos, es distinto de cero -> plata --> pasa a credito
-      if(round($diferencia,2) != 0){// si alguno de los campos es null al hacer la division queda 0 -> ver que se termina guardando en la BD
-        $in_inicio_cred =$coinin_ini / $denominacion;//credito
-        $out_inicio_cred = $coinout_ini / $denominacion;//credito
-        $jack_ini_cred = $jackpot_ini / $denominacion;//credito
-        $prog_ini_cred = $progresivo_ini / $denominacion;//credito
-        $in_final_cred = $coinin_fin / $denominacion;//credito
-        $out_final_cred = $coinout_fin / $denominacion;//credito
-        $jack_final_cred = $jackpot_fin / $denominacion;//credito
-        $prog_final_cred =  $progresivo_fin / $denominacion;//credito
-        $valor_cred = $valor_producido / $denominacion;//credito
+            $valor_inicio= $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata
+            $valor_final= $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata
 
-        $resultado = ['id_maquina' => $id_maquina,                                'nro_admin' => $nro_admin,
-                      'id_detalle_producido' => $id_detalle_producido,            'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
-                      'id_detalle_contador_final' => $id_detalle_contador_final,  'coinin_inicio' => $in_inicio_cred,
-                      'coinout_inicio' => $out_inicio_cred,                       'jackpot_inicio' => $jack_ini_cred,
-                      'progresivo_inicio' => $prog_ini_cred,                      'coinin_final' => $in_final_cred,
-                      'coinout_final' =>  $out_final_cred,                        'jackpot_final' => $jack_final_cred,
-                      'progresivo_final' =>$prog_final_cred,                      'producido_dinero' => $valor_producido,
-                      'producido_cred' => $valor_cred,                            'denominacion' => $denominacion ,
-                      'delta' => round($delta, 2),                                'diferencia' => round($diferencia, 2),];
+            $delta = $valor_final - $valor_inicio;//plata - plata
 
-      }
+            $diferencia = round($delta, 2) - $valor_producido; //plata - plata
+            
+
+            // si diferencia redondeado con dos, es distinto de cero -> plata --> pasa a credito
+            if(round($diferencia,2) != 0){// si alguno de los campos es null al hacer la division queda 0 -> ver que se termina guardando en la BD
+              $in_inicio_cred =$coinin_ini / $denominacion;//credito
+              $out_inicio_cred = $coinout_ini / $denominacion;//credito
+              $jack_ini_cred = $jackpot_ini / $denominacion;//credito
+              $prog_ini_cred = $progresivo_ini / $denominacion;//credito
+              $in_final_cred = $coinin_fin / $denominacion;//credito
+              $out_final_cred = $coinout_fin / $denominacion;//credito
+              $jack_final_cred = $jackpot_fin / $denominacion;//credito
+              $prog_final_cred =  $progresivo_fin / $denominacion;//credito
+              $valor_cred = $valor_producido / $denominacion;//credito
+
+              $resultado = ['id_maquina' => $id_maquina,                                'nro_admin' => $nro_admin,
+                            'id_detalle_producido' => $id_detalle_producido,            'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
+                            'id_detalle_contador_final' => $id_detalle_contador_final,  'coinin_inicio' => $in_inicio_cred,
+                            'coinout_inicio' => $out_inicio_cred,                       'jackpot_inicio' => $jack_ini_cred,
+                            'progresivo_inicio' => $prog_ini_cred,                      'coinin_final' => $in_final_cred,
+                            'coinout_final' =>  $out_final_cred,                        'jackpot_final' => $jack_final_cred,
+                            'progresivo_final' =>$prog_final_cred,                      'producido_dinero' => $valor_producido,
+                            'producido_cred' => $valor_cred,                            'denominacion' => $denominacion ,
+                            'delta' => round($delta, 2),                                'diferencia' => round($diferencia, 2),];
+
+            }
+    //}
 
       return $resultado;
   }

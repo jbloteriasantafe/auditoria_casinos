@@ -181,10 +181,17 @@ $(document).on('click','.carga',function(e){
   var tr_html =$(this).parent().parent();
 
   var id_producidos =$(this).val();
+  
   $('#modalCargaProducidos #id_producido').val(id_producidos);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
   $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
 
+    //pruebas
+    console.log("esto esta por evaluar");
+    console.log("esto esta por evaluar",data);
+
+
+    // fin pruebas
     if(data.validado.estaValidado == 0){
       for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
