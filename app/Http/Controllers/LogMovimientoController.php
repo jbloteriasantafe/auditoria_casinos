@@ -142,7 +142,7 @@ class LogMovimientoController extends Controller
                     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
                     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
                     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-                    ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+                    ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                     ->where($reglas)
                     ->whereIn('log_movimiento.id_casino' , $casinos)
                     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
@@ -150,7 +150,6 @@ class LogMovimientoController extends Controller
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
-
                     ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
       }else{
           $fecha=explode("-", $request->fecha);
@@ -159,7 +158,7 @@ class LogMovimientoController extends Controller
           ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
           ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
           ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-          ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+          ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
           ->where($reglas)
           ->whereIn('log_movimiento.id_casino' , $casinos)
           ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
