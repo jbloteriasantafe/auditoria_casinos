@@ -884,7 +884,7 @@ class LogMovimientoController extends Controller
     //   return $logMov->fiscalizaciones;
     // }else {//no se si funciona en todos los casos
       $fiscalizaciones = DB::table('log_movimiento')
-                          ->select('fiscalizacion_movimiento.*')
+                          ->select('fiscalizacion_movimiento.*', 'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion')
                           ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                           ->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6])
                           //->orWhere('fiscalizacion_movimiento.es_reingreso','=',1)
@@ -897,7 +897,9 @@ class LogMovimientoController extends Controller
   public function ValidarFiscalizacion($id_fiscalizacion_movimiento){
     $fiscalizacionMov = FiscalizacionMov::find($id_fiscalizacion_movimiento);
     $maquinas = DB::table('fiscalizacion_movimiento')
-                    ->select('relevamiento_movimiento.id_maquina','maquina.nro_admin','relevamiento_movimiento.id_relev_mov')
+                    ->select('relevamiento_movimiento.id_maquina','maquina.nro_admin',
+                    'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion',
+                    'relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento')
                     ->join('relevamiento_movimiento', 'relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
                     ->join('maquina','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
                     ->where('fiscalizacion_movimiento.id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento)
@@ -909,7 +911,7 @@ class LogMovimientoController extends Controller
     $relev = RelevamientoMovimiento::find($id_relevamiento);
     $fiscalizacionMov = FiscalizacionMov::find($relev->id_fiscalizacion_movimiento);
     $toma = DB::table('relevamiento_movimiento')
-                    ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego')
+                    ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
                     ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
                     ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
                     ->join('formula','formula.id_formula','=', 'maquina.id_formula')
@@ -1059,24 +1061,33 @@ class LogMovimientoController extends Controller
 
       }
 
-      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
-         count($fiscalizacion->relevamientos_movimientos)){
-        if(isset($logMov->fiscalizaciones))
-        {
-          $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
-          $fiscalizacion->estado_relevamiento()->associate(4);
-          $fiscalizacion->save();
-        }
 
-      }else{
-        if(!isset($logMov->fiscalizaciones))
-        {
-          $logMov->estado_movimiento()->associate(5);//error
-        }
-      }
-      $logMov->save();
-      return 1;
+      return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
+
+
+  public function cambiarEstadoFiscalizacionAValidado($id_fiscalizacion){
+    $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
+    $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
+    if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
+       count($fiscalizacion->relevamientos_movimientos)){
+      if(isset($logMov->fiscalizaciones))
+      {
+        $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
+        $fiscalizacion->estado_relevamiento()->associate(4);
+        $fiscalizacion->save();
+      }
+
+    }else{
+      if(!isset($logMov->fiscalizaciones))
+      {
+        $logMov->estado_movimiento()->associate(5);//error
+      }
+    }
+    $logMov->save();
+    return 1;
+  }
+
 
   private function countMaquinasValidadas($relevamientos_movimientos){
     $contador = 0;
