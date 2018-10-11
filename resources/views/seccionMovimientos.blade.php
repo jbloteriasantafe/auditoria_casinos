@@ -96,9 +96,11 @@
                         <thead>
                           <tr>
                             <th class="col-md-2" value="log_movimiento.fecha" estado="">FECHA <i class="fa fa-sort"></i></th>
-                            <th class="col-md-3" value="expediente.nro_exp_org" estado="">EXPEDIENTE <i class="fa fa-sort"></i></th>
-                            <th class="col-md-3" value="tipo_movimiento" estado="">TIPO MOVIMIENTO <i class="fa fa-sort"></i></th>
-                            <th class="col-md-4" >ACCIÓN </th>
+                            <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE <i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="tipo_movimiento" estado="">TIPO MOVIMIENTO <i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="validado" estado="">VALIDADO</th>
+                            <th class="col-md-2" >ACCIÓN </th>
 
                           </tr>
                         </thead>
@@ -818,6 +820,8 @@
               <input id="maquina" type="text" name="" value="" hidden>
               <button id="errorValidacion" type="button" class="btn btn-default error" >ERROR</button>
               <button id="enviarValidar" type="button" class="btn btn-default validar" value=""> VALIDAR </button>
+              <button id="finalizarValidar" type="button" class="btn btn-default" value="" data-fiscalizacion="" hidden=> FINALIZAR VALIDACIÓN </button>
+
 
               <div id="mensajeErrorVal" hidden>
                 <br>
@@ -829,7 +833,7 @@
                 <br>
                 <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50 ;">EXITO</span>
                 <br>
-                <span  style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La acción se ha realizado correctamente</span>
+                <span  style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La VALIDACIÓN se ha realizado correctamente</span>
               </div> <!-- mensaje -->
             </div>
 

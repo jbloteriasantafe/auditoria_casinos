@@ -3,6 +3,7 @@ var maq_selecc_denom=[];
 var mtmParaBaja=[];
 var casinos=[];
 var cantidad_maquinas = []; //variable global, determina
+var cant_validadas=0;
 
 $(document).ready(function(){
 
@@ -1331,11 +1332,19 @@ $(document).on('click','#btn-baja',function(e){
 
 //BOTÓN VALIDACION, DENTRO DE LA TABLA PRINCIPÁL
 $(document).on('click','.validarMovimiento',function(){
+  $('#mensajeExito').hide();
 
   $('#tablaFechasFiscalizacion tbody tr').remove();
   $('#tablaMaquinasFiscalizacion tbody tr').remove();
   $('#mensajeErrorVal').hide();
   $('#mensajeExitoValidacion').hide();
+  $('#columnaMaq').hide();
+  $('#columnaDetalle').hide();
+
+  //oculto los dos botones de guardar
+  $('#enviarValidar').hide();
+  $('#errorValidacion').hide();
+  $('#finalizarValidar').hide();
 
   //Modificar los colores del modal
   $('#modalValidacion .modal-title').text('VALIDAR MÁQUINAS RELEVADAS');
@@ -1351,11 +1360,11 @@ $(document).on('click','.validarMovimiento',function(){
           var fila= $('<tr>');
 
           fila.append($('<td>')
-              .addClass('col-xs-8')
+              .addClass('col-xs-6')
               .text(data[i].fecha_envio_fiscalizar)
             );
           fila.append($('<td>')
-              .addClass('col-xs-4')
+              .addClass('col-xs-3')
               .append($('<button>')
                   .append($('<i>')
                   .addClass('fa').addClass('fa-fw').addClass('fa-eye')
@@ -1367,13 +1376,30 @@ $(document).on('click','.validarMovimiento',function(){
 
                 )
               )
+              if(data[i].id_estado_fiscalizacion == 4){
+                fila.append($('<td>')
+                    .addClass('col-xs-3')
+                    .append($('<i>').addClass('fa fa-fw fa-check finalizado').css('color','#4CAF50')));
+              }
+              $('#finalizarValidar').attr('data-fiscalizacion',data[i].id_fiscalizacion_movimiento);
+
             tablaFiscalizacion.append(fila);
       }
+      var cantidad=0;
+      $('#tablaFechasFiscalizacion tbody tr').each(function(){
 
+          if ($(this).hasClass('finalizado')) {
+             cantidad=cantidad + 1;
+          }
+
+      });
+      if (cantidad==data.length) {
+        $('#finalizarValidar').show();
+
+      }
       $('#mensajeErrorVal').hide();
       $('.detalleMaq').hide();
       $('#toma2').hide();
-      $('.validar').prop('disabled', true);
       $('.error').prop('disabled',true);
       $('#observacionesToma').hide();
 
@@ -1391,9 +1417,10 @@ $(document).on('click','.detalleMov',function(){
   $('#columnaMaq').show();
   $('.detalleMaq').hide();
   $('#toma2').hide();
-  $('.validar').prop('disabled', true);
   $('.error').prop('disabled',true);
   $('#observacionesToma').hide();
+  $('#tablaFechasFiscalizacion tbody tr').css('background-color','#FFFFFF');
+  $(this).parent().parent().css('background-color', '#E0E0E0');
 
   var id_fiscalizacion = $(this).attr('data-id-fiscalizacion');
   var fecha_fiscalizacion = $(this).attr('data-fecha-fisc');
@@ -1403,14 +1430,20 @@ $(document).on('click','.detalleMov',function(){
 
   $.get('movimientos/ValidarFiscalizacion/' + id_fiscalizacion, function(data){
 
+    if(data.Maquinas.id_estado_fiscalizacion!=4){
+      $('#finalizarValidar').hide();
+    }
+
     var tablaMaquinasFiscalizacion=$('#tablaMaquinasFiscalizacion tbody');
     $('#tablaMaquinasFiscalizacion tbody tr').remove();
-
+    var cant_maq_val=0;
+    cant_validadas=data.Maquinas.length;
     for (var i = 0; i < data.Maquinas.length; i++) {
         var fila= $('<tr>');
 
-        fila.append($('<td>')
-        .addClass('col-xs-8')
+        fila.attr('data-id',data.Maquinas[i].id_maquina)
+        .append($('<td>')
+        .addClass('col-xs-4')
         .text(data.Maquinas[i].nro_admin)
         )
         fila.append($('<td>')
@@ -1426,19 +1459,39 @@ $(document).on('click','.detalleMov',function(){
                 .attr('data-relevamiento', data.Maquinas[i].id_relev_mov)
               )
             );
+          if(data.Maquinas[i].id_estado_relevamiento == 4){
+            cant_validadas= cant_validadas - 1;
+            cant_maq_val=cant_maq_val + 1;
+            $('#enviarValidar').hide();
+            fila.append($('<td>')
+                .addClass('col-xs-4')
+                .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+          }
+
         tablaMaquinasFiscalizacion.append(fila);
     }
+    var t= $("#tablaMaquinasFiscalizacion tr").length;
+    console.log('t es', t);
+    console.log('cant es', cant_maq_val);
+
+    if(cant_maq_val==(t-1)){
+      $('#finalizarValidar').show();
+    }
+
     })
 });
 
 //BOTÓN PARA VER EL DETALLE DE  UNA DE LAS MÁQUINAS FISCALIZADAS
 $(document).on('click','.verMaquina1',function(){
+
   $('#columnaDetalle').show();
   $('.detalleMaq').show();
   var id_maquina = $(this).attr('data-maquina');
   var id_fiscalizacion = $(this).attr('data-fiscalizacion');
   var tablaContadores = $('#tablaValidarIngreso tbody');
   var id_relevamiento = $(this).attr('data-relevamiento');
+  $('#tablaMaquinasFiscalizacion tbody tr').css('background-color','#FAFAFA');
+  $(this).parent().parent().css('background-color', '#E0E0E0');
 
   //guardo el id_maquina en el input maquina del modal
   $('#modalValidacion').find('#maquina').val(id_maquina);
@@ -1450,10 +1503,17 @@ $(document).on('click','.verMaquina1',function(){
   $('#tablaValidarIngreso tbody tr').remove();
 
   $.get('movimientos/ValidarMaquinaFiscalizacion/' + id_relevamiento, function(data){
-
+    if(data.toma.id_estado_relevamiento==4){
+      $('#enviarValidar').hide();
+    }
+    else{
+      $('#enviarValidar').show();
+      $('#errorValidacion').show();
+    }
   if (true) {
     //CARGA CAMPOS INPUT
-    $('#f_cargaMov').val(data.cargador.nombre);
+    if(data.cargador!=null){ $('#f_cargaMov').val(data.cargador.nombre); }
+
     $('#f_tomaMov').val(data.fiscalizador.nombre);
     $('#nro_adminMov').val(data.toma.nro_admin);
     $('#nro_islaMov').val(data.toma.nro_isla);
@@ -1612,18 +1672,24 @@ $(document).on('click','.verMaquina1',function(){
 
 //BOTÓN VALIDAR DENTRO DEL MODAL VALIDAR
 $(document).on('click','#enviarValidar',function(){
-
+  $('#errorValidacion').hide();
   var id_fiscalizacion = $(this).val();
   var id_maquina = $('#modalValidacion').find('#maquina').val();
+
   //BUSCO EL ID DE MOVIMIENTO EN EL MODAL, ESTA EN UN INPUT OCULTO
   var id_log_movimiento = $('#modalValidacion').find('#id_log_movimiento').val();
   var fecha_envio_fiscalizar = $('#modalValidacion').find('#fecha_fiscalizacion').val();
   var id_relevamiento= $('#modalValidacion').find('#relevamiento').val();
 
-  validar(id_relevamiento, 1);
+ validar(id_relevamiento, 1,id_maquina);
+
 
 });
 
+//cuando cierra el modal de validación, actualizo el listado
+$("#modalValidacion").on('hidden.bs.modal', function () {
+      $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
+   })
 //BOTÓN ERROR
 $(document).on('click','#errorValidacion',function(){
 
@@ -1634,8 +1700,24 @@ $(document).on('click','#errorValidacion',function(){
 
 });
 
+//BOTÓN FINALIZAR VALIDACIÓN
+$(document).on('click','#finalizarValidar',function(){
+
+  var id_fiscalizacion=$(this).attr('data-fiscalizacion');
+  $.get('movimientos/finalizarValidacion/' + id_fiscalizacion, function(data){
+    if (data==1){
+      $('#modalValidacion').modal('hide');
+      $('#mensajeExito h3').text('EXITO');
+      $('#mensajeExito p').text('Se ha VALIDADO correctamente el movimiento.');
+      $('#mensajeExito').show();
+    }
+  })
+
+});
+
 //POST PARA VALIDAR
-function validar(id_rel, val){
+function validar(id_rel, val, id_maquina){
+
   var formData = {
     id_relev_mov: id_rel,
     validado: val,
@@ -1649,20 +1731,41 @@ function validar(id_rel, val){
 
       success: function (data) {
 
-        //ver si funciona, cambiar el color del botón
-        $('.verMaquina1').css('background-color','#4DB6AC');
+        // //ver si funciona, cambiar el color del botón
+        // $('.verMaquina1').css('background-color','#4DB6AC');
         //Deshabilito los botones error y validar
-        $('.validar').prop('disabled', true);
+        $('#enviarValidar').hide();
         $('.error').prop('disabled', true);
         $('.detalleMaq').hide();
-        $('#mensajeExitoValidacion').show();
+        cant_validadas=cant_validadas - 1;
+
+        $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
+            console.log($(this).attr('data-id'));
+            var maq=$(this).attr('data-id');
+            console.log('maquina', maq);
+
+            if (maq == id_maquina){
+              console.log('encontrada', $(this));
+              $(this).append($('<td>')
+                  .addClass('col-xs-4')
+                  .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+            }
+        });
+        console.log('cant_validadas',cant_validadas);
+         //si se validaron todas las máquinas de la fecha
+          if(cant_validadas==0){
+            $('#finalizarValidar').show();
+            // $('#tablaFechasFiscalizacion').hide();
+
+          }
 
       },
       error: function (data) {
         $('#mensajeErrorVal').show();
-        console.log('Error:', data);
+
       }
   })
+
 };
 
 //Enviar a fiscalizar las de ingreso **************************
@@ -1928,8 +2031,21 @@ function generarFilaTabla(movimiento){
         .addClass('col-xs-3')
         .text(t_mov)
         )
-            .append($('<td>')
-            .addClass('col-xs-4')
+        if(estado_movimiento==4){
+        fila.append($('<td>')
+        .addClass('col-xs-2')
+        .append($('<i>')
+        .addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto')
+            )
+      )}
+      else{
+        fila.append($('<td>')
+        .addClass('col-xs-2')
+        .append($('<i>')
+        .addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350')))
+      }
+        fila.append($('<td>')
+            .addClass('col-xs-2')
             .append($('<span>').text(' '))
             .append($('<button>')
             .addClass('boton_redirigir')
@@ -2160,6 +2276,7 @@ function generarFilaTabla(movimiento){
     if(estado_movimiento == 4 || estado_movimiento == 5){ fila.find('.bajaMTM').attr('style', 'display:none')} else{ fila.find('.bajaMTM').prop('disabled', false) };
     if(estado_movimiento > 2){ fila.find('.boton_toma2').show();}else{ fila.find('.boton_toma2').attr('style', 'display:none');}
     // if(estado_movimiento > 2){ fila.find('.print_mov').show();}else{ fila.find('.print_mov').attr('style', 'display:none');}
+
     return fila;
 }
 
