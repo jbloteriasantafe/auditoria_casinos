@@ -76,6 +76,7 @@ class ProducidoController extends Controller
         $cerrado= ContadorController::getInstancia()->estaCerrado($fecha_inicio,$producido->id_casino,$producido->tipo_moneda);
         //validado en la fecha fin
         $fecha_fin=date('Y-m-d' , strtotime($producido->fecha . ' + 1 days'));
+        //valida que para esa fecha, todos los sectores del casino esten relevados y visados, sino no se puede 
         $validado=RelevamientoController::getInstancia()->estaValidado($fecha_fin,$producido->id_casino ,$producido->tipo_moneda);
         $producidosAValidar[] = ['producido' => $producido ,'descripcion' => $producido->casino->codigo  ,  'cerrado' => $cerrado  ,  'validado' => $validado];
       }
