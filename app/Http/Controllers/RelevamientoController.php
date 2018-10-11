@@ -48,6 +48,7 @@ class RelevamientoController extends Controller
   }
 
   //devuelve los sectores sin validar, si está vacia, esta validado
+  //evalua que todos los sectores sean relevados y que los mismos esten visados
   public function estaValidado($fecha, $id_casino,$tipo_moneda){
     $relevamientos=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
                                 ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ])
@@ -74,7 +75,8 @@ class RelevamientoController extends Controller
       $errores[]= 'No todos los sectores estan relevados';
 
       foreach ($relevamientos as $relevamientoSector) {
-          if($relevamientoSector->estado_relevamiento->id_estado_relevamiento!=4){//todos los relevamientos validados para el día. ID 4 -> validado
+        //si todos los relevamientos estan relevados y visados, entonces el estado es rel. visado = 7
+          if($relevamientoSector->estado_relevamiento->id_estado_relevamiento!=7){//todos los relevamientos validados para el día. ID 4 -> validado
             $errores[]=$relevamientoSector->sector->descripcion;
           }
       }
