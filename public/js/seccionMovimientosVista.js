@@ -559,7 +559,8 @@ $(document).on('click','.nuevoEgreso',function(){
         if(data!=null){
             for (var i = 0; i < data.length; i++) {
                 agregarMaq(data[i].id_maquina, data[i].nro_admin,
-                           data[i].marca, data[i].modelo, data[i].nro_isla);
+                           data[i].marca, data[i].modelo, data[i].nro_isla,
+                           data[i].nombre_juego, data[i].nro_serie);
             }
 
           $('#modalLogMovimiento2').modal('show');
@@ -588,7 +589,9 @@ function clickAgregarMaq(e) {
 
   if (id_maquina != 0) {
     $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maquina, function(data) {
-      agregarMaq(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca , data.maquina.modelo, data.isla.nro_isla);
+      agregarMaq(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca ,
+                 data.maquina.modelo, data.isla.nro_isla,data.juego_activo.nombre_juego,
+                 data.maquina.nro_serie);
       $('#inputMaq').setearElementoSeleccionado(0 , "");
       console.log('555:',data);
 
@@ -596,7 +599,7 @@ function clickAgregarMaq(e) {
   }
 }
 
-function agregarMaq(id_maquina, nro_admin, marca, modelo, isla) {
+function agregarMaq(id_maquina, nro_admin, marca, modelo, isla, nombre_juego,nro_serie) {
 
   var tipo=$('#modalLogMovimiento2').find('#tipo_movi').val();
 
@@ -610,6 +613,8 @@ function agregarMaq(id_maquina, nro_admin, marca, modelo, isla) {
     fila.append($('<td>').text(nro_admin));
     fila.append($('<td>').text(marca));
     fila.append($('<td>').text(modelo));
+    fila.append($('<td>').text(nombre_juego));
+    fila.append($('<td>').text(nro_serie));
     fila.append($('<td>').append(accion));
 
   }else{
@@ -617,6 +622,8 @@ function agregarMaq(id_maquina, nro_admin, marca, modelo, isla) {
     fila.append($('<td>').text(marca));
     fila.append($('<td>').text(modelo));
     fila.append($('<td>').text(isla));
+    fila.append($('<td>').text(nombre_juego));
+    fila.append($('<td>').text(nro_serie));
     if(isla!=null){
       fila.append($('<td>').append(accion));
     }
