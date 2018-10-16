@@ -482,6 +482,8 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
         var producidoxcien = Number(producido);
         var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
       }
+      //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
+      diferencia= Number(diferencia.toFixed(2));
       console.log('acac');
 
       if (diferencia == 0) {
