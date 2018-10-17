@@ -1,7 +1,7 @@
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-var truncadas=0;
-$(document).ready(function(){
 
+$(document).ready(function(){
+  var truncadas=0;
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -329,6 +329,7 @@ $('#modalMaquinasPorRelevamiento').on('hidden.bs.modal', function(){
 });
 
 $(document).on('click','.carga',function(e){
+  truncadas=0;
   e.preventDefault();
 
   //ocultar mensaje de salida
@@ -655,6 +656,7 @@ $('#btn-finalizarValidacion').click(function(e){
       id_relevamiento: id_relevamiento,
       observacion_validacion: $('#observacion_validacion').val(),
       maquinas_a_pedido: maquinas_a_pedido,
+      truncadas:truncadas,
       data
     }
 
