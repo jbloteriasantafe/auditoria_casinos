@@ -114,8 +114,9 @@
               <thead>
                 <tr>
                   <th class="col-xs-2 "  estado="">FECHA <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-2 "  estado="">HORA <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-1 "  estado="">HORA <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2"  estado="">TIPO</th>
+                  <th class="col-xs-1">ESTADO</th>
                   <th class="col-xs-2"  estado="">TURNO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2"  estado="">CASINO</th>
                   <th class="col-xs-2"  estado="">ACCIÓN</th>
@@ -125,9 +126,14 @@
                 @foreach($eventualidades as $eventualidad)
                 <tr id="{{$eventualidad->id_eventualidad}}">
                   <td class="col-xs-2 fechaEventualidad">{{$eventualidad->fecha}}</td>
-                  <td class="col-xs-2 horaEventualidad">{{$eventualidad->hora}}</td>
+                  <td class="col-xs-1 horaEventualidad">{{$eventualidad->hora}}</td>
                   <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
-                  <td class="col-xs-2">{{$eventualidad->turno}}</td>
+                  @if($eventualidad->id_tipo_eventualidad == 4)
+                  <td class="col-xs-1" align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
+                  @else
+                  <td class="col-xs-1" align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
+                  @endif
+                  <td class="col-xs-2" text-align="center">{{$eventualidad->turno}}</td>
                   <td class="col-xs-2">{{$eventualidad->nombre}}</td>
                   <td class="col-xs-2">
 
@@ -136,13 +142,14 @@
                     <!-- estos if sirven para crear o no ciertos botones s/ el estado o el controlador -->
                     @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 0))
                     <button id="btn_cargarEv" class="btn btn-cargar" type="button btn-cargar btn-success" value="{{$eventualidad->id_eventualidad}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
-                    @endif
-
-                    @if($eventualidad->id_estado_eventualidad == 6)
                     <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
                     @endif
 
-                    @if(($eventualidad->id_estado_eventualidad == 1) ^ ($esControlador == 1))
+                    @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 1))
+                    <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
+                    @endif
+
+                    @if(($eventualidad->id_estado_eventualidad == 1) && ($esControlador == 1))
                     <button id="btn_validarEv" class="btn btn-validar btn-success" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-check"></i></button>
                     @endif
 
@@ -357,6 +364,7 @@
           <input id="tipo" type="text" name="" value="" hidden="">
           <input id="id_event" type="text" name="" value="" hidden="">
           <button id="btn-aceptar-carga" type="button" class="btn btn-default" value="" >ACEPTAR</button>
+          <button id="btn-aceptar-visado" type="button" class="btn btn-default" value="" hidden="true">VISAR</button>
           <button id="btn-cancelar-carga" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
         </div> <!-- modal footer -->
 

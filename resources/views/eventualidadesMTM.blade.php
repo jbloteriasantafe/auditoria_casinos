@@ -104,30 +104,40 @@
               <table id="tablaResultadosEvMTM" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-3 " value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2 " value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
                     <th class="col-xs-3"  estado="">TIPO</th>
-                    <th class="col-xs-3"  estado="">CASINO</th>
+                    <th class="col-xs-2">ESTADO</th>
+                    <th class="col-xs-2"  estado="">CASINO</th>
                     <th class="col-xs-3"  estado="">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
                   @foreach($eventualidades as $eventualidad)
                   <tr id="{{$eventualidad->id_log_movimiento}}">
-                    <td class="col-xs-3 fecha_eventualidad">{{$eventualidad->fecha}}</td>
-                    <td class="col-xs-3">{{$eventualidad->estado_descripcion}}</td>
-                    <td class="col-xs-3">{{$eventualidad->nombre}}</td>
+                    <td class="col-xs-2 fecha_eventualidad">{{$eventualidad->fecha}}</td>
+                    <td class="col-xs-3">{{$eventualidad->descripcion}}</td>
+
+                    @if($eventualidad->id_estado_movimiento == 4)
+                    <td class="col-xs-2" text-align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
+                    @else
+                    <td class="col-xs-2" text-align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
+                    @endif
+
+                    <td class="col-xs-2">{{$eventualidad->nombre}}</td>
                     <td class="col-xs-3">
 
+                      <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
+
+                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0))
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
-                      @if($eventualidad->id_estado_movimiento != 1 && $eventualidad->id_estado_movimiento != 6)
-                      <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" style="display:none"><i class="fa fa-fw fa-check"></i></button>
-                      <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" style="display:none"><i class="fa fa-fw fa-print"></i></button>
+                      <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
-                      @if($eventualidad->id_estado_movimiento == 1 )
+
+                      @if($eventualidad->id_estado_movimiento == 1  && $esControlador == 1)
                       <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-check"></i></button>
-                      <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-print"></i></button>
                       @endif
-                      @if($eventualidad->id_estado_movimiento == 6)
+
+                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1))
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
@@ -490,7 +500,7 @@
            <div class="modal-header">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title modalVerMas" id="myModalLabel">Validar MTMs</h3>
+             <h3 class="modal-title modalVerMas" id="myModalLabel">VISAR MTMs</h3>
             </div>
 
           <div  id="colapsado" class="collapse in">
@@ -691,7 +701,7 @@
             <input id="relevamiento" type="text" name="" value="" hidden>
             <input id="maquina" type="text" name="" value="" hidden>
               <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >ERROR</button>
-              <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value=""> VALIDAR </button>
+              <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value=""> VISAR </button>
 
               <div id="mensajeErrorVal" hidden>
                   <br>
