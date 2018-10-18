@@ -558,6 +558,7 @@ class RelevamientoController extends Controller
 
     $relevamiento = Relevamiento::find($request->id_relevamiento);
     $relevamiento->observacion_validacion = $request->observacion_validacion;
+    $relevamiento->truncadas=$request->truncadas;
     $relevamiento->estado_relevamiento()->associate(4);
     $relevamiento->save();
 
@@ -774,7 +775,7 @@ class RelevamientoController extends Controller
     $sin_isla = 0;
     foreach ($relevamientos as $unRelevamiento){
       if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
-      $detallesOK +=  $unRelevamiento->detalles->where('producido_calculado_relevado','=','producido_importado')->count();
+      $detallesOK +=  $unRelevamiento->detalles->where('diferencia','=','0.00')->count();
       $relevadas = $relevadas + $unRelevamiento->detalles->count();
       if($unRelevamiento->mtms_habilitadas_hoy != null) $habilitadas_en_tal_fecha = $unRelevamiento->mtms_habilitadas_hoy;
       if($unRelevamiento->mtm_sin_isla != null) $sin_isla = $unRelevamiento->mtm_sin_isla;
@@ -896,11 +897,25 @@ class RelevamientoController extends Controller
       $rel->sin_isla = $sin_isla;
     }
 
+    /*los conceptos del resumen cambiaron por los siguientes:
+    relevadas: la totalidad de maquinas del relevamiento
+    verificadas: todas las maquinas a las que se le tomaron contadores, sin importar los errores (relevadas-no tomas)
+    errores generales: aquellas que tiene la X, es decir la que dio diferencia sin considerar el truncammiento
+    sin toma: persiste el concepto, todos los tipos de no toma
+    la isla ya no es necesario en este informe
+    
+    */
+    /*resultados antes del cambio
     $rel->truncadas = $sumatruncadas;
     $rel->verificadas = $detallesOK;
     $rel->sin_relevar = $no_tomadas;
     $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
-
+    */
+    $rel->truncadas = $sumatruncadas;
+    $rel->verificadas = $relevadas- $no_tomadas;
+    $rel->sin_relevar = $no_tomadas;
+    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
+    //$rel->errores_generales = $detallesOK ;
 
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
     $dompdf = new Dompdf();

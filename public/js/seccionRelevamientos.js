@@ -1,7 +1,7 @@
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-var truncadas=0;
-$(document).ready(function(){
 
+$(document).ready(function(){
+  var truncadas=0;
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -329,6 +329,7 @@ $('#modalMaquinasPorRelevamiento').on('hidden.bs.modal', function(){
 });
 
 $(document).on('click','.carga',function(e){
+  truncadas=0;
   e.preventDefault();
 
   //ocultar mensaje de salida
@@ -482,6 +483,8 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
         var producidoxcien = Number(producido);
         var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
       }
+      //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
+      diferencia= Number(diferencia.toFixed(2));
       console.log('acac');
 
       if (diferencia == 0) {
@@ -653,6 +656,7 @@ $('#btn-finalizarValidacion').click(function(e){
       id_relevamiento: id_relevamiento,
       observacion_validacion: $('#observacion_validacion').val(),
       maquinas_a_pedido: maquinas_a_pedido,
+      truncadas:truncadas,
       data
     }
 
@@ -1933,7 +1937,8 @@ function calculoDiferencia(tablaRelevamientos){
 }
 
 function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
-
+    //debido a que el metodo se llama en ultima instancia para validar, ahi empieza el contador desde cero
+    truncadas=0;
     for (var i = 0; i < data.detalles.length; i++) {
 
       var id_detalle = data.detalles[i].detalle.id_detalle_relevamiento;
