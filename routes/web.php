@@ -260,6 +260,7 @@ Route::get('eventualidades/obtenerIslaEnCasino/{id_casino}/{nro_isla}','Eventual
 Route::post('eventualidades/CargarYGuardarEventualidad','EventualidadController@CargarYGuardarEventualidad');
 Route::get('eventualidades/visualizarEventualidadID/{id_ev}','EventualidadController@visualizarEventualidadID');
 Route::get('eventualidades/eliminarEventualidad/{id_ev}', 'EventualidadController@eliminarEventualidad');
+Route::get('eventualidades/visado/{id_ev}', 'EventualidadController@validarEventualidad');
 Route::post('eventualidades/buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
 
 
