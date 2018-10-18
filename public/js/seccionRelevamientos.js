@@ -1937,7 +1937,8 @@ function calculoDiferencia(tablaRelevamientos){
 }
 
 function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
-
+    //debido a que el metodo se llama en ultima instancia para validar, ahi empieza el contador desde cero
+    truncadas=0;
     for (var i = 0; i < data.detalles.length; i++) {
 
       var id_detalle = data.detalles[i].detalle.id_detalle_relevamiento;
