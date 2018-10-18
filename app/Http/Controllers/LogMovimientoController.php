@@ -1123,27 +1123,32 @@ class LogMovimientoController extends Controller
     $maquinas = array();
 
     $maquinasClick = DB::table('maquina')
-                        ->select('maquina.*','isla.*')
+                        ->select('maquina.*','isla.*','juego.*')
                         ->join('movimiento_isla','movimiento_isla.id_maquina','=','maquina.id_maquina')
                         ->join('log_clicks_mov','log_clicks_mov.fecha','=','movimiento_isla.fecha')
                         ->join('isla','isla.id_isla','=','maquina.id_isla')
                         ->join('log_movimiento','log_movimiento.id_log_movimiento','=','log_clicks_mov.id_log_movimiento')
+                        ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('log_movimiento.id_log_movimiento','=', $id_log_movimiento)
                         ->distinct('maquina.id_maquina')
                         ->get();
     $maquinasPausa = DB::table('relevamiento_movimiento')
-                        ->select('maquina.*','isla.*')
+                        ->select('maquina.*','isla.*','juego.*')
                         ->join('maquina','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
                         ->join('isla','isla.id_isla','=','maquina.id_isla')
+                        ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('relevamiento_movimiento.id_log_movimiento','=', $id_log_movimiento)
                         ->whereNull('relevamiento_movimiento.id_fiscalizacion_movimiento')
                         ->distinct('maquina.id_maquina')
                         ->get();
 
+    //si no se guardaron maquinas en pausa O si la cantidad de mtm en pausa es menor
+    //que la cantidad de click ->lo que quiere decir es que se automatizaron mas
+    // despues de la posible pausa y entonces retorna las automatizadas
     if(!empty($maquinasPausa) && count($maquinasPausa) < count($maquinasClick))
     {
       return $maquinasClick;
-    }else{
+    }else{//las mtm automatizadas son menor o igual que las de pausa
       return $maquinasPausa;
     }
     //deberia mostrar las maquinas y la isla a la que pertenecen con el cambio hecho
