@@ -46,6 +46,10 @@ class DisposicionController extends Controller
     $disposicion->save();
     $disposicion->expediente()->associate($id_expediente);
     $disposicion->save();
+    if(!empty($disp['id_tipo_movimiento']) || $disp['id_tipo_movimiento']!= 0){
+      $id_nota = NotaController::getInstancia()->guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion);
+      $disposicion->nota()->associate($id_nota);
+    }
   }
 
   public function guardarDisposicionNota($disp, $id_nota){
