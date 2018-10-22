@@ -504,7 +504,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
           renglon_actual.find('i.fa-exclamation').hide();
         }
 
-
+      
       console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
       console.log("Producido: " + producido);
       console.log("Diferencia: " + diferencia);

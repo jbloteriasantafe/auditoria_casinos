@@ -773,6 +773,7 @@ class RelevamientoController extends Controller
     $no_tomadas = 0;
     $habilitadas_en_tal_fecha=0;
     $sin_isla = 0;
+    $sin_contadorImportado_relevada=0;
     foreach ($relevamientos as $unRelevamiento){
       if($unRelevamiento->truncadas != null)  $sumatruncadas += $unRelevamiento->truncadas;
       $detallesOK +=  $unRelevamiento->detalles->where('diferencia','=','0.00')->count();
@@ -822,6 +823,8 @@ class RelevamientoController extends Controller
                 $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
                 $no_tomadas++;
             }else{
+                //sino se importaron contadores pero si se relevaron los contadores de la maquina
+                $sin_contadorImportado_relevada+=1;
                 $det->no_toma = '---';
             }
             $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
@@ -834,7 +837,11 @@ class RelevamientoController extends Controller
             $detalles[] = $det;
 
           }else{
+            //esta recalculandolo, pero ya lo deberia tener calculado
+
             $producido = $detalle_contador_horario->coinin - $detalle_contador_horario->coinout - $detalle_contador_horario->jackpot - $detalle_contador_horario->progresivo;//APLICO FORMULA
+
+            //$producido = $detalle->producido;
 
             $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
 
@@ -900,7 +907,7 @@ class RelevamientoController extends Controller
     /*los conceptos del resumen cambiaron por los siguientes:
     relevadas: la totalidad de maquinas del relevamiento
     verificadas: todas las maquinas a las que se le tomaron contadores, sin importar los errores (relevadas-no tomas)
-    errores generales: aquellas que tiene la X, es decir la que dio diferencia sin considerar el truncammiento
+    errores generales: aquellas que tiene la X, es decir la que dio diferencia sin considerar el truncammiento, tampoco se consideran aquellas que dieron error por falta de improtar contadores
     sin toma: persiste el concepto, todos los tipos de no toma
     la isla ya no es necesario en este informe
     
@@ -914,7 +921,8 @@ class RelevamientoController extends Controller
     $rel->truncadas = $sumatruncadas;
     $rel->verificadas = $relevadas- $no_tomadas;
     $rel->sin_relevar = $no_tomadas;
-    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas;
+    $rel->errores_generales = $relevadas - $sumatruncadas - $detallesOK - $no_tomadas - $sin_contadorImportado_relevada;
+    $rel->sin_contadorImportado_relevada=$sin_contadorImportado_relevada;
     //$rel->errores_generales = $detallesOK ;
 
     $view = View::make('planillaRelevamientosValidados', compact('rel'));
