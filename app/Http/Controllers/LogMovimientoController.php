@@ -1418,6 +1418,10 @@ class LogMovimientoController extends Controller
         }
       }
 
+      if(empty($reglas)){
+        return $this->todasEventualidadesMTMs();
+      }
+
       $reglas[]=['log_movimiento.tiene_expediente','=',0];
       // $reglas[]=['log_movimiento.id_expediente','is',null]; hay que usar wherenull
 
@@ -1437,6 +1441,7 @@ class LogMovimientoController extends Controller
                         ->where('log_movimiento.tiene_expediente','=', 0)
                         ->whereIn('log_movimiento.id_casino',$casinos)
                         ->distinct('log_movimiento.id_log_movimiento')
+                        ->orderBy('log_movimiento.fecha','DES')
                         ->take(30)
                         ->get();
       }else{
@@ -1457,6 +1462,7 @@ class LogMovimientoController extends Controller
                         ->whereYear('log_movimiento.fecha' , '=', $fecha[0])
                         ->whereMonth('log_movimiento.fecha','=', $fecha[1])
                         ->distinct('log_movimiento.id_log_movimiento')
+                        ->orderBy('log_movimiento.fecha','DES')
                         ->take(30)
                         ->get();
       }
