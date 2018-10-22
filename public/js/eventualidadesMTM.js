@@ -898,7 +898,7 @@ $('#btn-buscarEventualidadMTM').click(function(e){
 
       for (var i = 0; i < data.eventualidades.length; i++) {
 
-        var filaEventualidad = generarFilaTabla(data.eventualidades[i]);
+        var filaEventualidad = generarFilaTabla(data.eventualidades[i], data.esControlador);
         $('#cuerpoTablaEvMTM').append(filaEventualidad);
         console.log('fila:',filaEventualidad);      }
 
@@ -909,13 +909,18 @@ $('#btn-buscarEventualidadMTM').click(function(e){
   });
 });
 
+
+$("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
+    $('#btn-buscarEventualidadMTM').trigger('click',['eventualidades.fecha_toma','desc']);
+});
 //Se generan filas en la tabla principal con las eventualidades encontradas
-function generarFilaTabla(event){
+function generarFilaTabla(event,controlador){
 
   var fila = $(document.createElement('tr'));
   var fecha;
   var tipo_ev;
   var casino;
+  var estado = event.id_estado_movimiento;
 
   console.log('event',event);
 
@@ -926,20 +931,40 @@ function generarFilaTabla(event){
 
   fila.attr('id', event.id_eventualidad)
       .append($('<td>')
-      .addClass('col-xs-3')
+      .addClass('col-xs-2')
       .text(convertirDate(fecha))
       )
       .append($('<td>')
       .addClass('col-xs-3')
       .text(tipo_ev)
       )
-      .append($('<td>')
-      .addClass('col-xs-3')
+      if(estado==4){
+      fila.append($('<td>')
+      .addClass('col-xs-2')
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#4CAF50').css('align','center')))
+      }
+      else{
+        fila.append($('<td>')
+        .addClass('col-xs-2')
+        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350').css('align','center')))
+      }
+      fila.append($('<td>')
+      .addClass('col-xs-2')
       .text(casino)
       )
       .append($('<td>')
       .addClass('col-xs-3')
       .append($('<span>').text(' '))
+      .append($('<span>').text(' '))
+      .append($('<button>')
+      .addClass('btn_imprimirEvmtm')
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
+      )
+      .append($('<span>').text('IMPRIMIR'))
+      .addClass('btn').addClass('btn-info')
+      .attr('value',event.id_log_movimiento)
+      )
+
       .append($('<button>')
       .addClass('btn_cargarEvmtm')
       .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
@@ -958,15 +983,7 @@ function generarFilaTabla(event){
       .addClass('btn').addClass('btn-success')
       .attr('value',event.id_log_movimiento)
       )
-      .append($('<span>').text(' '))
-      .append($('<button>')
-      .addClass('btn_imprimirEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-      )
-      .append($('<span>').text('IMPRIMIR'))
-      .addClass('btn').addClass('btn-info')
-      .attr('value',event.id_log_movimiento)
-      )
+
       .append($('<span>').text(' '))
       .append($('<button>')
       .addClass('btn_borrarEvmtm')
@@ -977,8 +994,12 @@ function generarFilaTabla(event){
       .attr('value',event.id_log_movimiento)
       )
     );
-  if(event.id_estado_movimiento!=6){ fila.find('.btn_borrarEvmtm').remove();}
-  if(event.id_estado_movimiento!=1){ fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_imprimirEvmtm').hide();}
+
+    if(estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
+    if(controlador == 0 && estado == 6){fila.find('.btn_validarEvmtm').hide();}
+    if(controlador == 1 && estado == 6){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
+    if(controlador==1 && estado==1){fila.find('.btn_cargarEvmtm').hide(); fila.find('.btn_borrarEvmtm').hide();}
+
       return fila;
 };
 
