@@ -278,6 +278,7 @@ Route::post('eventualidadesMTM/eliminarEventualidadMTM', 'LogMovimientoControlle
 Route::get('eventualidadesMTM/tiposMovIntervMTM', 'LogMovimientoController@tiposMovIntervMTM');
 Route::get('eventualidadesMTM/relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
 Route::get('eventualidadesMTM/imprimirEventualidadMTM/{id_mov}/{esNueva}','LogMovimientoController@imprimirEventualidadMTM');
+Route::get('eventualidadesMTM/visar/{id_relevamiento}', 'LogMovimientoController@validarRelevamientoEventualidad');
 
 
 /******
