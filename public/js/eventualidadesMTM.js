@@ -542,8 +542,7 @@ $(document).on('click','#guardarEv',function(){
     success: function (data) {
 
       var nro_Admin=$('#inputAdmin').val();
-      console.log('BIEN');
-      console.log(data);
+
       $('#mensajeErrorCarga').hide();
       $('#modalCargarMaqEv #detallesMTM').hide();
       $('#modalCargarMaqEv #fechaEv').val(' ');
@@ -677,6 +676,9 @@ $(document).on('click','.btn_validarEvmtm',function(){
   $('.validarEv').prop('disabled', true);
   $('.errorEv').prop('disabled',true);
   $('#observacionesToma').hide();
+  //oculto botones de error y validacion porque voy a visar de a una
+  $('#enviarValidarEv').hide();
+  $('#errorValidacionEv').hide();
 
   // var id_fiscalizacion = $(this).attr('data-id-fiscalizacion');
 
@@ -694,18 +696,40 @@ $(document).on('click','.btn_validarEvmtm',function(){
             .addClass('col-xs-8')
             .text(data.relevamientos[i].nro_admin)
             )
-        fila.append($('<td>')
-            .addClass('col-xs-4')
-            .append($('<button>')
-                .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-                )
-                .attr('type','button')
-                .addClass('btn btn-info verMaquinaEv')
-                .attr('data-maquina',data.relevamientos[i].id_maquina)
-                .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
-            )
-          );
+        if(data.relevamientos[i].id_estado_relevamiento == 4){
+
+          fila.append($('<td>')
+              .addClass('col-xs-2')
+              .append($('<button>')
+                  .append($('<i>')
+                  .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+                  )
+                  .attr('type','button')
+                  .addClass('btn btn-info verMaquinaEv')
+                  .attr('data-maquina',data.relevamientos[i].id_maquina)
+                  .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
+                  .attr('data-estado', data.relevamientos[i].id_estado_relevamiento))
+              )  .append($('<td>').addClass('col-xs-2').append($('<i>')
+                    .addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#4CAF50'))
+                  );
+          }
+          else{
+            fila.append($('<td>')
+                .addClass('col-xs-2')
+                .append($('<button>')
+                    .append($('<i>')
+                    .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+                    )
+                    .attr('type','button')
+                    .addClass('btn btn-info verMaquinaEv')
+                    .attr('data-maquina',data.relevamientos[i].id_maquina)
+                    .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
+                    .attr('data-estado', data.relevamientos[i].id_estado_relevamiento)
+
+                ))
+
+          }
+
         tablaMaquinasFiscalizacion.append(fila);
    }
 
@@ -720,9 +744,22 @@ $(document).on('click','.btn_validarEvmtm',function(){
 $(document).on('click','.verMaquinaEv',function(){
 
   $('.detalleMaqVal').show();
+  //marco el seleccionado
+  $('#tablaMaquinasFiscalizacion tbody tr').css('background-color','#FFFFFF');
+  $(this).parent().parent().css('background-color', '#E0E0E0');
+
+  if($(this).attr('data-estado') == 4){
+    $('#enviarValidarEv').hide();
+    $('#errorValidacionEv').hide();
+  }
+  else{
+  $('#enviarValidarEv').show();
+  $('#errorValidacionEv').show();}
+
   var id_maquina = $(this).attr('data-maquina');
   var tablaContadores = $('#tablaValidarContadores tbody');
   var id_relevamiento = $(this).attr('data-relevamiento');
+  $('#enviarValidarEv').attr('data-relev', id_relevamiento);
 
   //guardo el id_maquina en el input maquina del modal
   $('#modalValidacionEventualidadMTM').find('#maquina').val(id_maquina);
@@ -805,22 +842,7 @@ $(document).on('click','.verMaquinaEv',function(){
         $('#creditos').val(data.toma.cant_creditos);
 
         }
-      // else{
-      //   $('#toma2').show();
-      //   $('#juego').val(data.toma.nombre_juego);
-      //   $('#apuesta').val(data.toma.apuesta_max);
-      //   $('#cant_lineas').val(data.toma.cant_lineas);
-      //   $('#devolucion').val(data.toma.porcentaje_devolucion);
-      //   $('#denominacion').val(data.toma.denominacion);
-      //   $('#creditos').val(data.toma.cant_creditos);
-      //
-      //   $('#juego1').val(data.toma1.nombre_juego);
-      //   $('#apuesta1').val(data.toma1.apuesta_max);
-      //   $('#cant_lineas1').val(data.toma1.cant_lineas);
-      //   $('#devolucion1').val(data.toma1.porcentaje_devolucion);
-      //   $('#denominacion1').val(data.toma1.denominacion);
-      //   $('#creditos1').val(data.toma1.cant_creditos);
-      // }
+
       $('#observacionesToma').show();
         if(data.toma.observaciones!=null){
             $('#observacionesToma').text(data.toma.observaciones);}
@@ -842,8 +864,8 @@ $(document).on('click','.verMaquinaEv',function(){
       }
   });
 
-  $('#enviarValidarEv').prop('disabled',false);
-  $('#errorValidacionEv').prop('disabled',false);
+   $('#enviarValidarEv').prop('disabled',false);
+   $('#errorValidacionEv').prop('disabled',false);
 
 });
 
@@ -851,6 +873,36 @@ $(document).on('click','.verMaquinaEv',function(){
 $(document).on('click', '#enviarValidarEv', function(){
 
     $('.detalleMaqVal').hide();
+
+    var id=$(this).attr('data-relev');
+    $.get('eventualidadesMTM/visar/' + id, function(data){
+      if(data.id_estado_relevamiento == 4){
+        $('#mensajeExitoValidacion').show();
+        $('#enviarValidarEv').hide();
+        $('#errorValidarEv').hide();
+
+
+        $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
+
+            var maq=$(this).attr('data-relev');
+
+            if (maq == id){
+              var cambio = $(this).parent().find('.verMaquinaEv');
+              cambio.attr('data-estado',4);
+              $(this).append($('<td>')
+                  .addClass('col-xs-2')
+                  .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+            }
+        });
+      }
+
+    })
+
+});
+$('#modalValidacionEventualidadMTM').on('hidden.bs.modal', function() {
+
+  $('#btn-buscarEventualidadMTM').trigger('click');
+  
 
 });
 
