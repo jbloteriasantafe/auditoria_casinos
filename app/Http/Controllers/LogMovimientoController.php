@@ -1418,7 +1418,7 @@ class LogMovimientoController extends Controller
         }
       }
 
-      if(empty($reglas)){
+      if(empty($reglas) && !isset($request->fecha)){
         return $this->todasEventualidadesMTMs();
       }
 
