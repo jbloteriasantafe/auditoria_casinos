@@ -439,14 +439,18 @@ $id_usuario = session('id_usuario');
                                   <div id="columnaDisposicion" style="padding-top:10px;">
 
                                       <div id="moldeDisposicion" class="row disposicion" style="padding-bottom:15px;" hidden>
-                                          <div class="col-md-4">
+                                          <div class="col-md-3">
                                             <div class="input-group triple-input">
                                               <input class="form-control nro_disposicion" style="width:60%;" type="text" placeholder="---" maxlength="3"  />
                                               <input class="form-control nro_disposicion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2"  />
                                             </div>
                                           </div>
-                                          <div class="col-md-6">
+                                          <div class="col-md-4">
                                             <input class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción">
+                                          </div>
+                                          <div class="col-md-3">
+                                            <select class="form-control tiposMovimientosDisp" name="">
+                                            </select>
                                           </div>
                                           <div class="col-md-2">
                                             <button class="btn btn-danger borrarFila borrarDisposicion" type="button" name="button">
@@ -539,7 +543,7 @@ $id_usuario = session('id_usuario');
                                 <div class="col-md-4">
                                   <h5>FECHA</h5>
                                   <!-- FORM GROUP -->
-                                  <div class="form-group">
+                                  <div class="form-group" style="padding-left:20px;">
                                      <div class='input-group date dtpFechaNota' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
                                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -616,7 +620,7 @@ $id_usuario = session('id_usuario');
                                 <div class="col-md-4 col-md-offset-2">
                                   <h5>FECHA</h5>
                                   <!-- FORM GROUP -->
-                                  <div class="form-group">
+                                  <div class="form-group" style="padding-left:20px;">
                                      <div class='input-group date dtpFechaMov' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
                                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>

@@ -170,9 +170,11 @@ function obtenerTiposMovimientos() {
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
           $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
+          $('#moldeDisposicion .tiposMovimientosDisp').append(optionDefecto);
           for (var i = 0; i < data.length; i++) {
             var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
             $('#moldeNotaNueva .tiposMovimientos').append(option);
+            $('#moldeDisposicion .tiposMovimientosDisp').append(option);
           }
     });
 }
@@ -1114,6 +1116,7 @@ function limpiarModal(){
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
+  $('#moldeDisposicion .tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
 
@@ -1210,16 +1213,17 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,movimient
     $('#nro_resolucion').val(resolucion.nro_resolucion);
     $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
   }
-  if(disposiciones != null){
-    for(var index=0; index<disposiciones.length; index++){
-      agregarDisposicion(disposiciones[index],editable);
-    }
-  }
   if(movimientos != null){
     for(var index=0; index<movimientos.length; index++){
       agregarMovimientos(movimientos[index],editable);
     }
   }
+  if(disposiciones != null){
+    for(var index=0; index<disposiciones.length; index++){
+      agregarDisposicion(disposiciones[index],editable);
+    }
+  }
+
 }
 
 function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
@@ -1349,11 +1353,17 @@ function agregarDisposicion(disposicion, editable){
 
     moldeDisposicion.show();
 
+
     if(editable==false){
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
       moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
+      if(disposicion.id_nota != null){
+        moldeDisposicion.find('.tiposMovimientosDisp').val(disposicion.id_tipo_movimiento).prop('disable',true);
+      }else {
+        moldeDisposicion.find('.tiposMovimientosDisp').css('display','none');
+      }
 
       $('#columnaDisposicion').append(moldeDisposicion);
 
