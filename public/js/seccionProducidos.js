@@ -301,6 +301,7 @@ $("#btn-finalizar").click(function(e){
   //Se evnía el relevamiento para guardar con estado 2 = 'Carga parcial'
   guardarFilaDiferenciaCero(3,id_maquina);
   $('#modalCargaProducidos .mensajeSalida span').hide();
+
 })
 
 $('.btn-ajustar').click(function(e){
@@ -434,7 +435,7 @@ function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
                 $('#mensajeExito h3').text('EXITO');
                 $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
                 $('#mensajeExito div').css('background-color','#4DB6AC');
-                $('#mensajeExito').modal('show');
+                $('#mensajeExito').show();
 
                 $('#tablaImportacionesProducidos #' + $('#id_producido').val()).find('td').eq(3).children()
                     .replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
