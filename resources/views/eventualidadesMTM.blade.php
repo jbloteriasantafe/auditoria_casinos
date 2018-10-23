@@ -128,7 +128,7 @@
 
                       <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
 
-                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0))
+                      @if($eventualidad->id_estado_movimiento == 6  )
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
@@ -523,10 +523,8 @@
                 </div> <!-- maquinas -->
 
                 <div class="col-md-9">
-
-                  <h5>DETALLES</h5>
                   <div class="detalleMaqVal">
-
+                      <h5>DETALLES</h5>
                     <div class="row">
 
                       <div class="col-lg-3">
@@ -643,7 +641,7 @@
                                 </div> <!-- quinto row -->
 
 
-                                  <div id="toma2">
+                                <div id="toma2">
 
                                   <h6>TOMA 1</h6>
 
@@ -682,7 +680,7 @@
                                       <input id="creditos1" type="text" class="form-control" readonly="readonly">
                                       </div>
                                     </div>  <!-- septimo row -->
-                                        </div>
+                                  </div>
 
 
                                     <div class="row">
@@ -701,7 +699,7 @@
             <input id="relevamiento" type="text" name="" value="" hidden>
             <input id="maquina" type="text" name="" value="" hidden>
               <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >ERROR</button>
-              <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value=""> VISAR </button>
+              <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value="" > VISAR </button>
 
               <div id="mensajeErrorVal" hidden>
                   <br>
