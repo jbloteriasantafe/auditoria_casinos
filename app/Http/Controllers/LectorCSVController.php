@@ -827,11 +827,10 @@ class LectorCSVController extends Controller
         $pdo->exec($query);
 
 
-
         $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
                                   ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario
-                           FROM contadores_temporal AS ct, maquina AS mtm
+                           FROM contadores_temporal AS ct RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
                            WHERE ct.id_contador_horario = '%d'
                              AND ct.maquina = mtm.nro_admin
                              AND mtm.id_casino = 3

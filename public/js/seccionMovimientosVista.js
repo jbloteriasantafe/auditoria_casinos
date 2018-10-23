@@ -1528,6 +1528,8 @@ $(document).on('click','.verMaquina1',function(){
     $('#marcaMov').val(data.toma.marca);
     $('#modeloMov').val(data.toma.modelo);
     $('#macMov').val(data.toma.mac);
+    $('#islaRelevadaMov').val(data.toma.nro_isla_relevada);
+    $('#sectorRelevadoMov').val(data.toma.descripcion_sector_relevado);
 
     //CARGAR LA TABLA DE CONTADORES, HASTA 6
     var cont = "cont";

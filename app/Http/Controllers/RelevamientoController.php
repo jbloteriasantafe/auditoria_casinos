@@ -270,14 +270,14 @@ class RelevamientoController extends Controller
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-        //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por isla a pedido del de rosario
-        return Isla::find($maquina->id_isla)->nro_isla;
+        //return Isla::find($maquina->id_isla)->nro_isla;
          //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
-         //$maq=Isla::find($maquina->id_isla);
-         //return [$maq->orden, $maq->nro_isla];
+         $maq=Isla::find($maquina->id_isla);
+         return [$maq->orden, $maq->nro_isla];
        //});
-
       });
+
+
     }else{
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
         return Isla::find($maquina->id_isla)->nro_isla;
@@ -910,7 +910,7 @@ class RelevamientoController extends Controller
     errores generales: aquellas que tiene la X, es decir la que dio diferencia sin considerar el truncammiento, tampoco se consideran aquellas que dieron error por falta de improtar contadores
     sin toma: persiste el concepto, todos los tipos de no toma
     la isla ya no es necesario en este informe
-    
+
     */
     /*resultados antes del cambio
     $rel->truncadas = $sumatruncadas;

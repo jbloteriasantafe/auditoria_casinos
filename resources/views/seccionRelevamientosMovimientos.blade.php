@@ -225,11 +225,22 @@
                     <br>
                   </div> <!-- modelo -->
 
-                  <div class="col-lg-6">
+                  <div class="col-lg-4">
                     <h5>MAC</h5>
                     <input id="macCargar" type="text" value="" class="form-control">
                     <br>
                   </div> <!-- modelo -->
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaCargar" type="text" value="" class="form-control">
+                    <br>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <h5>SECTOR</h5>
+                    <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
+                    <br>
+                  </div> <!-- SECTOR -->
 
                 </div> <!-- segundo row -->
 

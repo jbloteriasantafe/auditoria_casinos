@@ -715,6 +715,17 @@
                     <input id="macMov" type="text" class="form-control" readonly="readonly">
                     <br>
                   </div> <!-- mac -->
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaMov" type="text" value="" class="form-control">
+                    <br>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <h5>SECTOR</h5>
+                    <input id="sectorRelevadoMov" type="text" value="" class="form-control">
+                    <br>
+                  </div> <!-- SECTOR -->
                 </div> <!-- segundo row -->
 
                 <div class="row">
