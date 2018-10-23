@@ -918,16 +918,6 @@ class LogMovimientoController extends Controller
     $relev = RelevamientoMovimiento::find($id_relevamiento);
     $fiscalizacionMov = FiscalizacionMov::find($relev->id_fiscalizacion_movimiento);
     $toma = DB::table('relevamiento_movimiento')
-<<<<<<< HEAD
-            ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
-            ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
-            ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-            ->join('formula','formula.id_formula','=', 'maquina.id_formula')
-            ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
-            ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
-            ->get()
-            ->first();
-=======
                     ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
                     ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
                     ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
@@ -936,7 +926,6 @@ class LogMovimientoController extends Controller
                     ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
                     ->get()
                     ->first();
->>>>>>> 3791e7424f74f6a5338f25d4de9356dd10e19db1
 
     $toma1=null;
     if($fiscalizacionMov->es_reingreso == 1 ){
