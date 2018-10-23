@@ -85,6 +85,7 @@ class ExpedienteController extends Controller
                 ->get();
 
     $disposiciones = DB::table('disposicion')
+                          ->select('disposicion.*','nota.id_tipo_movimiento')
                           ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
                           ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
                           ->where('disposicion.id_expediente','=',$id)
@@ -459,7 +460,6 @@ class ExpedienteController extends Controller
 
   public function buscarExpedientes(Request $request){
     $reglas = Array();
-
     if(isset($request->nro_exp_org))
       $reglas[]=['nro_exp_org','like', '%'.$request->nro_exp_org.'%'];
     if(isset($request->nro_exp_interno))

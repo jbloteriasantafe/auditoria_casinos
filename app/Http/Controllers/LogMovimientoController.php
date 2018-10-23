@@ -972,8 +972,8 @@ class LogMovimientoController extends Controller
     $maquinasYJuegos = array();
     foreach ($maquinas as $maq) {
         $mtmm=  Maquina::find($maq->id_maquina);
-	$juego_select = $mtmm->juego_activo();
-	$juegos = $mtmm->juegos;
+	       $juego_select = $mtmm->juego_activo();
+	        $juegos = $mtmm->juegos;
       $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos, 'juego_seleccionado' => $juego_select];
     }
 
@@ -1528,7 +1528,7 @@ class LogMovimientoController extends Controller
         $string = "DATE(relevamiento_movimiento.fecha_relev_sala) = " . $fecha;
       }
       $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
+        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
         ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
         ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
         ->where('log_movimiento.id_log_movimiento','=',$id)
@@ -1536,7 +1536,7 @@ class LogMovimientoController extends Controller
         ->get();
     }else{
       $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
+        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
         ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
         ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
         ->where('log_movimiento.id_log_movimiento','=',$id)
@@ -1801,6 +1801,28 @@ class LogMovimientoController extends Controller
   public function validarEventualidad($id_movimiento){
     $logMovimiento = LogMovimiento::find($id_movimiento);
     return ['maquinas'=> $logMovimiento->relevamientos_movimientos];
+  }
+
+  public function validarRelevamientoEventualidad($id_relev_mov){
+    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
+    $id_usuario = session('id_usuario');
+    $relev_mov = RelevamientoMovimiento::find($id_relev_mov);
+    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
+    $id_usuario = session('id_usuario');
+    if($this->noEsControlador($id_usuario,  $logMov)){
+      $logMov->controladores()->attach($id_usuario);
+      $logMov->save();
+    }
+    //a las tomas de los relevamientos las marco como validadas
+    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
+    $maquina = $relev_mov->maquina;
+
+    if($logMov->relevamientos_movimientos->count() == $logMov->relevamientos_movimientos->where('id_estado_relevamiento','=',4)->count()){
+      $logMov->estado_relevamiento()->associate(4);
+      $logMov->save();
+    }
+
+    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
 
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
