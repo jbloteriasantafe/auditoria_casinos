@@ -26,7 +26,7 @@ class Eventualidad extends Model
      return $this->belongsToMany('App\Usuario','fisca_tiene_eventualidad','id_eventualidad','id_fiscalizador');
   }
 
-  public function maquinass(){
+  public function maquinas(){
      return $this->belongsToMany('App\Maquina','maquina_tiene_eventualidad','id_eventualidad','id_maquina');
   }
 

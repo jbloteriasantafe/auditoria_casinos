@@ -171,7 +171,7 @@ $('.btn-cargarRelMov').click(function(e){
         $('#tablaMaquinasFiscalizacion tbody').append(fila);
       }
 
-      //var cant_filas=$('#tablaMaquinasFiscalizacion tbody tr').
+      // var cant_filas=$('#tablaMaquinasFiscalizacion tbody tr').
 
       $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
       $('#fiscaToma').setearElementoSeleccionado(0,"");
