@@ -600,6 +600,24 @@ $cas = $usuario['usuario']->casinos;
                                 <span>Mesas de paño</span>
                             </div>
                         </li>
+
+                        <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
+                        <li>
+                          <div id="" class="opcionesHover"  href="">
+                            <a href="http://10.1.120.9/AE/login.php" target="_blank">
+                            <span class="flechita">
+                                <i class="fa fa-angle-right"></i>
+                              </span>
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>AUTOEXCLUSIÓN</span>
+                            </a>
+                          </div>
+                        </li>
+
+
+
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
                                                                                                             'informes_mtm','informes_bingos','informes_mesas']))
                         <div class="separadoresMenu">ESTADÍSTICAS</div>
@@ -728,9 +746,12 @@ $cas = $usuario['usuario']->casinos;
             </div>
         </div>
 
+        
+
+        
 
         <!-- Modal Error -->
-        <div id="mensajeError" hidden>
+        <div id="mensajeError"  hidden>
             <div class="cabeceraMensaje"></div>
             <div class="iconoMensaje">
               <img src="/img/logos/error.png" alt="imagen_error" >

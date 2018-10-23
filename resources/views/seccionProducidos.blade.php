@@ -215,6 +215,9 @@ use Illuminate\Http\Request;
         <div class="modal-body" style="font-family: Roboto;">
 
           <div class="row" >
+            <h6 style="padding-left:15px" id="fecha_produccion_validacion"></h6>
+          </div>
+          <div class="row" >
             <div class="col-md-3">
               <h6><b>MÁQUINAS</b></h6>
               <table id="tablaMaquinas" class="table" style="display: block;">
@@ -361,6 +364,8 @@ use Illuminate\Http\Request;
         <button type="button" class="btn btn-warningModificar" id="btn-guardar" value="nuevo">GUARDAR TEMPORALMENTE</button>
         <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR AJUSTES</button>
         <button type="button" class="btn btn-default" id="btn-salir" >SALIR</button>
+        <button type="button" class="btn btn-info success" id="btn-salir-validado" hidden="true">VALIDAR</button>
+
         <div class="mensajeSalida">
             <br>
             <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS SIN GUARDAR</span>

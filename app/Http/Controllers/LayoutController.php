@@ -481,11 +481,26 @@ class LayoutController extends Controller
     $maquinas = Maquina::whereIn('id_isla',$islas)
                        ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
                        ->inRandomOrder()->take($request->cantidad_maquinas)->get();
-
+   
+                       /*
     //ordena por número de isla, recuperando la isla para saber su número
     $maquinas = $maquinas->sortBy(function($maquina,$key){
       return Isla::find($maquina->id_isla)->nro_isla;
-    });
+    });*/
+
+    //evaluo si es de rosario para ordenar por islote e isla , sino solo por isla
+    $id_casino_orden=Sector::find($request->id_sector)->id_casino;
+    if($id_casino_orden==3){
+      $maquinas = $maquinas->sortBy(function($maquina,$key){
+        $maq=Isla::find($maquina->id_isla);
+         return [$maq->orden, $maq->nro_isla];
+        
+      });
+    }else{
+      $maquinas = $maquinas->sortBy(function($maquina,$key){
+        return Isla::find($maquina->id_isla)->nro_isla;
+      });
+    };
 
     $arregloRutas = array();
 
@@ -1223,10 +1238,14 @@ class LayoutController extends Controller
     $detalles = array();
     $progresivos = array();
 
+    //cargado significa que entreo luego que se finalizo, en ese punto solo lo puede ver el administrador
+    //mostrar maquinas es una bandera para mostrar en el formulario la cantidad de maquinas
     if($cargado){
       $maquinas_apagadas = $layout_total->detalles;
+      $mostrar_maquinas=true;
     }else{
       $maquinas_apagadas = array();
+      $mostrar_maquinas=false;
     }
 
     foreach($layout_total->casino->sectores as $sector){
@@ -1236,10 +1255,19 @@ class LayoutController extends Controller
       // foreach ($sector->islas as $isla) {
       //   $islas[] = $isla->nro_isla;
       // }
-      $det->islas = $sector->islas;
+      //si el casino es de rosario lo ordeno por islote e isla
+      if($layout_total->id_casino==3){
+        $det->islas = $sector->islas->sortBy(function($isl,$key){
+          return [$isl->orden,$isl->nro_isla];
+        });
+      }else{
+        $det->islas = $sector->islas;
+      };
+      
+      
       $detalles[] = $det;
     };
-    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas'));
+    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());

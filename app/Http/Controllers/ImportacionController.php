@@ -8,10 +8,12 @@ use App\Producido;
 use App\Beneficio;
 use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\RelevamientoController;
 use App\Http\Controllers\LectorCSVController;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Casino;
+
 use App\Services\LengthPager;
 
 class ImportacionController extends Controller
@@ -334,11 +336,26 @@ class ImportacionController extends Controller
           if($validator->getData()['id_tipo_moneda'] != null){
             $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
           }
+
+          //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
+          
+        if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
         }
+        }
     })->validate();
+
+    
+    //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
+    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
+      $id_usuario=session('id_usuario');
+      if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
+        return ['resultado' => 'existeRel'];
+      }
+      
+    }
 
     switch($request->id_casino){
       case 1:
@@ -353,6 +370,7 @@ class ImportacionController extends Controller
       default:
         break;
     }
+    
   }
 
   public function importarProducido(Request $request){
@@ -412,5 +430,6 @@ class ImportacionController extends Controller
         break;
     }
   }
+  
 
 }

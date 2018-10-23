@@ -53,6 +53,9 @@ $(function () {
     $('#fecha_inicio').val(" ");
     $('#fecha_fin').val(" ");
     $('#validado').val("-");
+    $('#B_fecha_inicio').val(" ");
+    $('#B_fecha_fin').val(" ");
+
 
 });
 
@@ -181,18 +184,30 @@ $(document).on('click','.carga',function(e){
   var tr_html =$(this).parent().parent();
 
   var id_producidos =$(this).val();
+  
   $('#modalCargaProducidos #id_producido').val(id_producidos);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
   $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
 
+    //pruebas
+    console.log("esto esta por evaluar");
+    console.log("esto esta por evaluar",data);
+
+
+    // fin pruebas
     if(data.validado.estaValidado == 0){
+
+      $('#fecha_produccion_validacion').text('FECHA DE PRODUCCIÓN: ' + data.fecha_produccion);
+
       for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
 
           $('#cuerpoTabla').append(fila);
-
+    $('#btn-salir-validado').hide();
+    $('#btn-salir').show();
         }
     }else {
+      $('#btn-minimizar').hide();
       $('#cuerpoTabla')
           .append($('<div>')
               .addClass('row')
@@ -205,6 +220,9 @@ $(document).on('click','.carga',function(e){
 
       )
       $('#textoExito').hide();
+      $('#btn-salir-validado').show();
+      $('#btn-salir').hide();
+
       cerrarContadoresYValidar($('#id_producido').val() ,data.validado.producido_fin);//como no hubo diferencias producido validado y contadores finales cerrados
     }
 
@@ -215,10 +233,15 @@ $(document).on('click','.carga',function(e){
 
 });
 
+$('#btn-salir-validado').on('click', function(e){
+
+    $('#modalCargaProducidos').modal('hide');
+    $('#btn-buscar').trigger('click');
+})
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){
 
-
+  $('#observacionesAjuste option').not('.default1').remove();
   $('#cuerpoTabla tr').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();

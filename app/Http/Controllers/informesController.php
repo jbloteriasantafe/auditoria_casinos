@@ -280,11 +280,15 @@ class informesController extends Controller
     }
 
     $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))->where('id_casino' , $casino->id_casino)->first();
-    $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)->first();
+    $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
+                                                  ->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)
+                                                  ->whereNull('maquina.deleted_at')
+                                                  ->first();
     $cantidad_deshabilitadas = $cantidad->cantidad - $cantidad_habilitadas->cantidad;
     $maquina_no_asignadas = DB::table('maquina')
                               ->select(DB::raw('count(*) as cantidad'))
                               ->where('maquina.id_casino' , $casino->id_casino)
+                              ->whereNull('maquina.deleted_at')
                               ->whereNull('maquina.id_isla')
                               ->first();
     if(is_numeric($id_casino)){

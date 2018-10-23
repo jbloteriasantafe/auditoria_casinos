@@ -48,6 +48,7 @@ class RelevamientoController extends Controller
   }
 
   //devuelve los sectores sin validar, si está vacia, esta validado
+  //evalua que todos los sectores sean relevados y que los mismos esten visados
   public function estaValidado($fecha, $id_casino,$tipo_moneda){
     $relevamientos=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
                                 ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ])
@@ -74,7 +75,8 @@ class RelevamientoController extends Controller
       $errores[]= 'No todos los sectores estan relevados';
 
       foreach ($relevamientos as $relevamientoSector) {
-          if($relevamientoSector->estado_relevamiento->id_estado_relevamiento!=4){//todos los relevamientos validados para el día. ID 4 -> validado
+        //si todos los relevamientos estan relevados y visados, entonces el estado es rel. visado = 7
+          if($relevamientoSector->estado_relevamiento->id_estado_relevamiento!=7){//todos los relevamientos validados para el día. ID 4 -> validado
             $errores[]=$relevamientoSector->sector->descripcion;
           }
       }
@@ -268,8 +270,14 @@ class RelevamientoController extends Controller
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-        return Isla::find($maquina->id_isla)->orden;
+        //return Isla::find($maquina->id_isla)->nro_isla;
+         //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
+         $maq=Isla::find($maquina->id_isla);
+         return [$maq->orden, $maq->nro_isla];
+       //});
       });
+
+
     }else{
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
         return Isla::find($maquina->id_isla)->nro_isla;
@@ -1358,6 +1366,18 @@ class RelevamientoController extends Controller
     return $formula_nueva;
   }
 
+  public function existeRelVisado($fecha, $id_casino){
 
+    $relevamientoVisado=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
+    ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
+    ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
+    ->get();
+
+    if(count($relevamientoVisado)>0){
+      return true;
+
+    }
+    return false;
+  }
 
 }

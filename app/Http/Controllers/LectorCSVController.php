@@ -541,7 +541,8 @@ class LectorCSVController extends Controller
     $cont_temporal = DB::table('contadores_temporal')->where('id_contador_horario','=',$contador->id_contador_horario)->first();
     $contador->fecha = date('Y-m-d' , strtotime($cont_temporal->fecha  . ' + 1 days'));
     $contador->save();
-
+    //se esta volviendo a validar, algo que se hizo en importacion controller, se anula ya que esto lo verifica el controlador superior
+    /*
     $contador_cerrado = ContadorHorario::where([['id_casino','=',$casino],['fecha','=',$contador->fecha],['cerrado','=',1]])->count();
     if($contador_cerrado > 0){
       $query = sprintf(" DELETE FROM contadores_temporal WHERE id_contador_horario = '%d'",$contador->id_contador_horario);
@@ -554,7 +555,7 @@ class LectorCSVController extends Controller
               $validator->errors()->add('contador_cerrado','El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
       })->validate();
-    }
+    }*/
 
     $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario],['id_casino','=',$casino],['fecha','=',$contador->fecha]])->get();
     if($contadores != null){
@@ -826,11 +827,10 @@ class LectorCSVController extends Controller
         $pdo->exec($query);
 
 
-
         $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
                                   ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario
-                           FROM contadores_temporal AS ct, maquina AS mtm
+                           FROM contadores_temporal AS ct RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
                            WHERE ct.id_contador_horario = '%d'
                              AND ct.maquina = mtm.nro_admin
                              AND mtm.id_casino = 3

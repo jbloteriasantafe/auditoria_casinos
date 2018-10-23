@@ -142,7 +142,7 @@ class LogMovimientoController extends Controller
                     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
                     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
                     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-                    ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+                    ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                     ->where($reglas)
                     ->whereIn('log_movimiento.id_casino' , $casinos)
                     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
@@ -150,7 +150,6 @@ class LogMovimientoController extends Controller
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
-
                     ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
       }else{
           $fecha=explode("-", $request->fecha);
@@ -159,7 +158,7 @@ class LogMovimientoController extends Controller
           ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
           ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
           ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-          ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+          ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
           ->where($reglas)
           ->whereIn('log_movimiento.id_casino' , $casinos)
           ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
@@ -403,11 +402,13 @@ class LogMovimientoController extends Controller
     //ver por que no anda
     if($logMov->id_tipo_movimiento == 7 || $logMov->id_tipo_movimiento == 2){
       foreach ($logMov->relevamientos_movimientos as $rel) {
-        if($this->fueEliminada($rel->id_maquina,$request['maquinas'])){
-          $rel->maquina()->dissociate();
-          $rel->estado_relevamiento()->dissociate();
-          $rel->log_movimiento()->dissociate();
-          RelevamientoMovimiento::destroy($rel->id_relev_mov);
+        if($rel->id_fiscalizacion_movimiento == null &&
+          $this->fueEliminada($rel->id_maquina,$request['maquinas'])){
+
+            $rel->maquina()->dissociate();
+            $rel->estado_relevamiento()->dissociate();
+            $rel->log_movimiento()->dissociate();
+            RelevamientoMovimiento::destroy($rel->id_relev_mov);
         }
       }
     }
@@ -703,6 +704,8 @@ class LogMovimientoController extends Controller
         'contadores.*.valor' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         //'juego' => 'required |exists: juego, id_juego',
         'juego' => 'required',
+        'sectorRelevadoCargar' => 'required',
+        'isla_relevada' => 'required',
         'apuesta_max' => 'required| numeric| max:900000',
         'cant_lineas' => 'required|numeric| max:100000',
         'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
@@ -719,6 +722,7 @@ class LogMovimientoController extends Controller
       $aux=1;
       $formula = $maquina->formula;
       $contadores =$validator->getData()['contadores'];
+      //PARA VALIDAR SI ESTAN TODOS LOS CONTADORES CARGADOS QUE TIENE LA MTM EN LA FORMULA
       foreach ($contadores as $cont) {
 
           switch ($aux)
@@ -766,7 +770,7 @@ class LogMovimientoController extends Controller
           $aux++;
         }
 
-    })->validate();
+    })->validate();//FIN VALIDACION DEL REQUEST
 
      if(isset($validator))
       {
@@ -811,6 +815,8 @@ class LogMovimientoController extends Controller
     $request['cant_creditos'],
     $request['fecha_sala'],
     $request['observaciones'],
+    $request['isla_relevada'],
+    $request['sectorRelevadoCargar'],
     $request->id_fiscalizacion_movimiento,
     $request->id_cargador,
     $request->id_fiscalizador, $request['mac']);
@@ -885,7 +891,7 @@ class LogMovimientoController extends Controller
     //   return $logMov->fiscalizaciones;
     // }else {//no se si funciona en todos los casos
       $fiscalizaciones = DB::table('log_movimiento')
-                          ->select('fiscalizacion_movimiento.*')
+                          ->select('fiscalizacion_movimiento.*', 'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion')
                           ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                           ->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6])
                           //->orWhere('fiscalizacion_movimiento.es_reingreso','=',1)
@@ -898,7 +904,9 @@ class LogMovimientoController extends Controller
   public function ValidarFiscalizacion($id_fiscalizacion_movimiento){
     $fiscalizacionMov = FiscalizacionMov::find($id_fiscalizacion_movimiento);
     $maquinas = DB::table('fiscalizacion_movimiento')
-                    ->select('relevamiento_movimiento.id_maquina','maquina.nro_admin','relevamiento_movimiento.id_relev_mov')
+                    ->select('relevamiento_movimiento.id_maquina','maquina.nro_admin',
+                    'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion',
+                    'relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento')
                     ->join('relevamiento_movimiento', 'relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
                     ->join('maquina','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
                     ->where('fiscalizacion_movimiento.id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento)
@@ -910,14 +918,14 @@ class LogMovimientoController extends Controller
     $relev = RelevamientoMovimiento::find($id_relevamiento);
     $fiscalizacionMov = FiscalizacionMov::find($relev->id_fiscalizacion_movimiento);
     $toma = DB::table('relevamiento_movimiento')
-                    ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego')
-                    ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
-                    ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-                    ->join('formula','formula.id_formula','=', 'maquina.id_formula')
-                    ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
-                    ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
-                    ->get()
-                    ->first();
+            ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
+            ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
+            ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
+            ->join('formula','formula.id_formula','=', 'maquina.id_formula')
+            ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
+            ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
+            ->get()
+            ->first();
 
     $toma1=null;
     if($fiscalizacionMov->es_reingreso == 1 ){
@@ -1060,24 +1068,33 @@ class LogMovimientoController extends Controller
 
       }
 
-      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
-         count($fiscalizacion->relevamientos_movimientos)){
-        if(isset($logMov->fiscalizaciones))
-        {
-          $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
-          $fiscalizacion->estado_relevamiento()->associate(4);
-          $fiscalizacion->save();
-        }
 
-      }else{
-        if(!isset($logMov->fiscalizaciones))
-        {
-          $logMov->estado_movimiento()->associate(5);//error
-        }
-      }
-      $logMov->save();
-      return 1;
+      return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
+
+
+  public function cambiarEstadoFiscalizacionAValidado($id_fiscalizacion){
+    $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
+    $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
+    if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
+       count($fiscalizacion->relevamientos_movimientos)){
+      if(isset($logMov->fiscalizaciones))
+      {
+        $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
+        $fiscalizacion->estado_relevamiento()->associate(4);
+        $fiscalizacion->save();
+      }
+
+    }else{
+      if(!isset($logMov->fiscalizaciones))
+      {
+        $logMov->estado_movimiento()->associate(5);//error
+      }
+    }
+    $logMov->save();
+    return 1;
+  }
+
 
   private function countMaquinasValidadas($relevamientos_movimientos){
     $contador = 0;

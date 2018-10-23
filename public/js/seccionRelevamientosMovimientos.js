@@ -171,6 +171,8 @@ $('.btn-cargarRelMov').click(function(e){
         $('#tablaMaquinasFiscalizacion tbody').append(fila);
       }
 
+      //var cant_filas=$('#tablaMaquinasFiscalizacion tbody tr').
+
       $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
       $('#fiscaToma').setearElementoSeleccionado(0,"");
       if (data.usuario_fiscalizador)
@@ -357,7 +359,8 @@ $(document).on('click','#guardarRel',function(){
   var obs= $('#modalCargarRelMov').find('#observacionesToma').val();
   var tabla2 = $('#tablaMaquinasFiscalizacion tbody > tr');
   var mac=$('#modalCargarRelMov').find('#macCargar').val();
-
+  var sectorRelevadoCargar=$('#modalCargarRelMov').find('#sectorRelevadoCargar').val();
+  var islaRelevadaCargar=$('#modalCargarRelMov').find('#islaRelevadaCargar').val();
 
   $.each(tabla, function(index, value){
 
@@ -383,7 +386,9 @@ $(document).on('click','#guardarRel',function(){
       cant_creditos: cred,
       fecha_sala: fecha,
       observaciones: obs,
-      mac:mac
+      mac:mac,
+      isla_relevada: islaRelevadaCargar,
+      sectorRelevadoCargar:sectorRelevadoCargar
     }
 
 
