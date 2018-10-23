@@ -100,10 +100,10 @@ use Illuminate\Http\Request;
                         <tr>
                           <th class="col-xs-2">CASINO</th>
                           <th class="col-xs-2">FECHA</th>
-                          <th class="col-xs-2">MONEDA</th>
+                          <th class="col-xs-1">MONEDA</th>
                           <th class="col-xs-1">VALIDADO</th>
                           <th class="col-xs-1">CONT INI</th>
-                          <th class="col-xs-1">CONT FIN</th>
+                          <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
                           <th class="col-xs-2">ACCIÓN</th>
                         </tr>
                       </thead>
@@ -112,7 +112,7 @@ use Illuminate\Http\Request;
                           <tr id="{{$producido['producido']->id_producido}}">
                             <td class="col-xs-2">{{$producido['producido']->casino->nombre}}</td>
                             <td class="col-xs-2">{{$producido['producido']->fecha}}</td>
-                            <td class="tipo_moneda col-xs-2" data-tipo="{{$producido['producido']->tipo_moneda->id_tipo_moneda}}">{{$producido['producido']->tipo_moneda->descripcion}}</td>
+                            <td class="tipo_moneda col-xs-1" data-tipo="{{$producido['producido']->tipo_moneda->id_tipo_moneda}}">{{$producido['producido']->tipo_moneda->descripcion}}</td>
                             <!-- si el producido esta validado -->
                             @if($producido['producido']->validado == 1)
                                 <td class="col-xs-1"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
@@ -129,9 +129,9 @@ use Illuminate\Http\Request;
 
                             <!--  si los contadores finales estan validados-->
                             @if(empty($producido['validado']))
-                                <td class="col-xs-1"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
+                                <td class="col-xs-2"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
                             @else
-                                <td class="col-xs-1"><i class="fas fa-fw fa-times" style="color:#EF5350;"></td>
+                                <td class="col-xs-2"><i class="fas fa-fw fa-times" style="color:#EF5350;"></td>
                             @endif
                             <td class="col-xs-2">
                               @if(empty($producido['cerrado']) && empty($producido['validado']) && $producido['producido']->validado == 0)
