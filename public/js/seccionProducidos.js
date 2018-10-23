@@ -420,6 +420,7 @@ function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
                 $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
                 $('#mensajeExito div').css('background-color','#4DB6AC');
                 $('#mensajeExito').show();
+                $('#btn-buscar').trigger('click');
 
                 $('#tablaImportacionesProducidos #' + $('#id_producido').val()).find('td').eq(3).children()
                     .replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
