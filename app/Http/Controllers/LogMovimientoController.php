@@ -918,6 +918,7 @@ class LogMovimientoController extends Controller
     $relev = RelevamientoMovimiento::find($id_relevamiento);
     $fiscalizacionMov = FiscalizacionMov::find($relev->id_fiscalizacion_movimiento);
     $toma = DB::table('relevamiento_movimiento')
+<<<<<<< HEAD
             ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
             ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
             ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
@@ -926,6 +927,16 @@ class LogMovimientoController extends Controller
             ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
             ->get()
             ->first();
+=======
+                    ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
+                    ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
+                    ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
+                    ->join('formula','formula.id_formula','=', 'maquina.id_formula')
+                    ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
+                    ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
+                    ->get()
+                    ->first();
+>>>>>>> 3791e7424f74f6a5338f25d4de9356dd10e19db1
 
     $toma1=null;
     if($fiscalizacionMov->es_reingreso == 1 ){
@@ -1130,27 +1141,32 @@ class LogMovimientoController extends Controller
     $maquinas = array();
 
     $maquinasClick = DB::table('maquina')
-                        ->select('maquina.*','isla.*')
+                        ->select('maquina.*','isla.*','juego.*')
                         ->join('movimiento_isla','movimiento_isla.id_maquina','=','maquina.id_maquina')
                         ->join('log_clicks_mov','log_clicks_mov.fecha','=','movimiento_isla.fecha')
                         ->join('isla','isla.id_isla','=','maquina.id_isla')
                         ->join('log_movimiento','log_movimiento.id_log_movimiento','=','log_clicks_mov.id_log_movimiento')
+                        ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('log_movimiento.id_log_movimiento','=', $id_log_movimiento)
                         ->distinct('maquina.id_maquina')
                         ->get();
     $maquinasPausa = DB::table('relevamiento_movimiento')
-                        ->select('maquina.*','isla.*')
+                        ->select('maquina.*','isla.*','juego.*')
                         ->join('maquina','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
                         ->join('isla','isla.id_isla','=','maquina.id_isla')
+                        ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('relevamiento_movimiento.id_log_movimiento','=', $id_log_movimiento)
                         ->whereNull('relevamiento_movimiento.id_fiscalizacion_movimiento')
                         ->distinct('maquina.id_maquina')
                         ->get();
 
+    //si no se guardaron maquinas en pausa O si la cantidad de mtm en pausa es menor
+    //que la cantidad de click ->lo que quiere decir es que se automatizaron mas
+    // despues de la posible pausa y entonces retorna las automatizadas
     if(!empty($maquinasPausa) && count($maquinasPausa) < count($maquinasClick))
     {
       return $maquinasClick;
-    }else{
+    }else{//las mtm automatizadas son menor o igual que las de pausa
       return $maquinasPausa;
     }
     //deberia mostrar las maquinas y la isla a la que pertenecen con el cambio hecho
@@ -1420,6 +1436,10 @@ class LogMovimientoController extends Controller
         }
       }
 
+      if(empty($reglas) && !isset($request->fecha)){
+        return $this->todasEventualidadesMTMs();
+      }
+
       $reglas[]=['log_movimiento.tiene_expediente','=',0];
       // $reglas[]=['log_movimiento.id_expediente','is',null]; hay que usar wherenull
 
@@ -1438,6 +1458,8 @@ class LogMovimientoController extends Controller
                         ->whereNull('log_movimiento.id_expediente')
                         ->where('log_movimiento.tiene_expediente','=', 0)
                         ->whereIn('log_movimiento.id_casino',$casinos)
+                        ->distinct('log_movimiento.id_log_movimiento')
+                        ->orderBy('log_movimiento.fecha','DES')
                         ->take(30)
                         ->get();
       }else{
@@ -1457,6 +1479,8 @@ class LogMovimientoController extends Controller
                         ->where('log_movimiento.tiene_expediente','=', 0)
                         ->whereYear('log_movimiento.fecha' , '=', $fecha[0])
                         ->whereMonth('log_movimiento.fecha','=', $fecha[1])
+                        ->distinct('log_movimiento.id_log_movimiento')
+                        ->orderBy('log_movimiento.fecha','DES')
                         ->take(30)
                         ->get();
       }
@@ -1804,6 +1828,28 @@ class LogMovimientoController extends Controller
     $logMovimiento = LogMovimiento::find($id_movimiento);
     return ['maquinas'=> $logMovimiento->relevamientos_movimientos];
   }
+
+
+  public function validarRelevamientoEventualidad($id_relev_mov){
+      //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
+      $id_usuario = session('id_usuario');
+      $relev_mov = RelevamientoMovimiento::find($id_relev_mov);
+      $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
+      $id_usuario = session('id_usuario');
+      if($this->noEsControlador($id_usuario,  $logMov)){
+        $logMov->controladores()->attach($id_usuario);
+        $logMov->save();
+      }
+      //a las tomas de los relevamientos las marco como validadas
+      $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
+      $maquina = $relev_mov->maquina;
+
+      if($logMov->relevamientos_movimientos->count() == $logMov->relevamientos_movimientos->where('id_estado_relevamiento','=',4)->count()){
+            $logMov->estado_movimiento()->associate(4);
+            $logMov->save();
+          }
+      return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+    }
 
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
 

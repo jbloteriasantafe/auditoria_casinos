@@ -344,11 +344,13 @@
               <table id="tablaMaquinasSeleccionadas" class="table">
                 <thead>
                   <tr>
-                    <th width="20%">NÚMERO</th>
-                    <th width="30%">MARCA</th>
-                    <th width="30%">MODELO</th>
-                    <th id="isla_layout" width="20%">ISLA</th>
-                    <th width="20%">ACCIÓN</th>
+                    <th width="10%">NÚMERO</th>
+                    <th width="20%">MARCA</th>
+                    <th width="10%">MODELO</th>
+                    <th id="isla_layout" width="10%">ISLA</th>
+                    <th width="30%">JUEGO</th>
+                    <th width="10%">SERIE</th>
+                    <th width="10%">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody>

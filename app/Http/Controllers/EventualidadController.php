@@ -102,18 +102,18 @@ class EventualidadController extends Controller
                         $tiposEventualidades = TipoEventualidad::all();
                         $casinos = $usuario->casinos;
       $esControlador=0;
+      $usuario = Usuario::find( session('id_usuario'));
       foreach ($usuario->roles as $rol) {
-        if($rol->id_rol == 1 || $rol->id_rol == 2 || $rol->id_rol == 4){
+        if($rol->descripcion == "CONTROL" || $rol->descripcion == "ADMINISTRADOR" || $rol->descripcion == "SUPERUSUARIO"){
             $esControlador=1;
-            break;
         }
       }
 
       UsuarioController::getInstancia()->agregarSeccionReciente('Eventualidades', 'eventualidades');
 
       return view('eventualidades',['eventualidades'=>$eventualidades,
-                  'esControlador' => 0/*$esControlador*/,
-                   'turnos' =>$turnos,
+                  'esControlador' => $esControlador,
+                  'turnos' =>$turnos,
                   'tiposEventualidades'=> $tiposEventualidades,
                   'casinos' => $casinos]);
   }
@@ -611,13 +611,15 @@ class EventualidadController extends Controller
 
     }
 
-  public function validarEventualidad(Request $request){  //recibe request con id_eventualidad y las maquinas que si se van a marcar como observadass por eventualidad
-      $eventualidad = Eventualidad::find($request['id_eventualidad']);
-      foreach ($request['maquinas'] as $maquina) {
-        //marca cada maq como observada
-        MTMController::getInstancia()->asociarMTMsEventualidad($maquina['id_maquina']);
-      }
-
+  public function validarEventualidad($id_eventualidad){  //recibe request con id_eventualidad y las maquinas que si se van a marcar como observadass por eventualidad
+      $eventualidad = Eventualidad::find($id_eventualidad);
+      // foreach ($request['maquinas'] as $maquina) {
+      //   //marca cada maq como observada
+      //   MTMController::getInstancia()->asociarMTMsEventualidad($maquina['id_maquina']);
+      // }
+      $eventualidad->estado_eventualidad()->associate(4);
+      $eventualidad->save();
+      return 1;
     }
 
   public function leerArchivoEventualidad($id){
