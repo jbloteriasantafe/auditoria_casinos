@@ -974,9 +974,7 @@ function generarFilaTabla(event,controlador){
   var tipo_ev;
   var casino;
   var estado = event.id_estado_movimiento;
-
-  console.log('event',event);
-
+  var islas = event.islas;
 
   tipo_ev=event.descripcion;
   fecha=event.fecha;
@@ -988,22 +986,26 @@ function generarFilaTabla(event,controlador){
       .text(convertirDate(fecha))
       )
       .append($('<td>')
-      .addClass('col-xs-3')
+      .addClass('col-xs-2')
       .text(tipo_ev)
       )
       if(estado==4){
       fila.append($('<td>')
-      .addClass('col-xs-2')
+      .addClass('col-xs-1')
       .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#4CAF50').css('align','center')))
       }
       else{
         fila.append($('<td>')
-        .addClass('col-xs-2')
+        .addClass('col-xs-1')
         .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350').css('align','center')))
       }
       fila.append($('<td>')
       .addClass('col-xs-2')
       .text(casino)
+      )
+      .append($('<td>')
+      .addClass('col-xs-2')
+      .text(islas)
       )
       .append($('<td>')
       .addClass('col-xs-3')
