@@ -279,7 +279,12 @@ class informesController extends Controller
       $estados_habilitados[$key] = $estado->id_estado_maquina;
     }
 
-    $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))->where('id_casino' , $casino->id_casino)->first();
+    $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
+    
+                                              ->where('id_casino' , $casino->id_casino)
+                                              ->whereNull('maquina.deleted_at')
+                                              ->first();
+
     $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
                                                   ->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)
                                                   ->whereNull('maquina.deleted_at')
