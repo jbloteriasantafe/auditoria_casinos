@@ -87,6 +87,14 @@ use App\EstadoMaquina;
 
   paciencia-.
 */
+
+
+/*
+ para agregar la posibilidad de carga de retoma de todos los movimientos:
+ se debería crear la fiscalización con #esGFJ
+
+
+*/
 class LogMovimientoController extends Controller
 {
 
