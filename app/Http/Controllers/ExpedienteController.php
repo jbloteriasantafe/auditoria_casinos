@@ -69,9 +69,9 @@ class ExpedienteController extends Controller
     $notasMovimiento = DB::table('expediente')
                 ->select('nota.*','tipo_movimiento.descripcion as movimiento')
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-                ->join('log_movimiento','log_movimiento.id_log_movimiento','=' , 'nota.id_log_movimiento')
-                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
                 ->where('expediente.id_expediente','=',$id)
+                ->where('nota.es_disposicion',0)
                 ->orderBy('nota.fecha','DESC')
                 ->get();
 
@@ -80,13 +80,22 @@ class ExpedienteController extends Controller
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->where('expediente.id_expediente','=',$id)
                 ->whereNull('nota.id_log_movimiento')
+                ->where('nota.es_disposicion',0)
                 ->orderBy('nota.fecha','DESC')
                 ->get();
+
+    $disposiciones = DB::table('disposicion')
+                          ->select('disposicion.*','nota.id_tipo_movimiento')
+                          ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
+                          ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+                          ->where('disposicion.id_expediente','=',$id)
+                          ->get();
+
 
     return ['expediente' => $expediente,
             'casinos' => $expediente->casinos,
             'resolucion' => $expediente->resolucion,
-            'disposiciones' => $expediente->disposiciones,
+            'disposiciones' => $disposiciones,
             'notas' => $notas,
             'notasConMovimientos' =>$notasMovimiento
           ];
@@ -117,10 +126,14 @@ class ExpedienteController extends Controller
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
         'notas'  => 'nullable',
+        'notas.*.select_nota_disp'=>'required|boolean',
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
         'notas.*.id_tipo_movimiento' => 'nullable|integer',
+        'notas.*.nro_disposicion'=> 'nullable|integer',
+        'notas.*.nro_disposicion_anio'=> 'nullable|integer',
+        'notas.*.descripcion_disposicion'=> 'nullable',
         'notas_asociadas'  => 'nullable',
         'notas_asociadas.*.fecha'=>'required|date',
         'notas_asociadas.*.identificacion'=>'required',
@@ -447,7 +460,6 @@ class ExpedienteController extends Controller
 
   public function buscarExpedientes(Request $request){
     $reglas = Array();
-
     if(isset($request->nro_exp_org))
       $reglas[]=['nro_exp_org','like', '%'.$request->nro_exp_org.'%'];
     if(isset($request->nro_exp_interno))

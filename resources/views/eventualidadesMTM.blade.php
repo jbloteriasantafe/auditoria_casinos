@@ -105,9 +105,10 @@
                 <thead>
                   <tr>
                     <th class="col-xs-2 " value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3"  estado="">TIPO</th>
-                    <th class="col-xs-2">ESTADO</th>
+                    <th class="col-xs-2"  estado="">TIPO</th>
+                    <th class="col-xs-1">ESTADO</th>
                     <th class="col-xs-2"  estado="">CASINO</th>
+                    <th class="col-xs-2"  estado="">ISLA</th>
                     <th class="col-xs-3"  estado="">ACCIÓN</th>
                   </tr>
                 </thead>
@@ -115,20 +116,22 @@
                   @foreach($eventualidades as $eventualidad)
                   <tr id="{{$eventualidad->id_log_movimiento}}">
                     <td class="col-xs-2 fecha_eventualidad">{{$eventualidad->fecha}}</td>
-                    <td class="col-xs-3">{{$eventualidad->descripcion}}</td>
+                    <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
 
                     @if($eventualidad->id_estado_movimiento == 4)
-                    <td class="col-xs-2" text-align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
+                    <td class="col-xs-1" text-align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
                     @else
-                    <td class="col-xs-2" text-align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
+                    <td class="col-xs-1" text-align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
                     @endif
 
                     <td class="col-xs-2">{{$eventualidad->nombre}}</td>
+                    <td class="col-xs-2">{{$eventualidad->islas}}</td>
+
                     <td class="col-xs-3">
 
                       <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
 
-                      @if($eventualidad->id_estado_movimiento == 6  )
+                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0)
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif

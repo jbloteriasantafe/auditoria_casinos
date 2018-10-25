@@ -1588,7 +1588,7 @@ class LogMovimientoController extends Controller
         $string = "DATE(relevamiento_movimiento.fecha_relev_sala) = " . $fecha;
       }
       $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
+        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
         ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
         ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
         ->where('log_movimiento.id_log_movimiento','=',$id)
@@ -1596,7 +1596,7 @@ class LogMovimientoController extends Controller
         ->get();
     }else{
       $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
+        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
         ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
         ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
         ->where('log_movimiento.id_log_movimiento','=',$id)
@@ -1868,6 +1868,7 @@ class LogMovimientoController extends Controller
   }
 
 
+
   public function validarRelevamientoEventualidad($id_relev_mov){
       //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
       $id_usuario = session('id_usuario');
@@ -1888,6 +1889,7 @@ class LogMovimientoController extends Controller
           }
       return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
     }
+
 
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
 
