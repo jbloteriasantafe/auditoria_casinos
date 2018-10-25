@@ -289,7 +289,7 @@ class LogMovimientoController extends Controller
       {
         $logMov->estado_movimiento()->associate(2);//fiscalizando
       }
-      $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false);
+      $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
       foreach ($request['maquinas'] as $maq) {
         $maquina = Maquina::find($maq);
         $maquina->estado_maquina()->associate(1);//Ingreso
@@ -319,7 +319,7 @@ class LogMovimientoController extends Controller
   }
 
   //para los demás movimientos
-  private function enviarAFiscalizar2($id_log_movimiento,$es_reingreso){
+  private function enviarAFiscalizar2($id_log_movimiento,$es_reingreso,$fecha){
      //el request envia el log movimiento con las maquinas que se van a relevar efectivamente
      // 'id_log_movimiento', maquinas, maquinas.*.id_maquina
      $logMov = LogMovimiento::find($id_log_movimiento);
@@ -327,7 +327,7 @@ class LogMovimientoController extends Controller
      {
        $logMov->estado_movimiento()->associate(2);//fiscalizando
      }
-     $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento,$es_reingreso);
+     $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento,$es_reingreso, $fecha);
 
      foreach ($logMov->relevamientos_movimientos as $relevamiento) {
         if($relevamiento->fiscalizacion == null){ //por las dudas verifico que sea nulo
@@ -374,7 +374,7 @@ class LogMovimientoController extends Controller
   }
 
 
-  private function generarToma2($id_log_movimiento,$maquinas){
+  private function generarToma2($id_log_movimiento,$maquinas,$fecha){
     $logMov = LogMovimiento::find($id_log_movimiento);
     $logMov->estado_relevamiento()->associate(1);//generado
     $id_usuario = session('id_usuario');
@@ -387,7 +387,7 @@ class LogMovimientoController extends Controller
       $maq= Maquina::find($maquina['id_maquina']);
       $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($id_log_movimiento, $maq);
     }
-    $this->enviarAFiscalizar2($id_log_movimiento,true);
+    $this->enviarAFiscalizar2($id_log_movimiento,true,$fecha);
   }
 
   //MOVIMIETOS: EGRESO, REINGRESO, CAMBIO LAYOUT
@@ -397,10 +397,11 @@ class LogMovimientoController extends Controller
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'maquinas' => 'required',
         'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
-        'carga_finalizada'=> 'required '
+        'carga_finalizada'=> 'required ',
+        'fecha' => 'nullable'
     ], array(), self::$atributos)->after(function ($validator){})->validate();
     if($request['carga_finalizada'] == 'toma2'){
-      $this->generarToma2($request['id_log_movimiento'],$request['maquinas']);
+      $this->generarToma2($request['id_log_movimiento'],$request['maquinas'],$request['fecha']);
     }
     $logMov = LogMovimiento::find($request['id_log_movimiento']);
     $logMov->estado_relevamiento()->associate(1);//generado
@@ -440,7 +441,7 @@ class LogMovimientoController extends Controller
 
     if($request['carga_finalizada'] == 'true')
     {
-      $this->enviarAFiscalizar2($request['id_log_movimiento'], $request['es_reingreso']);
+      $this->enviarAFiscalizar2($request['id_log_movimiento'], $request['es_reingreso'],$request['fecha']);
       if(!isset($logMov->fiscalizaciones))
       {
         $logMov->estado_movimiento()->associate(2);//fiscalizando
@@ -551,7 +552,7 @@ class LogMovimientoController extends Controller
 
      if($req['carga_finalizada'] == 'true'){
 
-        $this->enviarAFiscalizar2($req['id_log_movimiento'],"false"); //false porque no es reingreso
+        $this->enviarAFiscalizar2($req['id_log_movimiento'],"false",$req['fecha']); //false porque no es reingreso
         if(!isset($logMov->fiscalizaciones))
         {
           $logMov->estado_movimiento()->associate(2);//fiscalizando

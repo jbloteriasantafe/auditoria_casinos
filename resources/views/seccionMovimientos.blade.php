@@ -51,7 +51,7 @@
                     <h5>Fecha</h5>
                     <div class="form-group">
                       <div class='input-group date' id='dtpFechaMov' data-link-field="fecha_movimiento" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                        <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=" "/>
+                        <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=""/>
                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                       </div>
@@ -157,21 +157,7 @@
             <div class="modal-body" style="font-family: Roboto;">
                 <form id="frmLog" name="frmLog" class="form-horizontal" novalidate="">
 
-                  <div class="row">
 
-                    <div class="col-md-12" align="center">
-                      <h6>FECHA: </h6>
-                      <div class="form-group" style="padding-left:80px;padding-right:80px">
-                        <div class='input-group date' id='dtpFechaIngreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                          <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_ingreso" value=" "/>
-                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                        </div>
-                      </div>
-                    </div>
-                    <br><br>
-
-                  </div>
                     <div class="row">
                           <div class="col-md-12">
                             <br>
@@ -292,6 +278,21 @@
         <div class="modal-body" style="font-family: Roboto;">
 
           <div class="row">
+            <div class="row">
+
+              <div class="col-md-12" align="center">
+                <h6>FECHA: </h6>
+                <div class="form-group" style="padding-left:80px;padding-right:80px">
+                  <div class='input-group date' id='dtpFechaIngreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                    <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_ingreso" value=""/>
+                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                  </div>
+                </div>
+              </div>
+              <br><br>
+
+            </div>
             <div class="col-md-12">
               <table id="tablaMaquinas" class="table">
                 <thead>
@@ -351,7 +352,7 @@
               <h6>Fecha: </h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaEgreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_egreso" value=" "/>
+                  <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_egreso" value=""/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -467,7 +468,7 @@
                      <h6>Fecha: </h6>
                      <div class="form-group">
                        <div class='input-group date' id='dtpFechaMDenom' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                         <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_denom" value=" "/>
+                         <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_denom" value=""/>
                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                        </div>

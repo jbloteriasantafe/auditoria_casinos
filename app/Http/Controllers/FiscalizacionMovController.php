@@ -36,15 +36,15 @@ class FiscalizacionMovController extends Controller
     return $fiscalizaciones = FiscalizacionMov::all();
   }
 
-  public function crearFiscalizacion($id_log_movimiento,$es_reingreso){
+  public function crearFiscalizacion($id_log_movimiento,$es_reingreso, $fecha){
     $fiscalizacion = new FiscalizacionMov;
     if($es_reingreso == "true"){
       $fiscalizacion->es_reingreso = 1;
     }else{
       $fiscalizacion->es_reingreso = 0;
     }
-
-    $fiscalizacion->fecha_envio_fiscalizar = date("Y-m-d"); // fecha de hoy_ que seria la misma que la fecha_envio_fiscalizar_X del relevamiento
+    if($fecha == null || empty($fecha)) $fecha = date("Y-m-d");
+    $fiscalizacion->fecha_envio_fiscalizar = $fecha; // fecha de hoy_ que seria la misma que la fecha_envio_fiscalizar_X del relevamiento
     $fiscalizacion->save();
     $fiscalizacion->log_movimiento()->associate($id_log_movimiento);
     $nota = null;// Nota::where('id_log_movimiento','=', $id_log_movimiento)->get();
