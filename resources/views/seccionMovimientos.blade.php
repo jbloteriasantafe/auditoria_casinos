@@ -1424,8 +1424,9 @@
                                     <th width="10%">ACTIVO</th>
                                     <th width="25%">NOMBRE</th>
                                     <th width="20%">DENOMINACIÓN</th>
-                                    <th width="30%">TABLAS DE PAGO</th>
-                                    <th width="15%">ACCIÓN</th>
+                                    <th width="15%">% DEV</th>
+                                    <th width="20%">TABLAS DE PAGO</th>
+                                    <th width="10%">ACCIÓN</th>
                                   </tr>
                                 </thead>
                                 <tbody>

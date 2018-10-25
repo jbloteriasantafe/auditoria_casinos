@@ -86,6 +86,9 @@ $('#inputJuego').on('seleccionado',function(){
 $('#inputJuego').on('deseleccionado',function(){
       console.log('deseleccionado');
       if($('#inputJuego').val() != ''){
+
+            //se dispuso que no se pueda crear los juegos desde esta pantalla, por lo que se elimina la opcion de crear juego
+            /*
             $('#btn-crearJuego').show();
             $('#btn-agregarJuegoLista').hide();
             $('#btn-cancelarJuego').show();
@@ -125,11 +128,11 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                                           .text(nombre_juego)
                               )
              );
- fila.append($('<td>').append($('<span>').addClass('badge')
+  fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(denominacion)
                              ));
- fila.append($('<td>').append($('<span>').addClass('badge')
+  fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(porcentaje_devolucion)
                              ));
