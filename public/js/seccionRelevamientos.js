@@ -481,7 +481,8 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
       }else{
         var sumaxdenom = Number(suma);
         var producidoxcien = Number(producido);
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
+        //se contempla la posibilidad de que los contadores den negativo
+        var diferencia = math.abs(Number(sumaxdenom.toFixed(2))) - math.abs(Number(producidoxcien.toFixed(2)));
       }
       //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
       diferencia= Number(diferencia.toFixed(2));
@@ -1982,13 +1983,47 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
           //   var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
           //   var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
 
+
+    //       console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
+    //         console.log('MODULO DIFERENCIA', moduloDiferencia);
+    //         console.log('DIFERENCIA', diferenciaProducido);
+
+    //         if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
+    //           iconoPregunta.hide();
+    //           iconoCruz.hide();
+    //           iconoCheck.hide();
+    //           iconoAdmiracion.show();
+    //           truncadas++;
+    //           diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
+    //         }
+    //         else{
+    //           iconoPregunta.hide();
+    //           iconoCruz.show();
+    //           iconoCheck.hide();
+    //           iconoAdmiracion.hide();
+
+    //           diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
+    //         }
+    //       }
+    //       else {
+    //         iconoPregunta.hide();
+    //         iconoCruz.hide();
+    //         iconoCheck.show();
+    //         iconoAdmiracion.hide();
+
+    //         diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
+    //       }
+    //   }
+    // }
+
         //se cambio para considerar los contadores negativos
           var resta = Number(math.abs(data.detalles[i].detalle.producido_calculado_relevado) - math.abs(data.detalles[i].producido) );
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
-            var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
+            var moduloDiferencia = Number(resta.toFixed(2));
             moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2)));
             
+            console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
 
