@@ -66,7 +66,7 @@ $(document).ready(function(){
         todayBtn:  1,
         autoclose: 1,
         todayHighlight: 1,
-        format: 'dd / mm / yyyy',
+        format: 'yyyy-mm-dd',
         pickerPosition: "bottom-left",
         startView: 4,
         minView: 2,
@@ -79,7 +79,7 @@ $(document).ready(function(){
         todayBtn:  1,
         autoclose: 1,
         todayHighlight: 1,
-        format: 'dd / mm / yyyy',
+        format: 'yyyy-mm-dd',
         pickerPosition: "bottom-left",
         startView: 4,
         minView: 2,
@@ -92,11 +92,11 @@ $(document).ready(function(){
         todayBtn:  1,
         autoclose: 1,
         todayHighlight: 1,
-        format: 'dd / mm / yyyy',
+        format: 'yyyy-mm-dd',
         pickerPosition: "bottom-left",
         startView: 4,
         minView: 2,
-        container:$('#modalLogMovimiento'),
+        container:$('#modalEnviarFiscalizarIngreso'),
       });
   });
 
@@ -224,8 +224,6 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('input[name="carga"]').attr('checked', false);
 
   limpiarModal();
-  ocultarErrorValidacion($('#B_fecha_ingreso'));
-  $('#B_fecha_ingreso').val(' ');
   habilitarControles(true);
 
   $('#btn-aceptar-ingreso').prop('disabled',true);
@@ -287,7 +285,6 @@ $("#btn-aceptar-ingreso").click(function(e){
   var id=$("#id_log_movimiento").val();
   var cant_maq=$("#cant_maq").val();
   var t_carga=$('input:radio[name=carga]:checked').val();
-  var fecha=$('B_fecha_ingreso').val();
 
   if (typeof cant_maq=="undefined" ) {
 
@@ -300,7 +297,7 @@ $("#btn-aceptar-ingreso").click(function(e){
       id_log_movimiento: id,
       cantMaq: cant_maq,
       tipoCarga: t_carga,
-      fecha:fecha
+
     }
 
     $.ajaxSetup({
@@ -332,8 +329,7 @@ $("#btn-aceptar-ingreso").click(function(e){
           error: function(data){
             var response = data.responseJSON.errors;
 
-            if(typeof response.fecha !== 'undefined'){
-              mostrarErrorValidacion($('#B_fecha_ingreso'),response.fecha[0],false);}
+
 
           }
     })
@@ -1114,7 +1110,7 @@ $('#todosDen').on('click', function(){
 })
 $('#todosDev').on('click', function(){
 
-  var dev_comun=$('#denom_comun').val();
+  var dev_comun=$('#devol_comun').val();
   var tabla= $('#tablaDenominacion tbody > tr');
 
   $.each(tabla, function(index, value){
@@ -1240,7 +1236,7 @@ $(document).on('click','#btn-pausar-denom',function(e){
 });
 
 //FUNCION PARA ENVIAR EL POST AL CONTROLADOR, CON LOS CAMBIOS GENERADOS
-function enviarDenominacion(id_mov,maq,fin){
+function enviarDenominacion(id_mov,maq,fecha,fin){
 
   $('#mensajeExito').hide();
 
@@ -1249,6 +1245,7 @@ function enviarDenominacion(id_mov,maq,fin){
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
   });
+
 
   var formData = {
     id_log_movimiento: id_mov,
@@ -1859,7 +1856,8 @@ $(document).on('click','.enviarIngreso',function(e){
   $('.modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
   $('#tablaMaquinas tbody tr').remove();
   $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
-
+  ocultarErrorValidacion($('#B_fecha_ingreso'));
+  $('#B_fecha_ingreso').val('');
   $.get('movimientos/buscarMaquinasMovimiento/' + id_log_movimiento, function(data){
 
       var tablaMaquinas=$('#tablaMaquinas tbody');
@@ -1886,6 +1884,7 @@ $("#btn-enviar-ingreso").click(function(e){
   $('#mensajeExito').hide();
   var id=$("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
   var maquinas_seleccionadas=[];
+  var fecha=$('#B_fecha_ingreso').val();
 
   $('#tablaMaquinas tbody tr').each(function(){
       var check=$(this).find('td input[type=checkbox]');
@@ -1898,7 +1897,8 @@ $("#btn-enviar-ingreso").click(function(e){
 
   var formData= {
     id_log_movimiento: id,
-    maquinas: maquinas_seleccionadas
+    maquinas: maquinas_seleccionadas,
+    fecha:fecha
   }
 
   $.ajaxSetup({
@@ -1925,6 +1925,10 @@ $("#btn-enviar-ingreso").click(function(e){
           $('#mensajeError p').text('No hay máquinas seleccionadas');
           //$('#modalEnviarFiscalizarIngreso').modal('hide');
           $('#mensajeError').show();
+          var response = data.responseJSON.errors;
+
+          if(typeof response.fecha !== 'undefined'){
+            mostrarErrorValidacion($('#B_fecha_ingreso'),response.fecha[0],false);}
         },
   })
 })
