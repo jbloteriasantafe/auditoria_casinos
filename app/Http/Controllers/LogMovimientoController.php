@@ -42,6 +42,51 @@ use App\EstadoMaquina;
 * Asignacion de movimientos mtm, relevamientos , intervenciones MTM
 * Los relevamientos tambien son manipulados en su controlador, pero inician aquí
 */
+
+
+/*
+  ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.
+  ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.
+  en este controlador se manejan la asignacion de movimientos y las intervenciones MTMs
+  hoy 25/10/18 se pretende crear un nuevo tipo de movimiento,el cual contemple la
+  intervencion fisica de mtms (la cual NO AFECTA NINGUN ATRIBUTO DE LAS MTMS ->
+  no agrega valor)
+  para hacerlo, debería crearse este nuevo tipo, configurar por todos lados
+  (en los blades y js de movimientos y
+  de eventualidades mtm (actual intervencion mtm))
+  el tema es que -> la solucion posible es agregar este tipo y un campo de
+  observacion en el log movimiento
+  (para que el controlador / admin escriba loo que se le cante)
+
+  ---
+  descripcion de las funciones que hay:
+
+  primero aparecen todas las funciones de asignacion.
+  luego unas para consultar si el movimiento está relacionado con un expediente
+  (que se usa en el controller de expedientes)
+  mas abajo (ya en el fondo), esta lo de IntervencionesMTM (LLAMADO ASI EN LAS PANTALLAS)
+  pero internamente son las eventualidades de MTM-> que por alguna razon el expediente
+  no se cargó aún y los fisca tienen la obligacion de relevarlos
+
+*/
+
+/*
+  ¿Cómo funciona LA ASIGNACION DE MTMS?
+  se puede crear un movimiento desde ASIGNACION (sin expediente), y luego se lo asocia a uno desde la seccion expedientes.
+  o bien, el caminito normal es:
+  en expediente se crea una nota o disposicion (que en realidad tiene asociada una nota para evitar mas cambios)
+  en estos objetos se le asocia en log movimiento. con un tipo.
+  luego sigue el paso a paso una vez enviado a moex.
+  el tema es que SIEMPRE se crearán primero los RELEVAMIENTOS_MOVIMIENTOS.
+  QUE SON 1 POR MTM. que a su vez tiene una toma_relevamiento_movimiento (que se crea cuando el fisca la va a cargar)
+  UNA VEZ DETERMINADAS LAS MÁQUINAS QUE PERTENECEN AL MOV.
+  se las puede ENVIAR A FISCALIZAR. entonces, como se puede enviarlas por tandas
+  se asocian los relevamientos movimientos a una fiscalizacion_movimiento.
+
+  -->en IntervencionesMTM la fiscalizacion_movimiento no se crea, porque no es necesaria.
+
+  paciencia-.
+*/
 class LogMovimientoController extends Controller
 {
 
@@ -940,9 +985,9 @@ class LogMovimientoController extends Controller
     $maquinasYJuegos = array();
     foreach ($maquinas as $maq) {
         $mtmm=  Maquina::find($maq->id_maquina);
-	       $juego_select = $mtmm->juego_activo();
-	        $juegos = $mtmm->juegos;
-      $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos, 'juego_seleccionado' => $juego_select];
+      	$juego_select = $mtmm->juego_activo();
+      	$juegos = $mtmm->juegos;
+        $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos, 'juego_seleccionado' => $juego_select];
     }
 
     return ['maquinas' => $maquinasYJuegos,'unidades' => $unidades];
@@ -1583,7 +1628,9 @@ class LogMovimientoController extends Controller
         'cant_creditos' => 'required|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
         'observaciones' => 'nullable|max:280',
-        'mac' => 'nullable | max:100'
+        'mac' => 'nullable | max:100',
+        'sectorRelevadoEv' => 'required',
+        'islaRelevadaEv' => 'required'
 
     ], array(), self::$atributos)->after(function($validator){
         if($validator->getData()['juego']==0 ){
@@ -1667,7 +1714,9 @@ class LogMovimientoController extends Controller
      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
       $request['juego'] , $request['apuesta_max'], $request['cant_lineas'], $request['porcentaje_devolucion'], $request['denominacion'] ,
       $request['cant_creditos'], $request['fecha_sala'], $request['observaciones'],
-      $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento']);
+      $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento'],
+      $request['sectorRelevadoEv'],$request['islaRelevadaEv']
+      );
 
       $id_usuario = session('id_usuario');
 
