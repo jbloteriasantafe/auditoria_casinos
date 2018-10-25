@@ -157,9 +157,26 @@
             <div class="modal-body" style="font-family: Roboto;">
                 <form id="frmLog" name="frmLog" class="form-horizontal" novalidate="">
 
+                  <div class="row">
+
+                    <div class="col-md-12" align="center">
+                      <h6>FECHA: </h6>
+                      <div class="form-group" style="padding-left:80px;padding-right:80px">
+                        <div class='input-group date' id='dtpFechaIngreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                          <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_ingreso" value=" "/>
+                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                      </div>
+                    </div>
+                    <br><br>
+
+                  </div>
                     <div class="row">
                           <div class="col-md-12">
-                              <h5>CONCEPTO DEL EXPEDIENTE</h5>
+                            <br>
+                              <h6 align="center" >CONCEPTO DEL EXPEDIENTE</h6>
+                              <br>
                               <textarea class="form-control" id="conceptoExpediente" readonly style="resize:none; height:100px;">Agregar 30 máquinas al sector 2 del CASINO Santa Fe.</textarea>
                           </div>
                     </div>
@@ -288,6 +305,7 @@
                 </tbody>
               </table>
             </div>
+
           </div>
         </div> <!-- fin del body -->
 
@@ -317,7 +335,7 @@
         <div  id="colapsado" class="collapse in">
 
           <div class="row"> <!-- ROW 1 -->
-            <div class="col-md-8">
+            <div class="col-md-6">
               <h6>Agregar Máquina</h6>
 
               <div class="row">
@@ -326,6 +344,16 @@
                   <span class="input-group-btn">
                     <button id="agregarMaq" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                   </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6" >
+              <h6>Fecha: </h6>
+              <div class="form-group">
+                <div class='input-group date' id='dtpFechaEgreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_egreso" value=" "/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
             </div>
@@ -435,7 +463,16 @@
 
                      </div>
                    </div>
-
+                   <div class="col-md-4" >
+                     <h6>Fecha: </h6>
+                     <div class="form-group">
+                       <div class='input-group date' id='dtpFechaMDenom' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                         <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_denom" value=" "/>
+                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                       </div>
+                     </div>
+                   </div>
                </div> <!-- row -->
 
              </div>

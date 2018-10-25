@@ -59,6 +59,46 @@ $(document).ready(function(){
         container:$('main section'),
       });
   });
+  $(function(){
+      $('#dtpFechaMDenom').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'dd / mm / yyyy',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
+        container:$('#modalDenominacion'),
+      });
+  });
+  $(function(){
+      $('#dtpFechaEgreso').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'dd / mm / yyyy',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
+        container:$('#modalLogMovimiento2'),
+      });
+  });
+  $(function(){
+      $('#dtpFechaIngreso').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'dd / mm / yyyy',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
+        container:$('#modalLogMovimiento'),
+      });
+  });
+
 
 }); //FIN DEL DOCUMENT READY
 
@@ -74,7 +114,7 @@ $('#btn-minimizar').click(function(){
 });
 
 //BOTON GRANDE DE NUEVO INGRESO
-$(document).on('click', '#btn-nuevo-movimiento', function(e) {
+$(document).on('click', '#btn-nuevo-movimiento', function(e){
 
   e.preventDefault();
   //limpio las opciones del select
@@ -183,6 +223,8 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('input[name="carga"]').attr('checked', false);
 
   limpiarModal();
+  ocultarErrorValidacion($('#B_fecha_ingreso'));
+  $('#B_fecha_ingreso').val(' ');
   habilitarControles(true);
 
   $('#btn-aceptar-ingreso').prop('disabled',true);
@@ -244,6 +286,7 @@ $("#btn-aceptar-ingreso").click(function(e){
   var id=$("#id_log_movimiento").val();
   var cant_maq=$("#cant_maq").val();
   var t_carga=$('input:radio[name=carga]:checked').val();
+  var fecha=$('B_fecha_ingreso').val();
 
   if (typeof cant_maq=="undefined" ) {
 
@@ -255,7 +298,8 @@ $("#btn-aceptar-ingreso").click(function(e){
     var formData= {
       id_log_movimiento: id,
       cantMaq: cant_maq,
-      tipoCarga: t_carga
+      tipoCarga: t_carga,
+      fecha:fecha
     }
 
     $.ajaxSetup({
@@ -285,8 +329,11 @@ $("#btn-aceptar-ingreso").click(function(e){
           },
 
           error: function(data){
-            console.log('error es:',data);
-            alert('error',data);
+            var response = data.responseJSON.errors;
+
+            if(typeof response.fecha !== 'undefined'){
+              mostrarErrorValidacion($('#B_fecha_ingreso'),response.fecha[0],false);}
+
           }
     })
   } //fin del else
@@ -504,6 +551,8 @@ function enviarFiscalizarToma2(id_mov,maq){
 $(document).on('click','.nuevoEgreso',function(){
   $('#btn-enviar-egreso').show();
   $('#btn-enviar-toma2').hide();
+  ocultarErrorValidacion($('#B_fecha_egreso'));
+  $('#B_fecha_egreso').val(' ');
 
   var id_casino=$(this).attr('data-casino');
   var id_mov=$(this).val();
@@ -642,6 +691,7 @@ $(document).on('click','#btn-enviar-egreso',function(e){
 
   var tipo=$('#modalLogMovimiento2').find('#tipo_movi').val();
   var id_log_movimiento = $(this).val();
+  var fecha = $('#B_fecha_egreso').val();
   var maquinas = $('#tablaMaquinasSeleccionadas tbody > tr');
 
   $.each(maquinas, function(index, value){
@@ -653,9 +703,9 @@ $(document).on('click','#btn-enviar-egreso',function(e){
   //USA LA FC DE POST, ENVIANDO EN TRUE EL ATRIBUTO DE CARGA FINALIZADA
   //enviarFiscalizarEgreso(id_log_movimiento, maquinas, true);
   if(tipo!=8){
-    enviarFiscalizar(id_log_movimiento,maq_seleccionadas,true,false);
+    enviarFiscalizar(id_log_movimiento,maq_seleccionadas, fecha, true,false);
   }else{//es reingreso
-    enviarFiscalizar(id_log_movimiento,maq_seleccionadas,true,true);
+    enviarFiscalizar(id_log_movimiento,maq_seleccionadas, fecha, true,true);
   }
 });
 
@@ -665,6 +715,7 @@ $('#btn-pausar').click(function(e){
   var tipo=$('#modalLogMovimiento2').find('#tipo_movi').val();
   var id_log_movimiento = $('#modalLogMovimiento2').find('#mov').val();
   var maquinas = $('#tablaMaquinasSeleccionadas tbody > tr');
+  var fecha = $('#B_fecha_egreso').val();
 
 
   $.each(maquinas, function(index, value){
@@ -677,14 +728,14 @@ $('#btn-pausar').click(function(e){
   //USA LA FC DE POST, ENVIANDO EN FALSE EL ATRIBUTO DE CARGA FINALIZADA
   //enviarFiscalizarEgreso(id_log_movimiento, maquinas, false);
   if(tipo!=8){
-    enviarFiscalizar(id_log_movimiento,maq_seleccionadas,false,false);
+    enviarFiscalizar(id_log_movimiento,maq_seleccionadas, fecha, false,false);
   }else{
-    enviarFiscalizar(id_log_movimiento,maq_seleccionadas,false,true);
+    enviarFiscalizar(id_log_movimiento,maq_seleccionadas, fecha, false,true);
   }
 });
 
 //POST
-function enviarFiscalizar(id_mov,maq,fin,reingreso){
+function enviarFiscalizar(id_mov,maq,fecha, fin,reingreso){
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -695,7 +746,8 @@ function enviarFiscalizar(id_mov,maq,fin,reingreso){
     id_log_movimiento: id_mov,
     maquinas: maq,
     carga_finalizada: fin,
-    es_reingreso:reingreso
+    es_reingreso:reingreso,
+    fecha:fecha,
   }
 
   $.ajax({
@@ -718,10 +770,16 @@ function enviarFiscalizar(id_mov,maq,fin,reingreso){
             }
           },
         error: function (data) {
-          console.log('pausar:',data);
-            console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');
+          var response = data.responseJSON.errors;
+
+          if(typeof response.fecha !== 'undefined'){
+            mostrarErrorValidacion($('#B_fecha_egreso'),response.fecha[0],false);
+          }
+          else{
             $('#mensajeFiscalizacionError').show();
             $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
+          }
+
         },
       });
 };
@@ -738,6 +796,8 @@ $(document).on('click','.modificarDenominacion',function(){
   $('#denom_comun').val(' ');
   $('#devol_comun').val(' ');
   $('#unidad_comun').val(' ');
+  ocultarErrorValidacion($('#B_fecha_denom'));
+  $('#B_fecha_denom').val(' ');
 
 
   $('#modalDenominacion').find('#id_t_mov').val(tmov);
@@ -765,6 +825,7 @@ $(document).on('click','.modificarDenominacion',function(){
           $('#nuevaUni').show();
           $('#busqSector').show();
           $('#busqIsla').show();
+          $('#B_fecha_denom').show();
 
 
       break;
@@ -784,6 +845,7 @@ $(document).on('click','.modificarDenominacion',function(){
           $('#nuevaUni').hide();
           $('#busqSector').show();
           $('#busqIsla').show();
+          $('#B_fecha_denom').show();
 
 
       break;
@@ -803,6 +865,7 @@ $(document).on('click','.modificarDenominacion',function(){
           $('#busqIsla').hide();
           $('#aplicar').hide();
           $('#aplicar1').hide();
+          $('#dtpFechaMDenom').show();
 
       break;
       default:
@@ -1072,6 +1135,7 @@ $(document).on('click','#btn-enviar-denom',function(e){
   var tipo =  $('#modalDenominacion').find('#id_t_mov').val();
   var tabla_maq = $('#tablaDenominacion tbody > tr');
   var maquinas = [];
+  var fecha = $('#B_fecha_denom').val();
 
   $.each(tabla_maq, function(index, value){
 
@@ -1095,7 +1159,8 @@ $(document).on('click','#btn-enviar-denom',function(e){
         id_juego:"",
         denominacion:"",
         porcentaje_devolucion:$(this).find('.devolucion_modificada').val(),
-        id_unidad_medida:""
+        id_unidad_medida:"",
+
       }
         break;
 
@@ -1114,7 +1179,7 @@ $(document).on('click','#btn-enviar-denom',function(e){
       maquinas.push(maquina);
   });
   //USA LA FC DE POST, ENVIANDO EN TRUE EL ATRIBUTO DE CARGA FINALIZADA
-  enviarDenominacion(id_log_movim, maquinas, true);
+  enviarDenominacion(id_log_movim, maquinas, fecha, true);
 
 });
 
@@ -1125,6 +1190,8 @@ $(document).on('click','#btn-pausar-denom',function(e){
   var tipo =  $('#modalDenominacion').find('#id_t_mov').val();
   var tabla_maq = $('#tablaDenominacion tbody > tr');
   var maquinas = [];
+  var fecha = $('#B_fecha_denom').val();
+
   $.each(tabla_maq, function(index, value){
 
   //Según el tipo de movimiento genera distintos json de máquinas
@@ -1167,7 +1234,7 @@ $(document).on('click','#btn-pausar-denom',function(e){
   maquinas.push(maquina);
 
   //USA LA FC DE POST, ENVIANDO EN FALSE EL ATRIBUTO DE CARGA FINALIZADA
-  enviarDenominacion(id_log_movim, maquinas, false);
+  enviarDenominacion(id_log_movim, maquinas, fecha, false);
    })
 });
 
@@ -1186,6 +1253,7 @@ function enviarDenominacion(id_mov,maq,fin){
     id_log_movimiento: id_mov,
     maquinas: maq,
     carga_finalizada: fin, //INDICA SI LA CARGA FUE FINALIZADA O NO
+    fecha:fecha
   }
 
   $.ajax({
@@ -1212,10 +1280,16 @@ function enviarDenominacion(id_mov,maq,fin){
 
         },
         error: function (data) {
-            console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');
+          var response = data.responseJSON.errors;
 
-            $('#mensajeFiscalizacionError2').show();
-            $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
+          if(typeof response.fecha !== 'undefined'){
+              mostrarErrorValidacion($('#B_fecha_denom'),response.fecha[0],false);
+          }
+          else{
+              $('#mensajeFiscalizacionError2').show();
+              $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
+          }
+
         },
    });
 };
