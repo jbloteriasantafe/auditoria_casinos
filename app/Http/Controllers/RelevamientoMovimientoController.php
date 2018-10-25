@@ -271,7 +271,7 @@ class RelevamientoMovimientoController extends Controller
 
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamientoEv( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento){
+    $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento , $s, $i){
 
      $relevamiento = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -293,7 +293,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones,$mac,"","");
+         $observaciones,$mac,$s,$i);
        }else{
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
@@ -305,7 +305,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones, $mac,"","");
+         $observaciones, $mac,$s,$i);
 
        }
    }
@@ -335,7 +335,7 @@ class RelevamientoMovimientoController extends Controller
      RelevamientoMovimiento::destroy($id_relev_mov);
    }
 
-
+   /*
    public function generarRelevamientoEventualidad($request){
      $relevamiento = $this->crearRelevamientoMovimiento($request->id_log_movimiento, $request->id_maquina);
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -356,10 +356,10 @@ class RelevamientoMovimientoController extends Controller
                                                    $request->cant_creditos,
                                                    $request->fecha_sala,
                                                   $request->observaciones,
-                                                $request->mac,"","");
+                                                $request->mac,$request->,"");
     return $relevamiento->id_relev_mov;
 
-   }
+  }*/
 
 
    public function relevamientosIntervencionesMTM($id_mtm,$nro, $id_log_movimiento, $tipo_movimiento,$tipo, $cas){
@@ -409,6 +409,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->nom_cont8 = "s/f";
      }
 
+     if(!isset($relevamiento->toma_relevamiento_movimiento)) $tipo =1;
 
      if($tipo == 1){
 
