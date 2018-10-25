@@ -1976,11 +1976,19 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
           //SI HAY DIFERENCIA
-          var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
+
+          // var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
+          // if (Number(resta.toFixed(2)) != 0) {
+          //   var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
+          //   var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
+
+        //se cambio para considerar los contadores negativos
+          var resta = Number(math.abs(data.detalles[i].detalle.producido_calculado_relevado) - math.abs(data.detalles[i].producido) );
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
             var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
-
+            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2)));
+            
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
 
