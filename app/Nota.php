@@ -29,6 +29,9 @@ class Nota extends Model
   public function log_movimiento(){
     return $this->belongsTo('App\LogMovimiento','id_log_movimiento','id_log_movimiento');
   }
+  public function tipo_movimiento(){
+    return $this->belongsTo('App\TipoMovimiento','id_tipo_movimiento','id_tipo_movimiento');
+  }
   public function archivo(){
       return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
   }
