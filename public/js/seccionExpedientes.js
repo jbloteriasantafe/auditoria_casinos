@@ -1419,7 +1419,12 @@ function agregarDisposicion(disposicion, editable){
       else {
          fila.find('.desc_dCreada').val("Sin Descripción");
      }
-     fila.find('.mov_dCreada').val(disposicion.descripcion_movimiento);
+     if(disposicion.descripcion_movimiento != null){
+     fila.find('.mov_dCreada').val(disposicion.descripcion_movimiento);}
+     else{
+       fila.find('.mov_dCreada').val(" -- ");}
+
+     }
      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
 
      //fila.css('display','block');
