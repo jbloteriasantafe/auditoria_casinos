@@ -85,7 +85,7 @@ class ExpedienteController extends Controller
                 ->get();
 
     $disposiciones = DB::table('disposicion')
-                          ->select('disposicion.*','nota.id_tipo_movimiento')
+                          ->select('disposicion.*','tipo_movimiento.descripcion as descripcion_movimiento')
                           ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
                           ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
                           ->where('disposicion.id_expediente','=',$id)
@@ -337,7 +337,7 @@ class ExpedienteController extends Controller
     $disposiciones = $expediente->disposiciones;
     if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
       foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
-        if(!$this->existeDisposicion($disposicion,$request->disposiciones)){//chequea que exista la disposiciones en el request
+        if(!$this->existeIdDisposicion($disposicion,$request->disposiciones)){//chequea que exista la disposiciones en el request
           DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion); //si no esta en el request la elimina
         }
       }
@@ -404,12 +404,28 @@ class ExpedienteController extends Controller
     return $result;
   }
 
+  /*
+    una disposicion y el request de disposiciones
+  */
+  public function existeIdDisposicion($disp,$disposiciones){
+    $result = false;
+    for($i = 0;$i<count($disposiciones);$i++){
+      if($disp->id_disposicion == $disposiciones[$i]){
+
+        $result = true;
+        break;
+      }
+    }
+    return $result;
+  }
+
   public function existeDisposicion($disp,$disposiciones){
     $result = false;
     for($i = 0;$i<count($disposiciones);$i++){
       if($disp['nro_disposicion'] == $disposiciones[$i]['nro_disposicion']
       && $disp['nro_disposicion_anio'] == $disposiciones[$i]['nro_disposicion_anio']
       && $disp['descripcion'] == $disposiciones[$i]['descripcion']){
+
         $result = true;
         break;
       }
