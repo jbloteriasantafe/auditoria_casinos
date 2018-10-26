@@ -1476,6 +1476,7 @@ $(document).on('click','.ajustar',function(e){
     var fila = $(this).closest('tr');
 
     var boton = $(this).closest('.popover').siblings('.pop');
+    
 
     if (medida == 'credito'){
         // //Si la denominación no está vacía
@@ -1492,15 +1493,14 @@ $(document).on('click','.ajustar',function(e){
         //     denominacion.addClass('alerta');
         // }
 
-        //se dispuso que el cambio es estatico a una denominacion de 0.01, no existe otra denominacion a fines de opera
-        // esto se mantuvo como requisito siempre
+        //se cambia la denominacion por la que ya esta definida en el maestro de maquina
 
           fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
-            fila.attr('data-denominacion', 0.01) //Cambia la denominacion
+           // fila.attr('data-denominacion', 0.01) //Cambia la denominacion
             boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
 
-
-            enviarCambioDenominacion(fila.attr('id'), 1, 0.01);
+            
+            enviarCambioDenominacion(fila.attr('id'), 1, fila.attr('data-denominacion'));
 
     }
     else {
