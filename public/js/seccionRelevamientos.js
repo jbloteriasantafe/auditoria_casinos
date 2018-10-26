@@ -1470,26 +1470,38 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
+  
     var medida = $(this).siblings('input:checked').val();
-    var denominacion = $(this).siblings('input:text');
+    //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
 
     var boton = $(this).closest('.popover').siblings('.pop');
 
     if (medida == 'credito'){
-        //Si la denominación no está vacía
-        if (denominacion.val() != '') {
-            fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
-            fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
+        // //Si la denominación no está vacía
+        // if (denominacion.val() != '') {
+        //     fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
+        //     fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
+        //     boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
+
+
+        //     enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
+        // }
+        // //Complete el campo denominación
+        // else {
+        //     denominacion.addClass('alerta');
+        // }
+
+        //se dispuso que el cambio es estatico a una denominacion de 0.01, no existe otra denominacion a fines de opera
+        // esto se mantuvo como requisito siempre
+
+          fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
+            fila.attr('data-denominacion', 0.01) //Cambia la denominacion
             boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
 
 
-            enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
-        }
-        //Complete el campo denominación
-        else {
-            denominacion.addClass('alerta');
-        }
+            enviarCambioDenominacion(fila.attr('id'), 1, 0.01);
+
     }
     else {
         fila.attr('data-medida', 2);
@@ -1570,7 +1582,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos">'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación"><br>'
+                      //+   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación" ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
@@ -1584,7 +1596,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos" checked>'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled><br>'
+                     // +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
