@@ -88,7 +88,7 @@ class RelevamientoMovimientoController extends Controller
 
      //campos que solo se deberían chequear y si estan mal agregarlo en observaciones
      $rel->tipo_movimiento = $tipo_movimiento; //guarda la descripcion del tipo de movimiento
-     $rel->fecha_relev_sala = $relev_mov->fecha_relev_sala;
+     $rel->fecha_relev_sala_2 = $relev_mov->fecha_relev_sala;
      $rel->nro_admin = $maquina->nro_admin;
      $isla = Isla::find($maquina->id_isla);
      if($isla != null)
@@ -119,6 +119,7 @@ class RelevamientoMovimientoController extends Controller
      //verifico si es la segunda toma que se hace
      if($es_toma_2){ //existe una toma para el relevamiento
          $toma_relev = $this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
+         $rel->fecha_relev_sala_2 = $toma_relev->relevamiento_movimiento->fecha_relev_sala;
          $rel->toma1_cont1 = $toma_relev->vcont1;
          $rel->toma1_cont2 = $toma_relev->vcont2;
          $rel->toma1_cont3 = $toma_relev->vcont3;
@@ -135,6 +136,8 @@ class RelevamientoMovimientoController extends Controller
          $rel->toma1_denominacion = $toma_relev->denominacion;
          $rel->toma1_cant_creditos = $toma_relev->cant_creditos;
          $rel->toma1_mac = $toma_relev->mac;
+         $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
+         $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
 
 
      }else{
@@ -153,6 +156,8 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_denominacion = null;
        $rel->toma1_cant_creditos = null;
        $rel->toma1_mac=null;
+       $rel->toma1_nro_isla_relevada = null;
+       $rel->toma1_descripcion_sector_relevado = null;
 
      }
     $rel->fecha = $fecha_envio;
@@ -180,6 +185,8 @@ class RelevamientoMovimientoController extends Controller
       $rel->toma2_cant_creditos = $toma_relev->cant_creditos;
       $rel->toma2_observ = $toma_relev->observaciones;
       $rel->toma2_mac= $toma_relev->mac;
+      $rel->toma2_nro_isla_relevada = $toma_relev->nro_isla_relevada;
+      $rel->toma2_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
 
     }else{
       $rel->toma2_cont1 = null;
@@ -198,6 +205,8 @@ class RelevamientoMovimientoController extends Controller
       $rel->toma2_cant_creditos = null;
        $rel->toma2_observ =null;
        $rel->toma2_mac= null;
+       $rel->toma2_nro_isla_relevada = null;
+       $rel->toma2_descripcion_sector_relevado = null;
     }
 
      return $rel;
@@ -221,7 +230,7 @@ class RelevamientoMovimientoController extends Controller
 
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamiento( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones, $id_fiscalizacion_movimiento, $id_cargador, $id_fisca, $mac){
+    $cant_creditos, $fecha_sala, $observaciones,$islaRelevadaCargar, $sectorRelevadoCargar, $id_fiscalizacion_movimiento, $id_cargador, $id_fisca, $mac){
 
      $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -243,7 +252,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones,$mac);
+         $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar);
        }else{
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
@@ -255,14 +264,14 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones, $mac);
+         $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar);
 
        }
    }
 
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamientoEv( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento){
+    $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento , $s, $i){
 
      $relevamiento = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -284,7 +293,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones,$mac);
+         $observaciones,$mac,$s,$i);
        }else{
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
@@ -296,7 +305,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones, $mac);
+         $observaciones, $mac,$s,$i);
 
        }
    }
@@ -326,7 +335,7 @@ class RelevamientoMovimientoController extends Controller
      RelevamientoMovimiento::destroy($id_relev_mov);
    }
 
-
+   /*
    public function generarRelevamientoEventualidad($request){
      $relevamiento = $this->crearRelevamientoMovimiento($request->id_log_movimiento, $request->id_maquina);
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -347,10 +356,10 @@ class RelevamientoMovimientoController extends Controller
                                                    $request->cant_creditos,
                                                    $request->fecha_sala,
                                                   $request->observaciones,
-                                                $request->mac);
+                                                $request->mac,$request->,"");
     return $relevamiento->id_relev_mov;
 
-   }
+  }*/
 
 
    public function relevamientosIntervencionesMTM($id_mtm,$nro, $id_log_movimiento, $tipo_movimiento,$tipo, $cas){
@@ -400,6 +409,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->nom_cont8 = "s/f";
      }
 
+     if(!isset($relevamiento->toma_relevamiento_movimiento)) $tipo =1;
 
      if($tipo == 1){
 
@@ -420,6 +430,8 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_mac=null;
        $rel->toma1_observ = null;
        $rel->fecha_relev_sala = null;
+       $rel->toma1_nro_isla_relevada = null;
+       $rel->toma1_descripcion_sector_relevado = null;
      }else{
        $toma_relev = $relevamiento->toma_relevamiento_movimiento;//$this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
        $rel->toma1_cont1 = $toma_relev->vcont1;
@@ -440,6 +452,9 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_mac = $toma_relev->mac;
        $rel->toma1_observ = $toma_relev->observaciones;
        $rel->fecha_relev_sala = $relevamiento->fecha_relev_sala;
+
+       $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
+       $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
      }
      return $rel;
    }

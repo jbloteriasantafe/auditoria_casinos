@@ -247,6 +247,8 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#select_tevent').prop('disabled',false);
   $('#fechaEv').prop('disabled',false);
   $('#macEv').prop('disabled',false);
+  $('#sectorRelevadoEv').prop('disabled',false);
+  $('#islaRelevadaEv').prop('disabled',false);
 
 
 
@@ -326,6 +328,8 @@ $(document).on('click','.detalleMTM',function(){
   $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
   $('#fechaEv').val("");
   $('#macEv').val("");
+  $('#islaRelevadaEv').val("");
+  $('#sectorRelevadoEv').val("");
   $('#guardarEv').prop('disabled', true);
   $('#juegoEv option').remove();
   $('#mensajeErrorCargaEv').hide();
@@ -346,6 +350,8 @@ $(document).on('click','.detalleMTM',function(){
   $('#juegoEv').prop('disabled',false);
   $('#inputAdmin').prop('disabled',false);
   $('#macEv').prop('disabled',false);
+  $('#islaRelevadaEv').prop('disabled',false);
+  $('#sectorRelevadoEv').prop('disabled',false);
 
 
   //BORRO LOS ERRORES
@@ -372,8 +378,6 @@ $(document).on('click','.detalleMTM',function(){
 
 
     $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
-      console.log('55555',data);
-
       cargarDatos(data);
     })
 
@@ -466,14 +470,18 @@ function cargarDatos (data){
     $('#cant_lineasEv').val(data.toma.cant_creditos);
     $('#observacionesTomaEv').val(data.toma.observaciones);
     $('#macEv').val(data.toma.mac);
+    $('#sectorRelevadoEv').val(data.toma.nro_isla_relevada);
+    $('#islaRelevadaEv').val(data.toma.descripcion_sector_relevado);
     }
 
     //$('#juegoEv').prop('disabled',true);
     $('#inputAdmin').prop('disabled',true);
 
-    if(data.tipo_movimiento!=null){$('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento); }
+    if(data.tipo_movimiento!=null){
+      $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento); }
 
-    if(data.fiscalizador!=null){  $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);}
+    if(data.fiscalizador!=null){
+      $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);}
 
     $('#guardarEv').prop('disabled', false);
 
@@ -503,7 +511,8 @@ $(document).on('click','#guardarEv',function(){
   var  observaciones= $('#observacionesTomaEv').val();
   var  tabla = $('#tablaCargarContadores tbody > tr');
   var  mac = $('#macEv').val();
-
+  var  islaRelevadaEv = $('#islaRelevadaEv').val();
+  var  sectorRelevadoEv = $('#sectorRelevadoEv').val();
 
   $.each(tabla, function(index, value){
 
@@ -530,7 +539,9 @@ $(document).on('click','#guardarEv',function(){
     fecha_sala: fecha_sala,
     tipo_movimiento: tipo_movimiento,
     observaciones: observaciones,
-    mac: mac
+    mac: mac,
+    islaRelevadaEv: islaRelevadaEv,
+    sectorRelevadoEv: sectorRelevadoEv,
   }
 
 
@@ -549,6 +560,8 @@ $(document).on('click','#guardarEv',function(){
       $('#modalCargarMaqEv #fiscalizadorEv').val(' ');
       $('#modalCargarMaqEv #select_tevent').val('');
       $('#modalCargarMaqEv #macEv').val('');
+      $('#modalCargarMaqEv #islaRelevadaEv').val('');
+      $('#modalCargarMaqEv #sectorRelevadoEv').val('');
       // $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
       $('#mensajeExito h3').text('ÉXITO DE CARGA');
       $('#mensajeExito p').text(' ');
@@ -765,6 +778,8 @@ $(document).on('click','.verMaquinaEv',function(){
   $('#modalValidacionEventualidadMTM').find('#maquina').val(id_maquina);
   $('#modalValidacionEventualidadMTM').find('#relevamiento').val(id_relevamiento);
   $('#mensajeExitoValidacion').hide();
+  $('#sectorRelevadoVal').val('');
+  $('#islaRelevadaVal').val('');
 
   // $('#mensajeExitoValidacion').hide();
 
@@ -785,6 +800,8 @@ $(document).on('click','.verMaquinaEv',function(){
         $('#modeloVal').val(data.maquina.modelo);
         $('#macVal').val(data.toma.mac);
         $('#fecha_Val').val(data.fecha);
+        $('#sectorRelevadoVal').val(data.toma.descripcion_sector_relevado);
+        $('#islaRelevadaVal').val(data.toma.nro_isla_relevada);
 
         //CARGAR LA TABLA DE CONTADORES, HASTA 6
         var cont = "cont";

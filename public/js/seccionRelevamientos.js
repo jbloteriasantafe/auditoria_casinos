@@ -481,7 +481,8 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
       }else{
         var sumaxdenom = Number(suma);
         var producidoxcien = Number(producido);
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
+        //se contempla la posibilidad de que los contadores den negativo
+        var diferencia = math.abs(Number(sumaxdenom.toFixed(2))) - math.abs(Number(producidoxcien.toFixed(2)));
       }
       //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
       diferencia= Number(diferencia.toFixed(2));
@@ -1469,26 +1470,38 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
+  
     var medida = $(this).siblings('input:checked').val();
-    var denominacion = $(this).siblings('input:text');
+    //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
 
     var boton = $(this).closest('.popover').siblings('.pop');
+    
 
     if (medida == 'credito'){
-        //Si la denominación no está vacía
-        if (denominacion.val() != '') {
-            fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
-            fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
+        // //Si la denominación no está vacía
+        // if (denominacion.val() != '') {
+        //     fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
+        //     fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
+        //     boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
+
+
+        //     enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
+        // }
+        // //Complete el campo denominación
+        // else {
+        //     denominacion.addClass('alerta');
+        // }
+
+        //se cambia la denominacion por la que ya esta definida en el maestro de maquina
+
+          fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
+           // fila.attr('data-denominacion', 0.01) //Cambia la denominacion
             boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
 
+            
+            enviarCambioDenominacion(fila.attr('id'), 1, fila.attr('data-denominacion'));
 
-            enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
-        }
-        //Complete el campo denominación
-        else {
-            denominacion.addClass('alerta');
-        }
     }
     else {
         fila.attr('data-medida', 2);
@@ -1569,7 +1582,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos">'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación"><br>'
+                      //+   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación" ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
@@ -1583,7 +1596,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos" checked>'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled><br>'
+                     // +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
@@ -1951,7 +1964,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       var diferencia = tablaValidarRelevamiento.find('#' + id_detalle + ' td input.diferencia');
 
       if(data.detalles[i].detalle.producido_calculado_relevado == null){
-        diferencia.val(data.detalles[i].producido).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
+        diferencia.val( math.abs(Number(data.detalles[i].producido))).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
         iconoPregunta.hide();
         iconoCruz.show();
         iconoCheck.hide();
@@ -1982,13 +1995,47 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
           //   var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
           //   var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
 
+
+    //       console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
+    //         console.log('MODULO DIFERENCIA', moduloDiferencia);
+    //         console.log('DIFERENCIA', diferenciaProducido);
+
+    //         if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
+    //           iconoPregunta.hide();
+    //           iconoCruz.hide();
+    //           iconoCheck.hide();
+    //           iconoAdmiracion.show();
+    //           truncadas++;
+    //           diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
+    //         }
+    //         else{
+    //           iconoPregunta.hide();
+    //           iconoCruz.show();
+    //           iconoCheck.hide();
+    //           iconoAdmiracion.hide();
+
+    //           diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
+    //         }
+    //       }
+    //       else {
+    //         iconoPregunta.hide();
+    //         iconoCruz.hide();
+    //         iconoCheck.show();
+    //         iconoAdmiracion.hide();
+
+    //         diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
+    //       }
+    //   }
+    // }
+
         //se cambio para considerar los contadores negativos
           var resta = Number(math.abs(data.detalles[i].detalle.producido_calculado_relevado) - math.abs(data.detalles[i].producido) );
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
-            var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
-            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2)));
+            var moduloDiferencia = Number(resta.toFixed(2));
+            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
             
+            console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
 
@@ -1998,7 +2045,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCheck.hide();
               iconoAdmiracion.show();
               truncadas++;
-              diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
+              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
               iconoPregunta.hide();
@@ -2006,7 +2053,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCheck.hide();
               iconoAdmiracion.hide();
 
-              diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
+              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #EF5350').css('color','#EF5350');
             }
           }
           else {
