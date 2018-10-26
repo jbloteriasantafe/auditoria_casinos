@@ -170,11 +170,11 @@ function obtenerTiposMovimientos() {
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
           $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
-          $('#moldeDisposicion .tiposMovimientosDisp').append(optionDefecto);
+          $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
           for (var i = 0; i < data.length; i++) {
             var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
             $('#moldeNotaNueva .tiposMovimientos').append(option);
-            $('#moldeDisposicion .tiposMovimientosDisp').append(option);
+            $('#moldeDisposicion #tiposMovimientosDisp').append(option);
           }
     });
 }
@@ -248,8 +248,11 @@ $('#btn-agregarDisposicion').click(function(){
 
   var moldeDisposicion = $('#moldeDisposicion').clone();
 
+
   moldeDisposicion.removeAttr('id');
+  moldeDisposicion.find('#tiposMovimientosDisp').prop("disabled", false);
   moldeDisposicion.show();
+
   $('#columnaDisposicion').append(moldeDisposicion);
 
 });
@@ -422,7 +425,7 @@ $('#btn-nuevo').click(function(e){
     $('#modalExpediente').find('.modal-footer').children().show();
     $('#modalExpediente').find('.modal-body').children().show();
     $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-
+    $('#dispoCarg').hide();
     //Ocultar errores
     $('#error_nav_config').hide();
     $('#error_nav_notas').hide();
@@ -456,7 +459,7 @@ $('#btn-nuevo').click(function(e){
 
     // generarListaMovimientos(0);
     // generarListaAsocMovimientos();
-
+    $('#tiposMovimientosDisp option').remove();
     obtenerTiposMovimientos();
 
     $('#modalExpediente').modal('show');
@@ -506,7 +509,7 @@ $(document).on('click','.modificar',function(){
     $('#modalExpediente').find('.modal-footer').children().show();
     $('#modalExpediente').find('.modal-body').children().show();
     $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-
+    $('#tablaDispoCreadas tbody tr').remove();
     $('.casinosExp').prop('checked',false).prop('disabled',false);
     limpiarModal();
     habilitarDTP();
@@ -648,9 +651,22 @@ $('#btn-guardar').click(function (e) {
           nro_disposicion: $(this).find('.nro_disposicion').val(),
           nro_disposicion_anio: $(this).find('.nro_disposicion_anio').val(),
           descripcion: $(this).find('#descripcion_disposicion').val(),
+          id_tipo_movimiento: $(this).find('#tiposMovimientosDisp').val(),
         }
         disposiciones.push(disposicion);
     });
+    var dispo_cargadas = [];
+    var tabla = $('#tablaDispoCreadas tbody > tr').not('#moldeDispoCargada');
+
+    $.each(tabla, function(index, value){
+
+        var id_disposicion= $(this).attr('id');
+        console.log('dispoCar1',id_disposicion);
+
+        dispo_cargadas.push(id_disposicion);
+        console.log('dispoCar',dispo_cargadas);
+    });
+
 
     var notas = obtenerNotasNuevas();
     var notas_asociadas = obtenerNotasMov();
@@ -687,6 +703,7 @@ $('#btn-guardar').click(function (e) {
       notas: notas,
       notas_asociadas: notas_asociadas,
       tablaNotas: tablaNotas,
+      dispo_cargadas: dispo_cargadas
     }
     console.log(formData);
 
@@ -1116,7 +1133,7 @@ function limpiarModal(){
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-  $('#moldeDisposicion .tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
+  $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
 
@@ -1274,8 +1291,7 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
 
 
   //MOSTRAR NOTAS!!!!
-  console.log('notas',notas);
-  console.log('notas con mov',notasConMovimientos);
+
   var i = 0;
   var j = 0;
 
@@ -1286,7 +1302,6 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
       agregarNotaConMovimiento(notasConMovimientos[j]);
   }
 
-  console.log("Hay notas? ", i, j);
 
   //Si hay notas mostrarlas
   if (i || j) {
@@ -1341,9 +1356,11 @@ function agregarNotaConMovimiento(nota) {
 }
 
 function agregarDisposicion(disposicion, editable){
+  console.log('disp', disposicion);
     var moldeDisposicion = $('#moldeDisposicion').clone();
 
     moldeDisposicion.removeAttr('id');
+    moldeDisposicion.attr('id',disposicion.id_disposicion);
 
     //Para el modificar
     // moldeDisposicion.attr('id', disposicion.id_disposicion);
@@ -1351,37 +1368,65 @@ function agregarDisposicion(disposicion, editable){
     // moldeDisposicion.find('.nro_resolucion_anio').val();
     // moldeDisposicion.find('.descripcion_disposicion').val();
 
-    moldeDisposicion.show();
-
-
     if(editable==false){
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
       moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
       if(disposicion.id_nota != null){
-        moldeDisposicion.find('.tiposMovimientosDisp').val(disposicion.id_tipo_movimiento).prop('disable',true);
+
+        //moldeDisposicion.find('#selectgay').remove();
+        console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
+
+        moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
+        //obtenerTiposMovimientos();
+      //moldeDisposicion.find('#tiposMovimientosDisp').find('option[value=' + disposicion.id_tipo_movimiento + ']').attr('selected',true);
+        //moldeDisposicion.find('#tiposMovimientosDisp option[value=' + disposicion.id_tipo_movimiento + ']').attr("selected", true);
+        //moldeDisposicion.find('#tiposMovimientosDisp').text(disposicion.id_tipo_movimiento);
+
       }else {
-        moldeDisposicion.find('.tiposMovimientosDisp').css('display','none');
+        console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
+        moldeDisposicion.find('#tiposMovimientosDisp').hide();
       }
 
       $('#columnaDisposicion').append(moldeDisposicion);
-
+      //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
     if(editable==true) {
-      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',false);
-      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',false);
+      // moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',false);
+      // moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',false);
+      // if(disposicion.descripcion != null){
+      // moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
+      // else {
+      //   moldeDisposicion.find('#descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
+      // }
+      // moldeDisposicion.find('#tiposMovimientosDisp').hide();
+      // moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
+      $('#moldeDisposicion').hide();
+      $('#tablaDispoCreadas').show();
+
+      var fila=$('#moldeDispoCargada').clone();
+
+      fila.show();
+
+      fila.removeAttr('id');
+      fila.attr('id', disposicion.id_disposicion);
+
+      fila.find('.nro_dCreada').val(disposicion.nro_disposicion);
+      fila.find('.anio_dCreada').val(disposicion.nro_disposicion_anio);
       if(disposicion.descripcion != null){
-      moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
+        fila.find('.desc_dCreada').val(disposicion.descripcion);}
       else {
-        moldeDisposicion.find('#descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
-      }
-      moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion).prop('readonly',false);
+         fila.find('.desc_dCreada').val("Sin Descripción");
+     }
+     fila.find('.mov_dCreada').val(disposicion.descripcion_movimiento);
+     fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
 
-
-      $('#columnaDisposicion').append(moldeDisposicion);
+     //fila.css('display','block');
+      $('#tablaDispoCreadas tbody').append(fila);
 
     }
+      //moldeDisposicion.show();
     if(editable=='vacia') {
       $('#columnaDisposicion').append(moldeDisposicion);  }
   // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
@@ -1455,6 +1500,10 @@ function agregarDisposicion(disposicion, editable){
       //       )
       // }
 }
+$(document).on('click','.borrarDispoCargada', function(){
+
+  $(this).parent().parent().remove();
+})
 
 function agregarMovimientos(movimiento, editable){
 

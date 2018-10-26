@@ -98,21 +98,23 @@ class NotaController extends Controller
 
   //para no impactar en los movimientos-> se crea la disposicion pero en realidad
   //el movimiento esta asociado a una nota
-  public function guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion)// se usa desde expedienteController
+  public function guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion,$id_tipo_movimiento)// se usa desde expedienteController
   {
 
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
-    //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-    $nota->fecha = $request['fecha'];
-    $nota->detalle = $request['detalle'];
+    $nota->tipo_movimiento()->associate($id_tipo_movimiento);
+    $nota->fecha = date('Y-m-d');
+    $nota->detalle = $nro_disposicion;
     $nota->identificacion = 'Disposición Nro '.$nro_disposicion;
     $nota->es_disposicion = 1;
     $nota->save();
 
-    $nota->log_movimiento()->associate(intval($request['id_log_movimiento']));
-    LogMovimientoController::getInstancia()->asociarExpediente($request['id_log_movimiento'], $id_expediente);
+
+
+    $idl = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$id_tipo_movimiento);
+    $nota->log_movimiento()->associate(intval($idl->id_log_movimiento));
     $nota->save();
     return $nota->id_nota;
   }
