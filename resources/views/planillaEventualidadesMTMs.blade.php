@@ -66,30 +66,41 @@ footer
               </table>
               <br>
               <table>
+                <tr>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ADMIN</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_admin}}</td>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ISLA</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_isla}}</td>
+                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">N° SERIE</th>
+                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;"> {{$relevamiento->nro_serie}}</td>
+                </tr>
+
+              </table>
+              <table>
+                <tr>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">MARCA</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->marca}}</td>
+                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">MODELO</th>
+                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->modelo}}</td>
+                </tr>
+
+              </table>
+              <br>
+              <table>
                 <tr><th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA TOMA</th>
                 </tr>
                 <td class="tablaInicio"  style="border-color: gray;">@if($relevamiento->fecha_relev_sala != null) {{$relevamiento->fecha_relev_sala}} @else ____/____/____, ____:____ @endif </td>
 
               </table>
               <br>
-              <table>
-                <tr>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">N° ADMIN</th>
-                  <td class="tablaInicio" style="padding-left: 35px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_admin}}</td>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">N° ISLA</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_isla}}</td>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">N° SERIE</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_serie}}</td>
-                </tr>
 
-              </table>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">MARCA</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->marca}}</td>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">MODELO</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->modelo}}</td>
-                  <th class="tablaInicio" style="border-color: gray; background-color: #dddddd;">MAC</th>
+                  <th class="tablaInicio" style="width: 60px; border-color: gray; background-color: #dddddd;">SECTOR</th>
+                  <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_descripcion_sector_relevado != null){{$relevamiento->toma1_descripcion_sector_relevado}} @endif</td>
+                  <th class="tablaInicio" style="width: 50px; border-color: gray; background-color: #dddddd;">ISLA</th>
+                  <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_nro_isla_relevada != null){{$relevamiento->toma1_nro_isla_relevada}} @endif</td>
+                  <th class="tablaInicio" style="width: 30px; border-color: gray; background-color: #dddddd;">MAC</th>
                   <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_mac != null){{$relevamiento->toma1_mac}} @endif</td>
                 </tr>
 

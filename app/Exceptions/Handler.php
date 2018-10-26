@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -44,6 +45,9 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+      if ($exception instanceof NotFoundHttpException) {
+        return redirect('inicio');
+      }
         return parent::render($request, $exception);
     }
 
@@ -71,6 +75,7 @@ class Handler extends ExceptionHandler
      */
     public function handle(NotificationSent $event)
     {
+
         // $event->channel
         // $event->notifiable
         // $event->notification

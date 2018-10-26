@@ -40,7 +40,7 @@ class TomaRelevamientoMovimientoController extends Controller
   $denominacion ,
   $cant_creditos,
   $fecha_sala,
-  $observaciones, $mac){
+  $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar){
     $mtm = Maquina::find($id_maquina);
 
     $toma = new TomaRelevamientoMovimiento;
@@ -51,6 +51,9 @@ class TomaRelevamientoMovimientoController extends Controller
     $toma->nro_isla = $mtm->isla->nro_isla;
     $toma->marca = $mtm->marca;
     $toma->mac = $mac;
+    $toma->nro_isla_relevada = $islaRelevadaCargar;
+    $toma->descripcion_sector_relevado = $sectorRelevadoCargar;
+
     //hay muchos if porque no encontré una forma mejor y rapida ->cami
     if(isset($contadores[0]['valor'])){
       $toma->vcont1= $contadores[0]['valor'];
@@ -126,6 +129,8 @@ class TomaRelevamientoMovimientoController extends Controller
     $toma->cant_creditos= $cant_creditos;
     $toma->observaciones = $observaciones;
     $toma->mac = $mac;
+    $toma->nro_isla_relevada = $islaRelevadaCargar;
+    $toma->descripcion_sector_relevado = $sectorRelevadoCargar;
     $toma->save();
     }
 

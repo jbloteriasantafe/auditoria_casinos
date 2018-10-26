@@ -54,6 +54,7 @@ class NotaController extends Controller
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
     //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+    $nota->es_disposicion = 0;
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
     $nota->identificacion = $request['identificacion'];
@@ -82,11 +83,38 @@ class NotaController extends Controller
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
     $nota->identificacion = $request['identificacion'];
+    $nota->es_disposicion = 0;
+    $nota->save();
+
+    $nota->log_movimiento()->associate(intval($request['id_log_movimiento']));
+    if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
+        $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
+    }else{//es REINGRESO
+        $log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
+    }
+    $nota->log_movimiento()->associate($log->id_log_movimiento);
+    $nota->save();
+  }
+
+  //para no impactar en los movimientos-> se crea la disposicion pero en realidad
+  //el movimiento esta asociado a una nota
+  public function guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion)// se usa desde expedienteController
+  {
+
+    $nota = new Nota;
+    $nota->expediente()->associate($id_expediente);
+    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
+    //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+    $nota->fecha = $request['fecha'];
+    $nota->detalle = $request['detalle'];
+    $nota->identificacion = 'Disposición Nro '.$nro_disposicion;
+    $nota->es_disposicion = 1;
     $nota->save();
 
     $nota->log_movimiento()->associate(intval($request['id_log_movimiento']));
     LogMovimientoController::getInstancia()->asociarExpediente($request['id_log_movimiento'], $id_expediente);
     $nota->save();
+    return $nota->id_nota;
   }
 
   //nunca se usa ja

@@ -17,7 +17,7 @@ class Disposicion extends Model
     return $this->belongsTo('App\Expediente','id_expediente','id_expediente');
   }
   public function nota(){
-    return $this->belongsTo('App\Expediente','id_nota','id_nota');
+    return $this->belongsTo('App\Nota','id_nota','id_nota');
   }
   public static function boot(){
         parent::boot();

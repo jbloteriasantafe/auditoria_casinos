@@ -19,7 +19,8 @@ class TomaRelevamientoMovimiento extends Model
                             'vcont6','vcont7','vcont8', 'juego', 'apuesta_max',
                             'cant_lineas', 'porcentaje_devolucion', 'denominacion',
                              'cant_creditos', 'observaciones','nro_admnin',
-                             'modelo', 'nro_serie','nro_isla','marca');
+                             'modelo', 'nro_serie','nro_isla','marca',
+                             'nro_isla_relevada','descripcion_sector_relevado');
   public $timestamps = false;
 
   public function relevamiento_movimiento(){

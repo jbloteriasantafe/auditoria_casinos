@@ -910,7 +910,7 @@ class RelevamientoController extends Controller
     errores generales: aquellas que tiene la X, es decir la que dio diferencia sin considerar el truncammiento, tampoco se consideran aquellas que dieron error por falta de improtar contadores
     sin toma: persiste el concepto, todos los tipos de no toma
     la isla ya no es necesario en este informe
-    
+
     */
     /*resultados antes del cambio
     $rel->truncadas = $sumatruncadas;
