@@ -535,7 +535,7 @@ $(document).on('click','.modificar',function(){
     obtenerTiposMovimientos();
 
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-        console.log(data);
+
         generarListaMovimientos(id_expediente);
         // mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.log_movimientos,data.tipos_movimientos,true);
         mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
