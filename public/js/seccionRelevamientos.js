@@ -1952,7 +1952,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       var diferencia = tablaValidarRelevamiento.find('#' + id_detalle + ' td input.diferencia');
 
       if(data.detalles[i].detalle.producido_calculado_relevado == null){
-        diferencia.val(data.detalles[i].producido).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
+        diferencia.val( math.abs(Number(data.detalles[i].producido))).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
         iconoPregunta.hide();
         iconoCruz.show();
         iconoCheck.hide();
@@ -2021,7 +2021,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
             var moduloDiferencia = Number(resta.toFixed(2));
-            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2)));
+            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
             
             console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
             console.log('MODULO DIFERENCIA', moduloDiferencia);
@@ -2033,7 +2033,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCheck.hide();
               iconoAdmiracion.show();
               truncadas++;
-              diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
+              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
               iconoPregunta.hide();
@@ -2041,7 +2041,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCheck.hide();
               iconoAdmiracion.hide();
 
-              diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
+              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #EF5350').css('color','#EF5350');
             }
           }
           else {
