@@ -392,7 +392,22 @@
                     <br>
                     <span id="alerta_macEv" class="alertaSpan"></span>
                   </div>
+
                 </div> <!-- segundo row -->
+
+                <div class="row">
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaEv" type="text" value="" class="form-control">
+                    <br>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <h5>SECTOR</h5>
+                    <input id="sectorRelevadoEv" type="text" value="" class="form-control">
+                    <br>
+                  </div> <!-- SECTOR -->
+                </div>
 
                 <div class="row"> <!-- TERCER ROW DE DETALLE -->
 
@@ -592,6 +607,19 @@
                           <span id="alerta_macVal" class="alertaSpan"></span>
                         </div>
                       </div> <!-- segundo row -->
+                      <div class="row">
+                        <div class="col-lg-4">
+                          <h5>ISLA</h5>
+                          <input id="islaRelevadaVal" type="text" value="" class="form-control">
+                          <br>
+                        </div>
+
+                        <div class="col-lg-4">
+                          <h5>SECTOR</h5>
+                          <input id="sectorRelevadoVal" type="text" value="" class="form-control">
+                          <br>
+                        </div> <!-- SECTOR -->
+                      </div>
                         <div class="row">
                           <table id="tablaValidarContadores" class="table">
                             <thead>

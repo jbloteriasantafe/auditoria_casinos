@@ -67,33 +67,85 @@ footer
               <br>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)FECHA Y HORA EGRESO @else FECHA Y HORA TOMA 1 @endif</th>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)FECHA Y HORA REINGRESO @else FECHA Y HORA TOMA 2 @endif</th>
-                </tr>
-                <td class="tablaInicio" style="border-color: gray;" >@if($relevamiento->fecha_relev_sala != null) {{$relevamiento->fecha_relev_sala}} @else ____/____/____, ____:____ @endif</td>
-                <td class="tablaInicio" style="border-color: gray;" > ____/____/____, ____:____ </td>
-              </table>
-              <br>
-              <table>
-                <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">N° ADMIN</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_admin}}</td>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">N° ISLA</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_isla}}</td>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">N° SERIE</th>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ADMIN</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_admin}}</td>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ISLA</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_isla}}</td>
+                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">N° SERIE</th>
                   <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;"> {{$relevamiento->nro_serie}}</td>
                 </tr>
 
               </table>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">MARCA</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->marca}}</td>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">MODELO</th>
+                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">MARCA</th>
+                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->marca}}</td>
+                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">MODELO</th>
                   <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->modelo}}</td>
                 </tr>
 
               </table>
+              <br>
+              <table>
+                <tr>
+                  <th class="tablaInicio" colspan="2" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)EGRESO @else TOMA 1 @endif</th>
+                  <th class="tablaInicio" colspan="2" style="background-color: #dddddd; border-color: gray;">@if ($relevamiento->toma)REINGRESO @else TOMA 2 @endif</th>
+                </tr>
+                <tr>
+                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA </th>
+                  <td class="tablaInicio" style="width: 30%; background-color: #fff; border-color: gray;" >@if ($relevamiento->toma)@if($relevamiento->fecha_relev_sala_1 != null){{$relevamiento->fecha_relev_sala}}@endif @else @if($relevamiento->fecha_relev_sala_2 != null){{$relevamiento->fecha_relev_sala_2}} @else ____/____/____, ____:____ @endif @endif</td>
+                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA </th>
+                  <td class="tablaInicio" style="width: 30%; background-color: #fff; border-color: gray;" > @if ($relevamiento->toma)@if($relevamiento->fecha_relev_sala_2 != null){{$relevamiento->fecha_relev_sala_2}} @else ____/____/____, ____:____ @endif @endif </td>
+                </tr>
+              </table>
+              <table>
+                <tr>
+                  <th class="tablaInicio" style="width: 60px;background-color: #dddddd; border-color: gray;">SECTOR</th>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
+                    @if ($relevamiento->toma)
+                      @if($relevamiento->toma1_descripcion_sector_relevado!=null)
+                        {{$relevamiento->toma1_descripcion_sector_relevado}}
+                      @endif
+                    @else
+                      @if($relevamiento->toma2_descripcion_sector_relevado!=null)
+                        {{$relevamiento->toma2_descripcion_sector_relevado}}
+                      @endif
+                    @endif
+                  </td>
+                  <th class="tablaInicio" style="width: 50px;background-color: #dddddd; border-color: gray;">ISLA</th>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
+                    @if ($relevamiento->toma)
+                      @if($relevamiento->toma1_nro_isla_relevada!=null)
+                        {{$relevamiento->toma1_nro_isla_relevada}}
+                      @endif
+                    @else
+                      @if($relevamiento->toma2_nro_isla_relevada!=null)
+                        {{$relevamiento->toma2_nro_isla_relevada}}
+                      @endif
+                    @endif
+
+                  </td>
+                  <th class="tablaInicio" style="width: 60px;background-color: #dddddd; border-color: gray;">SECTOR</th>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
+                    @if ($relevamiento->toma)
+                      @if($relevamiento->toma2_descripcion_sector_relevado!=null)
+                        {{$relevamiento->toma2_descripcion_sector_relevado}}
+                      @endif
+                    @endif
+                  </td>
+                  <th class="tablaInicio" style="width: 50px;background-color: #dddddd; border-color: gray;">ISLA</th>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
+                    @if ($relevamiento->toma)
+                      @if($relevamiento->toma2_nro_isla_relevada!=null)
+                        {{$relevamiento->toma2_nro_isla_relevada}}
+                      @endif
+                    @endif
+                  </td>
+                </tr>
+              </table>
+
+
+
               <br>
               <table>
                 <!-- Tabla COIN IN -->
@@ -152,46 +204,46 @@ footer
                   <th class="tablaInicio" style="border-left: 0px; background-color: #dddddd; border-color: gray;"></th>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>JUEGO</b></td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>JUEGO</b></td>  <!-- si tiene reingreso o segunda toma -> toma es true -->
                   <td class="tablaInicio" style="background-color: #fff; padding-right: 150px; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_juego}}  @else {{$relevamiento->toma2_juego}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>JUEGO</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; padding-right: 150px; border-color: gray;">{{$relevamiento->toma2_juego}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; padding-right: 150px; border-color: gray;">@if ($relevamiento->toma){{$relevamiento->toma2_juego}}@else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>APUESTA MÁX</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_apuesta_max}} @else {{$relevamiento->toma2_apuesta_max}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>APUESTA MÁX</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_apuesta_max}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma){{$relevamiento->toma2_apuesta_max}}@else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT LÍNEAS</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_cant_lineas}} @else {{$relevamiento->toma2_cant_lineas}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT LÍNEAS</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_cant_lineas}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_cant_lineas}} @else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>% DEVOLUCIÓN</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_porcentaje_devolucion}} @else {{$relevamiento->toma2_porcentaje_devolucion}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>% DEVOLUCIÓN</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_porcentaje_devolucion}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_porcentaje_devolucion}} @else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>DENOMINACIÓN</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_denominacion}} @else {{$relevamiento->toma2_denominacion}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>DENOMINACIÓN</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_denominacion}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_denominacion}} @else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT CRÉDITOS</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_cant_creditos}} @else {{$relevamiento->toma2_cant_creditos}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT CRÉDITOS</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_cant_creditos}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_cant_creditos}} @else @endif</td>
                 </tr>
                 <tr>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>MAC</b></td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma1_mac}} @else {{$relevamiento->toma2_mac}} @endif</td>
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>MAC</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->toma2_mac}}</td>
+                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_mac}} @else @endif</td>
                 </tr>
               </table>
 
@@ -201,12 +253,17 @@ footer
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">OBSERVACIONES GENERALES</th>
                 </tr>
                 <tr>
-                    @if($relevamiento->toma2_observ != null)
-                  <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">@if ($relevamiento->toma2_observ != null) {{$relevamiento->toma2_observ}} @else {{$relevamiento->toma1_observ}} @endif</td>
+                  @if($relevamiento->toma2_observ != null)
+                    <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">@if ($relevamiento->toma2_observ != null) {{$relevamiento->toma2_observ}} @else {{$relevamiento->toma1_observ}} @endif</td>
                   @else
                     <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
                     <div style="color: #dddddd;">
-                    @for($i = 0; $i<1200; $i++)
+                    Toma 1:
+                    @for($i = 0; $i<640; $i++)
+                    .
+                    @endfor
+                    Toma 2:
+                    @for($i = 0; $i<640; $i++)
                     .
                     @endfor
                     </p>

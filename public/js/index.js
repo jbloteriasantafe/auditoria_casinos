@@ -41,6 +41,7 @@ window.addEventListener('popstate', function(event) {
           }
         },
         error: function (data) {
+          console.log(data);
           var response = JSON.parse(data.responseText);
             $('#alertaLogin').hide();
             $('#alertaLogin span').text("");
