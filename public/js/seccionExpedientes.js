@@ -505,11 +505,11 @@ $(document).on('click','.detalle',function(){
 //Mostrar modal con los datos del Casino cargados
 $(document).on('click','.modificar',function(){
     $('#mensajeExito').hide();
-
+    $('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
     $('#modalExpediente').find('.modal-footer').children().show();
     $('#modalExpediente').find('.modal-body').children().show();
     $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-    $('#tablaDispoCreadas tbody tr').remove();
+
     $('.casinosExp').prop('checked',false).prop('disabled',false);
     limpiarModal();
     habilitarDTP();
@@ -1363,10 +1363,6 @@ function agregarDisposicion(disposicion, editable){
     moldeDisposicion.attr('id',disposicion.id_disposicion);
 
     //Para el modificar
-    // moldeDisposicion.attr('id', disposicion.id_disposicion);
-    // moldeDisposicion.find('.nro_resolucion').val();
-    // moldeDisposicion.find('.nro_resolucion_anio').val();
-    // moldeDisposicion.find('.descripcion_disposicion').val();
 
     if(editable==false){
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
@@ -1424,7 +1420,6 @@ function agregarDisposicion(disposicion, editable){
      else{
        fila.find('.mov_dCreada').val(" -- ");}
 
-     }
      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
 
      //fila.css('display','block');
