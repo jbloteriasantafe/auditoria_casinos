@@ -337,7 +337,7 @@ class ExpedienteController extends Controller
     $disposiciones = $expediente->disposiciones;
     if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
       foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
-        if(!$this->existeIdDisposicion($disposicion,$request->disposiciones)){//chequea que exista la disposiciones en el request
+        if(!$this->existeIdDisposicion($disposicion,$request->dispo_cargadas)){//chequea que exista la disposiciones en el request
           DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion); //si no esta en el request la elimina
         }
       }
