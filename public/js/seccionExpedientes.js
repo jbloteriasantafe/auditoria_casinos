@@ -1,4 +1,5 @@
 var id_casinos_seleccionados = [];
+var lista_tipos_movimientos = [];
 
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
@@ -102,6 +103,7 @@ $(document).on('change','.casinosExp', function() {
 });
 
 function limpiarSeccionNotas() {
+  lista_tipos_movimientos= [];
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
 }
@@ -166,15 +168,17 @@ function habilitarNotasNuevas() {
 
 function obtenerTiposMovimientos() {
     var id_expediente = $('#modalExpediente #id_expediente').val();
-
+    //id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
           $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
           $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
+          lista_tipos_movimientos.push([0,"- Tipo de movimiento -"]);
           for (var i = 0; i < data.length; i++) {
             var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
             $('#moldeNotaNueva .tiposMovimientos').append(option);
             $('#moldeDisposicion #tiposMovimientosDisp').append(option);
+            lista_tipos_movimientos.push([data[i].id_tipo_movimiento,data[i].descripcion]);
           }
     });
 }
@@ -335,6 +339,11 @@ $('#btn-notaNueva').click(function(e){
       startView: 4,
       minView: 2,
     });
+
+    for (var i = 0; i < lista_tipos_movimientos.length; i++) {
+      var option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
+      clonNota.find('.tiposMovimientos').append(option);
+    }
 
     $('#moldeNotaNueva').before(clonNota);
 });
@@ -1122,6 +1131,7 @@ function habilitarControles(valor){
 }
 
 function limpiarModal(){
+  lista_tipos_movimientos= [];
   $('#frmExpediente').trigger('reset');
   $('#modalExpediente input').val('');
   // $('div').remove(".Disposicion");
