@@ -482,7 +482,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
         var sumaxdenom = Number(suma);
         var producidoxcien = Number(producido);
         //se contempla la posibilidad de que los contadores den negativo
-        var diferencia = math.abs(Number(sumaxdenom.toFixed(2))) - math.abs(Number(producidoxcien.toFixed(2)));
+        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
       }
       //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
       diferencia= Number(diferencia.toFixed(2));
@@ -599,6 +599,7 @@ $(document).on('click','.validar',function(e){
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
 
   $('#mensajeValidacion').hide();
+  $('#btn-finalizarValidacion').show();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
 
@@ -2029,7 +2030,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
     // }
 
         //se cambio para considerar los contadores negativos
-          var resta = Number(math.abs(data.detalles[i].detalle.producido_calculado_relevado) - math.abs(data.detalles[i].producido) );
+          var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
             var moduloDiferencia = Number(resta.toFixed(2));

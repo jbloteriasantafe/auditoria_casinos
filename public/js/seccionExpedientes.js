@@ -1,4 +1,5 @@
 var id_casinos_seleccionados = [];
+var lista_tipos_movimientos = [];
 
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
@@ -102,6 +103,7 @@ $(document).on('change','.casinosExp', function() {
 });
 
 function limpiarSeccionNotas() {
+  lista_tipos_movimientos= [];
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
 }
@@ -166,16 +168,18 @@ function habilitarNotasNuevas() {
 
 function obtenerTiposMovimientos() {
     var id_expediente = $('#modalExpediente #id_expediente').val();
-
+    //id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
       console.log('get',data);
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
           $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
           $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
+          lista_tipos_movimientos.push([0,"- Tipo de movimiento -"]);
           for (var i = 0; i < data.length; i++) {
             var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
             $('#moldeNotaNueva .tiposMovimientos').append(option);
             $('#moldeDisposicion #tiposMovimientosDisp').append(option);
+            lista_tipos_movimientos.push([data[i].id_tipo_movimiento,data[i].descripcion]);
           }
     });
 }
@@ -336,6 +340,11 @@ $('#btn-notaNueva').click(function(e){
       startView: 4,
       minView: 2,
     });
+
+    for (var i = 0; i < lista_tipos_movimientos.length; i++) {
+      var option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
+      clonNota.find('.tiposMovimientos').append(option);
+    }
 
     $('#moldeNotaNueva').before(clonNota);
 });
@@ -537,7 +546,7 @@ $(document).on('click','.modificar',function(){
     obtenerTiposMovimientos();
 
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-        console.log(data);
+
         generarListaMovimientos(id_expediente);
         // mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.log_movimientos,data.tipos_movimientos,true);
         mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
@@ -1124,6 +1133,7 @@ function habilitarControles(valor){
 }
 
 function limpiarModal(){
+  lista_tipos_movimientos= [];
   $('#frmExpediente').trigger('reset');
   $('#modalExpediente input').val('');
   // $('div').remove(".Disposicion");
@@ -1405,17 +1415,17 @@ function agregarDisposicion(disposicion, editable){
       fila.removeAttr('id');
       fila.attr('id', disposicion.id_disposicion);
 
-      fila.find('.nro_dCreada').val(disposicion.nro_disposicion);
-      fila.find('.anio_dCreada').val(disposicion.nro_disposicion_anio);
+      fila.find('.nro_dCreada').text(disposicion.nro_disposicion);
+      fila.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
       if(disposicion.descripcion != null){
-        fila.find('.desc_dCreada').val(disposicion.descripcion);}
+        fila.find('.desc_dCreada').text(disposicion.descripcion);}
       else {
-         fila.find('.desc_dCreada').val("Sin Descripción");
+         fila.find('.desc_dCreada').text("Sin Descripción");
      }
      if(disposicion.descripcion_movimiento != null){
-     fila.find('.mov_dCreada').val(disposicion.descripcion_movimiento);}
+     fila.find('.mov_dCreada').text(disposicion.descripcion_movimiento);}
      else{
-       fila.find('.mov_dCreada').val(" -- ");}
+       fila.find('.mov_dCreada').text(" -- ");}
 
      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
 
