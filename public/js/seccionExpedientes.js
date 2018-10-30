@@ -1378,6 +1378,7 @@ function agregarDisposicion(disposicion, editable){
     //Para el modificar
 
     if(editable==false){
+      $('#dispoCarg').hide();
       $('#tablaDispoCreadas').hide();
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
@@ -1391,7 +1392,7 @@ function agregarDisposicion(disposicion, editable){
         console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
         moldeDisposicion.find('#tiposMovimientosDisp').hide();
       }
-
+      moldeDisposicion.show();
       $('#columnaDisposicion').append(moldeDisposicion);
       //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
