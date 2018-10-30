@@ -1054,6 +1054,7 @@ class RelevamientoController extends Controller
                                       ->join('sector','isla.id_sector','=','sector.id_sector')
                                       ->join('casino','sector.id_casino','=','casino.id_casino')
                                       ->where($reglas2)
+                                      ->whereNull('maquina.deleted_at')
                                       ->whereNotIn('maquina.id_maquina',function($q) use ($reglas){
                                                   $q->select('maquina.id_maquina')
                                                     ->from('maquina')
