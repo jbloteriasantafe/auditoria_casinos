@@ -433,6 +433,17 @@ class informesController extends Controller
     return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino, 'nombre'=> $mtm->casino->nombre]);
   }
 
+  public function mostrarEstadisticasNoTomaGenerico(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+    $casinos=array();
+    foreach($usuario['usuario']->casinos as $casino){
+      $casinos[]=$casino;
+    }
+    //$mtm = Maquina::find($id_mtm);
+    // $casinos = Casino::all();
+    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => null, 'casino' =>null, 'nombre'=> null]);
+  }
+
   public function obtenerEstadisticasNoToma($id){
     $maquina = Maquina::find($id);
     $aux= new \stdClass();

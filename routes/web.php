@@ -483,7 +483,7 @@ Route::get('informesJuegos',function(){
 });
 
 
-Route::get('estadisticas_no_toma','informesController@mostrarEstadisticasNoToma');
+Route::get('estadisticas_no_toma','informesController@mostrarEstadisticasNoTomaGenerico');
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 Route::get('estadisticas_no_toma/obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
 
