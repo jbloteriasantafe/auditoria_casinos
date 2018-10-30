@@ -599,6 +599,7 @@ $(document).on('click','.validar',function(e){
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
 
   $('#mensajeValidacion').hide();
+  $('#btn-finalizarValidacion').show();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
 
