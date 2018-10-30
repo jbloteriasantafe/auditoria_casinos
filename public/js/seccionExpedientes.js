@@ -1418,17 +1418,17 @@ function agregarDisposicion(disposicion, editable){
       fila.removeAttr('id');
       fila.attr('id', disposicion.id_disposicion);
 
-      fila.find('.nro_dCreada').val(disposicion.nro_disposicion);
-      fila.find('.anio_dCreada').val(disposicion.nro_disposicion_anio);
+      fila.find('.nro_dCreada').text(disposicion.nro_disposicion);
+      fila.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
       if(disposicion.descripcion != null){
-        fila.find('.desc_dCreada').val(disposicion.descripcion);}
+        fila.find('.desc_dCreada').text(disposicion.descripcion);}
       else {
-         fila.find('.desc_dCreada').val("Sin Descripción");
+         fila.find('.desc_dCreada').text("Sin Descripción");
      }
      if(disposicion.descripcion_movimiento != null){
-     fila.find('.mov_dCreada').val(disposicion.descripcion_movimiento);}
+     fila.find('.mov_dCreada').text(disposicion.descripcion_movimiento);}
      else{
-       fila.find('.mov_dCreada').val(" -- ");}
+       fila.find('.mov_dCreada').text(" -- ");}
 
      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
 
