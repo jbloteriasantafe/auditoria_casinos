@@ -126,7 +126,6 @@ class ExpedienteController extends Controller
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
         'notas'  => 'nullable',
-        'notas.*.select_nota_disp'=>'required|boolean',
         'notas.*.fecha'=>'required|date',
         'notas.*.identificacion'=>'required',
         'notas.*.detalle'=>'required',
