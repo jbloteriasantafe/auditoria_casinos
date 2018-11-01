@@ -170,6 +170,7 @@ function obtenerTiposMovimientos() {
     var id_expediente = $('#modalExpediente #id_expediente').val();
     //id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
     $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
+      console.log('get',data);
           var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
           $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
           $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
@@ -480,6 +481,7 @@ $(document).on('click','.detalle',function(){
   $('#modalExpediente').find('.modal-footer').children().show();
   $('#modalExpediente').find('.modal-body').children().show();
   $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
+    $('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
 
       limpiarModal();
       //Ocultar errores
@@ -1143,6 +1145,7 @@ function limpiarModal(){
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
+  console.log('borrados');
   $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
@@ -1375,26 +1378,21 @@ function agregarDisposicion(disposicion, editable){
     //Para el modificar
 
     if(editable==false){
+      $('#dispoCarg').hide();
+      $('#tablaDispoCreadas').hide();
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
       moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
       if(disposicion.id_nota != null){
 
-        //moldeDisposicion.find('#selectgay').remove();
-        console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
-
         moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
-        //obtenerTiposMovimientos();
-      //moldeDisposicion.find('#tiposMovimientosDisp').find('option[value=' + disposicion.id_tipo_movimiento + ']').attr('selected',true);
-        //moldeDisposicion.find('#tiposMovimientosDisp option[value=' + disposicion.id_tipo_movimiento + ']').attr("selected", true);
-        //moldeDisposicion.find('#tiposMovimientosDisp').text(disposicion.id_tipo_movimiento);
 
       }else {
         console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
         moldeDisposicion.find('#tiposMovimientosDisp').hide();
       }
-
+      moldeDisposicion.show();
       $('#columnaDisposicion').append(moldeDisposicion);
       //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
