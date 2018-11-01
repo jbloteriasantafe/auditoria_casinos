@@ -80,7 +80,7 @@ class ExpedienteController extends Controller
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->where('expediente.id_expediente','=',$id)
                 ->whereNull('nota.id_log_movimiento')
-                ->where('nota.es_disposicion',0)
+                ->where('nota.es_disposicion','=',0)
                 ->orderBy('nota.fecha','DESC')
                 ->get();
 

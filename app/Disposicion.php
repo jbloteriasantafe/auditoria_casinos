@@ -10,7 +10,7 @@ class Disposicion extends Model
   protected $connection = 'mysql';
   protected $table = 'disposicion';
   protected $primaryKey = 'id_disposicion';
-  protected $visible = array('id_disposicion','nro_disposicion','nro_disposicion_anio','descripcion');
+  protected $visible = array('id_disposicion','nro_disposicion','nro_disposicion_anio','descripcion','id_nota');
   public $timestamps = false;
 
   public function expediente(){
@@ -19,6 +19,7 @@ class Disposicion extends Model
   public function nota(){
     return $this->belongsTo('App\Nota','id_nota','id_nota');
   }
+
   public static function boot(){
         parent::boot();
         Disposicion::observe(new DisposicionObserver());
