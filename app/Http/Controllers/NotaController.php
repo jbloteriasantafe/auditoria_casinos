@@ -53,7 +53,7 @@ class NotaController extends Controller
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
-    //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+
     $nota->es_disposicion = 0;
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
@@ -64,8 +64,12 @@ class NotaController extends Controller
 
     if(!empty($request['id_tipo_movimiento']) || $request['id_tipo_movimiento']!= 0 ){
       if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
+          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+          $nota->save();
           $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
       }else{//es REINGRESO
+          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+          $nota->save();
           $log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
       }
       $nota->log_movimiento()->associate($log->id_log_movimiento);
@@ -79,7 +83,7 @@ class NotaController extends Controller
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
-    //$nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
     $nota->identificacion = $request['identificacion'];
@@ -88,8 +92,12 @@ class NotaController extends Controller
 
     $nota->log_movimiento()->associate(intval($request['id_log_movimiento']));
     if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
+        $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+        $nota->save();
         $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
     }else{//es REINGRESO
+        $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+        $nota->save();
         $log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
     }
     $nota->log_movimiento()->associate($log->id_log_movimiento);
