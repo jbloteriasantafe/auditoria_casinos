@@ -115,7 +115,7 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
   var producido_calculado=Math.round(((coinin_final - coinout_final - jackpot_final - progresivo_final) - (coinin_inicial - coinout_inicial - jackpot_inicial - progresivo_inicial)) * 100) / 100;
   var diferencia =Math.round( (producido_calculado - producido_sistema) * 100) / 100;
 
-  $('#prodCalc').text(producido_calculado);
+  $('#prodCalc').val(producido_calculado);
   $('#diferencias').text(diferencia);
   if(diferencia == 0){
     $('#btn-guardar').hide();
