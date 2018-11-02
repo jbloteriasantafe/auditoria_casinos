@@ -379,6 +379,11 @@ class ProducidoController extends Controller
               $coinout_ini=$coinout_ini/$denominacion_carga_inicial;  
               $jackpot_ini=$jackpot_ini/$denominacion_carga_inicial;  
               $progresivo_ini=$progresivo_ini/$denominacion_carga_inicial;
+            }else{
+              $coinin_ini=0;
+              $coinout_ini=0;  
+              $jackpot_ini=0;  
+              $progresivo_ini=0;
             }
             
             if($id_detalle_contador_final!=null){
@@ -386,6 +391,11 @@ class ProducidoController extends Controller
               $coinout_fin= $coinout_fin/$denominacion_carga_final ;
               $jackpot_fin=$jackpot_fin/$denominacion_carga_final ;
               $progresivo_fin=$progresivo_fin/$denominacion_carga_final;
+            }else{
+              $coinin_fin=0;
+              $coinout_fin= 0;
+              $jackpot_fin=0;
+              $progresivo_fin=0;
             }
             
       
