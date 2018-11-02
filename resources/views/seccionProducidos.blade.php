@@ -245,6 +245,7 @@ use Illuminate\Http\Request;
               <br>
               <br>
               <div class="detalleMaq" >
+                <h5 id="info-denominacion"></h5>
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
 
                   <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
