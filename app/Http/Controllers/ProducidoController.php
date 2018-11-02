@@ -406,15 +406,31 @@ class ProducidoController extends Controller
             // si diferencia redondeado con dos, es distinto de cero -> plata --> pasa a credito
             //en este punto se trabaja con la denominacion actual de la maquina, la cual pude no ser la misma que la denomincaicon al momento de la carga
             if(round($diferencia,2) != 0){// si alguno de los campos es null al hacer la division queda 0 -> ver que se termina guardando en la BD
-              $in_inicio_cred =$coinin_ini / $denominacion;//credito
-              $out_inicio_cred = $coinout_ini / $denominacion;//credito
-              $jack_ini_cred = $jackpot_ini / $denominacion;//credito
-              $prog_ini_cred = $progresivo_ini / $denominacion;//credito
-              $in_final_cred = $coinin_fin / $denominacion;//credito
-              $out_final_cred = $coinout_fin / $denominacion;//credito
-              $jack_final_cred = $jackpot_fin / $denominacion;//credito
-              $prog_final_cred =  $progresivo_fin / $denominacion;//credito
-              $valor_cred = $valor_producido / $denominacion;//credito
+              if($casino!='3'){
+                $in_inicio_cred =$coinin_ini / $denominacion;//credito
+                $out_inicio_cred = $coinout_ini / $denominacion;//credito
+                $jack_ini_cred = $jackpot_ini / $denominacion;//credito
+                $prog_ini_cred = $progresivo_ini / $denominacion;//credito
+                $in_final_cred = $coinin_fin / $denominacion;//credito
+                $out_final_cred = $coinout_fin / $denominacion;//credito
+                $jack_final_cred = $jackpot_fin / $denominacion;//credito
+                $prog_final_cred =  $progresivo_fin / $denominacion;//credito
+                $valor_cred = $valor_producido / $denominacion;//credito
+              }else{
+                //rosario ya estsa en creditos
+                $in_inicio_cred =$coinin_ini ;//credito
+                $out_inicio_cred = $coinout_ini ;//credito
+                $jack_ini_cred = $jackpot_ini ;//credito
+                $prog_ini_cred = $progresivo_ini ;//credito
+                $in_final_cred = $coinin_fin;//credito
+                $out_final_cred = $coinout_fin ;//credito
+                $jack_final_cred = $jackpot_fin ;//credito
+                $prog_final_cred =  $progresivo_fin ;//credito
+                $valor_cred = $valor_producido /$denominacion; //credito
+
+              }
+              
+             
 
               $resultado = ['id_maquina' => $id_maquina,                                'nro_admin' => $nro_admin,
                             'id_detalle_producido' => $id_detalle_producido,            'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
