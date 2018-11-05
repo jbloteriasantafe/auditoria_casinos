@@ -13,7 +13,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
 
-use App\User;
+use App\Http\Controllers\UsuarioController;
+use App\Usuario;
 use App\Casino;
 use App\Relevamiento;
 use App\SecRecientes;
@@ -70,15 +71,15 @@ class BuscarMesasController extends Controller
   }
 
   public function getMesas(){
-    $user = Auth::user();
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = array();
 
     foreach ($user->casinos as $cass) {
       $cas[]=$cass->id_casino;
     }
 
-    $casinos = User::select('casino.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','users.id')
+    $casinos = Usuario::select('casino.*')
+                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
                     ->get();
 
@@ -97,15 +98,15 @@ class BuscarMesasController extends Controller
   }
 
   public function getDatos(){
-    $user = Auth::user();
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = array();
 
     foreach ($user->casinos as $cass) {
       $cas[]=$cass->id_casino;
     }
 
-    $casinos = User::select('casino.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','users.id')
+    $casinos = Usuario::select('casino.*')
+                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
                     ->get();
 
@@ -138,7 +139,7 @@ class BuscarMesasController extends Controller
       }
 
       if($request->casino==0){
-        $usuario = Auth::user();
+        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
         $casinos = array();
         foreach($usuario->casinos as $casino){
           $casinos[]=$casino->id_casino;

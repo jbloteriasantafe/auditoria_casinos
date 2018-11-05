@@ -48,7 +48,7 @@ class VCierreController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_validar_cierres']);
+    $this->middleware(['tiene_permiso:m_buscar_cierres']);
   }
 
   //en esta
