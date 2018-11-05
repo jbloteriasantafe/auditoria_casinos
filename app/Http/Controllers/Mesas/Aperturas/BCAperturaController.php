@@ -97,7 +97,7 @@ class BCAperturaController extends Controller
                              'juegos' => $juegos,
                              'casinos' => $cas,
                              'fichas' => $fichas,
-                             'es_superusuario' => UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->es_superusuario;
+                             'es_superusuario' => UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->es_superusuario
                             ]);
   }
 

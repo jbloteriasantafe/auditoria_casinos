@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+@extends('includes.dashboard')
 @section('headerLogo')
 
 @endsection

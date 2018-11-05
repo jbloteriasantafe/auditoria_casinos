@@ -1,4 +1,14 @@
-@extends('layouts.dashboard')
+
+<?php
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
+use Illuminate\Http\Request;
+
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+$id_usuario = $usuario['usuario']->id_usuario;
+$cas = $usuario['usuario']->casinos;
+?>
+@extends('includes.dashboard')
 @section('headerLogo')
 
 @endsection
