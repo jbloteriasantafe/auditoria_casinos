@@ -234,7 +234,8 @@ class ProducidoController extends Controller
                         //'producido_cred' => $ajusteTemporal->, lo saque porque front no lo usa y para guardar tampoco en back
                         'denominacion' => $mtm->denominacion,
                         'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
-                        'diferencia' => $ajusteTemporal->diferencia
+                        'diferencia' => $ajusteTemporal->diferencia,
+                        'observacion'=> $ajusteTemporal->observacion
                       ];
       return ['producidos_con_diferencia' => $conDiferencia,
               'id_contador_final' => $ajusteTemporal->id_contador_final,
@@ -780,6 +781,9 @@ class ProducidoController extends Controller
         $ajusteTemporal->id_detalle_contador_inicial = $input['id_detalle_contador_inicial'];
         $ajusteTemporal->id_detalle_contador_final = $input['id_detalle_contador_final'];
         $ajusteTemporal->producido_sistema = $input['producido']; //es el producido importado
+
+        //se agrega el campo observacion
+        $ajusteTemporal->observacion=$input['prodObservaciones'];
 
 
         //calculo el producido calculado
