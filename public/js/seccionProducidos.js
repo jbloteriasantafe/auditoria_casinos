@@ -263,7 +263,7 @@ $(document).on('click','.idMaqTabla',function(e){
                     $('#btn-finalizar').attr('data-id',id_maq);
 
                     $('#columnaDetalle').show();
-                    $('#info-denominacion').html('CONTADORES EN CRÉDITOS, DENOMINACIÓN BASE "'+data.producidos_con_diferencia[0].denominacion+'"');
+                    $('#info-denominacion').html('CONTADORES EN CRÉDITOS, DENOMINACIÓN BASE "'+data.producidos_con_diferencia[0].denominacion+'" (Solo Rosario)');
                     $('#coinoutIni').val(data.producidos_con_diferencia[0].coinout_inicio);
                     $('#coininIni').val(data.producidos_con_diferencia[0].coinin_inicio);
                     $('#jackIni').val(data.producidos_con_diferencia[0].jackpot_inicio);
