@@ -125,6 +125,10 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
 
 })
 
+$(document).on('input', '#frmCargaProducidos textarea' , function(e){
+  $('#btn-guardar').show()
+})
+
 $(document).on('change','#frmCargaProducidos observacionesAjuste',function(){
   $(this).removeClass('alerta');
 })
