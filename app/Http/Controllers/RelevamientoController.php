@@ -428,7 +428,6 @@ class RelevamientoController extends Controller
     $headers = array('Content-Type' => 'application/octet-stream',);
 
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
-
   }
 
   public function cargarRelevamiento(Request $request){

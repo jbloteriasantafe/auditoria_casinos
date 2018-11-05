@@ -638,6 +638,21 @@ $cas = $usuario['usuario']->casinos;
                           </div>
                         </li>
 
+                        <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
+                        <li>
+                          <div id="" class="opcionesHover"  href="">
+                            <a href="http://10.1.120.9/AE/login.php" target="_blank">
+                            <span class="flechita">
+                                <i class="fa fa-angle-right"></i>
+                              </span>
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>AUTOEXCLUSIÓN</span>
+                            </a>
+                          </div>
+                        </li>
+
 
 
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
@@ -767,6 +782,9 @@ $cas = $usuario['usuario']->casinos;
                 <button class="btn btn-default salir" type="button" name="button">SALIR</button>
             </div>
         </div>
+
+
+
 
 
 

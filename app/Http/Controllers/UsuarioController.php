@@ -481,4 +481,19 @@ class UsuarioController extends Controller
     return ['usuario' => $usuario];
   }
 
+  public function buscarFiscaNombreCasino($id_casino, $nombre){
+    $nombre = (empty($nombre)) ? '%' : '%'.$nombre.'%';
+
+    $resultado = Usuario::join('usuario_tiene_rol','usuario.id_usuario','=','usuario_tiene_rol.id_usuario')
+                        ->join('rol','rol.id_rol','=','usuario_tiene_rol.id_rol')
+                        ->join('usuario_tiene_casino',
+                              'usuario_tiene_casino.id_usuario','=','users.id')
+                        ->where([['name','like',$nombre],
+                            ['usuario_tiene_casino.id_casino','=',$id_casino]])
+                        ->where('rol.descripcion','=','FISCALIZADOR')
+                        ->get();
+
+    return ['usuarios' => $resultado];
+  }
+
 }
