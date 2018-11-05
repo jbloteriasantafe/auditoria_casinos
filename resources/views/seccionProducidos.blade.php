@@ -323,6 +323,17 @@ use Illuminate\Http\Request;
                         </select>
                     </div>
                   </div>
+
+                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+
+                      <div class="col-lg-12">
+                        <h5>OBSERVACIONES</h5>
+                        <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
+                        <br>
+                      </div>
+                      
+                    </div>
+
                   <div class="row" hidden>
                     <div class="col-lg-2">
                       <input id="data-denominacion" type="text" class="form-control" >

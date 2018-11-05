@@ -274,6 +274,8 @@ $(document).on('click','.idMaqTabla',function(e){
                     for (var i = 0; i < data.tipos_ajuste.length; i++) {
                         $('#observacionesAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));
                     }
+                    //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
+                    $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
                     //inputs ocultos en el form
                     $('#data-denominacion').val(data.producidos_con_diferencia[0].denominacion);
                     $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_contador_final);
@@ -377,6 +379,7 @@ function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
             producido: $('#prodSist ').val(),
             denominacion: $('#data-denominacion').val(),
             id_tipo_ajuste: $('#observacionesAjuste').val(),
+            prodObservaciones: $('#prodObservaciones').val(),
           }
 
       // }else{

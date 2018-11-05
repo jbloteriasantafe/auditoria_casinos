@@ -234,7 +234,8 @@ class ProducidoController extends Controller
                         //'producido_cred' => $ajusteTemporal->, lo saque porque front no lo usa y para guardar tampoco en back
                         'denominacion' => $mtm->denominacion,
                         'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
-                        'diferencia' => $ajusteTemporal->diferencia
+                        'diferencia' => $ajusteTemporal->diferencia,
+                        'observacion'=> $ajusteTemporal->observacion
                       ];
       return ['producidos_con_diferencia' => $conDiferencia,
               'id_contador_final' => $ajusteTemporal->id_contador_final,
@@ -586,6 +587,7 @@ class ProducidoController extends Controller
               'producidos_ajustados.*.id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.id_detalle_contador_final' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+              'producidos_ajustados.*.prodObservaciones' => 'nullable|max:255',
               'estado' => 'required',//3 finalizado, 2 pausa
               //'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
       ], array(), self::$atributos)->after(function($validator){
@@ -619,6 +621,8 @@ class ProducidoController extends Controller
           $detalle_final=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_final']) ;
           $detalle_inicio=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_inicial']) ;
           $detalle_producido = DetalleProducido::find($detalle_ajustado['id_detalle_producido']);
+          //se agregan las observaciones, estas son independientes del tipo de ajuste, el propio del detalle producido
+          $detalle_producido->observacion=$detalle_ajustado['prodObservaciones'];
           switch ($detalle_ajustado['id_tipo_ajuste']) {
             case 1: // vuelta contadores
                 $index++;
@@ -777,6 +781,9 @@ class ProducidoController extends Controller
         $ajusteTemporal->id_detalle_contador_inicial = $input['id_detalle_contador_inicial'];
         $ajusteTemporal->id_detalle_contador_final = $input['id_detalle_contador_final'];
         $ajusteTemporal->producido_sistema = $input['producido']; //es el producido importado
+
+        //se agrega el campo observacion
+        $ajusteTemporal->observacion=$input['prodObservaciones'];
 
 
         //calculo el producido calculado
