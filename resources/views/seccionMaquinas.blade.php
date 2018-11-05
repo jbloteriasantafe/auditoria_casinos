@@ -1044,7 +1044,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <div id="seccionAgregarFormula" style="cursor:pointer;" data-toggle="collapse" data-target="#collapseAgregarFormula">
                                   <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                                       <div class="col-md-12">
-                                          <h6>AGREGAR FÓRMULA<i class="fa fa-fw fa-angle-down"></i></h6>
+                                          <h6>ASIGNAR FÓRMULA<i class="fa fa-fw fa-angle-down"></i></h6>
                                       </div>
                                   </div>
                               </div>
