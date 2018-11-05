@@ -17,7 +17,15 @@ class Usuario extends Model
     protected $primaryKey = 'id_usuario';
     protected $visible = array('id_usuario','user_name','nombre','email', 'dni' ,'ultimos_visitados');
     protected $hidden = array('imagen','password','token');
+    protected $appends = array('es_superusuario');
 
+    public function getEsSuperusuarioAttribute(){
+      if(isset($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('id_rol','=',1))){
+        return true;
+      }else{
+        return false;
+      }
+    }
     public function roles(){
 	     return $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol');
     }

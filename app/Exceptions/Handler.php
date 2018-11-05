@@ -48,6 +48,9 @@ class Handler extends ExceptionHandler
       if ($exception instanceof NotFoundHttpException) {
         return redirect('inicio');
       }
+      if ($exception instanceof \App\Exceptions\PlanillaException) {
+          return $exception->render($request);
+      }
         return parent::render($request, $exception);
     }
 
