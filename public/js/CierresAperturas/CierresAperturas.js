@@ -354,6 +354,8 @@ $('#confirmar').on('click',function(e){
 
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
       $('#B_fecha_apert').prop('disabled', true);
+
+
       }
 })
 

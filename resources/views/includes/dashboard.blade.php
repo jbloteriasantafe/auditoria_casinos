@@ -623,20 +623,6 @@ $cas = $usuario['usuario']->casinos;
                             </ul>
                         </li>
 
-                        <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
-                        <li>
-                          <div id="" class="opcionesHover"  href="">
-                            <a href="http://10.1.120.9/AE/login.php" target="_blank">
-                            <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
-                              </span>
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('usuario','iconoUsuarios')
-                              </span>
-                              <span>AUTOEXCLUSIÓN</span>
-                            </a>
-                          </div>
-                        </li>
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                         <li>

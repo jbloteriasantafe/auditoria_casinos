@@ -760,12 +760,12 @@ $cas = $usuario['usuario']->casinos;
                           </div>
                         </div>
                       </div>
+                      <?php
+                        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                      ?>
                       <div class="col-md-6">
                         <h6>CARGADOR</h6>
-                        <?php
-                          $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                        ?>
-                        <input type="text" id="cargador" class="form-control" value="{{$usuario['usuario']->name}}" readonly="true">
+                        <input id="cargador" type="text"  name="cargador" value='{{$usuario['usuario']->nombre}}' readonly="true">
                       </div>
 
                     </div>
