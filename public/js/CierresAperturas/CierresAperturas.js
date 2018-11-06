@@ -231,6 +231,8 @@ $('#btn-generar-rel').on('click', function(e){
 
   $.get('aperturas/generarRelevamiento', function(data){
 
+    $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+
     var iframe;
             iframe = document.getElementById("download-container");
             if (iframe === null){

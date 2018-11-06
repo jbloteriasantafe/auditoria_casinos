@@ -270,6 +270,42 @@ $cas = $usuario['usuario']->casinos;
 
 </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
 
+<!-- Modal Relevamientos -->
+<div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header modalNuevo">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+             <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <h3 class="modal-title">| GENERANDO RELEVAMIENTO</h3>
+            </div>
+
+            <div  id="colapsadoNuevo" class="collapse in">
+
+            <div class="modal-body">
+
+
+              <div id="iconoCarga" class="sk-folding-cube">
+                <div class="sk-cube1 sk-cube"></div>
+                <div class="sk-cube2 sk-cube"></div>
+                <div class="sk-cube4 sk-cube"></div>
+                <div class="sk-cube3 sk-cube"></div>
+              </div>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-successAceptar" id="btn-generar" value="nuevo">GENERAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
+
+
+
 <!-- MODAL CARGA cierre -->
 <div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" >
@@ -863,7 +899,7 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                           <input type="text" id="id_mesa_ap" name="" value="" hidden>
                         </div>
-                        
+
                         <div id="mensajeErrorCargaAp" hidden>
                           <br>
                           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
