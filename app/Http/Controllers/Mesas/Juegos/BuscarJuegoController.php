@@ -65,11 +65,11 @@ class BuscarJuegoController extends Controller
     foreach($usuario->casinos as $casino){
       $casinos[]=$casino->id_casino;
     }
-    $casinos = $usuario->casinos;
+
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->get();
     $tipos = TipoMesa::all();
-    $casinos = $usuario->casinos;
     $uc->agregarSeccionReciente('Juegos','juegos');
+    $casinos = $usuario->casinos;
     return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos, 'tipos_mesas' => $tipos]);
   }
 
@@ -87,6 +87,7 @@ class BuscarJuegoController extends Controller
           ->join('mesa_de_panio','mesa_de_panio.id_juego_mesa','=','juego_mesa.id_juego_mesa')
           ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
           ->where('juego_mesa.id_juego_mesa','=',$id)
+          ->whereNull('juego_mesa.deleted_at')
           ->get();
     return ['juego' => $juego,
             'mesas' => $mesas,
@@ -143,6 +144,7 @@ class BuscarJuegoController extends Controller
               ->leftJoin('mesa_de_panio','mesa_de_panio.id_juego_mesa','=','juego_mesa.id_juego_mesa')
               ->where($reglas)
               ->whereIn('juego_mesa.id_casino',$casinos)
+              ->whereNull('juego_mesa.deleted_at')
               ->distinct('juego_mesa.id_juego_mesa')
               ->get();
 
