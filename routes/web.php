@@ -592,6 +592,6 @@ Route::get('/juegos', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
 Route::post('juegos/buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
 Route::post('juegos/nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
 Route::post('juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
-Route::get('juegos/obtenerJuego/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
+Route::get('juegos/obtenerJuegoMesa/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
 Route::get('juegos/obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
 Route::get('juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');
