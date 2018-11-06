@@ -232,7 +232,7 @@ $('#btn-modificar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#modif_nom'),response.nombre_juego[0],false);
@@ -253,7 +253,7 @@ $(document).on('click','.eliminarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-eliminar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('juegos/obtenerJuegoMesa/'+ id_juego, function(data){
 
     for (var i = 0; i < data.mesas.length; i++) {
       $('#eliminarJuego').text('Este juego esta asociado a las siguientes mesas: ' + data.mesas[i].nro_mesa + '- ');
