@@ -70,11 +70,14 @@ class ABMCierreController extends Controller
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($request->id_casino)){
       $cierre = new Cierre;
+      $mesa = Mesa::find($request->id_mesa_de_panio);
       $cierre->fecha =$request->fecha;
       $cierre->hora_inicio = $request->hora_inicio;
       $cierre->hora_fin = $request->hora_fin;
       $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_c;
       $cierre->total_anticipos_c = $request->total_anticipos_c;
+      $apertura->tipo_mesa()->associate($mesa->tipo_mesa->id_tipo_mesa);
+        $apertura->casino()->associate($request->id_casino);
       $cierre->fiscalizador()->associate($request->id_fiscalizador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);
       $cierre->estado_cierre()->associate(1);//CARGADO

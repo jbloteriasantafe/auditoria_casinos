@@ -108,7 +108,7 @@ class ABMAperturaController extends Controller
   public function modificarApertura(Request $request){
     $validator=  Validator::make($request->all(),[
       'id_apertura' => 'required|exists:apertura_mesa,id_apertura_mesa',
-      'hora' => 'required|date_format:"H:i"',
+      'hora' => 'required|date_format:"H:i:s"',
       'total_pesos_fichas_a' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'fichas' => 'required',
