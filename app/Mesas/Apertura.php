@@ -31,11 +31,11 @@ class Apertura extends Model
   }
 
   public function fiscalizador(){
-    return $this->belongsTo('App\User','id_fiscalizador','id');
+    return $this->belongsTo('App\Usuario','id_fiscalizador','id_usuario');
   }
 
   public function cargador(){
-    return $this->belongsTo('App\User','id_cargador','id');
+    return $this->belongsTo('App\Usuario','id_cargador','id_usuario');
   }
 
   public function casino(){

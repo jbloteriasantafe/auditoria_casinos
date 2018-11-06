@@ -7,7 +7,6 @@ use Session;
 use Illuminate\Http\Request;
 use Response;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Usuarios\UsuarioController;
 
 use Validator;
 use Illuminate\Support\Facades\DB;

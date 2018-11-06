@@ -36,7 +36,7 @@ use Carbon\Carbon;
 use Exception;
 use Zipper;
 use File;
-use App\Http\Controllers\Mesas\SorteoMesasController;
+use App\Http\Controllers\Mesas\Mesas\SorteoMesasController;
 use App\Http\Controllers\Mesas\InformesMesas\ABCMesasSorteadasController;
 
 

@@ -553,6 +553,8 @@ Route::get('error','RelevamientoController@crearPlanillaValidado');
 
 
 /*SECCION MESAS DE PAÑO*/
+Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
+
 //gestion mesas
 Route::get('/mesas','Mesas\Mesas\BuscarMesasController@getMesas');
 Route::post('mesas/buscarMesas','Mesas\Mesas\BuscarMesasController@buscarMesas');

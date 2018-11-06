@@ -34,7 +34,7 @@ class Cierre extends Model
   }
 
   public function fiscalizador(){
-    return $this->belongsTo('App\User','id_fiscalizador','id');
+    return $this->belongsTo('App\Usuario','id_fiscalizador','id_usuario');
   }
 
   public function estado_cierre(){
@@ -48,7 +48,7 @@ class Cierre extends Model
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
-  
+
   public function getTableName(){
     return $this->table;
   }

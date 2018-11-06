@@ -814,12 +814,7 @@ $cas = $usuario['usuario']->casinos;
                                   <div class="col-xs-4">
                                     <h5>MONEDA</h5>
                                       <input id="moneda" class="form-control" type="text" value=""  size="100" readonly="true">
-                              <div id="mensajeErrorCargaAp" hidden>
-                          <br>
-                          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-                          <br>
-                          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
-                        </div> <!-- mensaje -->        <br>
+                                   <br>
                                   </div>
                                 </div>
                                 <br>
@@ -868,6 +863,7 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                           <input type="text" id="id_mesa_ap" name="" value="" hidden>
                         </div>
+                        
                         <div id="mensajeErrorCargaAp" hidden>
                           <br>
                           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
@@ -1361,7 +1357,7 @@ $cas = $usuario['usuario']->casinos;
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
   <script src="js/inputSpinner.js" type="text/javascript"></script>
-  <script src="/js/lista-datos.js" type="text/javascript"></script>
+  <script src="js/lista-datos.js" type="text/javascript"></script>
 
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/js/locales/es.js" type="text/javascript"></script>

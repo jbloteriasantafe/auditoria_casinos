@@ -99,7 +99,7 @@ class ABMAperturaController extends Controller
 
      return ['apertura' => $apertura,'detalles' => $detalles];
     }else{
-      return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];
+       return response()->json(['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.'],404]);
     }
   }
 
