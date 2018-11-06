@@ -73,15 +73,17 @@ class ABMAperturaController extends Controller
      }
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($request->id_casino)){
+      $mesa = Mesa::find($request->id_mesa_de_panio);
       $apertura = new Apertura;
       $apertura->fecha =$request->fecha;
       $apertura->hora = $request->hora;
       $apertura->total_pesos_fichas_a = $request->total_pesos_fichas_a;
       $apertura->fiscalizador()->associate($request->id_fiscalizador);
-      $apertura->cargador()->associate($user->id);
+      $apertura->cargador()->associate($user->id_usuario);
       $apertura->mesa()->associate($request->id_mesa_de_panio);
       $apertura->estado_cierre()->associate(1);//asociar estado cargado
       $apertura->casino()->associate($request->id_casino);
+      $apertura->tipo_mesa()->associate($mesa->tipo_mesa->id_tipo_mesa);
       $apertura->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
