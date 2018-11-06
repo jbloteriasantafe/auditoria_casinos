@@ -168,7 +168,7 @@ $(document).on('click','.modificarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-modificar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('juegos/obtenerJuegoMesa/'+ id_juego, function(data){
     console.log(data);
 
     $('#modif_nom').val(data.juego.nombre_juego);
