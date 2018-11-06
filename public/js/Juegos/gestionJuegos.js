@@ -90,8 +90,6 @@ $('#btn-nuevo-juego').on('click', function(e){
   ocultarErrorValidacion($('#casino_juego'));
   ocultarErrorValidacion($('#tipo_mesa_juego'));
 
-
-
   $('#nombre_juego').val(" ");
   $('#siglas_juego').val(" ");
   $('#casino_juego').val("0");

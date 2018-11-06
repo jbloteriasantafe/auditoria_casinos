@@ -803,9 +803,9 @@ $(document).on('click', '.infoCyA', function(e) {
       $('.fecha_det_apertura').text(data.apertura.fecha);
       $('.juego_det_apertura').text(data.mesa.nombre_juego);
       $('.hora_apertura_det').text(data.apertura.hora);
-      $('.cargador_det_apertura').text(data.cargador.name);
-      $('.fisca_det_apertura').text(data.fiscalizador.name);
-      $('#totalApertura').val(data.apertura.total_pesos_fichas_a);
+      $('.cargador_det_apertura').text(data.cargador.nombre);
+      $('.fisca_det_apertura').text(data.fiscalizador.nombre);
+      $('#totalAperturaDet').val(data.apertura.total_pesos_fichas_a);
 
       if(data.cargador!=null){
       $('.cargador_det_apertura').text(data.cargador.nombre);}
@@ -818,10 +818,20 @@ $(document).on('click', '.infoCyA', function(e) {
                 .addClass('col-xs-6')
                 .append($('<h8>')
                 .text(data.detalles[i].valor_ficha)))
-                .append($('<td>')
+
+              if(data.detalles[i].cantidad_ficha != null){
+                fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detalles[i].cantidad_ficha)));
+                .text(data.detalles[i].cantidad_ficha)));}
+              else{
+                fila.append($('<td>')
+                .addClass('col-xs-6')
+                .append($('<h8>')
+                .text(0)));
+                }
+
+
         $('#bodyFichasDetApert').append(fila);
       }
 
@@ -843,7 +853,7 @@ $(document).on('click', '.infoCyA', function(e) {
       $('.mesa_det_cierre').text(data.mesa.nombre);
       $('.fecha_detalle_cierre').text(data.cierre.fecha);
       $('.juego_det_cierre').text(data.nombre_juego);
-      $('.cargador_det_cierre').text(data.cargador.name);
+      $('.cargador_det_cierre').text(data.cargador.nombre);
       $('.hora_cierre_det').text(data.cierre.hora_fin);
       $('.inicio_cierre_det').text(data.cierre.hora_inicio);
 
@@ -855,10 +865,17 @@ $(document).on('click', '.infoCyA', function(e) {
                 .addClass('col-xs-6')
                 .append($('<h8>')
                 .text(data.detallesC[i].valor_ficha)))
-                .append($('<td>')
+            if(data.detallesC[i].monto_ficha != null){
+                fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detallesC[i].monto_ficha)));
+                .text(data.detallesC[i].monto_ficha)));}
+            else{
+              fila.append($('<td>')
+              .addClass('col-xs-6')
+              .append($('<h8>')
+              .text(0)));
+            }
 
         $('#datosCierreFichas').append(fila);
       }
@@ -873,10 +890,17 @@ $(document).on('click', '.infoCyA', function(e) {
                  .addClass('col-xs-6')
                  .append($('<h8>')
                  .text(data.detalleAP[i].valor_ficha).css('align','center')))
-                 .append($('<td>')
+                 if(data.detalleAP[i].monto_ficha != null){
+                 fila2.append($('<td>')
                  .addClass('col-xs-6')
                  .append($('<h8>')
-                 .text(data.detalleAP[i].monto_ficha).css('align','center')));
+                 .text(data.detalleAP[i].monto_ficha).css('align','center')));}
+                 else{
+                   fila2.append($('<td>')
+                   .addClass('col-xs-6')
+                   .append($('<h8>')
+                   .text('0').css('align','center')));
+                 }
 
          $('#datosCierreFichasApertura').append(fila2);
        }
@@ -911,8 +935,8 @@ $(document).on('click', '.modificarCyA', function(e) {
       var id_casino = data.casino.id_casino;
       $('.f_apertura').text(data.apertura.fecha);
       $('#fis_apertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_apertura').setearElementoSeleccionado(data.fiscalizador.id, data.fiscalizador.name);
-      $('.car_apertura').text(data.cargador.name);
+      $('#fis_apertura').setearElementoSeleccionado(data.fiscalizador.id_usuario, data.fiscalizador.nombre);
+      $('.car_apertura').text(data.cargador.nombre);
       $('.cas_apertura').text( data.casino.nombre);
       $('.mon_apertura').text(data.moneda.descripcion);
       $('#hs_apertura').val(data.apertura.hora);
@@ -979,7 +1003,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       var id_casino = data.casino.id_casino;
       $('.f_cierre').text(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_cierre').setearElementoSeleccionado(data.fiscalizador.id, data.fiscalizador.name);
+      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.fiscalizador.nombre);
       $('.cas_cierre').text( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
@@ -1337,7 +1361,7 @@ $(document).on('click', '.validarCyA', function(e) {
     $('.hs_cierre_validar').text(data.cierre.hora_fin);
     $('.f_validar').text(data.cierre.fecha);
     $('.hs_validar_aper').text(data.apertura.hora);
-    $('.fis_validar_aper').text(data.fiscalizador.name);
+    $('.fis_validar_aper').text(data.fiscalizador.nombre);
     $('.car_validar_aper').text(data.cargador.user_name);
     $('.tipo_validar_aper').text(data.tipo_mesa.descripcion);
     $('.mon_validar_aper').text(data.moneda.descripcion);
@@ -1355,7 +1379,7 @@ $(document).on('click', '.validarCyA', function(e) {
 
 
         //pregunto si hay cierre cargado
-          if(data.detalles[i].id_detalle_cierre != null){
+          if(data.detalles[i].id_detalle_cierre != null && data.detalles[i].monto_ficha!= null){
             fila.append($('<td>')
                 .addClass('col-xs-3').addClass('v_id_ficha').text(data.detalles[i].valor_ficha).css('font-weight','bold'))
                 .append($('<td>')
@@ -1384,7 +1408,7 @@ $(document).on('click', '.validarCyA', function(e) {
             }
 
         //pregunto si hay apertura cargada
-          if(data.detalles[i].id_detalle_apertura != null){
+          if(data.detalles[i].id_detalle_apertura != null && data.detalles[i].monto_ficha_apertura){
 
             fila.append($('<td>')
                 .addClass('col-xs-3').addClass('v_monto_apertura').text(data.detalles[i].monto_ficha_apertura).css('font-weight','bold'))
@@ -1524,10 +1548,10 @@ function generarFilaAperturas(data){
     fila.find('.L_juego').text(data.nombre_juego);
     fila.find('.L_mesa').text(data.nro_mesa);
     fila.find('.L_casino').text(data.nombre);
-    if(data.id_estado_cierre == 4){
-      fila.find('.L_estado').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
+    if(data.id_estado_cierre == 3){
+      fila.find('.L_estado').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50'));
     }else{
-        fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
+        fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F'));
     }
 
 
@@ -1535,7 +1559,7 @@ function generarFilaAperturas(data){
     fila.find('.modificarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     fila.find('.validarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_apertura_mesa);
-    if(data.id_estado_cierre == 4){
+    if(data.id_estado_cierre == 3){
       fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
@@ -1556,7 +1580,7 @@ function generarFilaCierres(data){
     fila.find('.L_juego').text(data.nombre_juego);
     fila.find('.L_mesa').text(data.nro_mesa);
     fila.find('.L_casino').text(data.nombre);
-    if(data.id_estado_cierre == 4){
+    if(data.id_estado_cierre == 3){
       fila.find('.L_estado').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
     }else{
         fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
@@ -1572,7 +1596,7 @@ function generarFilaCierres(data){
     fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
     fila.css('display', 'block');
 
-    if(data.id_estado_cierre == 4){
+    if(data.id_estado_cierre == 3){
       fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
