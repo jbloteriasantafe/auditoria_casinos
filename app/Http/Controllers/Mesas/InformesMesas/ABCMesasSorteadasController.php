@@ -43,7 +43,7 @@ class ABCMesasSorteadasController extends Controller
   }
 
   //se usa en SorteoMesasController
-  public function almacenarSorteadas($ruletasDados,$cartas,$id_casino){
+  public function almacenarSorteadas($ruletasDados,$cartas,$id_casino,$fecha_backup){
     $sorteadas = new MesasSorteadas;
     $sorteadas->mesas = ['ruletasDados' => $ruletasDados->toArray(),
                           'cartas' => $cartas->toArray(),

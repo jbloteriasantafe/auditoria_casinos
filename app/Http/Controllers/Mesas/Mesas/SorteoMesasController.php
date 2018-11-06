@@ -18,9 +18,6 @@ use App\Casino;
 use App\SecRecientes;
 use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-
 use App\Mesas\Mesa;
 use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;

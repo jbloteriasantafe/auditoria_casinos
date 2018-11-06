@@ -230,7 +230,7 @@ $('#btn-generar-rel').on('click', function(e){
   e.preventDefault();
 
   $.get('aperturas/generarRelevamiento', function(data){
-
+    console.log('dataaa' , data );
     var iframe;
             iframe = document.getElementById("download-container");
             if (iframe === null){
