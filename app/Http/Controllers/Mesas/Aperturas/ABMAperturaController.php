@@ -128,9 +128,10 @@ class ABMAperturaController extends Controller
       $apertura->fiscalizador()->associate($request->id_fiscalizador);
       $apertura->save();
       $detalles = $apertura->detalles;
-      $apertura->detalles()->dissociate();
+
       foreach ($detalles as $d) {
-        $d->destroy();
+        $d->apertura()->dissociate();
+        $d->delete();
       }
       foreach ($apertura->detalles as $f) {
         $ficha = new DetalleApertura;

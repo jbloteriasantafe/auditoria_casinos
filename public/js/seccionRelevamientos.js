@@ -214,7 +214,6 @@ $('#btn-cancelarConfirmacion').click(function(){
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
-  console.log('Entra');
 
   switch ($('#modalRelevamiento #existeRelevamiento').val()) {
     case '0':
@@ -230,7 +229,6 @@ $('#btn-generar').click(function(e){
           cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
         }
 
-        console.log(formData);
 
         $.ajax({
             type: "POST",
@@ -505,7 +503,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
           renglon_actual.find('i.fa-exclamation').hide();
         }
 
-      
+
       console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
       console.log("Producido: " + producido);
       console.log("Diferencia: " + diferencia);
@@ -1471,13 +1469,13 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
-  
+
     var medida = $(this).siblings('input:checked').val();
     //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
 
     var boton = $(this).closest('.popover').siblings('.pop');
-    
+
 
     if (medida == 'credito'){
         // //Si la denominación no está vacía
@@ -1500,7 +1498,7 @@ $(document).on('click','.ajustar',function(e){
            // fila.attr('data-denominacion', 0.01) //Cambia la denominacion
             boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
 
-            
+
             enviarCambioDenominacion(fila.attr('id'), 1, fila.attr('data-denominacion'));
 
     }
@@ -2035,7 +2033,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
             var moduloDiferencia = Number(resta.toFixed(2));
             moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
-            
+
             console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);

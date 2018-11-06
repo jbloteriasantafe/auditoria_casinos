@@ -18,6 +18,7 @@ $cas = $usuario['usuario']->casinos;
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
+<link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="/js/jquery-timepicker-1.3.5\jquery.timepicker.min.css">
 
 @endsection
@@ -201,10 +202,10 @@ $cas = $usuario['usuario']->casinos;
                         <td class="col-xs-3"  style="text-align:center !important;">{{$a->nombre_juego}}</td>
                         <td class="col-xs-2" style="text-align:center !important;">{{$a->nombre}}</td>
 
-                        @if($a->id_estado_cierre == 4)
-                        <td class="col-xs-2" >  <i class="fa fa-fw fa-check"   style="color: #4CAF50;text-align:center !important;"></i></td>
+                        @if($a->id_estado_cierre == 3)
+                        <td class="col-xs-2" style="text-align:center !important;" >  <i class="fa fa-fw fa-check"   style="color: #4CAF50;"></i></td>
                         @else
-                        <td class="col-xs-2"><i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;text-align:center !important;"></td>
+                        <td class="col-xs-2" style="text-align:center !important;" ><i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;"></td>
                         @endif
 
                         <td class="col-xs-2" style="text-align:center !important;">
@@ -217,11 +218,14 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-success validarCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-check"></i>
                           </button>
-                          @hasrole('SUPERUSUARIO')
-                          <button type="button" class="btn btn-success eliminarCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
+                          <?php
+                            $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                          ?>
+                          @if(($usuario['usuario']->es_superusuario))
+                          <button type="button" class="btn btn-success eliminarCyA" value="{{$usuario['usuario']->es_superusuario}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-trash"></i>
                           </button>
-                          @endhasrole
+                          @endif
 
                         </td>
 
@@ -249,11 +253,14 @@ $cas = $usuario['usuario']->casinos;
                             <button type="button" class="btn btn-success validarCyA" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
-                            @hasrole('SUPERUSUARIO')
+                            <?php
+                              $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                            ?>
+                            @if($usuario['usuario']->es_superusuario)
                             <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
-                            @endhasrole
+                            @endif
                           </td>
                         </tr>
                       </tbody>
@@ -269,6 +276,36 @@ $cas = $usuario['usuario']->casinos;
 
 
 </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
+
+<!-- Modal Relevamientos -->
+<div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header" style="background-color:#1DE9B6;">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+             <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <h3 class="modal-title">| GENERANDO RELEVAMIENTO</h3>
+            </div>
+
+            <div  id="colapsadoNuevo" class="collapse in">
+
+            <div class="modal-body modalCuerpo" >
+
+
+              <div id="iconoCarga" class="sk-folding-cube">
+                <div class="sk-cube1 sk-cube"></div>
+                <div class="sk-cube2 sk-cube"></div>
+                <div class="sk-cube4 sk-cube"></div>
+                <div class="sk-cube3 sk-cube"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
 
 <!-- MODAL CARGA cierre -->
 <div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -863,7 +900,7 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                           <input type="text" id="id_mesa_ap" name="" value="" hidden>
                         </div>
-                        
+
                         <div id="mensajeErrorCargaAp" hidden>
                           <br>
                           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
@@ -974,17 +1011,22 @@ $cas = $usuario['usuario']->casinos;
                 <table class="table table-striped">
                   <thead>
                     <tr>
-                      <th class="col-md-6" style="font-size: 16px; color:#000;padding-bottom:10px;padding-top:10px;padding-left:10px;padding-right:10px; border-left:1px solid #ccc; border-right:1px solid #ccc;border-bottom:1px solid #ccc; border-top:1px solid #ccc;"><h5 align="center">Valor</h5></th>
-                      <th class="col-md-6" style="font-size: 16px; color:#000;padding-bottom:10px;padding-top:10px;padding-left:10px;padding-right:10px; border-left:1px solid #ccc; border-right:1px solid #ccc;border-bottom:1px solid #ccc; border-top:1px solid #ccc;"><h5 align="center">Cantidad</h5></th>
+                      <th style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px;  border-right:1px solid #ccc;border-bottom:1px solid #ccc;">
+                        <h5 align="center" style="font-size: 15px; color:#000;">Valor</h5>
+                      </th>
+                      <th style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px; border-bottom:1px solid #ccc;">
+                        <h5 align="center" style="font-size: 15px; color:#000;">Monto</h5>
+                      </th>
                     </tr>
                   </thead>
+
                   <tbody id="bodyFichasDetApert" align="center">
                   </tbody>
                 </table>
               </div>
             <div class="col-xs-4" >
               <br>
-              <h6>TOTAL</h6><input id="totalApertura" type="text" class="form-control" value="" readonly>
+              <h6>TOTAL</h6><input id="totalAperturaDet" type="text" class="form-control" value="" readonly>
               <br>
             </div>
           </div>

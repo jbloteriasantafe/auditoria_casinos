@@ -187,8 +187,8 @@
                               <h5>Tipo Mesa</h5>
                               <select class="form-control" id="tipo_mesa_juego">
                                 <option value="0" selected class="default2">- Seleccione un Tipo de Mesa -</option>
-                                @foreach ($juegos as $juego)
-                                <option value="{{$juego->tipo_mesa->id_tipo_mesa}}">{{$juego->tipo_mesa->descripcion}}</option>
+                                @foreach ($tipos_mesas as $juego)
+                                <option value="{{$juego->id_tipo_mesa}}">{{$juego->descripcion}}</option>
                                 @endforeach
                               </select>
                           </div>

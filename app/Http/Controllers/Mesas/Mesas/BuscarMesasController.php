@@ -179,7 +179,11 @@ class BuscarMesasController extends Controller
 
   public function buscarMesaPorNroCasinoSinApertura($id_casino,$fecha,$nro_mesa){
     $controllerAP = new BCAperturaController;
-    $id_mesas_a_no_incluir = $controllerAP->buscarIDMesasAperturasDelDia($fecha,$id_casino);
+    $resultadoo = $controllerAP->buscarIDMesasAperturasDelDia($fecha,$id_casino);
+    $id_mesas_a_no_incluir = array();
+    foreach ($resultadoo as $r) {
+      $id_mesas_a_no_incluir[] = $r->id_mesa_de_panio;
+    }
     $mesas = DB::table('mesa_de_panio')
                   ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
                   ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
@@ -188,7 +192,7 @@ class BuscarMesasController extends Controller
                   ->where('mesa_de_panio.nro_mesa','like','%'.$nro_mesa.'%')
                   ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                   ->whereNull('mesa_de_panio.deleted_at')
-                  ->whereNotIn('id_mesa_panio',$id_mesas_a_no_incluir)
+                  ->whereNotIn('id_mesa_de_panio',$id_mesas_a_no_incluir)
                   ->orderBy('mesa_de_panio.nro_mesa','asc')->get();
     return ['mesas'=>$mesas];
   }

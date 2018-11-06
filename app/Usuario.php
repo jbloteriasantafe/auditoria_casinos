@@ -20,7 +20,7 @@ class Usuario extends Model
     protected $appends = array('es_superusuario');
 
     public function getEsSuperusuarioAttribute(){
-      if(null !== ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('id_rol','=',1))){
+      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0){
         return true;
       }else{
         return false;

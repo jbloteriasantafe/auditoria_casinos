@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Mesas\Cierres;
+namespace App\Http\Controllers\Mesas\Aperturas;
 
 use Auth;
 use Session;
@@ -54,16 +54,11 @@ class VAperturaController extends Controller
   //en esta
   public function validarApertura($id_apertura){
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if($user->usuarioTieneCasino($request->id_casino)){
-      $apertura = Apertura::find($id_apertura);
-      $apertura->estado_cierre()->associate(3);//VISADO
-      return response()->json(['ok' => true], 200);
-    }else{
-      $val = new Validator;
-      $val->errors()->add('autorizacion', 'No está autorizado para realizar esta accion.');
+    $apertura = Apertura::find($id_apertura);
+    $apertura->estado_cierre()->associate(3);//VISADO
+    $apertura->save();
+    return response()->json(['ok' => true], 200);
 
-      return ['errors' => $val->messages()->toJson()];
-    }
   }
 
 

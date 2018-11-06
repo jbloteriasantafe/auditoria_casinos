@@ -584,7 +584,7 @@ Route::get('mesas/obtenerMesasApertura/{id_cas}/{fecha}/{nro_mesa}', 'Mesas\Mesa
   Route::post('aperturas/modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
   Route::get('aperturas/bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura');
   Route::get('aperturas/validarApertura/{id_apertura}','Mesas\Aperturas\VAperturaController@validarApertura');
-  Route::get('aperturas/generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
+  Route::post('aperturas/generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
   Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 
 //Sección Juegos
