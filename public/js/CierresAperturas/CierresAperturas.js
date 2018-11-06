@@ -229,88 +229,95 @@ $('#btn-generar-rel').on('click', function(e){
 
   e.preventDefault();
 
-  $.get('aperturas/generarRelevamiento', function(data){
+  // beforeSend: function(data){
+  //   $('#modalRelevamiento').show();
+  //   $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();}
+  //
+  // $.get('aperturas/generarRelevamiento', function(data){
+  //
+  //
+  //   var iframe;
+  //           iframe = document.getElementById("download-container");
+  //           if (iframe === null){
+  //               iframe = document.createElement('iframe');
+  //               iframe.id = "download-container";
+  //               iframe.style.visibility = 'hidden';
+  //               document.body.appendChild(iframe);
+  //           }
+  //
+  //           iframe.src = data.url_zip;
+  //           console.log('7777',iframe);
+  //
+  // })
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
-    $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+  //var id_sector = $('#modalRelevamiento #sector option:selected').val();
 
-    var iframe;
-            iframe = document.getElementById("download-container");
-            if (iframe === null){
-                iframe = document.createElement('iframe');
-                iframe.id = "download-container";
-                iframe.style.visibility = 'hidden';
-                document.body.appendChild(iframe);
-            }
+  //if (typeof id_sector == 'undefined') id_sector = 0;
 
-            iframe.src = data.url_zip;
-            console.log('7777',iframe);
+  var formData = {
+    // id_ape: 1,
+    // cantidad_maquinas: $('#cantidad_maquinas').val(),
+    // cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
+  }
 
-  })
-  // $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  //
-  // //var id_sector = $('#modalRelevamiento #sector option:selected').val();
-  //
-  // //if (typeof id_sector == 'undefined') id_sector = 0;
-  //
-  // var formData = {
-  //   // id_ape: 1,
-  //   // cantidad_maquinas: $('#cantidad_maquinas').val(),
-  //   // cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
-  // }
-  //
-  // $.ajax({
-  //     type: "POST",
-  //     url: 'aperturas/generarRelevamiento',
-  //     data: formData,
-  //     dataType: 'json',
-  //     // processData: false,
-  //     // contentType:false,
-  //     // cache:false,
-  //     // beforeSend: function(data){
-  //     //   //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
-  //     //   if ($('#modalRelevamiento #casino option:selected').val() != "") {
-  //     //       $('#modalRelevamiento').find('.modal-footer').children().hide();
-  //     //       $('#modalRelevamiento').find('.modal-body').children().hide();
-  //     //       $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
-  //     //   }
-  //     // },
-  //     success: function (data) {
-  //
-  //         // $('#btn-buscar').click();
-  //         // $('#modalRelevamiento').modal('hide');
-  //
-  //         var iframe;
-  //         iframe = document.getElementById("download-container");
-  //         if (iframe === null){
-  //             iframe = document.createElement('iframe');
-  //             iframe.id = "download-container";
-  //             iframe.style.visibility = 'hidden';
-  //             document.body.appendChild(iframe);
-  //         }
-  //
-  //         iframe.src = data.url_zip;
-  //         console.log('7777',iframe);
-  //     },
-  //     error: function (data) {
-  //
-  //       // $('#modalRelevamiento').find('.modal-footer').children().show();
-  //       // $('#modalRelevamiento').find('.modal-body').children().show();
-  //       // $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
-  //       console.log(data);
-  //       var response = data.responseJSON.errors;
-  //       console.log('response',response);
-  //       //mostrar error
-  //       // if(typeof response.id_sector !== 'undefined'){
-  //       //     mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
-  //       //     mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
-  //           // $('#modalRelevamiento #sector').addClass('alerta');
-  //           // $('#modalRelevamiento #casino').addClass('alerta');
-  //       //}
-  //
-  //     } //error
-  // }); //$.ajax
+  $.ajax({
+      type: "POST",
+      url: 'aperturas/generarRelevamiento',
+      data: formData,
+      dataType: 'json',
+      // processData: false,
+       //contentType:false,
+       //cache:false,
+       beforeSend: function(data){
 
-  });
+         $('#modalRelevamiento').modal('show');
+         $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+
+         //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
+      //   if ($('#modalRelevamiento #casino option:selected').val() != "") {
+      //       $('#modalRelevamiento').find('.modal-footer').children().hide();
+      //       $('#modalRelevamiento').find('.modal-body').children().hide();
+      //       $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+      //   }
+      },
+      success: function (data) {
+
+          // $('#btn-buscar').click();
+           $('#modalRelevamiento').modal('hide');
+
+          var iframe;
+          iframe = document.getElementById("download-container");
+          if (iframe === null){
+              iframe = document.createElement('iframe');
+              iframe.id = "download-container";
+              iframe.style.visibility = 'hidden';
+              document.body.appendChild(iframe);
+          }
+
+          iframe.src = data.url_zip;
+          console.log('7777',iframe);
+      },
+      error: function (data) {
+
+         $('#modalRelevamiento').modal('hide');
+        // $('#modalRelevamiento').find('.modal-body').children().show();
+        // $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
+        console.log(data);
+        //var response = data.responseJSON.errors;
+        console.log('response',response);
+        //mostrar error
+        // if(typeof response.id_sector !== 'undefined'){
+        //     mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
+        //     mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
+            // $('#modalRelevamiento #sector').addClass('alerta');
+            // $('#modalRelevamiento #casino').addClass('alerta');
+        //}
+
+      } //error
+  }); //$.ajax
+
+});
 
 $('#btn-cargar-apertura').on('click', function(e){
 

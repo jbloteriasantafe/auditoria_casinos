@@ -18,6 +18,7 @@ $cas = $usuario['usuario']->casinos;
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
+<link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="/js/jquery-timepicker-1.3.5\jquery.timepicker.min.css">
 
 @endsection
@@ -274,7 +275,7 @@ $cas = $usuario['usuario']->casinos;
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
-           <div class="modal-header modalNuevo">
+           <div class="modal-header" style="background-color:#1DE9B6;">
              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -283,7 +284,7 @@ $cas = $usuario['usuario']->casinos;
 
             <div  id="colapsadoNuevo" class="collapse in">
 
-            <div class="modal-body">
+            <div class="modal-body modalCuerpo" >
 
 
               <div id="iconoCarga" class="sk-folding-cube">
@@ -294,16 +295,10 @@ $cas = $usuario['usuario']->casinos;
               </div>
 
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-successAceptar" id="btn-generar" value="nuevo">GENERAR</button>
-              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-            </div>
           </div>
         </div>
       </div>
 </div>
-
-
 
 
 <!-- MODAL CARGA cierre -->
