@@ -209,6 +209,11 @@ $cas = $usuario['usuario']->casinos;
                         @endif
 
                         <td class="col-xs-2" style="text-align:center !important;">
+                          @if($a->id_estado_cierre == 3)
+                          <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
+                                  <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          @else
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
                           </button>
@@ -218,11 +223,12 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-success validarCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-check"></i>
                           </button>
+                          @endif
                           <?php
                             $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                           ?>
                           @if(($usuario['usuario']->es_superusuario))
-                          <button type="button" class="btn btn-success eliminarCyA" value="{{$usuario['usuario']->es_superusuario}}" data-tipo="apertura">
+                          <button type="button" class="btn btn-success eliminarCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-trash"></i>
                           </button>
                           @endif
@@ -283,8 +289,6 @@ $cas = $usuario['usuario']->casinos;
          <div class="modal-content">
            <div class="modal-header" style="background-color:#1DE9B6;">
              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
              <h3 class="modal-title">| GENERANDO RELEVAMIENTO</h3>
             </div>
 
