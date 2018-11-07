@@ -20,7 +20,7 @@ class SectorMesas extends Model
   }
 
   public function mesas(){
-    return $this->HasMany('App\Mesas\Mesa','id_mesa','id_mesa');
+    return $this->HasMany('App\Mesas\Mesa','id_sector_mesas','id_sector_mesas');
   }
 
   public function getTableName(){
