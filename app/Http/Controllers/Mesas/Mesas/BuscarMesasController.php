@@ -114,7 +114,7 @@ class BuscarMesasController extends Controller
                     ->select('casino.*')
                     ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->where('users.id','=',$user->id_usuario)
+                    ->where('usuario.id_usuario','=',$user->id_usuario)
                     ->get();
 
 
