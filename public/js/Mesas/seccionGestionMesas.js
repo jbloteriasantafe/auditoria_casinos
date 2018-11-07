@@ -197,7 +197,7 @@ $('#btn-nueva-mesa').click(function(e){
   $('#mensajeExito').hide();
 
   $.get('mesas/cargarDatos', function(data){
-
+    console.log('dara',data);
     for (var i = 0; i < data.casinos.length; i++) {
       $('#casino_mesa')
       .append($('<option>')

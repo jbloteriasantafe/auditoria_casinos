@@ -556,15 +556,15 @@ Route::get('error','RelevamientoController@crearPlanillaValidado');
 Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
 
 //gestion mesas
-Route::get('/mesas','Mesas\BuscarMesasController@getMesas');
-Route::post('mesas/buscarMesas','Mesas\BuscarMesasController@buscarMesas');
-Route::post('mesas/nuevaMesa/{id_casino}','Mesas\ABMMesaController@guardar');
-Route::post('mesas/modificarMesa/{id_casino}','Mesas\ABMMesaController@modificar');
-Route::get('mesas/eliminarMesa/{id_casino}/{id_mesa_de_panio}','Mesas\ABMMesaController@eliminar');
-Route::get('mesas/cargarDatos','Mesas\BuscarMesasController@getDatos');
-Route::get('mesas/detalleMesa/{id_mesa}','Mesas\BuscarMesasController@getMesa');
-Route::get('mesas/obtenerMesasApertura/{id_cas}/{fecha}/{nro_mesa}', 'Mesas\BuscarMesasController@buscarMesaPorNroCasinoSinApertura');
-Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\BuscarMesasController@datosSegunCasino');
+Route::get('/mesas','Mesas\Mesas\BuscarMesasController@getMesas');
+Route::post('mesas/buscarMesas','Mesas\Mesas\BuscarMesasController@buscarMesas');
+Route::post('mesas/nuevaMesa/{id_casino}','Mesas\Mesas\ABMMesaController@guardar');
+Route::post('mesas/modificarMesa/{id_casino}','Mesas\Mesas\ABMMesaController@modificar');
+Route::get('mesas/eliminarMesa/{id_casino}/{id_mesa_de_panio}','Mesas\Mesas\ABMMesaController@eliminar');
+Route::get('mesas/cargarDatos','Mesas\Mesas\BuscarMesasController@getDatos');
+Route::get('mesas/detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
+Route::get('mesas/obtenerMesasApertura/{id_cas}/{fecha}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasinoSinApertura');
+Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@datosSegunCasino');
 
 //gestion cierres y aperturas
 
