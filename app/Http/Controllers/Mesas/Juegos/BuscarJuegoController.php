@@ -144,6 +144,7 @@ class BuscarJuegoController extends Controller
               ->leftJoin('mesa_de_panio','mesa_de_panio.id_juego_mesa','=','juego_mesa.id_juego_mesa')
               ->where($reglas)
               ->whereIn('juego_mesa.id_casino',$casinos)
+              ->orderBy('nombre_juego','desc')
               ->whereNull('juego_mesa.deleted_at')
               ->distinct('juego_mesa.id_juego_mesa')
               ->get();
