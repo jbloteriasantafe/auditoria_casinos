@@ -110,9 +110,11 @@ class BuscarMesasController extends Controller
       $cas[]=$cass->id_casino;
     }
 
-    $casinos = Usuario::select('casino.*')
+    $casinos = DB::table('usuario')
+                    ->select('casino.*')
                     ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+                    ->where('users.id','=',$user->id_usuario)
                     ->get();
 
 
