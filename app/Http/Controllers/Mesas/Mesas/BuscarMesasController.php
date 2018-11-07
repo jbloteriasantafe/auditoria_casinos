@@ -207,4 +207,10 @@ class BuscarMesasController extends Controller
     return Ficha::where('id_moneda','=',$id_moneda)->get();
   }
 
+  public function datosSegunCasino($id_casino){
+  $sectores = SectorMesas::where('id_casino','=',$id_casino)->get();
+  $juegos = JuegoMesa::where('id_casino','=',$id_casino)->get();
+  $moneda = Moneda::all();
+  return ['sectores' => $sectores, 'juegos' => $juegos, 'moneda' => $moneda];
+  }
 }
