@@ -285,7 +285,7 @@ $('#btn-eliminar-juego').on('click', function(e){
 function generarFilaJuegos(data){
 
   var fila=$(document.createElement('tr'));
-
+console.log(data);
   fila.attr('id',data.id_juego_mesa)
       .append($('<td>')
       .addClass('col-xs-3').addClass('f_nombre')
@@ -295,7 +295,7 @@ function generarFilaJuegos(data){
       .text(data.siglas).css('text-align','center'))
       .append($('<td>')
       .addClass('col-xs-3').addClass('f_casino')
-      .text(data.id_casino).css('text-align','center'))
+      .text(data.nombre).css('text-align','center'))
       .append($('<td>')
       .addClass('col-xs-3')
       .append($('<span>').text(' '))
