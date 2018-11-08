@@ -274,10 +274,9 @@
           <div id="colapsado" class="collapse in">
             <div class="modal-body">
                 <div class="row" style=" border-bottom:2px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                  <div class="col-xs-6" style="text-align:center;position:relative; left:40px;">
+                  <div class="col-xs-6" style="text-align:center;position:relative; left:65px;right:2px;">
                     <br>
-                    <h6 class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 24px;display:inline">mesa</h6>
-                    <h6 class="detalle_descripcion" style="font-family: Roboto-Regular;font-size:18px; display:inline">Nro</h6>
+                    <h6 class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 26px;display:inline">mesa</h6>
                     <br>
                   </div>
                     <div class="col-xs-6 offset-xs-4 iconoInfo">

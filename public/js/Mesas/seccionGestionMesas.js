@@ -252,7 +252,6 @@ $(document).on('change','#casino_mesa',function(){
     })
   }
 
-
 });
 
 
@@ -340,7 +339,7 @@ $(document).on('click','.infoMesa',function(e){
   $.get('mesas/detalleMesa/'+ id_mesa, function(data){
 
     $('.detalle_nro').text(data.mesa.nro_mesa);
-    $('.detalle_nombre').text(data.mesa.nombre);
+    $('.detalle_nombre').text((data.mesa.nombre).toUpperCase());
     $('.detalle_sector').text(data.sector.descripcion);
     $('.detalle_casino').text(data.casino.nombre);
     $('.detalle_juego').text(data.juego.nombre_juego);
