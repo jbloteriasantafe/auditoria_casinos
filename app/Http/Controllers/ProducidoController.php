@@ -76,7 +76,7 @@ class ProducidoController extends Controller
         $cerrado= ContadorController::getInstancia()->estaCerrado($fecha_inicio,$producido->id_casino,$producido->tipo_moneda);
         //validado en la fecha fin
         $fecha_fin=date('Y-m-d' , strtotime($producido->fecha . ' + 1 days'));
-        //valida que para esa fecha, todos los sectores del casino esten relevados y visados, sino no se puede
+        //valida que para esa fecha, todos los sectores del casino esten relevados y visados, sino no se puede 
         $validado=RelevamientoController::getInstancia()->estaValidado($fecha_fin,$producido->id_casino ,$producido->tipo_moneda);
         $producidosAValidar[] = ['producido' => $producido ,'descripcion' => $producido->casino->codigo  ,  'cerrado' => $cerrado  ,  'validado' => $validado];
       }
@@ -273,8 +273,7 @@ class ProducidoController extends Controller
   }
 
   //método en proceso de analisis
-  //considerar que el problema solo se presenta en rosario, donde los contadores finales son 0
-  //
+  //problemas de los datos que muestra como contadores al momento de dar diferencia
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
 
       $producido=Producido::find($id_producido);
@@ -290,12 +289,11 @@ class ProducidoController extends Controller
 
       $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
       $resultados=$pdo->query($query);
-
+      
       //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
       //
       $conDiferencia=array();
-      //en el foreach me llegan las maquinas duplicadas, una con contadores null para operar de forma auxiliar
-      //
+      
       foreach ($resultados as $row) {
           $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
                                                   $row['id_detalle_producido'],
@@ -307,8 +305,7 @@ class ProducidoController extends Controller
                                                   $row['jackpot_fin'],$row['progresivo_fin'],
                                                   $row['valor_producido'],$row['denominacion'],$row['denominacion_carga_inicial'],$row['denominacion_carga_final']
                                                 );
-          //devuelve array vacio si el valor calculado por sistema es igual al producido(creo que es el importado)
-          //
+          
           if(!empty($diferencia))
           {
             $conDiferencia[]=$diferencia;
@@ -322,8 +319,8 @@ class ProducidoController extends Controller
       //dd($producido->ajustes_producido);
       //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
 
-      //ajustes_producido esta previamente cargado, ahi estan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido
-      //
+      //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
+      //aca en donde tiene efecto el resultado de calcularDiferencia()
       if($producido->ajustes_producido->count() == 0){
           $primera_vez=1;
           $conDiferencia2=array();
@@ -372,30 +369,79 @@ class ProducidoController extends Controller
             ];
   }
 
-  public function calcularDiferencia($id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion){
+  public function calcularDiferencia($casino,$id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion,$denominacion_carga_inicial, $denominacion_carga_final){
       $resultado=array();
       //if($id_detalle_contador_final!=null){
+      //la denominacion carga es la que se utilizo para convertir a plata al momento de importar, la denominacion sale de la que tenia la maquina al importarte que no necesariamente es la misma al momento de validar producido
+      //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
+            //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
+            if($id_detalle_contador_inicial!=null){
+              $coinin_ini=$coinin_ini/$denominacion_carga_inicial;
+              $coinout_ini=$coinout_ini/$denominacion_carga_inicial;  
+              $jackpot_ini=$jackpot_ini/$denominacion_carga_inicial;  
+              $progresivo_ini=$progresivo_ini/$denominacion_carga_inicial;
+            }else{
+              $coinin_ini=0;
+              $coinout_ini=0;  
+              $jackpot_ini=0;  
+              $progresivo_ini=0;
+            }
+            
+            if($id_detalle_contador_final!=null){
+              $coinin_fin=$coinin_fin/$denominacion_carga_final ;
+              $coinout_fin= $coinout_fin/$denominacion_carga_final ;
+              $jackpot_fin=$jackpot_fin/$denominacion_carga_final ;
+              $progresivo_fin=$progresivo_fin/$denominacion_carga_final;
+            }else{
+              $coinin_fin=0;
+              $coinout_fin= 0;
+              $jackpot_fin=0;
+              $progresivo_fin=0;
+            }
+            
+      
             $cantidad=0;
 
-            $valor_inicio= $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata
-            $valor_final= $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata
+            $valor_inicio= $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata para santa fe y credito para rosario
+            $valor_final= $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata para santa fe y credito para rosario
 
-            $delta = $valor_final - $valor_inicio;//plata - plata
-
-            $diferencia = round($delta, 2) - $valor_producido; //plata - plata
-
+            $delta = $valor_final - $valor_inicio;//plata - plata para santa fe //credito- credito para rosario
+           
+            if($casino!='3'){
+              $diferencia = round($delta, 2) - $valor_producido; //plata - plata
+            }else{
+              $delta= $delta * $denominacion; //paso a plata con el valor actual de la denominacion
+              $diferencia = round($delta, 2) - $valor_producido; //plata - plata
+            }
 
             // si diferencia redondeado con dos, es distinto de cero -> plata --> pasa a credito
+            //en este punto se trabaja con la denominacion actual de la maquina, la cual pude no ser la misma que la denomincaicon al momento de la carga
             if(round($diferencia,2) != 0){// si alguno de los campos es null al hacer la division queda 0 -> ver que se termina guardando en la BD
-              $in_inicio_cred =$coinin_ini / $denominacion;//credito
-              $out_inicio_cred = $coinout_ini / $denominacion;//credito
-              $jack_ini_cred = $jackpot_ini / $denominacion;//credito
-              $prog_ini_cred = $progresivo_ini / $denominacion;//credito
-              $in_final_cred = $coinin_fin / $denominacion;//credito
-              $out_final_cred = $coinout_fin / $denominacion;//credito
-              $jack_final_cred = $jackpot_fin / $denominacion;//credito
-              $prog_final_cred =  $progresivo_fin / $denominacion;//credito
-              $valor_cred = $valor_producido / $denominacion;//credito
+              if($casino!='3'){
+                $in_inicio_cred =$coinin_ini / $denominacion;//credito
+                $out_inicio_cred = $coinout_ini / $denominacion;//credito
+                $jack_ini_cred = $jackpot_ini / $denominacion;//credito
+                $prog_ini_cred = $progresivo_ini / $denominacion;//credito
+                $in_final_cred = $coinin_fin / $denominacion;//credito
+                $out_final_cred = $coinout_fin / $denominacion;//credito
+                $jack_final_cred = $jackpot_fin / $denominacion;//credito
+                $prog_final_cred =  $progresivo_fin / $denominacion;//credito
+                $valor_cred = $valor_producido / $denominacion;//credito
+              }else{
+                //rosario ya estsa en creditos
+                $in_inicio_cred =$coinin_ini ;//credito
+                $out_inicio_cred = $coinout_ini ;//credito
+                $jack_ini_cred = $jackpot_ini ;//credito
+                $prog_ini_cred = $progresivo_ini ;//credito
+                $in_final_cred = $coinin_fin;//credito
+                $out_final_cred = $coinout_fin ;//credito
+                $jack_final_cred = $jackpot_fin ;//credito
+                $prog_final_cred =  $progresivo_fin ;//credito
+                $valor_cred = $valor_producido /$denominacion; //credito
+
+              }
+              
+             
 
               $resultado = ['id_maquina' => $id_maquina,                                'nro_admin' => $nro_admin,
                             'id_detalle_producido' => $id_detalle_producido,            'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
