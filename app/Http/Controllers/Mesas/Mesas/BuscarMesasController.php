@@ -83,10 +83,12 @@ class BuscarMesasController extends Controller
       $cas[]=$cass->id_casino;
     }
 
-    $casinos = Usuario::select('casino.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->get();
+    $casinos = DB::table('usuario')
+              ->select('casino.*')
+              ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+              ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+              ->where('usuario.id_usuario','=',$user->id_usuario)
+              ->get();
 
 
     $sectores = SectorMesas::whereIn('id_casino',$cas)->get();
@@ -157,6 +159,7 @@ class BuscarMesasController extends Controller
       $sort_by = $request->sort_by;
 
       $mesas = DB::table('mesa_de_panio')
+                    ->select('mesa_de_panio.*','tipo_mesa.*','casino.*','sector_mesas.id_sector_mesas','sector_mesas.descripcion as nombre_sector','juego_mesa.*')
                     ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
                     ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                     ->join('tipo_mesa','tipo_mesa.id_tipo_mesa','=','juego_mesa.id_tipo_mesa')
