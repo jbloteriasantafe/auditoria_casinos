@@ -452,7 +452,7 @@ class ProducidoController extends Controller
                             'progresivo_final' =>$prog_final_cred,                      'producido_dinero' => $valor_producido,
                             'producido_cred' => $valor_cred,                            'denominacion' => $denominacion ,
                             'delta' => round($delta, 2),                                'diferencia' => round($diferencia, 2),
-                          'casino'=>$casino];
+                            'casino'=>$casino];
 
             }
     //}

@@ -633,6 +633,7 @@ class LectorCSVController extends Controller
     $producido->save();
     $producido_validado = Producido::where([['id_casino','=',$casino],['fecha','=',$producido->fecha],['validado','=',1]])->count();
 
+    //despues de haberlo creado se pregunta si npodia cearlo y sino podia, vuelve atras borrando las tablas que recien armo
     if($producido_validado > 0){
       $query = sprintf(" DELETE FROM producido_temporal WHERE id_producido = '%d'",$producido->id_producido);
       $pdo->exec($query);
@@ -645,7 +646,7 @@ class LectorCSVController extends Controller
           }
       })->validate();
     }
-
+    //si ya hay producidos para esa fecha pero aun no esta validado primero borra todos los detalles producido y luego el producido
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
     if($producidos != null){
       foreach($producidos as $prod){
@@ -663,11 +664,11 @@ class LectorCSVController extends Controller
 
     $query = sprintf(" INSERT INTO detalle_producido (valor,id_maquina,id_producido)
                        SELECT prod_a.valor,mtm.id_maquina,'%d'
-                       FROM maquina AS mtm,
-                            (SELECT SUM(valor) AS valor, maquina
-                             FROM producido_temporal
-                             WHERE id_producido = '%d'
-                             GROUP BY maquina) AS prod_a
+                       FROM maquina AS mtm,(SELECT SUM(valor) AS valor, maquina
+                                            FROM producido_temporal
+                                            WHERE id_producido = '%d'
+                                            GROUP BY maquina) AS prod_a
+                                            
                        WHERE prod_a.maquina = mtm.nro_admin
                          AND mtm.id_casino = '%d'
                        ",$producido->id_producido,$producido->id_producido,$casino);
