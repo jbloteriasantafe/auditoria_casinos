@@ -191,7 +191,7 @@ class BeneficioController extends Controller
 
           $prod = Producido::where([['fecha',$ben->fecha],['id_casino',$ben->id_casino],['id_tipo_moneda',$ben->id_tipo_moneda]])->first();
           if($prod != null){
-            $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido
+            $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido sumandole el ajuste reciente
 
             if($producido_calculado != null && round($producido_calculado - $ben->valor,2) == 0){
               $ben->validado = 1;

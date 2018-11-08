@@ -405,7 +405,8 @@ class ProducidoController extends Controller
                             'coinout_final' =>  $out_final_cred,                        'jackpot_final' => $jack_final_cred,
                             'progresivo_final' =>$prog_final_cred,                      'producido_dinero' => $valor_producido,
                             'producido_cred' => $valor_cred,                            'denominacion' => $denominacion ,
-                            'delta' => round($delta, 2),                                'diferencia' => round($diferencia, 2),];
+                            'delta' => round($delta, 2),                                'diferencia' => round($diferencia, 2),
+                            'casino'=>$casino];
 
             }
     //}
