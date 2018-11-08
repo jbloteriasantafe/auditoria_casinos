@@ -39,7 +39,7 @@
                       @foreach ($casinos as $cas)
                       <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                       @endforeach
-                      <option value="0" >- Todos los casinos-</option>
+                      <option value="0" >- Todos los casinos -</option>
                     </select>
                   </div>
                   <div class="col-md-4">

@@ -160,7 +160,7 @@ function generarFilaTabla(mesa){
 
   fila.find('.nroMesa').text(mesa.nro_mesa);
   fila.find('.juegoMesa').text(mesa.nombre_juego);
-  fila.find('.sectorMesa').text(mesa.id_sector_mesas);
+  fila.find('.sectorMesa').text(mesa.nombre_sector);
   fila.find('.casinoMesa').text(mesa.nombre);
   fila.find('.infoMesa').val(mesa.id_mesa_de_panio);
   fila.find('.modificarMesa').val(mesa.id_mesa_de_panio);
