@@ -103,6 +103,8 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
               var filaMesa = generarFilaTabla(data.data[i]);
               $('#cuerpoTablaMesas').append(filaMesa);
           }
+
+        
           //Asigno valor a la variable global casinos
         //  casinos=data.casinos;
 

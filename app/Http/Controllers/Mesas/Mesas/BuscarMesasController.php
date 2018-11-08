@@ -58,8 +58,8 @@ class BuscarMesasController extends Controller
     $tipo_mesa = $juego->tipo_mesa;
     $moneda = $mesa->moneda;
     $casino = $mesa->casino;
-    $sectores = SectorMesas::where('id_casino','=',$id_casino)->orderBy('descripcion','desc')->get();
-    $juegos = JuegoMesa::where('id_casino','=',$id_casino)->orderBy('nombre_juego','desc')->get();
+    $sectores = SectorMesas::where('id_casino','=',$casino->id_casino)->orderBy('descripcion','desc')->get();
+    $juegos = JuegoMesa::where('id_casino','=',$casino->id_casino)->orderBy('nombre_juego','desc')->get();
     $monedas = Moneda::all();
     return [
             'mesa' => $mesa,
