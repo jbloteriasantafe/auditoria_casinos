@@ -177,19 +177,33 @@ function generarFilaTabla(mesa){
 //PRESIONA EL BOTON DE NUEVA MESA, ABRE MODAL Y CARGA SELECTS
 $('#btn-nueva-mesa').click(function(e){
 
-  $('#nombre_mesa').val(" ");
-  $('#nro_mesa').val(" ");
-  $('#descripcion_mesa').val(" ");
-  $('#sector_mesa').val('0');
-  $('#juego_mesa').val('0');
-  $('#moneda_mesa').val('0');
-  $('#casino_mesa').val('0'),
-
-  $('#mensajeExito').hide();
-
   e.preventDefault(e);
 
+  ocultarErrorValidacion($('#nombre_mesa'));
+  $('#nombre_mesa').val(" ");
+  ocultarErrorValidacion($('#nro_mesa'));
+  $('#nro_mesa').val(" ");
+  ocultarErrorValidacion($('#descripcion_mesa'));
+  $('#descripcion_mesa').val(" ");
+
+  $('#sector_mesa option').not('.default1').remove();
+  $('#sector_mesa').val('0').prop('disabled',true);
+  $('#juego_mesa option').not('.default2').remove();
+  $('#juego_mesa').val('0').prop('disabled',true);
+  $('#moneda_mesa option').not('.default3').remove();
+  $('#moneda_mesa').val('0').prop('disabled',true);
+  $('#casino_mesa option').not('.default').remove();
+  $('#casino_mesa').val('0');
+  $('#mensajeExito').hide();
+
   $.get('mesas/cargarDatos', function(data){
+    console.log('dara',data);
+    for (var i = 0; i < data.casinos.length; i++) {
+      $('#casino_mesa')
+      .append($('<option>')
+      .val(data.casinos[i].id_casino)
+      .text(data.casinos[i].nombre))
+    }
 
     $('#mensajeErrorAlta').hide();
     $('#modalAltaMesa').modal('show');
@@ -197,9 +211,52 @@ $('#btn-nueva-mesa').click(function(e){
   })
 });
 
+//dentro del modalde nueva mesa, selecciona un casino y se piden: monedas, sectores y juegos
+$(document).on('change','#casino_mesa',function(){
+
+  $('#sector_mesa option').not('.default1').remove();
+  $('#sector_mesa').val('0').prop('disabled',false);
+  $('#juego_mesa option').not('.default2').remove();
+  $('#juego_mesa').val('0').prop('disabled',false);;
+  $('#moneda_mesa option').not('.default3').remove();
+  $('#moneda_mesa').val('0').prop('disabled',false);
+
+
+  var casino= $('#casino_mesa').val();
+
+  if (casino != 0){
+    $.get('mesas/obtenerDatos/' + casino, function(data){
+
+      for (var i = 0; i < data.juegos.length; i++) {
+        $('#juego_mesa')
+        .append($('<option>')
+        .val(data.juegos[i].id_juego_mesa)
+        .text(data.juegos[i].nombre_juego))
+      }
+      $('#juego_mesa').prop('readonly',false);
+
+      for (var i = 0; i < data.moneda.length; i++) {
+        $('#moneda_mesa')
+        .append($('<option>')
+        .val(data.moneda[i].id_moneda)
+        .text(data.moneda[i].descripcion))
+      }
+
+      for (var i = 0; i < data.sectores.length; i++) {
+        $('#sector_mesa')
+        .append($('<option>')
+        .val(data.sectores[i].id_sector_mesas)
+        .text(data.sectores[i].descripcion))
+      }
+
+    })
+  }
+
+});
+
+
 //PRESIONA EL BOTÓN GUARADR DENTRO DEL MODAL DE ALTA MESA
 $('#btn-guardar-mesa').click(function(e){
-  $('#mensajeExito').hide();
 
   e.preventDefault();
 
@@ -229,16 +286,20 @@ $('#btn-guardar-mesa').click(function(e){
     dataType: 'json',
 
     success: function (data){
-      console.log(data);
+
       $('#mensajeErrorAlta').hide();
       $('#modalAltaMesa').modal('hide');
+
       $('#mensajeExito h3').text('ÉXITO DE CREACIÓN');
-      $('#mensajeExito p').text('La mesa fue creada correctamente');
+      $('#mensajeExito p').text('La MESA fue creada correctamente');
       $('#mensajeExito').show();
+
+      $('#btn-buscarMesas').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
+
 
     },
     error:function(data){
-      console.log('esto',data);
+
       var response = data.responseJSON.errors;
 
       if(typeof response.id_casino !== 'undefined'){
@@ -278,13 +339,13 @@ $(document).on('click','.infoMesa',function(e){
   $.get('mesas/detalleMesa/'+ id_mesa, function(data){
 
     $('.detalle_nro').text(data.mesa.nro_mesa);
-    $('.detalle_nombre').text(data.mesa.nombre);
+    $('.detalle_nombre').text((data.mesa.nombre).toUpperCase());
     $('.detalle_sector').text(data.sector.descripcion);
     $('.detalle_casino').text(data.casino.nombre);
     $('.detalle_juego').text(data.juego.nombre_juego);
-    $('.contenedorTipos .detalle_moneda').text(data.moneda.descripcion);
+    $('.detalle_moneda').text(data.moneda.descripcion);
     $('.detalle_descripcion').text(data.mesa.descripcion);
-    //$('.detalle_tipo').text(data.tipo_mesa.tipo_mesa);
+    $('.detalle_tipo').text(data.tipo_mesa.descripcion);
 
     console.log(data);
     $('#modalDetalleMesa').modal('show');
@@ -296,10 +357,10 @@ $(document).on('click','.infoMesa',function(e){
 //PRESIONA EL BOTÓN DE MODIFICAR, EN LA LISTA DE MESAS
 //SE ABRE EL MODAL DE MODIFICAR DE MESA Y SE CARGAN LOS SELECTS Y INPUTS
 $(document).on('click','.modificarMesa',function(e){
-  $('#mensajeErrorModificacion').hide();
 
   e.preventDefault();
 
+  $('#mensajeErrorModificacion').hide();
   var id=$(this).val();
 
   $.get('mesas/detalleMesa/' + id, function(data){
@@ -307,18 +368,66 @@ $(document).on('click','.modificarMesa',function(e){
     console.log('mesa', data);
     $('#nombreM').val(data.mesa.nombre);
     $('#casinoM').val(data.casino.id_casino);
-    $('#monedaM').val(data.moneda.id_moneda);
     $('#descripcionM').val(data.mesa.descripcion);
     $('#numeroM').val(data.mesa.nro_mesa);
-    $('#sectorM').val(data.sector.id_sector_mesas);
-    $('#juegoM').val(data.juego.id_juego_mesa);
+
+    $('#sectorM option').not('.default1').remove();
+    $('#juegoM option').not('.default2').remove();
+    $('#monedaM option').not('.default3').remove();
+
+
+
+    for (var i = 0; i < data.juegos.length; i++) {
+
+      $('#juegoM')
+        .append($('<option>')
+        .val(data.juegos[i].id_juego_mesa)
+        .text(data.juegos[i].nombre_juego))
+    }
+
+    for (var i = 0; i < data.monedas.length; i++) {
+      $('#monedaM')
+      .append($('<option>')
+      .val(data.monedas[i].id_moneda)
+      .text(data.monedas[i].descripcion))
+    }
+
+    for (var i = 0; i < data.sectores.length; i++) {
+      $('#sectorM')
+      .append($('<option>')
+      .val(data.sectores[i].id_sector_mesas)
+      .text(data.sectores[i].descripcion))
+    }
+
+    $('#sectorM option').each(function(){
+      if($(this).val == data.sector.id_sector_mesas){
+        $(this).attr('selected',true);
+      }
+    })
+    $('#juegoM option').each(function(){
+      if($(this).val == data.juego.id_juego_mesa){
+        $(this).attr('selected',true);
+      }
+    })
+    $('#monedaM option').each(function(){
+      if($(this).val == data.moneda.id_moneda){
+        $(this).attr('selected',true);
+      }
+    })
+
+
+    //$('#monedaM').val(data.moneda.id_moneda);
+    //$('#juegoM').val(data.juego.id_juego_mesa);
+    //$('#sectorM').val(data.sector.id_sector_mesas);
 
   });
 
-  $.get('mesas/cargarDatos', function(){
+  //$.get('mesas/cargarDatos', function(data){
+
+
       $('#modalModificarMesa').modal('show');
       $('#modalModificarMesa #btn-modificar-mesa').val(id);
-  });
+  //});
 
 });
 

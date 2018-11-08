@@ -1651,4 +1651,6 @@ function limpiarModalValidar(){
   $('#total_aper_validar').val('');
   $('#anticipos_validar').val('');
 
+  $('#tablaValidar tbody tr').remove();
+
 }

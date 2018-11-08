@@ -31,7 +31,7 @@
                     <select class="form-control" id="F_Juego">
                       <option value="" selected>- Seleccione un Juego -</option>
                       @foreach ($juegos as $juego)
-                      <option value="{{$juego->nombre_juego}}">{{$juego->nombre_juego}}</option>
+                      <option value="{{$juego->nombre_juego}}">{{$juego->nombre_juego}}  - {{$juego->casino->codigo}}</option>
                       @endforeach
                       <option value="0" >- Todos los juegos-</option>
                     </select>
@@ -41,9 +41,9 @@
                     <select class="form-control" id="F_Sector">
                       <option value="" selected>- Seleccione un Sector-</option>
                       @foreach ($sectores as $sector)
-                      <option value="{{$sector->id_sector_mesas}}">{{$sector->descripcion}}</option>
+                      <option value="{{$sector->id_sector_mesas}}">{{$sector->descripcion}} - {{$sector->casino->codigo}}</option>
                       @endforeach
-                      <option value="0" >- Todos los sectores-</option>
+                      <option value="0" >-Todos los sectores-</option>
                     </select>
                   </div>
                 </div>
@@ -55,7 +55,7 @@
                       @foreach ($casinos as $cas)
                       <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                       @endforeach
-                      <option value="0" >- Todos los casinos-</option>
+                      <option value="0" >-Todos los casinos-</option>
                     </select>
                   </div>
                   <div class="col-md-4">
@@ -65,7 +65,7 @@
                       @foreach ($tipo_mesa as $tipo)
                       <option value="{{$tipo->id_tipo_mesa}}">{{$tipo->descripcion}}</option>
                       @endforeach
-                      <option value="0" >- Todos los tipos-</option>
+                      <option value="0" >-Todos los tipos-</option>
                     </select>
                   </div>
                   <div class="col-md-4">
@@ -153,371 +153,374 @@
       </div>
   </div>
 
-<!-- MODAL NUEVA MESA -->
-    <div class="modal fade" id="modalAltaMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-             <div class="modal-content">
-                <div class="modal-header" style="background-color:#1DE9B6;">
-                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                  <h3 class="modal-title">| NUEVA MESA</h3>
-                </div>
+  <!-- MODAL NUEVA MESA -->
+      <div class="modal fade" id="modalAltaMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+               <div class="modal-content">
+                  <div class="modal-header" style="background-color:#1DE9B6;">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                    <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                    <h3 class="modal-title">| NUEVA MESA</h3>
+                  </div>
 
-          <div id="colapsado" class="collapse in">
-                <div class="modal-body">
-                  <form id="frmAltaMesa" name="frmAltaMesa" class="form-horizontal" novalidate="">
-                      <div class="row">
-                          <div class="col-md-6">
-                              <h5>Número de Mesa</h5>
-                              <input type="text" class="form-control" id="nro_mesa" placeholder="Número de Mesa" name="user_name">
-                              <br>
-                          </div>
-                          <div class="col-md-6">
-                              <h5>Nombre</h5>
-                              <input type="text" class="form-control" id="nombre_mesa" name="name" placeholder="Nombre Mesa" value="">
-                              <br>
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6">
-                              <h5>Descripción</h5>
-                              <input type="text" class="form-control" id="descripcion_mesa" name="descripcion" placeholder="Descripción" value="">
-                              <br>
-                          </div>
-                          <div class="col-md-6">
-                              <h5>Casino</h5>
-                              <select class="form-control" id="casino_mesa">
-                                <option value="0" selected class="default">- Seleccione un Casino-</option>
-                                @foreach ($casinos as $cas)
-                                <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
-                                @endforeach
-                              </select>
-                              <br>
-                          </div>
-                        </div>
-                      <br>
-                      <div class="row">
-                          <div class="col-md-4">
-                            <h5>Sector</h5>
-                            <select class="form-control" id="sector_mesa">
-                              <option value="0" selected class="default1">- Seleccione un Sector-</option>
-                              @foreach ($sectores as $sector)
-                              <option value="{{$sector->id_sector_mesas}}">{{$sector->descripcion}}</option>
-                              @endforeach
-                            </select>
-                          </div>
-                          <div class="col-md-4">
-                            <h5>Juego</h5>
-                            <select class="form-control" id="juego_mesa">
-                              <option value="0" selected class="default2">- Seleccione un Juego -</option>
-                              @foreach ($juegos as $juego)
-                              <option value="{{$juego->id_juego_mesa}}">{{$juego->nombre_juego}}</option>
-                              @endforeach
-                            </select>
-                          </div>
-                          <div class="col-md-4">
-                              <h5>Tipo Moneda</h5>
-                              <select class="form-control" id="moneda_mesa">
-                                <option value="0" selected class="default3">- Seleccione una Moneda -</option>
-                                @foreach ($monedas as $moneda)
-                                <option value="{{$moneda->id_moneda}}">{{$moneda->descripcion}}</option>
-                                @endforeach
-                              </select>
+                  <div id="colapsado" class="collapse in">
+                    <div class="modal-body">
+                      <form id="frmAltaMesa" name="frmAltaMesa" class="form-horizontal" novalidate="">
+                          <div class="row">
+                              <div class="col-md-6">
+                                  <h5>Número de Mesa</h5>
+                                  <input type="text" class="form-control" id="nro_mesa" placeholder="Número de Mesa" name="user_name">
+                                  <br>
                               </div>
-                          </div>
-                      </div>
-                      <!-- /nuevas secciones -->
+                              <div class="col-md-6">
+                                  <h5>Nombre</h5>
+                                  <input type="text" class="form-control" id="nombre_mesa" name="name" placeholder="Nombre Mesa" value="">
+                                  <br>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="col-md-6">
+                                  <h5>Descripción</h5>
+                                  <input type="text" class="form-control" id="descripcion_mesa" name="descripcion" placeholder="Descripción" value="">
+                                  <br>
+                              </div>
+                              <div class="col-md-6">
+                                  <h5>Casino</h5>
+                                  <select class="form-control" id="casino_mesa">
+                                    <option value="0" selected class="default">- Seleccione un Casino-</option>
 
-                  </form>
-                </div>
+                                  </select>
+                                  <br>
+                              </div>
+                            </div>
+                          <br>
+                          <div class="row">
+                              <div class="col-md-4">
+                                <h5>Sector</h5>
+                                <select class="form-control" id="sector_mesa">
+                                  <option value="0" selected class="default1">- Seleccione un Sector-</option>
 
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-guardar-mesa" value="nuevo">ACEPTAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                                </select>
+                              </div>
+                              <div class="col-md-4">
+                                <h5>Juego</h5>
+                                <select class="form-control" id="juego_mesa">
+                                  <option value="0" selected class="default2">- Seleccione un Juego -</option>
 
-                </div>
-                <div id="mensajeErrorAlta" hidden>
-                  <br>
-                  <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-                  <br>
-                  <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
-                </div> <!-- mensaje -->
+                                </select>
+                              </div>
+                              <div class="col-md-4">
+                                  <h5>Tipo Moneda</h5>
+                                  <select class="form-control" id="moneda_mesa">
+                                    <option value="0" selected class="default3">- Seleccione una Moneda -</option>
 
+                                  </select>
+                                  </div>
+                              </div>
+                          <!-- /nuevas secciones -->
+
+                      </form>
+                    </div>
+
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-successAceptar" id="btn-guardar-mesa" value="nuevo">ACEPTAR</button>
+                      <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                    </div>
+
+                    <div id="mensajeErrorAlta" hidden>
+                      <br>
+                      <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+                      <br>
+                      <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
+                    </div> <!-- mensaje -->
+                  </div>
               </div>
-            </div>
           </div>
-    </div>
+      </div>
 
-    <!-- FIN MODAL GUIA -->
-    <style media="screen">
+      <!-- FIN MODAL GUIA -->
+      <style media="screen">
 
-    .contenedorFecha p {
-      font-family: Roboto-Regular;
-      font-size: 18px;
-    }
+      .contenedorFecha p {
+        font-family: Roboto-Regular;
+        font-size: 18px;
+      }
 
-    .iconoMoneda {
-      text-align: center;
-      padding: 0px !important;
-    }
-    .iconoMesa {
-      text-align: center;
-      padding: 0px !important;
-    }
-    .tmoneda .fa-usd-square {
-      color: #E91E63;
-    }
-    .tmesa .fa-pencil-alt {
-      color: #FFC107;
-    }
-    </style>
-<!-- MODAL DETALLE -->
-<div class="modal fade" id="modalDetalleMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-             <div class="modal-content">
-                <div class="modal-header"  style="background-color:#4FC3F7;">
-                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                  <h3 class="modal-title">| DETALLES MESA</h3>
-                </div>
-
+      .iconoMoneda {
+        text-align: center;
+        padding: 0px !important;
+      }
+      .iconoMesa {
+        text-align: center;
+        padding: 0px !important;
+      }
+      .tmoneda .fa-usd-square {
+        color: #E91E63;
+      }
+      .tmesa .fa-pencil-alt {
+        color: #FFC107;
+      }
+      </style>
+  <!-- MODAL DETALLE -->
+  <div class="modal fade" id="modalDetalleMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header"  style="background-color:#4FC3F7;">
+            <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+            <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+            <h3 class="modal-title">| DETALLES MESA</h3>
+          </div>
 
           <div id="colapsado" class="collapse in">
-                <div class="modal-body">
-                  <form id="frmAltaMesa" name="frmAltaMesa" class="form-horizontal" novalidate="">
-                      <div class="row" style=" border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                          <div class="col-md-6" style="text-align:center;">
-                              <p class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 24px;">mesa</p>
-                              <p class="detalle_descripcion" style="font-family: Roboto-Regular;font-size:18px;">Nro</p>
-                              <br>
-                          </div>
-                          </div>
-                          <div class="row" style=" border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                          <div class="col-md-6" style="text-align:center; border-right: 1px solid #ccc">
-                              <h5 style="font-size:14px;">DESCRIPCIÓN: :</h5>
-                              <p class="detalle_descripcion" style="font-family: Roboto-Regular;font-size:18px;">Tipo Mesa: </p>
-                              <br>
-                          </div>
-                          <br>
-                          <div class="col-md-6"  style="text-align:center;">
-                            <h5 style="font-size:14px;">NÚMERO DE MESA:</h5>
-                            <p class="detalle_nro" style="font-family: Roboto-Regular;font-size:18px;">nro</p>
-                          </div>
-                        </div>
-                          <div class="row" style=" border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                          <div class="col-md-6" style="text-align:center; border-right: 1px solid #ccc">
-                              <h5 style="font-size:14px;">CASINO:</h5>
-                              <p class="detalle_casino" style="font-family: Roboto-Regular;font-size:18px;">Casino: </p>
-                              <br>
-                          </div>
-                          <br>
-                          <div class="col-md-6"  style="text-align:center;">
-                            <h5 style="font-size:14px;">SECTOR</h5>
-                            <p class="detalle_sector" style="font-family: Roboto-Regular;font-size:18px;">Sector: </p>
-                          </div>
-                        </div>
-                      <div class="contenedorTipos row">
-                        <div class="row" style=" border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                          <div class="col-md-6"style="text-align:center; border-right: 1px solid #ccc">
-                                <center>
-                                  <h5  style="font-size:14px;padding:0px; margin-bottom:20px;">TIPO MONEDA: </h5>
-                                </center>
-                                <div class="row tmoneda">
-                                    <div class="col-xs-2 col-xs-offset-1 iconoMoneda">
-                                        <i class="fas fa-pencil-alt fa-2x" ></i>
-                                    </div>
-                                    <div class="col-xs-9">
-                                        <p class="detalle_moneda">Moneda mesa</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6" style="text-align:center; border-right: 1px solid #ccc">
-
-                                <center>
-                                  <h5 style="font-size:14px; padding:0px; margin-bottom:20px; margin-left:0px;">TIPO MESA: </h5>
-                                </center>
-
-                                <div class="row tmesa" style="margin-right:0px;">
-                                    <div class="col-xs-2 col-xs-offset-1 iconoMesa">
-                                        <i class="fas fa-dice fa-2x" style="position:relative; left:-2px;"></i>
-                                    </div>
-                                    <div class="col-xs-9">
-                                        <p class="detalle_tipo">tipo de mesa</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                      </div>
-
-                </form>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal"> SALIR</button>
+            <div class="modal-body">
+                <div class="row" style=" border-bottom:2px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                  <div class="col-xs-6" style="text-align:center;position:relative; left:65px;right:2px;">
+                    <br>
+                    <h6 class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 26px;display:inline">mesa</h6>
+                    <br>
+                  </div>
+                    <div class="col-xs-6 offset-xs-4 iconoInfo">
+                        <i class="fas fa-info-circle fa-4x" ></i>
+                    </div>
                 </div>
 
+                <div class="row" style=" border-bottom:2px solid #ccc; ">
 
-              </div>
-            </div>
-          </div>
-    </div>
-
-<!-- MODAL MODIFICAR MESA -->
-<div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-         <div class="modal-content">
-            <div class="modal-header" style="background-color:#FFA726">
-              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-              <h3 class="modal-title">| MODIFICAR MESA</h3>
-            </div>
-
-      <div id="colapsado" class="collapse in">
-            <div class="modal-body">
-              <form id="frmModificarMesa" name="frmAltaMesa" class="form-horizontal" novalidate="">
-                  <div class="row">
-                      <div class="col-md-6">
-                          <h5>Número de Mesa</h5>
-                          <input type="text" class="form-control" id="numeroM" placeholder="Número de Mesa" name="user_name">
-                          <br>
+                  <div class="col-md-6" style="text-align:center; border-right: 2px solid #ccc;">
+                    <h6 style="font-size:20px;font-weight:bold;padding-top:30px;">DESCRIPCIÓN:</h6>
+                    <div class="row desc" style="padding-bottom:15px;">
+                      <div class="col-xs-3 offset-xs-1 iconoDesc" style="display:inline;position:relative;left:20px;">
+                        <i class="fas fa-align-justify fa-3x" ></i>
                       </div>
-                      <div class="col-md-6">
-                          <h5>Nombre</h5>
-                          <input type="text" class="form-control" id="nombreM" name="name" placeholder="Nombre Mesa" value="">
-                          <br>
-                      </div>
+                      <h5 class="detalle_descripcion" style="color: #000; font-family: Roboto-Regular;font-size:18px; position:relative;right:45px;"></h5>
                     </div>
-                    <div class="row">
-                      <div class="col-md-6">
-                          <h5>Descripción</h5>
-                          <input type="text" class="form-control" id="descripcionM" name="descripcion" placeholder="Descripción" value="">
-                          <br>
+                  </div>
+
+                  <div class="col-md-6"  style="text-align:center; ">
+                    <h6 style="font-size:20px;font-weight:bold; padding-top:30px;">NÚMERO DE MESA:</h6>
+                    <div class="row nro" >
+                      <div class="col-xs-3 offset-xs-1 iconoNro" style="display:inline;position:relative;left:25px;">
+                        <i class="fas fa-clipboard-check fa-3x" ></i>
                       </div>
-                      <div class="col-md-6">
-                          <h5>Casino</h5>
-                          <select class="form-control" id="casinoM">
-                            <option value="0" selected>- Seleccione un Casino-</option>
-                            @foreach ($casinos as $cas)
-                            <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
-                            @endforeach
-                          </select>
-                          <br>
-                      </div>
+                      <h5 class="detalle_nro" style="color:#000;font-family: Roboto-Regular;font-size:18px;position:relative;right:55px;"></h5>
                     </div>
-                  <br>
-                  <div class="row">
-                      <div class="col-md-4">
-                        <h5>Sector</h5>
-                        <select class="form-control" id="sectorM">
-                          <option value="0" selected>- Seleccione un Sector-</option>
-                          @foreach ($sectores as $sector)
-                          <option value="{{$sector->id_sector_mesas}}">{{$sector->descripcion}}</option>
-                          @endforeach
-                        </select>
+                  </div>
+
+                </div>
+
+                <div class="row" style=" border-bottom:2px solid #ccc;">
+
+                    <div class="col-md-6" style="text-align:center; border-right: 2px solid #ccc; ">
+                        <h6 style="font-size:20px;font-weight:bold;padding-top:30px;">CASINO:</h6>
+                      <div class="row cas" style="padding-bottom:15px;">
+                      <div class="col-xs-3 offset-xs-1 iconoCasino" style="display:inline;position:relative;left:20px;top:0px;">
+                        <i class="far fa-building fa-3x" ></i>
                       </div>
-                      <div class="col-md-4">
-                        <h5>Juego</h5>
-                        <select class="form-control" id="juegoM">
-                          <option value="0" selected>- Seleccione un Juego -</option>
-                          @foreach ($juegos as $juego)
-                          <option value="{{$juego->id_juego_mesa}}">{{$juego->nombre_juego}}</option>
-                          @endforeach
-                        </select>
-                      </div>
-                      <div class="col-md-4">
-                          <h5>Tipo Moneda</h5>
-                          <select class="form-control" id="monedaM">
-                            <option value="0" selected>- Seleccione una Moneda -</option>
-                            @foreach ($monedas as $moneda)
-                            <option value="{{$moneda->id_moneda}}">{{$moneda->descripcion}}</option>
-                            @endforeach
-                          </select>
-                          </div>
+                        <h5 class="detalle_casino" style="color:#000;font-family: Roboto-Regular;font-size:18px;position:relative;right:45px;"></h5>
                       </div>
                   </div>
-                  <!-- /nuevas secciones -->
 
-              </form>
+                  <div class="col-md-6"  style="text-align:center;">
+                    <h6 style="font-size:20px;font-weight:bold; padding-top:30px;">SECTOR:</h6>
+                    <div class="row sector" style="padding-bottom:15px;">
+                      <div class="col-xs-3 offset-xs-1 iconoSector" style="display:inline;position:relative;left:25px; ">
+                        <i class="fab fa-buromobelexperte fa-3x" ></i>
+                      </div>
+                      <h5 class="detalle_sector" style="color:#000;font-family: Roboto-Regular;font-size:18px;position:relative;right:55px;"></h5>
+                    </div>
+                  </div>
+
+                </div>
+
+                  <div class="row" >
+
+                    <div class="col-md-6" style="text-align:center; border-right: 2px solid #ccc;">
+                      <center>
+                        <h6  style="font-size:20px;font-weight:bold;text-align:center !important; padding-top:30px;">TIPO MONEDA: </h6>
+                      </center>
+                      <div class="row tmoneda" style="padding-bottom:15px;">
+                        <div class="col-xs-2 col-xs-offset-1 iconoMoneda" style="display:inline;position:relative;left:10px;">
+                          <i class="fas fa-hand-holding-usd fa-3x" ></i>
+                        </div>
+                          <h5 class="detalle_moneda" style="color:#000;font-family: Roboto-Regular;font-size:18px;position:relative;right:50px;"></h5>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6" style="text-align:center; border-right: 2px solid #ccc">
+                      <center>
+                        <h6 style="font-size:20px;font-weight:bold;text-align:center !important; padding-top:30px; ">TIPO MESA: </h6>
+                      </center>
+                      <div class="row tmesa" style="padding-bottom:15px;">
+                        <div class="col-xs-3 offset-xs-1 iconoMesa" style="display:inline;position:relative;left:30px;">
+                          <i class="fas fa-dice fa-3x" ></i>
+                        </div>
+                        <h5 class="detalle_tipo" style="color:#000;font-family: Roboto-Regular;font-size:18px;position:relative;right:30px;"></h5>
+                      </div>
+                    </div>
+
+                  </div>
+                  <br>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"> SALIR</button>
+              </div>
             </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn btn-successAceptar" id="btn-modificar-mesa" value="">ACEPTAR</button>
-              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-            </div>
-            <div id="mensajeErrorModificacion" hidden>
-              <br>
-              <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-              <br>
-              <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
-            </div> <!-- mensaje -->
-
           </div>
         </div>
       </div>
-</div>
+    </div>
+
+  <!-- MODAL MODIFICAR MESA -->
+
+  <div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+           <div class="modal-content">
+              <div class="modal-header" style="background-color:#FFA726">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3 class="modal-title">| MODIFICAR MESA</h3>
+              </div>
+
+            <div id="colapsado" class="collapse in">
+                  <div class="modal-body" style="font-family: Roboto;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Número de Mesa</h5>
+                                <input type="text" class="form-control" id="numeroM" placeholder="Número de Mesa" name="user_name">
+                                <br>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Nombre</h5>
+                                <input type="text" class="form-control" id="nombreM" name="name" placeholder="Nombre Mesa" value="">
+                                <br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Descripción</h5>
+                                <input type="text" class="form-control" id="descripcionM" name="descripcion" placeholder="Descripción" value="">
+                                <br>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Casino</h5>
+                                <select class="form-control" id="casinoM" readonly="true">
+                                  <option value="0" selected>- Seleccione un Casino-</option>
+                                  @foreach ($casinos as $cas)
+                                  <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                                  @endforeach
+                                </select>
+                                <br>
+                            </div>
+                          </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-md-4">
+                              <h5>Sector</h5>
+                              <select class="form-control" id="sectorM">
+                                <option value="0" selected>- Seleccione un Sector-</option>
+                                @foreach ($sectores as $sector)
+                                <option value="{{$sector->id_sector_mesas}}">{{$sector->descripcion}}</option>
+                                @endforeach
+                              </select>
+                            </div>
+                            <div class="col-md-4">
+                              <h5>Juego</h5>
+                              <select class="form-control" id="juegoM">
+                                <option value="0" selected>- Seleccione un Juego -</option>
+                                @foreach ($juegos as $juego)
+                                <option value="{{$juego->id_juego_mesa}}">{{$juego->nombre_juego}}</option>
+                                @endforeach
+                              </select>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Tipo Moneda</h5>
+                                <select class="form-control" id="monedaM">
+                                  <option value="0" selected>- Seleccione una Moneda -</option>
+                                  @foreach ($monedas as $moneda)
+                                  <option value="{{$moneda->id_moneda}}">{{$moneda->descripcion}}</option>
+                                  @endforeach
+                                </select>
+                            </div>
+                          </div>
+                  </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-successAceptar" id="btn-modificar-mesa" value="">ACEPTAR</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+              </div>
+              <div id="mensajeErrorModificacion" hidden>
+                <br>
+                <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+                <br>
+                <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
+              </div> <!-- mensaje -->
+            </div>
+          </div>
+      </div>
+  </div>
 
 
-<!-- MODAL ELIMINAR -->
+  <!-- MODAL ELIMINAR -->
 
-<div class="modal fade" id="modalAlertaEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-       <div class="modal-content">
+  <div class="modal fade" id="modalAlertaEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
 
-         <div class="modal-header" style="background: #d9534f; color: #E53935;">
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-           <h3 class="modal-titleEliminar" style="color:#000000;">CONFIMAR ELIMINACIÓN</h3>
-         </div>
+           <div class="modal-header" style="background: #d9534f; color: #E53935;">
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+             <h3 class="modal-titleEliminar" style="color:#000000;">CONFIMAR ELIMINACIÓN</h3>
+           </div>
 
-        <div class="modal-body" style="color:#fff; background-color:#FFFFF;">
+          <div class="modal-body" style="color:#fff; background-color:#FFFFF;">
 
-                <!-- Si no anda falta el <fieldset> -->
+                  <!-- Si no anda falta el <fieldset> -->
 
-              <h4 style="color:#000000">¿Esta seguro que desea eliminar esta Mesa?</h4>
+                <h4 style="color:#000000">¿Esta seguro que desea eliminar esta Mesa?</h4>
 
-        </div>
-        <br>
-        <div class="modal-footer">
-          <button type="button" id="btn-eliminar-mesa" value="" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
-          <input id="id_casino" type="text" name="" value="" hidden=true>
+          </div>
+          <br>
+          <div class="modal-footer">
+            <button type="button" id="btn-eliminar-mesa" value="" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
+            <input id="id_casino" type="text" name="" value="" hidden=true>
 
-        </div>
+          </div>
+      </div>
     </div>
   </div>
-</div>
 
-@endsection
+  @endsection
 
-<!-- Comienza modal de ayuda -->
-@section('tituloDeAyuda')
-<h3 class="modal-title" style="color: #fff;">| AYUDA GESTIONAR MESAS</h3>
-@endsection
-@section('contenidoAyuda')
-<div class="col-md-12">
-  <h5>Tarjetas de gestionar mesas</h5>
-  <p>
-    Gestiona el ingreso o baja de mesas existentes en el sistema. Permite asociarlas a diferentes casinos y modificar sus correspondientes datos.
-  </p>
-</div>
+  <!-- Comienza modal de ayuda -->
+  @section('tituloDeAyuda')
+  <h3 class="modal-title" style="color: #fff;">| AYUDA GESTIONAR MESAS</h3>
+  @endsection
+  @section('contenidoAyuda')
+  <div class="col-md-12">
+    <h5>Tarjetas de gestionar mesas</h5>
+    <p>
+      Gestiona el ingreso o baja de mesas existentes en el sistema. Permite asociarlas a diferentes casinos y modificar sus correspondientes datos.
+    </p>
+  </div>
 
-@endsection
-<!-- Termina modal de ayuda -->
+  @endsection
+  <!-- Termina modal de ayuda -->
 
-@section('scripts')
+  @section('scripts')
 
-<!-- JavaScript paginacion -->
-<script src="/js/paginacion.js" charset="utf-8"></script>
+  <!-- JavaScript paginacion -->
+  <script src="/js/paginacion.js" charset="utf-8"></script>
 
-<!-- JavaScript personalizado -->
-<script src="js/inputSpinner.js" type="text/javascript"></script>
-<script src="/js/lista-datos.js" type="text/javascript"></script>
+  <!-- JavaScript personalizado -->
+  <script src="js/inputSpinner.js" type="text/javascript"></script>
+  <script src="/js/lista-datos.js" type="text/javascript"></script>
 
-<!-- Custom input Bootstrap -->
-<script src="/js/fileinput.min.js" type="text/javascript"></script>
-<script src="/themes/explorer/theme.js" type="text/javascript"></script>
+  <!-- Custom input Bootstrap -->
+  <script src="/js/fileinput.min.js" type="text/javascript"></script>
+  <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
-<script src="js/Mesas/seccionGestionMesas.js"></script>
-
+  <script src="js/Mesas/seccionGestionMesas.js"></script>
 
 
 
 
-@endsection
+
+  @endsection
