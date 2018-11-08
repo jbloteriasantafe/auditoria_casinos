@@ -1876,29 +1876,27 @@ class LogMovimientoController extends Controller
     return ['maquinas'=> $logMovimiento->relevamientos_movimientos];
   }
 
-
-
   public function validarRelevamientoEventualidad($id_relev_mov){
-      //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
-      $id_usuario = session('id_usuario');
-      $relev_mov = RelevamientoMovimiento::find($id_relev_mov);
-      $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
-      $id_usuario = session('id_usuario');
-      if($this->noEsControlador($id_usuario,  $logMov)){
-        $logMov->controladores()->attach($id_usuario);
-        $logMov->save();
-      }
-      //a las tomas de los relevamientos las marco como validadas
-      $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
-      $maquina = $relev_mov->maquina;
+    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
+    $id_usuario = session('id_usuario');
+    $relev_mov = RelevamientoMovimiento::find($id_relev_mov);
+    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
+    $id_usuario = session('id_usuario');
+    if($this->noEsControlador($id_usuario,  $logMov)){
+      $logMov->controladores()->attach($id_usuario);
+      $logMov->save();
+    }
+    //a las tomas de los relevamientos las marco como validadas
+    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
+    $maquina = $relev_mov->maquina;
 
-      if($logMov->relevamientos_movimientos->count() == $logMov->relevamientos_movimientos->where('id_estado_relevamiento','=',4)->count()){
-            $logMov->estado_movimiento()->associate(4);
-            $logMov->save();
-          }
-      return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+    if($logMov->relevamientos_movimientos->count() == $logMov->relevamientos_movimientos->where('id_estado_relevamiento','=',4)->count()){
+      $logMov->estado_relevamiento()->associate(4);
+      $logMov->save();
     }
 
+    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+  }
 
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
 

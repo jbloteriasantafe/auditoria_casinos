@@ -550,3 +550,49 @@ Route::get('calendario_eventos',function(){
 Route::get('usuarios/get/{id}','UsuarioController@buscarUsuarioSecUsuarios');
 
 Route::get('error','RelevamientoController@crearPlanillaValidado');
+
+
+/*SECCION MESAS DE PAÑO*/
+Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
+
+//gestion mesas
+Route::get('/mesas','Mesas\Mesas\BuscarMesasController@getMesas');
+Route::post('mesas/buscarMesas','Mesas\Mesas\BuscarMesasController@buscarMesas');
+Route::post('mesas/nuevaMesa/{id_casino}','Mesas\Mesas\ABMMesaController@guardar');
+Route::post('mesas/modificarMesa/{id_casino}','Mesas\Mesas\ABMMesaController@modificar');
+Route::get('mesas/eliminarMesa/{id_casino}/{id_mesa_de_panio}','Mesas\Mesas\ABMMesaController@eliminar');
+Route::get('mesas/cargarDatos','Mesas\Mesas\BuscarMesasController@getDatos');
+Route::get('mesas/detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
+Route::get('mesas/obtenerMesasApertura/{id_cas}/{fecha}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasinoSinApertura');
+Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@datosSegunCasino');
+
+//gestion cierres y aperturas
+
+  //Cierres
+  Route::get('/cierres', 'Mesas\Cierres\BCCierreController@buscarTodo');
+  Route::post('cierres/filtrosCierres','Mesas\Cierres\BCCierreController@filtros');
+  Route::post('cierres/guardar', 'Mesas\Cierres\ABMCierreController@guardar');
+  Route::post('cierres/modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
+  Route::get('cierres/obtenerCierres/{id_cierre}', 'Mesas\Cierres\BCCierreController@getCierre');
+  Route::get('cierres/bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre');
+  Route::get('mesas/obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
+
+  //Aperturas
+  Route::get('/aperturas', 'Mesas\Aperturas\BCAperturaController@buscarTodo');
+  Route::post('aperturas/filtrosAperturas', 'Mesas\Aperturas\BCAperturaController@filtros');
+  Route::get('aperturas/obtenerAperturas/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@getApertura');
+  Route::post('aperturas/guardarApertura', 'Mesas\Aperturas\ABMAperturaController@guardar');
+  Route::post('aperturas/modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
+  Route::get('aperturas/bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura');
+  Route::get('aperturas/validarApertura/{id_apertura}','Mesas\Aperturas\VAperturaController@validarApertura');
+  Route::post('aperturas/generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
+  Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
+
+//Sección Juegos
+Route::get('/juegos', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
+Route::post('juegos/buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
+Route::post('juegos/nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
+Route::post('juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
+Route::get('juegos/obtenerJuegoMesa/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
+Route::get('juegos/obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
+Route::get('juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');

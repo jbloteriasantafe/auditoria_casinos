@@ -590,16 +590,39 @@ $cas = $usuario['usuario']->casinos;
                             </div>
                         </li>
                         <li>
-                            <div class="opcionesHover" href="#">
+                            <div id="barraMesas" class="opcionesHover" data-target="#mesasPanio" data-toggle="collapse" href="#">
                                 <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
-                                <span class="icono" style="padding-bottom: 50px;">
+                                <span class="icono" style="padding-bottom: 54px;">
                                   @svg('mesa','iconoMesa')
                                 </span>
                                 <span>Mesas de paño</span>
                             </div>
+
+                            <!-- SEGUNDO NIVEL -->
+                            <ul class="subMenu1 collapse" id="mesasPanio">
+                              <li>
+                                <div id="opcGestionarMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/mesas'" href="#" style="cursor: pointer;">
+                                  <span>Gestionar Mesas</span>
+                                </div>
+                              </li>
+
+                              <li>
+                                <div id="opcAperturas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/aperturas'" href="#" style="cursor: pointer;">
+                                  <span>Cierres y Aperturas</span>
+                                </div>
+                              </li>
+
+                              <li>
+                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
+                                  <span>Gestionar Juegos</span>
+                                </div>
+                              </li>
+
+                            </ul>
                         </li>
+
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                         <li>
@@ -746,9 +769,12 @@ $cas = $usuario['usuario']->casinos;
             </div>
         </div>
 
-        
 
-        
+
+
+
+
+
 
         <!-- Modal Error -->
         <div id="mensajeError"  hidden>

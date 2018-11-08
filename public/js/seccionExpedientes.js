@@ -1145,7 +1145,6 @@ function limpiarModal(){
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-  console.log('borrados');
   $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
@@ -1386,13 +1385,20 @@ function agregarDisposicion(disposicion, editable){
       moldeDisposicion.find('.borrarDisposicion').hide();
       if(disposicion.id_nota != null){
 
+        //moldeDisposicion.find('#selectgay').remove();
+        console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
+
         moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
+        //obtenerTiposMovimientos();
+      //moldeDisposicion.find('#tiposMovimientosDisp').find('option[value=' + disposicion.id_tipo_movimiento + ']').attr('selected',true);
+        //moldeDisposicion.find('#tiposMovimientosDisp option[value=' + disposicion.id_tipo_movimiento + ']').attr("selected", true);
+        //moldeDisposicion.find('#tiposMovimientosDisp').text(disposicion.id_tipo_movimiento);
 
       }else {
         console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
         moldeDisposicion.find('#tiposMovimientosDisp').hide();
       }
-      moldeDisposicion.show();
+
       $('#columnaDisposicion').append(moldeDisposicion);
       //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
