@@ -760,7 +760,9 @@ class RelevamientoController extends Controller
     $fecha = $relevamiento->fecha;
     $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->get();
     $rel= new \stdClass();
-    $rel->fecha = $relevamiento->fecha;
+    //la fecha que encesita la interfaz es la de produccion, el dia previo a la de la fecha del relevamiento
+    //$rel->fecha = $relevamiento->fecha;
+    $rel->fecha=date('Y-m-d',strtotime("$relevamiento->fecha -1 day"));
     $rel->casinoCod = $casino->codigo;
     $rel->casinoNom = $casino->nombre;
 

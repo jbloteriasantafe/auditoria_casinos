@@ -52,7 +52,7 @@ footer
 
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM 01-02 | Control de movimientos de MTMs.</span></h2>
+              <h2><span>RMTM 01-02 | Control de movimientos de MTMs.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
               <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
