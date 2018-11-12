@@ -386,6 +386,7 @@ $(document).on('click','.cargarImpuesto',function(e){
       success: function (data) {
         console.log(data);
         $('.pop').popover('hide');
+        $('#btn-buscar').trigger('click');
       },
       error: function (data) {
           console.log('Error:', data);
@@ -462,6 +463,7 @@ $(document).on('click','#btn-validar',function(e){
         $('#mensajeExito h4').text('Los beneficios fueron validados correctamente');
         $('#mensajeExito div').css('background-color','#6dc7be');
         $('#mensajeExito').show();
+        $('#btn-buscar').trigger('click');
 
       },
       error: function (data) {
@@ -520,6 +522,8 @@ $(document).on('click','#btn-validar-si',function(e){
         $('#mensajeExito h4').text('Los beneficios fueron validados correctamente');
         $('#mensajeExito div').css('background-color','#6dc7be');
         $('#mensajeExito').show();
+        $('#btn-buscar').trigger('click');
+        
 
       },
       error: function (data) {

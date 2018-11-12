@@ -101,21 +101,29 @@ $('#busqueda_maquina').val("");
 // }
 
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
-$('.btn-generarRelMov').click(function(e){
+$(document).on('click','.btn-generarRelMov',function(e){
+
+  e.preventDefault();
+
   var id_fiscalizacion= $(this).val();
 
   window.open('movimientos/generarPlanillasRelevamientoMovimiento/' + id_fiscalizacion,'_blank');
 
 });
 
-$('.btn-imprimirRelMov').click(function(e){
+$(document).on('click','.btn-imprimirRelMov',function(e){
+
+  e.preventDefault();
+
   var id_fiscalizacion= $(this).val();
 
   window.open('movimientos/generarPlanillasRelevamientoMovimiento/' + id_fiscalizacion,'_blank');
 
 });
 
-$('.btn-cargarRelMov').click(function(e){
+$(document).on('click','.btn-cargarRelMov',function(e){
+
+  e.preventDefault();
 
   var id_fiscalizacion = $(this).val();
 
@@ -570,13 +578,13 @@ console.log('re',rel);
         )
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('btn-cargarRelMov')
-        .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
-        )
-        .append($('<span>').text('CARGAR'))
-        .addClass('btn').addClass('btn-success')
-        .attr('value',rel.id_fiscalizacion_movimiento)
-        )
+              .addClass('btn-cargarRelMov')
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
+              )
+              .append($('<span>').text('CARGAR'))
+              .addClass('btn').addClass('btn-success')
+              .attr('value',rel.id_fiscalizacion_movimiento)
+              )
         .append($('<span>').text(' '))
         .append($('<button>')
         .addClass('btn-imprimirRelMov')

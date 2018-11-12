@@ -78,7 +78,7 @@ p {
 
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM07 | Control de Estado de Máquinas Tragamonedas</span></h2>
+              <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas</span></h2>
         </div>
 
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
@@ -136,7 +136,7 @@ p {
         <!-- HOJA 2 -->
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM07 | Control de Estado de Máquinas Tragamonedas </span></h2>
+              <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas </span></h2>
         </div>
 
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>

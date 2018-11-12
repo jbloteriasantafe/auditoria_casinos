@@ -85,7 +85,7 @@
                   <tr>
                     <td style=" text-align:center !important;">{{$juego->nombre_juego}}</td>
                     <td style="text-align:center !important;">{{$juego->siglas}}</td>
-                    <td style="text-align:center !important;">{{$juego->id_casino}} </td>
+                    <td style="text-align:center !important;">{{$juego->casino->nombre}} </td>
                     <td style="text-align:center !important;">
 
                       <button type="button" class="btn btn-warning modificarJuego" value="{{$juego->id_juego_mesa}}">
