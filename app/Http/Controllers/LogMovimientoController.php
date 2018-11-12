@@ -483,7 +483,7 @@ class LogMovimientoController extends Controller
     }
 
 
-    if($request['carga_finalizada'] == 'true')
+    if($request['carga_finalizada'] == 'true' && (!empty($request['maquinas']) || isset($request['maquinas'])))
     {
       $this->enviarAFiscalizar2($request['id_log_movimiento'], $request['es_reingreso'],$request['fecha']);
       if(!isset($logMov->fiscalizaciones))

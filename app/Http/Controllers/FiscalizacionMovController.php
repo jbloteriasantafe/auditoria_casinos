@@ -134,4 +134,26 @@ class FiscalizacionMovController extends Controller
     return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos];
   }
 
+  public function eliminarFiscalizacion($id){
+    $fiscalizacion = FiscalizacionMov::find($id);
+    foreach ($fiscalizacion->relevamientos_movimientos as $rel) {
+      if(isset($rel->toma_relevamiento_movimiento)){
+      $rel->toma_relevamiento_movimiento()->delete();
+      }
+      $rel->delete();
+    }
+    if(isset($fiscalizacion->cargador){
+
+      $fiscalizacion->cargador()->dissociate();
+      $fiscalizacion->fiscalizador()->dissociate();
+    }
+    $fiscalizacion->log_movimiento()->dissociate();
+    $fiscalizacion->estado_relevamiento()->dissociate();
+    if(isset($fiscalizacion->nota)){
+      $fiscalizacion->nota()->dissociate;
+    }
+    $fiscalizacion->destroy;
+    return 1;
+  }
+
 }
