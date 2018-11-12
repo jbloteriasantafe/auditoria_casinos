@@ -121,13 +121,13 @@ $cas = $usuario['usuario']->casinos;
                     <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-upload"> <span>CARGAR</span></i></button>
                     @endif
                     @if($fiscalizacion->id_estado_relevamiento > 2)
-                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button></td>
+                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button>
                     @endif
                     <?php
                       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                     ?>
                     @if(($usuario['usuario']->es_controlador))
-                    <button type="button" class="btn btn-success eliminarFiscal" value="{{$usuario['usuario']->es_controlador}}">
+                    <button type="button" class="btn btn-success eliminarFiscal" value="{{$fiscalizacion->id_fiscalizacion_movimiento}}">
                             <i class="fa fa-fw fa-trash"></i>
                     </button>
                     @endif
@@ -136,33 +136,7 @@ $cas = $usuario['usuario']->casinos;
                 @endforeach
               </tbody>
             </table>
-            <table>
-              <tbody>
-                <tr id="moldeRelMov" class="filaClone" style="display:none">
-                  <td class="col-xs-2 fechaFis"></td>
-                  <td class="col-xs-3 notaFis"></td>
-                  <td class="col-xs-3 tmovFis"></td>
-                  <td class="col-xs-2 casFis"></td>
-                  <td>
-                    @if($fiscalizacion->id_estado_relevamiento < 3)
-                    <button value="" class="btn btn-generarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="far fa-file "> <span>GENERAR</span> </i></button>
-                    <button value="" class="btn btn-cargarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-upload"> <span>CARGAR</span></i></button>
-                    @endif
-                    @if($fiscalizacion->id_estado_relevamiento > 2)
-                    <button value="" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button></td>
-                    @endif
-                    <?php
-                      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                    ?>
-                    @if(($usuario['usuario']->es_controlador))
-                    <button type="button" class="btn btn-success btn-eliminarFiscal" value="">
-                            <i class="fa fa-fw fa-trash"></i>
-                    </button>
-                    @endif
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
           </div>
         </div>
       </div>
