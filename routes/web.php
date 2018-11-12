@@ -589,7 +589,7 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 
 //Sección Juegos
-Route::get('/juegos', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
+Route::get('/juegosMesa', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
 Route::post('juegos/buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
 Route::post('juegos/nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
 Route::post('juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
