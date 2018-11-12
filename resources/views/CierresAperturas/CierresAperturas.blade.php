@@ -26,11 +26,33 @@ $cas = $usuario['usuario']->casinos;
 
 <div class="row">
   <div class="col-xl-3">
-    <!-- botón de nuevo cierre -->
-      <div class="row">
 
+      <div class="row">
+        <!-- botón de generar planilla de apertura -->
+        <div class="col-md-12">
+          <a href="" id="btn-generar-rel" dusk="btn-nuevo" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+                <div class="backgroundNuevo"></div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <center>
+                          <h5 class="txtLogo">+</h5>
+                          <h4 class="txtNuevo">GENERAR PLANILLA APERTURA </h4>
+                      </center>
+                    </div>
+                    </div>
+                </div>
+              </a>
+          </div>
+        </div>
+
+        </div>
+        
+        <div class="row">
+        <!-- botón de cargar apertura fiscalizada -->
           <div class="col-md-12">
-            <a href="" id="btn-cargar-cierre" dusk="btn-nuevo" style="text-decoration: none;">
+            <a href="" id="btn-cargar-apertura" dusk="btn-nuevo" style="text-decoration: none;">
               <div class="panel panel-default panelBotonNuevo">
                 <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
                   <div class="backgroundNuevo"></div>
@@ -38,20 +60,18 @@ $cas = $usuario['usuario']->casinos;
                       <div class="col-xs-12">
                         <center>
                             <h5 class="txtLogo">+</h5>
-                            <h4 class="txtNuevo">NUEVO CIERRE</h4>
+                            <h4 class="txtNuevo">CARGAR APERTURA</h4>
                         </center>
                       </div>
                       </div>
                   </div>
                 </a>
             </div>
-        </div>
+          </div>
 
           <div class="row">
-
-            <!-- botón de generar planilla de apertura -->
             <div class="col-md-12">
-              <a href="" id="btn-generar-rel" dusk="btn-nuevo" style="text-decoration: none;">
+              <a href="" id="btn-cargar-cierre" dusk="btn-nuevo" style="text-decoration: none;">
                 <div class="panel panel-default panelBotonNuevo">
                   <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
                     <div class="backgroundNuevo"></div>
@@ -59,33 +79,15 @@ $cas = $usuario['usuario']->casinos;
                         <div class="col-xs-12">
                           <center>
                               <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">GENERAR PLANILLA APERTURA </h4>
+                              <h4 class="txtNuevo">NUEVO CIERRE</h4>
                           </center>
                         </div>
                         </div>
                     </div>
                   </a>
               </div>
-            </div>
-            <div class="row">
-            <!-- botón de cargar apertura fiscalizada -->
-              <div class="col-md-12">
-                <a href="" id="btn-cargar-apertura" dusk="btn-nuevo" style="text-decoration: none;">
-                  <div class="panel panel-default panelBotonNuevo">
-                    <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-                      <div class="backgroundNuevo"></div>
-                        <div class="row">
-                          <div class="col-xs-12">
-                            <center>
-                                <h5 class="txtLogo">+</h5>
-                                <h4 class="txtNuevo">CARGAR APERTURA</h4>
-                            </center>
-                          </div>
-                          </div>
-                      </div>
-                    </a>
-                </div>
-                      </div>
+
+
 
         </div>
 
