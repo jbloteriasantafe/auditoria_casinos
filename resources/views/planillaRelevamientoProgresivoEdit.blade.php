@@ -42,7 +42,7 @@ p {
 
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
+              <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
               <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');

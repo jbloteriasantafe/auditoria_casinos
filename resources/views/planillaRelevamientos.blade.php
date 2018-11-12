@@ -20,7 +20,7 @@
 
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
+              <h2><span>RMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
         </div>
               <div class="camposTab titulo">CASINO | FECHA PLANILLA</div><div class="camposTab titulo" style="right:196px;">| SECTOR</div>
               <div class="camposInfo"><span>{{$rel->casinoNom}} | </span>

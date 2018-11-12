@@ -1100,6 +1100,9 @@ class MTMController extends Controller
       case 'bcm':
         $marca = 'BCM';
         break;
+      case 'Interblock':
+        $marca = 'IBK';
+        break;
       default:
         # code...
         break;

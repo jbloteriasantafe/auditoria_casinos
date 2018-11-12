@@ -56,7 +56,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
             <!-- Título de la planilla -->
             <div class="tituloPlanilla">
-                <h3>PMTM04</h3>
+                <h3>RMTM04</h3>
                 <h4>| Relevamiento diario de contadores de máquinas tragamonedas (MTM)</h4>
             </div>
 

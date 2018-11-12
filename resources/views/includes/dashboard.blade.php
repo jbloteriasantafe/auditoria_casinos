@@ -602,6 +602,13 @@ $cas = $usuario['usuario']->casinos;
 
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="mesasPanio">
+
+                              <li>
+                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
+                                  <span>Gestionar Juegos</span>
+                                </div>
+                              </li>
+
                               <li>
                                 <div id="opcGestionarMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/mesas'" href="#" style="cursor: pointer;">
                                   <span>Gestionar Mesas</span>
@@ -611,12 +618,6 @@ $cas = $usuario['usuario']->casinos;
                               <li>
                                 <div id="opcAperturas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/aperturas'" href="#" style="cursor: pointer;">
                                   <span>Cierres y Aperturas</span>
-                                </div>
-                              </li>
-
-                              <li>
-                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Juegos</span>
                                 </div>
                               </li>
 

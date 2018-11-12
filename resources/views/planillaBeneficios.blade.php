@@ -37,7 +37,7 @@ tr:nth-child(even) {
 
         <div class="encabezadoImg">
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>PMTM03 | Control de beneficio diario (MTM) en {{$ben->moneda}}.</span></h2>
+              <h2><span>RMTM03 | Control de beneficio diario (MTM) en {{$ben->moneda}}.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
               <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');
