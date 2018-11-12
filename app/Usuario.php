@@ -17,7 +17,7 @@ class Usuario extends Model
     protected $primaryKey = 'id_usuario';
     protected $visible = array('id_usuario','user_name','nombre','email', 'dni' ,'ultimos_visitados');
     protected $hidden = array('imagen','password','token');
-    protected $appends = array('es_superusuario');
+    protected $appends = array('es_superusuario','es_controlador');
 
     public function getEsSuperusuarioAttribute(){
       if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0){
@@ -26,6 +26,19 @@ class Usuario extends Model
         return false;
       }
     }
+
+    public function getEsControladorAttribute(){
+      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')
+                                  ->where('rol.id_rol','=',2)
+                                  ->orWhere('rol.id_rol','=',4)
+                                  ->orWhere('rol.id_rol','=',1)
+                                  ->get()) > 0){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
     public function roles(){
 	     return $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol');
     }

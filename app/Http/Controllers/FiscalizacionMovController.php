@@ -84,6 +84,7 @@ class FiscalizacionMovController extends Controller
   public function buscarFiscalizaciones(Request $request){
     $casinos= array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $es_controlador = $usuario->es_controlador;
     foreach($usuario->casinos as $casino){
           $casinos [] = $casino->id_casino;
     }
@@ -131,7 +132,29 @@ class FiscalizacionMovController extends Controller
     }
 
     $tiposMovimientos = TipoMovimiento::all();
-    return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos];
+    return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos, 'es_controlador' => $es_controlador];
+  }
+
+  public function eliminarFiscalizacion($id){
+    $fiscalizacion = FiscalizacionMov::find($id);
+    foreach ($fiscalizacion->relevamientos_movimientos as $rel) {
+      if(isset($rel->toma_relevamiento_movimiento)){
+      $rel->toma_relevamiento_movimiento()->delete();
+      }
+      $rel->delete();
+    }
+    if(isset($fiscalizacion->cargador){
+
+      $fiscalizacion->cargador()->dissociate();
+      $fiscalizacion->fiscalizador()->dissociate();
+    }
+    $fiscalizacion->log_movimiento()->dissociate();
+    $fiscalizacion->estado_relevamiento()->dissociate();
+    if(isset($fiscalizacion->nota)){
+      $fiscalizacion->nota()->dissociate;
+    }
+    $fiscalizacion->destroy;
+    return 1;
   }
 
 }
