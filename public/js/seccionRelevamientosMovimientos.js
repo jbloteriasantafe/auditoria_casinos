@@ -492,6 +492,11 @@ $(document).on('click','#guardarRel',function(){
 
 });
 
+$(document).on('click','.eliminarFiscal',function(){
+
+
+});
+
 $('#btn-buscarRelMov').click(function(e){
 
     $.ajaxSetup({
@@ -535,7 +540,8 @@ $('#btn-buscarRelMov').click(function(e){
 function generarFilaTabla(rel){
 
 console.log('generar',rel);
-  var fila = $(document.createElement('tr'));
+  //var fila = $(document.createElement('tr'));
+  var fila= $('#moldeRelMov').clone();
   var fecha;
   var tipo_mov;
   var casino;
@@ -545,8 +551,6 @@ console.log('generar',rel);
   fecha=rel.fecha_envio_fiscalizar;
   casino=rel.nombre;
   estado=rel.id_estado_relevamiento;
-
-console.log('re',rel);
 
   fila.attr('id', rel.id_fiscalizacion_movimiento)
       .append($('<td>')
@@ -587,14 +591,15 @@ console.log('re',rel);
               )
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('btn-imprimirRelMov')
-        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print')
+        .addClass('btn-eliminarFiscal')
+        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-trash')
         )
-        .append($('<span>').text('IMPRIMIR'))
-        .addClass('btn').addClass('btn-success')
+        .append($('<span>').text('ELIMINAR'))
+        .addClass('btn').addClass('btn-default')
         .attr('value',rel.id_fiscalizacion_movimiento))
         )
 
+        if(rel.es_controlador != 1){fila.find('btn-eliminarFiscal').hide();}
         if(estado < 3  ){ fila.find('.btn-imprimirRelMov').hide();}
         if(estado > 2  ){ fila.find('.btn-imprimirRelMov').show();
                           fila.find('.btn-generarRelMov').hide();
