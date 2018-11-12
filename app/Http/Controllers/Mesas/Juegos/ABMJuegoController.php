@@ -55,7 +55,7 @@ class ABMJuegoController extends Controller
     $validator=  Validator::make($request->all(),[
       'nombre_juego' => ['required','max:100',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)],
-      'siglas' => ['required','max:4',Rule::unique('juego_mesa')
+      'siglas' => ['required','max:6',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)],
       'id_tipo_mesa' => 'required|exists:tipo_mesa,id_tipo_mesa',
       'id_casino' => 'required|exists:casino,id_casino'
@@ -114,7 +114,7 @@ class ABMJuegoController extends Controller
       'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
       'nombre_juego' => ['required','max:100',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)],
-      'siglas' => ['required','max:4',Rule::unique('juego_mesa')
+      'siglas' => ['required','max:6',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)]
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
@@ -123,7 +123,7 @@ class ABMJuegoController extends Controller
           }
      }
 
-    $juego = JuegoMesa::find($request->id_juego_mesa); 
+    $juego = JuegoMesa::find($request->id_juego_mesa);
     $juego->nombre_juego= $request->nombre_juego;
     $juego->siglas= $request->siglas;
 
