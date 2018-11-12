@@ -104,7 +104,7 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
               $('#cuerpoTablaMesas').append(filaMesa);
           }
 
-        
+
           //Asigno valor a la variable global casinos
         //  casinos=data.casinos;
 
@@ -233,7 +233,7 @@ $(document).on('change','#casino_mesa',function(){
         $('#juego_mesa')
         .append($('<option>')
         .val(data.juegos[i].id_juego_mesa)
-        .text(data.juegos[i].nombre_juego))
+        .text(data.juegos[i].nombre_juego + ' - ' + data.juegos[i].siglas))
       }
       $('#juego_mesa').prop('readonly',false);
 
