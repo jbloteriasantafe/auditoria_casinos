@@ -246,7 +246,7 @@ Relevamientos
 
 Route::get('relevamientos_movimientos','LogMovimientoController@obtenerFiscalizaciones')->middleware('tiene_permiso:ver_seccion_relevamientos_movimientos');
 Route::post('relevamientos_movimientos/buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
-
+Route::get('relevamientos_movimientos/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacion');
 /**********
 Eventualidades ->intervenciones tecnicas
 ***********/
