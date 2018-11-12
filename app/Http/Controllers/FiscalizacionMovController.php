@@ -84,6 +84,7 @@ class FiscalizacionMovController extends Controller
   public function buscarFiscalizaciones(Request $request){
     $casinos= array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $es_controlador = $usuario->es_controlador;
     foreach($usuario->casinos as $casino){
           $casinos [] = $casino->id_casino;
     }
@@ -131,7 +132,7 @@ class FiscalizacionMovController extends Controller
     }
 
     $tiposMovimientos = TipoMovimiento::all();
-    return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos];
+    return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos, 'es_controlador' => $es_controlador];
   }
 
   public function eliminarFiscalizacion($id){
