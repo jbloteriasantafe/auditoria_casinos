@@ -611,7 +611,7 @@ $cas = $usuario['usuario']->casinos;
 
                               <li>
                                 <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegosMesa'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Juegos</span>
+                                  <span>Gestionar Juegos y Sectores</span>
                                 </div>
                               </li>
 
