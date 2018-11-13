@@ -1649,6 +1649,7 @@ class LogMovimientoController extends Controller
     $logMovimiento->tiene_expediente = 0;
     $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
     $logMovimiento->estado_movimiento()->associate(6);//creado
+    $logMovimiento->estado_relevamiento()->associate(1);//generado
     $logMovimiento->save();
 
 
@@ -1794,6 +1795,7 @@ class LogMovimientoController extends Controller
 
      if($this->cargaFinalizadaEvMTM($log)){
        $log->estado_movimiento()->associate(1);//notificado
+       $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
        // notificaciones
        $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,$id_usuario);
        foreach ($usuarios as $user){
@@ -1802,6 +1804,7 @@ class LogMovimientoController extends Controller
        }
      }else{
        $log->estado_movimiento()->associate(8);//cargando
+       $log->estado_relevamiento()->associate(2);
      }
      $log->save();
 
