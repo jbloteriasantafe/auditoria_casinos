@@ -1892,8 +1892,10 @@ class LogMovimientoController extends Controller
     //a las tomas de los relevamientos las marco como validadas
     $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
     $maquina = $relev_mov->maquina;
-
-    if($logMov->relevamientos_movimientos->count() == $logMov->relevamientos_movimientos->where('relevamiento_movimiento.id_estado_relevamiento','=',4)->count()){
+    $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
+              ->where('id_estado_relevamiento','=',4 )->get();
+    //dd([count($logMov->relevamientos_movimientos),count($relss)]);
+    if(count($logMov->relevamientos_movimientos) == count($relss)){
       $logMov->estado_relevamiento()->associate(4);
       $logMov->estado_movimiento()->associate(4);
       $logMov->save();
