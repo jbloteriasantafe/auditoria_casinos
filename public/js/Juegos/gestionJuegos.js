@@ -244,7 +244,7 @@ $('#btn-guardar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#nombre_juego'),response.nombre_juego[0],false);
@@ -256,7 +256,7 @@ $('#btn-guardar-juego').on('click', function(e){
         mostrarErrorValidacion($('#casino_juego'),response.id_casino[0],false);
       }
       if(typeof response.id_tipo_mesa !== 'undefined'){
-        mostrarErrorValidacion($('#tipo_mesa_juego'),response.tipo_mesa[0],false);
+        mostrarErrorValidacion($('#tipo_mesa_juego'),response.id_tipo_mesa[0],false);
       }
     }
   })
@@ -313,7 +313,7 @@ $('#btn-guardar-sector').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.descripcion !== 'undefined'){
         mostrarErrorValidacion($('#nombre_sector'),response.descripcion[0],false);
@@ -402,7 +402,7 @@ $('#btn-modificar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#modif_nom'),response.nombre_juego[0],false);

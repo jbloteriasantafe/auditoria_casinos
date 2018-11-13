@@ -72,7 +72,7 @@ class BuscarJuegoController extends Controller
     $uc->agregarSeccionReciente('Juegos','juegos');
     $casinos = $usuario->casinos;
     return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos,
-     'tipos_mesas' => $tipos,'es_superusuario' => $usuario->es_superusuario]);
+     'tipos_mesas' => $tipos,'es_superusuario' => $usuario->es_superusuario,'sectores' => $sectores]);
   }
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, siglas
