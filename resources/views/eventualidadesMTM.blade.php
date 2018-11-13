@@ -131,16 +131,16 @@
 
                       <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
 
-                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0)
+                      @if($eventualidad->id_estado_relevamiento == 6 && $esControlador == 0)
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
-                      @if($eventualidad->id_estado_movimiento == 1  && $esControlador == 1)
+                      @if($eventualidad->id_estado_relevamiento == 1  && $esControlador == 1)
                       <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-check"></i></button>
                       @endif
 
-                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1))
+                      @if(($eventualidad->id_estado_relevamiento == 6) && ($esControlador == 1))
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
