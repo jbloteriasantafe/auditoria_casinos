@@ -98,9 +98,9 @@ class EventualidadController extends Controller
                                        DROP TABLE eventualidades_temp
                                    "));
 
-                        $turnos = Turno::all();
-                        $tiposEventualidades = TipoEventualidad::all();
-                        $casinos = $usuario->casinos;
+      $turnos = Turno::all();
+      $tiposEventualidades = TipoEventualidad::all();
+      $casinos = $usuario->casinos;
       $esControlador=0;
       $usuario = Usuario::find( session('id_usuario'));
       foreach ($usuario->roles as $rol) {

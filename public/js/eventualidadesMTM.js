@@ -990,7 +990,7 @@ function generarFilaTabla(event,controlador){
   var fecha;
   var tipo_ev;
   var casino;
-  var estado = event.id_estado_movimiento;
+  var estado = event.id_estado_relevamiento;
   var islas = event.islas;
 
   tipo_ev=event.descripcion;
