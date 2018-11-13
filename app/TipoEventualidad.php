@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\EventualidadObserver;
 
 class TipoEventualidad extends Model
 {
