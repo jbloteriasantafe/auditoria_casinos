@@ -67,6 +67,8 @@ class BuscarJuegoController extends Controller
     }
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
     $tipos = TipoMesa::all();
+    $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
+
     $uc->agregarSeccionReciente('Juegos','juegos');
     $casinos = $usuario->casinos;
     return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos,

@@ -496,4 +496,19 @@ class UsuarioController extends Controller
     return ['usuarios' => $resultado];
   }
 
+  public function chequearRolFiscalizador(){
+    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
+
+    $resultado = Usuario::join('usuario_tiene_rol','usuario.id_usuario','=','usuario_tiene_rol.id_usuario')
+                        ->join('rol','rol.id_rol','=','usuario_tiene_rol.id_rol')
+                        ->where('rol.descripcion','=','FISCALIZADOR')
+                        ->where('usuario.id_usuario','=',$usuario->id_usuario)
+                        ->get();
+    if(count($resultado) == 1){
+      return 1;
+    }else{
+      return 0;
+    }
+  }
+
 }
