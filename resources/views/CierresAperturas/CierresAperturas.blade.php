@@ -25,7 +25,6 @@ $cas = $usuario['usuario']->casinos;
 @section('contenidoVista')
 
 <div class="row">
-  <div class="col-xl-3">
 
       <div class="row">
         <!-- botón de generar planilla de apertura -->
@@ -47,8 +46,6 @@ $cas = $usuario['usuario']->casinos;
           </div>
         </div>
 
-        </div>
-        
         <div class="row">
         <!-- botón de cargar apertura fiscalizada -->
           <div class="col-md-12">
