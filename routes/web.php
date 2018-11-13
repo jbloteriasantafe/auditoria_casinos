@@ -344,6 +344,8 @@ Route::post('relevamientos/eliminarCantidadMaquinasPorRelevamiento','Relevamient
 Route::post('relevamientos/modificarDenominacionYUnidad','RelevamientoController@modificarDenominacionYUnidad');
 Route::post('relevamientos/buscarRelevamientos','RelevamientoController@buscarRelevamientos');
 Route::get('relevamientos/verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
+Route::get('relevamientos/chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
+
 
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
