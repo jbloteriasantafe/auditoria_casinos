@@ -604,7 +604,7 @@ $cas = $usuario['usuario']->casinos;
                             <ul class="subMenu1 collapse" id="mesasPanio">
 
                               <li>
-                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
+                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegosMesa'" href="#" style="cursor: pointer;">
                                   <span>Gestionar Juegos</span>
                                 </div>
                               </li>

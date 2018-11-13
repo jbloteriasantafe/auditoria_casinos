@@ -302,7 +302,7 @@ $('#btn-guardar-mesa').click(function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorAlta').show();
