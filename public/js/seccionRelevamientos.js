@@ -2409,7 +2409,14 @@ function crearFilaTabla(relevamiento){
       var icono_validado = fila.find('.validado');
       var icono_verDetalle = fila.find('.verDetalle');
 
-
+      $.get('relevamientos/chequearRolFiscalizador', function(data){
+        if(data==1){
+          icono_verDetalle.hide();
+        }
+        else{
+          icono_verDetalle.show();
+        }
+      })
     //Qué ESTADO e ICONOS mostrar
     switch (relevamiento.estado) {
       case 'Generado':

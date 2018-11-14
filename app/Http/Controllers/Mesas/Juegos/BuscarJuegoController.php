@@ -67,10 +67,12 @@ class BuscarJuegoController extends Controller
     }
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
     $tipos = TipoMesa::all();
+    $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
+
     $uc->agregarSeccionReciente('Juegos','juegos');
     $casinos = $usuario->casinos;
     return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos,
-     'tipos_mesas' => $tipos,'es_superusuario' => $usuario->es_superusuario]);
+     'tipos_mesas' => $tipos,'es_superusuario' => $usuario->es_superusuario,'sectores' => $sectores]);
   }
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, siglas

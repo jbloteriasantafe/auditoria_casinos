@@ -344,6 +344,8 @@ Route::post('relevamientos/eliminarCantidadMaquinasPorRelevamiento','Relevamient
 Route::post('relevamientos/modificarDenominacionYUnidad','RelevamientoController@modificarDenominacionYUnidad');
 Route::post('relevamientos/buscarRelevamientos','RelevamientoController@buscarRelevamientos');
 Route::get('relevamientos/verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
+Route::get('relevamientos/chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
+
 
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -596,3 +598,11 @@ Route::post('juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJ
 Route::get('juegos/obtenerJuegoMesa/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
 Route::get('juegos/obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
 Route::get('juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');
+
+  //sectores mesasPanio
+  Route::post('sectores-mesas/nuevoSector','Mesas\Sectores\ABMCSectoresController@guardar');
+  Route::get('sectores-mesas/obtenerSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@obtenerSector');
+  Route::post('sectores-mesas/modificarSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@modificarSector');
+  Route::get('sectores-mesas/eliminarSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@eliminarSector');
+  Route::post('sectores-mesas/buscarSectores','Mesas\Sectores\ABMCSectoresController@filtrarSectores');
+  Route::post('sectores-mesas/guardar','Mesas\Sectores\ABMCSectoresController@guardar');

@@ -80,8 +80,14 @@ $cas = $usuario['usuario']->casinos;
             <nav>@section('headerLogo')
                  @show
               <h2 class="tituloSeccionPantalla"></h2>
+
+              <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" style=" width:60%;" hidden="true">
+                <li id="b_juego" ><a href="#pant_juegos"  style="font-family:Roboto-condensed;font-size:20px; ">Juegos</a></li>
+                <li id="b_sector"><a href="#pant_sectores"  style="font-family:Roboto-condensed;font-size:20px;">Sectores</a></li>
+              </ul>
+
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
-              <ul class="opcionesBarraSuperior">
+              <ul class="opcionesBarraSuperior" style=" width:30%;align:right;">
 
                   <?php
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
@@ -605,7 +611,7 @@ $cas = $usuario['usuario']->casinos;
 
                               <li>
                                 <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegosMesa'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Juegos</span>
+                                  <span>Gestionar Juegos y Sectores</span>
                                 </div>
                               </li>
 
