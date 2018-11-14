@@ -138,9 +138,6 @@ class ABMCSectoresController extends Controller
                           'mesas' => $s->lista_mesas,
                         ];
     }
-
     return ['sectores' => $sectoresymesas];
   }
-
-
 }
