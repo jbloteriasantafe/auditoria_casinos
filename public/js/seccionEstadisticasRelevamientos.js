@@ -67,14 +67,17 @@ $('#seccionBusquedaPorMaquina input').on('focusin', function() {
 $('#b_casino').on('change',function(){
   var id_casino = $('#b_casino').val();
 
-  $('#b_sector option').remove();
+  
   $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-
-    $('#b_sector').append($('<option>').val('').text('- Seleccione el sector -'));
+    var selectSector = $('#busqueda_sector');
+    selectSector.empty();
+    selectSector.append($('<option>')
+        .val(0)
+        .text('Todos los sectores')
+    )
 
     for (var i = 0; i < data.sectores.length; i++) {
-      $('#b_sector')
-          .append($('<option>')
+      selectSector.append($('<option>')
               .val(data.sectores[i].id_sector)
               .text(data.sectores[i].descripcion)
           )
@@ -112,7 +115,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   var formData = {
       id_casino: $('#b_casino').val(),
-      id_sector: $('#b_sector').val(),
+      id_sector: $('#busqueda_sector').val(),
       nro_isla: $('#b_isla').val(),
       fecha_desde: $('#fecha_desde_date').val(),
       fecha_hasta: $('#fecha_hasta_date').val(),
