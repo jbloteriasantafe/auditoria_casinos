@@ -1082,16 +1082,19 @@ class LogMovimientoController extends Controller
       switch ($logMov->id_tipo_movimiento) {
         case 1: // ingreso
         //esto se cambió en el comit "no se"
-           $maquina->estado_maquina()->associate(1);
+            $maquina->estado_maquina()->associate(1);
+            $maquina->save();
             //crear log maquina
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Ingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 2: //egreso
             $maquina->estado_maquina()->associate(4); 	///Egreso Temporal
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Egreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 3://reingreso
             $maquina->estado_maquina()->associate(2);//reingreso
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 4: //cambio layout
@@ -1114,6 +1117,7 @@ class LogMovimientoController extends Controller
             break;
         case 8: //egreso/reingreso
             $maquina->estado_maquina()->associate(2);//reingreso
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         default:
@@ -1122,7 +1126,7 @@ class LogMovimientoController extends Controller
 
       }
 
-
+      
       return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
 
