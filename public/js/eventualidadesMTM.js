@@ -812,6 +812,9 @@ $(document).on('click','.verMaquinaEv',function(){
                 var fila = fila1.clone();
                 var p = data.maquina[cont + i];
                 var v = data.toma[vcont + i];
+                if(v==null){
+                  v="-"
+                }
 
               //  if(data.toma==null){
 
