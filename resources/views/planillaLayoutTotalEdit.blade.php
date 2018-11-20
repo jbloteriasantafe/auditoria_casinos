@@ -97,6 +97,7 @@ p {
           @if($mostrar_maquinas)
               <div class="divTableRow">
                 @foreach($detalle->islas as $isla)
+                @if($isla->cantidad_maquinas!=0)
                 @if($pos != 23)
                 <?php $pos += 1; ?>
                 <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
@@ -106,12 +107,14 @@ p {
               <div class="divTableRow">
                 <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
                 @endif
+                @endif
                 @endforeach
               </div>
 
               @else
               <div class="divTableRow">
                   @foreach($detalle->islas as $isla)
+                  @if($isla->cantidad_maquinas!=0)
                   @if($pos != 23)
                   <?php $pos += 1; ?>
                   <div class="divTableCell">{{$isla->nro_isla}} ___</div>
@@ -120,6 +123,7 @@ p {
                 </div>
                 <div class="divTableRow">
                   <div class="divTableCell">{{$isla->nro_isla}} ___</div>
+                  @endif
                   @endif
                   @endforeach
                 </div>
