@@ -202,7 +202,7 @@ class BuscarMesasController extends Controller
                   ->where('mesa_de_panio.nro_mesa','like','%'.$nro_mesa.'%')
                   ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                   ->whereNull('mesa_de_panio.deleted_at')
-                  ->whereNotIn('id_mesa_de_panio',$id_mesas_a_no_incluir)
+                  ->whereNotIn('mesa_de_panio.id_mesa_de_panio',$id_mesas_a_no_incluir)
                   ->orderBy('mesa_de_panio.nro_mesa','asc')->get();
     return ['mesas'=>$mesas];
   }

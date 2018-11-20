@@ -320,7 +320,7 @@ $('#btn-generar-rel').on('click', function(e){
 });
 
 $('#btn-cargar-apertura').on('click', function(e){
-
+  $('#mensajeExitoCargaAp').hide();
   e.preventDefault();
   limpiarCargaApertura();
   $('#B_fecha_apert').val("").prop('disabled',false);
