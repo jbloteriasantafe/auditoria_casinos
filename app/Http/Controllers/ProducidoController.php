@@ -728,6 +728,8 @@ class ProducidoController extends Controller
                 $detalle_final->save();
 
                 $detalle_producido->id_tipo_ajuste= $detalle_ajustado['id_tipo_ajuste'] ;
+                //es posible que dentro del multiple ajuste se cambie el valor del producido
+                $detalle_producido->valor=$detalle_ajustado['producido'];
                 $detalle_producido->save() ;
                 $resultados[]=$detalle_ajustado['id_maquina'];
                 break;
