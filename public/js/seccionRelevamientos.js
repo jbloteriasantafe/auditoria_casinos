@@ -1818,7 +1818,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
           var input_notoma = $('<input>').addClass('tipo_causa_no_toma form-control').val(causa_notoma);
 
           if (input_notoma.val() != '') {
-              input_notoma.css('border','2px solid #EF5350').css('color','#EF5350');
+              input_notoma.css('border','2px solid #1E90FF').css('color','#1E90FF');
           }
 
           $('#tablaValidarRelevamiento #' + data.detalles[i].detalle.id_detalle_relevamiento).find('td').find('.tipo_causa_no_toma').replaceWith(input_notoma);
