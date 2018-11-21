@@ -124,6 +124,16 @@ class LogMovimientoController extends Controller
     return self::$instance;
   }
 
+      /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //:)))))
+    }
+
   public function obtenerDatos($id){
     $log = LogMovimiento::find($id);
     $exp = $log->expediente;
@@ -1126,7 +1136,7 @@ class LogMovimientoController extends Controller
 
       }
 
-      
+
       return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
 
