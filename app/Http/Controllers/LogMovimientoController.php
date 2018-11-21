@@ -1418,6 +1418,7 @@ class LogMovimientoController extends Controller
                'casino.nombre','casino.id_casino')
               ->orderBy('log_movimiento.fecha','desc')
               ->get();
+              
     return ['logs' => $logs];
   }
 
