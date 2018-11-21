@@ -1692,17 +1692,18 @@ class LogMovimientoController extends Controller
   }
 
   public function cargarEventualidadMTM(Request $request){
+    // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
     $validator =Validator::make($request->all(), [
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'id_cargador' => 'nullable|exists:usuario,id_usuario',
         'id_fiscalizador' => 'required|exists:usuario,id_usuario',
         'id_maquina' => 'required|exists:maquina,id_maquina',
         'juego' => 'required',
-        'apuesta_max' => 'required| numeric| max:900000',
-        'cant_lineas' => 'required|numeric| max:100000',
-        'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'cant_creditos' => 'required|numeric| max:100',
+        'apuesta_max' => 'nullable| numeric| max:900000',
+        'cant_lineas' => 'nullable|numeric| max:100000',
+        'porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+        'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'cant_creditos' => 'nullable|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
         'observaciones' => 'nullable|max:280',
         'mac' => 'nullable | max:100',
@@ -1724,6 +1725,7 @@ class LogMovimientoController extends Controller
         $contadores =$validator->getData()['contadores'];
         //por cada contador valido que esté cargado si es que la formula tenía
         //ese contador
+        /*
         foreach ($contadores as $cont)
         {
             switch ($aux)
@@ -1770,7 +1772,7 @@ class LogMovimientoController extends Controller
             }
             $aux++;
         }
-
+        */
       })->validate();
 
      if(isset($validator))
