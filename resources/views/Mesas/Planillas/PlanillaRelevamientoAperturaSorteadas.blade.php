@@ -97,20 +97,13 @@ footer
                           <th class="col-xs-3 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
                         </tr>
                         @foreach($rel->sorteadas->ruletasDados as $ruleta)
-
--                          <tr>
-
--                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->nro_mesa}}</td>
-
--                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->nombre_juego}}</td>
-
--                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->descripcion}}</td>
-
--                            <td class="col-xs-3 tablaInicio" style=" border-color: gray;"></td>
-
--                          </tr>
-
--                        @endforeach
+                          <tr>
+                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->nro_mesa}}</td>
+                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->nombre_juego}}</td>
+                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta->descripcion}}</td>
+                            <td class="col-xs-3 tablaInicio" style=" border-color: gray;"></td>
+                          </tr>
+                        @endforeach
                         </tbody>
                       </table>
                       <br>
