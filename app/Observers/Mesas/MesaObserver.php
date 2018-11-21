@@ -16,7 +16,6 @@ class MesaObserver extends EntityObserver
        array('nro_mesa', $entidad->nro_mesa),
        array('nombre', $entidad->nombre),
        array('descripcion', $entidad->descripcion),
-       array('id_tipo_mesa', $entidad->id_tipo_mesa),
        array('id_juego_mesa', $entidad->id_juego_mesa),
        array('id_moneda', $entidad->id_moneda),
        array('id_sector_mesas', $entidad->id_sector_mesas),
