@@ -1945,13 +1945,13 @@ function calculoDiferencia(tablaRelevamientos){
                   renglon_actual.find('i.fa-times').hide();
                   renglon_actual.find('i.fa-check').hide();
                   renglon_actual.find('i.fa-exclamation').show();
-                  englon_actual.find('i.fa-ban').hide();
+                  renglon_actual.find('i.fa-ban').hide();
                 } else {
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').show();
                   renglon_actual.find('i.fa-check').hide();
                   renglon_actual.find('i.fa-exclamation').hide();
-                  englon_actual.find('i.fa-ban').hide();
+                  renglon_actual.find('i.fa-ban').hide();
                 }
 
       }
