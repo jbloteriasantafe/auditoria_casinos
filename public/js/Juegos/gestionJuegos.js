@@ -116,7 +116,7 @@ $('#btn-buscarJuegos').click(function(e){
 
         $.ajax({
             type: 'POST',
-            url: 'juegos/buscarJuegos',
+            url: 'mesas-juegos/buscarJuegos',
             data: formData,
             dataType: 'json',
 
@@ -229,7 +229,7 @@ $('#btn-guardar-juego').on('click', function(e){
 
   $.ajax({
     type: 'POST',
-    url: 'juegos/nuevoJuego/',
+    url: 'mesas-juegos/nuevoJuego/',
     data: formData,
     dataType: 'json',
 
@@ -338,7 +338,7 @@ $(document).on('click','.modificarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-modificar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
     console.log(data);
 
     $('#modif_nom').val(data.juego.nombre_juego);
@@ -388,7 +388,7 @@ $('#btn-modificar-juego').on('click', function(e){
 
   $.ajax({
     type: 'POST',
-    url: 'juegos/modificarJuego',
+    url: 'mesas-juegos/modificarJuego',
     data: formData,
     dataType: 'json',
 
@@ -423,7 +423,7 @@ $(document).on('click','.eliminarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-eliminar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
 
     for (var i = 0; i < data.mesas.length; i++) {
       $('#eliminarJuego').text('Este juego esta asociado a las siguientes mesas: ' + data.mesas[i].nro_mesa + '- ');
