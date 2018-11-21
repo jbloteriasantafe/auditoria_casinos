@@ -145,7 +145,7 @@ function movimientosSinExpediente() {
 
         for (var i = 0; i < data.logs.length; i++) {
             var option = $('<option>').val(data.logs[i].id_log_movimiento)
-                                      .text(data.logs[i].nombre + ' -  ' +data.logs[i].descripcion)
+                                      .text(data.logs[i].nombre + ' - ' +data.logs[i].descripcion + ' - '+ data.logs[i].fecha)
                                       .attr('data-casino',data.logs[i].id_casino);
             select.append(option);
         }
