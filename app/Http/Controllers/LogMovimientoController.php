@@ -1414,6 +1414,9 @@ class LogMovimientoController extends Controller
               ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
               ->where('log_movimiento.tiene_expediente','=',0)
               ->whereIn('casino.id_casino',$req['id_casino'])
+              ->groupBy('tipo_movimiento.descripcion','log_movimiento.id_log_movimiento','log_movimiento.fecha',
+               'casino.nombre','casino.id_casino')
+              ->orderBy('log_movimiento.fecha','desc')
               ->get();
     return ['logs' => $logs];
   }
