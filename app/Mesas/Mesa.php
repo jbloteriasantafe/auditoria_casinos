@@ -18,6 +18,22 @@ class Mesa extends Model
   protected $fillable = ['nro_mesa','nombre','descripcion',
                              'id_juego_mesa','id_casino','id_moneda','id_sector_mesas'];
 
+
+  protected $appends = array('codigo_mesa');
+
+
+  public function getCodigoMesaAttribute(){
+      if(isset($this->juego)){
+        $j =$this->juego;
+        if($this->nro_mesa < 10){
+        return $j->siglas.'0'.$this->nro_mesa;
+      }else {
+        return $j->siglas.$this->nro_mesa;
+      }
+      }else{
+        return $this->nro_mesa;
+      }
+    }
   public function sector(){
     return $this->belongsTo('App\Mesas\SectorMesas','id_sector_mesas','id_sector_mesas');
   }

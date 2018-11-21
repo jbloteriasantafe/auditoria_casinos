@@ -92,7 +92,7 @@ class SorteoMesasController extends Controller
                             ->whereIn('mesa_de_panio.id_tipo_mesa',$tipo)
                             ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                             ->whereNotIn('mesa_de_panio.id_mesa_de_panio',[$mesas_pond->mesas[0]->id_mesa_de_panio])
-                            ->whereNull('mesa_de_panio.created_at')
+                            ->whereNull('mesa_de_panio.deleted_at')
                             ->inRandomOrder()
                             ->take($cantidad-$mesas_pond->cantidad)
                             ->get();
@@ -109,10 +109,10 @@ class SorteoMesasController extends Controller
         $mesas = DB::table('mesa_de_panio')
                             ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                             ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')
-                            ->whereIn('mesa_de_panio.id_tipo_mesa',$tipo)
+                            ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
                             ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                             ->whereNotIn('mesa_de_panio.id_mesa_de_panio',[$mesas_pond->mesas[0]->id_mesa_de_panio,$mesas_pond->mesas[1]->id_mesa_de_panio])
-                            ->whereNull('mesa_de_panio.created_at')
+                            ->whereNull('mesa_de_panio.deleted_at')
                             ->inRandomOrder()
                             ->take($cantidad-$mesas_pond->cantidad)
                             ->get();
@@ -122,9 +122,9 @@ class SorteoMesasController extends Controller
       $mesas = DB::table('mesa_de_panio')
                           ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                           ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')
-                          ->whereIn('mesa_de_panio.id_tipo_mesa',$tipo)
+                          ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
                           ->whereIn('mesa_de_panio.id_casino',[$id_casino])
-                          ->whereNull('mesa_de_panio.created_at')
+                          ->whereNull('mesa_de_panio.deleted_at')
                           ->inRandomOrder()
                           ->take($cantidad)
                           ->get();

@@ -132,7 +132,8 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rel->mesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rel->mesas = $rmesas->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
