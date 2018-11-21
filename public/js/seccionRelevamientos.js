@@ -402,6 +402,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
         $(this).parent().parent().find('td').children('i.fa-times').hide();
         $(this).parent().parent().find('td').children('i.fa-check').hide();
         $(this).parent().parent().find('td').children('i.fa-exclamation').hide();
+        $(this).parent().parent().find('td').children('i.fa-ban').hide();
     }else{
 
       producido = parseFloat($(this).parent().parent().find('td').children('.producido').val());
@@ -489,16 +490,19 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
       if (diferencia == 0) {
           renglon_actual.find('i.fa-question').hide();
           renglon_actual.find('i.fa-times').hide();
+          renglon_actual.find('i.fa-ban').hide();
           renglon_actual.find('i.fa-check').show();
           renglon_actual.find('i.fa-exclamation').hide();
         } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
           renglon_actual.find('i.fa-question').hide();
           renglon_actual.find('i.fa-times').hide();
+          renglon_actual.find('i.fa-ban').hide();
           renglon_actual.find('i.fa-check').hide();
           renglon_actual.find('i.fa-exclamation').show();
         } else {
           renglon_actual.find('i.fa-question').hide();
           renglon_actual.find('i.fa-times').show();
+          renglon_actual.find('i.fa-ban').hide();
           renglon_actual.find('i.fa-check').hide();
           renglon_actual.find('i.fa-exclamation').hide();
         }
@@ -520,7 +524,8 @@ $(document).on('change','.tipo_causa_no_toma',function(){
     $(this).parent().parent().find('td').children('.contador').val('');
     //Se cambia el icono de diferencia
     $(this).parent().parent().find('td').find('i.fa-question').hide();
-    $(this).parent().parent().find('td').find('i.fa-times').show();
+    $(this).parent().parent().find('td').find('i.fa-times').hide();
+    $(this).parent().parent().find('td').find('i.fa-ban').show();//para no toma
     $(this).parent().parent().find('td').find('i.fa-check').hide();
     $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
 
@@ -1736,6 +1741,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       .append($('<td>').css('text-align','center')
               .append($('<i>').addClass('fa').addClass('fa-times').css('color','#EF5350').hide())
               .append($('<i>').addClass('fa').addClass('fa-check').css('color','#66BB6A').hide())
+              .append($('<i>').addClass('fa').addClass('fa-ban').css('color','#1E90FF').hide())
               .append($('<a>')
                   .addClass('pop')
                   .attr("data-content", 'Contadores importados truncados')
@@ -1812,7 +1818,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
           var input_notoma = $('<input>').addClass('tipo_causa_no_toma form-control').val(causa_notoma);
 
           if (input_notoma.val() != '') {
-              input_notoma.css('border','2px solid #EF5350').css('color','#EF5350');
+              input_notoma.css('border','2px solid #1E90FF').css('color','#1E90FF');
           }
 
           $('#tablaValidarRelevamiento #' + data.detalles[i].detalle.id_detalle_relevamiento).find('td').find('.tipo_causa_no_toma').replaceWith(input_notoma);
@@ -1839,6 +1845,7 @@ function calculoDiferencia(tablaRelevamientos){
       if ($(this).find('td').find('.producido').val() == '') {
           $(this).find('i.fa-question').show();
           $(this).find('i.fa-times').hide();
+          $(this).find('i.fa-ban').hide();
           $(this).find('i.fa-check').hide();
           $(this).find('i.fa-exclamation').hide();
       }else{
@@ -1932,16 +1939,19 @@ function calculoDiferencia(tablaRelevamientos){
                   renglon_actual.find('i.fa-times').hide();
                   renglon_actual.find('i.fa-check').show();
                   renglon_actual.find('i.fa-exclamation').hide();
+                  renglon_actual.find('i.fa-ban').hide();
                 } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').hide();
                   renglon_actual.find('i.fa-check').hide();
                   renglon_actual.find('i.fa-exclamation').show();
+                  renglon_actual.find('i.fa-ban').hide();
                 } else {
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').show();
                   renglon_actual.find('i.fa-check').hide();
                   renglon_actual.find('i.fa-exclamation').hide();
+                  renglon_actual.find('i.fa-ban').hide();
                 }
 
       }
@@ -1958,6 +1968,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
 
       var iconoPregunta = tablaValidarRelevamiento.find('#' + id_detalle + ' a i.fa-question').hide();
       var iconoCruz = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-times').hide();
+      var iconoNoToma = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-ban').hide();
       var iconoCheck = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-check').show();
       var iconoAdmiracion = tablaValidarRelevamiento.find('#' + id_detalle + ' i.fa-exclamation').hide();
       var diferencia = tablaValidarRelevamiento.find('#' + id_detalle + ' td input.diferencia');
@@ -1968,6 +1979,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
         iconoCruz.show();
         iconoCheck.hide();
         iconoAdmiracion.hide();
+        iconoNoToma.hide();
       }
       //si no se importaron contadores muestra = ?
       if(data.detalles[i].producido == null) {
@@ -1976,13 +1988,14 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
         iconoCruz.hide();
         iconoCheck.hide();
         iconoAdmiracion.hide();
+        iconoNoToma.hide();
       }
       //Si hay causa no toma = x
       else if(data.detalles[i].tipo_causa_no_toma != null) {
         iconoPregunta.hide();
-        iconoCruz.show();
+        iconoCruz.hide();
         iconoCheck.hide();
-
+        iconoNoToma.show();
         iconoAdmiracion.hide();
       }
       //Si no, calcular la diferencia entre lo calculado y lo importado
@@ -2043,12 +2056,14 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
               iconoCruz.hide();
               iconoCheck.hide();
               iconoAdmiracion.show();
+              iconoNoToma.hide();
               truncadas++;
               diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #FFA726').css('color','#FFA726');
             }
             else{
               iconoPregunta.hide();
               iconoCruz.show();
+              iconoNoToma.hide();
               iconoCheck.hide();
               iconoAdmiracion.hide();
 
@@ -2059,6 +2074,7 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
             iconoPregunta.hide();
             iconoCruz.hide();
             iconoCheck.show();
+            iconoNoToma.hide();
             iconoAdmiracion.hide();
 
             diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
