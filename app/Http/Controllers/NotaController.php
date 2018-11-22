@@ -77,27 +77,29 @@ class NotaController extends Controller
     $nota->save();
   }
 
+  ///asociar nota con movimiento existente! no crearlos
   public function guardarNotaConMovimiento($request, $id_expediente, $id_casino)// se usa desde expedienteController
   {
 
+    $log_id = intval($request['id_log_movimiento']);
+    $logMovsController = new LogMovimientoController();
     $nota = new Nota;
-    $nota->expediente()->associate($id_expediente);
-    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
 
     $nota->fecha = $request['fecha'];
     $nota->detalle = $request['detalle'];
     $nota->identificacion = $request['identificacion'];
     $nota->es_disposicion = 0;
     $nota->save();
+    $nota->log_movimiento()->associate($log_id);
+    $nota->expediente()->associate($id_expediente);
+    $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
 
-    $nota->log_movimiento()->associate(intval($request['id_log_movimiento']));
-    if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
-        $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
-    }else{//es REINGRESO
-        $log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
-    }
-    $nota->log_movimiento()->associate($log->id_log_movimiento);
-    $nota->save();
+
+
+    $logMov =$logMovsController->asociarExpediente($log_id, $id_expediente);
+    $nota->tipo_movimiento()->associate($logMov->id_tipo_movimiento);
+
+      $nota->save();
   }
 
   //para no impactar en los movimientos-> se crea la disposicion pero en realidad
@@ -170,7 +172,7 @@ class NotaController extends Controller
     //     LogMovimientoController::getInstancia()->generarReingreso($request['id_expediente'], $nota->id_nota);
     // }
 
-    return ['nota' => $nota ];
+    //return ['nota' => $nota ];
   }
 
   public function eliminarNota($id)
@@ -189,6 +191,7 @@ class NotaController extends Controller
 
   }
 
+  //esta desactualizado -- :/
   public function buscarNotas(Request $request){
     $reglas = array();
     if(!empty($request->nro_exp_org)){
