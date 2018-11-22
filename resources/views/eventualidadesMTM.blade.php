@@ -31,6 +31,7 @@
 
               <div class="row">
 
+                <div class="row">
                 <div class="col-lg-4">
                   <h5>Tipo Movimiento</h5>
                   <select class="form-control" id="B_TipoMovEventualidad">
@@ -65,8 +66,18 @@
                   </select>
 
                 </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-4">
+                  <h5>Nro. de Máquina</h5>
+                  <input id="B_mtmEv" type="text" class="form-control" placeholder="Nro. de máquina">
+                </div>
 
-
+                <div class="col-lg-4">
+                  <h5>Nro. de Isla</h5>
+                  <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
+                </div>
+              </div> 
               </div> <!-- row / formulario -->
 
               <br>

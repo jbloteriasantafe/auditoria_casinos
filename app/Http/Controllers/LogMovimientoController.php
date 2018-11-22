@@ -1487,6 +1487,15 @@ class LogMovimientoController extends Controller
         $reglas[]=['relevamiento_movimiento.id_tipo_movimiento','=', $request->nro_admin];
       }
 
+      if(isset($request->isla)){
+        $reglas[]=['log_movimiento.islas','like' ,'%' . $request->isla . '%'];
+      }
+
+      if(isset($request->mtm)){
+        $reglas[]=['relevamiento_movimiento.nro_admin','=' , $request->mtm ];
+      }
+
+
       $casinos = array();
 
       if(isset($request->id_casino)){
@@ -1497,9 +1506,9 @@ class LogMovimientoController extends Controller
         }
       }
 
-      if(empty($reglas) && !isset($request->fecha)){
-        return $this->todasEventualidadesMTMs();
-      }
+      // if(empty($reglas) && !isset($request->fecha)){
+      //   return $this->todasEventualidadesMTMs();
+      // }
 
       $reglas[]=['log_movimiento.tiene_expediente','=',0];
       // $reglas[]=['log_movimiento.id_expediente','is',null]; hay que usar wherenull
