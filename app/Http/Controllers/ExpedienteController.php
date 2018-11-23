@@ -85,7 +85,7 @@ class ExpedienteController extends Controller
                 ->get();
 
     $disposiciones = DB::table('disposicion')
-                          ->select('disposicion.*','tipo_movimiento.descripcion as descripcion_movimiento')
+                          ->select('disposicion.*','tipo_movimiento.id_tipo_movimiento as id_tipo_movimiento','tipo_movimiento.descripcion as descripcion_movimiento')
                           ->leftJoin('nota','nota.id_nota','=','disposicion.id_nota')
                           ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
                           ->where('disposicion.id_expediente','=',$id)

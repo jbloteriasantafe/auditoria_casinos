@@ -478,10 +478,11 @@ $('#btn-nuevo').click(function(e){
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
 
+  $('#mensajeExito').hide();
   $('#modalExpediente').find('.modal-footer').children().show();
   $('#modalExpediente').find('.modal-body').children().show();
   $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-    $('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
+    //$('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
 
       limpiarModal();
       //Ocultar errores
@@ -497,7 +498,8 @@ $(document).on('click','.detalle',function(){
       $('#navConfig').click(); //Empezar por la sección de configuración
 
       var id_expediente = $(this).val();
-      console.log('id',id_expediente);
+
+      obtenerTiposMovimientos();
 
       $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
           console.log('aqui',data);
@@ -1295,13 +1297,6 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
       agregarDisposicion(disposiciones[index],editable);
     }
   }
-  // if(log != null){
-  //   for(var index=0; index<log.length; index++){
-  //     agregarLogModif(log[index],editable);
-  //   }
-  // }
-
-
   //MOSTRAR NOTAS!!!!
 
   var i = 0;
@@ -1322,11 +1317,7 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
       $('.notasCreadas').hide();
   }
 
-  // if(movimientos != null){
-  //   for(var index=0; index<movimientos.length; index++){
-  //     agregarMovimientos(movimientos[index],editable);
-  //   }
-  // }
+
 }
 
 function agregarNotaSinMovimiento(nota) {
@@ -1368,7 +1359,7 @@ function agregarNotaConMovimiento(nota) {
 }
 
 function agregarDisposicion(disposicion, editable){
-  console.log('disp', disposicion);
+
     var moldeDisposicion = $('#moldeDisposicion').clone();
 
     moldeDisposicion.removeAttr('id');
@@ -1378,21 +1369,18 @@ function agregarDisposicion(disposicion, editable){
 
     if(editable==false){
       $('#dispoCarg').hide();
-      $('#tablaDispoCreadas').hide();
+      //$('#tablaDispoCreadas').hide();
       moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
       moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
       moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
       moldeDisposicion.find('.borrarDisposicion').hide();
+      moldeDisposicion.show();
       if(disposicion.id_nota != null){
 
         //moldeDisposicion.find('#selectgay').remove();
         console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
 
-        moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
-        //obtenerTiposMovimientos();
-      //moldeDisposicion.find('#tiposMovimientosDisp').find('option[value=' + disposicion.id_tipo_movimiento + ']').attr('selected',true);
-        //moldeDisposicion.find('#tiposMovimientosDisp option[value=' + disposicion.id_tipo_movimiento + ']').attr("selected", true);
-        //moldeDisposicion.find('#tiposMovimientosDisp').text(disposicion.id_tipo_movimiento);
+      moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
 
       }else {
         console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
@@ -1402,22 +1390,13 @@ function agregarDisposicion(disposicion, editable){
       $('#columnaDisposicion').append(moldeDisposicion);
       //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
     }
+
     if(editable==true) {
-      // moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',false);
-      // moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',false);
-      // if(disposicion.descripcion != null){
-      // moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',false);}
-      // else {
-      //   moldeDisposicion.find('#descripcion_disposicion').val("Sin Descripción").prop('readonly',false);
-      // }
-      // moldeDisposicion.find('#tiposMovimientosDisp').hide();
-      // moldeDisposicion.find('.borrarDisposicion').val(disposicion.id_disposicion);
+
       $('#moldeDisposicion').hide();
       $('#tablaDispoCreadas').show();
 
       var fila=$('#moldeDispoCargada').clone();
-
-      fila.show();
 
       fila.removeAttr('id');
       fila.attr('id', disposicion.id_disposicion);
@@ -1435,7 +1414,7 @@ function agregarDisposicion(disposicion, editable){
        fila.find('.mov_dCreada').text(" -- ");}
 
      fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
-
+     fila.show();
      //fila.css('display','block');
       $('#tablaDispoCreadas tbody').append(fila);
 
