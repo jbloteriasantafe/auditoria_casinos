@@ -1007,13 +1007,13 @@ class RelevamientoController extends Controller
   public function buscarMaquinasSinRelevamientos(Request $request){
     Validator::make($request->all(),[
         'id_casino' => 'required_with:id_sector,nro_isla|exists:casino,id_casino',
-        'id_sector' => 'nullable|exists:sector,id_sector',
+        'id_sector' => 'nullable',
         'nro_isla' => 'nullable|numeric',
         'fecha_desde' => 'required|date',
         'fecha_hasta' => 'nullable|date'
     ], array(), self::$atributos)->after(function($validator){
       if($validator->getData()['nro_isla'] != null){
-        if($validator->getData()['id_sector'] != null){
+        if($validator->getData()['id_sector'] != 0){
           $islas = Isla::where([['id_sector',$validator->getData()['id_sector']],['nro_isla',$validator->getData()['nro_isla']]])->count();
         }else{
           $islas = Isla::where([['id_casino',$validator->getData()['id_casino']],['nro_isla',$validator->getData()['nro_isla']]])->count();
@@ -1031,7 +1031,7 @@ class RelevamientoController extends Controller
         $reglas[] = ['casino.id_casino','=',$request->id_casino];
         $reglas2[] = ['casino.id_casino','=',$request->id_casino];
     }
-    if($request->id_sector != null){
+    if($request->id_sector != 0){
         $reglas[] = ['sector.id_sector','=',$request->id_sector];
         $reglas2[] = ['sector.id_sector','=',$request->id_sector];
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Sectores;
+namespace App\Http\Controllers\Mesas\Sectores;
 
 use Auth;
 use Session;
@@ -13,14 +13,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
 
-use App\User;
+use App\Usuario;
 use App\Casino;
-use App\Relevamiento;
 use App\SecRecientes;
-use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Http\Controllers\UsuarioController;
 
 use App\Mesas\Mesa;
 use App\Mesas\JuegoMesa;
@@ -49,21 +46,7 @@ class ABMCSectoresController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth', 'role:SUPERUSUARIO|ADMINISTRADOR|CONTROLADOR']);
-  }
-
-  public function buscarTodo(){
-    $uc = new UsuarioController;
-    $usuario = Auth::user();
-    $casinos = array();
-    foreach($usuario->casinos as $casino){
-      $casinos[]=$casino->id_casino;
-    }
-    $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
-    $tipos = TipoMesa::all();
-    $casinos = $usuario->casinos;
-    $uc->agregarSeccionReciente('Juegos','juegos');
-    return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos, 'tipos_mesas' => $tipos]);
+    $this->middleware(['tiene_permiso:m_gestionar_juegos_mesas']);
   }
 
   public function guardar(Request $request){
@@ -78,7 +61,7 @@ class ABMCSectoresController extends Controller
           return ['errors' => $validator->messages()->toJson()];
           }
      }
-     $user = Auth::user();
+     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($id_casino)){
       $sector = SectorMesas::create($request->all());
      return $sector;
@@ -101,32 +84,9 @@ class ABMCSectoresController extends Controller
           ];
   }
 
-
-
-  public function modificarSector(Request $request){
-    $validator=  Validator::make($request->all(),[
-      'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
-      'descripcion' => ['required','max:100',Rule::unique('sector_mesas')
-                                           ->where('id_casino','=',$id_casino)]
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
-    $sector = SectorMesas::find($request->id_sector_mesas);
-    $sector->descripcion= $request->descripcion;
-
-    $sector->save();
-
-
-    return ['sector' => $sector];
-  }
-
   public function eliminarSector($id_sector_mesas){
-    $sector = SectorMesas::find($request->id_sector_mesas);
-    if (isset($sector->mesas)) {
+    $sector = SectorMesas::find($id_sector_mesas);
+    if (count($sector->mesas) != 0) {
       return 0;
     }else{
       $sector->delete();
@@ -139,7 +99,7 @@ class ABMCSectoresController extends Controller
   //recibe: nro_mesa,id_tipo_mesa,descripcion_sector,casino
   public function filtrarSectores(Request $request){
     $reglas=array();
-    if(isset($request->nro_mesa) && !empty($request->nro_mesa) &&  ($request->nro_mesa !=0){
+    if(isset($request->nro_mesa) && !empty($request->nro_mesa) && $request->nro_mesa !=0){
       $reglas[]=['mesa_de_panio.nro_mesa' , 'like' , '%' . $request->nro_mesa . '%'];
     }
     if($request->id_tipo_mesa !=0 && !empty($request->id_tipo_mesa)){
@@ -150,7 +110,7 @@ class ABMCSectoresController extends Controller
     }
 
     if($request->casino==0 || empty($request->casino)){
-      $usuario = Auth::user();
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $casinos = array();
       foreach($usuario->casinos as $casino){
         $casinos[]=$casino->id_casino;
@@ -161,14 +121,15 @@ class ABMCSectoresController extends Controller
 
     $sectores = DB::table('sector_mesas')
                     ->select('sector_mesas.*','casino.*')
-                    ->join('mesa_de_panio','mesa_de_panio.id_sector_mesas',
+                    ->leftJoin('mesa_de_panio','mesa_de_panio.id_sector_mesas',
                                         '=','sector_mesas.id_sector_mesas')
-                    ->join('juego_mesa','juego_mesa.id_juego_mesa','=',
+                    ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=',
                                                   'mesa_de_panio.id_juego_mesa')
                     ->join('casino','casino.id_casino','=','sector_mesas.id_casino')
                     ->where($reglas)
                     ->whereIn('sector_mesas.id_casino',$casinos)
                     ->whereNull('sector_mesas.deleted_at')
+                    ->distinct('sector_mesas.id_sector_mesas')
                     ->get();
     $sectoresymesas = array();
     foreach ($sectores as $sector) {
@@ -177,9 +138,6 @@ class ABMCSectoresController extends Controller
                           'mesas' => $s->lista_mesas,
                         ];
     }
-
     return ['sectores' => $sectoresymesas];
   }
-
-
 }

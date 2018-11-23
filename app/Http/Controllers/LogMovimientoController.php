@@ -124,6 +124,16 @@ class LogMovimientoController extends Controller
     return self::$instance;
   }
 
+      /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //:)))))
+    }
+
   public function obtenerDatos($id){
     $log = LogMovimiento::find($id);
     $exp = $log->expediente;
@@ -1082,16 +1092,19 @@ class LogMovimientoController extends Controller
       switch ($logMov->id_tipo_movimiento) {
         case 1: // ingreso
         //esto se cambió en el comit "no se"
-           $maquina->estado_maquina()->associate(1);
+            $maquina->estado_maquina()->associate(1);
+            $maquina->save();
             //crear log maquina
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Ingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 2: //egreso
             $maquina->estado_maquina()->associate(4); 	///Egreso Temporal
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Egreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 3://reingreso
             $maquina->estado_maquina()->associate(2);//reingreso
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         case 4: //cambio layout
@@ -1114,6 +1127,7 @@ class LogMovimientoController extends Controller
             break;
         case 8: //egreso/reingreso
             $maquina->estado_maquina()->associate(2);//reingreso
+            $maquina->save();
             LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
             break;
         default:
@@ -1400,7 +1414,11 @@ class LogMovimientoController extends Controller
               ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
               ->where('log_movimiento.tiene_expediente','=',0)
               ->whereIn('casino.id_casino',$req['id_casino'])
+              ->groupBy('tipo_movimiento.descripcion','log_movimiento.id_log_movimiento','log_movimiento.fecha',
+               'casino.nombre','casino.id_casino')
+              ->orderBy('log_movimiento.fecha','desc')
               ->get();
+              
     return ['logs' => $logs];
   }
 
@@ -1469,6 +1487,15 @@ class LogMovimientoController extends Controller
         $reglas[]=['relevamiento_movimiento.id_tipo_movimiento','=', $request->nro_admin];
       }
 
+      if(isset($request->isla)){
+        $reglas[]=['log_movimiento.islas','like' ,'%' . $request->isla . '%'];
+      }
+
+      if(isset($request->mtm)){
+        $reglas[]=['relevamiento_movimiento.nro_admin','=' , $request->mtm ];
+      }
+
+
       $casinos = array();
 
       if(isset($request->id_casino)){
@@ -1479,9 +1506,9 @@ class LogMovimientoController extends Controller
         }
       }
 
-      if(empty($reglas) && !isset($request->fecha)){
-        return $this->todasEventualidadesMTMs();
-      }
+      // if(empty($reglas) && !isset($request->fecha)){
+      //   return $this->todasEventualidadesMTMs();
+      // }
 
       $reglas[]=['log_movimiento.tiene_expediente','=',0];
       // $reglas[]=['log_movimiento.id_expediente','is',null]; hay que usar wherenull
@@ -1688,17 +1715,18 @@ class LogMovimientoController extends Controller
   }
 
   public function cargarEventualidadMTM(Request $request){
+    // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
     $validator =Validator::make($request->all(), [
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'id_cargador' => 'nullable|exists:usuario,id_usuario',
         'id_fiscalizador' => 'required|exists:usuario,id_usuario',
         'id_maquina' => 'required|exists:maquina,id_maquina',
         'juego' => 'required',
-        'apuesta_max' => 'required| numeric| max:900000',
-        'cant_lineas' => 'required|numeric| max:100000',
-        'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'cant_creditos' => 'required|numeric| max:100',
+        'apuesta_max' => 'nullable| numeric| max:900000',
+        'cant_lineas' => 'nullable|numeric| max:100000',
+        'porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+        'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'cant_creditos' => 'nullable|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
         'observaciones' => 'nullable|max:280',
         'mac' => 'nullable | max:100',
@@ -1720,6 +1748,7 @@ class LogMovimientoController extends Controller
         $contadores =$validator->getData()['contadores'];
         //por cada contador valido que esté cargado si es que la formula tenía
         //ese contador
+        /*
         foreach ($contadores as $cont)
         {
             switch ($aux)
@@ -1766,7 +1795,7 @@ class LogMovimientoController extends Controller
             }
             $aux++;
         }
-
+        */
       })->validate();
 
      if(isset($validator))

@@ -11,7 +11,7 @@ class Nota extends Model
   protected $table = 'nota';
   protected $primaryKey = 'id_nota';
   protected $visible = array('id_nota','fecha','detalle','identificacion',
-                          'id_tipo_movimiento','id_expediente','es_disposicion');
+                          'id_tipo_movimiento','id_expediente','es_disposicion','id_log_movimiento');
   public $timestamps = false;
 
   public function expediente(){

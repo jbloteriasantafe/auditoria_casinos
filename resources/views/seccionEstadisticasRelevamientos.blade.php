@@ -141,7 +141,7 @@ use Illuminate\Http\Request;
                                     </div>
                                     <div class="col-lg-4">
                                       <h5>SECTOR</h5>
-                                      <select id="b_sector" class="form-control" name="">
+                                      <select id="busqueda_sector" class="form-control" name="">
                                         <option value=""></option>
                                       </select>
                                     </div>

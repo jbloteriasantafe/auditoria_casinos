@@ -58,7 +58,7 @@ class ABMCCierreAperturaController extends Controller
   public function asociarAperturaACierre(Apertura $apertura){
     $cierre = Cierre::where('id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                       ->orderBy('fecha' , 'DESC')
-                      ->first();
+                      ->get();
     if(count($cierre) == 1){
       $mesa = Mesa::find($apertura->id_mesa_de_panio);
       $caobjetct = new CierreApertura;

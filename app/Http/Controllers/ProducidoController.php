@@ -602,6 +602,7 @@ class ProducidoController extends Controller
       $resultados=array();
       $errores=array();
       $estado = 0;
+      
       if($request->estado == 3){
         foreach ($request->producidos_ajustados as $detalle_ajustado){
           //consulto si tenia un ajuste guardado como temporal y lo elimino
@@ -621,6 +622,8 @@ class ProducidoController extends Controller
           $detalle_final=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_final']) ;
           $detalle_inicio=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_inicial']) ;
           $detalle_producido = DetalleProducido::find($detalle_ajustado['id_detalle_producido']);
+          $producido = Producido::find($detalle_producido->id_producido);
+          $casino=$producido->id_casino;
           //se agregan las observaciones, estas son independientes del tipo de ajuste, el propio del detalle producido
           $detalle_producido->observacion=$detalle_ajustado['prodObservaciones'];
           switch ($detalle_ajustado['id_tipo_ajuste']) {
@@ -657,7 +660,11 @@ class ProducidoController extends Controller
                   $detalle_final->coinout = round($detalle_ajustado['coinout_final'] *  $detalle_ajustado['denominacion'] , 2 );
                   $detalle_final->jackpot = round($detalle_ajustado['jackpot_final'] * $detalle_ajustado['denominacion'] , 2 );
                   $detalle_final->progresivo = round($detalle_ajustado['progresivo_final'] *  $detalle_ajustado['denominacion'] , 2 );
-
+                  // si el casino es de rosario se carga la denominacion de carga
+                  if($casino==3){
+                  $detalle_final->denominacion_carga=$detalle_ajustado['denominacion'];
+                  }
+                  
                   $detalle_final->save();
 
                   $detalle_producido->id_tipo_ajuste= $detalle_ajustado['id_tipo_ajuste'];
@@ -692,6 +699,10 @@ class ProducidoController extends Controller
                   $detalle_inicio->coinout = round($detalle_ajustado['coinout_inicial'] * $detalle_ajustado['denominacion'] , 2 );
                   $detalle_inicio->jackpot = round($detalle_ajustado['jackpot_inicial'] * $detalle_ajustado['denominacion'] , 2 );
                   $detalle_inicio->progresivo = round($detalle_ajustado['progresivo_inicial'] * $detalle_ajustado['denominacion'] , 2 );
+                  // si el casino es de rosario, se tiene que cargar la denominacion de carga
+                  if($casino==3){
+                    $detalle_inicio->denominacion_carga=$detalle_ajustado['denominacion'];
+                  }
                   $detalle_inicio->save();
 
                   $detalle_producido->id_tipo_ajuste= $detalle_ajustado['id_tipo_ajuste'] ;
@@ -719,15 +730,25 @@ class ProducidoController extends Controller
                 $detalle_inicio->coinout = round($detalle_ajustado['coinout_inicial'] * $detalle_ajustado['denominacion'] , 2 );
                 $detalle_inicio->jackpot = round($detalle_ajustado['jackpot_inicial'] * $detalle_ajustado['denominacion'] , 2 );
                 $detalle_inicio->progresivo = round($detalle_ajustado['progresivo_inicial'] * $detalle_ajustado['denominacion'] , 2 );
+                // si el casino es de rosario, se tiene que cargar la denominacion de carga
+                if($casino==3){
+                  $detalle_inicio->denominacion_carga=$detalle_ajustado['denominacion'];
+                  }
                 $detalle_inicio->save();
 
                 $detalle_final->coinin = round($detalle_ajustado['coinin_final'] * $detalle_ajustado['denominacion'] , 2 );
                 $detalle_final->coinout = round($detalle_ajustado['coinout_final'] * $detalle_ajustado['denominacion'] , 2 );
                 $detalle_final->jackpot = round($detalle_ajustado['jackpot_final'] * $detalle_ajustado['denominacion'] , 2 );
                 $detalle_final->progresivo = round($detalle_ajustado['progresivo_final'] * $detalle_ajustado['denominacion'] , 2 );
+                // si el casino es de rosario, se tiene que cargar la denominacion de carga
+                if($casino==3){
+                  $detalle_final->denominacion_carga=$detalle_ajustado['denominacion'];
+                  }
                 $detalle_final->save();
 
                 $detalle_producido->id_tipo_ajuste= $detalle_ajustado['id_tipo_ajuste'] ;
+                //es posible que dentro del multiple ajuste se cambie el valor del producido
+                $detalle_producido->valor=$detalle_ajustado['producido'];
                 $detalle_producido->save() ;
                 $resultados[]=$detalle_ajustado['id_maquina'];
                 break;

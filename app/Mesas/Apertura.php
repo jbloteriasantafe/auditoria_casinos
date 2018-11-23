@@ -50,6 +50,9 @@ class Apertura extends Model
     return $this->hasMany('App\Mesas\DetalleApertura','id_apertura_mesa','id_apertura_mesa');
   }
 
+  public function tipo_mesa(){
+    return $this->belongsTo('App\Mesas\TipoMesa','id_tipo_mesa','id_tipo_mesa');
+ }
 
   public function getTableName(){
     return $this->table;

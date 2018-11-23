@@ -530,6 +530,13 @@ class MTMController extends Controller
         }
     }
 
+    if(isset($gli_soft)){
+      $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+    }
+    if(isset($gli_hard)){
+      $MTM->gliHard()->associate($gli_hard->id_gli_hard);
+    }
+
     $MTM->nro_admin = $request->nro_admin;
     $MTM->marca = $request->marca;
     $MTM->marca_juego = $request->marca_juego;
@@ -546,12 +553,11 @@ class MTMController extends Controller
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
     $MTM->formula()->associate($formula);
-    $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->biene a ser un estado PENDIENTE DE HABILITACION
+    $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->viene a ser un estado PENDIENTE DE HABILITACION
     if($request->id_tipo_gabinete != 0)$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
     $MTM->juegos()->sync($juegos_finales);
-    $MTM->gliSoft()->dissociate();
 
 
     //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO

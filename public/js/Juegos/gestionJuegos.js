@@ -116,7 +116,7 @@ $('#btn-buscarJuegos').click(function(e){
 
         $.ajax({
             type: 'POST',
-            url: 'juegos/buscarJuegos',
+            url: 'mesas-juegos/buscarJuegos',
             data: formData,
             dataType: 'json',
 
@@ -229,7 +229,7 @@ $('#btn-guardar-juego').on('click', function(e){
 
   $.ajax({
     type: 'POST',
-    url: 'juegos/nuevoJuego/',
+    url: 'mesas-juegos/nuevoJuego/',
     data: formData,
     dataType: 'json',
 
@@ -244,7 +244,7 @@ $('#btn-guardar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#nombre_juego'),response.nombre_juego[0],false);
@@ -256,7 +256,7 @@ $('#btn-guardar-juego').on('click', function(e){
         mostrarErrorValidacion($('#casino_juego'),response.id_casino[0],false);
       }
       if(typeof response.id_tipo_mesa !== 'undefined'){
-        mostrarErrorValidacion($('#tipo_mesa_juego'),response.tipo_mesa[0],false);
+        mostrarErrorValidacion($('#tipo_mesa_juego'),response.id_tipo_mesa[0],false);
       }
     }
   })
@@ -313,7 +313,7 @@ $('#btn-guardar-sector').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.descripcion !== 'undefined'){
         mostrarErrorValidacion($('#nombre_sector'),response.descripcion[0],false);
@@ -338,7 +338,7 @@ $(document).on('click','.modificarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-modificar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
     console.log(data);
 
     $('#modif_nom').val(data.juego.nombre_juego);
@@ -388,7 +388,7 @@ $('#btn-modificar-juego').on('click', function(e){
 
   $.ajax({
     type: 'POST',
-    url: 'juegos/modificarJuego',
+    url: 'mesas-juegos/modificarJuego',
     data: formData,
     dataType: 'json',
 
@@ -402,7 +402,7 @@ $('#btn-modificar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#modif_nom'),response.nombre_juego[0],false);
@@ -423,7 +423,7 @@ $(document).on('click','.eliminarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-eliminar-juego').val(id_juego);
 
-  $.get('juegos/obtenerJuego/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
 
     for (var i = 0; i < data.mesas.length; i++) {
       $('#eliminarJuego').text('Este juego esta asociado a las siguientes mesas: ' + data.mesas[i].nro_mesa + '- ');

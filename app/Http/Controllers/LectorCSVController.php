@@ -515,7 +515,7 @@ class LectorCSVController extends Controller
     $contador->save();
 
     $pdo = DB::connection('mysql')->getPdo();
-
+    DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
     $query = sprintf("LOAD DATA local INFILE '%s'
@@ -610,7 +610,7 @@ class LectorCSVController extends Controller
     $producido->save();
 
     $pdo = DB::connection('mysql')->getPdo();
-
+    DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
     $query = sprintf("LOAD DATA local INFILE '%s'
@@ -668,7 +668,7 @@ class LectorCSVController extends Controller
                                             FROM producido_temporal
                                             WHERE id_producido = '%d'
                                             GROUP BY maquina) AS prod_a
-                                            
+
                        WHERE prod_a.maquina = mtm.nro_admin
                          AND mtm.id_casino = '%d'
                        ",$producido->id_producido,$producido->id_producido,$casino);
@@ -727,7 +727,7 @@ class LectorCSVController extends Controller
   public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
 
     $pdo = DB::connection('mysql')->getPdo();
-
+    DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
     $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
@@ -788,7 +788,7 @@ class LectorCSVController extends Controller
         $contador->save();
 
         $pdo = DB::connection('mysql')->getPdo();
-
+        DB::connection()->disableQueryLog();
         $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario]
                                                            ,['id_casino','=',3]
                                                            ,['fecha','=',$contador->fecha]
@@ -863,7 +863,7 @@ class LectorCSVController extends Controller
     $producido->save();
 
     $pdo = DB::connection('mysql')->getPdo();
-
+    DB::connection()->disableQueryLog();
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',3],['fecha','=',$producido->fecha],['id_tipo_moneda',$id_tipo_moneda]])->get();
     if($producidos != null){
       foreach($producidos as $prod){
@@ -922,7 +922,7 @@ class LectorCSVController extends Controller
   public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda){
 
     $pdo = DB::connection('mysql')->getPdo();
-
+    DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
     $cantidad_maquinas = Maquina::where('id_casino','=',3)->whereHas('estado_maquina',function($q){

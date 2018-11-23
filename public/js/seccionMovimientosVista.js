@@ -2132,19 +2132,18 @@ function generarFilaTabla(movimiento){
         )
         if(estado_movimiento==4){
         fila.append($('<td>')
-        .addClass('col-xs-2')
+        .addClass('col-xs-1').css('text-align','center')
         .append($('<i>')
         .addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto')
             )
-      )}
-      else{
+      )}else{
         fila.append($('<td>')
-        .addClass('col-xs-2')
+        .addClass('col-xs-1').css('text-align','center')
         .append($('<i>')
         .addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350')))
       }
         fila.append($('<td>')
-            .addClass('col-xs-2')
+            .addClass('col-xs-3')
             .append($('<span>').text(' '))
             .append($('<button>')
             .addClass('boton_redirigir')

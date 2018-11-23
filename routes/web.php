@@ -592,12 +592,12 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
 
 //Sección Juegos
 Route::get('/juegosMesa', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
-Route::post('juegos/buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
-Route::post('juegos/nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
-Route::post('juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
-Route::get('juegos/obtenerJuegoMesa/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
-Route::get('juegos/obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
-Route::get('juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');
+Route::post('mesas-juegos/buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
+Route::post('mesas-juegos/nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
+Route::post('mesas-juegos/modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
+Route::get('mesas-juegos/obtenerJuegoMesa/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
+Route::get('mesas-juegos/obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
+Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');
 
   //sectores mesasPanio
   Route::post('sectores-mesas/nuevoSector','Mesas\Sectores\ABMCSectoresController@guardar');

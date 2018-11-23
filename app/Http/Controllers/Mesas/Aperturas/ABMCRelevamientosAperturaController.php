@@ -104,61 +104,6 @@ class ABMCRelevamientosAperturaController extends Controller
   }
 
 
-  /*
-  //235 de seccion relevamientos
-  $.ajax({
-            type: "POST",
-            url: 'relevamientos/crearRelevamiento',
-            data: formData,
-            dataType: 'json',
-            // processData: false,
-            // contentType:false,
-            // cache:false,
-            beforeSend: function(data){
-              //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
-              if ($('#modalRelevamiento #casino option:selected').val() != "") {
-                  $('#modalRelevamiento').find('.modal-footer').children().hide();
-                  $('#modalRelevamiento').find('.modal-body').children().hide();
-                  $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
-              }
-            },
-            success: function (data) {
-
-                $('#btn-buscar').click();
-                $('#modalRelevamiento').modal('hide');
-
-                var iframe;
-                iframe = document.getElementById("download-container");
-                if (iframe === null){
-                    iframe = document.createElement('iframe');
-                    iframe.id = "download-container";
-                    iframe.style.visibility = 'hidden';
-                    document.body.appendChild(iframe);
-                }
-
-                iframe.src = data.url_zip;
-            },
-            error: function (data) {
-
-              $('#modalRelevamiento').find('.modal-footer').children().show();
-              $('#modalRelevamiento').find('.modal-body').children().show();
-              $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
-
-              var response = JSON.parse(data.responseText);
-
-              //mostrar error
-              if(typeof response.id_sector !== 'undefined'){
-                  mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
-                  mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
-                  // $('#modalRelevamiento #sector').addClass('alerta');
-                  // $('#modalRelevamiento #casino').addClass('alerta');
-              }
-
-            } //error
-        }); //$.ajax
-
-  */
-
   public function descargarZip($nombre){
 
     $file = public_path() . "/" . $nombre;
@@ -187,7 +132,8 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rel->mesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rel->mesas = $rmesas->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
