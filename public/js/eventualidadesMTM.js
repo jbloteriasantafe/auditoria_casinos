@@ -957,6 +957,8 @@ $('#btn-buscarEventualidadMTM').click(function(e){
       id_tipo_movimiento: $('#B_TipoMovEventualidad').val(),
       fecha: $('#fecha_eventualidad').val(),
       id_casino: $('#B_CasinoEv').val(),
+      mtm: $('#B_mtmEv').val(),
+      isla: $('#B_islaEv').val(),
     }
 
   $.ajax({

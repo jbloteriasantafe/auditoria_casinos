@@ -503,48 +503,10 @@ $('#btn-guardarContador').on('click', function(e){
       complete: function(data){
         console.log('Terminó');
       },
-      success: function (data) {
-        // var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-        //
-        //
-        //   var arregloFecha = data.fecha.split("-");
-        //   var dia = arregloFecha[2];
-        //   var mes = meses[arregloFecha[1] - 1];
-        //   var año = arregloFecha[0];
-        //   var fecha = dia + " " + mes + " " + año;
-        //
-        //   var contador;
-        //   $('#tablaContadores tbody tr').each(function(){
-        //       var fechaTabla = $(this).find('.fecha').text();
-        //       var casinoTabla = $(this).find('.casino').text();
-        //       var monedaTabla = $(this).find('.moneda').text();
-        //
-        //       console.log(fechaTabla);
-        //       console.log(casinoTabla);
-        //       console.log(fecha);
-        //       console.log(data.casino + ' ('+ data.tipo_moneda +')');
-        //       if (fechaTabla == fecha && casinoTabla == data.casino && monedaTabla == data.tipo_moneda) contador = $(this);
-        //   });
-        //
-        //   var fila = $('<tr>').attr('id','contador' + data.id_contador_horario).append($('<td>').addClass('col-xs-4').text(fecha));
-        //
-        //   fila.append($('<td>').addClass('col-xs-4').text(data.casino));
-        //   fila.append($('<td>').addClass('col-xs-2').text(data.tipo_moneda));
-        //   fila.append($('<td>').addClass('col-xs-2')
-        //               .append($('<button>').addClass('btn btn-danger borrar').val(data.id_contador_horario)
-        //                         .append($('<i>').addClass('fa fa-trash'))));
-        //
-        //
-        //   fila.css('background-color','#6dc7be');
-        //
-        //   //Si ya existe el contador reemplaza la fila. Si no,  lo agrega a la tabla
-        //   if (typeof contador !== 'undefined') contador.replaceWith(fila);
-        //   // Insertar arriba
-        //   else $('#tablaContadores tbody tr:first').before(fila);
-        
+      success: function (data) {  
+
         //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
-       
-       
+
         if(data.resultado!='existeRel'){
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
@@ -574,10 +536,10 @@ $('#btn-guardarContador').on('click', function(e){
 
         }
         if(data.resultado == 'existeRel'){
-          //se debe cambiar el modal para que sea homogeneo con el resto 
-          $('#modalImportacionContadores').modal('hide'); 
+          //se debe cambiar el modal para que sea homogeneo con el resto
+          $('#modalImportacionContadores').modal('hide');
           $('#modalErrorVisado').modal(true);
-          
+
         }
       },
       error: function (data) {
