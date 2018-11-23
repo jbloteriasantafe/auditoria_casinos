@@ -604,7 +604,7 @@ class ExpedienteController extends Controller
     }else{
       $logs= LogMovimiento::where([['id_expediente','=',$id_expediente],['id_tipo_movimiento','=',2]])->get(); //chequeo que exista un egreso
 
-      if(empty($logs) && count($logs) == 0){
+      if(count($logs) == 0){
         return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
       }else{
         return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();//agrega reingreso
