@@ -307,7 +307,7 @@ class LogMovimientoController extends Controller
   public function enviarAFiscalizar(Request $request){
     //el request envia el log movimiento con las maquinas que se van a relevar efectivamente
     // 'id_log_movimiento', maquinas, maquinas.*.id_maquina
-    if(!empty($request['maquinas'])){
+    if(!empty($request['maquinas']) || count($request['maquinas']) > 0 ){
       $logMov = LogMovimiento::find($request['id_log_movimiento']);
       if(!isset($logMov->fiscalizaciones))
       {
@@ -1418,7 +1418,7 @@ class LogMovimientoController extends Controller
                'casino.nombre','casino.id_casino')
               ->orderBy('log_movimiento.fecha','desc')
               ->get();
-              
+
     return ['logs' => $logs];
   }
 
