@@ -240,6 +240,7 @@ class RelevamientoMovimientoController extends Controller
      $relevamiento->cargador()->associate($id_cargador);
      $relevamiento->save();
 
+     $es_toma_reingreso = count($relevamiento->toma_relev_mov); //1 si es que hay una, sino cero o bien 2
 
      if(!isset($relevamiento->toma_relevamiento_movimiento)){
          TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
@@ -252,8 +253,8 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar);
-       }else{
+         $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
+       }else{ //cuando el fisca vuelve a mandar a guardar y ya estaba creada
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
          $contadores,

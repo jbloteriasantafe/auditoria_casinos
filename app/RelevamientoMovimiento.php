@@ -31,7 +31,7 @@ class RelevamientoMovimiento extends Model
   }
 
   public function toma_relevamiento_movimiento(){
-      return $this->hasOne('App\TomaRelevamientoMovimiento','id_relevamiento_movimiento','id_relev_mov');
+      return $this->hasMany('App\TomaRelevamientoMovimiento','id_relevamiento_movimiento','id_relev_mov');
   }
 
   public function toma_relevamiento_modificada(){

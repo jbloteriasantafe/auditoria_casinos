@@ -885,7 +885,8 @@ class LogMovimientoController extends Controller
     $request->id_cargador,
     $request->id_fiscalizador, $request['mac']);
 
-    if($this->cargaFinalizada($fiscalizacion))
+    //si es primera toma
+    if($fiscalizacion->estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
     {//si existe una toma de relevamiento por cada relevamiento -> finalizado
       $logMov->id_estado_movimiento= 3;//fiscalizado
       $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
@@ -898,6 +899,21 @@ class LogMovimientoController extends Controller
       }
       CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
     }
+
+    //la fiscalizacion esta cargada en la toma 1 y pouede estar visada, y verifico que las tomas2 esten cargadas
+    if($fiscalizacion->estado_relevamiento > 2 && cargaFinalizadaToma2($fiscalizacion)){
+      $logMov->id_estado_movimiento= 3;//fiscalizado
+      $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
+      $fiscalizacion->estado_relevamiento()->associate(7);
+      //rel. visado (?) le pongo ese pero es para distinguir que es la toma 2 que ya esta cargada
+      $id_usuario = session('id_usuario');
+      $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
+      foreach ($usuarios as $user){
+        $u = Usuario::find($user->id_usuario);
+       if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
+      }
+    }
+
       $fiscalizacion->save();
       $logMov->save();
 
@@ -907,7 +923,16 @@ class LogMovimientoController extends Controller
 
   private function cargaFinalizada($fiscalizacion){
     foreach ($fiscalizacion->relevamientos_movimientos as $relevamiento) {
-      if(!isset($relevamiento->toma_relevamiento_movimiento)){
+      if(count($relevamiento->toma_relevamiento_movimiento) != 1){
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private function cargaFinalizadaToma2($fiscalizacion){
+    foreach ($fiscalizacion->relevamientos_movimientos as $relevamiento) {
+      if(count($relevamiento->toma_relevamiento_movimiento) != 2){
         return false;
       }
     }

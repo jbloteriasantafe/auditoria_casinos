@@ -118,10 +118,13 @@ $cas = $usuario['usuario']->casinos;
                   <td>
                     @if($fiscalizacion->id_estado_relevamiento < 3)
                     <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-generarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="far fa-file "> <span>GENERAR</span> </i></button>
-                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-upload"> <span>CARGAR</span></i></button>
+                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-upload"> <span>CARGAR TOMA 1</span></i></button>
                     @endif
                     @if($fiscalizacion->id_estado_relevamiento > 2)
-                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button>
+                      @if($fiscalizacion->id_estado_relevamiento  < 7)
+                        <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarT2RelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-retweet"> <span>CARGAR TOMA 2</span></i></button>
+                      @endif
+                      <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button>
                     @endif
                     <?php
                       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
