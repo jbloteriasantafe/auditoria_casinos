@@ -48,8 +48,9 @@ class JuegoController extends Controller
       $maquina->denominacion = $mtm->pivot->denominacion;
       $maquinas[] = $maquina;
     }
+    $casinos=$juego->casinos;
     $tabla = TablaPago::where('id_juego', '=', $id)->get();
-    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas];
+    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos];
   }
 
   public function encontrarOCrear($juego){
@@ -99,6 +100,7 @@ class JuegoController extends Controller
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
       'id_progresivo' => 'nullable',
+      'casinos' => 'required|array|min:1',
     ], array(), self::$atributos)->validate();
 
     $juego = new Juego;
@@ -106,6 +108,11 @@ class JuegoController extends Controller
     $juego->cod_juego = $request->cod_juego;
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
+
+    // asocio el nuevo juego con los casinos seleccionados
+    
+    $juego->casinos()->sync($request['casinos']);
+    
 
     if(isset($request->maquinas)){
       foreach ($request->maquinas as $maquina) {
@@ -162,6 +169,7 @@ class JuegoController extends Controller
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
       'id_progresivo' => 'nullable',
+      'casinos' => 'required|array|min:1',
     ], array(), self::$atributos)->after(function ($validator) {
 
         if($validator->getData()['id_juego'] != 0){
@@ -178,6 +186,8 @@ class JuegoController extends Controller
     
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
+    // asocio el nuevo juego con los casinos seleccionados
+    $juego->casinos()->sync($request['casinos']);
 
     if(isset($request->tabla_pago)){
       foreach ($juego->tablasPago as $tabla) {

@@ -53,6 +53,10 @@ class Casino extends Model
     return $this->HasMany('App\ContadorHorario','id_casino','id_casino');
   }
 
+  public function juegos(){
+    return $this->belongsToMany('App\Juego','casino_tiene_juego','id_casino','id_juego');
+}
+
   public static function boot(){
         parent::boot();
         Casino::observe(new CasinoObserver());

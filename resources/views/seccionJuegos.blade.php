@@ -10,6 +10,11 @@
 
 @section('contenidoVista')
 
+<?php
+use App\Http\Controllers\UsuarioController;
+setlocale(LC_TIME, 'es_ES.UTF-8');
+$id_usuario = session('id_usuario');
+?>
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
                     <div class="row"> <!-- fila de FILTROS -->
@@ -118,20 +123,32 @@
             <div id="juegoPlegado" class="row">
                 <div class="row">
                   <div class="row" style="padding-bottom: 15px;">
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                     </div>
-                      <div class="col-md-4" id="cod_inp">
+                      <div class="col-md-3" id="cod_inp">
                           <h5>Código de Certificado</h5>
                           <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />
                       </div>
                   </div>
                   <br>
+                  <div style="border-bottom: 1px solid #eee;"></div><br>
+                  <div class="row">
+                      <div class="col-md-12" id="contenedorCasinoJuegos">
+                        <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+                        <h5>Casino</h5>
+                        @foreach($usuario['usuario']->casinos as $casino)
+                        <input style="margin-left:40px;" id="casino{{$casino->id_casino}}" type="checkbox" name="" value="{{$casino->id_casino}}" checked> {{$casino->nombre}}
+                        @endforeach
+                      </div>
+                  </div>
+                  <br>
+                  <div style="border-bottom: 1px solid #eee;"></div><br>
                   <div class="row" style="padding-bottom: 15px;">
                       <div id="tablas_de_pago" class="col-md-12">
                           <h5 style="display:inline; margin-right:5px;">Tablas de pago</h5>

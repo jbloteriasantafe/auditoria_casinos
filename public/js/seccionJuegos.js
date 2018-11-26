@@ -209,7 +209,7 @@ $(document).on('click','.modificar',function(){
     $('#id_juego').val(id_juego);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego, data.tablasDePago , data.maquinas);
+      mostrarJuego(data.juego, data.tablasDePago , data.maquinas, data.casinos);
 
     });
 
@@ -372,6 +372,10 @@ $('#btn-guardar').click(function (e) {
     });
 
     var maquinas = [];
+    var casinos=[];
+    $('#contenedorCasinoJuegos input:checked').each(function(e){
+      casinos.push($(this).val());
+    })
     $('#listaMaquinas .copia').each(function (){
       var id_m = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
       var maquina = {
@@ -404,7 +408,8 @@ $('#btn-guardar').click(function (e) {
       cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
       tabla_pago: tablas,
-      maquinas: maquinas
+      maquinas: maquinas,
+      casinos: casinos
     }
 
     if (state == "modificar") {
@@ -705,8 +710,7 @@ function habilitarControles(valor){
 }
 
 
-function mostrarJuego(juego, tablas, maquinas){
-  console.log("estoy intentando imprimir el cofigo de juego", juego.cod_juego);
+function mostrarJuego(juego, tablas, maquinas, casinos){
   $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);;
   $('#inputCodigo').val(juego.cod_identificacion);
@@ -728,5 +732,11 @@ function mostrarJuego(juego, tablas, maquinas){
     div.find('.nro_admin').val(maquinas[i].nro_admin);
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
+  } 
+  // limpio los casinos seleccionados pro defecto
+  $('#contenedorCasinoJuegos input:checked').prop('checked' ,false);
+  //Setear los casinos del usuario
+  for (var i = 0; i < casinos.length; i++) {
+    $('#contenedorCasinoJuegos #casino' + casinos[i].id_casino ).prop('checked' ,true);
   }
 }
