@@ -131,6 +131,13 @@ Route::get('disposiciones','DisposicionController@buscarTodoDisposiciones')->mid
 Route::get('resoluciones','ResolucionController@buscarTodoResoluciones');
 Route::post('resoluciones/buscar','ResolucionController@buscarResolucion')->middleware('tiene_permiso:ver_seccion_resoluciones');
 Route::post('disposiciones/buscar','DisposicionController@buscarDispocisiones');
+/***********
+Notas
+***********/
+Route::get('notas','NotaController@buscarTodoNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
+Route::post('notas/buscar','NotaController@buscarNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
+Route::get('notas/consulta-nota/{id}','NotaController@consultaMovimientosNota');
+Route::delete('notas/eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
  /***********
     GLI soft
  ************/
