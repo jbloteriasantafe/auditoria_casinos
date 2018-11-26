@@ -10,6 +10,7 @@ use App\TablaPago;
 use App\Casino;
 use App\GliSoft;
 use App\Maquina;
+use App\Usuario;
 use Validator;
 
 class JuegoController extends Controller
@@ -259,10 +260,11 @@ class JuegoController extends Controller
 
   public function buscarJuegos(Request $request){
     $reglas=array();
+    $casinos = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
-    //se cambio la referencia al atributo, el correcto es nro_archivo
     if(!empty($request->codigoId)){
       $reglas[]=['gli_soft.nro_archivo', 'like' , '%' . $request->codigoId  .'%'];
     }
@@ -270,15 +272,23 @@ class JuegoController extends Controller
       $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
     }
 
+     foreach($casinos as $casino){
+      $reglaCasinos [] = $casino->id_casino;
+     }
+    
+
     $sort_by = $request->sort_by;
 
-    $resultados=DB::table('juego')->select('juego.*')
-    ->leftJoin('gli_soft','gli_soft.id_gli_soft','=','juego.id_gli_soft')
-    ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
-    ->where($reglas)->paginate($request->page_size);
-
+    $resultados=DB::table('juego')
+                  ->distinct()
+                  ->select('juego.*')
+                  ->leftJoin('gli_soft','gli_soft.id_gli_soft','=','juego.id_gli_soft')
+                  ->leftjoin('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
+                  ->when($sort_by,function($query) use ($sort_by){
+                                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                              })
+                  ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
+                  ->where($reglas)->paginate($request->page_size);
     return $resultados;
   }
 
