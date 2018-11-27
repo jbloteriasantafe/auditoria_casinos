@@ -187,7 +187,6 @@ class JuegoController extends Controller
     
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
-    // asocio el nuevo juego con los casinos seleccionados
 
     if(isset($request->tabla_pago)){
       foreach ($juego->tablasPago as $tabla) {
