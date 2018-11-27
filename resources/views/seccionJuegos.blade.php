@@ -137,18 +137,6 @@ $id_usuario = session('id_usuario');
                       </div>
                   </div>
                   <br>
-                  <div style="border-bottom: 1px solid #eee;"></div><br>
-                  <div class="row">
-                      <div class="col-md-12" id="contenedorCasinoJuegos">
-                        <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                        <h5>Casino</h5>
-                        @foreach($usuario['usuario']->casinos as $casino)
-                        <input style="margin-left:40px;" id="casino{{$casino->id_casino}}" type="checkbox" name="" value="{{$casino->id_casino}}" checked> {{$casino->nombre}}
-                        @endforeach
-                      </div>
-                  </div>
-                  <br>
-                  <div style="border-bottom: 1px solid #eee;"></div><br>
                   <div class="row" style="padding-bottom: 15px;">
                       <div id="tablas_de_pago" class="col-md-12">
                           <h5 style="display:inline; margin-right:5px;">Tablas de pago</h5>

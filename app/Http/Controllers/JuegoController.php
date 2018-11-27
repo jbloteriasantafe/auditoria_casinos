@@ -101,19 +101,20 @@ class JuegoController extends Controller
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
       'id_progresivo' => 'nullable',
-      'casinos' => 'required|array|min:1',
     ], array(), self::$atributos)->validate();
 
     $juego = new Juego;
     $juego->nombre_juego = $request->nombre_juego;
     $juego->cod_juego = $request->cod_juego;
     //$juego->cod_identificacion= $request->cod_identificacion;
-    $juego->save();
-
+    $juego->save();  
     // asocio el nuevo juego con los casinos seleccionados
-    
-    $juego->casinos()->sync($request['casinos']);
-    
+    $casinos = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
+    foreach($casinos as $casino){
+    $reglaCasinos [] = $casino->id_casino;
+    }
+    $juego->casinos()->syncWithoutDetaching($reglaCasinos);
 
     if(isset($request->maquinas)){
       foreach ($request->maquinas as $maquina) {
@@ -170,7 +171,6 @@ class JuegoController extends Controller
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
       'id_progresivo' => 'nullable',
-      'casinos' => 'required|array|min:1',
     ], array(), self::$atributos)->after(function ($validator) {
 
         if($validator->getData()['id_juego'] != 0){
@@ -188,7 +188,6 @@ class JuegoController extends Controller
     //$juego->cod_identificacion= $request->cod_identificacion;
     $juego->save();
     // asocio el nuevo juego con los casinos seleccionados
-    $juego->casinos()->sync($request['casinos']);
 
     if(isset($request->tabla_pago)){
       foreach ($juego->tablasPago as $tabla) {
@@ -225,11 +224,24 @@ class JuegoController extends Controller
   }
 
   public function eliminarJuego($id){
+    // quiuto de la tabla relacion 
+    $casinos = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
+    foreach($casinos as $casino){
+    $reglaCasinos [] = $casino->id_casino;
+    }
+    
+
     $juego = Juego::find($id);
     foreach ($juego->tablasPago as $tabla) {
       TablaPagoController::getInstancia()->eliminarTablaPago($tabla->id_tabla_pago);
     }
-    $juego->delete();
+    $juego->casinos()->detach($reglaCasinos);
+    // solo si no queda asociado a nigun casino se puede eliminar el juego
+    $casRestantes= DB::table('casino_tiene_juego')->where('casino_tiene_juego.id_juego','=',$juego->id_juego)->count();
+    if ($casRestantes==0){
+      $juego->delete();
+    }
     return ['juego' => $juego];
   }
 
