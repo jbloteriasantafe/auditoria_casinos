@@ -32,20 +32,25 @@ class NotaController extends Controller
   }
 
   public function buscarTodoNotas(){
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-      $notas = array();
-      foreach($usuario['usuario']->casinos as $casino){
-        $auxiliar=DB::table('nota')
+
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $casinos = array();
+      foreach($usuario->casinos as $casino){
+        $casinos[] = $casino->id_casino;
+      }
+      $notas=DB::table('nota')
                       ->join('expediente' , 'expediente.id_expediente' ,'=' , 'nota.id_expediente')
                       ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
                       ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-                      ->where('casino.id_casino' , '=' ,$casino->id_casino)
-                      ->get()
-                      ->toArray();
-          $notas=array_merge($notas,$auxiliar);
-      }
+                      ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+                      ->whereIn('casino.id_casino' ,$casinos)
+                      ->where('es_disposicion','=',0)
+                      ->orderBy('nota.identificacion','asc')
+                      ->take(30)
+                      ->get();
+
       $casinos=Casino::all();
-      return view('seccionNotas' , ['notas' => $notas , 'casinos' => $casinos]);
+      return view('seccionNotasExpediente' , ['notas' => $notas , 'casinos' => $casinos]);
   }
 
   public function guardarNota($request, $id_expediente, $id_casino)// se usa desde expedienteController
@@ -191,7 +196,17 @@ class NotaController extends Controller
 
   }
 
-  //esta desactualizado -- :/
+  public function consultaMovimientosNota($id_nota){
+    $nota = Nota::findOrFail($id_nota);
+    if($nota->id_tipo_movimiento != null){
+      if(count($nota->log_movimiento->relevamientos_movimientos) > 0){
+        return ['eliminable' => 0, 'nota' => $nota];
+      }
+    }
+      return ['eliminable' => 1, 'nota' => $nota];
+
+  }
+
   public function buscarNotas(Request $request){
     $reglas = array();
     if(!empty($request->nro_exp_org)){
@@ -208,31 +223,51 @@ class NotaController extends Controller
     }
 
     if(!empty($request->identificacion)){
-      $reglas[]=['nota.identificacion', '=' ,  $request->identificacion ];
+      $reglas[]=['nota.identificacion', 'like' ,  '%' . $request->identificacion.'%'];
     }
 
 
     if(empty($request->fecha)){
         $resultados=DB::table('expediente')
-        ->select('nota.*','casino.*')
         ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
         ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
         ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+        ->where('es_disposicion','=',0)
+        ->orderBy('nota.identificacion','asc')
         ->where($reglas)
+        ->take(50)
         ->get();
     }else{
         $fecha=explode("-", $request->fecha);
         $resultados=DB::table('expediente')
-        ->select('nota.*','casino.*')
         ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
         ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
         ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+        ->where('es_disposicion','=',0)
+        ->orderBy('nota.identificacion','asc')
         ->where($reglas)
         ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
         ->whereMonth('fecha_iniciacion','=', $fecha[1])
+
+        ->take(50)
         ->get();
       }
         return ['resultados' => $resultados];
+  }
+
+  public function eliminarNotaCompleta($id_nota){
+    $logMovsController = new LogMovimientoController();
+    $nota = Nota::find($id_nota);
+    if($nota->id_tipo_movimiento != null){
+      $nota->tipo_movimiento()->dissociate();
+      $log = $nota->log_movimiento();
+      $nota->log_movimiento()->dissociate();
+      $logMovsController->eliminarMovimientoNota($log);
+    }
+    $nota->expediente()->dissociate();
+    return 1;
   }
 
 }
