@@ -472,6 +472,10 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
   e.preventDefault();
 
   $(this).parent().parent().remove();
+
+  limpiarCargaApertura();
+  $('#columnaDetalle').hide();
+
 });
 
 //dentro del modal de carga apertura, presiona el botón guardar:
@@ -1006,7 +1010,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       var id_casino = data.casino.id_casino;
       $('.f_cierre').text(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.fiscalizador.nombre);
+      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
       $('.cas_cierre').text( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
