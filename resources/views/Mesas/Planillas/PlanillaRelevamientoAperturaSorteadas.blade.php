@@ -133,12 +133,6 @@ footer
                     </td>
               </table>
               <br>
-              <br>
-              <br>
-              <br>
-              <br>
-              <br>
-              <br>
               <table>
                 <tr>
                   <th class="tablaInicio" style="padding-top: 50px; border-right: 0px; border-color: gray;"></th>
