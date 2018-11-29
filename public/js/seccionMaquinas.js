@@ -212,7 +212,7 @@ $('#busqueda_casino').on('change',function(){
 function eventoModificar(id_maquina){
   $('#mensajeExito').hide();
   //se decidio que desde el modificar no se podra alterar la isla, por lo que cada vez que entre a este modal, se ocultara la seccion
-  $('#modalMaquina').find('#navIsla').hide();
+ // $('#modalMaquina').find('#navIsla').hide();
   limpiarModal();
   habilitarControles(true);
   //en nro isla queda desabilitado porque todavia no seleccionó un casino
@@ -250,6 +250,7 @@ function eventoModificar(id_maquina){
 $(document).on('click','.modificar',function(e,id_maquina){
   console.log('sii');
   $(this).prop('disabled', true);
+  $('#modalMaquina').find('#navIsla').show();
 
     var id_maquina = (id_maquina != null) ? id_maquina : $(this).val();
     console.log('click .modificar');
