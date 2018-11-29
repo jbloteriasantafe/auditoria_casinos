@@ -27,7 +27,6 @@ class JuegoMesa extends Model
     return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
 
-
   public function getTableName(){
     return $this->table;
   }

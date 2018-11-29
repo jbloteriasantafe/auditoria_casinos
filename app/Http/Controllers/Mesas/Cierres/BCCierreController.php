@@ -101,7 +101,7 @@ class BCCierreController extends Controller
     if(!empty($cierre)){
       $detalles = DB::table('detalle_cierre')
                       ->rightJoin('ficha','ficha.id_ficha','=','detalle_cierre.id_ficha')
-                      ->where('detalle_cierre.id_detalle_cierre','=',$id)
+                      ->where('detalle_cierre.id_cierre_mesa','=',$id)
                       ->where('ficha.id_moneda','=',$mesa->moneda->id_moneda)
                       ->get();
       $detalleC = array();
