@@ -58,13 +58,15 @@ class ABMCCierreAperturaController extends Controller
   public function asociarAperturaACierre(Apertura $apertura){
     $cierre = Cierre::where('id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                       ->orderBy('fecha' , 'DESC')
-                      ->get();
+                      ->first();
     if(count($cierre) == 1){
       $mesa = Mesa::find($apertura->id_mesa_de_panio);
       $caobjetct = new CierreApertura;
+      $c  = $cierre->id_cierre_mesa;
+
       //$caobjetct->controlador()->associate();??????????????????que controlador? el que valida la asociación?
       $caobjetct->apertura()->associate($apertura->id_apertura_mesa);
-      $caobjetct->cierre()->associate($cierre->id_cierre_mesa);
+      $caobjetct->cierre()->associate($c);
       $caobjetct->estado_cierre()->associate(1);
       $caobjetct->mesa()->associate($mesa->id_mesa_de_panio);
       $caobjetct->juego()->associate($mesa->id_juego_mesa);
@@ -78,8 +80,8 @@ class ABMCCierreAperturaController extends Controller
     $det_aperturas_con_Dcierres = DB::table('detalle_apertura')
       ->select('detalle_apertura.id_detalle_apertura','detalle_cierre.id_detalle_cierre')
       ->join('detalle_cierre','detalle_apertura.id_ficha','=','detalle_cierre.id_ficha')
-      ->where('detalle_apertura.id_apertura',$apertura->id_apertura_mesa)
-      ->where('detalle_cierre.id_cierre',$cierre->id_cierre_mesa)
+      ->where('detalle_apertura.id_apertura_mesa',$apertura->id_apertura_mesa)
+      ->where('detalle_cierre.id_cierre_mesa',$cierre->id_cierre_mesa)
       ->get();
 
     foreach ($det_aperturas_con_Dcierres as $det) {

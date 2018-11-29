@@ -364,7 +364,10 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
-
+      $.get('usuarios/quienSoy',function(data){
+        $('#cargador').val(data.usuario.nombre);
+        $('#cargador').attr('data-cargador',data.usuario.id_usuario);
+      })
       }
 })
 
@@ -493,7 +496,7 @@ $('#btn-guardar-apertura').on('click', function(e){
     })
 
       var formData= {
-        id_cargador: $('#cargador').val(),
+        id_cargador: $('#cargador').attr('data-cargador'),
         id_casino: $('#casinoApertura').val(),
         hora: $('#horarioAp').val(),
         fecha: $('#B_fecha_apert').val(),
@@ -580,7 +583,7 @@ $(document).on('change','#casinoCierre',function(){
 
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
   $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -600,7 +603,7 @@ $('#confirmarCierre').on('click',function(e){
 
       var id_casino=$('#casinoCierre').val();
       $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-      $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+      $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
       $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 
 

@@ -28,7 +28,9 @@ class Cierre extends Model
   public function cierre_apertura(){
     return $this->hasOne('App\Mesas\CierreApertura','id_cierre_mesa','id_cierre_mesa');
   }
-
+  public function tipo_mesa(){
+    return $this->belongsTo('App\Mesas\TipoMesa','id_tipo_mesa','id_tipo_mesa');
+  }
   public function mesa(){
     return $this->belongsTo('App\Mesas\Mesa','id_mesa_de_panio','id_mesa_de_panio');
   }

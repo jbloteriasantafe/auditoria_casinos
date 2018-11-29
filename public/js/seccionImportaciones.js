@@ -503,7 +503,7 @@ $('#btn-guardarContador').on('click', function(e){
       complete: function(data){
         console.log('Terminó');
       },
-      success: function (data) {  
+      success: function (data) {
 
         //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
 
@@ -929,6 +929,7 @@ function habilitarInputProducido(){
 
 function procesarDatosProducidos(e) {
     var csv = e.target.result;
+    
     // procesarDatosContador(csv);
 
     // var allTextLines = csv.split(/\r\n|\n/);
