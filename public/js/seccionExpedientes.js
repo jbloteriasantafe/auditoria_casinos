@@ -1258,7 +1258,6 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,movimient
 }
 
 function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
-
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
@@ -1392,12 +1391,11 @@ function agregarDisposicion(disposicion, editable){
     }
 
     if(editable==true) {
-
+      $('#dispoCarg').show();
       $('#moldeDisposicion').hide();
       $('#tablaDispoCreadas').show();
 
       var fila=$('#moldeDispoCargada').clone();
-
       fila.removeAttr('id');
       fila.attr('id', disposicion.id_disposicion);
 
@@ -1417,7 +1415,6 @@ function agregarDisposicion(disposicion, editable){
      fila.show();
      //fila.css('display','block');
       $('#tablaDispoCreadas tbody').append(fila);
-
     }
       //moldeDisposicion.show();
     if(editable=='vacia') {

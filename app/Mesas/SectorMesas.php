@@ -22,9 +22,9 @@ class SectorMesas extends Model
       $aux = 1;
       foreach ($this->mesas as $m) {
         if($aux == $total){
-          $mesas = $mesas . $m->nro_mesa;
+          $mesas = $mesas .$m->juego->siglas . $m->nro_mesa;
         }else{
-          $mesas = $mesas . $m->nro_mesa. " - ";
+          $mesas = $mesas .$m->juego->siglas. $m->nro_mesa. " - ";
         }
         $aux++;
       }
