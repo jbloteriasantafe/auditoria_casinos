@@ -1028,7 +1028,7 @@ $(document).on('click', '.modificarCyA', function(e) {
             .append($('<input>').prop('readonly','true')
             .val(data.detallesC[i].valor_ficha).css('text-align','center')))
 
-            if(data.detallesC[i].cantidad_ficha != null){
+            if(data.detallesC[i].monto_ficha != null){
 
               fila.append($('<td>')
                   .addClass('col-md-3')
