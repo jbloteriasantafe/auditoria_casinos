@@ -18,7 +18,7 @@ class Moneda extends Model
   }
 
   public function fichas(){
-    return $this->hasMany('App\Mesas\Ficha','id_moneda','id_moneda')->orderBy('ficha.valor_ficha','asc');
+    return $this->hasMany('App\Mesas\Ficha','id_moneda','id_moneda')->orderBy('ficha.valor_ficha','desc');
   }
 
   public function getTableName(){
