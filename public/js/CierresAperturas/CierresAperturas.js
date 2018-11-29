@@ -364,7 +364,10 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
-
+      $.get('usuarios/quienSoy',function(data){
+        $('#cargador').val(data.usuario.nombre);
+        $('#cargador').attr('data-cargador',data.usuario.id_usuario);
+      })
       }
 })
 
@@ -493,7 +496,7 @@ $('#btn-guardar-apertura').on('click', function(e){
     })
 
       var formData= {
-        id_cargador: $('#cargador').val(),
+        id_cargador: $('#cargador').attr('data-cargador'),
         id_casino: $('#casinoApertura').val(),
         hora: $('#horarioAp').val(),
         fecha: $('#B_fecha_apert').val(),
