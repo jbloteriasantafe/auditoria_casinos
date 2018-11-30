@@ -99,12 +99,14 @@ class BCCierreController extends Controller
     $cierre = Cierre::find($id);
     $mesa = $cierre->mesa;
     if(!empty($cierre)){
-      $detalles = DB::table('detalle_cierre')
-                      ->rightJoin('ficha','ficha.id_ficha','=','detalle_cierre.id_ficha')
-                      ->where('detalle_cierre.id_detalle_cierre','=',$id)
+      $detalles = DB::table('ficha')
+                      ->leftJoin('detalle_cierre','ficha.id_ficha','=','detalle_cierre.id_ficha')
+                      ->where('detalle_cierre.id_cierre_mesa','=',$id)
+                      ->orWhereNull('detalle_cierre.id_cierre_mesa')
                       ->where('ficha.id_moneda','=',$mesa->moneda->id_moneda)
                       ->get();
       $detalleC = array();
+
       foreach ($detalles as $init) {
         $detalleC[] = [ 'monto_ficha' => $init->monto_ficha,
                         'valor_ficha' => $init->valor_ficha,

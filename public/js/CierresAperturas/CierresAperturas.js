@@ -364,7 +364,10 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
-
+      $.get('usuarios/quienSoy',function(data){
+        $('#cargador').val(data.usuario.nombre);
+        $('#cargador').attr('data-cargador',data.usuario.id_usuario);
+      })
       }
 })
 
@@ -469,6 +472,10 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
   e.preventDefault();
 
   $(this).parent().parent().remove();
+
+  limpiarCargaApertura();
+  $('#columnaDetalle').hide();
+
 });
 
 //dentro del modal de carga apertura, presiona el botón guardar:
@@ -493,7 +500,7 @@ $('#btn-guardar-apertura').on('click', function(e){
     })
 
       var formData= {
-        id_cargador: $('#cargador').val(),
+        id_cargador: $('#cargador').attr('data-cargador'),
         id_casino: $('#casinoApertura').val(),
         hora: $('#horarioAp').val(),
         fecha: $('#B_fecha_apert').val(),
@@ -580,7 +587,7 @@ $(document).on('change','#casinoCierre',function(){
 
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
   $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -600,7 +607,7 @@ $('#confirmarCierre').on('click',function(e){
 
       var id_casino=$('#casinoCierre').val();
       $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-      $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+      $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
       $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 
 
@@ -1003,7 +1010,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       var id_casino = data.casino.id_casino;
       $('.f_cierre').text(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.fiscalizador.nombre);
+      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
       $('.cas_cierre').text( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
@@ -1021,7 +1028,7 @@ $(document).on('click', '.modificarCyA', function(e) {
             .append($('<input>').prop('readonly','true')
             .val(data.detallesC[i].valor_ficha).css('text-align','center')))
 
-            if(data.detallesC[i].cantidad_ficha != null){
+            if(data.detallesC[i].monto_ficha != null){
 
               fila.append($('<td>')
                   .addClass('col-md-3')

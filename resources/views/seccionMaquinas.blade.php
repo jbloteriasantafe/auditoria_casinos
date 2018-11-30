@@ -305,12 +305,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <input id="denominacion" type="text" class="form-control" placeholder="Denominación">
                                   <br>
                               </div>
-                              <div class="col-lg-4">
+                              {{-- <div class="col-lg-4">
                                   <h5>% Devolución</h5>
                                   <input id="porcentaje_devolucion" type="text" class="form-control" placeholder="Porcentaje Devolución">
                                   <br>
                                   <span id="alerta_devolucion" class="alertaSpan"></span>
-                              </div>
+                              </div> --}}
                               <div class="col-lg-4">
                                   <h5>Estado</h5>
                                   <select class="form-control" id="estado">
@@ -322,6 +322,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
                               </div>
 
+                              <div class="col-lg-4">
+                                <h5>Progresivo</h5>
+                                <input id="juega_progresivo_m"  class="form-control" disabled>
+                              </div>
                           </div>
                           <div class="row">
                             <div class="col-lg-4">
@@ -385,7 +389,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                           <th width="15%">MÁQUINAS</th>
                                           <th width="20%">CASINO</th>
                                           <th width="20%">SECTOR</th>
-                                          <th width="15%">ACCIÓN</th>
+                                          {{-- <th width="15%">ACCIÓN</th> --}}
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -397,14 +401,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                           <td id="activa_cantidad_maquinas">8</td>
                                           <td id="activa_casino">Santa Fe</td>
                                           <td id="activa_zona">Zona 1</td>
-                                          <td>
+                                          {{-- <td>
                                             <button id="editarIslaActiva" class="btn btn-warning" type="button">
                                               <i class="fas fa-fw fa-pencil-alt"></i>
                                             </button>
                                             <button id="borrarIslaActiva" class="btn btn-danger" type="button">
                                               <i class="fas fa-fw fa-trash"></i>
                                             </button>
-                                          </td>
+                                          </td> --}}
                                       </tr>
                                     </tbody>
                                   </table>

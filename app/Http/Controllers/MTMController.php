@@ -354,7 +354,7 @@ class MTMController extends Controller
           'juega_progresivo' => 'required|boolean',
           'id_tipo_gabinete'=> 'nullable',
           'id_tipo_maquina' => 'nullable',
-          'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+          //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' => 'nullable',//'required_if:notas,null',
@@ -521,7 +521,8 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
-            $juegos_finales[] = ($juego->id_juego);
+            
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]; 
           }
         }
         if(isset($gli_soft)){
@@ -549,7 +550,7 @@ class MTMController extends Controller
     $MTM->juega_progresivo = $request->juega_progresivo;
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_juego=$juegoActivo->id_juego;
-    $MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
+    //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
     $MTM->formula()->associate($formula);
@@ -558,7 +559,7 @@ class MTMController extends Controller
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
     $MTM->juegos()->sync($juegos_finales);
-
+    
 
     //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
     switch ($request->id_progresivo) {

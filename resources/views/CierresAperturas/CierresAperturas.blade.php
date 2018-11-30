@@ -805,7 +805,7 @@ $cas = $usuario['usuario']->casinos;
                       ?>
                       <div class="col-md-6">
                         <h6>CARGADOR</h6>
-                        <input id="cargador" type="text"  name="cargador" value='{{$usuario['usuario']->nombre}}' readonly="true">
+                        <input id="cargador" type="text"  name="cargador" value="" data-cargador="" readonly="true">
                       </div>
 
                     </div>
