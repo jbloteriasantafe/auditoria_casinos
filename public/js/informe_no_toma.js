@@ -131,7 +131,11 @@ function eventoModal(id_maquina){
     $('#devolucion').text(data.maquina.porcentaje_devolucion);
     $('#modalMaquinaContable').modal('show');
     llenarTablaNoToma(data.resultados);
+    generarTablaRelevamientos(data.maquina.id_casino,data.maquina.nro_admin,5)
   })
+
+  
+
 
 }
 
@@ -225,4 +229,61 @@ function generarGraficoMTM(fechas, data) {
               }]
       });
 
-}
+};
+
+function generarTablaRelevamientos(id_casino,nro_admin,cant_rel){
+
+    $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  
+      var formData = {
+          id_casino: id_casino,
+          nro_admin: nro_admin,
+          cantidad_relevamientos: cant_rel,
+      }
+  
+    $.ajax({
+        type: 'POST',
+        url: 'estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina',
+        data: formData,
+        dataType: 'json',
+        success: function (data) {
+  
+            $('#tablaRelevamientosDesdeNoToma tbody tr').remove();
+    
+            for (var i = 0; i < data.detalles.length; i++) {
+            
+              var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
+             data.detalles[i].producido_calculado_relevado : data.detalles[i].tipos_causa_no_toma;
+  
+             var fila = $('<tr>');
+  
+              fila.append($('<td>').text(data.detalles[i].fecha))
+  
+              data.detalles[i].cont1 != null ? fila.append($('<td>').text(data.detalles[i].cont1)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont2 != null ? fila.append($('<td>').text(data.detalles[i].cont2)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont3 != null ? fila.append($('<td>').text(data.detalles[i].cont3)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont4 != null ? fila.append($('<td>').text(data.detalles[i].cont4)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont5 != null ? fila.append($('<td>').text(data.detalles[i].cont5)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont6 != null ? fila.append($('<td>').text(data.detalles[i].cont6)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont7 != null ? fila.append($('<td>').text(data.detalles[i].cont7)) : fila.append($('<td>').text('-'));
+              data.detalles[i].cont8 != null ? fila.append($('<td>').text(data.detalles[i].cont8)) : fila.append($('<td>').text('-'));
+  
+              data.detalles[i].coinin != null ? fila.append($('<td>').text(data.detalles[i].coinin)) : fila.append($('<td>').text('-'));
+              data.detalles[i].coinout != null ? fila.append($('<td>').text(data.detalles[i].coinout)) : fila.append($('<td>').text('-'));
+              data.detalles[i].jackpot != null ? fila.append($('<td>').text(data.detalles[i].jackpot)) : fila.append($('<td>').text('-'));
+              data.detalles[i].progresivo != null ? fila.append($('<td>').text(data.detalles[i].progresivo)) : fila.append($('<td>').text('-'));
+              
+              fila.append($('<td>').text(producidoCalculado))
+              
+              data.detalles[i].producido_importado != null ? fila.append($('<td>').text(data.detalles[i].producido_importado)) : fila.append($('<td>').text('-'));
+  
+              data.detalles[i].diferencia != null ? fila.append($('<td>').text(data.detalles[i].diferencia)) : fila.append($('<td>').text('-'));
+  
+  
+              $('#tablaRelevamientosDesdeNoToma tbody').append(fila);
+  
+            }
+        },
+      });
+
+};

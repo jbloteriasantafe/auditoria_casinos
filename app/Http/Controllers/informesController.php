@@ -456,6 +456,7 @@ class informesController extends Controller
     $aux->codigo = $maquina->isla->codigo;
     $aux->denominacion = $maquina->denominacion;
     $aux->porcentaje_devolucion = $maquina->porcentaje_devolucion;
+    $aux->id_casino=$maquina->id_casino;
 
 
     $resultados = DB::table('detalle_relevamiento')->select('relevamiento.fecha','tipo_causa_no_toma.descripcion','tipo_causa_no_toma.codigo')
