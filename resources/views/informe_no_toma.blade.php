@@ -79,8 +79,8 @@
                                 {{-- <div class="col-md-12">
                                   <h5>JUEGO ACTIVO</h5>
                                   <span id="juego" class="infoResaltada"></span>
-                                </div>
-                                <div class="col-md-12" style="border-top:1px solid #ccc;">
+                                </div> --}}
+                                {{-- <div class="col-md-12" style="border-top:1px solid #ccc;">
                                   <h5>CASINO</h5>
                                   <span id="casino" class="infoResaltada"></span>
                                 </div>
@@ -124,6 +124,10 @@
                               <h5>DENOMINACIÓN CONTABLE BASE</h5>
                               <span id="denominacion" class="infoResaltada"></span>
                             </div>
+                            <div class="col-md-12">
+                                <h5>JUEGO ACTIVO</h5>
+                                <span id="juego" class="infoResaltada"></span>
+                              </div>
                             {{-- <div class="col-md-6" style="border-top:1px solid #ccc;">
                               <h5>% DEVOLUCIÓN</h5>
                               <span id="devolucion" class="infoResaltada"></span>
@@ -149,7 +153,7 @@
                     </div>
 
                   </div>
-                  <div class="row">
+                  <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
                       <div class="col-md-12">
                           <h6> Últimos 5 relevamientos</h6>
                           <br>
