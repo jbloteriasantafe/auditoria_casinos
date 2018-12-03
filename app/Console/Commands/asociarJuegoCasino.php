@@ -52,7 +52,7 @@ class asociarJuegoCasino extends Command
             //print_r($casinosAsignados);
             if(sizeof($casinosAsignados)!=0){
                 $cant=$cant+sizeof($casinosAsignados);
-                //$juego->casinos()->attach($casinosAsignados);
+                $juego->casinos()->attach($casinosAsignados);
             }
         }
         echo "Se agregaron ", $cant, "filas\n";
