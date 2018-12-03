@@ -372,6 +372,7 @@ $('#btn-guardar').click(function (e) {
     });
 
     var maquinas = [];
+   
     $('#listaMaquinas .copia').each(function (){
       var id_m = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
       var maquina = {
@@ -404,7 +405,7 @@ $('#btn-guardar').click(function (e) {
       cod_identificacion: $('#inputCodigo').val(),
       cod_juego:$('#inputCodigoJuego').val(),
       tabla_pago: tablas,
-      maquinas: maquinas
+      maquinas: maquinas,
     }
 
     if (state == "modificar") {
@@ -706,7 +707,6 @@ function habilitarControles(valor){
 
 
 function mostrarJuego(juego, tablas, maquinas){
-  console.log("estoy intentando imprimir el cofigo de juego", juego.cod_juego);
   $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);;
   $('#inputCodigo').val(juego.cod_identificacion);
@@ -728,5 +728,6 @@ function mostrarJuego(juego, tablas, maquinas){
     div.find('.nro_admin').val(maquinas[i].nro_admin);
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
-  }
+  } 
+  
 }

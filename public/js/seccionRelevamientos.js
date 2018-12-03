@@ -1525,10 +1525,16 @@ $(document).on('click' , '.estadisticas_no_toma' , function (){
   if (win) {
       //Browser has allowed it to be opened
       win.focus();
+    //  $(win.document.ready(function(){
+    //   $('#btn-buscarMTM').trigger('click');
+
+    //  }));
+      
   } else {
       //Browser has blocked it
       alert('Please allow popups for this website');
   }
+
 
 })
 
