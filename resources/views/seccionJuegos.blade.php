@@ -99,6 +99,48 @@ $id_usuario = session('id_usuario');
                      </a>
                     </div>
                   </div>
+
+
+                  <div class="row">
+                    <div class="col-lg-12">
+                     <a href="" id="btn-nuevo-pack" style="text-decoration: none;">
+                      <div class="panel panel-default panelBotonNuevo">
+                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                              <div class="col-xs-12">
+                                <center>
+                                    <h5 class="txtLogo">+</h5>
+                                    <h4 class="txtNuevo">NUEVO PACK</h4>
+                                </center>
+                              </div>
+                          </div>
+                      </div>
+                     </a>
+                    </div>
+                  </div>
+
+
+                  <div class="row">
+                    <div class="col-lg-12">
+                     <a href="" id="btn-asociar-pack-juego" style="text-decoration: none;">
+                      <div class="panel panel-default panelBotonNuevo">
+                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                              <div class="col-xs-12">
+                                <center>
+                                    <h5 class="txtLogo">+</h5>
+                                    <h4 class="txtNuevo">ASOCIAR PACK-JUEGO</h4>
+                                </center>
+                              </div>
+                          </div>
+                      </div>
+                     </a>
+                    </div>
+                  </div>
+
+
                 </div>
 
           </div> <!--/columna TABLA -->
@@ -228,6 +270,140 @@ $id_usuario = session('id_usuario');
           </div>
     </div>
 
+    <!-- Modal Nuevo Pack de juego -->
+    <div class="modal fade" id="modalNuevoPack" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <h3 class="modal-title">| NUEVO PACK DE JUEGO</h3>
+            </div>
+
+            <div  id="colapsado" class="collapse in">
+
+            <div class="modal-body modalCuerpo">
+
+              <form id="frmPack" name="frmPack" class="form-horizontal" novalidate="">
+
+                      <div class="row">
+                        <div class="col-md-6">
+                          <h5>IDENTIFICADOR</h5>
+                          <input type="text" class="form-control" id="identificadorPack" placeholder="Ej: SeleXion AR01" name="identificadorPack"  value="">
+                          <br><span id="alertaIdentificadorPack" class="alertaSpan"></span>
+                        </div>
+                        <div class="col-md-6">
+                          <h5>PREFIJO PARA JUEGO</h5>
+                          <input type="text" class="form-control" id="prefijo" name="descripcuib" placeholder="Ej: AR01"  value="">
+                          <br><span id="alertaPrefijo" class="alertaSpan"></span>
+                        </div>
+                      </div>
+              </form>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+    
+
+    <!-- Modal Asociar Pack-Juego-->
+    <div class="modal fade" id="modalAsociarPack" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <h3 class="modal-title">| ASOCIAR PACK - JUEGO</h3>
+            </div>
+
+            <div  id="colapsado" class="collapse in">
+
+            <div class="modal-body modalCuerpo">
+              <div class="row" style="padding-bottom: 15px;">
+                <div class="col-md-12">
+                  <h6>BUSCAR PACK</h6>
+              </div>
+                <div class="col-md-6">
+                      <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
+                    <input id="inputNombrePack" class="form-control" type="text" autocomplete="off" placeholder="Nombre Pack" />
+                    <!-- <datalist id="juego"> </datalist> -->
+                  </div>
+              </div>
+
+                   <!-- BUSCAR JUEGO-->
+                          
+                   <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                    <div class="col-md-12">
+                        <h6>BUSCAR JUEGO</h6>
+                    </div>
+                </div>
+           
+                <div class="row" style="padding-bottom: 15px;">
+                    <div class="col-md-4">
+                        
+                          <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
+                        <input id="inputJuegoPack" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
+                        <!-- <datalist id="juego"> </datalist> -->
+                    </div>
+                    <div class="col-md-4">
+                        
+                        <input id="inputCodigoJuegoPack" data-codigo="" class="form-control" type="text" autocomplete="off" disabled placeholder="Código de juego"/>
+                    </div>
+                  
+                    <div class="col-md-4">
+                        <button id="btn-agregarJuegoListaPack" class="btn btn-successAceptar" type="button" name="button">
+                          <i class="fas fa-plus"></i> ASOCIAR JUEGO
+                        </button>
+                    </div>
+                </div>
+                <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                        <div id="listaJuegosPack" data-agregado="false" style="padding: 5px 0px 30px 0px;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                  <h6>JUEGOS ASOCIADOS</h6>
+                                  <table id="tablaJuegosPack" class="table" style="margin-top:20px; margin-bottom:20px;">
+                                    <thead>
+                                      <tr>
+                                          <th width="60%">NOMBRE</th>
+                                          <th width="40%">ACCIÓN</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                  </table>
+                                  <p id="" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> El Pack no tiene juegos asociados.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                  </div>
+
+                     
+                          
+                      
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
+
+
+
+
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
 
@@ -255,5 +431,6 @@ $id_usuario = session('id_usuario');
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
+    <script src="js/seccionJuegoPack.js" charset="utf-8"></script>
     <script src="js/seccionJuegos.js" charset="utf-8"></script>
     @endsection
