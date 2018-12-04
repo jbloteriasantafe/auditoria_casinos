@@ -96,7 +96,7 @@ $('#btn-agregarJuegoListaPack').click(function(){
                                             .text(nombre_juego)
                                 )
                );       
-    var boton = $('<button>').addClass('btn btn-danger borrarJuegoaActivo')
+    var boton = $('<button>').addClass('btn btn-danger borrarJuegoDePack')
                              .css('margin-left','10px')
                              .append($('<i>').addClass('fa fa-fw fa-trash'));
     fila.append($('<td>').append(boton));
@@ -106,7 +106,7 @@ $('#btn-agregarJuegoListaPack').click(function(){
   }
 
 
-  //Crear nuevo PackJuego / actualizar si existe
+  //Crear nuevo PackJuego
 $('#btn-crear-pack').click(function (e) {
     $('#mensajeExito').hide();
       $.ajaxSetup({
@@ -130,19 +130,35 @@ $('#btn-crear-pack').click(function (e) {
               $('#btn-buscar').trigger('click');
               $('#modalNuevoPack').modal('hide');
               $('#mensajeExito h3').text('ÉXITO');
-              $('#mensajeExito p').text(' ');
+              $('#mensajeExito p').text('El paquete de juego se creó correctamente');
               $('#mensajeExito').show();
   
           },
           error: function (data) {
   
-              if(typeof data.identificador != 'undefined'){
-                mostrarErrorValidacion($('#identificadorPack'),data.identificador,false);
-              }
-  
-              if(typeof data.prefijo != 'undefined'){
-                mostrarErrorValidacion($('#prefijo'),data.prefijo,false);
-              }
+            var response = JSON.parse(data.responseText);
+
+            if(typeof response.identificador !== 'undefined'){
+              mostrarErrorValidacion($('#identificadorPack'),response.identificador,false);
+            }
+
+            if(typeof response.prefijo !== 'undefined'){
+              mostrarErrorValidacion($('#prefijo'),response.prefijo,false);
+            }
           }
       });
   });
+
+
+  //borrar Juegos
+$(document).on('click', '.borrarJuegoDePack', function(){
+    $(this).parent().parent().remove();
+
+    var cantidad_juegos = $('#tablaJuegosPack tbody tr').length;
+    //Si no quedan más juegos mostrar el mensaje
+    if (cantidad_juegos == 0) {
+      $('#listaJuegosPack').find('p').show();
+      $('#tablaJuegosPack').hide();
+    }
+
+});

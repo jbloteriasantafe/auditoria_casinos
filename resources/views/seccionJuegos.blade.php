@@ -314,7 +314,7 @@ $id_usuario = session('id_usuario');
 
     <!-- Modal Asociar Pack-Juego-->
     <div class="modal fade" id="modalAsociarPack" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog" style="width: 70%">
          <div class="modal-content">
            <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
@@ -346,7 +346,7 @@ $id_usuario = session('id_usuario');
                 </div>
            
                 <div class="row" style="padding-bottom: 15px;">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         
                           <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
                         <input id="inputJuegoPack" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
@@ -357,7 +357,7 @@ $id_usuario = session('id_usuario');
                         <input id="inputCodigoJuegoPack" data-codigo="" class="form-control" type="text" autocomplete="off" disabled placeholder="Código de juego"/>
                     </div>
                   
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <button id="btn-agregarJuegoListaPack" class="btn btn-successAceptar" type="button" name="button">
                           <i class="fas fa-plus"></i> ASOCIAR JUEGO
                         </button>
