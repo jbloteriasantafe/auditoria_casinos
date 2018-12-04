@@ -619,7 +619,10 @@ $('#confirmarCierre').on('click',function(e){
 
 $(document).on('change','#inputMesaCierre',function(){
 
-   var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
+  $('#tablaCargaCierreF tbody tr').remove();
+  $('#totalCierre').val("");
+  $('#total_anticipos_c').val("");
+  var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
 
    if(id_mesa != 0 && id_mesa != null){
       $.get('mesas/detalleMesa/' + id_mesa, function(data){
