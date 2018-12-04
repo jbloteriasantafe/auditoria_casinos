@@ -123,7 +123,7 @@ $id_usuario = session('id_usuario');
 
                   <div class="row">
                     <div class="col-lg-12">
-                     <a href="" id="btn-asociar-pack-juego" style="text-decoration: none;">
+                     <a href="" id="btn-open-asociar-pack-juego" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
                           <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
                           <div class="backgroundNuevo"></div>
@@ -392,7 +392,7 @@ $id_usuario = session('id_usuario');
 
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
+              <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-asociar-pack-juego" value="nuevo">ACEPTAR</button>
               <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
             </div>
           </div>

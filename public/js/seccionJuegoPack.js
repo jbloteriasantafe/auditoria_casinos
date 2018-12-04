@@ -13,7 +13,7 @@ $('#btn-nuevo-pack').click(function(e){
 
 
   //Mostrar modal para agregar nuevo Pack
-$('#btn-asociar-pack-juego').click(function(e){
+$('#btn-open-asociar-pack-juego').click(function(e){
     e.preventDefault();
     //limpio modal
     $('#btn-agregarJuegoListaPack').hide();
@@ -76,7 +76,7 @@ $('#btn-agregarJuegoListaPack').click(function(){
   
           agregarRenglonListaJuegoPack(data.juego.id_juego , data.juego.nombre_juego);
   
-          limpiarCamposJuego();
+          //limpiarCamposJuego();
   
           $('#inputJuegoPack').borrarDataList();
           $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
@@ -162,3 +162,20 @@ $(document).on('click', '.borrarJuegoDePack', function(){
     }
 
 });
+
+// asocia un pack con un conjunto de juegos
+$('#btn-asociar-pack-juego').on('click',function(){
+    var juegos_ids=obtenerJuegosDePack();
+    var id_pack=$('#inputNombrePack').attr("data-elemento-seleccionado");
+    console.log("juegos seleccionados", juegos_ids);
+    console.log("pack seleccionado", id_pack);
+});
+
+// obitiene los juegos de la lista seleccionados para el paquete especifico
+function obtenerJuegosDePack(){
+    var juegos_ids=[];
+    $.each($('#tablaJuegosPack tbody tr') , function(i){
+        juegos_ids.push($(this).attr('id'));
+    });
+    return juegos_ids;
+}
