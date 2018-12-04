@@ -1070,7 +1070,7 @@ class RelevamientoController extends Controller
 
     return $resultados;
   }
-
+/* metodo donde se recalculaba todo, aun no se porque se decidio hacerlo asi , por lo que lo comento y no lo borro
   public function obtenerUltimosRelevamientosPorMaquina(Request $request){
     Validator::make($request->all(),[
         'id_casino' => 'required|exists:casino,id_casino',
@@ -1120,6 +1120,57 @@ class RelevamientoController extends Controller
                      ->take(5)->get();
     return ['maquina' => $maq,
             'formula' => $formula,
+            'detalles' => $detalles];
+  }*/
+
+  public function obtenerUltimosRelevamientosPorMaquina(Request $request){
+    Validator::make($request->all(),[
+        'id_casino' => 'required|exists:casino,id_casino',
+        'nro_admin' => 'required|numeric',
+        'cantidad_relevamientos' => 'required|numeric'
+    ], array(), self::$atributos)->after(function($validator){
+      $maquinas = Maquina::where([['nro_admin',$validator->getData()['nro_admin']],['id_casino',$validator->getData()['id_casino']]])->count();
+      if($maquinas < 1){
+        $validator->errors()->add('nro_admin','No existe una máquina con ese nro admin para ese casino.');
+      }
+    })->validate();
+
+    $maquina = Maquina::where([['nro_admin',$request->nro_admin],['id_casino',$request->id_casino]])->first();
+
+    $maq = new \stdClass();
+    $maq->casino = $maquina->casino->nombre;
+    $maq->sector = $maquina->isla->sector->descripcion;
+    $maq->isla = $maquina->isla->nro_isla;
+    $maq->nro_admin = $maquina->nro_admin;
+
+    $detalles = DB::table('detalle_relevamiento')
+                    ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
+                            'detalle_relevamiento.cont1','detalle_relevamiento.cont2','detalle_relevamiento.cont3','detalle_relevamiento.cont4',
+                            'detalle_relevamiento.cont5','detalle_relevamiento.cont6','detalle_relevamiento.cont7','detalle_relevamiento.cont8',
+                            'detalle_relevamiento.producido_calculado_relevado','detalle_relevamiento.producido_importado','detalle_relevamiento.diferencia',
+                            'detalle_contador_horario.coinin','detalle_contador_horario.coinout','detalle_contador_horario.jackpot','detalle_contador_horario.progresivo'
+                           )
+                           ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
+                           ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+                           ->join('sector','relevamiento.id_sector','=','sector.id_sector')
+                           ->leftJoin('contador_horario',function ($leftJoin){
+                                       $leftJoin->on('contador_horario.fecha','=','relevamiento.fecha');
+                                       $leftJoin->on('contador_horario.id_casino','=','sector.id_casino');
+                                     })
+                           ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
+                           ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
+                           ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
+                           ->where('maquina.id_maquina',$maquina->id_maquina)
+                           ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
+                           ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
+                           //->groupby()
+                           ->distinct('relevamiento.id_relevamiento',
+                                     'detalle_relevamiento.id_detalle_relevamiento',
+                                     'usuario.id_usuario',
+                                     'detalle_contador_horario.id_detalle_contador_horario')
+                           ->orderBy('relevamiento.fecha','desc')
+                           ->take(5)->get();
+    return ['maquina' => $maq,
             'detalles' => $detalles];
   }
 

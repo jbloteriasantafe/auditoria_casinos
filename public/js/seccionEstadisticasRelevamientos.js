@@ -183,9 +183,9 @@ $('#btn-buscarMaquina').click(function(e){
           $('#adminDetalle').val(data.maquina.nro_admin);
 
           $('#tablaRelevamientos tbody tr').remove();
-
+          // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
           for (var i = 0; i < data.detalles.length; i++) {
-
+            /*
             //Si NO hay una causa de no toma se calcula producido
             var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
                                      calcularProducido(data.formula, data.detalles[i]) : data.detalles[i].tipos_causa_no_toma;
@@ -219,12 +219,42 @@ $('#btn-buscarMaquina').click(function(e){
             fila.append($('<td>').text(producidoCalculado))
             fila.append($('<td>').text(producidoSistema))
 
-            if (data.detalles[i].tipos_causa_no_toma == null) diferencia = Math.round((producidoCalculado - producidoSistema)*100)/100;
+            if (data.detalles[i].tipos_causa_no_toma == null) {
+              diferencia = Math.round((producidoCalculado - producidoSistema)*100)/100;
+            }else{
+               diferencia = '-';
+            }
+            */
+            var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
+           data.detalles[i].producido_calculado_relevado : data.detalles[i].tipos_causa_no_toma;
 
-            var diferencia = '-';
-            fila.append($('<td>').text(diferencia))
+           var fila = $('<tr>');
+
+            fila.append($('<td>').text(data.detalles[i].fecha))
+
+            data.detalles[i].cont1 != null ? fila.append($('<td>').text(data.detalles[i].cont1)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont2 != null ? fila.append($('<td>').text(data.detalles[i].cont2)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont3 != null ? fila.append($('<td>').text(data.detalles[i].cont3)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont4 != null ? fila.append($('<td>').text(data.detalles[i].cont4)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont5 != null ? fila.append($('<td>').text(data.detalles[i].cont5)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont6 != null ? fila.append($('<td>').text(data.detalles[i].cont6)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont7 != null ? fila.append($('<td>').text(data.detalles[i].cont7)) : fila.append($('<td>').text('-'));
+            data.detalles[i].cont8 != null ? fila.append($('<td>').text(data.detalles[i].cont8)) : fila.append($('<td>').text('-'));
+
+            data.detalles[i].coinin != null ? fila.append($('<td>').text(data.detalles[i].coinin)) : fila.append($('<td>').text('-'));
+            data.detalles[i].coinout != null ? fila.append($('<td>').text(data.detalles[i].coinout)) : fila.append($('<td>').text('-'));
+            data.detalles[i].jackpot != null ? fila.append($('<td>').text(data.detalles[i].jackpot)) : fila.append($('<td>').text('-'));
+            data.detalles[i].progresivo != null ? fila.append($('<td>').text(data.detalles[i].progresivo)) : fila.append($('<td>').text('-'));
+            
+            fila.append($('<td>').text(producidoCalculado))
+            
+            data.detalles[i].producido_importado != null ? fila.append($('<td>').text(data.detalles[i].producido_importado)) : fila.append($('<td>').text('-'));
+
+            data.detalles[i].diferencia != null ? fila.append($('<td>').text(data.detalles[i].diferencia)) : fila.append($('<td>').text('-'));
+
 
             $('#tablaRelevamientos tbody').append(fila);
+
           }
 
           $('#modalDetalle').modal('show');

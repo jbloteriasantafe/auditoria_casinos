@@ -31,6 +31,10 @@ class Juego extends Model
      return $this->belongsToMany('App\Maquina','maquina_tiene_juego','id_juego','id_maquina')->withPivot('denominacion' , 'porcentaje_devolucion');;
   }
 
+  public function casinos(){
+    return $this->belongsToMany('App\Casino','casino_tiene_juego','id_juego','id_casino');
+ }
+
   public function progresivo(){
     return $this->belongsTo('App\Progresivo','id_progresivo','id_progresivo');
   }

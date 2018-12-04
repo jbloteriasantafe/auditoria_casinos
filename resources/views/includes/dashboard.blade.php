@@ -613,7 +613,7 @@ $cas = $usuario['usuario']->casinos;
 
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="mesasPanio">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_getionar_juegos_mesas'))
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_gestionar_juegos_mesas'))
                               <li>
                                 <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegosMesa'" href="#" style="cursor: pointer;">
                                   <span>Gestionar Juegos y Sectores</span>

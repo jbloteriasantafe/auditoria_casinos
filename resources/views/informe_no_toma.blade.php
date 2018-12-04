@@ -55,7 +55,7 @@
 
 
     <div class="modal fade" id="modalMaquinaContable" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
+        <div class="modal-dialog" style="width:90%;">
              <div class="modal-content">
                   <div class="modal-header" style="background:#304FFE;">
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -68,18 +68,19 @@
                     <!-- CONFIGURACIÓN -->
 
                     <div class="row">
-                        <div class="col-md-6" style="border-right:1px solid #ccc;">
+                        <div class="col-md-4" >
                             <div class="row" style="text-align:center;">
                                 <div class="col-md-12">
                                   <span id="nro_admin" class="infoResaltada"></span>
                                   <img src="/img/logos/tragaperras_blue.png" alt="" width="140px;" style="position:relative;left:10px;top:-14px;">
                                   <span id="marca" class="infoResaltada"></span>
                                 </div>
-                                <div class="col-md-12">
+                              
+                                {{-- <div class="col-md-12">
                                   <h5>JUEGO ACTIVO</h5>
                                   <span id="juego" class="infoResaltada"></span>
-                                </div>
-                                <div class="col-md-12" style="border-top:1px solid #ccc;">
+                                </div> --}}
+                                {{-- <div class="col-md-12" style="border-top:1px solid #ccc;">
                                   <h5>CASINO</h5>
                                   <span id="casino" class="infoResaltada"></span>
                                 </div>
@@ -99,10 +100,42 @@
                                 <div class="col-md-6" style="border-top:1px solid #ccc;">
                                   <h5>% DEVOLUCIÓN</h5>
                                   <span id="devolucion" class="infoResaltada"></span>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-md-4" style="border-right:1px solid #ccc; border-left:1px solid #ccc;">
+                          <div class="row" style="text-align:center;">
+
+                            <div class="col-md-12" style="border-top:1px solid #ccc;">
+                              <h5>CASINO</h5>
+                              <span id="casino" class="infoResaltada"></span>
+                            </div>
+                            <br>
+                            <div class="col-md-6">
+                              <h5>SECTOR</h5>
+                              <span id="sector" class="infoResaltada"></span>
+                            </div>
+                            <div class="col-md-6">
+                              <h5>ISLA</h5>
+                              <span id="isla" class="infoResaltada"></span>
+                            </div>
+                            <div class="col-md-12" style="border-top:1px solid #ccc;">
+                              <h5>DENOMINACIÓN CONTABLE BASE</h5>
+                              <span id="denominacion" class="infoResaltada"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <h5>JUEGO ACTIVO</h5>
+                                <span id="juego" class="infoResaltada"></span>
+                              </div>
+                            {{-- <div class="col-md-6" style="border-top:1px solid #ccc;">
+                              <h5>% DEVOLUCIÓN</h5>
+                              <span id="devolucion" class="infoResaltada"></span>
+                            </div> --}}
+
+                          </div>
+                        </div>
+                        <div class="col-md-4">
                             <h5>HISTORIAL DE NO TOMAS</h5>
                             <br>
                             <table id="tablaNoToma" class="table">
@@ -120,6 +153,38 @@
                     </div>
 
                   </div>
+                  <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
+                      <div class="col-md-12">
+                          <h6> Últimos 5 relevamientos</h6>
+                          <br>
+                        <table id="tablaRelevamientosDesdeNoToma" class="table">
+                          <thead>
+                            <tr>
+                              <th>FECHA</th>
+                              <th>CONT 1</th>
+                              <th>CONT 2</th>
+                              <th>CONT 3</th>
+                              <th>CONT 4</th>
+                              <th>CONT 5</th>
+                              <th>CONT 6</th>
+                              <th>CONT 7</th>
+                              <th>CONT 8</th>
+                              <th>COIN IN</th>
+                              <th>COIN OUT</th>
+                              <th>JACKPOT</th>
+                              <th>PROGRESIVO</th>
+                              <th>PROD CALCULADO</th>
+                              <th>PROD IMPORTADO</th>
+                              <th>DIFERENCIA</th> <!-- 15 columnas -->
+                            </tr>
+                          </thead>
+                          <tbody style="color:black;">
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
                   <div class="modal-footer">
 
                   </div>

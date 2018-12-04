@@ -614,7 +614,7 @@ class MTMController extends Controller
               'id_unidad_medida' => 'nullable|max:45',
               'nro_serie'=>  'nullable|alpha_dash',
               'marca_juego' => 'nullable|max:100',
-              'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+              //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
               'id_tipo_gabinete'=> 'required', //exists:tipo_gabinete,id_tipo_gabinete
               'id_tipo_maquina' => 'required', // exists:tipo_maquina,id_tipo_maquina
               'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
@@ -802,10 +802,10 @@ class MTMController extends Controller
           }
         }
 
-        if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
-          $tipo_movimiento = 6;
-          $razon .= "Cambió el % de devolución. ";
-        }
+        // if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
+        //   $tipo_movimiento = 6;
+        //   $razon .= "Cambió el % de devolución. ";
+        // }
 
         if($MTM->denominacion != $request->denominacion){
             $tipo_movimiento = 5;
@@ -888,7 +888,7 @@ class MTMController extends Controller
         $MTM->id_isla=$unaIsla->id_isla;
         $MTM->id_casino=$unaIsla->id_casino;
         $MTM->id_juego = $juegoActivo->id_juego;
-        $MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
+        //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
         $MTM->save();
         if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
         if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
