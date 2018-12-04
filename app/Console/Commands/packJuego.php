@@ -57,7 +57,7 @@ class packJuego extends Command
         Schema::create('pack_tiene_juego', function($table)
         {
             $table->increments('id_pack_tiene_juego');
-            $table->integer('id_pack');
+            $table->unsignedInteger('id_pack');
             $table->integer('id_juego');
             $table->foreign('id_pack')->references('id_pack')->on('pack_juego');
             $table->foreign('id_juego')->references('id_juego')->on('juego');
@@ -70,7 +70,7 @@ class packJuego extends Command
         {
             $table->increments('id_pack_juego_tiene_casino');
             $table->integer('id_casino');
-            $table->integer('id_pack');
+            $table->unsignedInteger('id_pack');
             $table->foreign('id_casino')->references('id_casino')->on('casino');
             $table->foreign('id_pack')->references('id_pack')->on('pack_juego');
         });

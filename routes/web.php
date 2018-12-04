@@ -125,6 +125,12 @@ Route::get('juegos/obtenerTablasDePago/{id}','JuegoController@obtenerTablasDePag
 Route::get('juego/buscarJuegos/{busqueda}','JuegoController@buscarJuegoPorCodigoYNombre');
 Route::post('juegos/buscar','JuegoController@buscarJuegos');
 /***********
+PackJuego
+***********/
+Route::get('packJuego/buscarPackJuegos/{busqueda}','PackJuegoController@buscarPackJuegoPorNombre');
+Route::post('packJuego/guardarPackJuego','PackJuegoController@guardarPackJuego');
+
+/***********
 Disposiciones
 ***********/
 Route::get('disposiciones','DisposicionController@buscarTodoDisposiciones')->middleware('tiene_permiso:ver_seccion_disposiciones');

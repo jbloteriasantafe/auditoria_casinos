@@ -104,3 +104,45 @@ $('#btn-agregarJuegoListaPack').click(function(){
     $('#tablaJuegosPack').append(fila);
 
   }
+
+
+  //Crear nuevo PackJuego / actualizar si existe
+$('#btn-crear-pack').click(function (e) {
+    $('#mensajeExito').hide();
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      });
+  
+      var formData = {
+        identificador: $('#identificadorPack').val(),
+        prefijo: $('#prefijo').val(),
+      }
+  
+  
+      $.ajax({
+          type: 'POST',
+          url: 'packJuego/guardarPackJuego',
+          data: formData,
+          dataType: 'json',
+          success: function (data) {
+              $('#btn-buscar').trigger('click');
+              $('#modalNuevoPack').modal('hide');
+              $('#mensajeExito h3').text('ÉXITO');
+              $('#mensajeExito p').text(' ');
+              $('#mensajeExito').show();
+  
+          },
+          error: function (data) {
+  
+              if(typeof data.identificador != 'undefined'){
+                mostrarErrorValidacion($('#identificadorPack'),data.identificador,false);
+              }
+  
+              if(typeof data.prefijo != 'undefined'){
+                mostrarErrorValidacion($('#prefijo'),data.prefijo,false);
+              }
+          }
+      });
+  });

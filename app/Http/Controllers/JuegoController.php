@@ -251,7 +251,16 @@ class JuegoController extends Controller
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, cod_identificacion
   public function buscarJuegoPorCodigoYNombre($busqueda){
-    $resultados=Juego::where('nombre_juego' , 'like' , $busqueda . '%')->get();
+    $casinos = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
+    foreach($casinos as $casino){
+      $reglaCasinos [] = $casino->id_casino;
+     }
+    $resultados=Juego::distinct()
+                      ->select('juego.*')
+                      ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
+                      ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
+                      ->where('nombre_juego' , 'like' , $busqueda . '%')->get();
                       //->orWhere('cod_identificacion' , 'like' , $busqueda . '%')->get();
 
     return ['resultados' => $resultados];
