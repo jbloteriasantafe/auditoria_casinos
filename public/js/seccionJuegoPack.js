@@ -18,10 +18,10 @@ $('#btn-asociar-pack-juego').click(function(e){
     //limpio modal
     $('#btn-agregarJuegoListaPack').hide();
     //genero la lista para juegos
-    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
     $('#inputJuegoPack').setearElementoSeleccionado(0,"");
-    //genero la lista para 
-     $('#inputNombrePack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+    //genero la lista para los pack
+     $('#inputNombrePack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
     $('#inputNombrePack').setearElementoSeleccionado(0,"");
    
 

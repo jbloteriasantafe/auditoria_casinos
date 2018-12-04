@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class JuegoPackController extends Controller
+class PackJuegoController extends Controller
 {
     //
 }
