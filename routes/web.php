@@ -129,7 +129,7 @@ PackJuego
 ***********/
 Route::get('packJuego/buscarPackJuegos/{busqueda}','PackJuegoController@buscarPackJuegoPorNombre');
 Route::post('packJuego/guardarPackJuego','PackJuegoController@guardarPackJuego');
-
+Route::post('packJuego/asociarPackJuego','PackJuegoController@asociarPackJuego');
 /***********
 Disposiciones
 ***********/

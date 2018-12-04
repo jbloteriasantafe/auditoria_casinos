@@ -165,11 +165,45 @@ $(document).on('click', '.borrarJuegoDePack', function(){
 
 // asocia un pack con un conjunto de juegos
 $('#btn-asociar-pack-juego').on('click',function(){
-    var juegos_ids=obtenerJuegosDePack();
-    var id_pack=$('#inputNombrePack').attr("data-elemento-seleccionado");
-    console.log("juegos seleccionados", juegos_ids);
-    console.log("pack seleccionado", id_pack);
+    $('#mensajeExito').hide();
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      });
+  
+      var formData = {
+        id_pack: $('#inputNombrePack').attr("data-elemento-seleccionado"),
+        juegos_ids: obtenerJuegosDePack(),
+      }
+  
+  
+      $.ajax({
+          type: 'POST',
+          url: 'packJuego/asociarPackJuego',
+          data: formData,
+          dataType: 'json',
+          success: function (data) {
+              $('#btn-buscar').trigger('click');
+              $('#modalAsociarPack').modal('hide');
+              $('#mensajeExito h3').text('ÉXITO');
+              $('#mensajeExito p').text('Se asignaron los juegos correcatamente');
+              $('#mensajeExito').show();
+  
+          },
+          error: function (data) {
+  
+            var response = JSON.parse(data.responseText);
+
+            if(typeof response.id_pack !== 'undefined'){
+              mostrarErrorValidacion($('#inputNombrePack'),response.id_pack,false);
+            }
+
+          }
+      });
 });
+
+
 
 // obitiene los juegos de la lista seleccionados para el paquete especifico
 function obtenerJuegosDePack(){

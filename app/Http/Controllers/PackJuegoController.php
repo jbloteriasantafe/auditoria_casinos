@@ -59,4 +59,20 @@ class PackJuegoController extends Controller
       return ['packJuego' => $packJuego];
     }
 
+    public function asociarPackJuego(Request $request){
+        Validator::make($request->all(), [
+            'id_pack' => 'required|exists:pack_juego,id_pack',
+            'juegos_ids' => 'nullable',
+            'juegos_ids*' => 'required|exists:juego,id_juego',
+          ])->validate();
+
+          $packJuego=PackJuego::Find($request->id_pack);
+          $packJuego->juegos()->sync($request->juegos_ids);
+
+          return ['cantAsociados', $packJuego];
+    }
+
+
+
+
 }
