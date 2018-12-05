@@ -54,16 +54,16 @@ $id_usuario = session('id_usuario');
                         <div class="col-md-12">
                           <div class="panel panel-default">
                             <div class="panel-heading">
-                                <h4>TODOS LOS JUEGOS</h4>
+                                <h4>PACK DE JUEGOS</h4>
                             </div>
                             <div class="panel-body">
                               <table id="tablaResultados" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-3" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="" estado="">ACCIONES</th>
+                                    <th class="col-xs-5" value="pack.identificador" estado="">IDENTIFICADOR <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="pack.prefijo" estado="">PREFIJO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="pack.cant" estado="">JUEGOS ASOCIADOS <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3 text-right" value="" estado="">ACCIONES</th>
                                   </tr>
                                 </thead>
                                 <tbody id="cuerpoTabla" style="height: 350px;">
@@ -81,7 +81,7 @@ $id_usuario = session('id_usuario');
 
 
                 <div class="col-lg-12 col-xl-3">
-                  <div class="row">
+                  {{-- <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-nuevo" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -98,10 +98,10 @@ $id_usuario = session('id_usuario');
                       </div>
                      </a>
                     </div>
-                  </div>
+                  </div> --}}
 
 
-                  {{-- <div class="row">
+                  <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-nuevo-pack" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -121,7 +121,7 @@ $id_usuario = session('id_usuario');
                   </div>
 
 
-                  <div class="row">
+                  {{-- <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-open-asociar-pack-juego" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -305,6 +305,7 @@ $id_usuario = session('id_usuario');
             <div class="modal-footer">
               <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
               <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+              <input type="hidden" id="id_pack" name="id_pack" value="0">
             </div>
           </div>
         </div>
@@ -328,11 +329,12 @@ $id_usuario = session('id_usuario');
             <div class="modal-body modalCuerpo">
               <div class="row" style="padding-bottom: 15px;">
                 <div class="col-md-12">
-                  <h6>BUSCAR PACK</h6>
+                  <h6>PACK DE JUEGOS</h6>
               </div>
                 <div class="col-md-6">
                       <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
-                    <input id="inputNombrePack" class="form-control" type="text" autocomplete="off" placeholder="Nombre Pack" />
+                    <input id="inputNombrePack" disabled />
+                    <input type="hidden" id="id_pack_asociacion" name="id_pack_asociacion" value="0">
                     <!-- <datalist id="juego"> </datalist> -->
                   </div>
               </div>
@@ -431,5 +433,6 @@ $id_usuario = session('id_usuario');
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionJuegos.js" charset="utf-8"></script>
+    <script src="js/seccionJuegoPack.js" charset="utf-8"></script>
+    {{-- <script src="js/seccionJuegos.js" charset="utf-8"></script> --}}
     @endsection

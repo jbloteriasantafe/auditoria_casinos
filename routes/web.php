@@ -127,7 +127,11 @@ Route::post('juegos/buscar','JuegoController@buscarJuegos');
 /***********
 PackJuego
 ***********/
+Route::get('packJuegos','PackJuegoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_juegos');
 Route::get('packJuego/buscarPackJuegos/{busqueda}','PackJuegoController@buscarPackJuegoPorNombre');
+Route::POST('packJuegos/buscar','PackJuegoController@buscar');
+Route::get('packJuegos/obtenerPackJuego/{id}','PackJuegoController@obtenerPackJuego');
+Route::get('packJuegos/obtenerJuegos/{id}','PackJuegoController@obtenerJuegosDePack');
 Route::post('packJuego/guardarPackJuego','PackJuegoController@guardarPackJuego');
 Route::post('packJuego/asociarPackJuego','PackJuegoController@asociarPackJuego');
 /***********

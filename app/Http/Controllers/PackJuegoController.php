@@ -7,6 +7,7 @@ use App\Usuario;
 use App\Casino;
 use App\Juego;
 use App\PackJuego;
+use Illuminate\Support\Facades\DB;
 use Validator;
 
 class PackJuegoController extends Controller
@@ -19,6 +20,14 @@ class PackJuegoController extends Controller
         self::$instance = new PackJuegoController();
       }
       return self::$instance;
+    }
+
+    public function buscarTodo(){
+      //$uc = UsuarioController::getInstancia();
+      $casinos = Casino::all();
+      //$uc->agregarSeccionReciente('Juegos','juegos');
+
+      return view('seccionPackJuegos' , ['casinos' => $casinos]);
     }
 
     // Busca los pack de juegos teniendo en cuenta los casinos que tiene el usuario
@@ -72,6 +81,65 @@ class PackJuegoController extends Controller
           return ['cantAsociados', $packJuego];
     }
 
+    public function buscar(Request $request){
+      $reglas=array();
+      $casinos = Usuario::find(session('id_usuario'))->casinos;
+      $reglaCasinos=array();
+      // if(!empty($request->nombreJuego) ){
+      //   $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
+      // }
+      // if(!empty($request->codigoId)){
+      //   $reglas[]=['gli_soft.nro_archivo', 'like' , '%' . $request->codigoId  .'%'];
+      // }
+      // if(!empty($request->cod_Juego)){
+      //   $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
+      // }
+  
+       foreach($casinos as $casino){
+        $reglaCasinos [] = $casino->id_casino;
+       }
+      
+  
+      $sort_by = $request->sort_by;
+  
+      $resultados=DB::table('pack_juego')
+                    ->distinct()
+                    ->select('pack_juego.*')
+                    ->join('pack_juego_tiene_casino','pack_juego_tiene_casino.id_pack','=','pack_juego.id_pack')
+                    ->wherein('pack_juego_tiene_casino.id_casino',$reglaCasinos)
+                    ->when($sort_by,function($query) use ($sort_by){
+                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                })
+                    ->paginate($request->page_size);
+                    // ->where($reglas)->paginate($request->page_size);
+      return $resultados;
+    }
+
+
+    public function obtenerPackJuego($id){
+      $packJuego = PackJuego::find($id);
+
+      return ['pack' => $packJuego];
+    }
+
+    public function obtenerJuegosDePack($id){
+      $casinos = Usuario::find(session('id_usuario'))->casinos;
+      $reglaCasinos=array();
+      foreach($casinos as $casino){
+        $reglaCasinos [] = $casino->id_casino;
+       }
+
+      $resultado=DB::table('pack_tiene_juego')
+                    ->distinct()
+                    ->select('juego.nombre_juego','juego.id_juego')
+                    ->join('juego','juego.id_juego','=','pack_tiene_juego.id_juego')
+                    ->join('pack_juego_tiene_casino','pack_juego_tiene_casino.id_pack','=','pack_tiene_juego.id_pack')
+                    ->where('pack_tiene_juego.id_pack','=',$id)
+                    ->wherein('pack_juego_tiene_casino.id_casino',$reglaCasinos)->get();
+                    
+      return $resultado;              
+
+    }
 
 
 

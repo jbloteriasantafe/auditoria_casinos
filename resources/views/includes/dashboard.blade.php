@@ -390,6 +390,13 @@ $cas = $usuario['usuario']->casinos;
                                           </div>
                                         </li>
                                         @endif
+                                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
+                                        <li>
+                                          <div id="opcPackJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/packJuegos'" href="#" style="cursor: pointer;">
+                                            <span>Pack-Juegos</span>
+                                          </div>
+                                        </li>
+                                        @endif
                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
                                         <li>
                                           <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
