@@ -47,8 +47,8 @@ class packJuego extends Command
         Schema::create('pack_juego', function($table)
         {
             $table->increments('id_pack');
-            $table->string('identificador',60)->unique();
-            $table->string('prefijo',6)->unique();
+            $table->string('identificador',65);
+            $table->string('prefijo',6);
         });
 
     }

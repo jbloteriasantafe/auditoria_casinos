@@ -46,10 +46,10 @@ class PackJuegoController extends Controller
       }
 
       public function guardarPackJuego(Request $request){
-        //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
+        
       Validator::make($request->all(), [
-        'identificador' => 'required|unique:pack_juego,identificador|max:65',
-        'prefijo' => 'required|unique:pack_juego,prefijo|max:6',
+        'identificador' => 'required|max:65',
+        'prefijo' => 'required|max:6',
       ])->validate();
   
       $packJuego = new PackJuego;
@@ -110,6 +110,7 @@ class PackJuegoController extends Controller
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
+                    
                     ->paginate($request->page_size);
                     // ->where($reglas)->paginate($request->page_size);
       return $resultados;
@@ -141,6 +142,48 @@ class PackJuegoController extends Controller
 
     }
 
+
+    public function eliminarPack($id){
+      // quiuto de la tabla relacion 
+      $casinos = Usuario::find(session('id_usuario'))->casinos;
+      $reglaCasinos=array();
+      foreach($casinos as $casino){
+      $reglaCasinos [] = $casino->id_casino;
+      }
+      
+  
+      $pack = PackJuego::find($id);
+      
+      $pack->casinos()->detach($reglaCasinos);
+
+      // bajo la idea que cada casino crea sus propios pack-juegos y solo pueden acceder estos
+      // se elimina directamente la relacion
+      $pack->juegos()->detach();
+
+      // solo si no queda asociado a nigun casino se puede eliminar el juego
+      $casRestantes= DB::table('pack_juego_tiene_casino')->where('id_pack','=',$pack->id_pack)->count();
+      if ($casRestantes==0){
+        $pack->delete();
+      }
+      return 'ok';
+    }
+
+
+    public function modificarPackJuego(Request $request){
+
+      Validator::make($request->all(), [
+        'id_pack'=>'required|exists:pack_juego,id_pack',
+        'identificador' => 'required|max:65',
+        'prefijo' => 'required|max:6',
+      ])->validate();
+  
+      $pack = PackJuego::find($request->id_pack);
+      $pack->identificador=$request->identificador;
+      $pack->prefijo=$request->prefijo;
+      $resultado=$pack->save();
+      
+      return['resutlado' => $resultado];
+    }
 
 
 }

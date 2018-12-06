@@ -21,9 +21,9 @@ $(document).ready(function(){
 
 //Mostrar modal para agregar nuevo Pack
 $('#btn-nuevo-pack').click(function(e){
-
+    $('#modalNuevoPack .modal-title').text('NUEVO PACK-JUEGO');
     e.preventDefault();
-     
+    $('#btn-crear-pack').val('nuevo');
     //limpio modal
     $('#mensajeExito').hide();
     $('#frmPack').trigger('reset');
@@ -130,28 +130,35 @@ $('#btn-agregarJuegoListaPack').click(function(){
   //Crear nuevo PackJuego
 $('#btn-crear-pack').click(function (e) {
     $('#mensajeExito').hide();
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      });
-  
+      var accion=$(this).val();
       var formData = {
         identificador: $('#identificadorPack').val(),
         prefijo: $('#prefijo').val(),
       }
-  
-  
+      var url= 'packJuego/guardarPackJuego';
+      var msj= 'El paquete de juego se creó correctamente';
+      if (accion=='modificar'){
+        formData.id_pack=$('#id_pack').val();
+        url='packJuego/modificarPackJuego'
+        msj='El paquete de juego se modificó correctamente';
+      }
+      
+      $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+        });
+        console.log(formData,url,msj);
       $.ajax({
           type: 'POST',
-          url: 'packJuego/guardarPackJuego',
+          url: url,
           data: formData,
           dataType: 'json',
           success: function (data) {
               $('#btn-buscar').trigger('click');
               $('#modalNuevoPack').modal('hide');
               $('#mensajeExito h3').text('ÉXITO');
-              $('#mensajeExito p').text('El paquete de juego se creó correctamente');
+              $('#mensajeExito p').text(msj);
               $('#mensajeExito').show();
   
           },
@@ -289,7 +296,7 @@ function obtenerJuegosDePack(){
     return juegos_ids;
 }
 
-$("#cuerpoTabla").on('click','.modificar',function(){
+$(document).on('click','.modificar',function(){
 
     //ocultarErrorValidacion($('#identificadorPack'));
     //ocultarErrorValidacion($('#prefijo'));
@@ -299,7 +306,7 @@ $("#cuerpoTabla").on('click','.modificar',function(){
     $('#modalNuevoPack .modal-title').text('MODIFICAR PACK-JUEGO');
     $('#modalNuevoPack .modal-header').attr('style','background: #ff9d2d');
     $('#id_pack').val(id_pack);
-    $('#btn-guardar').val('modificar').show();
+    $('#btn-crear-pack').val('modificar').show();
     $.get("packJuegos/obtenerPackJuego/" + id_pack, function(data){
       console.log(data);
      $('#identificadorPack').val(data.pack.identificador);
@@ -309,7 +316,7 @@ $("#cuerpoTabla").on('click','.modificar',function(){
 });
 
 
-$("#cuerpoTabla").on('click','.asociar',function(){
+$(document).on('click','.asociar',function(){
     // Limpiar tablas
 
     $('#tablaJuegosPack tbody tr').remove();
@@ -331,8 +338,6 @@ $("#cuerpoTabla").on('click','.asociar',function(){
                 agregarRenglonListaJuegoPack(juego.id_juego ,juego.nombre_juego);
             });
         }
-        
-        
      $('#modalAsociarPack').modal('show');
     });
 });
@@ -399,3 +404,42 @@ function crearFilaPackJuego(pj){
     var orden = $('#tablaResultados .activa').attr('estado');
     $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
   };
+
+
+  //Borrar Pack y remover de la tabla
+$(document).on('click','.eliminar',function(){
+    $('.modal-title').removeAttr('style');
+    $('.modal-title').text('ADVERTENCIA');
+    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+
+    var id_pack = $(this).val();
+    $('#btn-eliminarModal').val(id_pack);
+    $('#modalEliminar').modal('show');
+    $('#mensajeEliminar').text('¿Seguro que desea eliminar el pack-juego "' + $(this).parent().parent().find('td:first').text()+'" ?' 
+                                +"\r\n"
+                                +'Esto quitará la asociación con los juegos, pero los mismos seguirán existiendo');
+});
+
+// confirma eliminar 
+$('#btn-eliminarModal').click(function (e) {
+    var id_pack = $(this).val();
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    })
+
+    $.ajax({
+        type: "DELETE",
+        url: "packJuegos/eliminarPackJuego/" + id_pack,
+        success: function (data) {
+          //Remueve de la tabla
+          $('#btn-buscar').trigger('click');
+          $('#modalEliminar').modal('hide');
+        },
+        error: function (data) {
+          console.log('Error: ', data);
+        }
+    });
+});

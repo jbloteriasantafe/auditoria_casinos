@@ -133,7 +133,9 @@ Route::POST('packJuegos/buscar','PackJuegoController@buscar');
 Route::get('packJuegos/obtenerPackJuego/{id}','PackJuegoController@obtenerPackJuego');
 Route::get('packJuegos/obtenerJuegos/{id}','PackJuegoController@obtenerJuegosDePack');
 Route::post('packJuego/guardarPackJuego','PackJuegoController@guardarPackJuego');
+Route::post('packJuego/modificarPackJuego','PackJuegoController@modificarPackJuego');
 Route::post('packJuego/asociarPackJuego','PackJuegoController@asociarPackJuego');
+Route::delete('packJuegos/eliminarPackJuego/{id}','PackJuegoController@eliminarPack');
 /***********
 Disposiciones
 ***********/
