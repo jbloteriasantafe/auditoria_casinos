@@ -485,6 +485,9 @@ $('#btn-guardar-apertura').on('click', function(e){
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
+  $('#recalcularApert').trigger('click');
+
+
     var id_mesa =$('#modalCargaApertura #id_mesa_ap').val();
     var fichas=[];
     var f= $('#bodyCApertura > tr');
@@ -710,6 +713,8 @@ $('#btn-guardar-cierre').on('click', function(e){
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
+  $('#recalcular').trigger('click');
+
 
     var fichas=[];
     var f= $('#bodyFichasCierre > tr');
