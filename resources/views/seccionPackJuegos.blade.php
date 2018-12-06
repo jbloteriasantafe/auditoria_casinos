@@ -26,7 +26,7 @@ $id_usuario = session('id_usuario');
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-                                  <div class="col-md-3">
+                                  {{-- <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
@@ -37,7 +37,7 @@ $id_usuario = session('id_usuario');
                                   <div class="col-md-3">
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
-                                  </div>
+                                  </div> --}}
                                   <div class="col-md-3">
                                     <h5 style="color:#ffffff;">Buscar</h5>
                                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>

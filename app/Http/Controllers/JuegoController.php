@@ -50,8 +50,25 @@ class JuegoController extends Controller
       $maquinas[] = $maquina;
     }
     $casinos=$juego->casinos;
+
+    $casinosUser = Usuario::find(session('id_usuario'))->casinos;
+        $reglaCasinos=array();
+        foreach($casinosUser as $casino){
+          $reglaCasinos [] = $casino->id_casino;
+         }
+
+    $packJuego=DB::table('pack_juego')
+                  ->select('pack_juego.*')
+                  ->distinct()
+                  ->join('pack_tiene_juego','pack_tiene_juego.id_pack','=','pack_juego.id_pack')
+                  ->join('pack_juego_tiene_casino','pack_juego_tiene_casino.id_pack','=','pack_juego.id_pack')
+                  ->where('pack_tiene_juego.id_juego','=',$juego->id_juego)
+                  ->wherein('pack_juego_tiene_casino.id_casino',$reglaCasinos)
+                  ->get();
+
     $tabla = TablaPago::where('id_juego', '=', $id)->get();
-    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos];
+
+    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos,'pack'=>$packJuego ];
   }
 
   public function encontrarOCrear($juego){

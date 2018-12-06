@@ -37,6 +37,13 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
+      console.log("identificador",data.pack.identificador);
+        if(data.pack!=""){
+          $('#inputPack').val(data.pack[0].identificador);
+        }else{
+          $('#inputPack').val("--");
+        }
+       
         $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
         $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
