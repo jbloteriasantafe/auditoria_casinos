@@ -203,7 +203,27 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
                          .append(inputGenerico.clone().addClass('juego').attr('data-original',data_juego).val(fila.juego.valor));
   var nro_serie = popGenerico.clone().attr('data-content',fila.nro_serie.valor_antiguo)
                              .append(inputGenerico.clone().addClass('nro_serie').attr('data-original',data_serie).val(fila.nro_serie.valor));
+ 
+ var juegosPack=  '<div align="left">'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 1">'
 
+                      +               '<span style="position:relative;top:-3px;"> juego 1</span><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 2">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 2</span> <br><br>'
+                      + '</div>';
+
+  var botonMultiJuego = $('<button>')
+                                      .attr('data-trigger','manual')
+                                      .attr('data-toggle','popover')
+                                      .attr('data-placement','left')
+                                      .attr('data-html','true')
+                                      .attr('title','JUEGOS')
+                                      .attr('data-content',juegosPack)
+                                      .attr('type','button')
+                                      .addClass('btn btn-warning pop medida')
+                                      
+                                      .append($('<i>').addClass('fas fa-exchange-alt'));
  var bandera = false; //Si tuvo algun error
 
   //Para validar habilitar el POP
@@ -236,6 +256,7 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
   filaMaquinaLayout.append($('<td>').append(maquina));
   filaMaquinaLayout.append($('<td>').append(isla));
   filaMaquinaLayout.append($('<td>').append(fabricante));
+  filaMaquinaLayout.append($('<td>').append(botonMultiJuego));
   filaMaquinaLayout.append($('<td>').append(juego));
   filaMaquinaLayout.append($('<td>').append(nro_serie));
   filaMaquinaLayout.append($('<td>').append(no_toma));
@@ -1207,3 +1228,24 @@ function clearSelection(){
         sel.removeAllRanges();
     }
 }
+
+$(document).on('click','.pop',function(e){
+  e.preventDefault();
+ //estos era util para obtener info
+  var fila = $(this).parent().parent();
+  $('.pop').not(this).popover('hide');
+  $(this).popover('show');
+});
+
+
+// cambia el el nombre del juego dentro de los valores posibles del paquete
+$(document).on('click','.seleccionJuego',function(e){
+  e.preventDefault();
+ //estos era util para obtener info
+  var fila = $(this).parent().parent().parent().parent().parent();
+  var nombre_juego=$(this).val();
+  $('.pop').not(this).popover('hide');
+  $(this).popover('show');
+  fila.children().find('.juego').val(nombre_juego)
+  
+});
