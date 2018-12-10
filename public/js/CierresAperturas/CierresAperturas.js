@@ -485,6 +485,9 @@ $('#btn-guardar-apertura').on('click', function(e){
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
+  $('#recalcularApert').trigger('click');
+
+
     var id_mesa =$('#modalCargaApertura #id_mesa_ap').val();
     var fichas=[];
     var f= $('#bodyCApertura > tr');
@@ -619,7 +622,10 @@ $('#confirmarCierre').on('click',function(e){
 
 $(document).on('change','#inputMesaCierre',function(){
 
-   var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
+  $('#tablaCargaCierreF tbody tr').remove();
+  $('#totalCierre').val("");
+  $('#total_anticipos_c').val("");
+  var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
 
    if(id_mesa != 0 && id_mesa != null){
       $.get('mesas/detalleMesa/' + id_mesa, function(data){
@@ -707,6 +713,8 @@ $('#btn-guardar-cierre').on('click', function(e){
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
+  $('#recalcular').trigger('click');
+
 
     var fichas=[];
     var f= $('#bodyFichasCierre > tr');

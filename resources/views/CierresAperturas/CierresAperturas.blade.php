@@ -424,7 +424,8 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-md-6" align="center">
               <div class="row">
                 <h6><b>TOTAL: </b></h6>
-                <input id="totalCierre" type="text" value="" readonly="true">
+                <input id="totalCierre" type="text" value="" readonly="true" display="inline">
+                <button id="recalcular" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
               </div>
               <div class="row">
                 <h6><b>TOTAL ANTICIPO: </b></h6>
@@ -886,7 +887,8 @@ $cas = $usuario['usuario']->casinos;
 
                                 <div class="col-xs-4" >
                                   <br>
-                                  <h6 align="center">TOTAL:</h6><input id="totalApertura" type="text" class="form-control" value="" readonly>
+                                  <h6 align="center">TOTAL:</h6><input id="totalApertura" type="text" class="form-control" value="" display="inline" readonly >
+                                  <button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
 
                                   <br>
                                 </div>
