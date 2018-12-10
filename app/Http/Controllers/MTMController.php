@@ -119,6 +119,7 @@ class MTMController extends Controller
          $return_juego->porcentaje_devolucion =  $un_juego->pivot->porcentaje_devolucion;
          $return_juego->tablasPago =  $un_juego->tablasPago;
          $return_juego->id_gli_soft = $un_juego->id_gli_soft;
+         $return_juego->packs= $un_juego->pack;
          if($un_juego->nombre_juego == $juego_activo->nombre_juego){
             $juego_activo = $return_juego;
             $encontrado = true;

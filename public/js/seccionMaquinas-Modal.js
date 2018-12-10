@@ -455,6 +455,7 @@ function ocultarAlertasMaquina(){
 }
 
 function limpiarModalMaquina(){
+  $('#inputPack').val('-');
   $('#frmMaquina').trigger('reset');
   $('#listaExpedientes li').remove();
   ocultarAlertasMaquina();

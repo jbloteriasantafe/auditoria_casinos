@@ -43,6 +43,9 @@ class Juego extends Model
     return $this->hasMany('App\Maquina','id_juego','id_juego');
   }
 
+  public function pack(){
+    return $this->belongsToMany('App\PackJuego','pack_tiene_juego','id_juego','id_pack');
+  }
   public static function boot(){
     parent::boot();
     Juego::observe(new JuegoObserver());

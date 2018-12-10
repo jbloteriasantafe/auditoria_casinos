@@ -14,7 +14,7 @@ $('#btn-agregarJuegoLista').click(function(){
 
   $.get('http://' + window.location.host +'/juegos/obtenerJuego/'+ id, function(data) {
 
-        agregarRenglonListaJuego(data.juego.id_juego , data.juego.nombre_juego , $('#den_sala').val() , $('#porcentaje_devolucion_juego').val() , data.tablasDePago, false);
+        agregarRenglonListaJuego(data.juego.id_juego , data.juego.nombre_juego , $('#den_sala').val() , $('#porcentaje_devolucion_juego').val() , data.tablasDePago, false, data.pack);
 
         limpiarCamposJuego();
 
@@ -112,16 +112,23 @@ function mostrarJuegos(juegos,juego_activo){
   //Ocultar mensaje de inexistencia de juegos
   $('#listaJuegosMaquina').find('p').hide();
     //Cargar juego activo
-    agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true);
+    agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true,juego_activo.packs);
 
     for (var i = 0; i < juegos.length; i++) {
-      agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false);
+      agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false,juegos[i].packs);
     }
 }
 
-function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo){
+function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo,packs){
   denominacion = denominacion != null ? denominacion : "-"; // si denomacion vacio hardcodeo guion medio
   porcentaje_devolucion = porcentaje_devolucion != null ? porcentaje_devolucion : "-"; // si denomacion vacio hardcodeo guion medio
+  if (typeof packs !== 'undefined' && packs.length > 0) {
+    nombre_pack=packs[0].identificador;
+}else{
+  nombre_pack="-"
+}
+  
+  
   var fila = $('<tr>').attr('id',id_juego);
 
   //Mirar si solo hay un juego cuando se agrega manuealmente, setearlo como activo
@@ -136,10 +143,15 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                                           .text(nombre_juego)
                               )
              );
+             
   fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
-                                         .text(denominacion)
+                                         .text(nombre_pack)
                              ));
+    fila.append($('<td>').append($('<span>').addClass('badge')
+                                         .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
+                                         .text(denominacion)
+                             ));                           
   fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(porcentaje_devolucion)
@@ -199,7 +211,7 @@ $('#btn-crearJuego').click(function(){
         tablas.push(tabla);
     })
 
-    agregarRenglonListaJuego(0,$('#inputJuego').val(),$('#den_sala').val() ,$('#porcentaje_devolucion_juego').val(),tablas,false);
+    agregarRenglonListaJuego(0,$('#inputJuego').val(),$('#den_sala').val() ,$('#porcentaje_devolucion_juego').val(),tablas,false,$('#inputPack').val());
 
     $('#inputJuego').val('');
 
@@ -238,7 +250,7 @@ $(document).on('click', '.borrarJuegoaActivo', function(){
 function limpiarCamposJuego(){
   //Borra todos los inputs
   $('#inputJuego').setearElementoSeleccionado(0,"");
-
+  $('#inputPack').val('-');
   $('#inputCodigo').val('');
   $('#den_sala').val('');
   $('#porcentaje_devolucion_juego').val('');
@@ -320,10 +332,10 @@ function obtenerDatosJuego(){
     });
 
     var denominacion = "";
-    if ($(this).find('td:eq(2)').text() != "-") denominacion = $(this).find('td:eq(2)').text();
+    if ($(this).find('td:eq(3)').text() != "-") denominacion = $(this).find('td:eq(3)').text();
 
     var porcentaje_devolucion = "";
-    if ($(this).find('td:eq(3)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(3)').text();
+    if ($(this).find('td:eq(4)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(4)').text();
 
     var juego= {
       id_juego: $(this).attr('id'),

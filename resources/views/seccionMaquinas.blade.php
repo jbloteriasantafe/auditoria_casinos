@@ -593,8 +593,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <tr>
                                           <th width="10%">ACTIVO</th>
                                           <th width="25%">NOMBRE</th>
-                                          <th width="20%">DENOMINACIÓN</th>
-                                          <th width="15%">% DEV</th>
+                                          <th width="25%">PACK</th>
+                                          <th width="10%">DENOMINACIÓN</th>
+                                          <th width="10%">% DEV</th>
                                           <th width="20%">TABLAS DE PAGO</th>
                                           <th width="10%">ACCIÓN</th>
                                       </tr>
