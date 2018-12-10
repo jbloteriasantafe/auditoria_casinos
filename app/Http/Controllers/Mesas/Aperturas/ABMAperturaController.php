@@ -95,8 +95,8 @@ class ABMAperturaController extends Controller
         $detalles[] = $ficha;
       }
 
-      $cacontroller = new ABMCCierreAperturaController;
-      $cacontroller->asociarAperturaACierre($apertura);
+      //$cacontroller = new ABMCCierreAperturaController;
+      //$cacontroller->asociarAperturaACierre($apertura);
 
 
      return ['apertura' => $apertura,'detalles' => $detalles];
