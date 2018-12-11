@@ -211,6 +211,24 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
                       +   '<input type="radio" class="seleccionJuego" value="juego 2">'
                                      
                       +               '<span style="position:relative;top:-3px;"> juego 2</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 3">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 3</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 4">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 4</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 5">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 5</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 6">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 6</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 7">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 7</span> <br><br>'
+                      +   '<input type="radio" class="seleccionJuego" value="juego 8">'
+                                     
+                      +               '<span style="position:relative;top:-3px;"> juego 8</span> <br><br>'
                       + '</div>';
 
   var botonMultiJuego = $('<button>')
