@@ -25,6 +25,7 @@ use App\Mesas\TipoMesa;
 use App\Mesas\Apertura;
 use App\Mesas\DetalleApertura;
 use App\Mesas\EstadoCierre;
+use App\Http\Controllers\Cierres\ABMCCierreAperturaController;
 
 //validacion de cierres
 class VAperturaController extends Controller
@@ -60,6 +61,21 @@ class VAperturaController extends Controller
     return response()->json(['ok' => true], 200);
 
   }
+
+  /*
+  public function validarApertura(Request $request){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $apertura = Apertura::find($request['id_apertura']);
+    $apertura->estado_cierre()->associate(3);//VISADO
+    $apertura->save();
+    $cacontroller = new ABMCCierreAperturaController;
+    $cacontroller->asociarAperturaACierre($apertura, $request['id_cierre']);
+    return response()->json(['ok' => true], 200);
+
+  }
+
+  */
+
 
 
 
