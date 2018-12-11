@@ -558,13 +558,17 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     }
   }
 
+  var text=$('#modalMaquina .modal-title').text();
+    
   //Datos pesataña isla
   console.log(data.isla);
   if(data.isla != null){//si no tiene isla asociada, puede pasar al modifcar isla
     mostrarIsla(data.casino, data.isla ,data.sectores, data.sector);
     //seteo datos pensataña maquina
-   var text=$('#modalMaquina .modal-title').text();
     text= text +" N°: " + data.maquina.nro_admin + " ISLA: "+data.isla.nro_isla ;
+    $('#modalMaquina .modal-title').text(text);
+  }else{
+    text= text +" N°: " + data.maquina.nro_admin + " ISLA: SIN ASIGNAR ";
    $('#modalMaquina .modal-title').text(text);
   }
 
