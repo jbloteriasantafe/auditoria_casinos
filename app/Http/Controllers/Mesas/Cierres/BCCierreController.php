@@ -184,6 +184,7 @@ class BCCierreController extends Controller
                               ->where($filtros)
                               ->whereYear('cierre_mesa.fecha' , '=', $fecha[0])
                               ->whereMonth('cierre_mesa.fecha','=', $fecha[1])
+                              ->whereDay('cierre_mesa.fecha','=', $fecha[2])
                               ->orderBy('cierre_mesa.fecha','desc')
                               ->take(31)
                               ->get();

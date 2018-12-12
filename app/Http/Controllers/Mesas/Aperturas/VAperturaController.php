@@ -52,18 +52,16 @@ class VAperturaController extends Controller
       $this->middleware(['tiene_permiso:m_validar_aperturas']);
   }
 
-  //en esta
-  public function validarApertura($id_apertura){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $apertura = Apertura::find($id_apertura);
-    $apertura->estado_cierre()->associate(3);//VISADO
-    $apertura->save();
-    return response()->json(['ok' => true], 200);
 
-  }
-
-  /*
   public function validarApertura(Request $request){
+    $validator=  Validator::make($request->all(),[
+      'id_cierre' => 'required|exists:cierre_mesa,id_cierre_mesa'
+    ], array(), self::$atributos)->after(function($validator){  })->validate();
+    if(isset($validator)){
+      if ($validator->fails()){
+          return ['errors' => $validator->messages()->toJson()];
+          }
+     }
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $apertura = Apertura::find($request['id_apertura']);
     $apertura->estado_cierre()->associate(3);//VISADO
@@ -74,7 +72,7 @@ class VAperturaController extends Controller
 
   }
 
-  */
+
 
 
 
