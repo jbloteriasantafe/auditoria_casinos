@@ -149,7 +149,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                         <td class="col-xs-5">{{$BROS->moneda}}</td>
                                         <td class="col-xs-2">
                                           @if($BROS->estado == 1)
-                                            <button data-anio="{{$BROS->anio}}" data-mes="{{$BROS->mes}}" data-casino="{{$BROS->casino}}" data-moneda="{{$BROS->moneda}}" class="btn btn-info planilla detalle" type="button">
+                                            <button data-anio="{{$BROS->anio}}" data-mes="{{$BROS->mes}}" data-casino="{{$BROS->casino}}" data-moneda="{{$BROS->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                             </button>
                                           @endif

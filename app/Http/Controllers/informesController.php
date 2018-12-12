@@ -218,6 +218,7 @@ class informesController extends Controller
               else{
                 $resROS->moneda = 'U$s';
         }
+        $resROS->id_tipo_moneda=$resultado->id_tipo_moneda;
         $resROS->estado = $verifica;
         $ajustesROS[] = $resROS;
       };
