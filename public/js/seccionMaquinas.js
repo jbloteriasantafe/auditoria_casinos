@@ -162,6 +162,7 @@ function eventoBusqueda(page_size, page_number, sort_by, columna,orden){
     id_casino: $('#busqueda_casino').val(),
     id_sector: $('#busqueda_sector').val(),
     nro_isla: $('#busqueda_isla').val(),
+    estado_maquina: $('#busqueda_estado').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
@@ -315,6 +316,14 @@ $(document).on('click','#tablaMaquinas thead tr th[value]',function(e){
 function generarFilaTablaMaquinas(maquina){
     if(maquina.desc_marca == null) descripcion=' ';
     else descripcion = data.maquinas[i].desc_marca;
+    var activa;
+    if(maquina.id_estado_maquina==1 || maquina.id_estado_maquina==2){
+      activa= $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color', '#4CAF50');
+    }else if (maquina.id_estado_maquina==3){
+      activa= $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-times').css('color', '#e60000');
+    }else{
+      activa= $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-ban').css('color', '#ffa64d');
+    }
 
     $('#cuerpoTabla')
         .append($('<tr>')
@@ -328,8 +337,12 @@ function generarFilaTablaMaquinas(maquina){
                 .text(maquina.nro_isla)
             )
             .append($('<td>')
-                .addClass('col-xs-3')
+                .addClass('col-xs-2')
                 .text(maquina.codigo + ' - ' + maquina.descripcion)
+            )
+            .append($('<td>')
+                .addClass('col-xs-1')
+                .append(activa)
             )
             .append($('<td>')
                 .addClass('col-xs-2')
