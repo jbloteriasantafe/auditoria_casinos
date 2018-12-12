@@ -12,9 +12,9 @@ class JuegoMesa extends Model
   protected $table = 'juego_mesa';
   protected $primaryKey = 'id_juego_mesa';
   protected $visible = array('id_juego_mesa','id_tipo_mesa','nombre_juego',
-                             'siglas','id_casino');
+                             'siglas','id_casino','posiciones');
   protected $fillable = ['id_tipo_mesa','nombre_juego',
-                         'siglas','id_casino'];
+                         'siglas','id_casino','posiciones'];
 
   public function mesas(){
     return $this->HasMany('App\Mesas\Mesa','id_juego_mesa','id_juego_mesa');
