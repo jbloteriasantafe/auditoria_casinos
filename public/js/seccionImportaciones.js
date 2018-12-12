@@ -929,7 +929,7 @@ function habilitarInputProducido(){
 
 function procesarDatosProducidos(e) {
     var csv = e.target.result;
-    
+
     // procesarDatosContador(csv);
 
     // var allTextLines = csv.split(/\r\n|\n/);
