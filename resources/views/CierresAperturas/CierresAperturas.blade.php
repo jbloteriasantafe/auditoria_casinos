@@ -1160,7 +1160,7 @@ $cas = $usuario['usuario']->casinos;
 
 <!-- MODAL VALIDAR APERTURA -->
 <div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="width:70%">
+  <div class="modal-dialog modal-lg" style="width:50%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -1170,9 +1170,27 @@ $cas = $usuario['usuario']->casinos;
       <!-- colapsado -->
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
+
+          <!-- row de seleccion de fecha -->
+          <div class="row" style=" border-bottom:2px solid #ccc; padding-bottom:20px">
+            <div class="col-xs-5">
+              <h6 display="inline-block">Seleccione un Cierre para validar esta Apertura:</h6>
+            </div>
+            <div class="col-xs-4" >
+              <select class="form-control" display="inline-block" style="padding-right:40px" name="selFecha" id="fechaCierreVal">
+                <option value="0" selected class="defecto">- Seleccione una Fecha -</option>
+              </select>
+            </div>
+            <div class="col-xs-3" style="padding-left:20px;padding-bottom:10px;align:center">
+              <button type="button" style="width:120px; height:40px; padding-top:0.5px;" class="btn btn-success comparar" > <h6>COMPARAR</h6> </button>
+            </div>
+            <br>
+            <br>
+          </div>
+
           <!-- datos del cierre -->
-          <div class="row">
-            <div class="col-md-1" align="center" style=" border-bottom:2px solid #ccc;">
+          <div class="row" id="div_cierre" style="border-bottom:2px solid #ccc;" hidden>
+            <div class="col-md-1" align="center" >
               <h1 style="padding-top:110px;padding-bottom:134px;font-family:'Roboto-Black';">C</h1>
             </div>
             <div class="col-md-11">
@@ -1189,7 +1207,7 @@ $cas = $usuario['usuario']->casinos;
                   </div>
                   <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <h6>JUEGO</h6>
-                    <div class="col-xs-2 col-xs-offset-1 iconoJuego">
+                    <div class="col-xs-2 col-xs-offset-0 iconoJuego">
                         <i class="fas fa-dice fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
                     <div class="col-xs-6" align="center">
@@ -1213,7 +1231,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
               </div>
               <div class="row">
-                <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
+                <div class="col-md-12" style="border-top:2px solid #ccc; ">
                     <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                       <h6>HORA INICIO</h6>
                       <div class="row ">
@@ -1254,6 +1272,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
           </div>
+
           <!-- datos de la apertura -->
           <div class="row">
             <div class="col-md-1" align="center" style=" border-bottom:2px solid #ccc;">
@@ -1273,7 +1292,7 @@ $cas = $usuario['usuario']->casinos;
                   </div>
                   <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <h6>JUEGO</h6>
-                    <div class="col-xs-2 col-xs-offset-1 iconoJuego">
+                    <div class="col-xs-2 col-xs-offset-0 iconoJuego">
                         <i class="fas fa-dice fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
                     <div class="col-xs-6" align="center">
@@ -1366,25 +1385,31 @@ $cas = $usuario['usuario']->casinos;
            <br>
            <br>
            <div class="row">
-                <div class="col-xs-4">
+                <div class="col-md-4">
                   <h6>TOTAL CIERRE</h6>
-                  <input type="text" id="total_cierre_validar" value="" readonly="true">
+                  <input type="text" id="total_cierre_validar" class="form-control" value="" readonly="true">
                 </div>
-                <div class="col-xs-4" >
+                <div class="col-md-4" >
                   <h6>TOTAL APERTURA</h6>
-                  <input type="text" id="total_aper_validar" value="" readonly="true">
+                  <input type="text" id="total_aper_validar" class="form-control" value="" readonly="true">
                 </div>
-                <div class="col-xs-4" >
+                <div class="col-md-4" >
                   <h6>TOTAL ANTICIPOS</h6>
-                  <input type="text" id="anticipos_validar" value="" readonly="true">
+                  <input type="text" id="anticipos_validar" class="form-control" value="" readonly="true">
                 </div>
           </div>
 
           <div class="modal-footer">
+            <button id="validar" type="button" value="" class="btn btn-success" data-dismiss="modal" hidden="true">VALIDAR</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-            <button id="validar" type="button" value="" class="btn btn-success" data-dismiss="modal">VALIDAR</button>
-
           </div>
+
+          <div id="mensajeErrorValApertura" hidden>
+              <br>
+              <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+              <br>
+              <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe comparar la Apertura con algún Cierre del listado presentado.</span>
+          </div> <!-- mensaje -->
 
         </div>
       </div>

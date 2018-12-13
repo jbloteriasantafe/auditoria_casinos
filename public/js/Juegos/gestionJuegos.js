@@ -194,6 +194,7 @@ $('#btn-nuevo-juego').on('click', function(e){
   ocultarErrorValidacion($('#siglas_juego'));
   ocultarErrorValidacion($('#casino_juego'));
   ocultarErrorValidacion($('#tipo_mesa_juego'));
+  ocultarErrorValidacion($('#posicionesJuego'));
 
 
 
@@ -201,7 +202,7 @@ $('#btn-nuevo-juego').on('click', function(e){
   $('#siglas_juego').val(" ");
   $('#casino_juego').val("0");
   $('#tipo_mesa_juego').val("0");
-
+  $('#posicionesJuego').val(" ");
   $('#modalAltaJuego').modal('show');
 
 })
@@ -219,6 +220,7 @@ $('#btn-guardar-juego').on('click', function(e){
     siglas: $('#siglas_juego').val(),
     id_tipo_mesa: $('#tipo_mesa_juego').val(),
     id_casino: $('#casino_juego').val(),
+    posiciones: $('#posicionesJuego').val()
   }
 
   $.ajaxSetup({
@@ -257,6 +259,9 @@ $('#btn-guardar-juego').on('click', function(e){
       }
       if(typeof response.id_tipo_mesa !== 'undefined'){
         mostrarErrorValidacion($('#tipo_mesa_juego'),response.id_tipo_mesa[0],false);
+      }
+      if(typeof response.posiciones !== 'undefined'){
+        mostrarErrorValidacion($('#posicionesJuego'),response.posiciones[0],false);
       }
     }
   })
@@ -345,6 +350,7 @@ $(document).on('click','.modificarJuego',function(e){
     $('#modif_siglas').val(data.juego.siglas);
     $('#modif_tipo').val(data.tipo_mesa.descripcion);
     $('#modif_cas').val(data.casino.nombre);
+    $('#modif_pos').val(data.juego.posiciones);
 
 
     for (var i = 0; i < data.mesas.length; i++) {
@@ -377,6 +383,7 @@ $('#btn-modificar-juego').on('click', function(e){
     id_juego_mesa: $(this).val(),
     nombre_juego: $('#modif_nom').val(),
     siglas: $('#modif_siglas').val(),
+    posiciones: $('#modif_pos').val()
 
   }
 
@@ -439,7 +446,7 @@ $('#btn-eliminar-juego').on('click', function(e){
   e.preventDefault();
 
   var id= $(this).val();
-  $.get('juegos/bajaJuego/' + id  , function(data){
+  $.get('mesas-juegos/bajaJuego/' + id  , function(data){
 
     $('#modAlertaEliminar').modal('hide');
 
@@ -494,7 +501,7 @@ function generarFilaJuegos(data){
       .text(data.siglas).css('text-align','center'))
       .append($('<td>')
       .addClass('col-xs-3').addClass('f_casino')
-      .text(data.id_casino).css('text-align','center'))
+      .text(data.nombre).css('text-align','center'))
       .append($('<td>')
       .addClass('col-xs-3')
       .append($('<span>').text(' '))

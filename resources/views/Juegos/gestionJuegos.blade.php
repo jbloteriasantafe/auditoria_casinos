@@ -150,7 +150,7 @@
 
   <!-- MODAL NUEVO JUEGO -->
   <div class="modal fade" id="modalAltaJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-70%">
+    <div class="modal-dialog modal-80%">
       <div class="modal-content">
         <div class="modal-header" style="background-color:#1DE9B6;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -164,7 +164,7 @@
               <div class="row">
                 <div class="col-md-6">
                   <h5>Nombre</h5>
-                  <input type="text" class="form-control" id="nombre_juego" placeholder="Nombre de Juego" name="user_name">
+                  <input type="text" class="form-control" id="nombre_juego" placeholder="Nombre Juego" name="user_name">
                   <br>
                 </div>
                 <div class="col-md-6">
@@ -174,7 +174,7 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <h5>Casino</h5>
                   <select class="form-control" id="casino_juego">
                     <option value="0" selected class="default">- Seleccione un Casino-</option>
@@ -184,7 +184,7 @@
                   </select>
                   <br>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <h5>Tipo Mesa</h5>
                   <select class="form-control" id="tipo_mesa_juego">
                     <option value="0" selected class="default2">- Seleccione un Tipo de Mesa -</option>
@@ -192,6 +192,10 @@
                     <option value="{{$t->id_tipo_mesa}}">{{$t->descripcion}}</option>
                     @endforeach
                   </select>
+                </div>
+                <div class="col-md-4">
+                  <h5>N° de Posiciones</h5>
+                  <input type="text" class="form-control" value="" id="posicionesJuego" placeholder="Posiciones por Juego">
                 </div>
               </div>
             </form>
@@ -269,6 +273,11 @@
                               </tbody>
                             </table>
                             <br>
+                        </div>
+                        <div class="col-md-6">
+                          <h6>N° POSICIONES: </h6>
+                          <input type="text" class="form-control" id="modif_pos" value="" >
+                          <br>
                         </div>
 
                       </div>

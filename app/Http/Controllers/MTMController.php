@@ -261,6 +261,15 @@ class MTMController extends Controller
   public function buscarMaquinas(Request $request){
     $reglas=array();
     $reglas[]=['maquina.deleted_at', '=' , null];
+    if($request->estado_maquina!=0){
+      if($request->estado_maquina==1){
+        $estados=array('1','2');
+      }else{
+        $estados=array('4','5','6','7');
+      }
+    }else{
+      $estados=array('1','2','4','5','6','7');
+    }
     if(isset($request->nro_admin)){
       $reglas[]=['maquina.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
     }
@@ -294,16 +303,18 @@ class MTMController extends Controller
     }
     $sort_by = $request->sort_by;
     $resultados=DB::table('maquina')
-    ->select('maquina.*','juego.*','isla.*','sector.*','casino.*')
+    ->select('maquina.*','juego.*','isla.*','sector.*','casino.*','estado_maquina.descripcion as estado_maquina')
     ->leftJoin('isla' , 'isla.id_isla','=','maquina.id_isla')
     ->leftJoin('casino' , 'maquina.id_casino','=','casino.id_casino')
     ->leftJoin('sector','sector.id_sector','=','isla.id_sector')
+    ->leftJoin('estado_maquina','maquina.id_estado_maquina','=','estado_maquina.id_estado_maquina')
     ->leftJoin('juego','maquina.id_juego','=','juego.id_juego')
     ->when($sort_by,function($query) use ($sort_by){
                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                 })
     ->where($reglas)
     ->whereIn('maquina.id_casino',$casinos)
+    ->whereIn('maquina.id_estado_maquina',$estados)
     ->paginate($request->page_size);
 
     return $resultados;

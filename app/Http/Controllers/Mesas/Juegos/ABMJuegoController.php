@@ -58,7 +58,8 @@ class ABMJuegoController extends Controller
       'siglas' => ['required','max:6',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)],
       'id_tipo_mesa' => 'required|exists:tipo_mesa,id_tipo_mesa',
-      'id_casino' => 'required|exists:casino,id_casino'
+      'id_casino' => 'required|exists:casino,id_casino',
+      'posiciones' => 'required|integer'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -115,7 +116,8 @@ class ABMJuegoController extends Controller
       'nombre_juego' => ['required','max:100',Rule::unique('juego_mesa')
                                            ->where('id_casino','=',$id_casino)],
       'siglas' => ['required','max:6',Rule::unique('juego_mesa')
-                                           ->where('id_casino','=',$id_casino)]
+                                           ->where('id_casino','=',$id_casino)],
+      'posiciones' => 'required|integer'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
       if ($validator->fails()){

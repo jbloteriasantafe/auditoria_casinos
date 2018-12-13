@@ -241,7 +241,7 @@ $('#btn-guardar').click(function(e){
             $('#'+ id).find('.boton_cargar').remove();
 
           }
-          // $('#btn-buscar').trigger('click');
+           $('#btn-buscar').trigger('click');
 
           //Si estuvo bien:
               // 1. Cerrar el modal de máquina.
@@ -516,10 +516,7 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     $('#juega_progresivo_m').val("SI");
   }
  
-  //seteo datos pensataña maquina
-  var text=$('#modalMaquina .modal-title').text();
-  text= text +" N°: " + data.maquina.nro_admin + " ISLA: "+data.isla.nro_isla ;
-  $('#modalMaquina .modal-title').text(text);
+  
 
   $('#nro_admin').val(data.maquina.nro_admin);
   $('#marca').val(data.maquina.marca);
@@ -562,10 +559,18 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     }
   }
 
+  var text=$('#modalMaquina .modal-title').text();
+    
   //Datos pesataña isla
   console.log(data.isla);
   if(data.isla != null){//si no tiene isla asociada, puede pasar al modifcar isla
     mostrarIsla(data.casino, data.isla ,data.sectores, data.sector);
+    //seteo datos pensataña maquina
+    text= text +" N°: " + data.maquina.nro_admin + " ISLA: "+data.isla.nro_isla ;
+    $('#modalMaquina .modal-title').text(text);
+  }else{
+    text= text +" N°: " + data.maquina.nro_admin + " ISLA: SIN ASIGNAR ";
+   $('#modalMaquina .modal-title').text(text);
   }
 
   mostrarJuegos(data.juegos,data.juego_activo);
