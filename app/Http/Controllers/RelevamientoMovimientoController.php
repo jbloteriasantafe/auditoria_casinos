@@ -174,7 +174,8 @@ class RelevamientoMovimientoController extends Controller
        //verifico si es la segunda toma que se hace
        if($es_toma_2){ //existe una toma para el relevamiento
            $toma_relev = $this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
-           $rel->fecha_relev_sala_2 = $toma_relev->relevamiento_movimiento->fecha_relev_sala;
+           $tttt = TomaRelevamientoMovimiento::find($toma_relev->id_toma_relev_mov);
+           $rel->fecha_relev_sala_1 = $tttt->relevamiento_movimiento->fecha_relev_sala;
            $rel->toma1_cont1 = $toma_relev->vcont1;
            $rel->toma1_cont2 = $toma_relev->vcont2;
            $rel->toma1_cont3 = $toma_relev->vcont3;
@@ -193,7 +194,7 @@ class RelevamientoMovimientoController extends Controller
            $rel->toma1_mac = $toma_relev->mac;
            $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
            $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
-
+           $rel->toma1_observ = $tttt->observaciones;
 
        }else{
          $rel->toma1_cont1 = null;
