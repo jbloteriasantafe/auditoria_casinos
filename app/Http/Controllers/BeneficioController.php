@@ -326,11 +326,10 @@ class BeneficioController extends Controller
           $acumulado = $acumulado + $benef->valor;
         }
         else{
-          $bandera = false;
           $i = $cant_dias;
         }
       }
-      if($bandera){
+     // como se esta intentando validar dias sin producidos, se genera el mensual de todas formas
         $beneficio_mensual = new BeneficioMensual;
         $beneficio_mensual->id_casino = $ben->id_casino;
         $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
@@ -341,7 +340,7 @@ class BeneficioController extends Controller
         $beneficio_mensual->bruto = $acumulado;
         //$beneficio_mensual->iea = algo;
         $beneficio_mensual->save();
-      }
+      
     }
     return "true";
   }
