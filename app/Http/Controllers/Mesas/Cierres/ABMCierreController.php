@@ -61,7 +61,9 @@ class ABMCierreController extends Controller
       'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
+    ], array(), self::$atributos)->after(function($validator){
+      //Cierre::where('id_mesa_de_panio','=',)->where('fecha','=')
+    })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];

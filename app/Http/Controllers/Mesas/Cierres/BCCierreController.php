@@ -79,6 +79,7 @@ class BCCierreController extends Controller
                   ->whereMonth('cierre_mesa.fecha', $date->month)
                   ->whereYear('cierre_mesa.fecha',$date->year)
                   ->whereIn('mesa_de_panio.id_casino',$casinos)
+                  ->whereNull('cierre_mesa.deleted_at')
                   ->orderBy('fecha' , 'desc')->first()
                   ->get();
 
@@ -173,6 +174,7 @@ class BCCierreController extends Controller
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                               ->where($filtros)
+                              ->whereNull('cierre_mesa.deleted_at')
                               ->orderBy('cierre_mesa.fecha','desc')
                               ->take(31)
                               ->get();
@@ -185,6 +187,7 @@ class BCCierreController extends Controller
                               ->whereYear('cierre_mesa.fecha' , '=', $fecha[0])
                               ->whereMonth('cierre_mesa.fecha','=', $fecha[1])
                               ->whereDay('cierre_mesa.fecha','=', $fecha[2])
+                              ->whereNull('cierre_mesa.deleted_at')
                               ->orderBy('cierre_mesa.fecha','desc')
                               ->take(31)
                               ->get();
