@@ -267,7 +267,7 @@ function generarFilaTabla(beneficio){
       var fila = $(document.createElement('tr'));
       var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-      fila.attr('id','beneficio' + beneficio.id_beneficio)
+      fila.attr('id','beneficio' + beneficio.id_beneficio_mensual)
           .append($('<td>')
               .addClass('col-xs-2')
               .text(beneficio.casino)
@@ -295,7 +295,7 @@ function generarFilaTabla(beneficio){
                           +   '<button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>'
                           + '</div>';
         // TODO cambiar , viene indefinido, no null
-        if(beneficio.id_beneficio_mensual != null){
+        if(beneficio.id_beneficio_mensual !== null){
           fila.append($('<td>')
               .append($('<button>')
                   .addClass('btn btn-success pop')
