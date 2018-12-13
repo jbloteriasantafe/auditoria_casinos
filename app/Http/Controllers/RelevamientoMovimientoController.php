@@ -79,6 +79,9 @@ class RelevamientoMovimientoController extends Controller
      return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
    }
 
+
+   //////falta VER LO DE LA FECHA DE LA TOMA 2!! HABRIA QUE GUARDAR UNA NUEVA FECHA EN EL RELEV MOVIMIENTO y guardarla solo cuando aprieta el boton retoma2
+
    public function generarPlanillaMaquina($relev_mov, $tipo_movimiento, $casino , $fecha_envio, $estado_relevamiento,$nro,$es_toma_2){
      $rel= new \stdClass();
 
@@ -116,99 +119,152 @@ class RelevamientoMovimientoController extends Controller
      $rel->nom_cont7 = $formula->cont7;
      $rel->nom_cont8 = $formula->cont8;
 
-     //verifico si es la segunda toma que se hace
-     if($es_toma_2){ //existe una toma para el relevamiento
-         $toma_relev = $this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
-         $rel->fecha_relev_sala_2 = $toma_relev->relevamiento_movimiento->fecha_relev_sala;
-         $rel->toma1_cont1 = $toma_relev->vcont1;
-         $rel->toma1_cont2 = $toma_relev->vcont2;
-         $rel->toma1_cont3 = $toma_relev->vcont3;
-         $rel->toma1_cont4 = $toma_relev->vcont4;
-         $rel->toma1_cont5 = $toma_relev->vcont5;
-         $rel->toma1_cont6 = $toma_relev->vcont6;
-         $rel->toma1_cont7 = $toma_relev->vcont7;
-         $rel->toma1_cont8 = $toma_relev->vcont8;
-         $juego = Juego::find($toma_relev->juego);
-         $rel->toma1_juego = $juego->nombre_juego;
-         $rel->toma1_apuesta_max = $toma_relev->apuesta_max;
-         $rel->toma1_cant_lineas = $toma_relev->cant_lineas;
-         $rel->toma1_porcentaje_devolucion = $toma_relev->porcentaje_devolucion;
-         $rel->toma1_denominacion = $toma_relev->denominacion;
-         $rel->toma1_cant_creditos = $toma_relev->cant_creditos;
-         $rel->toma1_mac = $toma_relev->mac;
-         $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
-         $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
+     //si las dos tomas estan cargadas
 
-
+     if(count($relev_mov->toma_relevamiento_movimiento) == 2){
+       $rel->toma = 1; //indico que tiene las dos tomas
+       //entonces la primer toma la guardo en toma 2, asi la toma como la 1er toma
+       foreach ($relev_mov->toma_relevamiento_movimiento as $toma_relevada) {
+         if($toma_relevada->toma_reingreso == 0){
+           $rel->fecha_relev_sala_1 = $relev_mov->fecha_relev_sala;
+           $rel->toma1_cont1 = $toma_relevada->vcont1;
+           $rel->toma1_cont2 = $toma_relevada->vcont2;
+           $rel->toma1_cont3 = $toma_relevada->vcont3;
+           $rel->toma1_cont4 = $toma_relevada->vcont4;
+           $rel->toma1_cont5 = $toma_relevada->vcont5;
+           $rel->toma1_cont6 = $toma_relevada->vcont6;
+           $rel->toma1_cont7 = $toma_relevada->vcont7;
+           $rel->toma1_cont8 = $toma_relevada->vcont8;
+           $juego = Juego::find($toma_relevada->juego);
+           $rel->toma1_juego = $juego->nombre_juego;
+           $rel->toma1_apuesta_max = $toma_relevada->apuesta_max;
+           $rel->toma1_cant_lineas = $toma_relevada->cant_lineas;
+           $rel->toma1_porcentaje_devolucion = $toma_relevada->porcentaje_devolucion;
+           $rel->toma1_denominacion = $toma_relevada->denominacion;
+           $rel->toma1_cant_creditos = $toma_relevada->cant_creditos;
+           $rel->toma1_mac = $toma_relevada->mac;
+           $rel->toma1_nro_isla_relevada = $toma_relevada->nro_isla_relevada;
+           $rel->toma1_descripcion_sector_relevado = $toma_relevada->descripcion_sector_relevado;
+           $rel->toma1_observ = $toma_relevada->observaciones;
+         }else{
+           $rel->fecha_relev_sala_2 = $relev_mov->fecha_relev_sala_dos;
+           $rel->toma2_cont1 = $toma_relevada->vcont1;
+           $rel->toma2_cont2 = $toma_relevada->vcont2;
+           $rel->toma2_cont3 = $toma_relevada->vcont3;
+           $rel->toma2_cont4 = $toma_relevada->vcont4;
+           $rel->toma2_cont5 = $toma_relevada->vcont5;
+           $rel->toma2_cont6 = $toma_relevada->vcont6;
+           $rel->toma2_cont7 = $toma_relevada->vcont7;
+           $rel->toma2_cont8 = $toma_relevada->vcont8;
+           $juego = Juego::find($toma_relevada->juego);
+           $rel->toma2_juego = $juego->nombre_juego;
+           $rel->toma2_apuesta_max = $toma_relevada->apuesta_max;
+           $rel->toma2_cant_lineas = $toma_relevada->cant_lineas;
+           $rel->toma2_porcentaje_devolucion = $toma_relevada->porcentaje_devolucion;
+           $rel->toma2_denominacion = $toma_relevada->denominacion;
+           $rel->toma2_cant_creditos = $toma_relevada->cant_creditos;
+           $rel->toma2_mac = $toma_relevada->mac;
+           $rel->toma2_nro_isla_relevada = $toma_relevada->nro_isla_relevada;
+           $rel->toma2_descripcion_sector_relevado = $toma_relevada->descripcion_sector_relevado;
+           $rel->toma2_observ = $toma_relevada->observaciones;
+         }
+       }
      }else{
-       $rel->toma1_cont1 = null;
-       $rel->toma1_cont2 = null;
-       $rel->toma1_cont3 = null;
-       $rel->toma1_cont4 = null;
-       $rel->toma1_cont5 = null;
-       $rel->toma1_cont6 = null;
-       $rel->toma1_cont7 = null;
-       $rel->toma1_cont8 = null;
-       $rel->toma1_juego = null;
-       $rel->toma1_apuesta_max = null;
-       $rel->toma1_cant_lineas = null;
-       $rel->toma1_porcentaje_devolucion = null;
-       $rel->toma1_denominacion = null;
-       $rel->toma1_cant_creditos = null;
-       $rel->toma1_mac=null;
-       $rel->toma1_nro_isla_relevada = null;
-       $rel->toma1_descripcion_sector_relevado = null;
+       //otros casos
+       //verifico si es la segunda toma que se hace
+       if($es_toma_2){ //existe una toma para el relevamiento
+           $toma_relev = $this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
+           $rel->fecha_relev_sala_2 = $toma_relev->relevamiento_movimiento->fecha_relev_sala;
+           $rel->toma1_cont1 = $toma_relev->vcont1;
+           $rel->toma1_cont2 = $toma_relev->vcont2;
+           $rel->toma1_cont3 = $toma_relev->vcont3;
+           $rel->toma1_cont4 = $toma_relev->vcont4;
+           $rel->toma1_cont5 = $toma_relev->vcont5;
+           $rel->toma1_cont6 = $toma_relev->vcont6;
+           $rel->toma1_cont7 = $toma_relev->vcont7;
+           $rel->toma1_cont8 = $toma_relev->vcont8;
+           $juego = Juego::find($toma_relev->juego);
+           $rel->toma1_juego = $juego->nombre_juego;
+           $rel->toma1_apuesta_max = $toma_relev->apuesta_max;
+           $rel->toma1_cant_lineas = $toma_relev->cant_lineas;
+           $rel->toma1_porcentaje_devolucion = $toma_relev->porcentaje_devolucion;
+           $rel->toma1_denominacion = $toma_relev->denominacion;
+           $rel->toma1_cant_creditos = $toma_relev->cant_creditos;
+           $rel->toma1_mac = $toma_relev->mac;
+           $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
+           $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
 
+
+       }else{
+         $rel->toma1_cont1 = null;
+         $rel->toma1_cont2 = null;
+         $rel->toma1_cont3 = null;
+         $rel->toma1_cont4 = null;
+         $rel->toma1_cont5 = null;
+         $rel->toma1_cont6 = null;
+         $rel->toma1_cont7 = null;
+         $rel->toma1_cont8 = null;
+         $rel->toma1_juego = null;
+         $rel->toma1_apuesta_max = null;
+         $rel->toma1_cant_lineas = null;
+         $rel->toma1_porcentaje_devolucion = null;
+         $rel->toma1_denominacion = null;
+         $rel->toma1_cant_creditos = null;
+         $rel->toma1_mac=null;
+         $rel->toma1_nro_isla_relevada = null;
+         $rel->toma1_descripcion_sector_relevado = null;
+
+       }
+
+      $rel->fecha = $fecha_envio;
+
+      //Si la ficha ya se cargó, entoces se imprime con los datos de la toma:
+      $toma_relev = TomaRelevamientoMovimiento::where('id_relevamiento_movimiento','=',$relev_mov->id_relev_mov)->get()->first();
+
+
+      if ($estado_relevamiento > 2  && $estado_relevamiento != 5) {
+
+        $rel->toma2_cont1 = $toma_relev->vcont1;
+        $rel->toma2_cont2 = $toma_relev->vcont2;
+        $rel->toma2_cont3 = $toma_relev->vcont3;
+        $rel->toma2_cont4 = $toma_relev->vcont4;
+        $rel->toma2_cont5 = $toma_relev->vcont5;
+        $rel->toma2_cont6 = $toma_relev->vcont6;
+        $rel->toma2_cont7 = $toma_relev->vcont7;
+        $rel->toma2_cont8 = $toma_relev->vcont8;
+        $game = Juego::find($toma_relev->juego);
+        $rel->toma2_juego = $game->nombre_juego;
+        $rel->toma2_apuesta_max = $toma_relev->apuesta_max;
+        $rel->toma2_cant_lineas = $toma_relev->cant_lineas;
+        $rel->toma2_porcentaje_devolucion = $toma_relev->porcentaje_devolucion;
+        $rel->toma2_denominacion = $toma_relev->denominacion;
+        $rel->toma2_cant_creditos = $toma_relev->cant_creditos;
+        $rel->toma2_observ = $toma_relev->observaciones;
+        $rel->toma2_mac= $toma_relev->mac;
+        $rel->toma2_nro_isla_relevada = $toma_relev->nro_isla_relevada;
+        $rel->toma2_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
+
+      }else{
+        $rel->toma2_cont1 = null;
+        $rel->toma2_cont2 = null;
+        $rel->toma2_cont3 = null;
+        $rel->toma2_cont4 = null;
+        $rel->toma2_cont5 = null;
+        $rel->toma2_cont6 = null;
+        $rel->toma2_cont7 = null;
+        $rel->toma2_cont8 = null;
+        $rel->toma2_juego = null;
+        $rel->toma2_apuesta_max = null;
+        $rel->toma2_cant_lineas = null;
+        $rel->toma2_porcentaje_devolucion = null;
+        $rel->toma2_denominacion = null;
+        $rel->toma2_cant_creditos = null;
+         $rel->toma2_observ =null;
+         $rel->toma2_mac= null;
+         $rel->toma2_nro_isla_relevada = null;
+         $rel->toma2_descripcion_sector_relevado = null;
+      }
      }
-    $rel->fecha = $fecha_envio;
-
-    //Si la ficha ya se cargó, entoces se imprime con los datos de la toma:
-    $toma_relev = TomaRelevamientoMovimiento::where('id_relevamiento_movimiento','=',$relev_mov->id_relev_mov)->get()->first();
-
-
-    if ($estado_relevamiento > 2  && $estado_relevamiento != 5) {
-
-      $rel->toma2_cont1 = $toma_relev->vcont1;
-      $rel->toma2_cont2 = $toma_relev->vcont2;
-      $rel->toma2_cont3 = $toma_relev->vcont3;
-      $rel->toma2_cont4 = $toma_relev->vcont4;
-      $rel->toma2_cont5 = $toma_relev->vcont5;
-      $rel->toma2_cont6 = $toma_relev->vcont6;
-      $rel->toma2_cont7 = $toma_relev->vcont7;
-      $rel->toma2_cont8 = $toma_relev->vcont8;
-      $game = Juego::find($toma_relev->juego);
-      $rel->toma2_juego = $game->nombre_juego;
-      $rel->toma2_apuesta_max = $toma_relev->apuesta_max;
-      $rel->toma2_cant_lineas = $toma_relev->cant_lineas;
-      $rel->toma2_porcentaje_devolucion = $toma_relev->porcentaje_devolucion;
-      $rel->toma2_denominacion = $toma_relev->denominacion;
-      $rel->toma2_cant_creditos = $toma_relev->cant_creditos;
-      $rel->toma2_observ = $toma_relev->observaciones;
-      $rel->toma2_mac= $toma_relev->mac;
-      $rel->toma2_nro_isla_relevada = $toma_relev->nro_isla_relevada;
-      $rel->toma2_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
-
-    }else{
-      $rel->toma2_cont1 = null;
-      $rel->toma2_cont2 = null;
-      $rel->toma2_cont3 = null;
-      $rel->toma2_cont4 = null;
-      $rel->toma2_cont5 = null;
-      $rel->toma2_cont6 = null;
-      $rel->toma2_cont7 = null;
-      $rel->toma2_cont8 = null;
-      $rel->toma2_juego = null;
-      $rel->toma2_apuesta_max = null;
-      $rel->toma2_cant_lineas = null;
-      $rel->toma2_porcentaje_devolucion = null;
-      $rel->toma2_denominacion = null;
-      $rel->toma2_cant_creditos = null;
-       $rel->toma2_observ =null;
-       $rel->toma2_mac= null;
-       $rel->toma2_nro_isla_relevada = null;
-       $rel->toma2_descripcion_sector_relevado = null;
-    }
-
      return $rel;
    }
 
@@ -230,19 +286,28 @@ class RelevamientoMovimientoController extends Controller
 
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamiento( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones,$islaRelevadaCargar, $sectorRelevadoCargar, $id_fiscalizacion_movimiento, $id_cargador, $id_fisca, $mac){
+    $cant_creditos, $fecha_sala, $observaciones,$islaRelevadaCargar, $sectorRelevadoCargar, $id_fiscalizacion_movimiento, $id_cargador, $id_fisca, $mac,
+    $es_toma_reingreso){
 
      $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
-     $relevamiento->fecha_relev_sala = $fecha_sala;
-     $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
+
+     if($es_toma_reingreso){
+       $relevamiento->fecha_relev_sala_dos = $fecha_sala;
+       $relevamiento->fecha_carga_dos =  date('Y-m-d h:i:s', time());
+     }else{
+       $relevamiento->fecha_relev_sala = $fecha_sala;
+       $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
+     }
+
      $relevamiento->fiscalizador()->associate($id_fisca);
      $relevamiento->cargador()->associate($id_cargador);
      $relevamiento->save();
 
-     $es_toma_reingreso = count($relevamiento->toma_relev_mov); //1 si es que hay una, sino cero o bien 2
 
-     if(!isset($relevamiento->toma_relevamiento_movimiento)){
+     if($es_toma_reingreso == 0 && count($relevamiento->toma_relevamiento_movimiento) == 0){
+        //caso en el que es la 1era vez que toma
+
          TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
          $relevamiento->id_relev_mov,
          $contadores,
@@ -255,19 +320,34 @@ class RelevamientoMovimientoController extends Controller
          $fecha_sala,
          $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
        }else{ //cuando el fisca vuelve a mandar a guardar y ya estaba creada
-         TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
-         $relevamiento->toma_relevamiento_movimiento,
-         $contadores,
-         $juego ,
-         $apuesta_max,
-         $cant_lineas,
-         $porcentaje_devolucion,
-         $denominacion ,
-         $cant_creditos,
-         $fecha_sala,
-         $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar);
+         if($es_toma_reingreso == 1 && count($relevamiento->toma_relevamiento_movimiento) == 1){
+           TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
+           $relevamiento->id_relev_mov,
+           $contadores,
+           $juego ,
+           $apuesta_max,
+           $cant_lineas,
+           $porcentaje_devolucion,
+           $denominacion ,
+           $cant_creditos,
+           $fecha_sala,
+           $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
+         }else{//caso en el que simplemente está editando la toma
+           TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
+           $relevamiento->toma_relevamiento_movimiento,
+           $contadores,
+           $juego ,
+           $apuesta_max,
+           $cant_lineas,
+           $porcentaje_devolucion,
+           $denominacion ,
+           $cant_creditos,
+           $fecha_sala,
+           $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
+         }
 
        }
+       //no se puede automatizar la eleccion de si es toma 1 o toma 2 o si está modificando o ke
    }
 
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
@@ -283,7 +363,7 @@ class RelevamientoMovimientoController extends Controller
      $relevamiento->save();
 
 
-     if(!isset($relevamiento->toma_relevamiento_movimiento)){
+     if(count($relevamiento->toma_relevamiento_movimiento) == 0){
          TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
          $relevamiento->id_relev_mov,
          $contadores,
@@ -410,7 +490,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->nom_cont8 = "s/f";
      }
 
-     if(!isset($relevamiento->toma_relevamiento_movimiento)) $tipo =1;
+     if(count($relevamiento->toma_relevamiento_movimiento) == 0) $tipo =1;
 
      if($tipo == 1){
 

@@ -690,6 +690,7 @@ class LogMovimientoController extends Controller
 
   }
 
+  //se usa sólo para cargar los relevamientos - desde los fiscalizadores
   public function obtenerMTMFiscalizacion($id_maquina, $id_fiscalizacion){
     $mtm = DB::table('maquina')
               ->select('maquina.*','isla.nro_isla','formula.*')
@@ -712,9 +713,10 @@ class LogMovimientoController extends Controller
     $fisca = $fiscalizacion->fiscalizador;
     $nombre= null;
     if(isset($relevamiento->toma_relevamiento_movimiento)){
-      $toma=$relevamiento->toma_relevamiento_movimiento;
-      $fecha = $relevamiento->fecha_relev_sala;
-      $nombre= Juego::find($toma->juego)->nombre_juego;
+      // $toma=$relevamiento->toma_relevamiento_movimiento;
+      // //dd($toma);
+      // $fecha = $relevamiento->fecha_relev_sala;
+      // $nombre= Juego::find($toma->juego)->nombre_juego;
     }
 
     return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma, 'fiscalizador'=> $fisca, 'fecha' => $fecha, 'nombre_juego' => $nombre];
@@ -869,24 +871,24 @@ class LogMovimientoController extends Controller
       $fiscalizacion->fiscalizador()->associate( $request->id_fiscalizador);
     }
 
-    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamiento($request->id_maquina ,
-    $request['contadores'],
-    $request['juego'] ,
-    $request['apuesta_max'],
-    $request['cant_lineas'] ,
-    $request['porcentaje_devolucion'],
-    $request['denominacion'] ,
-    $request['cant_creditos'],
-    $request['fecha_sala'],
-    $request['observaciones'],
-    $request['isla_relevada'],
-    $request['sectorRelevadoCargar'],
-    $request->id_fiscalizacion_movimiento,
-    $request->id_cargador,
-    $request->id_fiscalizador, $request['mac']);
+      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamiento($request->id_maquina ,
+      $request['contadores'],
+      $request['juego'] ,
+      $request['apuesta_max'],
+      $request['cant_lineas'] ,
+      $request['porcentaje_devolucion'],
+      $request['denominacion'] ,
+      $request['cant_creditos'],
+      $request['fecha_sala'],
+      $request['observaciones'],
+      $request['isla_relevada'],
+      $request['sectorRelevadoCargar'],
+      $request->id_fiscalizacion_movimiento,
+      $request->id_cargador,
+      $request->id_fiscalizador, $request['mac'],$request['es_cargaT2']);
 
     //si es primera toma
-    if($fiscalizacion->estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
+    if($fiscalizacion->id_estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
     {//si existe una toma de relevamiento por cada relevamiento -> finalizado
       $logMov->id_estado_movimiento= 3;//fiscalizado
       $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
@@ -900,11 +902,11 @@ class LogMovimientoController extends Controller
       CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
     }
 
-    //la fiscalizacion esta cargada en la toma 1 y pouede estar visada, y verifico que las tomas2 esten cargadas
-    if($fiscalizacion->estado_relevamiento > 2 && cargaFinalizadaToma2($fiscalizacion)){
+    //la fiscalizacion esta cargada en la toma 1 y puede estar visada, y verifico que las tomas2 esten cargadas
+    if($fiscalizacion->id_estado_relevamiento > 2 && $this->cargaFinalizadaToma2($fiscalizacion) && $logMov->id_tipo_movimiento != 1){
       $logMov->id_estado_movimiento= 3;//fiscalizado
       $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
-      $fiscalizacion->estado_relevamiento()->associate(7);
+      $fiscalizacion->estado_relevamiento()->associate(7);//se cargo toma 2 pero no se validó
       //rel. visado (?) le pongo ese pero es para distinguir que es la toma 2 que ya esta cargada
       $id_usuario = session('id_usuario');
       $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
@@ -982,7 +984,7 @@ class LogMovimientoController extends Controller
       $fiscalizaciones = DB::table('log_movimiento')
                           ->select('fiscalizacion_movimiento.*', 'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion')
                           ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-                          ->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6])
+                          ->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6,7])
                           //->orWhere('fiscalizacion_movimiento.es_reingreso','=',1)
                           ->where('log_movimiento.id_log_movimiento','=',$id_log_movimiento)
                           ->get();
@@ -1013,12 +1015,27 @@ class LogMovimientoController extends Controller
                     ->join('formula','formula.id_formula','=', 'maquina.id_formula')
                     ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
                     ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
+                    ->where('toma_relev_mov.toma_reingreso','=',0)
                     ->get()
                     ->first();
 
     $toma1=null;
     if($fiscalizacionMov->es_reingreso == 1 ){
       $toma1 = FiscalizacionMovController::getInstancia()->buscarTomaEgreso($fiscalizacionMov->id_fiscalizacion_movimiento, $fiscalizacionMov->id_log_movimiento,$relev->id_maquina);
+    }else{
+      $toma2 = DB::table('relevamiento_movimiento')
+                      ->select('maquina.*','toma_relev_mov.*','formula.*','juego.nombre_juego','relevamiento_movimiento.id_estado_relevamiento')
+                      ->join('toma_relev_mov', 'toma_relev_mov.id_relevamiento_movimiento','=','relevamiento_movimiento.id_relev_mov')
+                      ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
+                      ->join('formula','formula.id_formula','=', 'maquina.id_formula')
+                      ->join('juego','toma_relev_mov.juego','=', 'juego.id_juego')
+                      ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
+                      ->where('toma_relev_mov.toma_reingreso','=',1)
+                      ->get()
+                      ->first();
+        if(count($toma2) == 1){
+          $toma1 = $toma2;
+        }
     }
 
     //hacer lo de asignar el coinciden de juego, devolucion, denomicsfgd

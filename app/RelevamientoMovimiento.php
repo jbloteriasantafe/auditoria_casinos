@@ -12,7 +12,9 @@ class RelevamientoMovimiento extends Model
   protected $primaryKey = 'id_relev_mov';
   protected $visible = array('id_relev_mov','id_fiscalizacion_movimiento',
   'id_fisca','id_cargador', 'id_maquina', 'fecha_relev_sala','fecha_fecha_carga',
-   'id_estado_relevamiento','id_log_movimiento','nro_admin');
+   'id_estado_relevamiento','id_log_movimiento','nro_admin','fecha_relev_sala_dos',
+   'fecha_carga_dos'
+ );
   public $timestamps = false;
 
   public function maquina(){

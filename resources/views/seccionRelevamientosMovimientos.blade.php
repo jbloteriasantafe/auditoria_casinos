@@ -122,7 +122,9 @@ $cas = $usuario['usuario']->casinos;
                     @endif
                     @if($fiscalizacion->id_estado_relevamiento > 2)
                       @if($fiscalizacion->id_estado_relevamiento  < 7)
+                        @if($fiscalizacion->id_estado_relevamiento  !== 4)
                         <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarT2RelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-retweet"> <span>CARGAR TOMA 2</span></i></button>
+                        @endif
                       @endif
                       <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button>
                     @endif
