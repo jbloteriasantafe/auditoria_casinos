@@ -73,7 +73,7 @@ class ABMCCierreAperturaController extends Controller
 
       $this->ascociarDetalles($apertura,$cierre);
     }
-  }
+  
 
   public function ascociarDetalles($apertura,$cierre){
     $det_aperturas_con_Dcierres = DB::table('detalle_apertura')
