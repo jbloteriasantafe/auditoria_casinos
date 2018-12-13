@@ -109,6 +109,7 @@ class FiscalizacionMovController extends Controller
                         ->whereIn('log_movimiento.id_casino',$casinos)
                         ->where('log_movimiento.id_expediente','<>','null')
                         ->where($reglas)
+                        ->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
                         ->orderBy('fiscalizacion_movimiento.fecha_envio_fiscalizar','desc')
                         ->take(25)
                         ->get();
@@ -126,6 +127,7 @@ class FiscalizacionMovController extends Controller
                         ->where($reglas)
                         ->whereYear('fiscalizacion_movimiento.fecha_envio_fiscalizar' , '=', $fecha[0])
                         ->whereMonth('fiscalizacion_movimiento.fecha_envio_fiscalizar','=', $fecha[1])
+                        ->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
                         ->orderBy('fiscalizacion_movimiento.fecha_envio_fiscalizar','desc')
                         ->take(25)
                         ->get();
