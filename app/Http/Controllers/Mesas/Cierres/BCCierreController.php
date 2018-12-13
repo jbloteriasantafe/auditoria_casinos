@@ -105,6 +105,7 @@ class BCCierreController extends Controller
                       ->where('detalle_cierre.id_cierre_mesa','=',$id)
                       ->orWhereNull('detalle_cierre.id_cierre_mesa')
                       ->where('ficha.id_moneda','=',$mesa->moneda->id_moneda)
+                      ->orderBy('ficha.valor_ficha','desc')
                       ->get();
       $detalleC = array();
 
