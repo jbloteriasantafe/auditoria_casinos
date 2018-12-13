@@ -129,7 +129,7 @@ class BeneficioController extends Controller
       $pos->id_tipo_moneda = $row['id_tipo_moneda'];
       $pos->tipo_moneda = $row['tipo_moneda'];
       $pos->diferencias_mes = $row['diferencias_mes'];
-      $aux = BeneficioMensual::where([['id_casino',$row['id_casino']],['id_actividad',1]])->whereYear('anio_mes',$row['anio'])->whereMonth('anio_mes',$row['mes'])->first();
+      $aux = BeneficioMensual::where([['id_casino',$row['id_casino']],['id_actividad',1],['id_tipo_moneda',$row['id_tipo_moneda']]])->whereYear('anio_mes',$row['anio'])->whereMonth('anio_mes',$row['mes'])->first();
       $pos->id_beneficio_mensual = ($aux != null) ? $aux->id_beneficio_mensual : null;
       $retorno[]= $pos;
     }
