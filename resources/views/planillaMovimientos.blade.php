@@ -93,7 +93,17 @@ footer
                 </tr>
                 <tr>
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA </th>
-                  <td class="tablaInicio" style="width: 30%; background-color: #fff; border-color: gray;" >@if ($relevamiento->toma)@if($relevamiento->fecha_relev_sala_1 != null){{$relevamiento->fecha_relev_sala}}@endif @else @if($relevamiento->fecha_relev_sala_2 != null){{$relevamiento->fecha_relev_sala_2}} @else ____/____/____, ____:____ @endif @endif</td>
+                  <td class="tablaInicio" style="width: 30%; background-color: #fff; border-color: gray;" >@if ($relevamiento->toma)
+                                                                                                                @if($relevamiento->fecha_relev_sala_1 != null)
+                                                                                                                  {{$relevamiento->fecha_relev_sala_1}}
+                                                                                                                @endif
+                                                                                                            @else
+                                                                                                              @if($relevamiento->fecha_relev_sala_2 != null)
+                                                                                                                  {{$relevamiento->fecha_relev_sala_2}}
+                                                                                                              @else
+                                                                                                                  ____/____/____, ____:____
+                                                                                                              @endif
+                                                                                                            @endif</td>
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA </th>
                   <td class="tablaInicio" style="width: 30%; background-color: #fff; border-color: gray;" > @if ($relevamiento->toma)@if($relevamiento->fecha_relev_sala_2 != null){{$relevamiento->fecha_relev_sala_2}} @else ____/____/____, ____:____ @endif @endif </td>
                 </tr>
@@ -254,7 +264,18 @@ footer
                 </tr>
                 <tr>
                   @if($relevamiento->toma2_observ != null)
-                    <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">@if ($relevamiento->toma2_observ != null) {{$relevamiento->toma2_observ}} @else {{$relevamiento->toma1_observ}} @endif</td>
+                    <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">@if ($relevamiento->toma)
+                      Toma 1:
+                                                                                                                {{$relevamiento->toma1_observ}}
+                                                                                                                <br> Toma 2:
+                                                                                                                {{$relevamiento->toma2_observ}}
+                                                                                                             @else
+                                                                                                                  @if ($relevamiento->toma2_observ != null)
+                                                                                                                    {{$relevamiento->toma2_observ}}
+                                                                                                                  @else
+                                                                                                                    {{$relevamiento->toma1_observ}}
+                                                                                                                  @endif</td>
+                                                                                                              @endif
                   @else
                     <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
                     <div style="color: #dddddd;">
