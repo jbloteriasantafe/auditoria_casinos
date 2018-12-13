@@ -62,7 +62,12 @@ class ABMCierreController extends Controller
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
     ], array(), self::$atributos)->after(function($validator){
-      //Cierre::where('id_mesa_de_panio','=',)->where('fecha','=')
+      $yaExiste = Cierre::where('id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio'])
+                          ->where('fecha','='$validator->getData()['fecha'])
+                          ->get();
+      if(count($yaExiste) != 0){
+        $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa en esa fecha.');
+      }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
