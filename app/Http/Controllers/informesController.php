@@ -152,8 +152,8 @@ class informesController extends Controller
 
       $beneficios_mel = DB::table('beneficio_mensual')->where([['id_casino',1],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
       $beneficios_sfe = DB::table('beneficio_mensual')->where([['id_casino',2],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-      $beneficios_ros = DB::table('beneficio_mensual')->where([['id_casino',3],['id_actividad',1]])->orderBy('anio_mes','desc')
-                           ->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')->get();
+      $beneficios_ros = DB::table('beneficio_mensual')->where([['id_casino',3],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
+                           //->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')->get();
 
       $ajustesSF = array();
 
@@ -216,8 +216,9 @@ class informesController extends Controller
               $resROS->moneda = '$';
               }
               else{
-                $resROS->moneda = 'U$s';
+                $resROS->moneda = 'U$S';
         }
+        $resROS->id_tipo_moneda=$resultado->id_tipo_moneda;
         $resROS->estado = $verifica;
         $ajustesROS[] = $resROS;
       };
@@ -456,6 +457,7 @@ class informesController extends Controller
     $aux->codigo = $maquina->isla->codigo;
     $aux->denominacion = $maquina->denominacion;
     $aux->porcentaje_devolucion = $maquina->porcentaje_devolucion;
+    $aux->id_casino=$maquina->id_casino;
 
 
     $resultados = DB::table('detalle_relevamiento')->select('relevamiento.fecha','tipo_causa_no_toma.descripcion','tipo_causa_no_toma.codigo')

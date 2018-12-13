@@ -1127,15 +1127,10 @@
                             @endforeach
                           </select>
                         </div>
-                        <div class="col-lg-4">
+                        {{-- <div class="col-lg-4">
                           <h5>% Devolución</h5>
                           <input id="porcentaje_devolucion" type="text" class="form-control" placeholder="Porcentaje Devolución">
-                        </div>
-
-                      </div>
-                      <br>
-                      <div class="row">
-
+                        </div> --}}
                         <div class="col-lg-4">
                           <h5>Progresivo</h5>
                           <select class="form-control" id="juega_progresivo">
@@ -1143,6 +1138,12 @@
                             <option value="1">SI</option>
                           </select>
                         </div>
+
+                      </div>
+                      <br>
+                      <div class="row">
+
+                        
                         <div class="col-lg-4">
                           <h5>Moneda</h5>
                           <select class="form-control" id="juega_progresivo">
@@ -1451,32 +1452,31 @@
                       <div id="agregarJuego" style="cursor:pointer;" data-toggle="collapse" data-target="#juegoPlegado">
                           <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                               <div class="col-md-12">
-                                  <h6>AGREGAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
+                                  <h6>ASOCIAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
                               </div>
                           </div>
                       </div>
 
                       <div id="juegoPlegado" class="collapse">
                           <div class="row" style="padding-bottom: 15px;">
-                              <div class="col-md-4">
-                                  <h5>Nombre Juego</h5>
-                                  <!-- <input id="historialJuego" type="hidden" hidden="true"/> -->
-                                    <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
-                                  <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
-                                  <!-- <datalist id="juego"> </datalist> -->
-                              </div>
-                              <div class="col-md-4">
-                                  <h5>Código de identificación</h5>
-                                  <input id="inputCodigo" data-codigo="" class="form-control" type="text" list="codigo" autocomplete="off" placeholder="Código de identificación"/>
-                                  <datalist id="codigo"> </datalist>
-
-                                  <!-- <h5>Código de identificación</h5>
-                                  <input id="codigo_identificacion" class="form-control" type="text" name="" value=""> -->
-                              </div>
-                              <div class="col-md-4">
-                                <h5>Denominación de sala</h5>
-                                <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
-                              </div>
+                            <div class="col-md-4">
+                              <h5>Nombre Juego</h5>
+                                <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
+                              <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
+                              <!-- <datalist id="juego"> </datalist> -->
+                          </div>
+                          <div class="col-md-4">
+                              <h5>Código de Juego</h5>
+                              <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
+                          </div>
+                          <div class="col-md-2">
+                              <h5>Den. de Sala</h5>
+                              <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
+                          </div>
+                          <div class="col-md-2">
+                              <h5>% Dev</h5>
+                              <input id="porcentaje_devolucion_juego" class="form-control" type="text" name="" value="" placeholder="ej: 95.21">
+                          </div>
                           </div>
 
                           <div class="row" style="padding-bottom: 15px;">

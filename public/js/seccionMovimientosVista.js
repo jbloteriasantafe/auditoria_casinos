@@ -2493,3 +2493,9 @@ $('.modal').on('shown.bs.modal', function() {
     //Luego se lo cierra
     $('#mensajeExito').hide();
 });
+
+$('#modalMaquina #nro_admin').on("keyup", function(e){
+  var text="NUEVA MÁQUINA TRAGAMONEDAS N°: " + $(this).val();
+  $('#modalMaquina .modal-title').text(text);
+
+});

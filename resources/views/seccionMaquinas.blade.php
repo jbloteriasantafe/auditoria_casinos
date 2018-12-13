@@ -48,6 +48,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <h5>Denominacion</h5>
                                   <input id="busqueda_denominacion" type="text" class="form-control" placeholder="Denominacion">
                                 </div>
+                                
+
                               </div> <!-- / Primera fila -->
 
                               <br>
@@ -70,14 +72,23 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
                                   </select>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-2">
                                   <h5>Nro Isla</h5>
                                   <input id="busqueda_isla" type="text" class="form-control" placeholder="Nro. isla">
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-2">
+                                  <h5>ESTADO</h5>
+                                  <select class="form-control" id="busqueda_estado">
+                                    <option value="0">TODOS</option> 
+                                    <option value="1">ACTIVA</option>
+                                    <option value="2">NO ACTIVA</option>
+                                  </select>
+                                </div>
+                                <div class="col-lg-2">
                                   <h5 style="color:#f5f5f5">Búsqueda</h5>
                                   <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR </button>
                                 </div>
+                                
                               </div> <!-- / Segunda fila -->
 
                               <br>
@@ -101,7 +112,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <tr>
                                 <th class="col-xs-1 activa" value="maquina.nro_admin" estado="asc">NRO <i class="fas fa-sort-up"></i></th>
                                 <th class="col-xs-1" value="isla.nro_isla" estado="" >ISLA <i class="fas fa-sort"></i></th>
-                                <th class="col-xs-3" value="sector.descripcion" estado="" >CASINO - SECTOR <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-2" value="sector.descripcion" estado="" >CASINO - SECTOR <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-1">ESTADO </th>
                                 <th class="col-xs-2" value="maquina.marca" estado="">MARCA  <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-2" value="juego.nombre_juego" estado="">JUEGO  <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-1" value="denominacion" estado="">DEN.  <i class="fas fa-sort"></i></th>
@@ -305,12 +317,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <input id="denominacion" type="text" class="form-control" placeholder="Denominación">
                                   <br>
                               </div>
-                              <div class="col-lg-4">
+                              {{-- <div class="col-lg-4">
                                   <h5>% Devolución</h5>
                                   <input id="porcentaje_devolucion" type="text" class="form-control" placeholder="Porcentaje Devolución">
                                   <br>
                                   <span id="alerta_devolucion" class="alertaSpan"></span>
-                              </div>
+                              </div> --}}
                               <div class="col-lg-4">
                                   <h5>Estado</h5>
                                   <select class="form-control" id="estado">
@@ -322,6 +334,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
                               </div>
 
+                              <div class="col-lg-4">
+                                <h5>Progresivo</h5>
+                                <input id="juega_progresivo_m"  class="form-control" disabled>
+                              </div>
                           </div>
                           <div class="row">
                             <div class="col-lg-4">
@@ -385,7 +401,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                           <th width="15%">MÁQUINAS</th>
                                           <th width="20%">CASINO</th>
                                           <th width="20%">SECTOR</th>
-                                          <th width="15%">ACCIÓN</th>
+                                          {{-- <th width="15%">ACCIÓN</th> --}}
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -397,14 +413,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                           <td id="activa_cantidad_maquinas">8</td>
                                           <td id="activa_casino">Santa Fe</td>
                                           <td id="activa_zona">Zona 1</td>
-                                          <td>
+                                          {{-- <td>
                                             <button id="editarIslaActiva" class="btn btn-warning" type="button">
                                               <i class="fas fa-fw fa-pencil-alt"></i>
                                             </button>
                                             <button id="borrarIslaActiva" class="btn btn-danger" type="button">
                                               <i class="fas fa-fw fa-trash"></i>
                                             </button>
-                                          </td>
+                                          </td> --}}
                                       </tr>
                                     </tbody>
                                   </table>

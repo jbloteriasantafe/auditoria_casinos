@@ -55,26 +55,25 @@ class ABMCCierreAperturaController extends Controller
     $this->middleware(['tiene_permiso:m_gestionar_cierres']);
   }
 
-  public function asociarAperturaACierre(Apertura $apertura){
-    $cierre = Cierre::where('id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
-                      ->orderBy('fecha' , 'DESC')
-                      ->first();
-    if(count($cierre) == 1){
+  public function asociarAperturaACierre(Apertura $apertura,$id_cierre){
+      $cierre = Cierre::find($id_cierre);
+      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+
       $mesa = Mesa::find($apertura->id_mesa_de_panio);
       $caobjetct = new CierreApertura;
       $c  = $cierre->id_cierre_mesa;
 
-      //$caobjetct->controlador()->associate();??????????????????que controlador? el que valida la asociación?
+      $caobjetct->controlador()->associate($user->id_usuario);
       $caobjetct->apertura()->associate($apertura->id_apertura_mesa);
       $caobjetct->cierre()->associate($c);
-      $caobjetct->estado_cierre()->associate(1);
+      $caobjetct->estado_cierre()->associate(3);
       $caobjetct->mesa()->associate($mesa->id_mesa_de_panio);
       $caobjetct->juego()->associate($mesa->id_juego_mesa);
       $caobjetct->save();
 
       $this->ascociarDetalles($apertura,$cierre);
     }
-  }
+  
 
   public function ascociarDetalles($apertura,$cierre){
     $det_aperturas_con_Dcierres = DB::table('detalle_apertura')

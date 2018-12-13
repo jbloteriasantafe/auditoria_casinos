@@ -10,6 +10,11 @@
 
 @section('contenidoVista')
 
+<?php
+use App\Http\Controllers\UsuarioController;
+setlocale(LC_TIME, 'es_ES.UTF-8');
+$id_usuario = session('id_usuario');
+?>
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
                     <div class="row"> <!-- fila de FILTROS -->
@@ -118,15 +123,15 @@
             <div id="juegoPlegado" class="row">
                 <div class="row">
                   <div class="row" style="padding-bottom: 15px;">
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                     </div>
-                      <div class="col-md-4" id="cod_inp">
+                      <div class="col-md-3" id="cod_inp">
                           <h5>Código de Certificado</h5>
                           <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />
                       </div>

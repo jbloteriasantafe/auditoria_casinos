@@ -260,6 +260,15 @@ class MTMController extends Controller
   public function buscarMaquinas(Request $request){
     $reglas=array();
     $reglas[]=['maquina.deleted_at', '=' , null];
+    if($request->estado_maquina!=0){
+      if($request->estado_maquina==1){
+        $estados=array('1','2');
+      }else{
+        $estados=array('4','5','6','7');
+      }
+    }else{
+      $estados=array('1','2','4','5','6','7');
+    }
     if(isset($request->nro_admin)){
       $reglas[]=['maquina.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
     }
@@ -293,16 +302,18 @@ class MTMController extends Controller
     }
     $sort_by = $request->sort_by;
     $resultados=DB::table('maquina')
-    ->select('maquina.*','juego.*','isla.*','sector.*','casino.*')
+    ->select('maquina.*','juego.*','isla.*','sector.*','casino.*','estado_maquina.descripcion as estado_maquina')
     ->leftJoin('isla' , 'isla.id_isla','=','maquina.id_isla')
     ->leftJoin('casino' , 'maquina.id_casino','=','casino.id_casino')
     ->leftJoin('sector','sector.id_sector','=','isla.id_sector')
+    ->leftJoin('estado_maquina','maquina.id_estado_maquina','=','estado_maquina.id_estado_maquina')
     ->leftJoin('juego','maquina.id_juego','=','juego.id_juego')
     ->when($sort_by,function($query) use ($sort_by){
                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                 })
     ->where($reglas)
     ->whereIn('maquina.id_casino',$casinos)
+    ->whereIn('maquina.id_estado_maquina',$estados)
     ->paginate($request->page_size);
 
     return $resultados;
@@ -354,7 +365,7 @@ class MTMController extends Controller
           'juega_progresivo' => 'required|boolean',
           'id_tipo_gabinete'=> 'nullable',
           'id_tipo_maquina' => 'nullable',
-          'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+          //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' => 'nullable',//'required_if:notas,null',
@@ -521,7 +532,8 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
-            $juegos_finales[] = ($juego->id_juego);
+            
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]; 
           }
         }
         if(isset($gli_soft)){
@@ -549,7 +561,7 @@ class MTMController extends Controller
     $MTM->juega_progresivo = $request->juega_progresivo;
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_juego=$juegoActivo->id_juego;
-    $MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
+    //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
     $MTM->formula()->associate($formula);
@@ -558,7 +570,7 @@ class MTMController extends Controller
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
     $MTM->juegos()->sync($juegos_finales);
-
+    
 
     //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
     switch ($request->id_progresivo) {
@@ -613,7 +625,7 @@ class MTMController extends Controller
               'id_unidad_medida' => 'nullable|max:45',
               'nro_serie'=>  'nullable|alpha_dash',
               'marca_juego' => 'nullable|max:100',
-              'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+              //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
               'id_tipo_gabinete'=> 'required', //exists:tipo_gabinete,id_tipo_gabinete
               'id_tipo_maquina' => 'required', // exists:tipo_maquina,id_tipo_maquina
               'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
@@ -801,10 +813,10 @@ class MTMController extends Controller
           }
         }
 
-        if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
-          $tipo_movimiento = 6;
-          $razon .= "Cambió el % de devolución. ";
-        }
+        // if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
+        //   $tipo_movimiento = 6;
+        //   $razon .= "Cambió el % de devolución. ";
+        // }
 
         if($MTM->denominacion != $request->denominacion){
             $tipo_movimiento = 5;
@@ -887,7 +899,7 @@ class MTMController extends Controller
         $MTM->id_isla=$unaIsla->id_isla;
         $MTM->id_casino=$unaIsla->id_casino;
         $MTM->id_juego = $juegoActivo->id_juego;
-        $MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
+        //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
         $MTM->save();
         if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
         if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);

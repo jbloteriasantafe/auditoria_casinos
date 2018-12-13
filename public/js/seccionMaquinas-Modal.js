@@ -241,7 +241,7 @@ $('#btn-guardar').click(function(e){
             $('#'+ id).find('.boton_cargar').remove();
 
           }
-          // $('#btn-buscar').trigger('click');
+           $('#btn-buscar').trigger('click');
 
           //Si estuvo bien:
               // 1. Cerrar el modal de máquina.
@@ -473,6 +473,7 @@ function habilitarControlesMaquina(valor){
   $('#casino').prop('disabled',!valor);
   $('#nro_isla').prop('readonly',!valor);
   $('#juega_progresivo').prop('disabled',!valor);
+  $('#juega_progresivo_m').prop('disabled',true);
   $('#denominacion').prop('readonly',!valor);
   $('#estado').prop('disabled',!valor);
   $('#buscadorExpediente').prop('readonly',!valor);
@@ -508,7 +509,14 @@ function habilitarControles(valor){
 
 function mostrarMaquina(data, accion){// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
   casino_global = data.casino.id_casino;
-  //seteo datos pensataña maquina
+  if (data.maquina.juega_progresivo==0){
+    $('#juega_progresivo_m').val("NO");
+  }else{
+    $('#juega_progresivo_m').val("SI");
+  }
+ 
+  
+
   $('#nro_admin').val(data.maquina.nro_admin);
   $('#marca').val(data.maquina.marca);
   $('#modelo').val(data.maquina.modelo);
@@ -550,10 +558,18 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     }
   }
 
+  var text=$('#modalMaquina .modal-title').text();
+    
   //Datos pesataña isla
   console.log(data.isla);
   if(data.isla != null){//si no tiene isla asociada, puede pasar al modifcar isla
     mostrarIsla(data.casino, data.isla ,data.sectores, data.sector);
+    //seteo datos pensataña maquina
+    text= text +" N°: " + data.maquina.nro_admin + " ISLA: "+data.isla.nro_isla ;
+    $('#modalMaquina .modal-title').text(text);
+  }else{
+    text= text +" N°: " + data.maquina.nro_admin + " ISLA: SIN ASIGNAR ";
+   $('#modalMaquina .modal-title').text(text);
   }
 
   mostrarJuegos(data.juegos,data.juego_activo);
