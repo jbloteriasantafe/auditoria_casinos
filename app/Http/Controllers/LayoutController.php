@@ -24,7 +24,7 @@ use App\DetalleLayoutTotal;
 use App\MaquinaAPedido;
 use App\Isla;
 use App\TipoCausaNoToma;
-
+use App\PackJuego;
 /*
   Controllador encargado de crear(o usar backup), modifciar o borrar
   cargar y validar
@@ -76,6 +76,16 @@ class LayoutController extends Controller
           $linea->tipo = ['correcto' => true, 'valor' => '-', 'valor_antiguo' => ''] ;
         }
         $linea->juego = ['correcto' => true, 'valor' => $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''] ;
+        // TODO evaluar correctamente cuando no tiene pack, llega vacio sino tiene pacj pero esto no se esta evaluando correctamente
+        // gestion de paquetes de juegos
+        
+        if(count($maquina->juego_activo->pack)>0){
+          $linea->tiene_pack_bandera=true;
+          $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+        }else{
+          $linea->tiene_pack_bandera=false;
+        }
+        
         $linea->nro_serie = ['correcto' => true, 'valor' => $maquina->nro_serie, 'valor_antiguo' => ''] ;
         $linea->id_maquina =  $maquina->id_maquina;
         $progresivo = ProgresivoController::getInstancia()->obtenerProgresivoPorIdMaquina($maquina->id_maquina);

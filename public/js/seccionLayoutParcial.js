@@ -203,45 +203,38 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
                          .append(inputGenerico.clone().addClass('juego').attr('data-original',data_juego).val(fila.juego.valor));
   var nro_serie = popGenerico.clone().attr('data-content',fila.nro_serie.valor_antiguo)
                              .append(inputGenerico.clone().addClass('nro_serie').attr('data-original',data_serie).val(fila.nro_serie.valor));
+
+
+ var juegosPack='<div align="left">';
+ var botonMultiJuego;                           
+ if (fila.tiene_pack_bandera){
+    fila.juegos_pack.forEach(j => {
+       juegosPack=  juegosPack
+                      +   '<input type="radio" class="seleccionJuego" value="'+ j.nombre_juego +'" data-idjuego="'+j.id_juego+'" >'
+                      +   '<span style="position:relative;top:-3px;">'+ j.nombre_juego +'</span><br>'
+                      
+    });
+    juegosPack= juegosPack+'</div>';
+
+
+     botonMultiJuego = $('<button>')
+    .attr('data-trigger','manual')
+    .attr('data-toggle','popover')
+    .attr('data-placement','left')
+    .attr('data-html','true')
+    .attr('title','JUEGOS')
+    .attr('data-content',juegosPack)
+    .attr('type','button')
+    .addClass('btn btn-warning pop medida')
+    
+    .append($('<i>').addClass('fas fa-exchange-alt'));
+
+ }else{
+  botonMultiJuego="-"
+ }                            
  
- var juegosPack=  '<div align="left">'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 1">'
 
-                      +               '<span style="position:relative;top:-3px;"> juego 1</span><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 2">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 2</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 3">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 3</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 4">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 4</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 5">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 5</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 6">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 6</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 7">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 7</span> <br><br>'
-                      +   '<input type="radio" class="seleccionJuego" value="juego 8">'
-                                     
-                      +               '<span style="position:relative;top:-3px;"> juego 8</span> <br><br>'
-                      + '</div>';
-
-  var botonMultiJuego = $('<button>')
-                                      .attr('data-trigger','manual')
-                                      .attr('data-toggle','popover')
-                                      .attr('data-placement','left')
-                                      .attr('data-html','true')
-                                      .attr('title','JUEGOS')
-                                      .attr('data-content',juegosPack)
-                                      .attr('type','button')
-                                      .addClass('btn btn-warning pop medida')
-                                      
-                                      .append($('<i>').addClass('fas fa-exchange-alt'));
+ 
  var bandera = false; //Si tuvo algun error
 
   //Para validar habilitar el POP
@@ -1252,7 +1245,12 @@ $(document).on('click','.pop',function(e){
  //estos era util para obtener info
   var fila = $(this).parent().parent();
   $('.pop').not(this).popover('hide');
-  $(this).popover('show');
+  
+  if ($(this).next('div.popover:visible').length){
+    $(this).popover('hide');
+  }else{
+    $(this).popover('show');
+  }
 });
 
 
