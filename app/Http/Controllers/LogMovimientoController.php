@@ -1517,8 +1517,8 @@ class LogMovimientoController extends Controller
       $cargador = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     }
 
-    if(isset($rel->toma_relevamiento_movimiento)){
-      $toma=$rel->toma_relevamiento_movimiento;
+    if(count($rel->toma_relevamiento_movimiento) >0){
+      $toma=$rel->toma_relevamiento_movimiento->first();
       $fecha = $rel->fecha_relev_sala;
       $nombre= Juego::find($toma->juego)->nombre_juego;
     }
@@ -1905,7 +1905,7 @@ class LogMovimientoController extends Controller
 
   private function cargaFinalizadaEvMTM($logMovimiento){
     foreach ($logMovimiento->relevamientos_movimientos as $relevamiento) {
-      if(!isset($relevamiento->toma_relevamiento_movimiento)){
+      if(count($relevamiento->toma_relevamiento_movimiento) == 0){
         return false;
       }
     }

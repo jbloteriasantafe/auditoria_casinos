@@ -253,6 +253,7 @@ class BCAperturaController extends Controller
                           ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                           ->where('cierre_mesa.fecha','<',$apertura->fecha)
                           ->whereNull('cierre_apertura.id_cierre_apertura')
+                          ->whereNull('cierre_mesa.deleted_at')
                           ->orderBy('fecha' , 'DESC')
                           ->take(15)
                           ->get();
