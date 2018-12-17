@@ -16,6 +16,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
   <link rel="stylesheet" href="css/paginacion.css">
+  <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 @endsection
 
         <div class="row">
@@ -136,6 +137,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
 
             <div class="col-xl-3">
+
               <div class="row">
                 <div class="col-md-12">
                   <a href="importaciones" style="text-decoration:none;">
@@ -147,6 +149,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                   </a>
                 </div>
               </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <a id="btn-cotizacion" href="" style="text-decoration:none;">
+                    <div class="tarjetaSeccionMenor" align="center">
+                      <h2 class="tituloFondoMenor"> COTIZACIÓN</h2>
+                      <h2 class="tituloSeccionMenor">COTIZACIÓN </h2>
+                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/peso-dollar.svg" alt="">
+                    </div>
+                  </a>
+                </div>
+              </div>
+
             </div> <!-- /.col-md-3 -->
 
         </div> <!-- /.row -->
@@ -295,6 +310,36 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
           </div>
     </div>
 
+    
+    <!-- Modal cotizacion -->
+        
+    <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="width: 60%" >
+            <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3 class="modal-title">| COTIZACIÓN DOLAR->PESO</h3>
+               </div>
+
+               <div class="modal-body modalCuerpo" style="background-color: white;">
+
+                  <div class="row" style="padding-bottom: 15px;">
+                      <div class="col-md-12">
+                          <div id="calendarioInicioBeneficio"></div>
+                    </div>
+
+              </div>
+
+               <div class="modal-footer">
+                <label id="labelCotizacion" for="number"> </label>
+                <input id="valorCotizacion"type="number" step="0.01" min="25" max="200">
+                <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
+              </div> 
+          </div>
+        </div>
+  </div>
+
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 
@@ -319,8 +364,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     @section('scripts')
     <!-- JavaScript paginacion -->
     <script src="js/paginacion.js" charset="utf-8"></script>
+
+    
+    <script src='/js/moment.min.js'></script>
+    <script src='/js/fullcalendar.min.js'></script>
+    <script src='/js/locale-all.js'></script>
+
     <!-- JavaScript personalizado -->
     <script src="js/seccionBeneficios.js" charset="utf-8"></script>
+    
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

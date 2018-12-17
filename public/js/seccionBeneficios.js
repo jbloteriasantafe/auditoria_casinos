@@ -561,3 +561,69 @@ $('#btn-minimizar').click(function(){
     $(this).data("minimizar",true);
   }
 });
+
+$('#btn-cotizacion').on('click', function(e){
+  e.preventDefault();
+
+  $('#calendarioInicioBeneficio').fullCalendar({  // assign calendar
+    locale: 'es',
+    header:{
+      left: 'prev,next',
+      center: 'title',
+      right: 'month'
+    },
+    backgroundColor: "#f00",
+    editable: true,
+    selectable: true,
+    allDaySlot: false,
+    eventTextColor:'yellow',
+    
+    events: function(start, end, timezone, callback) {
+      $.ajax({
+        url: 'cotizacion/obtenerCotizaciones/'+ start.unix(),
+        type:"GET",
+        success: function(doc) {
+          var events = [];
+          $(doc).each(function() {
+            events.push({
+              title:"" + $(this).attr('valor'),
+              start: $(this).attr('fecha')
+            });
+          });
+          callback(events);
+        }
+      });
+    },
+
+    dayClick: function(date) {
+      $('#labelCotizacion').text('Guardar cotización para el día '+date.format('DD/M/YYYY'));
+      $('#labelCotizacion').attr("data-fecha",date);
+      
+    },
+
+
+  });
+
+  $('#modal-cotizacion').modal('show')
+
+});
+
+$('#guardarCotizacion').on('click',function(){
+  fecha=$('#labelCotizacion').attr('data-fecha');
+  valor= $('#valorCotizacion').val();
+  formData={
+    fecha: fecha,
+    valor: valor,
+  }
+  $.ajax({
+    type: 'POST',
+    url: 'cotizacion/guardarCotizacion',
+    data: formData,
+    success: function (data) {
+     
+    }
+  
+  
+  });
+
+});
