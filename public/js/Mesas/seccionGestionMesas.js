@@ -24,7 +24,6 @@ $(document).ready(function() {
       }
   });
 
-
     //PAGINACION
     $('#btn-buscarMesas').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
 
@@ -104,13 +103,11 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
               $('#cuerpoTablaMesas').append(filaMesa);
           }
 
-
           //Asigno valor a la variable global casinos
         //  casinos=data.casinos;
 
           //Me permite mostrar los nombres de los botones
           $('[data-toggle="tooltip"]').tooltip();
-
 
           $('#herramientasPaginacion').generarIndices(page_number,page_size,data.total,clickIndiceMov);
       },

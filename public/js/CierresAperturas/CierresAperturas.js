@@ -74,7 +74,7 @@ $(document).ready(function() {
       container: $('#modalModificarApertura')
     });
 
-$('#hora_In_cierre_modif').datetimepicker({
+  $('#hora_In_cierre_modif').datetimepicker({
         language:  'es',
         autoclose: 1,
         todayHighlight: 1,
@@ -84,7 +84,8 @@ $('#hora_In_cierre_modif').datetimepicker({
         minView: 0,
         maxView: 1,
         container: $('#modalModificarCierre')
-      });
+  });
+
   $('#hora_cierre_modif').datetimepicker({
           language:  'es',
           autoclose: 1,
@@ -1363,6 +1364,7 @@ $(document).on('click', '.validarCyA', function(e) {
   $('#mensajeErrorValApertura').hide();
 
   $('#mensajeExito').hide();
+
   limpiarModalValidar();
 
   var id_apertura=$(this).val();
@@ -1728,7 +1730,7 @@ function limpiarModalValidar(){
   $('#total_cierre_validar').val('');
   $('#total_aper_validar').val('');
   $('#anticipos_validar').val('');
-
+  $('#fechaCierreVal').not('.defecto').remove();
   $('#tablaValidar tbody tr').remove();
 
 }
