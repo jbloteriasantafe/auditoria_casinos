@@ -1,3 +1,4 @@
+var es_cargaT2RelMov=0;
 $(document).ready(function(){
   var t= $('#tablaRelevamientosMovimientos tbody > tr .fechaRelMov');
 
@@ -102,7 +103,7 @@ $('#busqueda_maquina').val("");
 
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
 $(document).on('click','.btn-generarRelMov',function(e){
-
+    es_cargaT2RelMov=0;
   e.preventDefault();
 
   var id_fiscalizacion= $(this).val();
@@ -112,7 +113,7 @@ $(document).on('click','.btn-generarRelMov',function(e){
 });
 
 $(document).on('click','.btn-imprimirRelMov',function(e){
-
+    es_cargaT2RelMov=0;
   e.preventDefault();
 
   var id_fiscalizacion= $(this).val();
@@ -122,7 +123,7 @@ $(document).on('click','.btn-imprimirRelMov',function(e){
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
-
+    es_cargaT2RelMov=0;
   e.preventDefault();
 
   var id_fiscalizacion = $(this).val();
@@ -169,6 +170,78 @@ $(document).on('click','.btn-cargarRelMov',function(e){
                         .attr('value', data.relevamientos[i].id_maquina)))
 
           if(data.relevamientos[i].id_estado_relevamiento == 3)
+          {
+            fila.find('.listo').show();
+         }else{
+           fila.find('.listo').hide();
+
+         }
+
+        $('#tablaMaquinasFiscalizacion tbody').append(fila);
+      }
+
+      //var cant_filas=$('#tablaMaquinasFiscalizacion tbody tr').
+
+      $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
+      $('#fiscaToma').setearElementoSeleccionado(0,"");
+      if (data.usuario_fiscalizador)
+      {
+        $('#fiscaToma').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
+      }
+  })
+
+});
+
+
+//cargar toma2
+$(document).on('click','.btn-cargarT2RelMov',function(e){
+  es_cargaT2RelMov=1;
+  e.preventDefault();
+
+  var id_fiscalizacion = $(this).val();
+
+  $('#tablaCargarRelevamiento tbody tr').remove();
+  $('#tablaMaquinasFiscalizacion tbody tr').remove();
+  $('.modal-title').text('CARGAR RELEVAMIENTOS');
+  $('.modal-header').attr('style','background: #4FC3F7');
+  $('#form1').trigger("reset");
+  $('#fechaRel').val('');
+  $('#juegoRel option').remove();
+  $('#guardarRel').prop('disabled', true);
+  $('#modalCargarRelMov #detalless').hide();
+  $('#mensajeExitoCarga').hide();
+  $('#mensajeErrorCarga').hide();
+  $('#modalCargarRelMov').modal('show');
+
+  $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data)
+  {
+    $('#modalCargarRelMov').find('#casinoId').val(data.casino);
+    $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
+    $('#fiscaCarga').val(data.cargador.nombre);
+    var fila1=$('<tr>');
+
+      for (var i = 0; i < data.relevamientos.length; i++)
+      {
+          var fila = fila1.clone();
+          fila.append($('<td>')
+              .addClass('col-xs-5')
+              .text(data.relevamientos[i].nro_admin))
+          fila.append($('<td>')
+                  .addClass('col-xs-3')
+                  .append($('<button>')
+                      .append($('<i>')
+                          .addClass('fa').addClass('fa-fw').addClass('fa-upload')
+                      ).attr('type','button')
+                      .addClass('btn btn-info cargarMaq')
+                      .attr('value', data.relevamientos[i].id_maquina)
+                      .attr('data-fisc', id_fiscalizacion))
+                    )
+              fila.append($('<td>')
+                  .addClass('col-xs-3')
+                  .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
+                        .attr('value', data.relevamientos[i].id_maquina)))
+
+          if(data.relevamientos[i].id_estado_relevamiento == 7)
           {
             fila.find('.listo').show();
          }else{
@@ -333,12 +406,13 @@ function cargarRelMov(data){
             $('#devolucion').val(data.toma.porcentaje_devolucion);
             $('#denominacion').val(data.toma.denominacion);
             $('#creditos').val(data.toma.cant_creditos);
-            $('#observacionesToma').val(data.toma.observaciones);}
+            $('#observacionesToma').val(data.toma.observaciones);
+          }
 
             $('#guardarRel').prop('disabled', false);
 
 
-        };
+};
 
 //BOTÓN GUARDAR
 $(document).on('click','#guardarRel',function(){
@@ -396,7 +470,8 @@ $(document).on('click','#guardarRel',function(){
       observaciones: obs,
       mac:mac,
       isla_relevada: islaRelevadaCargar,
-      sectorRelevadoCargar:sectorRelevadoCargar
+      sectorRelevadoCargar:sectorRelevadoCargar,
+      es_cargaT2: es_cargaT2RelMov
     }
 
 
@@ -493,7 +568,7 @@ $(document).on('click','#guardarRel',function(){
 });
 
 $(document).on('click','.eliminarFiscal',function(){
-
+    es_cargaT2RelMov=0;
   var id=$(this).val();
 
   $.get('relevamientos_movimientos/eliminarFiscalizacion/' + id,function(data){
@@ -509,7 +584,7 @@ $(document).on('click','.eliminarFiscal',function(){
 });
 
 $('#btn-buscarRelMov').click(function(e){
-
+      es_cargaT2RelMov=0;
     $.ajaxSetup({
       headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -599,14 +674,22 @@ console.log('generar',rel);
               .addClass('btn').addClass('btn-success')
               .attr('value',rel.id_fiscalizacion_movimiento)
               )
+        .append($('<button>')
+              .addClass('btn-cargarT2RelMov')
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-retweet')
+              )
+              .append($('<span>').text('CARGAR 2'))
+              .addClass('btn').addClass('btn-success')
+              .attr('value',rel.id_fiscalizacion_movimiento)
+              )
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('btn-imprimirRelMov')
-        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print')
-        )
-        .append($('<span>').text('IMPRIMIR'))
-        .addClass('btn').addClass('btn-success')
-        .attr('value',rel.id_fiscalizacion_movimiento)
+          .addClass('btn-imprimirRelMov')
+          .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print')
+          )
+          .append($('<span>').text('IMPRIMIR'))
+          .addClass('btn').addClass('btn-success')
+          .attr('value',rel.id_fiscalizacion_movimiento)
         )
         .append($('<span>').text(' '))
         .append($('<button>')
@@ -619,11 +702,21 @@ console.log('generar',rel);
 
 
         if(rel.es_controlador != 1){fila.find('.btn-eliminarFiscal').hide();}
-        if(estado < 3  ){ fila.find('.btn-imprimirRelMov').hide();}
-        if(estado > 2  ){ fila.find('.btn-imprimirRelMov').show();
-                          fila.find('.btn-eliminarFiscal').show();
-                          fila.find('.btn-generarRelMov').hide();
-                          fila.find('.btn-cargarRelMov').hide();}
+        if(estado < 3  ){
+          fila.find('.btn-imprimirRelMov').hide();
+          fila.find('.btn-cargarT2RelMov').hide();
+        }
+        if(estado > 2  ){
+          fila.find('.btn-imprimirRelMov').show();
+          fila.find('.btn-eliminarFiscal').show();
+          fila.find('.btn-generarRelMov').hide();
+          fila.find('.btn-cargarRelMov').hide();
+          if(estado < 7 && estado != 4 && tipo_mov != 'INGRESO' && tipo_mov != 'EGRESO/REINGRESOS'){
+            fila.find('.btn-cargarT2RelMov').show();
+          }else{
+            fila.find('.btn-cargarT2RelMov').hide();
+          }
+        }
 
 
     return fila;

@@ -241,7 +241,7 @@ $('#btn-guardar').click(function(e){
             $('#'+ id).find('.boton_cargar').remove();
 
           }
-          // $('#btn-buscar').trigger('click');
+           $('#btn-buscar').trigger('click');
 
           //Si estuvo bien:
               // 1. Cerrar el modal de máquina.

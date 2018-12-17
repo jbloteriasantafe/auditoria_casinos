@@ -61,7 +61,14 @@ class ABMCierreController extends Controller
       'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
+    ], array(), self::$atributos)->after(function($validator){
+      $yaExiste = Cierre::where('id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio'])
+                          ->where('fecha','=',$validator->getData()['fecha'])
+                          ->get();
+      if(count($yaExiste) != 0){
+        $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa en esa fecha.');
+      }
+    })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];
@@ -76,7 +83,7 @@ class ABMCierreController extends Controller
       $cierre->hora_fin = $request->hora_fin;
       $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_c;
       $cierre->total_anticipos_c = $request->total_anticipos_c;
-      $cierre->tipo_mesa()->associate($mesa->tipo_mesa->id_tipo_mesa);
+      $cierre->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
       $cierre->casino()->associate($request->id_casino);
       $cierre->fiscalizador()->associate($request->id_fiscalizador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);

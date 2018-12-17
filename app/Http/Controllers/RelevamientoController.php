@@ -817,8 +817,13 @@ class RelevamientoController extends Controller
             $det = new \stdClass();
             $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
             $det->nro_admin = $detalle->maquina->nro_admin;
-            $det->isla = $detalle->maquina->isla->nro_isla;
-            $det->sector= $detalle->maquina->isla->sector->descripcion;
+            if ($detalle->maquina->isla!=null){
+              $det->isla = $detalle->maquina->isla->nro_isla;
+              $det->sector= $detalle->maquina->isla->sector->descripcion;
+            }else{
+              $det->isla ="-";
+              $det->sector= "-";
+            }
             $det->producido = 0;
             if($detalle->tipo_causa_no_toma != null){
                 $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
@@ -850,8 +855,14 @@ class RelevamientoController extends Controller
               $det = new \stdClass();
               $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
               $det->nro_admin = $detalle->maquina->nro_admin;
-              $det->isla = $detalle->maquina->isla->nro_isla;
-              $det->sector= $detalle->maquina->isla->sector->descripcion;
+              if ($detalle->maquina->isla!=null){
+                $det->isla = $detalle->maquina->isla->nro_isla;
+                $det->sector= $detalle->maquina->isla->sector->descripcion;
+              }else{
+                $det->isla ="-";
+                $det->sector= "-";
+              }
+              
               $det->producido = $producido;
               if($detalle->tipo_causa_no_toma != null){
                   $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;

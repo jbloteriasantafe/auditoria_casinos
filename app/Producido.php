@@ -16,7 +16,11 @@ class Producido extends Model
 
   public function getBeneficioCalculadoAttribute(){
     $beneficio = Beneficio::where([['fecha',$this->fecha],['id_tipo_moneda',$this->id_tipo_moneda],['id_casino',$this->id_casino]])->first();
-    $ajuste = ($beneficio->ajuste_beneficio != null) ? $beneficio->ajuste_beneficio->valor : 0;
+    if($beneficio!=""){
+      $ajuste = ($beneficio->ajuste_beneficio != null) ? $beneficio->ajuste_beneficio->valor : 0;
+    }else{
+      $ajuste =0;
+    }
     return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor') + $ajuste;
   }
 

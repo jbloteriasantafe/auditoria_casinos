@@ -156,7 +156,7 @@ $('#btn-buscarCyA').on('click', function(e){
 
     $('#tablaInicial').text('CIERRES');
         var formData= {
-          fecha: $('#dtpFecha').val(),
+          fecha: $('#B_fecha_filtro').val(),
           nro_mesa: $('#filtroMesa').val(),
           id_juego:$('#selectJuego').val(),
           id_casino: $('#selectCas').val(),
