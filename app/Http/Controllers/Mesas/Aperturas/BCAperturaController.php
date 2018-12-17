@@ -220,8 +220,14 @@ class BCAperturaController extends Controller
                     ->union($first)
                     ->orderBy('valor_ficha','desc')
                     ->get();
+      $cierre = Cierre::find($id_cierre);
 
-      return ['detalles_join' => $detalles];
+      return ['detalles_join' => $detalles,
+              'cierre' => $cierre,
+              'casino' => $cierre->casino,
+              'cargador' => $cierre->fiscalizador,
+              'tipo_mesa'=> $cierre->tipo_mesa,
+             ];
     }
   }
 
