@@ -331,6 +331,7 @@ Route::get('importaciones/obtenerVistaPrevia/{tipo_importacion}/{id}','Importaci
 Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
+Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
 
 /************
 Relevamientos

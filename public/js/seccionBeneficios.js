@@ -564,23 +564,47 @@ $('#btn-minimizar').click(function(){
 
 $('#btn-cotizacion').on('click', function(e){
   e.preventDefault();
-
+  //limpio modal
+  $('#labelCotizacion').html("");
+  $('#labelCotizacion').attr("data-fecha","");
+  $('#valorCotizacion').val("");
+  //inicio calendario
   $('#calendarioInicioBeneficio').fullCalendar({  // assign calendar
     locale: 'es',
-    header:{
-      left: 'prev,next',
-      center: 'title',
-      right: 'month'
-    },
+    
     backgroundColor: "#f00",
     editable: true,
     selectable: true,
     allDaySlot: false,
     eventTextColor:'yellow',
     
+
+    customButtons: {
+      nextCustom: {
+        text: 'Siguiente',
+        click: function() {
+          cambioMes('next');
+        }
+      },
+      prevCustom: {
+        text: 'Anterior',
+        click: function() {
+          cambioMes('prev');
+        }
+      },
+    },
+    header: {
+      left: 'prev,next',
+      center: 'title',
+      right: 'month',
+    },
+
+
+
+
     events: function(start, end, timezone, callback) {
       $.ajax({
-        url: 'cotizacion/obtenerCotizaciones/'+ start.unix(),
+        url: 'cotizacion/obtenerCotizaciones/'+ start.format('YYYY-MM'),
         type:"GET",
         success: function(doc) {
           var events = [];
@@ -596,8 +620,10 @@ $('#btn-cotizacion').on('click', function(e){
     },
 
     dayClick: function(date) {
-      $('#labelCotizacion').text('Guardar cotización para el día '+date.format('DD/M/YYYY'));
-      $('#labelCotizacion').attr("data-fecha",date);
+      $('#labelCotizacion').html('Guardar cotización para el día '+ '<u>'  +date.format('DD/M/YYYY') + '</u>' );
+      $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
+      $('#valorCotizacion').val("");
+      $('#valorCotizacion').focus();
       
     },
 
@@ -608,6 +634,7 @@ $('#btn-cotizacion').on('click', function(e){
 
 });
 
+// guardar nueva cotizacion y recargar calendario
 $('#guardarCotizacion').on('click',function(){
   fecha=$('#labelCotizacion').attr('data-fecha');
   valor= $('#valorCotizacion').val();
@@ -620,10 +647,15 @@ $('#guardarCotizacion').on('click',function(){
     url: 'cotizacion/guardarCotizacion',
     data: formData,
     success: function (data) {
-     
+     $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
     }
   
   
   });
 
 });
+
+function cambioMes(s){
+  $('#calendarioInicioBeneficio').fullCalendar(s);
+  $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
+};

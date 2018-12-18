@@ -10,6 +10,6 @@ class Cotizacion extends Model
     protected $table = 'cotizacion';
     protected $primaryKey = 'fecha';
     protected $visible = array('fecha','valor');
-    //public $timestamps = false;
+    public $timestamps = false;
 
 }

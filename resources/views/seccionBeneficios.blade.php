@@ -319,7 +319,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                <h3 class="modal-title">| COTIZACIÓN DOLAR->PESO</h3>
+                <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
                </div>
 
                <div class="modal-body modalCuerpo" style="background-color: white;">
@@ -333,7 +333,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
                <div class="modal-footer">
                 <label id="labelCotizacion" for="number"> </label>
-                <input id="valorCotizacion"type="number" step="0.01" min="25" max="200">
+                <input id="valorCotizacion" type="number" step="0.001" min="25" max="200">
                 <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
               </div> 
           </div>
