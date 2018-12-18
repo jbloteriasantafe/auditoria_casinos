@@ -573,11 +573,12 @@ $('#btn-cotizacion').on('click', function(e){
     locale: 'es',
     
     backgroundColor: "#f00",
-    editable: true,
+    eventTextColor:'yellow',
+
+    editable: false,
     selectable: true,
     allDaySlot: false,
-    eventTextColor:'yellow',
-    
+    selectAllow:false,
 
     customButtons: {
       nextCustom: {
@@ -609,8 +610,9 @@ $('#btn-cotizacion').on('click', function(e){
         success: function(doc) {
           var events = [];
           $(doc).each(function() {
+            var numero=""+$(this).attr('valor');
             events.push({
-              title:"" + $(this).attr('valor'),
+              title:"" + numero.replace(".", ","),
               start: $(this).attr('fecha')
             });
           });
@@ -648,6 +650,10 @@ $('#guardarCotizacion').on('click',function(){
     data: formData,
     success: function (data) {
      $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
+      //limpio modal
+      $('#labelCotizacion').html("");
+      $('#labelCotizacion').attr("data-fecha","");
+      $('#valorCotizacion').val("");
     }
   
   

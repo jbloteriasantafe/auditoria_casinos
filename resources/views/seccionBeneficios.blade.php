@@ -316,7 +316,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     
     <!-- Modal cotizacion -->
       <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width: 60%" >
+          <div class="modal-dialog modal-lg"  >
               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
                   <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -324,7 +324,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
                 </div>
 
-                <div class="modal-body modalCuerpo" style="background-color: white;">
+                <div class="modal-body" style="background-color: white;">
 
                     <div class="row" style="padding-bottom: 15px;">
                         <div class="col-md-12">
@@ -335,7 +335,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
                 <div class="modal-footer">
                   <label id="labelCotizacion" for="number"> </label>
-                  <input id="valorCotizacion" type="number" step="0.001" min="25" max="200">
+                  <input id="valorCotizacion" type="number" step="0.001" min="25" max="200" placeholder="xx,xxx">
                   <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
                 </div> 
             </div>
