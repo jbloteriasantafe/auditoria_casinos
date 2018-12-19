@@ -14,6 +14,7 @@ use Dompdf\Dompdf;
 use App\Maquina;
 use App\DetalleRelevamiento;
 use App\EstadoMaquina;
+use App\Cotizacion;
 use Carbon\Carbon;
 
 class informesController extends Controller
@@ -97,7 +98,60 @@ class informesController extends Controller
 
    $mesEdit = $this->obtenerMes($mes);
 
-    $ajustes = array();
+    $ajustes = $this->generarAjustes($resultados,$id_casino);
+
+    $sum= $this->generarSuma($devuelveSumas,$id_casino,$mesEdit);
+
+    if ($id_casino==3){
+      $view = View::make('planillaInformesMTMDolar',compact('ajustes','sum'));
+    }else{
+      $view = View::make('planillaInformesMTM',compact('ajustes','sum'));
+    }
+    
+
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+
+  }
+
+  private function generarAjustes($resultados,$id_casino){
+    if ($id_casino!=3){
+      foreach($resultados as $resultado){
+        $res = new \stdClass();
+        $res->cotizacion= Cotizacion::Find($resultado->fecha);
+        
+        $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
+        $mes = $resultado->fecha[5].$resultado->fecha[6];
+        $dia = $resultado->fecha[8].$resultado->fecha[9];
+        $res->fecha = $dia."-".$mes."-".$año;
+        $res->maq = $resultado->cantidad_maquinas;
+        $res->apostado = number_format($resultado->coinin, 2, ",", ".");
+        $res->premios = number_format($resultado->coinout, 2, ",", ".");
+        $res->pmayores = number_format($resultado->jackpot, 2, ",", ".");
+        $res->beneficio = number_format($resultado->valor, 2, ",", ".");
+        $res->prom = $resultado->promedio_por_maquina;
+        $res->dev = $resultado->porcentaje_devolucion;
+        $ajustes[] = $res;
+      };
+      return $ajustes;
+    }
+
+    
+    return generarAjusteCotizado($resultados);
+    
+  }
+
+
+  private function generarAjusteCotizado($resultados){
+
+    //trabajar el caso de rosasrio
     foreach($resultados as $resultado){
       $res = new \stdClass();
       $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
@@ -113,7 +167,12 @@ class informesController extends Controller
       $res->dev = $resultado->porcentaje_devolucion;
       $ajustes[] = $res;
     };
+    return $ajustes;
+  }
 
+  
+  private function generarSuma($devuelveSumas,$id_casino,$mesEdit){
+    if ($id_casino!=3){
       $sum = new \stdClass();
       $sum->totalApostado = number_format($devuelveSumas->total_apostado, 2, ",", ".");
       $sum->totalPremios = number_format($devuelveSumas->total_premios, 2, ",", ".");
@@ -123,30 +182,42 @@ class informesController extends Controller
       $sum->totalDev = $devuelveSumas->total_devolucion;
       $sum->mes = $mesEdit;
       $sum->casino = $devuelveSumas->nombreCasino;
-
+  
       if($devuelveSumas->moneda == 'ARS'){
             $devuelveSumas->moneda = '$';
             }
             else{
-              $devuelveSumas->moneda = 'U$s';
+              $devuelveSumas->moneda = 'U$S';
       }
-
+  
       $sum->tipoMoneda = $devuelveSumas->moneda;
+      return $sum;
+    }
+    
+    // trabajar el caso de rosario
+    $sum = new \stdClass();
+    $sum->totalApostado = number_format($devuelveSumas->total_apostado, 2, ",", ".");
+    $sum->totalPremios = number_format($devuelveSumas->total_premios, 2, ",", ".");
+    $sum->totalPmayores = number_format($devuelveSumas->total_pmayores, 2, ",", ".");
+    $sum->totalBeneficio = number_format($devuelveSumas->total_beneficio, 2, ",", ".");
+    $sum->totalProm = $devuelveSumas->total_promedio;
+    $sum->totalDev = $devuelveSumas->total_devolucion;
+    $sum->mes = $mesEdit;
+    $sum->casino = $devuelveSumas->nombreCasino;
 
+    if($devuelveSumas->moneda == 'ARS'){
+          $devuelveSumas->moneda = '$';
+          }
+          else{
+            $devuelveSumas->moneda = 'U$S';
+    }
 
-    $view = View::make('planillaInformesMTM',compact('ajustes','sum'));
-
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    $sum->tipoMoneda = $devuelveSumas->moneda;
+    return $sum;
 
   }
+
+
 
   public function obtenerUltimosBeneficiosPorCasino(){
 
