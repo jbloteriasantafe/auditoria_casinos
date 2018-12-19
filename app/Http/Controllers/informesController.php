@@ -175,7 +175,7 @@ class informesController extends Controller
         $res->beneficioPesos="-";
         $res->beneficioPesosTotal=number_format($beneficioPesosTotal, 2, ",", ".");;
       }else{
-        $res->cotizacion=number_format($cotizacion->valor, 2, ",", ".");
+        $res->cotizacion=number_format($cotizacion->valor, 3, ",", ".");
         $valorConv=$resultado->valor * $cotizacion->valor;
         $res->beneficioPesos=number_format($valorConv, 2, ",", ".");
         $beneficioPesosTotal=$beneficioPesosTotal + $valorConv;
