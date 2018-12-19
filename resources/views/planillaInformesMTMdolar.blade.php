@@ -47,7 +47,7 @@ tr:nth-child(even) {
 
               <div class="primerEncabezado">Se han realizado los procedimientos de control correspondientes
               al mes de <b>{{$sum->mes}}</b> del <b>Casino de {{$sum->casino}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Máquinas Tragamonedas</b>
-              se obtuvo un beneficio de <b>${{$sum->totalBeneficio}}</b>, detallando a continuación el producido diario.</div>
+              se obtuvo un beneficio de <b>US$ {{$sum->totalBeneficioDolares}}</b>, detallando a continuación el producido diario.</div>
 
               <br>
 
@@ -57,9 +57,9 @@ tr:nth-child(even) {
                   <th class="tablaInicio">MTM</th>
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
-                  <th class="tablaInicio">BENEFICIO U$S</th>
+                  <th class="tablaInicio">BENEFICIO (US$)</th>
                   <th class="tablaInicio">COTIZACIÓN</th>
-                  <th class="tablaInicio">BENEFICIO $</th>
+                  <th class="tablaInicio">BENEFICIO ($)</th>
                 </tr>
                 @foreach ($ajustes as $ajuste)
                 <tr>
@@ -68,7 +68,7 @@ tr:nth-child(even) {
                   <td class="tablaCampos">{{$ajuste->apostado}}</td>
                   <td class="tablaCampos">{{$ajuste->premios}}</td>
                   <td class="tablaCampos">{{$ajuste->beneficioDolares}}</td>
-                  <td class="tablaCampos">{{$ajuste->Cotizacion}}</td>
+                  <td class="tablaCampos">{{$ajuste->cotizacion}}</td>
                   <td class="tablaCampos">{{$ajuste->beneficioPesos}}</td>
                 </tr>
                @endforeach
@@ -80,14 +80,14 @@ tr:nth-child(even) {
                 <tr>
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
-                  <th class="tablaInicio">BENEFICIO U$S</th>
-                  <th class="tablaInicio">BENEFICIO $</th>
+                  <th class="tablaInicio">BENEFICIO (US$)</th>
+                  <th class="tablaInicio">BENEFICIO ($)</th>
                 </tr>
                 <tr>
                   <td class="tablaCampos">{{$sum->totalApostado}}</td>
                   <td class="tablaCampos">{{$sum->totalPremios}}</td>
+                  <td class="tablaCampos">{{$sum->totalBeneficioDolares}}</td>
                   <td class="tablaCampos">{{$sum->totalBeneficioPesos}}</td>
-                  <td class="tablaCampos">{{$sum->totalBeneficioDolar}}</td>
                 </tr>
               </table>
   </body>
