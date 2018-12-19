@@ -220,8 +220,14 @@ class BCAperturaController extends Controller
                     ->union($first)
                     ->orderBy('valor_ficha','desc')
                     ->get();
+      $cierre = Cierre::find($id_cierre);
 
-      return ['detalles_join' => $detalles];
+      return ['detalles_join' => $detalles,
+              'cierre' => $cierre,
+              'casino' => $cierre->casino,
+              'cargador' => $cierre->fiscalizador,
+              'tipo_mesa'=> $cierre->tipo_mesa,
+             ];
     }
   }
 
@@ -311,6 +317,7 @@ class BCAperturaController extends Controller
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                               ->where($filtros)
+                              ->whereIn('apertura_mesa.id_casino',$cas)
                               ->orderBy('apertura_mesa.fecha','desc')
                               ->take(31)
                               ->get();
@@ -320,6 +327,7 @@ class BCAperturaController extends Controller
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                               ->where($filtros)
+                              ->whereIn('apertura_mesa.id_casino',$cas)
                               ->whereYear('apertura_mesa.fecha' , '=', $fecha[0])
                               ->whereMonth('apertura_mesa.fecha','=', $fecha[1])
                               ->whereDay('apertura_mesa.fecha','=', $fecha[2])
