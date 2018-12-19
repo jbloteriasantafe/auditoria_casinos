@@ -10,6 +10,10 @@ Please note that we need to provide the full path to the Artisan command of our 
 To discard the cron output we put /dev/null 2>&1 at the end of the cronjob expression.
 
 De esta forma, se podrá ejecutar con normalidad el schedule de LARAVEL.
+Pero.. por las dudas, ejecutar también uno por uno los comandos que haya, así se evitan errores, porque pueden estar programados para una hora/día en particular y puede pasar mucho tiempo hasta que eso suceda. [Aclarar aquí que comandos no ejecutar.]
+
+En la carpeta console/commands se encuentran los comandos y sus descripciones, se ejecutan:
+php artisan nombre:delcomando [si en la descripcion dice algo mas -> ponerlo]
 
 
 

@@ -77,7 +77,6 @@ class ABMCRelevamientosAperturaController extends Controller
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $cas = $user->casinos->first();
       $codigo_casino = $cas->codigo;
-      $informesSorteadas->chequearSorteadas($fecha_hoy,$cas->id_casino);
       $arregloRutas = array();
       //creo planillas para hoy y los dias de backup
       for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
@@ -114,17 +113,38 @@ class ABMCRelevamientosAperturaController extends Controller
   }
 
   /*
+  * Se utiliza desde \console\Commands\SortearMesas
+  */
+  public function sortearMesasCommand(){
+    $sorteoController = new SorteoMesasController;
+    $sorteadasController = new ABCMesasSorteadasController;
+
+    $sorteadasController->eliminarSiguientes();
+    $sthg = array();
+    $casinos = Casino::all();
+    foreach ($casinos as $cas) {
+      for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+        $sorteadas = $sorteoController->sortear($cas->id_casino, $fecha_backup);
+        $sthg[] = ['sorteo' => $sorteadas, 'fecha' => $fecha_backup];
+      }
+    }
+
+    return $sthg;
+  }
+
+  /*
   *
   * Genera la planilla, llama a la funcion de sortear que está en
   * Controllers\Mesas\SorteoMesasController;
   *
   */
-  private function crearPlanilla($cas,$fecha_backup){
+  public function crearPlanilla($cas,$fecha_backup){
     //try{
       $sorteoController = new SorteoMesasController;
       $rel = new \stdClass();
       //mesas sorteadas
-      $sorteo = $sorteoController->sortear($cas->id_casino,$fecha_backup);
+      $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
 
 
       $rel->sorteadas =  new \stdClass();
