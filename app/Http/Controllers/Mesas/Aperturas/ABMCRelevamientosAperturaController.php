@@ -146,7 +146,7 @@ class ABMCRelevamientosAperturaController extends Controller
         $sthg[] = ['sorteo' => $sorteadas, 'fecha' => $fecha_backup];
       }
     }
-    $this->creaRelevamientoZip();
+    //$this->creaRelevamientoZip();
     return $sthg;
   }
 
