@@ -117,6 +117,7 @@ class ABMCRelevamientosAperturaController extends Controller
         Zipper::make($nombreZip)->add($arregloRutas)->close();
         File::delete($arregloRutas);
     //  }
+    return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
   }
 
 
