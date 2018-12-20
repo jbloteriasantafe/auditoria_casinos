@@ -106,7 +106,7 @@ class JuegoController extends Controller
   public function guardarJuego(Request $request){
       //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
     Validator::make($request->all(), [
-      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
+      //'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
       'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
       'cod_juego' => 'nullable',
