@@ -130,26 +130,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
   }
 
-  /*
-  * Se utiliza desde \console\Commands\SortearMesas
-  */
-  public function sortearMesasCommand(){
-    $sorteoController = new SorteoMesasController;
-    $sorteadasController = new ABCMesasSorteadasController;
 
-    $sorteadasController->eliminarSiguientes();
-    $sthg = array();
-    $casinos = Casino::all();
-    foreach ($casinos as $cas) {
-      for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
-        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
-        $sorteadas = $sorteoController->sortear($cas->id_casino, $fecha_backup);
-        $sthg[] = ['sorteo' => $sorteadas, 'fecha' => $fecha_backup];
-      }
-    }
-    //$this->creaRelevamientoZip();
-    return $sthg;
-  }
 
   /*
   *
@@ -198,8 +179,9 @@ class ABMCRelevamientosAperturaController extends Controller
       $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml($view->render());
+      $dompdf->loadHtml(utf8_decode($view));
       $dompdf->render();
+
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
       $dompdf->getCanvas()->page_text(20, 815, $cas->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
@@ -211,6 +193,28 @@ class ABMCRelevamientosAperturaController extends Controller
     //     throw new \App\Exceptions\PlanillaException('No se pudo generar la planilla para relevar aperturas de mesas.');
     //   }
     // }
+  }
+
+
+  /*
+  * Se utiliza desde \console\Commands\SortearMesas
+  */
+  public function sortearMesasCommand(){
+    $sorteoController = new SorteoMesasController;
+    $sorteadasController = new ABCMesasSorteadasController;
+
+    $sorteadasController->eliminarSiguientes();
+    $sthg = array();
+    $casinos = Casino::all();
+    foreach ($casinos as $cas) {
+      for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+        $sorteadas = $sorteoController->sortear($cas->id_casino, $fecha_backup);
+        $sthg[] = ['sorteo' => $sorteadas, 'fecha' => $fecha_backup];
+      }
+    }
+    //$this->creaRelevamientoZip();
+    return $sthg;
   }
 
 }
