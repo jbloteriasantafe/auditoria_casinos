@@ -58,7 +58,7 @@ tr:nth-child(even) {
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
                   <th class="tablaInicio">BENEFICIO (US$)</th>
-                  <th class="tablaInicio">COTIZACIÓN</th>
+                  <th class="tablaInicio">COTIZACIÓN (*)</th>
                   <th class="tablaInicio">BENEFICIO ($)</th>
                 </tr>
                 @foreach ($ajustes as $ajuste)
@@ -90,5 +90,16 @@ tr:nth-child(even) {
                   <td class="tablaCampos">{{$sum->totalBeneficioPesos}}</td>
                 </tr>
               </table>
+
+              <div>
+                <p > 
+                  <FONT SIZE=1> <strong>* </strong>Cotización establecida en Nota N° 277/16 <br>
+                  <i> "... se utilizará como tipo de cambio para efectuar la conversión a pesos, el valor del dólar 
+                    oficial tipo comprador (información suministrada por el Banco de la Nación Argentina) correspondiente a la fecha de producción
+                     de las MTM. Para el caso de los días Sábados, Domingos y Feriados, se utilizará como tipo de cambio, el del último día hábil disponible.."
+                    </FONT>
+                  </i>
+                </p>
+              </div>
   </body>
 </html>
