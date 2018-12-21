@@ -91,6 +91,7 @@ class ABMCRelevamientosAperturaController extends Controller
   // public function creaRelevamientoZip(){
 
   public function generarRelevamiento(){
+    return 0;
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
       //$casinos = Casino::all();
