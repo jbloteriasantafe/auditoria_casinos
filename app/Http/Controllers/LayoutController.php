@@ -978,7 +978,15 @@ class LayoutController extends Controller
       $det->isla = $detalle->maquina->isla->nro_isla;
       $det->marca = $detalle->maquina->marca;
       $det->nro_serie = $detalle->maquina->nro_serie;
-      $det->juego = $detalle->maquina->juego_activo;
+      if(count($detalle->maquina->juego_activo->pack)>0){
+        $juego_activo=$detalle->maquina->juego_activo;
+        $prefijo=$detalle->maquina->juego_activo->pack[0]->prefijo;
+        $nombre_juego_activo= $detalle->maquina->juego_activo->nombre_juego;
+        $juego_activo->nombre_juego=  $prefijo . " -/- " .  $nombre_juego_activo; 
+      }else{
+        $juego_activo=$detalle->maquina->juego_activo;
+      }
+      $det->juego =$juego_activo;
       $det->denominacion = $detalle->denominacion;//vacio al momento de carga
       $det->porcentaje_devolucion = $detalle->porcentaje_devolucion;//vacio al momento de carga
       $det->diferencias = $detalle->campos_con_diferencia;
