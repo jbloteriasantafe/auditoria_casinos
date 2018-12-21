@@ -126,7 +126,7 @@ class ABMCRelevamientosAperturaController extends Controller
     $file = public_path() . "/" . $nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
 
-    return response()->download($file,$nombre,$headers);
+    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
 
   }
 
@@ -162,8 +162,16 @@ class ABMCRelevamientosAperturaController extends Controller
       $sorteoController = new SorteoMesasController;
       $rel = new \stdClass();
       //mesas sorteadas
-      $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
-
+      //$sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
+      $sorteadasController = new ABCMesasSorteadasController;
+      try{
+        $rta = $sorteadasController->obtenerSorteo($cas->id_casino,$fecha_backup);
+        $sorteo = ['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']];
+      }catch(Exception $e){
+              dd([$e,$cas,$fecha_backup]);
+        throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR", 1);
+        //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
+      }
 
       $rel->sorteadas =  new \stdClass();
       $rel->sorteadas->ruletasDados = $sorteo['ruletasDados'];
