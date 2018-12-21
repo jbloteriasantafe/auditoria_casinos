@@ -1419,92 +1419,100 @@
                   <!-- PASO 2 | JUEGO -->
                   <div class="seccion" id="secJuego">
 
-                    <div id="listaJuegosMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
-                        <div class="row">
-                            <div class="col-md-12">
-                              <h6>JUEGOS ACTIVOS</h6>
+                      <div id="listaJuegosMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
+                          <div class="row">
+                              <div class="col-md-12">
+                                <h6>JUEGOS ACTIVOS</h6>
 
-                              <table id="tablaJuegosActivos" class="table" style="margin-top:30px; margin-bottom:20px;">
-                                <thead>
-                                  <tr>
-                                    <th width="10%">ACTIVO</th>
-                                    <th width="25%">NOMBRE</th>
-                                    <th width="20%">DENOMINACIÓN</th>
-                                    <th width="15%">% DEV</th>
-                                    <th width="20%">TABLAS DE PAGO</th>
-                                    <th width="10%">ACCIÓN</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
+                                <table id="tablaJuegosActivos" class="table" style="margin-top:30px; margin-bottom:20px;">
+                                  <thead>
+                                    <tr>
+                                        <th width="10%">ACTIVO</th>
+                                        <th width="25%">NOMBRE</th>
+                                        <th width="25%">PACK</th>
+                                        <th width="10%">DENOMINACIÓN</th>
+                                        <th width="10%">% DEV</th>
+                                        <th width="20%">TABLAS DE PAGO</th>
+                                        <th width="10%">ACCIÓN</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
 
-                                </tbody>
-                              </table>
+                                  </tbody>
+                                </table>
 
-                              <p id="" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no tiene juegos asociados.</p>
+                                <p id="" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no tiene juegos asociados.</p>
+                              </div>
+                          </div>
+
+                      </div>
+
+
+                        <!-- CREAR O BUSCAR JUEGO-->
+                        <div id="agregarJuego" style="cursor:pointer;" data-toggle="collapse" data-target="#juegoPlegado">
+                            <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                                <div class="col-md-12">
+                                    <h6>ASOCIAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
+                                </div>
                             </div>
                         </div>
 
-                    </div>
-
-
-
-                      <!-- CREAR O BUSCAR JUEGO-->
-                      <div id="agregarJuego" style="cursor:pointer;" data-toggle="collapse" data-target="#juegoPlegado">
-                          <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                              <div class="col-md-12">
-                                  <h6>ASOCIAR JUEGO<i class="fa fa-fw fa-angle-down"></i></h6>
+                        <div id="juegoPlegado" class="collapse">
+                            <div class="row" >
+                                <div class="col-md-4">
+                                    <h5>Nombre Juego</h5>
+                                      <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
+                                    <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
+                                    <!-- <datalist id="juego"> </datalist> -->
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>Código de Juego</h5>
+                                    <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
+                                </div>
+                                <div class="col-md-4">
+                                  <h5>Pack de Juego</h5>
+                                  <input id="inputPack" disabled/>
                               </div>
-                          </div>
-                      </div>
-
-                      <div id="juegoPlegado" class="collapse">
-                          <div class="row" style="padding-bottom: 15px;">
+                                
+                            </div>
+                            
+                            <div class="row" style="padding-bottom: 15px;">
+                              <div class="col-md-4">
+                                <h5>Den. de Sala</h5>
+                                <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
+                            </div>
                             <div class="col-md-4">
-                              <h5>Nombre Juego</h5>
-                                <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
-                              <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
-                              <!-- <datalist id="juego"> </datalist> -->
-                          </div>
-                          <div class="col-md-4">
-                              <h5>Código de Juego</h5>
-                              <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
-                          </div>
-                          <div class="col-md-2">
-                              <h5>Den. de Sala</h5>
-                              <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
-                          </div>
-                          <div class="col-md-2">
-                              <h5>% Dev</h5>
-                              <input id="porcentaje_devolucion_juego" class="form-control" type="text" name="" value="" placeholder="ej: 95.21">
-                          </div>
-                          </div>
+                                <h5>% Dev</h5>
+                                <input id="porcentaje_devolucion_juego" class="form-control" type="text" name="" value="" placeholder="ej: 95.21">
+                            </div>
+                            </div>
 
-                          <div class="row" style="padding-bottom: 15px;">
-                              <div id="tablas_de_pago" class="col-md-12">
-                                  <h5 style="display:inline; margin-right:10px;">Tablas de pago</h5>
-                                  <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
-                                    <i class="fa fa-fw fa-plus"></i>
-                                  </button>
-                                  <div id="tablas_pago" style="margin-top:15px;">
-                                  </div>
-                              </div>
-                          </div>
+                            <div class="row" style="padding-bottom: 15px;border-top: 1px solid #eee; padding-top: 15px;">
+                                <div id="tablas_de_pago" class="col-md-12">
+                                    <h5 style="display:inline; margin-right:10px;">Tablas de pago</h5>
+                                    <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
+                                      <i class="fa fa-fw fa-plus"></i>
+                                    </button>
+                                    <div id="tablas_pago" style="margin-top:15px;">
+                                    </div>
+                                </div>
+                            </div>
 
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <button id="btn-cancelarJuego" class="btn btn-danger" type="button" name="button" hidden="true">
-                                      <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
-                                  </button>
-                                  <button id="btn-crearJuego" class="btn btn-successAceptar" type="button" name="button" hidden="true">
-                                      <i class="fas fa-fw fa-plus"></i> CREAR JUEGO
-                                  </button>
-                                  <button id="btn-agregarJuegoLista" class="btn btn-successAceptar" type="button" name="button" hidden="true">
-                                      <i class="fas fa-fw fa-arrow-up"></i> AGREGAR JUEGO
-                                  </button>
-                              </div>
-                          </div>
-                      </div>
-                  </div> <!-- / PASO 2 | JUEGO -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button id="btn-cancelarJuego" class="btn btn-danger" type="button" name="button">
+                                        <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
+                                    </button>
+                                    <button id="btn-crearJuego" class="btn btn-successAceptar" type="button" name="button">
+                                        <i class="fa fa-fw fa-plus"></i> CREAR JUEGO
+                                    </button>
+                                    <button id="btn-agregarJuegoLista" class="btn btn-successAceptar" type="button" name="button">
+                                        <i class="fa fa-fw fa-arrow-up"></i> ASOCIAR JUEGO
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- / PASO 2 | JUEGO -->
 
 
                   <!-- PASO 3 | PROGRESIVO -->
