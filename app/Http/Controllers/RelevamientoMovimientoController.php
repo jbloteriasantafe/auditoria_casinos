@@ -375,7 +375,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones,$mac,$s,$i);
+         $observaciones,$mac,$s,$i,0);
        }else{
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
@@ -387,7 +387,7 @@ class RelevamientoMovimientoController extends Controller
          $denominacion ,
          $cant_creditos,
          $fecha_sala,
-         $observaciones, $mac,$s,$i);
+         $observaciones, $mac,$s,$i,0);
 
        }
    }

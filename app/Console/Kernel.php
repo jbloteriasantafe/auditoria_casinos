@@ -5,6 +5,9 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
+use App\Console\Commands\CalcularDiferenciasIDM;
+use App\Console\Commands\SortearMesas;
+
 class Kernel extends ConsoleKernel
 {
     /**
@@ -15,6 +18,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\asociarJuegoCasino::class,
         Commands\packJuego::class,
+        SortearMesas::class
     ];
 
     /**
@@ -25,22 +29,32 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
-        /*
-        para agregar el cronjob en el SO
-        crontab -e agregarlo
-        crontab -l listar los cron existentes
-        */
+
+      $schedule->command('RAM:sortear')
+               //->everyMinute() para pruebas
+               ->dailyAt('00:30')
+               ->runInBackground();
+
+      $schedule->command('RAM:sortear')
+              ->dailyAt('12:00')
+              ->runInBackground();
+      $schedule->command('RAM:sortear')
+               ->dailyAt('16:30')
+               ->runInBackground();
+
+        //dd('se hizo');
+
     }
 
     /**
-     * Register the Closure based commands for the application.
+     * Register the commands for the application.
      *
      * @return void
      */
     protected function commands()
     {
+        //$this->load(__DIR__.'/Commands');
+
         require base_path('routes/console.php');
     }
 }

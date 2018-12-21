@@ -71,36 +71,53 @@ class ABMCRelevamientosAperturaController extends Controller
   /*
   * Esta funcion inicia el proceso de generacion de planillas :D
   */
+  // public function generarRelevamiento(){
+  //   $fecha_hoy = Carbon::now()->format("Y-m-d");
+  //   $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+  //   $cas = $user->casinos->first();
+  //   $codigo_casino = $cas->codigo;
+  //
+  //   $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
+  //             .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
+  //             .'.zip';
+  //   //dd(app_path() . "/" .$nombreZip);
+  //   if(file_exists( '/var/www/html/auditoria_casinos'. "/" .$nombreZip)){
+  //     return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
+  //   }else{
+  //     return 0;
+  //   }
+  // }
+  //
+  // public function creaRelevamientoZip(){
+
   public function generarRelevamiento(){
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $cas = $user->casinos->first();
-      $codigo_casino = $cas->codigo;
-      $informesSorteadas->chequearSorteadas($fecha_hoy,$cas->id_casino);
+      //$casinos = Casino::all();
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $cas = $usuario->casinos->first();
       $arregloRutas = array();
       //creo planillas para hoy y los dias de backup
-      for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
-        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
-        $dompdf = $this->crearPlanilla($cas, $fecha_backup);
+      //foreach ($casinos as $cas){
+        $codigo_casino = $cas->codigo;
+        for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+          $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+          $dompdf = $this->crearPlanilla($cas, $fecha_backup);
 
-        $output = $dompdf->output();
-        $ruta = "Relevamiento-Aperturas-".$fecha_backup.".pdf";
-        file_put_contents($ruta, $output);
-        $arregloRutas[] = $ruta;
+          $output = $dompdf->output();
+          $ruta = "Relevamiento-Aperturas-".$fecha_backup.".pdf";
+          file_put_contents($ruta, $output);
+          $arregloRutas[] = $ruta;
 
-      }
+        }
+        $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
+                  .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
+                  .'.zip';
 
-
-
-      $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
-                .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
-                .'.zip';
-
-      Zipper::make($nombreZip)->add($arregloRutas)->close();
-      File::delete($arregloRutas);
-
-      return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
+        Zipper::make($nombreZip)->add($arregloRutas)->close();
+        File::delete($arregloRutas);
+    //  }
+    return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
   }
 
 
@@ -109,8 +126,29 @@ class ABMCRelevamientosAperturaController extends Controller
     $file = public_path() . "/" . $nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
 
-    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+    return response()->download($file,$nombre,$headers);
 
+  }
+
+  /*
+  * Se utiliza desde \console\Commands\SortearMesas
+  */
+  public function sortearMesasCommand(){
+    $sorteoController = new SorteoMesasController;
+    $sorteadasController = new ABCMesasSorteadasController;
+
+    $sorteadasController->eliminarSiguientes();
+    $sthg = array();
+    $casinos = Casino::all();
+    foreach ($casinos as $cas) {
+      for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+        $sorteadas = $sorteoController->sortear($cas->id_casino, $fecha_backup);
+        $sthg[] = ['sorteo' => $sorteadas, 'fecha' => $fecha_backup];
+      }
+    }
+    //$this->creaRelevamientoZip();
+    return $sthg;
   }
 
   /*
@@ -119,12 +157,12 @@ class ABMCRelevamientosAperturaController extends Controller
   * Controllers\Mesas\SorteoMesasController;
   *
   */
-  private function crearPlanilla($cas,$fecha_backup){
+  public function crearPlanilla($cas,$fecha_backup){
     //try{
       $sorteoController = new SorteoMesasController;
       $rel = new \stdClass();
       //mesas sorteadas
-      $sorteo = $sorteoController->sortear($cas->id_casino,$fecha_backup);
+      $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
 
 
       $rel->sorteadas =  new \stdClass();
@@ -166,8 +204,5 @@ class ABMCRelevamientosAperturaController extends Controller
     //   }
     // }
   }
-
-
-
 
 }

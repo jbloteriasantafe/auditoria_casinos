@@ -169,5 +169,21 @@ class SorteoMesasController extends Controller
 
   }
 
+  public function buscarBackUps($cas,$fecha){
+    //debe retornar lo mismo que retorna sortear.
+    $sorteadasController = new ABCMesasSorteadasController;
+    try{
+      $rta = $sorteadasController->obtenerSorteo($cas,$fecha);
+      //dd(['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']]);
+    }catch(Exception $e){
+            //dd([$e,$cas,$fecha]);
+      throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR", 1);
+      //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
+    }
+
+    return ['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']];
+  }
+
+
 
 }

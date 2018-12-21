@@ -83,7 +83,7 @@ class ABMAperturaController extends Controller
       $apertura->mesa()->associate($request->id_mesa_de_panio);
       $apertura->estado_cierre()->associate(1);//asociar estado cargado
       $apertura->casino()->associate($request->id_casino);
-      $apertura->tipo_mesa()->associate($mesa->tipo_mesa->id_tipo_mesa);
+      $apertura->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
       $apertura->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
