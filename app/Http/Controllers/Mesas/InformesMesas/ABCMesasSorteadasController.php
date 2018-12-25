@@ -81,7 +81,7 @@ class ABCMesasSorteadasController extends Controller
   public function eliminarSiguientes(){
     try{
       DB::table('mesas_sorteadas')
-                ->where('fecha_backup','>',Carbon::now()->format("Y-m-d"))
+                ->where('fecha_backup','>=',Carbon::now()->format("Y-m-d"))
                 ->delete();
     }catch(Exception $e){
       throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
