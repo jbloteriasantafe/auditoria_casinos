@@ -168,7 +168,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
       $rel->mesas = $rmesas->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
@@ -184,7 +184,7 @@ class ABMCRelevamientosAperturaController extends Controller
       }else{
         $rel->paginas = [1,2,3,4];
       }
-      dd($rel);
+
       $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
