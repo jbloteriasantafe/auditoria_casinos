@@ -16,7 +16,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        SortearMesas::class
+        Commands\asociarJuegoCasino::class,
+        Commands\packJuego::class,
+        SortearMesas::class,
     ];
 
     /**
