@@ -27,6 +27,7 @@ use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 use App\Mesas\MesasSorteadas;
 
+use Carbon\Carbon;
 use Exception;
 
 //alta BAJA y consulta de mesas sorteadas
@@ -57,7 +58,7 @@ class ABCMesasSorteadasController extends Controller
   /*
   * Verifica si hay mesas sorteadas para la fecha en el casino
   * Si, existen -> se elimina
-  * se usa en ABMCRelevamientosAperturaController
+  * deprecated-
   */
   public function chequearSorteadas($fecha,$id_casino){
     $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
@@ -65,6 +66,25 @@ class ABCMesasSorteadasController extends Controller
                                         ->get();
     foreach ($mesas_sorteadas as $m) {
       $m->delete();
+    }
+  }
+
+
+  public function obtenerSorteo($id_casino,$fecha){
+
+    $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
+                                              ['id_casino','=',$id_casino]])
+                                        ->firstOrFail();
+    return $mesas_sorteadas;
+  }
+
+  public function eliminarSiguientes(){
+    try{
+      DB::table('mesas_sorteadas')
+                ->where('fecha_backup','>=',Carbon::now()->format("Y-m-d"))
+                ->delete();
+    }catch(Exception $e){
+      throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
     }
 
   }

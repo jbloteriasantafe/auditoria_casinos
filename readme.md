@@ -1,3 +1,32 @@
+## IMPORTANTE
+
+Antes de iniciar el servidor, asegurarse de ..:
+
+To start the scheduler itself, we only need to add one cron job on the server (using the crontab -e command), which executes php /path/to/artisan schedule:run every minute in the day:
+* * * * * php /path/to/artisan schedule:run 1>> /dev/null 2>&1
+
+Please note that we need to provide the full path to the Artisan command of our Laravel installation.
+
+To discard the cron output we put /dev/null 2>&1 at the end of the cronjob expression.
+
+De esta forma, se podrá ejecutar con normalidad el schedule de LARAVEL.
+Pero.. por las dudas, ejecutar también uno por uno los comandos que haya, así se evitan errores, porque pueden estar programados para una hora/día en particular y puede pasar mucho tiempo hasta que eso suceda. [Aclarar aquí que comandos no ejecutar.]
+
+En la carpeta console/commands se encuentran los comandos y sus descripciones, se ejecutan:
+php artisan nombre:delcomando [si en la descripcion dice algo mas -> ponerlo]
+
+
+
+## CONFIGURAR
+
+CANTIDAD DE DÍAS QUE SE SORTEAN MESAS DE BACK UP EN:
+App\Http\Controllers\Aperturas\ABMCRelevamientosAperturaController $cantidad_dias_backup
+
+
+## IGNORAR
+
+
+
 <p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
 
 <p align="center">

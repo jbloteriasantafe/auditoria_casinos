@@ -1247,6 +1247,7 @@ class LogMovimientoController extends Controller
                         ->join('log_movimiento','log_movimiento.id_log_movimiento','=','log_clicks_mov.id_log_movimiento')
                         ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('log_movimiento.id_log_movimiento','=', $id_log_movimiento)
+                        ->where('isla.id_casino','=',$logMov->id_casino)
                         ->distinct('maquina.id_maquina')
                         ->get();
     $maquinasPausa = DB::table('relevamiento_movimiento')
@@ -1255,6 +1256,7 @@ class LogMovimientoController extends Controller
                         ->join('isla','isla.id_isla','=','maquina.id_isla')
                         ->join('juego','juego.id_juego','=','maquina.id_juego')
                         ->where('relevamiento_movimiento.id_log_movimiento','=', $id_log_movimiento)
+                        ->where('isla.id_casino','=',$logMov->id_casino)
                         ->whereNull('relevamiento_movimiento.id_fiscalizacion_movimiento')
                         ->distinct('maquina.id_maquina')
                         ->get();

@@ -89,7 +89,7 @@ class SorteoMesasController extends Controller
         $mesas = DB::table('mesa_de_panio')
                             ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                             ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')
-                            ->whereIn('mesa_de_panio.id_tipo_mesa',$tipo)
+                            ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
                             ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                             ->whereNotIn('mesa_de_panio.id_mesa_de_panio',[$mesas_pond->mesas[0]->id_mesa_de_panio])
                             ->whereNull('mesa_de_panio.deleted_at')
@@ -168,6 +168,22 @@ class SorteoMesasController extends Controller
     return $rta;
 
   }
+
+  public function buscarBackUps($cas,$fecha){
+    //debe retornar lo mismo que retorna sortear.
+    $sorteadasController = new ABCMesasSorteadasController;
+    try{
+      $rta = $sorteadasController->obtenerSorteo($cas,$fecha);
+      //dd(['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']]);
+    }catch(Exception $e){
+            //dd([$e,$cas,$fecha]);
+      throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR", 1);
+      //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
+    }
+
+    return ['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']];
+  }
+
 
 
 }

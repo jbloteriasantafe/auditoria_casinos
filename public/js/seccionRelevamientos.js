@@ -436,6 +436,21 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
 
       var suma = 0;
 
+      input1 = $(this).parent().parent().find('td').children('.cont1').val() != '' ? true : false;
+      input2 = $(this).parent().parent().find('td').children('.cont2').val() != '' ? true : false;
+      input3 = $(this).parent().parent().find('td').children('.cont3').val() != '' ? true : false;
+      input4 = $(this).parent().parent().find('td').children('.cont4').val() != '' ? true : false;
+      input5 = $(this).parent().parent().find('td').children('.cont5').val() != '' ? true : false;
+      input6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? true : false;
+      input7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? true : false;
+      input8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? true : false;
+              
+      if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
+          inputValido=true;
+      }else{
+          inputValido=false;
+      }
+
       //FALTA VALIDAR QUE EL INPUT ESTÉ LLENO
       if (formulaCont1 != '') {
         suma = contador1;
@@ -487,13 +502,13 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
       diferencia= Number(diferencia.toFixed(2));
       console.log('acac');
 
-      if (diferencia == 0) {
+      if (diferencia == 0 && inputValido) {
           renglon_actual.find('i.fa-question').hide();
           renglon_actual.find('i.fa-times').hide();
           renglon_actual.find('i.fa-ban').hide();
           renglon_actual.find('i.fa-check').show();
           renglon_actual.find('i.fa-exclamation').hide();
-        } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+        } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
           renglon_actual.find('i.fa-question').hide();
           renglon_actual.find('i.fa-times').hide();
           renglon_actual.find('i.fa-ban').hide();
@@ -1888,7 +1903,22 @@ function calculoDiferencia(tablaRelevamientos){
 
               var i = 1;
 
-              //FALTA VALIDAR QUE EL INPUT ESTÉ LLENO
+              // Se valida que almenos un input este lleno
+              input1 = $(this).find('.cont1').val() != '' ? true : false;
+              input2 = $(this).find('.cont2').val() != '' ? true : false;
+              input3 = $(this).find('.cont3').val() != '' ? true : false;
+              input4 = $(this).find('.cont4').val() != '' ? true : false;
+              input5 = $(this).find('.cont5').val() != '' ? true : false;
+              input6 = $(this).find('.cont6').val() != '' ? true : false;
+              input7 = $(this).find('.cont7').val() != '' ? true : false;
+              input8 = $(this).find('.cont8').val() != '' ? true : false;
+              
+              if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
+                inputValido=true;
+              }else{
+                inputValido=false;
+              }
+              console.log("valor del input 1", $(this).find('.cont1').val() )
               if (formulaCont1 != '') {
                 suma = contador1;
               }
@@ -1940,13 +1970,13 @@ function calculoDiferencia(tablaRelevamientos){
                 // diferencia = Math.round(diferencia * 100) / 100;
               }
               console.log('acac',diferencia);
-              if (diferencia == 0) {
+              if (diferencia == 0 && inputValido) {
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').hide();
                   renglon_actual.find('i.fa-check').show();
                   renglon_actual.find('i.fa-exclamation').hide();
                   renglon_actual.find('i.fa-ban').hide();
-                } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+                } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
                   renglon_actual.find('i.fa-question').hide();
                   renglon_actual.find('i.fa-times').hide();
                   renglon_actual.find('i.fa-check').hide();

@@ -1730,7 +1730,7 @@ function limpiarModalValidar(){
   $('#total_cierre_validar').val('');
   $('#total_aper_validar').val('');
   $('#anticipos_validar').val('');
-  $('#fechaCierreVal').not('.defecto').remove();
+  $('#fechaCierreVal option').not('.defecto').remove();
   $('#tablaValidar tbody tr').remove();
 
 }
