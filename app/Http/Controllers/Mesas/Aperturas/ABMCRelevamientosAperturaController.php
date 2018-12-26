@@ -112,8 +112,8 @@ class ABMCRelevamientosAperturaController extends Controller
           $dompdf = $this->crearPlanilla($cas, $fecha_backup);
 
           $output = $dompdf->output();
-          dd($output);
-          $ruta = "public/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+         // echo($output);
+          $ruta = "public/Relevamiento-Aperturas-".$fecha_backup.".pdf";
           file_put_contents($ruta, $output);
           $arregloRutas[] = $ruta;
 
@@ -122,7 +122,7 @@ class ABMCRelevamientosAperturaController extends Controller
                   .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
                   .'.zip';
 
-        Zipper::make('public/Mesas/'.$nombreZip)->add($arregloRutas)->close();
+        Zipper::make('public/'.$nombreZip)->add($arregloRutas)->close();
         File::delete($arregloRutas);
       }
     //return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
