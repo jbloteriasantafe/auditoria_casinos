@@ -92,10 +92,10 @@ class ABMCRelevamientosAperturaController extends Controller
   public function creaRelevamientoZip(){
     $permissions = intval( config('permissions.directory'), 8 );
     if(file_exists( public_path().'/Mesas')){
-      File::deleteDirectory('public/Mesas');
-      File::makeDirectory('public/Mesas');
+      File::deleteDirectory( public_path().'/Mesas');
+      File::makeDirectory( public_path().'/Mesas');
     }else{
-      File::makeDirectory('public/Mesas');
+      File::makeDirectory( public_path().'/Mesas');
     }
 
 
@@ -114,7 +114,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
           $output = $dompdf->output();
 
-          $ruta = "public/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+          $ruta = public_path()."/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
           file_put_contents($ruta, $output);
           $arregloRutas[] = $ruta;
 
@@ -123,7 +123,7 @@ class ABMCRelevamientosAperturaController extends Controller
                   .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
                   .'.zip';
 
-        Zipper::make('public/Mesas/'.$nombreZip)->add($arregloRutas)->close();
+        Zipper::make(public_path()."/Mesas/".$nombreZip)->add($arregloRutas)->close();
         File::delete($arregloRutas);
       }
     //return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
