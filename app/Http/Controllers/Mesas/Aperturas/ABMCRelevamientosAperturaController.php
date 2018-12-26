@@ -92,9 +92,9 @@ class ABMCRelevamientosAperturaController extends Controller
     $permissions = intval( config('permissions.directory'), 8 );
     if(file_exists( public_path().'/Mesas')){
       File::deleteDirectory('public/Mesas');
-      File::makeDirectory('public/Mesas', $permissions, true);
+      File::makeDirectory('public/Mesas');
     }else{
-      File::makeDirectory('public/Mesas', $permissions, true);
+      File::makeDirectory('public/Mesas');
     }
 
 
@@ -113,8 +113,13 @@ class ABMCRelevamientosAperturaController extends Controller
 
           $output = $dompdf->output();
           $ruta = "public/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
-          file_put_contents($ruta, $output);
-          $arregloRutas[] = $ruta;
+          try{
+            file_put_contents($ruta, $output);
+            $arregloRutas[] = $ruta;
+          }catch(Exception $e){
+            dd($e);
+          }
+
 
         }
         $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
@@ -192,6 +197,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
       $dompdf->getCanvas()->page_text(20, 815, $cas->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      //dd($dompdf);
       return $dompdf;//->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
     // }catch(Exeption $e){
     //   if($e instanceof \App\Exceptions\PlanillaException){
