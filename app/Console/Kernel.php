@@ -35,9 +35,9 @@ class Kernel extends ConsoleKernel
                ->dailyAt('00:30')
                ->runInBackground();
 
-      $schedule->command('RAM:sortear')
-              ->dailyAt('12:00')
-              ->runInBackground();
+      // $schedule->command('RAM:sortear')
+      //         ->dailyAt('12:00')
+      //         ->runInBackground();
       $schedule->command('RAM:sortear')
                ->dailyAt('16:30')
                ->runInBackground();

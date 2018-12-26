@@ -91,17 +91,17 @@ class ABMCRelevamientosAperturaController extends Controller
 
   public function creaRelevamientoZip(){
     $permissions = intval( config('permissions.directory'), 8 );
-    if(file_exists( public_path().'/Mesas')){
-      File::deleteDirectory( public_path().'/Mesas');
-      File::makeDirectory( public_path().'/Mesas');
-    }else{
-      File::makeDirectory( public_path().'/Mesas');
-    }
+    // if(file_exists( public_path().'/Mesas')){
+    //   File::deleteDirectory( public_path().'/Mesas');
+    //   File::makeDirectory( public_path().'/Mesas');
+    // }else{
+    //   File::makeDirectory( public_path().'/Mesas');
+    // }
 
 
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-      $casinos = Casino::all();
+      $casinos = Casino::where('id_casino','=',3)->get();
       //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       //$cas = $usuario->casinos->first();
       $arregloRutas = array();
