@@ -89,8 +89,14 @@ class ABMCRelevamientosAperturaController extends Controller
   }
 
   public function creaRelevamientoZip(){
-    File::deleteDirectory('public/Mesas');
-    File::makeDirectory('public/Mesas');
+    if(file_exists( public_path().'/Mesas')){
+      File::deleteDirectory('public/Mesas');
+      File::makeDirectory('public/Mesas');
+    }else{
+      File::makeDirectory('public/Mesas');
+    }
+
+
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
       $casinos = Casino::all();
@@ -126,7 +132,7 @@ class ABMCRelevamientosAperturaController extends Controller
     $file = public_path().'/Mesas/'. $nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
 
-    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+    return response()->download($file,$nombre,$headers);//->deleteFileAfterSend(true);
 
   }
 
