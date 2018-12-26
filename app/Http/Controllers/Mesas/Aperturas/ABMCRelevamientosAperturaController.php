@@ -89,11 +89,12 @@ class ABMCRelevamientosAperturaController extends Controller
   }
 
   public function creaRelevamientoZip(){
+    $permissions = intval( config('permissions.directory'), 8 );
     if(file_exists( public_path().'/Mesas')){
       File::deleteDirectory('public/Mesas');
-      File::makeDirectory('public/Mesas', 0755, true);
+      File::makeDirectory('public/Mesas', $permissions, true);
     }else{
-      File::makeDirectory('public/Mesas', 0755, true);
+      File::makeDirectory('public/Mesas', $permissions, true);
     }
 
 
