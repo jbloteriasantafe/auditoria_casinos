@@ -45,12 +45,12 @@ footer
 
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="public/css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -74,10 +74,10 @@ footer
                           </tr>
                           @foreach($rel->mesas as $mesa)
                           <tr>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->nro_mesa}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->juego->nombre_juego}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: white; border-color: gray;"></td>
-                            <td class="col-xs-3 tablaInicio" style="background-color: white; border-color: gray;"></td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->nro_mesa}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->juego->nombre_juego}}</td>
+                            <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
+                            <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                           </tr>
                           @endforeach
                         </tbody>
@@ -91,17 +91,17 @@ footer
                           <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="4">MESAS DE RULETA</th>
                         </tr>
                         <tr>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA</th>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
-                          <th class="col-xs-3 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
                         </tr>
                         @foreach($rel->sorteadas->ruletasDados as $ruleta)
                           <tr>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nro_mesa']}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nombre_juego']}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['descripcion']}}</td>
-                            <td class="col-xs-3 tablaInicio" style=" border-color: gray;"></td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nro_mesa']}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nombre_juego']}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['descripcion']}}</td>
+                            <td class=" tablaInicio" style=" border-color: gray;"></td>
                           </tr>
                         @endforeach
                         </tbody>
@@ -115,17 +115,17 @@ footer
                           <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="4">MESAS DE CARTAS/DADOS</th>
                         </tr>
                         <tr>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA</th>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
-                          <th class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
-                          <th class="col-xs-3 tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
                         </tr>
                         @foreach($rel->sorteadas->cartas as $carta)
                           <tr>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nro_mesa']}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nombre_juego']}}</td>
-                            <td class="col-xs-1 tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['descripcion']}}</td>
-                            <td class="col-xs-3 tablaInicio" style=" border-color: gray;"></td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nro_mesa']}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nombre_juego']}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['descripcion']}}</td>
+                            <td class=" tablaInicio" style=" border-color: gray;"></td>
                          </tr>
                         @endforeach
                         </tbody>
@@ -151,7 +151,7 @@ footer
               @foreach($rel->paginas as $p)
               <div style="page-break-after:always;"></div>
               <div class="encabezadoImg">
-                    <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+                    <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
                     <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
               </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -200,7 +200,7 @@ footer
               @if($rel->cant_fichas > 15)
                 <div style="page-break-after:always;"></div>
                 <div class="encabezadoImg">
-                      <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+                      <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
                       <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
                 </div>
                 <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
