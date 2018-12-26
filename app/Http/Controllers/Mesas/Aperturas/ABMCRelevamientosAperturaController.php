@@ -113,8 +113,13 @@ class ABMCRelevamientosAperturaController extends Controller
 
           $output = $dompdf->output();
           $ruta = "public/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
-          file_put_contents($ruta, $output);
-          $arregloRutas[] = $ruta;
+          try{
+            file_put_contents($ruta, $output);
+            $arregloRutas[] = $ruta;
+          }catch(Exception $e){
+            dd($e);
+          }
+
 
         }
         $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
@@ -146,7 +151,7 @@ class ABMCRelevamientosAperturaController extends Controller
   *
   */
   public function crearPlanilla($cas,$fecha_backup){
-    try{
+    //try{
       $sorteoController = new SorteoMesasController;
       $rel = new \stdClass();
       //mesas sorteadas
@@ -194,17 +199,14 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       //dd($dompdf);
       return $dompdf;//->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
-    }catch(Exeption $e){
-      dd($e);
-      // if($e instanceof \App\Exceptions\PlanillaException){
-      //   throw $e;
-      // }else{
-      //   throw new \App\Exceptions\PlanillaException('No se pudo generar la planilla para relevar aperturas de mesas.');
-      // }
-    }
+    // }catch(Exeption $e){
+    //   if($e instanceof \App\Exceptions\PlanillaException){
+    //     throw $e;
+    //   }else{
+    //     throw new \App\Exceptions\PlanillaException('No se pudo generar la planilla para relevar aperturas de mesas.');
+    //   }
+    // }
   }
-
-  
 
 
   /*
