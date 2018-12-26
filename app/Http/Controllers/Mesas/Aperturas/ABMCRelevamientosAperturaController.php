@@ -112,14 +112,10 @@ class ABMCRelevamientosAperturaController extends Controller
           $dompdf = $this->crearPlanilla($cas, $fecha_backup);
 
           $output = $dompdf->output();
+          dd($output);
           $ruta = "public/Mesas/Relevamiento-Aperturas-".$fecha_backup.".pdf";
-          try{
-            file_put_contents($ruta, $output);
-            $arregloRutas[] = $ruta;
-          }catch(Exception $e){
-            dd($e);
-          }
-
+          file_put_contents($ruta, $output);
+          $arregloRutas[] = $ruta;
 
         }
         $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
