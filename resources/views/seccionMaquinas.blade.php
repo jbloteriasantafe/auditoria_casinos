@@ -605,7 +605,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <tr>
                                           <th width="10%">ACTIVO</th>
                                           <th width="25%">NOMBRE</th>
-                                          <th width="25%">PACK</th>
+                                          <th width="25%">PAQUETE</th>
                                           <th width="10%">DENOMINACIÓN</th>
                                           <th width="10%">% DEV</th>
                                           <th width="20%">TABLAS DE PAGO</th>
@@ -646,7 +646,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                   </div>
                                   <div class="col-md-4">
-                                    <h5>Pack de Juego</h5>
+                                    <h5>Paquete de Juego</h5>
                                     <input id="inputPack" disabled/>
                                 </div>
                                   

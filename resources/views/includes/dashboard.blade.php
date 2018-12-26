@@ -393,7 +393,7 @@ $cas = $usuario['usuario']->casinos;
                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
                                         <li>
                                           <div id="opcPackJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/packJuegos'" href="#" style="cursor: pointer;">
-                                            <span>Pack-Juegos</span>
+                                            <span>Paquete-Juegos</span>
                                           </div>
                                         </li>
                                         @endif

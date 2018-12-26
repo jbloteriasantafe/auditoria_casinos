@@ -8,7 +8,7 @@ $(document).ready(function(){
   
     $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
   
-    $('.tituloSeccionPantalla').text('PACK - JUEGOS');
+    $('.tituloSeccionPantalla').text('PAQUETE - JUEGOS');
     $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
     $('#opcPackJuegos').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
     $('#opcPackJuegos').addClass('opcionesSeleccionado');
@@ -21,7 +21,7 @@ $(document).ready(function(){
 
 //Mostrar modal para agregar nuevo Pack
 $('#btn-nuevo-pack').click(function(e){
-    $('#modalNuevoPack .modal-title').text('NUEVO PACK-JUEGO');
+    $('#modalNuevoPack .modal-title').text('NUEVO PAQUETE-JUEGO');
     e.preventDefault();
     $('#btn-crear-pack').val('nuevo');
     //limpio modal
@@ -303,7 +303,7 @@ $(document).on('click','.modificar',function(){
     //se restrablece los botones despues de salir del ver detalle
     var id_pack = $(this).val();
     //Modificar los colores del modal
-    $('#modalNuevoPack .modal-title').text('MODIFICAR PACK-JUEGO');
+    $('#modalNuevoPack .modal-title').text('MODIFICAR PAQUETE-JUEGO');
     $('#modalNuevoPack .modal-header').attr('style','background: #ff9d2d');
     $('#id_pack').val(id_pack);
     $('#btn-crear-pack').val('modificar').show();
@@ -358,7 +358,7 @@ function crearFilaPackJuego(pj){
                       )
                       .append($('<td>')
                           .addClass('col-xs-2')
-                          .text("5")
+                          .text(pj.cant_juegos)
                       )
   
                       .append($('<td>')
@@ -415,7 +415,7 @@ $(document).on('click','.eliminar',function(){
     var id_pack = $(this).val();
     $('#btn-eliminarModal').val(id_pack);
     $('#modalEliminar').modal('show');
-    $('#mensajeEliminar').text('¿Seguro que desea eliminar el pack-juego "' + $(this).parent().parent().find('td:first').text()+'" ?' 
+    $('#mensajeEliminar').text('¿Seguro que desea eliminar el paquete-juego "' + $(this).parent().parent().find('td:first').text()+'" ?' 
                                 +"\r\n"
                                 +'Esto quitará la asociación con los juegos, pero los mismos seguirán existiendo');
 });

@@ -278,7 +278,7 @@ $id_usuario = session('id_usuario');
              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title">| NUEVO PACK DE JUEGO</h3>
+             <h3 class="modal-title">| NUEVO PAQUETE DE JUEGO</h3>
             </div>
 
             <div  id="colapsado" class="collapse in">
@@ -320,7 +320,7 @@ $id_usuario = session('id_usuario');
              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title">| ASOCIAR PACK - JUEGO</h3>
+             <h3 class="modal-title">| ASOCIAR PAQUETE - JUEGO</h3>
             </div>
 
             <div  id="colapsado" class="collapse in">
@@ -379,7 +379,7 @@ $id_usuario = session('id_usuario');
 
                                     </tbody>
                                   </table>
-                                  <p id="" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> El Pack no tiene juegos asociados.</p>
+                                  <p id="" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> El Paquete no tiene juegos asociados.</p>
                                 </div>
                             </div>
 

@@ -113,6 +113,11 @@ class PackJuegoController extends Controller
                     
                     ->paginate($request->page_size);
                     // ->where($reglas)->paginate($request->page_size);
+      foreach($resultados as $pj){
+          $res=$this->obtenerJuegosDePack($pj->id_pack);
+          $pj->cant_juegos=count($res);
+      }
+      
       return $resultados;
     }
 
