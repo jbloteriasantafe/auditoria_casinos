@@ -204,6 +204,8 @@ class ABMCRelevamientosAperturaController extends Controller
     }
   }
 
+  
+
 
   /*
   * Se utiliza desde \console\Commands\SortearMesas
