@@ -6,6 +6,9 @@
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
+<link rel="stylesheet" href="css/paginacion.css">
+<link rel="stylesheet" href="/css/styleSlider.css">
+
 @endsection
 @section('contenidoVista')
 
@@ -508,15 +511,17 @@
 
   <!-- JavaScript paginacion -->
   <script src="/js/paginacion.js" charset="utf-8"></script>
-
-  <!-- JavaScript personalizado -->
-  <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="/js/lista-datos.js" type="text/javascript"></script>
+
+  <!-- DateTimePicker JavaScript -->
+  <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+  <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
   <!-- Custom input Bootstrap -->
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
+  <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
+  
   <script src="js/Mesas/seccionGestionMesas.js"></script>
 
 
