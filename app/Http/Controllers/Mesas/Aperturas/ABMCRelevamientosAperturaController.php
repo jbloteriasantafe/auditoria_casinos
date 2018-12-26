@@ -72,7 +72,7 @@ class ABMCRelevamientosAperturaController extends Controller
   * Esta funcion inicia el proceso de generacion de planillas :D
   */
   public function generarRelevamiento(){
-    return $this->creaRelevamientoZip();
+    //return $this->creaRelevamientoZip();
     $fecha_hoy = Carbon::now()->format("Y-m-d");
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = $user->casinos->first();
@@ -110,7 +110,7 @@ class ABMCRelevamientosAperturaController extends Controller
         $codigo_casino = $cas->codigo;
         for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
           $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
-          return $this->crearPlanilla($cas, $fecha_backup);
+          $dompdf = $this->crearPlanilla($cas, $fecha_backup);
 
           $output = $dompdf->output();
 
@@ -195,7 +195,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf->getCanvas()->page_text(20, 815, $cas->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       //dd($dompdf);
-      return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
+      return $dompdf;//->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
     // }catch(Exeption $e){
     //   if($e instanceof \App\Exceptions\PlanillaException){
     //     throw $e;
