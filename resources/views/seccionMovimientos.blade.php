@@ -1143,7 +1143,7 @@
                       <br>
                       <div class="row">
 
-                        
+
                         <div class="col-lg-4">
                           <h5>Moneda</h5>
                           <select class="form-control" id="juega_progresivo">

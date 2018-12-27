@@ -101,7 +101,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-      $casinos = Casino::all();
+      $casinos = Casino::whereIn('id_casino',[1,2])->get();
       //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       //$cas = $usuario->casinos->first();
       $arregloRutas = array();
@@ -168,7 +168,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->get();
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
       $rel->mesas = $rmesas->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);

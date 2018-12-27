@@ -23,6 +23,7 @@ $(document).ready(function() {
         3: {sorter:false}
       }
   });
+  $('[data-toggle="popover"]').popover();
 
     //PAGINACION
     $('#btn-buscarMesas').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
@@ -53,12 +54,6 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
 
   e.preventDefault();
 
-  var page_size = (page_size != null) ? page_size : 10;
-  var page_number = (pagina != null) ? pagina : 1;
-  var sort_by = (columna != null) ? {columna,orden} : null;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaMesas th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  }
 
   //Fix error cuando librería saca los selectores
   if(isNaN($('#herramientasPaginacion').getPageSize())){
@@ -71,10 +66,10 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
   var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
   // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaMesas .activa').attr('value'),orden: $('#tableMesas .activa').attr('estado')} ;
+  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaMesas .activa').attr('value'),orden: $('#tablaMesas .activa').attr('estado')} ;
 
   if(sort_by == null){ // limpio las columnas
-    $('#tablaMesas th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
+    $('#tablaMesas th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
   var formData = {
@@ -123,20 +118,21 @@ $(document).on('click','#tablaMesas thead tr th[value]',function(e){
 
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     console.log('1');
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
   else{
 
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
+      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
     }
     else{
-        $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+        $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaMesas th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaMesas th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndiceMov(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
+
 
 function clickIndiceMov(e,pageNumber,tam){
 
