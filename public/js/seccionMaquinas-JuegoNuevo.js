@@ -39,8 +39,20 @@ $('#inputJuego').on('seleccionado',function(){
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
       console.log("identificador",data.pack.identificador);
         if(data.pack!=""){
-          $('#inputPack').val(data.pack[0].identificador);
+
+            opc_juegos_pack = $('<select>').addClass('form-control');
+
+            for (var i = 0; i < data.pack.length; i++) {
+              opc_juegos_pack.append($('<option>').text(data.pack[i].identificador));
+            }
+            
+
+            $('#inputPack').append(opc_juegos_pack);
+
+
+          $('#inputPack').attr("data-idPack",data.pack[0].id_pack);
         }else{
+
           $('#inputPack').val("--");
         }
        

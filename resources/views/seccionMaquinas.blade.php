@@ -647,7 +647,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   </div>
                                   <div class="col-md-4">
                                     <h5>Paquete de Juego</h5>
-                                    <input id="inputPack" disabled/>
+                                    <div id="inputPack">  </div>
                                 </div>
                                   
                               </div>
