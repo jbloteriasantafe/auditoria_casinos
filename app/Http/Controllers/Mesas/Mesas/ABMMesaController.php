@@ -168,7 +168,7 @@ class ABMMesaController extends Controller
           break;
         case 3://ros
         return
-          $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
+          $this->modif_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
           break;
         default:
           $validator->errors()
