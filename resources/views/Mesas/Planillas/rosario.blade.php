@@ -73,7 +73,7 @@ footer
                           </tr>
                           @foreach($lista_mesas as $mesa)
                           <tr>
-                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->codigo_mesa}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['codigo_mesa']}}</td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                           </tr>

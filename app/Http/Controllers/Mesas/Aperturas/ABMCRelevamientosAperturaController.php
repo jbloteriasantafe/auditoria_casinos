@@ -293,7 +293,7 @@ class ABMCRelevamientosAperturaController extends Controller
         }
       }
       $rel->mesas = $lista_mesas;
-      dd($rel->mesas);
+      
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
