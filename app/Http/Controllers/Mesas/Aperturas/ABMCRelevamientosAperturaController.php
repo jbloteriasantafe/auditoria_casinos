@@ -291,7 +291,7 @@ class ABMCRelevamientosAperturaController extends Controller
         $rel->paginas = [1,2,3,4];
       }
 
-      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
+      $view = View::make('Mesas.Planillas.rosario', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml(utf8_decode($view));
