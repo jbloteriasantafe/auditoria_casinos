@@ -72,7 +72,14 @@ footer
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA CIERRE</th>
                           </tr>
-                          
+                          @foreach($rel->mesas as $mesa)
+                          <tr>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->nro_mesa}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->juego->nombre_juego}}</td>
+                            <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
+                            <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
+                          </tr>
+                          @endforeach
                         </tbody>
                       </table>
                     </td>
