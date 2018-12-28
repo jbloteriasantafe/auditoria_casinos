@@ -274,8 +274,8 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->take(30)->get();
-      $rel->mesas = $rmesas;//->sortBy('codigo_mesa');
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
+      $rel->mesas = $rmesas->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
@@ -295,6 +295,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml(utf8_decode($view));
+      dd('genero pero no renderizo');
       $dompdf->render();
 
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
