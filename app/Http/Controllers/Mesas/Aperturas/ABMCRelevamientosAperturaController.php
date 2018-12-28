@@ -244,7 +244,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
         $ruta = public_path()."/Relevamiento-Aperturas-".$fecha_backup.".pdf";
         file_put_contents($ruta, $output);
-        $nombre ="/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+        $nombre ="Relevamiento-Aperturas-".$fecha_backup.".pdf";
         $file = public_path().'/'. $nombre;
         $headers = array('Content-Type' => 'application/octet-stream',);
 
