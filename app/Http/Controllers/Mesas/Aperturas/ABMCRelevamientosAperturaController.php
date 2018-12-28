@@ -275,7 +275,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
 
       $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->take(30)->get();
-      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $rel->mesas = $rmesas;//->sortBy('codigo_mesa');
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
