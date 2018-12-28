@@ -248,7 +248,7 @@ class ABMCRelevamientosAperturaController extends Controller
         $file = public_path().'/'. $nombre;
         $headers = array('Content-Type' => 'application/octet-stream',);
 
-        return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+        return response()->download($file,$nombre,$headers);//->deleteFileAfterSend(true);
 
       }
   }
@@ -293,7 +293,7 @@ class ABMCRelevamientosAperturaController extends Controller
         }
       }
       $rel->mesas = $lista_mesas;
-      
+
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
