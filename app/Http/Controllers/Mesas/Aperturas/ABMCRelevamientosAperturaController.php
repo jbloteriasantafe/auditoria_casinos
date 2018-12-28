@@ -281,19 +281,19 @@ class ABMCRelevamientosAperturaController extends Controller
       $contador = 1;
       foreach ($m_ordenadas as $m) {
         if($contador == 20){ //20 = cant de mesas que entran en de 1
-          $sublista[] = ['codigo_mesa'=> $m->nro_mesa];
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
 
           $lista_mesas[] = $sublista;
           $sublista = array();
           $contador = 1;
         }else{
-          $sublista[] = ['codigo_mesa'=> $m->nro_mesa];
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
 
           $contador++;
         }
       }
       $rel->mesas = $lista_mesas;
-
+      dd($rel->mesas);
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
