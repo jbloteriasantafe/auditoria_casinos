@@ -538,7 +538,7 @@ Route::get('pruebaMovimientos',function(){
   return view('pruebaMovimientos');
 });
 
-Route::post('pruebaMovimientos/pruebasVarias', 'ABMCRelevamientosAperturaController@planillaRosario');
+Route::post('pruebaMovimientos/pruebasVarias', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@planillaRosario');
 
 Route::get('listaDatos',function(){
   return view('listaDatos');
