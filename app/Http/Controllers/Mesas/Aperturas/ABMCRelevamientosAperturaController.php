@@ -295,6 +295,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml(utf8_decode($view));
+      dd('genero pero no renderizo');
       $dompdf->render();
 
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
