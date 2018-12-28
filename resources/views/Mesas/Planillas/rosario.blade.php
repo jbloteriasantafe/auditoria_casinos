@@ -75,7 +75,7 @@ footer
                           @foreach($rel->mesas as $mesa)
                           <tr>
                             <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa->nro_mesa}}</td>
-                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;"></td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                           </tr>
