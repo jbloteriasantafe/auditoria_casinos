@@ -239,7 +239,7 @@ class ABMCRelevamientosAperturaController extends Controller
       for ($i=0; $i < 1; $i++) {
         $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
         $dompdf = $this->crearPlanilla($cas, $fecha_backup);
-
+        return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
         $output = $dompdf->output();
 
         $ruta = public_path()."/Relevamiento-Aperturas-".$fecha_backup.".pdf";
