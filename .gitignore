@@ -4,3 +4,4 @@ config/database.php
 .env
 /public/js/lista-datos-backup.js
 /app/Http/Controllers/pruebaController.php
+/public/Mesas/*.csv
