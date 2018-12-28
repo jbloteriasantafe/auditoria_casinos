@@ -274,8 +274,26 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
-      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->take(20)->get();
-      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
+      $m_ordenadas = $rmesas->sortBy('codigo_mesa');
+      $lista_mesas = array();
+      $sublista = array();
+      $contador = 1;
+      foreach ($m_ordenadas as $m) {
+        if($contador == 20){ //20 = cant de mesas que entran en de 1
+          $sublista[] = ['codigo_mesa'=> $m->nro_mesa]
+
+          $lista_mesas[] = $sublista;
+          $sublista = array();
+          $contador = 1;
+        }else{
+          $sublista[] = ['codigo_mesa'=> $m->nro_mesa]
+
+          $contador++;
+        }
+      }
+      $rel->mesas = $lista_mesas;
+
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
