@@ -227,4 +227,30 @@ class ABMCRelevamientosAperturaController extends Controller
     return $sthg;
   }
 
+  public function planillaRosario(){
+    $informesSorteadas = new ABCMesasSorteadasController;
+    $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
+    $casinos = Casino::whereIn('id_casino',[3])->get();
+    //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    //$cas = $usuario->casinos->first();
+    $arregloRutas = array();
+    //creo planillas para hoy y los dias de backup
+      $codigo_casino = $cas->codigo;
+      for ($i=0; $i < 1; $i++) {
+        $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+        $dompdf = $this->crearPlanilla($cas, $fecha_backup);
+
+        $output = $dompdf->output();
+
+        $ruta = public_path()."/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+        file_put_contents($ruta, $output);
+        $nombre ="/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+        $file = public_path().'/'. $nombre;
+        $headers = array('Content-Type' => 'application/octet-stream',);
+
+        return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+
+      }
+  }
+
 }
