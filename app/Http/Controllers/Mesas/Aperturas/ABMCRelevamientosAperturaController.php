@@ -238,7 +238,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $codigo_casino = $cas->codigo;
       for ($i=0; $i < 1; $i++) {
         $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
-        $dompdf = $this->crearPlanilla($cas, $fecha_backup);
+        $dompdf = $this->crearPlanillaRos($cas, $fecha_backup);
         return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
         $output = $dompdf->output();
 
@@ -251,6 +251,64 @@ class ABMCRelevamientosAperturaController extends Controller
         return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
 
       }
+  }
+
+  public function crearPlanillaRos($cas,$fecha_backup){
+    //try{
+      $sorteoController = new SorteoMesasController;
+      $rel = new \stdClass();
+      //mesas sorteadas
+      //$sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
+      $sorteadasController = new ABCMesasSorteadasController;
+      try{
+        $rta = $sorteadasController->obtenerSorteo($cas->id_casino,$fecha_backup);
+        $sorteo = ['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']];
+      }catch(Exception $e){
+              dd([$e,$cas,$fecha_backup]);
+        throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR", 1);
+        //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
+      }
+
+      $rel->sorteadas =  new \stdClass();
+      $rel->sorteadas->ruletasDados = $sorteo['ruletasDados'];
+      $rel->sorteadas->cartas = $sorteo['cartas'];
+
+
+      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
+      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $rel->fecha = \Carbon\Carbon::today();
+      $año = substr($rel->fecha,0,4);
+      $mes = substr($rel->fecha,5,2);
+      $dia = substr($rel->fecha,8,2);
+      $rel->fecha = $dia."-".$mes."-".$año;
+      $rel->casino = $cas->nombre;
+
+      $rel->fichas = Ficha::select('valor_ficha')->distinct('valor_ficha')->orderBy('valor_ficha','DESC')->get();
+      $rel->cant_fichas = $rel->fichas->count();
+      if($rel->cant_fichas > 15){
+        $rel->paginas = [1,2]; //->cantidad de mesas que se deben relevar obligatoriamente (de a pares)
+      }else{
+        $rel->paginas = [1,2,3,4];
+      }
+      dd($rel);
+      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'portrait');
+      $dompdf->loadHtml(utf8_decode($view));
+      $dompdf->render();
+
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 815, $cas->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      //dd($dompdf);
+      return $dompdf;//->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
+    // }catch(Exeption $e){
+    //   if($e instanceof \App\Exceptions\PlanillaException){
+    //     throw $e;
+    //   }else{
+    //     throw new \App\Exceptions\PlanillaException('No se pudo generar la planilla para relevar aperturas de mesas.');
+    //   }
+    // }
   }
 
 }
