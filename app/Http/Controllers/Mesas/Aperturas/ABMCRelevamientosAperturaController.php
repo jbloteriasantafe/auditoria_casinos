@@ -230,7 +230,7 @@ class ABMCRelevamientosAperturaController extends Controller
   public function planillaRosario(){
     $informesSorteadas = new ABCMesasSorteadasController;
     $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-    $casinos = Casino::whereIn('id_casino',[3])->get();
+    $cas = Casino::whereIn('id_casino',[3])->first();
     //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     //$cas = $usuario->casinos->first();
     $arregloRutas = array();
