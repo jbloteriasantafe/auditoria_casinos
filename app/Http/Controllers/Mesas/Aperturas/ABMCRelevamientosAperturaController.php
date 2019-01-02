@@ -101,7 +101,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-      $casinos = Casino::whereIn('id_casino',[1,2])->get();
+      $casinos = Casino::all();
       //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       //$cas = $usuario->casinos->first();
       $arregloRutas = array();
@@ -168,8 +168,33 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
+
+
       $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $m_ordenadas = $rmesas->sortBy('codigo_mesa');
+      $lista_mesas = array();
+      $sublista = array();
+      $contador = 1;
+      foreach ($m_ordenadas as $m) {
+        if($contador == 35){ //30 = cant de mesas que entran de 1
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $lista_mesas[] = $sublista;
+          $sublista = array();
+          $contador = 1;
+        }else{
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $contador++;
+        }
+      }
+      if($contador != 35){
+        $lista_mesas[] = $sublista;
+      }
+
+      $rel->mesas = $lista_mesas;
+
+
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
@@ -185,10 +210,10 @@ class ABMCRelevamientosAperturaController extends Controller
         $rel->paginas = [1,2,3,4];
       }
 
-      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
+      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas_V2', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml(utf8_decode($view));
+      $dompdf->loadHtml($view);
       $dompdf->render();
 
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -280,7 +305,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $sublista = array();
       $contador = 1;
       foreach ($m_ordenadas as $m) {
-        if($contador == 20){ //20 = cant de mesas que entran en de 1
+        if($contador == 35){ //30 = cant de mesas que entran de 1
           $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
 
           $lista_mesas[] = $sublista;
@@ -292,6 +317,10 @@ class ABMCRelevamientosAperturaController extends Controller
           $contador++;
         }
       }
+      if($contador != 35){
+        $lista_mesas[] = $sublista;
+      }
+
       $rel->mesas = $lista_mesas;
 
       $rel->fecha = \Carbon\Carbon::today();
