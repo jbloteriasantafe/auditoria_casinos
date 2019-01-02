@@ -45,12 +45,12 @@ footer
 
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="public/css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
 
         <div class="encabezadoImg">
-              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -67,7 +67,7 @@ footer
                             <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="4">MESAS</th>
                           </tr>
                           <tr>
-                            <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO MESA</th>
+                            <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA CIERRE</th>
                           </tr>
