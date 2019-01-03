@@ -77,12 +77,27 @@ class LayoutController extends Controller
         }
         $linea->juego = ['correcto' => true, 'valor' => $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''] ;
         
-        if(count($maquina->juego_activo->pack)>0){
-          $linea->tiene_pack_bandera=true;
-          $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+
+        $pack_aux=DB::table('maquina_tiene_juego')
+                ->select('maquina_tiene_juego.id_pack as id_pack')
+                ->where('id_maquina','=',$detalle->maquina->id_maquina)
+                ->where('id_juego','=',$detalle->maquina->juego_activo->id_juego)
+                ->whereNotNull('id_pack')
+                ->first();
+        if($pack_aux!=null){
+        $pack=PackJuego::find($pack_aux->id_pack);
+        $linea->tiene_pack_bandera=true;
+        $linea->juegos_pack=$pack->juegos;
         }else{
           $linea->tiene_pack_bandera=false;
         }
+        //refactor para tomar el pack correspondiente a la tabla asociacion con maquina y juego
+        // if(count($maquina->juego_activo->pack)>0){
+        //   $linea->tiene_pack_bandera=true;
+        //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+        // }else{
+        //   $linea->tiene_pack_bandera=false;
+        // }
         
         $linea->nro_serie = ['correcto' => true, 'valor' => $maquina->nro_serie, 'valor_antiguo' => ''] ;
         $linea->id_maquina =  $maquina->id_maquina;
