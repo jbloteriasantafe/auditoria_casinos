@@ -63,7 +63,8 @@ class PackJuegoController extends Controller
       foreach($casinos as $casino){
       $reglaCasinos [] = $casino->id_casino;
       }
-      $packJuego->casinos()->syncWithoutDetaching($reglaCasinos);
+      // Se limita la asociacion, para que cada casino cree sus paquetes sin compartirse, si tiene mas de un casino tomaria el primero
+      $packJuego->casinos()->syncWithoutDetaching($reglaCasinos[0]);
   
       return ['packJuego' => $packJuego];
     }
@@ -164,6 +165,11 @@ class PackJuegoController extends Controller
       // bajo la idea que cada casino crea sus propios pack-juegos y solo pueden acceder estos
       // se elimina directamente la relacion
       $pack->juegos()->detach();
+
+      
+      DB::table('maquina_tiene_juego')
+                ->where('id_pack','=',$pack->id_pack)
+                ->update(['id_pack' => null ]);
 
       // solo si no queda asociado a nigun casino se puede eliminar el juego
       $casRestantes= DB::table('pack_juego_tiene_casino')->where('id_pack','=',$pack->id_pack)->count();

@@ -1471,7 +1471,9 @@
                                 </div>
                                 <div class="col-md-4">
                                   <h5>Paquete de Juego</h5>
-                                  <input id="inputPack" disabled/>
+                                  <select id="inputPack" class="form-control" >
+                                    <option value="-1" selected>--</option>
+                                </select>
                               </div>
                                 
                             </div>

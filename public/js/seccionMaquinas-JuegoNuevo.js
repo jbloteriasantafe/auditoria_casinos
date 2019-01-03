@@ -38,8 +38,8 @@ $('#inputJuego').on('seleccionado',function(){
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
       $('#inputPack').empty();
+      $('#inputPack').append($('<option>').text("-").val("-1"));
         if(data.pack!=""){
-          $('#inputPack').append($('<option>').text("-").val("-1"));
             for (var i = 0; i < data.pack.length; i++) {
               
               $('#inputPack').append($('<option>').text(data.pack[i].identificador).val(data.pack[i].id_pack));
