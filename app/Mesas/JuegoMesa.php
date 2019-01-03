@@ -31,6 +31,6 @@ class JuegoMesa extends Model
     return $this->table;
   }
   public function getId(){
-    return $this->id_maquina;
+    return $this->id_juego_mesa;
   }
 }

@@ -15,6 +15,7 @@ use App\Maquina;
 use App\DetalleRelevamiento;
 use App\EstadoMaquina;
 use App\Cotizacion;
+use App\Isla;
 use Carbon\Carbon;
 
 class informesController extends Controller
@@ -390,24 +391,38 @@ class informesController extends Controller
                               ->whereNull('maquina.deleted_at')
                               ->whereNull('maquina.id_isla')
                               ->first();
-    if(is_numeric($id_casino)){
-      $pdo = DB::connection('mysql')->getPdo();
-      $string_query = sprintf("SELECT count(*) as cantidad from (SELECT isla.id_isla FROM maquina join isla on isla.id_isla = maquina.id_isla where isla.id_sector is null and maquina.id_casino =%d GROUP by isla.id_isla) as sub_tabla" , $id_casino );
-      $resultados = $pdo->query($string_query);
-    }
-    foreach ($resultados as $resultado) { //siempre devuelve un solo resultado, ya que es un count(*)
-      $islas_no_asignadas = $resultado;
-    }
-
+    // if(is_numeric($id_casino)){
+    //   $pdo = DB::connection('mysql')->getPdo();
+    //   $string_query = sprintf("SELECT count(*) as cantidad from (SELECT isla.id_isla FROM maquina join isla on isla.id_isla = maquina.id_isla where isla.id_sector is null and maquina.id_casino =%d GROUP by isla.id_isla) as sub_tabla" , $id_casino );
+    //   $resultados = $pdo->query($string_query);
+    // }
+    // foreach ($resultados as $resultado) { //siempre devuelve un solo resultado, ya que es un count(*)
+    //   $islas_no_asignadas = $resultado;
+    // }
+    $islas=DB::table("isla")
+                ->where("isla.id_casino","=",$id_casino)
+                ->join("sector","isla.id_sector","=","sector.id_sector")
+                ->whereNotNull("sector.deleted_at")
+                ->whereNull("isla.deleted_at")
+                ->get();
+    $islas_no_asignadas =0;
+    
+    foreach($islas as $i){
+      $isl=Isla::Find($i->id_isla);
+      if ($isl->cantidad_maquinas>0){
+        $islas_no_asignadas= $islas_no_asignadas+1;
+      }
+    }  
+    
     $sectores = array();
     foreach ($casino->sectores as $sector) {
-      $aux = DB::table('maquina')->select(DB::raw('count(maquina.id_maquina) as cantidad'))->join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla' )->where([['maquina.id_casino' , $casino->id_casino] , ['isla.id_sector' , $sector->id_sector]])->first();
-      $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $aux->cantidad];
+      //$aux = DB::table('maquina')->select(DB::raw('count(maquina.id_maquina) as cantidad'))->join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla' )->where([['maquina.id_casino' , $casino->id_casino] , ['isla.id_sector' , $sector->id_sector]])->first();
+      $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $sector->cantidad_maquinas];
     }
 
     return ['casino' => $casino ,'sectores' => $sectores, 'totales' =>['total_casino' => $cantidad->cantidad,
                                                                       'total_no_asignadas' => $maquina_no_asignadas->cantidad,
-                                                                      'islas_no_asignadas' => $islas_no_asignadas['cantidad'],
+                                                                      'islas_no_asignadas' => $islas_no_asignadas,
                                                                       'total_habilitadas'  => $cantidad_habilitadas->cantidad,
                                                                       'total_deshabilitadas' => $cantidad_deshabilitadas]
           ];

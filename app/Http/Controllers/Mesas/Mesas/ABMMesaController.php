@@ -65,7 +65,7 @@ class ABMMesaController extends Controller
           return $this->store_nro_mesa_continuo($request, $id_casino);
           break;
         case 3://ros
-          return $this->store_nro_mesa_continuo($request, $id_casino,$request->id_juego_mesa);
+          return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
           break;
         default:
           $validator = new Validator;
@@ -168,7 +168,7 @@ class ABMMesaController extends Controller
           break;
         case 3://ros
         return
-          $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
+          $this->modif_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
           break;
         default:
           $validator->errors()
@@ -209,7 +209,15 @@ class ABMMesaController extends Controller
        }
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
-         $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
+         $mesa = Mesa::find($request->id_mesa_de_panio);
+         $mesa->nro_mesa = $request['nro_mesa'];
+         $mesa->nombre = $request['nombre'];
+         $mesa->descripcion = $request['descripcion'];
+         $mesa->juego()->associate($request['id_juego_mesa']);
+         $mesa->moneda()->associate($request['id_moneda']);
+         $mesa->sector()->associate($request['id_sector_mesas']);
+         $mesa->save();
+
          return $mesa;
       }else{
         return ['errors' => ['autorizacion'=>'No está autorizado para realizar esta accion.']];
@@ -247,8 +255,14 @@ class ABMMesaController extends Controller
 
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
-        $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
-
+        $mesa = Mesa::find($request->id_mesa_de_panio);
+        $mesa->nro_mesa = $request['nro_mesa'];
+        $mesa->nombre = $request['nombre'];
+        $mesa->descripcion = $request['descripcion'];
+        $mesa->juego()->associate($request['id_juego_mesa']);
+        $mesa->moneda()->associate($request['id_moneda']);
+        $mesa->sector()->associate($request['id_sector_mesas']);
+        $mesa->save();
         return $mesa;
 
       }else{
