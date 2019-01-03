@@ -128,7 +128,7 @@ class ABMJuegoController extends Controller
     $juego = JuegoMesa::find($request->id_juego_mesa);
     $juego->nombre_juego= $request->nombre_juego;
     $juego->siglas= $request->siglas;
-
+    $juego->posiciones = $request['posiciones'];
     $juego->save();
 
 

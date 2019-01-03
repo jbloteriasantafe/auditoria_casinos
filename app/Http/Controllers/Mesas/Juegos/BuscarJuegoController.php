@@ -115,27 +115,21 @@ class BuscarJuegoController extends Controller
     if(!empty($request->nombre_juego) ){
       $reglas[]=['juego_mesa.nombre_juego', 'like' , '%' . $request->nombre_juego  .'%'];
     }
-  //  if(!empty($request->codigoId)){
-  //    $reglas[]=['juego_mesa.siglas', 'like' , '%' . $request->siglas  .'%'];
-  //  }
+
     if(!empty($request->id_tipo_mesa)){
       $reglas[]=['juego_mesa.id_tipo_mesa', '=', $request->id_tipo_mesa];
     }
-    if(!empty($request->nro_mesa)){
-      $reglas[]=['mesa_de_panio.nro_mesa','like' , '%' . $request->nro_mesa.'%'];
+    if(!empty($request->id_mesa) && $request->id_mesa !=0 ){
+      $reglas[]=['mesa_de_panio.nro_mesa','like' , '%' . $request->id_mesa.'%'];
     }
     $casinos = array();
     if($request->id_casino==0){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-
       foreach($usuario->casinos as $casino){
         $casinos[]=$casino->id_casino;
       }
     }else{
       $casinos[]=$request->id_casino;
-    }
-    if(!empty($request->id_casino)){
-      $casinos[]= $request->id_casino;
     }
 
 
@@ -146,9 +140,9 @@ class BuscarJuegoController extends Controller
               ->leftJoin('mesa_de_panio','mesa_de_panio.id_juego_mesa','=','juego_mesa.id_juego_mesa')
               ->where($reglas)
               ->whereIn('juego_mesa.id_casino',$casinos)
-              ->orderBy('nombre_juego','desc')
+              ->orderBy('nombre_juego','asc')
               ->whereNull('juego_mesa.deleted_at')
-              ->distinct('juego_mesa.id_juego_mesa')
+              ->distinct('id_juego_mesa')
               ->get();
 
 

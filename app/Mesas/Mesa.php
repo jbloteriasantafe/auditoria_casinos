@@ -26,9 +26,9 @@ class Mesa extends Model
       if(isset($this->juego)){
         $j =$this->juego;
         if($this->nro_mesa < 10){
-        return $j->siglas.'0'.$this->nro_mesa;
+        return $j->siglas.'-'.'0'.$this->nro_mesa;
       }else {
-        return $j->siglas.$this->nro_mesa;
+        return $j->siglas.'-'.$this->nro_mesa;
       }
       }else{
         return $this->nro_mesa;

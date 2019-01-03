@@ -101,7 +101,7 @@ class ABMCRelevamientosAperturaController extends Controller
 
       $informesSorteadas = new ABCMesasSorteadasController;
       $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
-      $casinos = Casino::whereIn('id_casino',[1,2])->get();
+      $casinos = Casino::all();
       //$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       //$cas = $usuario->casinos->first();
       $arregloRutas = array();
@@ -168,8 +168,33 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->sorteadas->cartas = $sorteo['cartas'];
 
 
+
+
       $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $m_ordenadas = $rmesas->sortBy('codigo_mesa');
+      $lista_mesas = array();
+      $sublista = array();
+      $contador = 1;
+      foreach ($m_ordenadas as $m) {
+        if($contador == 35){ //30 = cant de mesas que entran de 1
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $lista_mesas[] = $sublista;
+          $sublista = array();
+          $contador = 1;
+        }else{
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $contador++;
+        }
+      }
+      if($contador != 35){
+        $lista_mesas[] = $sublista;
+      }
+
+      $rel->mesas = $lista_mesas;
+
+
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
@@ -185,10 +210,10 @@ class ABMCRelevamientosAperturaController extends Controller
         $rel->paginas = [1,2,3,4];
       }
 
-      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas', compact('rel'));
+      $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas_V2', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml(utf8_decode($view));
+      $dompdf->loadHtml($view);
       $dompdf->render();
 
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -239,16 +264,16 @@ class ABMCRelevamientosAperturaController extends Controller
       for ($i=0; $i < 1; $i++) {
         $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
         $dompdf = $this->crearPlanillaRos($cas, $fecha_backup);
-        return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
+        //return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
         $output = $dompdf->output();
 
         $ruta = public_path()."/Relevamiento-Aperturas-".$fecha_backup.".pdf";
         file_put_contents($ruta, $output);
-        $nombre ="/Relevamiento-Aperturas-".$fecha_backup.".pdf";
+        $nombre ="Relevamiento-Aperturas-".$fecha_backup.".pdf";
         $file = public_path().'/'. $nombre;
         $headers = array('Content-Type' => 'application/octet-stream',);
 
-        return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+        return response()->download($file,$nombre,$headers);//->deleteFileAfterSend(true);
 
       }
   }
@@ -275,7 +300,29 @@ class ABMCRelevamientosAperturaController extends Controller
 
 
       $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-      $rel->mesas = $rmesas->sortBy('codigo_mesa');
+      $m_ordenadas = $rmesas->sortBy('codigo_mesa');
+      $lista_mesas = array();
+      $sublista = array();
+      $contador = 1;
+      foreach ($m_ordenadas as $m) {
+        if($contador == 35){ //30 = cant de mesas que entran de 1
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $lista_mesas[] = $sublista;
+          $sublista = array();
+          $contador = 1;
+        }else{
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+
+          $contador++;
+        }
+      }
+      if($contador != 35){
+        $lista_mesas[] = $sublista;
+      }
+
+      $rel->mesas = $lista_mesas;
+
       $rel->fecha = \Carbon\Carbon::today();
       $año = substr($rel->fecha,0,4);
       $mes = substr($rel->fecha,5,2);
@@ -295,7 +342,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml(utf8_decode($view));
-      dd('genero pero no renderizo');
+      //dd('genero pero no renderizo');
       $dompdf->render();
 
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
