@@ -12,7 +12,22 @@
 
 
 <div class="col-lg-12 tab_content" id="pant_juegos" hidden="true">
-
+  <div class="col-xl-3">
+      <a href="" id="btn-nuevo-juego" dusk="btn-nuevo" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+            <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">NUEVO JUEGO</h4>
+                  </center>
+                </div>
+              </div>
+          </div>
+        </a>
+  </div>
   <div class="col-xl-9" >
       <div class="row"> <!-- fila de FILTROS -->
         <div class="col-md-12">
@@ -75,9 +90,9 @@
               <table id="tablaJuegos" class="table table-striped">
                 <thead>
                   <tr>
-                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;">NOMBRE <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >SIGLAS <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >CASINO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;">NOMBRE </th>
+                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >SIGLAS </th>
+                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >CASINO </th>
                     <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >ACCIONES</th>
                   </tr>
                 </thead>
@@ -102,47 +117,14 @@
 
                     </tbody>
                   </table>
-                  <table>
-                      <tr id="moldeJuego" class="filaClone" style="display:none">
-                        <td style=" text-align:center !important;" class="col-xs-3 f_nombre"></td>
-                        <td style="text-align:center !important;" class="col-xs-3 f_siglas"></td>
-                        <td style="text-align:center !important;" class="col-xs-3 f_casino"></td>
-                        <td style="text-align:center !important;" class="col-xs-3">
-                          <button type="button" class="btn btn-info infoJuego" value="" data-toggle:"tooltip"
-                            data-placement:"top" title: "VER MÁS" data-delay:"{'show':'300', 'hide':'100'}">
-                            <i class="fa fa-fw fa-search-plus"></i>
-                          </button>
-                          <button type="button" class="btn btn-warning modificarJuego" value="">
-                            <i class="fas fa-fw fa-pencil-alt"></i>
-                          </button>
-                          <button type="button" class="btn btn-danger eliminarJuego" value="">
-                            <i class="fa fa-fw fa-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
-                  </table>
+
 
                 </div>
             </div>
           </div>
       </div>  <!--/fila TABLA -->
   </div>
-  <div class="col-xl-3">
-      <a href="" id="btn-nuevo-juego" dusk="btn-nuevo" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-            <div class="backgroundNuevo"></div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                      <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVO JUEGO</h4>
-                  </center>
-                </div>
-              </div>
-          </div>
-        </a>
-  </div>
+
 </div>
 
 
@@ -334,6 +316,24 @@
 
   <!-- SECTORES MESAS -->
 <div class="col-lg-12 tab_content" id="pant_sectores" hidden="true">
+
+  <div class="col-xl-3">
+    <a href="" id="btn-nuevo-sector" dusk="btn-nuevo" style="text-decoration: none;">
+      <div class="panel panel-default panelBotonNuevo">
+        <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+          <div class="backgroundNuevo"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">+</h5>
+                <h4 class="txtNuevo">NUEVO SECTOR</h4>
+              </center>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    
   <div class=" col-xl-9"> <!-- columna de FILTROS y TABLA -->
     <div class="row"> <!-- fila de FILTROS -->
       <div class="col-xl-12">
@@ -344,17 +344,15 @@
           <div id="collapseFiltrosSec" class="panel-collapse collapse">
             <div class="panel-body">
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <h5>NOMBRE SECTOR</h5>
                   <input id="s_descr" type="text" name="" class="form-control" value=" " placeholder="Nombre de Sector">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <h5>MESA</h5>
                   <input id="s_mesa" type="text" name="" class="form-control" value="0" placeholder="Número de Mesa">
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <h5>CASINO</h5>
                   <select class="form-control" id="s_casino">
                     <option value="" selected>- Seleccione un Casino-</option>
@@ -364,17 +362,7 @@
                     <option value="0" >- Todos los casinos-</option>
                   </select>
                 </div>
-                <div class="col-md-4">
-                  <h5>TIPO</h5>
-                  <select class="form-control" id="s_tipo">
-                    <option value="" selected>- Seleccione el tipo-</option>
-                    @foreach ($tipos_mesas as $t)
-                    <option value="{{$t->id_tipo_mesa}}">{{$t->descripcion}}</option>
-                    @endforeach
-                    <option value="0" >- Todos los tipos-</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <h5 style="color:#FAFAFA">boton buscar</h5>
                   <button id="btn-buscarSectores" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                 </div>
@@ -411,22 +399,7 @@
       </div>
     </div>  <!--/fila TABLA -->
   </div> <!-- Fin de la columna FILTROS y TABLA -->
-  <div class="col-xl-3">
-    <a href="" id="btn-nuevo-sector" dusk="btn-nuevo" style="text-decoration: none;">
-      <div class="panel panel-default panelBotonNuevo">
-        <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-          <div class="backgroundNuevo"></div>
-          <div class="row">
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo">+</h5>
-                <h4 class="txtNuevo">NUEVO SECTOR</h4>
-              </center>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
+
 </div>
 
 <!-- MODAL NUEVO SECTOR -->
