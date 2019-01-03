@@ -167,6 +167,7 @@ $('#btn-guardar').click(function(e){
     formData.append('juego['+i+'][activo]', juegos[i]['activo']);
     formData.append('juego['+i+'][denominacion]', juegos[i]['denominacion']);
     formData.append('juego['+i+'][porcentaje_devolucion]', juegos[i]['porcentaje_devolucion']);
+    formData.append('juego['+i+'][id_pack]', juegos[i]['id_pack']);
     // formData.append('juego['+i+'][cod_identificacion]', juegos[i]['cod_identificacion']);
 
     if(juegos[i]['tablas'].length){

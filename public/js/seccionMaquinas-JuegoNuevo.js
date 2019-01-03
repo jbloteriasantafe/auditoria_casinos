@@ -14,7 +14,7 @@ $('#btn-agregarJuegoLista').click(function(){
 
   $.get('http://' + window.location.host +'/juegos/obtenerJuego/'+ id, function(data) {
 
-        agregarRenglonListaJuego(data.juego.id_juego , data.juego.nombre_juego , $('#den_sala').val() , $('#porcentaje_devolucion_juego').val() , data.tablasDePago, false, data.pack);
+        agregarRenglonListaJuego(data.juego.id_juego , data.juego.nombre_juego , $('#den_sala').val() , $('#porcentaje_devolucion_juego').val() , data.tablasDePago, false, $('#inputPack option:selected').text(),$('#inputPack').select().val());
 
         limpiarCamposJuego();
 
@@ -37,23 +37,13 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-      console.log("identificador",data.pack.identificador);
+      $('#inputPack').empty();
         if(data.pack!=""){
-
-            opc_juegos_pack = $('<select>').addClass('form-control');
-
+          $('#inputPack').append($('<option>').text("-").val("-1"));
             for (var i = 0; i < data.pack.length; i++) {
-              opc_juegos_pack.append($('<option>').text(data.pack[i].identificador));
+              
+              $('#inputPack').append($('<option>').text(data.pack[i].identificador).val(data.pack[i].id_pack));
             }
-            
-
-            $('#inputPack').append(opc_juegos_pack);
-
-
-          $('#inputPack').attr("data-idPack",data.pack[0].id_pack);
-        }else{
-
-          $('#inputPack').val("--");
         }
        
         $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
@@ -124,18 +114,18 @@ function mostrarJuegos(juegos,juego_activo){
   //Ocultar mensaje de inexistencia de juegos
   $('#listaJuegosMaquina').find('p').hide();
     //Cargar juego activo
-    agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true,juego_activo.packs);
-
+    agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true,juego_activo.pack.identificador,juego_activo.pack.id_pack);
     for (var i = 0; i < juegos.length; i++) {
-      agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false,juegos[i].packs);
+      agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false,juegos[i].pack.identificador,juegos[i].pack.id_pack);
     }
 }
 
-function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo,packs){
+function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo,nombre_pack_sel,id_pack){
   denominacion = denominacion != null ? denominacion : "-"; // si denomacion vacio hardcodeo guion medio
   porcentaje_devolucion = porcentaje_devolucion != null ? porcentaje_devolucion : "-"; // si denomacion vacio hardcodeo guion medio
-  if (typeof packs !== 'undefined' && packs.length > 0) {
-    nombre_pack=packs[0].identificador;
+  if ( nombre_pack_sel !== "" ) {
+    nombre_pack=nombre_pack_sel;
+    
 }else{
   nombre_pack="-"
 }
@@ -156,7 +146,8 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                               )
              );
              
-  fila.append($('<td>').append($('<span>').addClass('badge')
+  fila.append($('<td>').attr('data-idPack',id_pack)
+                                          .append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(nombre_pack)
                              ));
@@ -223,7 +214,7 @@ $('#btn-crearJuego').click(function(){
         tablas.push(tabla);
     })
 
-    agregarRenglonListaJuego(0,$('#inputJuego').val(),$('#den_sala').val() ,$('#porcentaje_devolucion_juego').val(),tablas,false,$('#inputPack').val());
+    agregarRenglonListaJuego(0,$('#inputJuego').val(),$('#den_sala').val() ,$('#porcentaje_devolucion_juego').val(),tablas,false,$('#inputPack option:selected').text(),$('#inputPack').select().val());
 
     $('#inputJuego').val('');
 
@@ -348,7 +339,6 @@ function obtenerDatosJuego(){
 
     var porcentaje_devolucion = "";
     if ($(this).find('td:eq(4)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(4)').text();
-
     var juego= {
       id_juego: $(this).attr('id'),
       nombre_juego: $(this).find('td:eq(1)').text(),
@@ -356,13 +346,15 @@ function obtenerDatosJuego(){
       cod_identificacion: $('#inputCodigo').val(),
       denominacion: denominacion,
       porcentaje_devolucion: porcentaje_devolucion,
+      id_pack: $(this).find('td:eq(2)').attr("data-idPack"),
     }
-
     if($(this).find('td:eq(0) input').is(':checked')){
       juego.activo=1;
+      
     }else{
       juego.activo=0;
     }
+
 
     juegos.push(juego);
 

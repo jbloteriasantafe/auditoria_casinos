@@ -18,6 +18,7 @@ use App\Juego;
 use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\GliSoft;
+use App\PackJuego;
 
 class MTMController extends Controller
 {
@@ -108,6 +109,7 @@ class MTMController extends Controller
       }else{//si no tiene un gli asociado, devuelve id 0
           $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
       }
+      //TODO modificar la obtencion del pack con la tabla pivote
      //JUEGOS DE LA MAQUINA
      $juegos = $mtm->juegos;
      $array = array();
@@ -119,7 +121,13 @@ class MTMController extends Controller
          $return_juego->porcentaje_devolucion =  $un_juego->pivot->porcentaje_devolucion;
          $return_juego->tablasPago =  $un_juego->tablasPago;
          $return_juego->id_gli_soft = $un_juego->id_gli_soft;
-         $return_juego->packs= $un_juego->pack;
+         $return_juego->pack= PackJuego::find($un_juego->pivot->id_pack);
+         if (count($return_juego->pack)<1){
+           $pack_aux= new \stdClass();
+           $pack_aux->identificador="";
+           $pack_aux->id_pack=-1;
+           $return_juego->pack=$pack_aux;
+         }
          if($un_juego->nombre_juego == $juego_activo->nombre_juego){
             $juego_activo = $return_juego;
             $encontrado = true;
@@ -533,8 +541,13 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
-            
-            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]; 
+             // Solo si el juego activo tiene pack, se agrega en la tabla relacion mtm-juego
+             if($unJuego['id_pack']!="-1"){
+              $id_pack_juego=$unJuego['id_pack'];
+            }else{
+              $id_pack_juego=null;
+            }
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]; 
           }
         }
         if(isset($gli_soft)){
@@ -852,7 +865,14 @@ class MTMController extends Controller
                   $juegoActivo=$juego;
                   $MTM->juego_activo()->associate($juego->id_juego);
                 }
-                $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]]);
+
+                // Solo si el juego activo tiene pack, se agrega en la tabla relacion mtm-juego
+                if($unJuego['id_pack']!="-1"){
+                  $id_pack_juego=$unJuego['id_pack'];
+                }else{
+                  $id_pack_juego=null;
+                }
+                $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
                 // $juegos_finales[] = ($juego->id_juego);
               }
             }

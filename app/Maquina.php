@@ -59,7 +59,7 @@ class Maquina extends Model
      return $this->belongsToMany('App\Nota','maquina_tiene_nota','id_maquina','id_nota');
   }
   public function juegos(){
-        return $this->belongsToMany('App\Juego','maquina_tiene_juego','id_maquina','id_juego')->withPivot('denominacion' , 'porcentaje_devolucion')->withPivot('denominacion', 'porcentaje_devolucion');
+        return $this->belongsToMany('App\Juego','maquina_tiene_juego','id_maquina','id_juego')->withPivot('denominacion' , 'porcentaje_devolucion','id_pack');
         // return $this->belongsToMany('App\modelo a donde voy ','tabla intermedia','id donde estoy','id donde voy')->withPivot('denominacion', 'porcentaje_devolucion');
   }
 

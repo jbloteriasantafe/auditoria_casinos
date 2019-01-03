@@ -38,9 +38,11 @@ class packJuego extends Command
      */
     public function handle()
     {
-        $this->createTablePack();
-        $this->createTablePackJuego();
-        $this->createTablePackTieneCasino();
+        // $this->createTablePack();
+        // $this->createTablePackJuego();
+        // $this->createTablePackTieneCasino();
+        //$this->addPackInMTM();
+        $this->addPackInMTMJuego();
     }
 
     private function createTablePack(){
@@ -77,7 +79,25 @@ class packJuego extends Command
 
     }
 
+    private function addPackInMTM(){
+        Schema::table('maquina', function($table)
+        {
+            $table->unsignedInteger('id_pack')
+                    ->after('denominacion_juego')
+                    ->nullable();
+            $table->foreign('id_pack')->references('id_pack')->on('pack_juego');
+        });
+    }
 
+    private function addPackInMTMJuego(){
+        Schema::table('maquina_tiene_juego', function($table)
+        {
+            $table->unsignedInteger('id_pack')
+                    ->after('porcentaje_devolucion')
+                    ->nullable();
+            $table->foreign('id_pack')->references('id_pack')->on('pack_juego');
+        });
+    }
 }
 
 
