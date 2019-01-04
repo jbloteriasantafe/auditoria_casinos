@@ -764,7 +764,7 @@ $cas = $usuario['usuario']->casinos;
                       <h6>FECHA</h6>
                       <div class="form-group">
                         <div class='input-group date' id='dtpFechaApert' data-link-field="fecha_apertura" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                          <input type='text' class="form-control" placeholder="Fecha de Apertura" id="B_fecha_apert" value=" "/>
+                          <input type='text' class="form-control" placeholder="AAAA-MM-DD" id="B_fecha_apert" value=" "/>
                           <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                         </div>
@@ -1020,7 +1020,7 @@ $cas = $usuario['usuario']->casinos;
                         <h5 align="center" style="font-size: 15px; color:#000;">Valor</h5>
                       </th>
                       <th style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px; border-bottom:1px solid #ccc;">
-                        <h5 align="center" style="font-size: 15px; color:#000;">Monto</h5>
+                        <h5 align="center" style="font-size: 15px; color:#000;">Cantidad</h5>
                       </th>
                     </tr>
                   </thead>
@@ -1044,6 +1044,7 @@ $cas = $usuario['usuario']->casinos;
     </div>
   </div>
 </div>
+
 <!-- ELIMINA LOS SALTOS DE LINEA  -->
 <style media="screen">
 .linea  {
@@ -1424,7 +1425,7 @@ $cas = $usuario['usuario']->casinos;
 @section('scripts')
 
   <!-- JavaScript personalizado -->
-  <script src="js/CierresAperturas/CierresAperturas.js" charset="utf-8"></script>
+
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
@@ -1435,11 +1436,9 @@ $cas = $usuario['usuario']->casinos;
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/jquery-ui.js" type="text/javascript"></script>
-  <script src="/js/moment.js" type="text/javascript"></script>
-  <script src="/js/moment.min.js" type="text/javascript"></script>
 
 
   <script src="js/math.min.js" type="text/javascript"></script>
-
+  <script src="js/CierresAperturas/CierresAperturas.js" charset="utf-8"></script>
 
 @endsection
