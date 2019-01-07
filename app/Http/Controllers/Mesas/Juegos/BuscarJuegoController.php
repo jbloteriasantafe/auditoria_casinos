@@ -65,7 +65,7 @@ class BuscarJuegoController extends Controller
     foreach($usuario->casinos as $casino){
       $casinos[]=$casino->id_casino;
     }
-    $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
+    $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->orderBy('nombre_juego','asc')->get();
     $tipos = TipoMesa::all();
     $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
 

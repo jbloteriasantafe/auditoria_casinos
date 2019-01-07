@@ -39,15 +39,15 @@ footer
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="public/css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -61,18 +61,16 @@ footer
                       <table style="border-collapse: collapse;">
                         <tbody>
                           <tr>
-                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
+                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="2">MESAS</th>
                           </tr>
                           <tr>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
-                            <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA CIERRE</th>
                           </tr>
                           @foreach($lista_mesas as $mesa)
                           <tr>
                             <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['codigo_mesa']}}</td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
-                            <td class=" tablaInicio" style="background-color: white; border-color: gray; "></td>
                           </tr>
                           @endforeach
                         </tbody>

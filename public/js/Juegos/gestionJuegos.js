@@ -151,7 +151,7 @@ $('#btn-buscarSectores').click(function(e){
   var formData= {
 
     nro_mesa: $('#s_mesa').val(),
-    id_tipo_mesa:$('#s_tipo').val(),
+    id_tipo_mesa: '0',
     descripcion_sector: $('#s_descr').val(),
     casino: $('#s_casino').val()
   }
