@@ -1057,9 +1057,9 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         $('#modificarFichasCie').append(fila);
       }
-
+      var total = 0;
       $('#modificarFichasCie tr').each(function(){
-        var total = 0;
+
         var ingresado = $(this).find('.modCierre').attr('data-ingresado');
 
         total += Number(ingresado);
