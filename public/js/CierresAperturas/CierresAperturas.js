@@ -985,13 +985,16 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         $('#modificarFichasAp').append(fila);
       }
+      var total = 0;
 
-      $('#modificarFichasAp tr').each(function(){
-        var total = 0;
+      $.each($('#modificarFichasAp tr'), function(index, value){
+
         var valor = $(this).find('.modApertura').attr('data-valor');
         var ingresado = $(this).find('.modApertura').attr('data-ingresado');
 
         total += Number(valor * ingresado);
+
+        console.log('si', total);
 
         $('#totalModifApe').val(total);
       })
@@ -1054,9 +1057,9 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         $('#modificarFichasCie').append(fila);
       }
-
+      var total = 0;
       $('#modificarFichasCie tr').each(function(){
-        var total = 0;
+
         var ingresado = $(this).find('.modCierre').attr('data-ingresado');
 
         total += Number(ingresado);
