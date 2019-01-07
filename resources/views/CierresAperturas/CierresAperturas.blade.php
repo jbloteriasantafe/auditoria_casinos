@@ -423,12 +423,12 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <div class="col-md-6" align="center">
               <div class="row">
-                <h6><b>TOTAL: </b></h6>
+                <h6><b>TOTAL ($): </b></h6>
                 <input id="totalCierre" type="text" value="" readonly="true" display="inline">
                 <button id="recalcular" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
               </div>
               <div class="row">
-                <h6><b>TOTAL ANTICIPO: </b></h6>
+                <h6><b>TOTAL ANTICIPOS ($): </b></h6>
                 <input id="totalAnticipoCierre" type="text" value="">
               </div>
               <br>
@@ -580,11 +580,11 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-md-6" id="vertical-bar">
               <div class="row">
                 <div class="col-md-6">
-                  <h6>TOTAL</h6>
+                  <h6>TOTAL ($):</h6>
                   <input type="text" id="total_detalle" value="" readonly="true">
                 </div>
                 <div class="col-md-6">
-                  <h6>TOTAL ANTICIPOS</h6>
+                  <h6>TOTAL ANTICIPOS ($):</h6>
                   <input type="text" id="anticipos_detalle" value="" readonly="true">
                 </div>
               </div>
@@ -621,7 +621,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-md-4">
               <div class="row" >
                 <br>
-                <h6>TOTAL APERTURA</h6>
+                <h6>TOTAL APERTURA ($):</h6>
                 <input type="text" id="totalA_det_cierre" value="" readonly="true">
               </div>
             </div>
@@ -720,11 +720,11 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL: </b></h6>
+                  <h6><b>TOTAL ($): </b></h6>
                   <input id="totalModifCie" type="text" value="" readonly="true">
                 </div>
                 <div class="row">
-                  <h6><b>TOTAL ANTICIPO: </b></h6>
+                  <h6><b>TOTAL ANTICIPOS ($): </b></h6>
                   <input id="totalAnticipoModif" type="text" value="">
                 </div>
                 <br><br>
@@ -887,7 +887,7 @@ $cas = $usuario['usuario']->casinos;
 
                                 <div class="col-xs-4" >
                                   <br>
-                                  <h6 align="center">TOTAL:</h6><input id="totalApertura" type="text" class="form-control" value="" display="inline" readonly >
+                                  <h6 align="center">TOTAL ($):</h6><input id="totalApertura" type="text" class="form-control" value="" display="inline" readonly >
                                   <button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
 
                                   <br>
@@ -1031,7 +1031,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             <div class="col-xs-4" >
               <br>
-              <h6>TOTAL</h6><input id="totalAperturaDet" type="text" class="form-control" value="" readonly>
+              <h6>TOTAL ($):</h6><input id="totalAperturaDet" type="text" class="form-control" value="" readonly>
               <br>
             </div>
           </div>
@@ -1135,7 +1135,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL: </b></h6>
+                  <h6><b>TOTAL ($): </b></h6>
                   <input id="totalModifApe" type="text" value="" readonly="true">
                 </div>
               </div>
@@ -1386,15 +1386,15 @@ $cas = $usuario['usuario']->casinos;
            <br>
            <div class="row">
                 <div class="col-md-4">
-                  <h6>TOTAL CIERRE</h6>
+                  <h6>TOTAL CIERRE ($):</h6>
                   <input type="text" id="total_cierre_validar" class="form-control" value="" readonly="true">
                 </div>
                 <div class="col-md-4" >
-                  <h6>TOTAL APERTURA</h6>
+                  <h6>TOTAL APERTURA ($):</h6>
                   <input type="text" id="total_aper_validar" class="form-control" value="" readonly="true">
                 </div>
                 <div class="col-md-4" >
-                  <h6>TOTAL ANTICIPOS</h6>
+                  <h6>TOTAL ANTICIPOS ($):</h6>
                   <input type="text" id="anticipos_validar" class="form-control" value="" readonly="true">
                 </div>
           </div>
