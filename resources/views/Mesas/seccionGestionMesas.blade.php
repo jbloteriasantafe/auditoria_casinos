@@ -15,6 +15,23 @@
 
 
   <div class="row">
+    <div class="col-lg-12 col-xl-9">
+      <a href="" id="btn-nueva-mesa" dusk="btn-nuevo" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+            <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">NUEVA MESA</h4>
+                  </center>
+                </div>
+                </div>
+              </div>
+            </div>
+          </a>
+      </div>
     <div class="col-lg-12 col-xl-9"> <!-- columna de FILTROS y TABLA -->
       <div class="row"> <!-- fila de FILTROS -->
         <div class="col-md-12">
@@ -84,7 +101,7 @@
       </div> <!-- Fin de la fila de FILTROS -->
 
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-xs-12">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h4 id="tituloBusquedaMesas">Mesas cargadas en el Sistema</h4>
@@ -93,10 +110,10 @@
               <table id="tablaMesas" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-2" style="font-size:14px; text-align:center !important;">NÚMERO <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3" style="font-size:14px; text-align:center !important;">JUEGO <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" style="font-size:14px; text-align:center !important;">SECTOR <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" style="font-size:14px; text-align:center !important;">CASINO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="nro_mesa" style="font-size:14px; text-align:center !important;">NÚMERO <i class="fas fa-sort"></i></th>
+                    <th class="col-xs-3" value="nombre_juego" style="font-size:14px; text-align:center !important;">JUEGO <i class="fas fa-sort"></i></th>
+                    <th class="col-xs-2" value="nombre_sector" style="font-size:14px; text-align:center !important;">SECTOR <i class="fas fa-sort"></i></th>
+                    <th class="col-xs-2" value="casino.nombre" style="font-size:14px; text-align:center !important;">CASINO <i class="fas fa-sort"></i></th>
                     <th class="col-xs-3" style="font-size:14px; text-align:center !important;">ACCIONES</th>
                   </tr>
                 </thead>
@@ -104,11 +121,10 @@
 
 
 
-                    </tbody>
-                  </table>
-                  <table>
-                    <tbody>
-                      <tr id="moldeFilaMesa" class="mesaClone" style="display:none">
+                </tbody>
+              </table>
+              <table>
+                <tr id="moldeFilaMesa" class="mesaClone" style="display:none">
                         <td class="col-xs-2 nroMesa" style=" text-align:center !important;"></td>
                         <td class="col-xs-3 juegoMesa" style=" text-align:center !important;"></td>
                         <td class="col-xs-2 sectorMesa" style=" text-align:center !important;"></td>
@@ -126,9 +142,8 @@
                           </button>
 
                         </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                </tr>
+            </table>
                   <!--Comienzo indices paginacion-->
                   <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 </div>
@@ -137,23 +152,7 @@
           </div>  <!--/fila TABLA -->
         </div> <!-- Fin de la columna FILTROS y TABLA -->
 
-    <div class="col-lg-3">
-      <a href="" id="btn-nueva-mesa" dusk="btn-nuevo" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-            <div class="backgroundNuevo"></div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                      <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVA MESA</h4>
-                  </center>
-                </div>
-                </div>
-              </div>
-            </div>
-          </a>
-      </div>
+
   </div>
 
   <!-- MODAL NUEVA MESA -->
@@ -521,7 +520,7 @@
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-  
+
   <script src="js/Mesas/seccionGestionMesas.js"></script>
 
 
