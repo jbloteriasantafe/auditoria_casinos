@@ -710,7 +710,7 @@ $cas = $usuario['usuario']->casinos;
                   <thead>
                     <tr>
                       <th class="col-md-3" style="border-bottom:1px solid #ccc;border-right:1px solid #ccc"><h5 align="center">Valor</h5></th>
-                      <th class="col-md-3" style="border-bottom:1px solid #ccc;"><h5 align="center">Cantidad</h5></th>
+                      <th class="col-md-3" style="border-bottom:1px solid #ccc;"><h5 align="center">Monto</h5></th>
                     </tr>
                   </thead>
                   <tbody id="modificarFichasCie">
