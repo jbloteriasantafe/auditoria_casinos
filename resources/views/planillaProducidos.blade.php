@@ -58,9 +58,10 @@ tr:nth-child(even) {
                 <tr>
                   <th class="tablaInicio">MTM</th>
                   <th class="tablaInicio">PROD. CALC.</th>
-                  <th class="tablaInicio">PROD. SIST.</th>
+                  <th class="tablaInicio">PROD. IMP.</th>
                   <th class="tablaInicio">DIFERENCIAS</th>
                   <th class="tablaInicio">AJUSTES</th>
+                  <th class="tablaInicio">PROD AJUSTADO</th>
                 </tr>
                 @foreach ($ajustes as $ajuste)
                 <tr>
@@ -69,6 +70,7 @@ tr:nth-child(even) {
                   <td class="tablaCampos">{{$ajuste->sistema}}</td>
                   <td class="tablaCampos">{{$ajuste->dif}}</td>
                   <td class="tablaCampos">{{$ajuste->descripcion}}</td>
+                  <td class="tablaCampos">{{$ajuste->calculado_operado}}</td>
                 </tr>
                 @endforeach
               </table>
