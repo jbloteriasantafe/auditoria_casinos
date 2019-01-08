@@ -91,13 +91,15 @@ class ABMCierreController extends Controller
       $cierre->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
-        $ficha = new DetalleCierre;
-        //dd($ficha);
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->monto_ficha = $f['monto_ficha'];
-        $ficha->cierre()->associate($cierre->id_cierre_mesa);
-        $ficha->save();
-        $detalles[] = $ficha;
+          if($f['monto_ficha'] != 0){
+          $ficha = new DetalleCierre;
+          //dd($ficha);
+          $ficha->ficha()->associate($f['id_ficha']);
+          $ficha->monto_ficha = $f['monto_ficha'];
+          $ficha->cierre()->associate($cierre->id_cierre_mesa);
+          $ficha->save();
+          $detalles[] = $ficha;
+        }
       }
      return ['cierre' => $cierre,'detalles' => $detalles];
     }else{
@@ -153,11 +155,13 @@ class ABMCierreController extends Controller
       $d->delete();
     }
     foreach ($request->fichas as $f) {
-      $ficha = new DetalleCierre;
-      $ficha->ficha()->associate($f['id_ficha']);
-      $ficha->monto_ficha = $f['monto_ficha'];
-      $ficha->save();
-      $detalles[] = $ficha;
+      if($f['monto_ficha'] != 0){
+        $ficha = new DetalleCierre;
+        $ficha->ficha()->associate($f['id_ficha']);
+        $ficha->monto_ficha = $f['monto_ficha'];
+        $ficha->save();
+        $detalles[] = $ficha;
+      }
     }
    return ['cierre' => $cierre,'detalles' => $detalles];
   }
