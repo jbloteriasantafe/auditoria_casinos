@@ -838,7 +838,7 @@ class ProducidoController extends Controller
                                         ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
                                         ->where('detalle_producido.id_producido',$id_producido)
                                         ->select('maquina.nro_admin as nro_maquina','ajuste_producido.producido_calculado as prod_calc',
-                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d')
+                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado')
                                         ->orderBy('nro_maquina','asc')
                                         ->get();
 
@@ -864,6 +864,7 @@ class ProducidoController extends Controller
       $res->sistema = number_format($resultado->prod_sist, 2, ",", ".");
       $res->dif = number_format($resultado->diferencia, 2, ",", ".");
       $res->descripcion = $resultado->d;
+      $res->calculado_operado=number_format($resultado->prod_calc_operado, 2, ",", ".");
       $ajustes[] = $res;
     };
 

@@ -1259,7 +1259,7 @@ $cas = $usuario['usuario']->casinos;
                       <br>
                     </div>
                     <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                      <h6>FECHA</h6>
+                      <h6>FECHA CIERRE</h6>
                       <div class="row">
                         <div class="col-xs-2 col-xs-offset-1 iconoCalendarr">
                             <i class="far fa-calendar-alt fa-2x" style="position:relative; left:-1px;"></i>
@@ -1283,7 +1283,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="col-md-12">
                   <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>HORA INICIO</h6>
+                    <h6>HORA APERTURA</h6>
                     <div class="col-xs-2 col-xs-offset-1 iconoMesa">
                         <i class="fas fa-clipboard-check fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
@@ -1292,12 +1292,12 @@ $cas = $usuario['usuario']->casinos;
                     </div>
                   </div>
                   <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>JUEGO</h6>
+                    <h6>FECHA APERTURA</h6>
                     <div class="col-xs-2 col-xs-offset-0 iconoJuego">
                         <i class="fas fa-dice fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
                     <div class="col-xs-6" align="center">
-                      <h5 class="j_validar_aper" style="color: #000 !important; font-size: 14px;"></h5>
+                      <h5 class="fechaAp_validar_aper" style="color: #000 !important; font-size: 14px;"></h5>
                     </div>
                   </div>
                   <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">

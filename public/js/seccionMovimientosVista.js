@@ -328,9 +328,7 @@ $("#btn-aceptar-ingreso").click(function(e){
 
           error: function(data){
             var response = data.responseJSON.errors;
-
-
-
+            
           }
     })
   } //fin del else

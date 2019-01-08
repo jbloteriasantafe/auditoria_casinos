@@ -420,7 +420,7 @@ $(document).on('change','.inputApe',function(){
           var cantidad=0;
           var subtotal=0;
           subtotal = Number($('#totalApertura').val());
-          subtotal -= Number($(this).attr('data-ingresado'));
+          subtotal -= Number(($(this).attr('data-ingresado')) * ($(this).attr('data-valor')));
 
           $('#totalApertura').val(subtotal);
         }
@@ -446,6 +446,8 @@ $(document).on('click', '.btn_ver_mesa', function(e){
   $('#tablaCargaApertura tbody tr').remove();
   $('#totalApertura').val('');
   $('#btn-guardar-apertura').show();
+  $('#btn-guardar-apertura').prop('disabled',false);
+
   $('#columnaDetalle').show();
   var id_mesa=$(this).attr('data-id');
   $('#id_mesa_ap').val(id_mesa);
@@ -483,6 +485,8 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
 $('#btn-guardar-apertura').on('click', function(e){
 
   e.preventDefault();
+
+  $(this).prop('disabled','true');
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
@@ -1378,13 +1382,13 @@ $(document).on('click', '.validarCyA', function(e) {
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
     $('.nro_validar').text(data.mesa.nro_mesa);
-    $('.j_validar_aper').text(data.juego.nombre_juego);
+    $('.fechaAp_validar_aper').text(data.fecha);
     $('.j_validar').text(data.juego.nombre_juego);
     $('.cas_validar').text(data.casino.nombre);
 
     $('.hs_validar_aper').text(data.apertura.hora);
-    $('.fis_validar_aper').text(data.fiscalizador.name);
-    $('.car_validar_aper').text(data.cargador.user_name);
+    $('.fis_validar_aper').text(data.fiscalizador.nombre);
+    $('.car_validar_aper').text(data.cargador.nombre);
     $('.tipo_validar_aper').text(data.tipo_mesa.descripcion);
     $('.mon_validar_aper').text(data.moneda.descripcion);
     $('.mon_validar_aper').val(data.moneda.id_moneda);
