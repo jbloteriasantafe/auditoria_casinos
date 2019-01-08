@@ -446,6 +446,8 @@ $(document).on('click', '.btn_ver_mesa', function(e){
   $('#tablaCargaApertura tbody tr').remove();
   $('#totalApertura').val('');
   $('#btn-guardar-apertura').show();
+  $('#btn-guardar-apertura').prop('disabled',false);
+
   $('#columnaDetalle').show();
   var id_mesa=$(this).attr('data-id');
   $('#id_mesa_ap').val(id_mesa);
@@ -483,6 +485,8 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
 $('#btn-guardar-apertura').on('click', function(e){
 
   e.preventDefault();
+
+  $(this).prop('disabled','true');
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
