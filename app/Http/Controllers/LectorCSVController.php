@@ -738,7 +738,7 @@ class LectorCSVController extends Controller
 
       if(!$cant){
         $daux= new DetalleProducido;
-        $daux->valor=-1;
+        $daux->valor=0;
         $daux->id_maquina=$m->id_maquina;
         $daux->id_producido=$producido->id_producido;
         $daux->nro_admin=$m->nro_admin;
@@ -962,7 +962,7 @@ class LectorCSVController extends Controller
 
           if(!$cant){
             $daux= new DetalleProducido;
-            $daux->valor=-1;
+            $daux->valor=0;
             $daux->id_maquina=$m->id_maquina;
             $daux->id_producido=$producido->id_producido;
             $daux->nro_admin=$m->nro_admin;
