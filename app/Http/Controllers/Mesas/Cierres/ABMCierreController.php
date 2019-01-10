@@ -51,10 +51,10 @@ class ABMCierreController extends Controller
   public function guardar(Request $request){
     $validator=  Validator::make($request->all(),[
       'fecha' => 'required|date',
-      'hora_inicio' => 'required|date_format:"H:i"',
-      'hora_fin' => 'required|date_format:"H:i"',
+      'hora_inicio' => 'nullable|date_format:"H:i"',
+      'hora_fin' => 'nullable|date_format:"H:i"',
       'total_pesos_fichas_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
@@ -123,10 +123,10 @@ class ABMCierreController extends Controller
     $validator=  Validator::make($request->all(),[
       'id_cierre_mesa' => 'required|exists:cierre_mesa,id_cierre_mesa',
       //'fecha' => 'required|date',
-      'hora_inicio' => 'required|date_format:"H:i"',
-      'hora_fin' => 'required|date_format:"H:i"',
+      'hora_inicio' => 'nullable|date_format:"H:i"',
+      'hora_fin' => 'nullable|date_format:"H:i"',
       'total_pesos_fichas_a' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',

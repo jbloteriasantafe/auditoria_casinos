@@ -74,7 +74,7 @@ class ABMAperturaController extends Controller
         $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
                                  );
       }
-
+      $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -126,7 +126,9 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
+    ], array(), self::$atributos)->after(function($validator){
+      $validator = $this->validarFichas($validator);
+     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];
@@ -161,6 +163,8 @@ class ABMAperturaController extends Controller
     }
   }
 
+  private function validarFichas($validator){
 
+  }
 
 }
