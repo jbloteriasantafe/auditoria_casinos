@@ -949,6 +949,7 @@ class LectorCSVController extends Controller
             // implementacion para contemplar los casos en que las mtms no reporten
         $mtms= Maquina::select("id_maquina","nro_admin")
                     ->where("id_casino","=",3)
+                    ->where("id_tipo_moneda","=",$id_tipo_moneda)
                     ->whereNull("deleted_at")
                     ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
                     ->get();
