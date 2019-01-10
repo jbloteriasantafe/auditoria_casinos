@@ -120,8 +120,8 @@ class ExpedienteController extends Controller
         'nro_cuerpos' => 'required|integer',
         'casinos' => 'required',
         'resolucion' => 'nullable',
-        'resolucion.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
-        'resolucion.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
+        'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
+        'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
         'disposiciones' => 'nullable',
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
@@ -179,9 +179,12 @@ class ExpedienteController extends Controller
     $expediente->save();
 
 
-    if(!empty($request->resolucion))
-      ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
-
+    if(!empty($request->resolucion)){
+      foreach($request->resolucion as $res){
+        ResolucionController::getInstancia()->guardarResolucion($res->resolucion,$expediente->id_expediente);
+      }
+     
+    }
     if(!empty($request->disposiciones)){
       foreach ($request->disposiciones as $disp){
         DisposicionController::getInstancia()->guardarDisposicion($disp,$expediente->id_expediente);
@@ -223,8 +226,8 @@ class ExpedienteController extends Controller
         'nro_cuerpos' => 'required|integer',
         'casinos' => 'required',
         'resolucion' => 'nullable',
-        'resolucion.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
-        'resolucion.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
+        'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
+        'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
         'disposiciones' => 'nullable',
         'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
         'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
@@ -350,28 +353,33 @@ class ExpedienteController extends Controller
       }
     }
 
-    if(!empty($expediente->resolucion)
-    &&(
-      empty($request->resolucion)
-      ||(
-        !empty($request->resolucion)
-        && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
-        || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
-        )
-      )){
-        ResolucionController::getInstancia()->eliminarResolucion($expediente->resolucion->id_resolucion);
+    // if(!empty($expediente->resolucion)
+    // &&(
+    //   empty($request->resolucion)
+    //   ||(
+    //     !empty($request->resolucion)
+    //     && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
+    //     || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
+    //     )
+    //   )){
+    //     ResolucionController::getInstancia()->eliminarResolucion($expediente->resolucion->id_resolucion);
+    //   }
+    // if(!empty($request->resolucion) && !empty($request->resolucion['nro_resolucion'] && !empty($request->resolucion['nro_resolucion_anio']))
+    // &&(
+    //   empty($expediente->resolucion)
+    //   ||(
+    //     !empty($expediente->resolucion)
+    //     && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
+    //     || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
+    //     )
+    //   )){
+    //   ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
+    // }
+
+      if (!$resolucion){
+        ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
       }
-    if(!empty($request->resolucion) && !empty($request->resolucion['nro_resolucion'] && !empty($request->resolucion['nro_resolucion_anio']))
-    &&(
-      empty($expediente->resolucion)
-      ||(
-        !empty($expediente->resolucion)
-        && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
-        || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
-        )
-      )){
-      ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
-    }
+
 
     $expediente = Expediente::find($request->id_expediente);
 

@@ -409,13 +409,33 @@ $id_usuario = session('id_usuario');
                               </div> <!-- / Row Primera sección  style="padding-right: 0px;-->
 
                               <div class="row" style="">
-                                <div id="columna" class="col-lg-3" style="margin-top:8px;">
+                                <div id="columna" class="col-lg-6" style="margin-top:8px;">
+                                  <div></div>
                                   <h5>Resolución</h5>
-
+                                  <div class="form-inline">
                                   <div class="input-group triple-input" style="padding-top:8px;">
-                                      <input id="nro_resolucion" style="width:60%;" type="text" placeholder="---" maxlength="3" class="form-control" />
-                                      <input id="nro_resolucion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2" class="form-control" />
-                                  </div>
+                                    <input id="nro_resolucion" style="width:60%;" type="text" placeholder="---" maxlength="3" class="form-control" />
+                                    <input id="nro_resolucion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2" class="form-control" />
+                                    
+                                  </div> 
+                                  <button id="btn-agregarResolucion" class="btn btn-success borrarFila" type="button">
+                                    <i class="fa fa-fw fa-plus"></i>
+                                  </button>
+                                </div>
+                                  <table id="tablaResolucion" class="table" style="margin-top:30px; margin-bottom:20px;">
+                                    <thead>
+                                      <tr>
+                                          <th width="50%">Nro Resolución</th>
+                                          <th width="30%">Año Resolución</th>
+                                          <th width="20%">ACCIÓN</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                  </table>
+
+                                 
 
                                   <!-- Acá -->
                                   <!-- <div class="row" style="margin-bottom:20px;">

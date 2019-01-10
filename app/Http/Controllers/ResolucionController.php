@@ -71,6 +71,22 @@ class ResolucionController extends Controller
     $resolucion->save();
   }
 
+  public function updateResolucion($res,$id_expediente){
+    //primero sincronizo con los id
+    $id_res=array();
+    foreach($res as $r){
+      if($r->id_resolucion!="-1"){
+        array_push($id_res,$r->id_resolucion);
+      }
+ //TODO terminar
+
+
+
+
+    }
+  }
+
+
   public function eliminarResolucion($id){
     $resolucion = Resolucion::destroy($id);
     return ['resolucion' => $resolucion];
