@@ -68,6 +68,7 @@ class ABMCierreController extends Controller
       if(count($yaExiste) != 0){
         $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa en esa fecha.');
       }
+      $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -132,7 +133,7 @@ class ABMCierreController extends Controller
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
     ], array(), self::$atributos)->after(function($validator){
-
+      $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
       if($validator->fails()){
@@ -166,4 +167,16 @@ class ABMCierreController extends Controller
    return ['cierre' => $cierre,'detalles' => $detalles];
   }
 
+  private function validarFichas($validator){
+    foreach ($validator->getData()['fichas'] as $detalle) {
+      $ficha = Ficha::find($detalle['id_ficha']);
+      $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
+      if(floor($division)* $ficha->valor_ficha != $detalle['monto_ficha']){
+        $validator->errors()->add('monto_ficha','Ya existe una apertura para la fecha.'
+                                 );
+        break;
+      }
+    }
+    return $validator;
+  }
 }
