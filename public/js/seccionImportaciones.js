@@ -879,7 +879,13 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#casinoInfoImportacion').change();
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN PRODUCIDO');
-          $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados');
+
+          text=data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
+          if(data.cant_mtm_forzadas){
+            text=text+ '<br>' + data.cant_mtm_forzadas +' Máquinas no reportaron' 
+          }
+
+          $('#mensajeExito p').html(text);
 
           $('#mensajeExito').show();
         },

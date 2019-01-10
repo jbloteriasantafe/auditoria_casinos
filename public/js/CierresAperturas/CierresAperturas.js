@@ -324,6 +324,8 @@ $('#btn-cargar-apertura').on('click', function(e){
   $('#mensajeExitoCargaAp').hide();
   e.preventDefault();
   limpiarCargaApertura();
+  $('#tablaMesasApert tbody tr').remove();
+
   $('#B_fecha_apert').val("").prop('disabled',false);
 
   ocultarErrorValidacion($('#B_fecha_apert'));
@@ -340,6 +342,8 @@ $('#btn-cargar-apertura').on('click', function(e){
 $(document).on('change','#casinoApertura',function(){
 
   limpiarCargaApertura();
+  $('#tablaMesasApert tbody tr').remove();
+
   $('#columnaDetalle').hide();
   var fecha=$('#B_fecha_apert').val();
   var id_casino=$('#casinoApertura').val();
@@ -1714,7 +1718,6 @@ function limpiarCargaApertura(){
   $('#horarioAp').val('');
   $('#fiscalizApertura').setearElementoSeleccionado(0,"");
   $('#cargador').val('');
-  $('#tablaMesasApert tbody tr').remove();
   $('#tablaCargaApertura tbody tr').remove();
   $('#mensajeExitoCargaAp').hide();
 

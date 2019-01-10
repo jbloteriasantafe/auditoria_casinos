@@ -571,6 +571,9 @@ class LectorCSVController extends Controller
         $pdo->exec($query);
       }
     }
+    //obtener mtm e ir insertando en detalle contador horario
+
+    //cambiar sentencia para actualizar los campos de contadores donde la mtm y el id contador sean iguales
 
     $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario)
                        SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario
@@ -720,8 +723,34 @@ class LectorCSVController extends Controller
     $pdo=null;
 
     $cantidad_registros = DetalleProducido::where('id_producido','=',$producido->id_producido)->count();
+    // implementacion para contemplar los casos donde ciertas maquinas no reportan producido
+    $mtms= Maquina::select("id_maquina","nro_admin")
+                    ->where("id_casino","=",$casino)
+                    ->whereNull("deleted_at")
+                    ->whereIn("id_estado_maquina",[1,2,4,5,7])
+                    ->get();
+    $cant_mtm_forzadas=0;
+    $id_mtm_forzadas=array();
+    foreach($mtms as $m){
+      $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
+                            ->where("id_producido","=", $producido->id_producido)
+                            ->count();
 
-    return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion];
+      if(!$cant){
+        $daux= new DetalleProducido;
+        $daux->valor=0;
+        $daux->id_maquina=$m->id_maquina;
+        $daux->id_producido=$producido->id_producido;
+        $daux->save();
+        $cant_mtm_forzadas=$cant_mtm_forzadas+1;
+        array_push($id_mtm_forzadas,$m->id_maquina);
+      }
+    }
+    $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
+    $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->save();
+  //fin de implementacion 
+    return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
 
   public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
@@ -849,6 +878,7 @@ class LectorCSVController extends Controller
 
         $pdo=null;
 
+
         return ['id_contador_horario' => $contador->id_contador_horario,'fecha' => $contador->fecha,'casino' => $contador->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => ContadorHorario::find($contador->id_contador_horario)->tipo_moneda->descripcion];
   }
 
@@ -916,7 +946,35 @@ class LectorCSVController extends Controller
 
     $pdo=null;
 
-    return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion];
+            // implementacion para contemplar los casos en que las mtms no reporten
+        $mtms= Maquina::select("id_maquina","nro_admin")
+                    ->where("id_casino","=",3)
+                    ->whereNull("deleted_at")
+                    ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
+                    ->get();
+        $cant_mtm_forzadas=0;
+        $id_mtm_forzadas=array();
+        foreach($mtms as $m){
+          $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
+                                ->where("id_producido","=", $producido->id_producido)
+                                ->count();
+
+          if(!$cant){
+            $daux= new DetalleProducido;
+            $daux->valor=0;
+            $daux->id_maquina=$m->id_maquina;
+            $daux->id_producido=$producido->id_producido;
+            $daux->save();
+            $cant_mtm_forzadas=$cant_mtm_forzadas+1;
+            array_push($id_mtm_forzadas,$m->id_maquina);
+          }
+        }
+        $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
+        $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+        $producido->save();
+        //fin de implementacion
+
+    return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
 
   public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda){
