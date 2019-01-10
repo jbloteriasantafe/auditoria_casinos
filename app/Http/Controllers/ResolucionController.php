@@ -72,18 +72,45 @@ class ResolucionController extends Controller
   }
 
   public function updateResolucion($res,$id_expediente){
-    //primero sincronizo con los id
-    $id_res=array();
-    foreach($res as $r){
-      if($r->id_resolucion!="-1"){
-        array_push($id_res,$r->id_resolucion);
+    
+    if(count($res)>0){
+      $id_res_actuales=array();
+      $res_crear=array();
+      foreach($res as $r){
+        if($r['id_resolucion']!="-1"){
+          array_push($id_res_actuales,$r['id_resolucion']);
+        }else{
+
+          array_push($res_crear,$r);
+        }
+
       }
- //TODO terminar
 
-
-
-
+      if($id_res_actuales){
+        $res_elim=Resolucion::select("id_resolucion")
+                ->whereNotIn("id_resolucion",$id_res_actuales)
+                ->get();
+        foreach($res_elim as $r){
+          Resolucion::destroy($r->id_resolucion);
+        }      
+      }else{
+        Resolucion::where("id_expediente",$id_expediente)
+                  ->delete();
+      }
+      
+      if ($res_crear){
+        foreach($res_crear as $rc){
+          $this->guardarResolucion($rc,$id_expediente);
+        }
+      }
+    }else{
+      Resolucion::where("id_expediente",$id_expediente)
+                  ->delete();
     }
+     
+    
+
+
   }
 
 

@@ -376,9 +376,9 @@ class ExpedienteController extends Controller
     //   ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
     // }
 
-      if (!$resolucion){
-        ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
-      }
+    
+    ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
+      
 
 
     $expediente = Expediente::find($request->id_expediente);
