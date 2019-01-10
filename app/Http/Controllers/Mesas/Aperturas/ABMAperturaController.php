@@ -65,7 +65,17 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' => ['nullable'],
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
+    ], array(), self::$atributos)->after(function($validator){
+      $ap = Apertura::where(['fecha','=',$validator->getData()['fecha'],
+                            ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']]])
+                            ->get();
+
+      if(count($ap)> 0 ){
+        $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
+                                 );
+      }
+
+    })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];
@@ -87,12 +97,14 @@ class ABMAperturaController extends Controller
       $apertura->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
-        $ficha = new DetalleApertura;
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->cantidad_ficha = $f['cantidad_ficha'];
-        $ficha->apertura()->associate($apertura->id_apertura_mesa);
-        $ficha->save();
-        $detalles[] = $ficha;
+        if($f['cantidad_ficha'] != 0){
+          $ficha = new DetalleApertura;
+          $ficha->ficha()->associate($f['id_ficha']);
+          $ficha->cantidad_ficha = $f['cantidad_ficha'];
+          $ficha->apertura()->associate($apertura->id_apertura_mesa);
+          $ficha->save();
+          $detalles[] = $ficha;
+        }
       }
 
       //$cacontroller = new ABMCCierreAperturaController;
@@ -134,11 +146,13 @@ class ABMAperturaController extends Controller
         $d->delete();
       }
       foreach ($apertura->detalles as $f) {
-        $ficha = new DetalleApertura;
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->cantidad_ficha = $f['cantidad_ficha'];
-        $ficha->apertura()->associate($apertura->id_apertura_mesa);
-        $ficha->save();
+        if($f['cantidad_ficha'] != 0){
+          $ficha = new DetalleApertura;
+          $ficha->ficha()->associate($f['id_ficha']);
+          $ficha->cantidad_ficha = $f['cantidad_ficha'];
+          $ficha->apertura()->associate($apertura->id_apertura_mesa);
+          $ficha->save();
+        }
       }
        return response()->json(['exito' => 'Apertura Modificada'], 200);
     }else{
