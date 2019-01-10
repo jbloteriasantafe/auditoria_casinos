@@ -97,12 +97,14 @@ class ABMAperturaController extends Controller
       $apertura->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
-        $ficha = new DetalleApertura;
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->cantidad_ficha = $f['cantidad_ficha'];
-        $ficha->apertura()->associate($apertura->id_apertura_mesa);
-        $ficha->save();
-        $detalles[] = $ficha;
+        if($f['cantidad_ficha'] != 0){
+          $ficha = new DetalleApertura;
+          $ficha->ficha()->associate($f['id_ficha']);
+          $ficha->cantidad_ficha = $f['cantidad_ficha'];
+          $ficha->apertura()->associate($apertura->id_apertura_mesa);
+          $ficha->save();
+          $detalles[] = $ficha;
+        }
       }
 
       //$cacontroller = new ABMCCierreAperturaController;
@@ -144,11 +146,13 @@ class ABMAperturaController extends Controller
         $d->delete();
       }
       foreach ($apertura->detalles as $f) {
-        $ficha = new DetalleApertura;
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->cantidad_ficha = $f['cantidad_ficha'];
-        $ficha->apertura()->associate($apertura->id_apertura_mesa);
-        $ficha->save();
+        if($f['cantidad_ficha'] != 0){
+          $ficha = new DetalleApertura;
+          $ficha->ficha()->associate($f['id_ficha']);
+          $ficha->cantidad_ficha = $f['cantidad_ficha'];
+          $ficha->apertura()->associate($apertura->id_apertura_mesa);
+          $ficha->save();
+        }
       }
        return response()->json(['exito' => 'Apertura Modificada'], 200);
     }else{

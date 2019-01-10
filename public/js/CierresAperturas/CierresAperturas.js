@@ -1386,7 +1386,7 @@ $(document).on('click', '.validarCyA', function(e) {
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
     $('.nro_validar').text(data.mesa.nro_mesa);
-    $('.fechaAp_validar_aper').text(data.fecha);
+    $('.fechaAp_validar_aper').text(data.apertura.fecha);
     $('.j_validar').text(data.juego.nombre_juego);
     $('.cas_validar').text(data.casino.nombre);
 
@@ -1711,7 +1711,6 @@ function limpiarCargaCierre(){
 }
 
 function limpiarCargaApertura(){
-
 
   $('#id_mesa_ap').setearElementoSeleccionado('0',"");
   $('#totalApertura').val('');

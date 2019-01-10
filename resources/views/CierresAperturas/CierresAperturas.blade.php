@@ -362,7 +362,7 @@ $cas = $usuario['usuario']->casinos;
               <input id="fiscalizadorCierre" class="form-control" type="text" value=""  size="100" autocomplete="off">
             </div>
             <div class="col-md-4">
-              <h6>FECHA</h6>
+              <h6>FECHA DE PRODUCCIÓN</h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                   <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
@@ -523,7 +523,7 @@ $cas = $usuario['usuario']->casinos;
                   <br>
                 </div>
                 <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                  <h6>FECHA</h6>
+                  <h6>FECHA DE PRODUCCIÓN</h6>
                   <div class="row">
                     <div class="col-xs-2 col-xs-offset-1 iconoCalendarr">
                         <i class="far fa-calendar-alt fa-2x" style="position:relative; left:-1px;"></i>
@@ -656,7 +656,7 @@ $cas = $usuario['usuario']->casinos;
                     <h5 class="linea cas_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important"></h5>
                 </div>
                 <div class="col-xs-3">
-                  <h6 class="linea">Fecha: </h6>
+                  <h6 class="linea">Fecha Producción: </h6>
                   <h5 class="linea f_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important">MONEDA: </h5>
                 </div>
                 <div class="col-xs-2" style:"display:inline">
@@ -761,7 +761,7 @@ $cas = $usuario['usuario']->casinos;
                 <div class="modal-body" style="font-family: Roboto;">
                   <div class="row" style="border-bottom:2px solid #ccc;">
                     <div class="col-xs-4">
-                      <h6>FECHA</h6>
+                      <h6>FECHA DE PRODUCCIÓN</h6>
                       <div class="form-group">
                         <div class='input-group date' id='dtpFechaApert' data-link-field="fecha_apertura" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                           <input type='text' class="form-control" placeholder="AAAA-MM-DD" id="B_fecha_apert" value=" "/>
@@ -948,7 +948,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
             </div>
             <div class="col-md-4" align="center" style="border-left:1px solid #ccc">
-              <h6>FECHA</h6>
+              <h6>FECHA PRODUCCIÓN</h6>
               <div class="col-xs-2 col-xs-offset-1 iconoFechaAp">
                   <i class="far fa-calendar-alt fa-2x" style="position:relative; left:-1px;"></i>
               </div>
@@ -1067,7 +1067,7 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <div class="row">
                 <div class="col-xs-4">
-                  <h6 class="linea">Fecha: </h6>
+                  <h6 class="linea">Fecha Producción: </h6>
                     <h5 class="linea f_apertura" style="font-size:13px;color:#616161 !important;"></h5>
                 </div>
 
