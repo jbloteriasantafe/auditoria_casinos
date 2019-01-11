@@ -226,6 +226,14 @@ $('#btn-buscarCyA').on('click', function(e){
 
 //APERTURAS APERTURAS APERTURAS APERTURAS Aperturas
 
+$("#modalCargaCierre").on('hidden.bs.modal', function () {
+    $('#btn-buscarCyA').trigger('click');
+  });
+
+$("#modalCargaApertura").on('hidden.bs.modal', function () {
+    $('#btn-buscarCyA').trigger('click');
+  });
+
 $('#btn-generar-rel').on('click', function(e){
 
   e.preventDefault();
