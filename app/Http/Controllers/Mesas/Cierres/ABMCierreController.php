@@ -23,6 +23,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
 use App\Mesas\DetalleCierre;
+use App\Mesas\Ficha;
 
 class ABMCierreController extends Controller
 {
