@@ -67,7 +67,7 @@ class ABMAperturaController extends Controller
       'fichas.*.cantidad_ficha' => ['nullable'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $ap = Apertura::where(['fecha','=',$validator->getData()['fecha'],
+      $ap = Apertura::where([['fecha','=',$validator->getData()['fecha']],
                             ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']]])
                             ->get();
 
