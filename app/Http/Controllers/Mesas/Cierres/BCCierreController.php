@@ -99,6 +99,8 @@ class BCCierreController extends Controller
   public function getCierre($id){
     $cierre = Cierre::find($id);
     $mesa = $cierre->mesa;
+    $moneda =$cierre->mesa->moneda;
+
     if(!empty($cierre)){
       $detalles = DB::table('ficha')
                       ->leftJoin('detalle_cierre','ficha.id_ficha','=','detalle_cierre.id_ficha')
@@ -144,6 +146,8 @@ class BCCierreController extends Controller
               'apertura' => $apertura,
               'detalleAP' => $detalleAP,
               'nombre_juego' => $juegoCI->nombre_juego,
+              'moneda'=> $moneda,
+
             ], 200);
     }else{
       return response()->json(['error' => 'Cierre no encontrado.'], 404);
