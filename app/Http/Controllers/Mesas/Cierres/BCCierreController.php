@@ -99,7 +99,11 @@ class BCCierreController extends Controller
   public function getCierre($id){
     $cierre = Cierre::find($id);
     $mesa = $cierre->mesa;
-    $moneda =$cierre->moneda;
+    if(!empty($apertura->moneda)){
+      $moneda =$apertura->moneda;
+    }else{
+      $moneda = $apertura->mesa->moneda;
+    }
 
     if(!empty($cierre)){
       $detalles = DB::table('ficha')
