@@ -54,7 +54,7 @@ tr:nth-child(even) {
               <table>
                 <tr>
                   <th class="tablaInicio">FECHA</th>
-                  <th class="tablaInicio">MTM</th>
+                  {{-- <th class="tablaInicio">MTM</th> --}}
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
                   <th class="tablaInicio">BENEFICIO (US$)</th>
@@ -64,7 +64,7 @@ tr:nth-child(even) {
                 @foreach ($ajustes as $ajuste)
                 <tr>
                   <td class="tablaCampos">{{$ajuste->fecha}}</td>
-                  <td class="tablaCampos">{{$ajuste->maq}}</td>
+                  {{-- <td class="tablaCampos">{{$ajuste->maq}}</td> --}}
                   <td class="tablaCampos">{{$ajuste->apostado}}</td>
                   <td class="tablaCampos">{{$ajuste->premios}}</td>
                   <td class="tablaCampos">{{$ajuste->beneficioDolares}}</td>

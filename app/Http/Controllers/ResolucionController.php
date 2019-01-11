@@ -71,6 +71,49 @@ class ResolucionController extends Controller
     $resolucion->save();
   }
 
+  public function updateResolucion($res,$id_expediente){
+    
+    if(count($res)>0){
+      $id_res_actuales=array();
+      $res_crear=array();
+      foreach($res as $r){
+        if($r['id_resolucion']!="-1"){
+          array_push($id_res_actuales,$r['id_resolucion']);
+        }else{
+
+          array_push($res_crear,$r);
+        }
+
+      }
+
+      if($id_res_actuales){
+        $res_elim=Resolucion::select("id_resolucion")
+                ->whereNotIn("id_resolucion",$id_res_actuales)
+                ->get();
+        foreach($res_elim as $r){
+          Resolucion::destroy($r->id_resolucion);
+        }      
+      }else{
+        Resolucion::where("id_expediente",$id_expediente)
+                  ->delete();
+      }
+      
+      if ($res_crear){
+        foreach($res_crear as $rc){
+          $this->guardarResolucion($rc,$id_expediente);
+        }
+      }
+    }else{
+      Resolucion::where("id_expediente",$id_expediente)
+                  ->delete();
+    }
+     
+    
+
+
+  }
+
+
   public function eliminarResolucion($id){
     $resolucion = Resolucion::destroy($id);
     return ['resolucion' => $resolucion];
