@@ -27,7 +27,7 @@ use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 use App\Http\Controllers\Mesas\Cierres\ABMCCierreAperturaController;
 use App\Http\Controllers\UsuarioController;
-
+use App\Mesas\Ficha;
 
 class ABMAperturaController extends Controller
 {
