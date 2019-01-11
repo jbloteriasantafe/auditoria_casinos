@@ -262,6 +262,30 @@ $('#btn-agregarDisposicion').click(function(){
 
 });
 
+// Agregar resolucion
+$('#btn-agregarResolucion').on("click",function(e){
+  var fila = $('<tr>').attr("id-resolucion",-1);
+  nro_res=$('#nro_resolucion').val();
+  anio_res=$('#nro_resolucion_anio').val();
+
+  if (nro_res!="" && anio_res!=""){
+    fila.append($('<td>').text(nro_res));
+    fila.append($('<td>').text(anio_res));
+    var boton = $('<button>').addClass('btn btn-danger borrarResolucion')
+                           .css('margin-left','10px')
+                           .append($('<i>').addClass('fa fa-fw fa-trash'));
+    fila.append($('<td>').append(boton));
+    $('#tablaResolucion').append(fila);
+    $('#nro_resolucion').val("");
+    $('#nro_resolucion_anio').val("");
+  }
+});
+
+$(document).on('click','.borrarResolucion',function(){
+  $(this).parent().parent().remove();
+});
+
+
 //Agregar nuevo movimiento en el modal
 $('#btn-agregarMovimientos').click(function(){
   agregarMovimientos(null,true);
@@ -650,13 +674,15 @@ $('#btn-guardar').click(function (e) {
     var fecha_pase = $('#fecha_pase').val();
     var fecha_iniciacion = $('#fecha_inicio').val();
 
-    var resolucion = null;
-    if($('#nro_resolucion').val() != '' || $('#nro_resolucion_anio').val() != ''){
-      var resolucion = {
-        nro_resolucion: $('#nro_resolucion').val(),
-        nro_resolucion_anio: $('#nro_resolucion_anio').val(),
-      }
-    }
+    // var resolucion = null;
+    // if($('#nro_resolucion').val() != '' || $('#nro_resolucion_anio').val() != ''){
+    //   var resolucion = {
+    //     nro_resolucion: $('#nro_resolucion').val(),
+    //     nro_resolucion_anio: $('#nro_resolucion_anio').val(),
+    //   }
+    // }
+    var resolucion = obtenerResoluciones();
+
 
     var disposiciones = [];
     $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
@@ -1150,7 +1176,9 @@ function limpiarModal(){
   $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
-
+  //limipar tabla de resoluciones
+  $('#tablaResolucion tbody').empty();
+  
   limpiarAlertas();
 }
 
@@ -1291,6 +1319,19 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
     $('#nro_resolucion').val(resolucion.nro_resolucion);
     $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
   }
+  resolucion.forEach(res => {
+    var fila = $('<tr>').attr("id-resolucion",res.id_resolucion);
+    fila.append($('<td>').text(res.nro_resolucion));
+    fila.append($('<td>').text(res.nro_resolucion_anio));
+    var boton = $('<button>').addClass('btn btn-danger borrarResolucion')
+                           .css('margin-left','10px')
+                           .append($('<i>').addClass('fa fa-fw fa-trash'));
+    fila.append($('<td>').append(boton));
+    $('#tablaResolucion').append(fila);
+
+  });
+
+
   if(disposiciones.length != 0){
     for(var index=0; index<disposiciones.length; index++){
       agregarDisposicion(disposiciones[index],editable);
@@ -1568,3 +1609,16 @@ function agregarLogModif(log, editable){
             )
       }
 }
+
+function obtenerResoluciones(){
+  var resoluciones=[];
+  $.each($('#tablaResolucion tbody tr') , function(indexMayor){
+    var res={
+      id_resolucion:$(this).attr("id-resolucion"),
+      nro_resolucion:$(this).find('td:eq(0)').text(),
+      nro_resolucion_anio: $(this).find('td:eq(1)').text(),
+    }
+    resoluciones.push(res);
+  });
+  return resoluciones;
+};
