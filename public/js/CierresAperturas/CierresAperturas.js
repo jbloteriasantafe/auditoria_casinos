@@ -710,6 +710,7 @@ $('#btn-guardar-cierre').on('click', function(e){
         total_anticipos_c:$('#totalAnticipoCierre').val(),
         id_mesa_de_panio:$('#inputMesaCierre').obtenerElementoSeleccionado(),
         fichas: fichas,
+        id_moneda:moneda,
 
       }
 

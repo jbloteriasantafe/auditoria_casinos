@@ -61,6 +61,7 @@ class ABMCierreController extends Controller
       'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $yaExiste = Cierre::where('id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio'])
                           ->where('fecha','=',$validator->getData()['fecha'])
@@ -88,6 +89,7 @@ class ABMCierreController extends Controller
       $cierre->casino()->associate($request->id_casino);
       $cierre->fiscalizador()->associate($request->id_fiscalizador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);
+      $cierre->moneda()->associate($request->id_moneda);
       $cierre->estado_cierre()->associate(1);//CARGADO
       $cierre->save();
       $detalles = array();
@@ -132,6 +134,7 @@ class ABMCierreController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $validator = $this->validarFichas($validator);
     })->validate();
@@ -147,6 +150,7 @@ class ABMCierreController extends Controller
     $cierre->hora_fin = $request->hora_fin;
     $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_a;
     $cierre->total_anticipos_c = $request->total_anticipos_c;
+    $cierre->moneda()->associate($request->id_moneda);
     $cierre->fiscalizador()->associate($request->id_fiscalizador);
     $cierre->save();
     $detalles = array();

@@ -65,6 +65,7 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' => ['nullable'],
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $ap = Apertura::where(['fecha','=',$validator->getData()['fecha'],
                             ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']]])
@@ -74,7 +75,7 @@ class ABMAperturaController extends Controller
         $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
                                  );
       }
-      
+
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -85,6 +86,7 @@ class ABMAperturaController extends Controller
     if($user->usuarioTieneCasino($request->id_casino)){
       $mesa = Mesa::find($request->id_mesa_de_panio);
       $apertura = new Apertura;
+      $apertura->moneda()->associate($request->id_moneda);
       $apertura->fecha =$request->fecha;
       $apertura->hora = $request->hora;
       $apertura->total_pesos_fichas_a = $request->total_pesos_fichas_a;
@@ -126,6 +128,7 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
 
      })->validate();
@@ -142,7 +145,7 @@ class ABMAperturaController extends Controller
       $apertura->fiscalizador()->associate($request->id_fiscalizador);
       $apertura->save();
       $detalles = $apertura->detalles;
-
+      $apertura->moneda()->associate($request->id_moneda);
       foreach ($detalles as $d) {
         $d->apertura()->dissociate();
         $d->delete();

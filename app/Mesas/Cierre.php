@@ -14,7 +14,7 @@ class Cierre extends Model
   protected $visible = array('id_cierre_mesa','fecha','hora_inicio',
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_estado_cierre'
+                              'id_mesa_de_panio','id_estado_cierre','id_moneda'
                             );
   public $timestamps = false;
 
@@ -22,8 +22,12 @@ class Cierre extends Model
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
                               'id_tipo_cierre','id_mesa_de_panio',
-                              'id_estado_cierre'];
+                              'id_estado_cierre','id_moneda'];
 
+
+  public function moneda(){
+    return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');
+  }
 
   public function cierre_apertura(){
     return $this->hasOne('App\Mesas\CierreApertura','id_cierre_mesa','id_cierre_mesa');

@@ -104,7 +104,7 @@ class BCAperturaController extends Controller
   public function getApertura($id){//agregar nombre juego
     $apertura = Apertura::find($id);
     $c=array();
-    $moneda =$apertura->mesa->moneda;
+    $moneda =$apertura->moneda;
     if(!empty($apertura)){
       if(isset($apertura->cierre_apertura)){
               $conjunto = $apertura->cierre_apertura;
