@@ -322,8 +322,17 @@ $cas = $usuario['usuario']->casinos;
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-
-            <div class="col-xs-6">
+            <div class="col-md-4">
+              <h6>FECHA DE PRODUCCIÓN</h6>
+              <div class="form-group">
+                <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-xs-4">
               <h6>CASINO</h6>
               <select class="form-control" name="" id="casinoCierre" >
                 <option value="0" selected>- Seleccione un Casino -</option>
@@ -358,25 +367,20 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-4">
-              <h6>FISCALIZADOR</h6>
+              <h6>FISCALIZADOR DE TOMA</h6>
               <input id="fiscalizadorCierre" class="form-control" type="text" value=""  size="100" autocomplete="off">
             </div>
             <div class="col-md-4">
-              <h6>FECHA DE PRODUCCIÓN</h6>
-              <div class="form-group">
-                <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
+              <h6>MONEDA</h6>
+              <input type="radio" name="moneda" style="margin-left:30px !important" value="1"><span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
+              <input type="radio" name="moneda" style="margin-left:30px !important" value="2"><span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
             </div>
           </div>
           <br>
           <div class="row">
             <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
               <div class="col-md-4">
-                <h6>HORA INICIO</h6>
+                <h6>HORA APERTURA</h6>
                 <div class='input-group date' id='hora_cierre' data-link-field="desde_hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora de inicio" id="horario_ini_c"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -484,7 +488,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
               </div>
               <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                <h6>CARGADOR</h6>
+                <h6>FISCALIZADOR DE CARGA</h6>
                 <div class="col-xs-2 col-xs-offset-1 iconoCargadorCi">
                     <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
                 </div>
@@ -498,7 +502,7 @@ $cas = $usuario['usuario']->casinos;
           <div class="row">
             <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
                 <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                  <h6>HORA INICIO</h6>
+                  <h6>HORA APERTURA</h6>
                   <div class="row ">
 
                   <div class="col-xs-2 col-xs-offset-1 iconoFecha">
@@ -653,28 +657,27 @@ $cas = $usuario['usuario']->casinos;
 
                 <div class="col-xs-3" style:"display:inline">
                   <h6 class="linea">Casino:</h6>
-                    <h5 class="linea cas_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important"></h5>
+                  <input type="text" name="" class="form-control linea cas_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-3">
-                  <h6 class="linea">Fecha Producción: </h6>
-                  <h5 class="linea f_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important">MONEDA: </h5>
+                  <h6 class="linea">Fecha: </h6>
+                  <input type="text" name="" class="form-control linea f_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-2" style:"display:inline">
                   <h6 class="linea">Mesa:</h6>
-                  <h5 class="linea nro_cierre" style="font-size:15px;padding-left: 1px !important;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea nro_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-4">
                   <h6 class="linea">Juego:</h6>
-                  <h5 class="linea j_cierre" style="font-size:15px; padding-left: 1px !important;color:#616161 !important;">JUEGO: </h5>
+                  <input type="text" name="" class="form-control linea j_cierre" value="" readonly="true">
                 </div>
                 <br>
                 <br>
             </div>
             <br>
-            <br>
             <div class="row" >
-              <div class="col-xs-4">
-                <h6 text-align="center">Hora Inicio: </h6>
+              <div class="col-xs-6">
+                <h6 text-align="center">Hora de Apertura: </h6>
                 <div class='input-group date' id='hora_In_cierre_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_inicio_cierre"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -682,7 +685,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
                 <br>
               </div>
-              <div class="col-xs-4">
+              <div class="col-xs-6">
                 <h6 text-align="center">Hora Cierre: </h6>
                 <div class='input-group date' id='hora_cierre_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_cierre_cierre"/>
@@ -692,12 +695,20 @@ $cas = $usuario['usuario']->casinos;
                 <br>
               </div>
               <br>
-              <div class="col-xs-4">
-                <h6 text-align="center" class="linea">Fiscalizador: </h6>
+            </div>
+            <div class="row">
+
+              <div class="col-xs-6">
+                <h6 text-align="center" class="linea">Fiscalizador de Toma: </h6>
                 <br>
                 <div class="">
                   <input class="linea form-control" id="fis_cierre" type="text" value=""  size="100" autocomplete="off">
                 </div>
+              </div>
+              <div class="col-xs-6" style="margin-top:-5px">
+                <h6 class="mon_apertura">Moneda: </h6>
+                <input type="radio" name="monedaModCie" style="margin-left:60px;margin-top:-5px" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
+                <input type="radio" name="monedaModCie" style="margin-left:60px;margin-top:-5px" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
               </div>
             </div>
             <br>
@@ -720,11 +731,11 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL ($): </b></h6>
+                  <h6><b>TOTAL: </b></h6>
                   <input id="totalModifCie" type="text" value="" readonly="true">
                 </div>
                 <div class="row">
-                  <h6><b>TOTAL ANTICIPOS ($): </b></h6>
+                  <h6><b>TOTAL ANTICIPO: </b></h6>
                   <input id="totalAnticipoModif" type="text" value="">
                 </div>
                 <br><br>
@@ -746,6 +757,7 @@ $cas = $usuario['usuario']->casinos;
     </div>
   </div>
 </div>
+
 
 <!-- MODAL CARGA APERTURA -->
 <div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -805,7 +817,7 @@ $cas = $usuario['usuario']->casinos;
                         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                       ?>
                       <div class="col-md-6">
-                        <h6>CARGADOR</h6>
+                        <h6>Fiscalizador de Carga: </h6>
                         <input id="cargador" type="text"  name="cargador" value="" data-cargador="" readonly="true">
                       </div>
 
@@ -838,8 +850,13 @@ $cas = $usuario['usuario']->casinos;
                             <div class="detalleMesa">
                               <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
                                 <div class="row">
+                                  <div class="col-xs-3">
+                                    <h5>MONEDA</h5>
+                                    <input type="radio" name="monedaApertura" style="margin-left:10px;" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
+                                    <input type="radio" name="monedaApertura" style="margin-left:10px;" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
+                                  </div>
                                   <div class="col-xs-4">
-                                    <h5>Hora</h5>
+                                    <h5>HORA DE APERTURA</h5>
                                     <div class='input-group date' id='hora_apertura' data-link-field="desde_hora" data-link-format="HH:ii">
                                         <input type='text' class="form-control" placeholder="Hora" id="horarioAp"/>
                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -847,20 +864,16 @@ $cas = $usuario['usuario']->casinos;
                                     </div>
                                     <br>
                                   </div>
-                                  <div class="col-xs-4">
-                                    <h5>FISCALIZADOR</h5>
+                                  <div class="col-xs-5">
+                                    <h5>FISCALIZADOR DE TOMA</h5>
                                       <input id="fiscalizApertura" class="form-control" type="text" value=""  size="100" autocomplete="off">
                                     <br>
                                   </div>
-                                  <div class="col-xs-4">
-                                    <h5>MONEDA</h5>
-                                      <input id="moneda" class="form-control" type="text" value=""  size="100" readonly="true">
-                                   <br>
-                                  </div>
+
                                 </div>
                                 <br>
                                 <div class="row">
-                                    <h5 align="center">FICHAS</h5>
+                                    <h6 align="center">FICHAS</h6>
                                     <div class="row">
                                       <div class=" col-xs-6">
                                     <table id="tablaCargaApertura">
@@ -888,7 +901,8 @@ $cas = $usuario['usuario']->casinos;
                                 <div class="col-xs-4" >
                                   <br>
                                   <h6 align="center">TOTAL ($):</h6><input id="totalApertura" type="text" class="form-control" value="" display="inline" readonly >
-                                  <button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
+                                  <div><button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button></div>
+
 
                                   <br>
                                 </div>
@@ -977,7 +991,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
             </div>
             <div class="col-md-4" align="center" style="border-left:1px solid #ccc">
-              <h6>FISCALIZADOR</h6>
+              <h6>FISCALIZADOR DE TOMA</h6>
               <div class="row ">
               <div class="col-xs-2 col-xs-offset-1 icoFiscaDetA">
                   <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
@@ -989,7 +1003,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
             </div>
             <div class="col-md-4" align="center" style="border-left:1px solid #ccc">
-              <h6>CARGADOR</h6>
+              <h6>FISCALIZADOR DE CARGA</h6>
               <div class="row ">
               <div class="col-xs-2 col-xs-offset-1 iconoCargadorDetA">
                   <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
@@ -1067,18 +1081,18 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <div class="row">
                 <div class="col-xs-4">
-                  <h6 class="linea">Fecha Producción: </h6>
-                    <h5 class="linea f_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <h6 class="linea">Fecha: </h6>
+                  <input type="text" name="" class="form-control linea f_apertura" value="" readonly="true">
                 </div>
 
                 <div class="col-xs-4" style:"display:inline">
                   <h6 class="linea">Casino: </h6>
-                    <h5 class="linea cas_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea cas_apertura" value="" readonly="true">
                 </div>
 
                 <div class="col-xs-4" style:"display:inline">
                   <h6 class="linea">Mesa: </h6>
-                  <h5 class="linea nro_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea nro_apertura" value="" readonly="true">
 
                 </div>
             </div>
@@ -1087,36 +1101,35 @@ $cas = $usuario['usuario']->casinos;
             <div class="row" >
                 <div class="col-xs-4">
                   <h6 class="linea">Juego: </h6>
-                  <h5 class="linea j_apertura" style="font-size:13px; color:#616161 !important;">JUEGO: </h5>
+                  <input type="text" name="" class="form-control linea j_apertura" value="" readonly="true">
                 </div>
                 <div class="col-xs-4">
-                  <h6 class="linea">Moneda: </h6>
-                  <h5 class="linea mon_apertura" style="font-size:13px;color:#616161 !important;">MONEDA: </h5>
-                </div>
-                <div class="col-xs-4">
-                  <h6 class="linea">Cargador: </h6>
-                  <h5 class="linea car_apertura" style="font-size:13px;color:#616161 !important;">CARGADOR: </h5>
+                  <h6 class="linea">Fiscalizador de Carga: </h6>
+                  <input type="text" name="" class="form-control linea car_apertura" value="" readonly="true">
                 </div>
             </div>
             <br>
-            <br>
             <div class="row">
               <div class="col-xs-4">
-                <h6 text-align="center">Hora: </h6>
+                <h6 text-align="center">Hora de Apertura: </h6>
                 <div class='input-group date' id='hora_apertura_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_apertura"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
                 </div>
-                <br>
               </div>
               <br>
+
               <div class="col-xs-4">
-                <h6 text-align="center" class="linea">Fiscalizador: </h6>
+                <h6 text-align="center" class="linea">Fiscalizador de Toma: </h6>
                 <input class="linea form-control" id="fis_apertura" type="text" value=""  size="100" autocomplete="off">
               </div>
+              <div class="col-xs-4" style="margin-top:-10px">
+                <h6 class="mon_apertura">Moneda: </h6>
+                <input type="radio" name="monedaModApe" style="margin-left:30px;margin-top:-5px;" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
+                <input type="radio" name="monedaModApe" style="margin-left:30px;margin-top:-5px;" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
+              </div>
             </div>
-            <br>
             <br>
             <div class="row">
               <div class="col-xs-6">
@@ -1136,7 +1149,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL ($): </b></h6>
+                  <h6><b>TOTAL: </b></h6>
                   <input id="totalModifApe" type="text" value="" readonly="true">
                 </div>
               </div>
@@ -1157,6 +1170,7 @@ $cas = $usuario['usuario']->casinos;
     </div>
   </div>
 </div>
+
 
 
 <!-- MODAL VALIDAR APERTURA -->
@@ -1234,7 +1248,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="col-md-12" style="border-top:2px solid #ccc; ">
                     <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>HORA INICIO</h6>
+                      <h6>HORA APERTURA</h6>
                       <div class="row ">
 
                       <div class="col-xs-2 col-xs-offset-1 iconoFecha">
@@ -1301,7 +1315,7 @@ $cas = $usuario['usuario']->casinos;
                     </div>
                   </div>
                   <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                    <h6>FISCALIZADOR</h6>
+                    <h6>FISCALIZADOR DE TOMA</h6>
                     <div class="col-xs-2 col-xs-offset-1 iconoFiscalizador">
                         <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
@@ -1314,7 +1328,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
                     <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>CARGADOR</h6>
+                      <h6>FISCALIZADOR DE CARGA</h6>
                       <div class="row ">
 
                       <div class="col-xs-2 col-xs-offset-1 iconoCargador">
