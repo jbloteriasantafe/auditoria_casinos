@@ -532,6 +532,9 @@ $('#btn-guardar-apertura').on('click', function(e){
             if(typeof response.total_pesos_fichas_a !== 'undefined'){
               $('#mensajeErrorCargaAp').show();
             }
+            if(typeof response.id_moneda !== 'undefined'){
+              $('#mensajeErrorCargaAp').show();
+            }
 
           },
       })
@@ -767,6 +770,9 @@ $('#btn-guardar-cierre').on('click', function(e){
               $('#mensajeFichasError').show();
             }
             if(typeof response.id_mesa_de_panio !== 'undefined'){
+              $('#mensajeFichasError').show();
+            }
+            if(typeof response.id_moneda !== 'undefined'){
               $('#mensajeFichasError').show();
             }
 

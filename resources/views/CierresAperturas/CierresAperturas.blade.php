@@ -367,7 +367,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-4">
-              <h6>FISCALIZADOR DE TOMA</h6>
+              <h6>FISCALIZADOR DE CARGA</h6>
               <input id="fiscalizadorCierre" class="form-control" type="text" value=""  size="100" autocomplete="off">
             </div>
             <div class="col-md-4">
@@ -442,7 +442,6 @@ $cas = $usuario['usuario']->casinos;
 
           <div class="modal-footer">
             <button type="button" class="btn btn-successAceptar" id="btn-guardar-cierre" value="nuevo" hidden="true">GUARDAR</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           </div>
           <div id="mensajeFichasError" hidden>
             <br>
