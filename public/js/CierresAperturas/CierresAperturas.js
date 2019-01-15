@@ -958,7 +958,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('.cas_apertura').val( data.casino.nombre);
       $('#hs_apertura').val(data.apertura.hora);
       $('.j_apertura').val(data.juego.nombre_juego);
-      $('.nro_apertura').text(data.mesa.nro_mesa);
+      $('.nro_apertura').val(data.mesa.nro_mesa);
       $("input[name='monedaModApe'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
 
@@ -1026,14 +1026,14 @@ $(document).on('click', '.modificarCyA', function(e) {
 
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
-      $('.f_cierre').text(data.cierre.fecha);
+      $('.f_cierre').val(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
-      $('.cas_cierre').text( data.casino.nombre);
+      $('.cas_cierre').val( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
-      $('.j_cierre').text(data.nombre_juego);
-      $('.nro_cierre').text(data.mesa.nro_mesa);
+      $('.j_cierre').val(data.nombre_juego);
+      $('.nro_cierre').val(data.mesa.nro_mesa);
       $('#totalAnticipoModif').val(data.cierre.total_anticipos_c);
       $('#totalModifCie').val(data.cierre.total_pesos_fichas_c);
 
