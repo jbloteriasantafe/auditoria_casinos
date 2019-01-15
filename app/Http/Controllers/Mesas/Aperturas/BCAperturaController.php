@@ -104,11 +104,7 @@ class BCAperturaController extends Controller
   public function getApertura($id){//agregar nombre juego
     $apertura = Apertura::find($id);
     $c=array();
-    if(!empty($apertura->moneda)){
-      $moneda =$apertura->moneda;
-    }else{
-      $moneda = $apertura->mesa->moneda;
-    }
+    $moneda =$apertura->mesa->moneda;
     if(!empty($apertura)){
       if(isset($apertura->cierre_apertura)){
               $conjunto = $apertura->cierre_apertura;
@@ -317,10 +313,13 @@ class BCAperturaController extends Controller
     }
 
     if(empty($request->fecha)){
+      $date = \Carbon\Carbon::today();
       $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                               ->where($filtros)
+                              ->whereMonth('apertura_mesa.fecha', $date->month)
+                              ->whereYear('apertura_mesa.fecha',$date->year)
                               ->whereIn('apertura_mesa.id_casino',$cas)
                               ->orderBy('apertura_mesa.fecha','desc')
                               ->take(31)
