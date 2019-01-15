@@ -334,6 +334,7 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
+
       $.get('usuarios/quienSoy',function(data){
         $('#cargador').val(data.usuario.nombre);
         $('#cargador').attr('data-cargador',data.usuario.id_usuario);
@@ -1084,7 +1085,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 $(document).on('change','.modApertura',function(){
 
   $('#modificar_apertura').show();
-
+  console.log('sdfsdf',$(this).attr('data-ingresado'));
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
       if($(this).val()!=null && $(this).val()!=0)
       {   var cantidad=$(this).val();
@@ -1130,7 +1131,7 @@ $(document).on('change','.modApertura',function(){
         var cantidad=0;
         var subtotal=0;
         subtotal = Number($('#totalModifApe').val());
-        subtotal -= Number($(this).attr('data-ingresado'));
+        subtotal -= Number($(this).attr('data-ingresado')*($(this).attr('data-valor')));
 
         $('#totalModifApe').val(subtotal);
       }
@@ -1710,6 +1711,8 @@ function limpiarCargaCierre(){
   $('#horarioCie').val('');
   $('#horario_ini_c').val('');
   $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
+  document.querySelectorAll('input[name=moneda]').forEach((x) => x.checked=false);
+
 
 }
 
@@ -1722,6 +1725,7 @@ function limpiarCargaApertura(){
   $('#cargador').val('');
   $('#tablaCargaApertura tbody tr').remove();
   $('#mensajeExitoCargaAp').hide();
+  document.querySelectorAll('input[name=monedaApertura]').forEach((x) => x.checked=false);
 
 }
 

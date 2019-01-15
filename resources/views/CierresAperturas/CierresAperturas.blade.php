@@ -339,7 +339,6 @@ $cas = $usuario['usuario']->casinos;
                 @foreach ($casinos as $cas)
                 <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                 @endforeach
-                <option value="4" >- Todos los Casinos-</option>
               </select>
             </div>
             <br>
@@ -788,7 +787,6 @@ $cas = $usuario['usuario']->casinos;
                         @foreach ($casinos as $cas)
                         <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                         @endforeach
-                        <option value="4" >- Todos los Casinos-</option>
                       </select>
                     </div>
                     <br>
@@ -915,7 +913,7 @@ $cas = $usuario['usuario']->casinos;
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-successAceptar" id="btn-guardar-apertura" value="nuevo" hidden="true">GUARDAR</button>
-                          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                          <button type="button" class="btn btn-default" data-dismiss="modal">FINALIZAR</button>
                           <input type="text" id="id_mesa_ap" name="" value="" hidden>
                         </div>
 
