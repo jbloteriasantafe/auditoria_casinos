@@ -32,6 +32,19 @@ $('#btn-nuevo-pack').click(function(e){
   
   });
 
+  //Mostrar modal para asociar paquete con maquina
+$('#btn-asociar-pack-mtm').click(function(e){
+    // $('#modalNuevoPack .modal-title').text('NUEVO PAQUETE-JUEGO');
+    e.preventDefault();
+    // $('#btn-crear-pack').val('nuevo');
+    // //limpio modal
+    // $('#mensajeExito').hide();
+    // $('#frmPack').trigger('reset');
+    // $('#alertaNombrePack').hide();
+    $('#modalAsociarPackMtm').modal('show');
+  
+  });
+
 
   //Mostrar modal para agregar nuevo Pack
 $('#btn-open-asociar-pack-juego').click(function(e){

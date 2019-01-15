@@ -120,6 +120,26 @@ $id_usuario = session('id_usuario');
                     </div>
                   </div>
 
+                  {{-- boton asociar paquete con mtm --}}
+                  <div class="row">
+                    <div class="col-lg-12">
+                     <a href="" id="btn-asociar-pack-mtm" style="text-decoration: none;">
+                      <div class="panel panel-default panelBotonNuevo">
+                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                              <div class="col-xs-12">
+                                <center>
+                                    <h5 class="txtLogo">+</h5>
+                                    <h4 class="txtNuevo">ASOCIAR PAQUETE-MTM</h4>
+                                </center>
+                              </div>
+                          </div>
+                      </div>
+                     </a>
+                    </div>
+                  </div>
+                  {{-- fin de boton asociar paquete con mtm --}}
 
                   {{-- <div class="row">
                     <div class="col-lg-12">
@@ -311,6 +331,153 @@ $id_usuario = session('id_usuario');
         </div>
       </div>
 </div>
+
+
+
+
+
+
+   <!-- Modal Asociar Paquete-MTM-->
+   <div class="modal fade" id="modalAsociarPackMtm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width: 70%">
+       <div class="modal-content">
+         <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+           <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+           <h3 class="modal-title">| ASOCIAR PAQUETE CON MTM</h3>
+          </div>
+
+          <div  id="colapsado" class="collapse in">
+
+          <div class="modal-body modalCuerpo">
+
+            <form id="frmPack" name="frmPack" class="form-horizontal" novalidate="">
+
+                    <div class="row">
+                      <div class="col-md-3">
+                        <h5>Máquina</h5>
+                        <input type="text" class="form-control" id="identificadorPack" placeholder="Nro de admin" name="identificadorPack"  value="">
+                        <br><span id="alertaIdentificadorPack" class="alertaSpan"></span>
+                      </div>
+                      <div class="col-md-3">
+                        <h5>Identificador de Paquete</h5>
+                        <input type="text" class="form-control" id="prefijo" name="descripcuib"  value="">
+                        <br><span id="alertaPrefijo" class="alertaSpan"></span>
+                      </div>
+                      <div class=" btn-group">
+                          <h5>Acciones</h5>
+                        <button disabled="disabled">QUITAR</button>
+                        {{-- <button disabled="disabled">AGREGAR</button> --}}
+                      </div>
+                      
+                    </div>
+                    
+
+            </form>
+            <table id="tablaJuegosPack" class="table" style="margin-top:30px; margin-bottom:20px;">
+              <thead>
+                <tr>
+                    <th width="10%">HABILITADO</th>
+                    <th width="25%">NOMBRE</th>
+                    <th width="10%">DENOMINACIÓN</th>
+                    <th width="10%">% DEV</th>
+                    <th width="20%">TABLAS DE PAGO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <input type="checkbox" name="" id="" >
+                  </td>
+                  <td>
+                    <p>Juego 1</p>
+                  </td>
+                  <td>
+                    <input type="text" disabled>
+                  </td>
+                  <td>
+                    <input type="text" disabled>
+                  </td>
+                  <td>
+                    <select name="" id="">
+                      <option value="">muestra</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" name="" id="">
+                  </td>
+                  <td>
+                    <p>Juego 2</p>
+                  </td>
+                  <td>
+                    <input type="text">
+                  </td>
+                  <td>
+                    <input type="text">
+                  </td>
+                  <td>
+                    <select name="" id="">
+                      <option value="">muestra</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" name="" id="">
+                  </td>
+                  <td>
+                    <p>Juego 3</p>
+                  </td>
+                  <td>
+                    <input type="text">
+                  </td>
+                  <td>
+                    <input type="text">
+                  </td>
+                  <td>
+                    <select name="" id="">
+                      <option value="">muestra</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                    <td>
+                      <input type="checkbox" name="" id="">
+                    </td>
+                    <td>
+                      <p>Juego 4</p>
+                    </td>
+                    <td>
+                      <input type="text" disabled>
+                    </td>
+                    <td>
+                      <input type="text" disabled>
+                    </td>
+                    <td>
+                      <select name="" id="">
+                        <option value="">muestra</option>
+                      </select>
+                    </td>
+                  </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            <input type="hidden" id="id_pack" name="id_pack" value="0">
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+
     
 
     <!-- Modal Asociar Pack-Juego-->

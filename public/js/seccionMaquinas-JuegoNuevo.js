@@ -38,7 +38,7 @@ $('#inputJuego').on('seleccionado',function(){
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
       $('#inputPack').empty();
-      $('#inputPack').append($('<option>').text("-").val("-1"));
+      $('#inputPack').append($('<option>').text("No").val("-1"));
         if(data.pack!=""){
             for (var i = 0; i < data.pack.length; i++) {
               
@@ -127,7 +127,7 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
     nombre_pack=nombre_pack_sel;
     
 }else{
-  nombre_pack="-"
+  nombre_pack="No"
 }
   
   
