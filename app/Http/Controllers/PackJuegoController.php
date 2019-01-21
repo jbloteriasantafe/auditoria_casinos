@@ -249,27 +249,25 @@ class PackJuegoController extends Controller
     //TODO validar request, id_pack exista en pack
 
     $MTM=Maquina::find($data['id_mtm']);
-
+    $juegos_finales=array();
     $id_pack=$data['id_pack'];
     if ($id_pack=='-1'){
       $MTM->id_pack=null;
+
     }else{
       $MTM->id_pack=$id_pack;
-    }
-
-    $juegos_finales=array();
-
-    foreach($data['juegos'] as $unJuego){
-      if($unJuego['habilitado']=='true'){
-        $habilitado=1;
-      }else{
-        $habilitado=0;
+      foreach($data['juegos'] as $unJuego){
+        if($unJuego['habilitado']=='true'){
+          $habilitado=1;
+        }else{
+          $habilitado=0;
+        }
+        $juegos_finales[ $unJuego['id_juego']] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['devolucion'],'id_pack' => $id_pack, 'habilitado' => $habilitado]; 
       }
-      $juegos_finales[ $unJuego['id_juego']] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['devolucion'],'id_pack' => $id_pack, 'habilitado' => $habilitado]; 
     }
 
     $MTM->juegos()->sync($juegos_finales);
-   
+   $MTM->save();
     return ['OK'=> 'ok'];
     // agregar/quitar id_pack a mtm
 
