@@ -575,7 +575,7 @@ Route::post('mesas/modificarMesa/{id_casino}','Mesas\Mesas\ABMMesaController@mod
 Route::get('mesas/eliminarMesa/{id_casino}/{id_mesa_de_panio}','Mesas\Mesas\ABMMesaController@eliminar');
 Route::get('mesas/cargarDatos','Mesas\Mesas\BuscarMesasController@getDatos');
 Route::get('mesas/detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
-Route::get('mesas/obtenerMesasApertura/{id_cas}/{fecha}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasinoSinApertura');
+Route::get('mesas/obtenerMesasApertura/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
 Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@datosSegunCasino');
 
 //gestion cierres y aperturas

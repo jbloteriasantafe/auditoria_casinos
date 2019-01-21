@@ -373,7 +373,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-md-4">
               <h6>MONEDA</h6>
               @foreach($monedas as $moneda)
-              <input type="radio" name="moneda" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+              <input type="radio" name="moneda" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
               @endforeach
             </div>
           </div>
@@ -709,7 +709,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="col-xs-6" style="margin-top:-5px">
                 <h6 class="mon_apertura">Moneda: </h6>
                 @foreach($monedas as $moneda)
-                <input type="radio" name="monedaModCie" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                <input type="radio" name="monedaModCie" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
                 @endforeach
               </div>
             </div>
@@ -855,7 +855,7 @@ $cas = $usuario['usuario']->casinos;
                                   <div class="col-xs-3">
                                     <h5>MONEDA</h5>
                                     @foreach($monedas as $moneda)
-                                    <input type="radio" name="monedaApertura" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                                    <input type="radio" name="monedaApertura" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
                                     @endforeach
                                     </div>
                                   <div class="col-xs-4">
@@ -1130,7 +1130,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="col-xs-4" style="margin-top:-10px">
                 <h6 class="mon_apertura">Moneda: </h6>
                 @foreach($monedas as $moneda)
-                <input type="radio" name="monedaModApe" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                <input type="radio" name="monedaModApe" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
                 @endforeach</div>
             </div>
             <br>

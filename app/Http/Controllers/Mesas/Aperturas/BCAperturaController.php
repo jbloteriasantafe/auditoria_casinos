@@ -261,8 +261,9 @@ class BCAperturaController extends Controller
 
                         //fechas de los cierres que puede hacer join
         $cierres = DB::table('cierre_mesa')
-                          ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.fecha')
+                          ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.fecha','moneda.siglas','cierre_mesa.hora_inicio','cierre_mesa.hora_fin')
                           ->join('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa','left outer')
+                          ->join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
                           ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                           ->where('cierre_mesa.fecha','<',$apertura->fecha)
                           ->whereNull('cierre_apertura.id_cierre_apertura')
