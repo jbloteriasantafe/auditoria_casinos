@@ -200,7 +200,7 @@ class PackJuegoController extends Controller
 
     // obtenerJuegosDePackMTM obtiene todo los juegos relacionados con la maquina que pertenecen al paquete
   public function obtenerJuegosDePackMTM($id_maquina){
-
+    //TODO validar request
     $mtm = Maquina::find($id_maquina);  
     $id_pack=$mtm->id_pack;
     $resultados=array();
@@ -215,7 +215,7 @@ class PackJuegoController extends Controller
     array_push($resultados,$pack);
 
     $juegosMTM=$mtm->juegos;
-
+    
     // tomo como base los juegos del pack y voy pisando con los valores de la maquina
     foreach($pack->juegos as $jp){
       $obj= new \stdClass();
@@ -225,9 +225,15 @@ class PackJuegoController extends Controller
 
       // si la maquina lo tiene habilitado se pisa con esa informacion
       foreach($juegosMTM as $jM){
-        if ($jp->id_juego==$jM->id_juego && $jM->habilitado){
-          $obj->habilitado=true;
+        if ($jp->id_juego==$jM->id_juego ){
+         $obj->denominacion=$jM->pivot->denominacion;
+         $obj->porcentaje_devolucion=$jM->pivot->porcentaje_devolucion;
+          if ($jM->pivot->habilitado!=0){
+            $obj->habilitado=true;
+          }
+        
         }
+        
       }
 
       array_push($resultados,$obj);
@@ -235,6 +241,41 @@ class PackJuegoController extends Controller
     }
     
     return ['juegos'=>$resultados];
+
+  }
+
+
+  public function asociarMtmJuegosPack(Request $data){
+    //TODO validar request, id_pack exista en pack
+
+    $MTM=Maquina::find($data['id_mtm']);
+
+    $id_pack=$data['id_pack'];
+    if ($id_pack=='-1'){
+      $MTM->id_pack=null;
+    }else{
+      $MTM->id_pack=$id_pack;
+    }
+
+    $juegos_finales=array();
+
+    foreach($data['juegos'] as $unJuego){
+      if($unJuego['habilitado']=='true'){
+        $habilitado=1;
+      }else{
+        $habilitado=0;
+      }
+      $juegos_finales[ $unJuego['id_juego']] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['devolucion'],'id_pack' => $id_pack, 'habilitado' => $habilitado]; 
+    }
+
+    $MTM->juegos()->sync($juegos_finales);
+   
+    return ['OK'=> 'ok'];
+    // agregar/quitar id_pack a mtm
+
+    // limpiar todas las asociaciones con el juego, ya que estes seria el estado final de la mtm
+
+    // asociar cada juego con los valores de denominacion y si se encuentra habilitado
 
   }
 

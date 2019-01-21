@@ -135,6 +135,7 @@ Route::get('packJuegos/obtenerJuegos/{id}','PackJuegoController@obtenerJuegosDeP
 Route::post('packJuego/guardarPackJuego','PackJuegoController@guardarPackJuego');
 Route::post('packJuego/modificarPackJuego','PackJuegoController@modificarPackJuego');
 Route::post('packJuego/asociarPackJuego','PackJuegoController@asociarPackJuego');
+Route::post('packJuego/asociarMtmJuegosPack','PackJuegoController@asociarMtmJuegosPack');
 Route::delete('packJuegos/eliminarPackJuego/{id}','PackJuegoController@eliminarPack');
 Route::get('packJuegos/obtenerJuegosMTM/{id_maquina}','PackJuegoController@obtenerJuegosDePackMTM');
 /***********

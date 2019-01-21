@@ -475,12 +475,27 @@ $('#quitarPack').on("click",function(e){
 
 $('#btn-asociar-pack-mtm-juego').on('click',function(e){
     e.preventDefault();
+
+    var formData = {
+        id_pack: $('#inputPackActual').attr('data-idPack'),
+        id_mtm:$('#inputMTM').attr('data-elemento-seleccionado'),
+        juegos:obtenerJuegosHabilitados(),
+      }
+
+      $.ajax({
+        type: "POST",
+        url: 'packJuego/asociarMtmJuegosPack',
+        data: formData,
+        dataType: 'json',
+        success: function (resultados) {
+         console.log(resultados)
+        },
+        error: function (data) {
+          
+        }
+      });
     
-    id_pack=$('#inputPackActual').attr('data-idPack');
-    id_mtm=$('#inputMTM').attr('data-elemento-seleccionado');
-    
-    juegos=obtenerJuegosHabilitados();
-    console.log(juegos);
+
 
 });
 
@@ -584,11 +599,13 @@ function agregarRenglonListaJuegoPackMTM(id_juego, nombre_juego ){
                );       
    
     fila.append($('<td>').append($('<input>')
-        .attr('type','text')));
+        .attr('type','text').val(juego.denominacion))
+        );
 
     fila.append($('<td>').append($('<input>')
-        .attr('type','text')));
-        
+        .attr('type','text').val(juego.porcentaje_devolucion))
+        );
+    
     
   
 
