@@ -372,8 +372,9 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <div class="col-md-4">
               <h6>MONEDA</h6>
-              <input type="radio" name="moneda" style="margin-left:30px !important" value="1"><span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
-              <input type="radio" name="moneda" style="margin-left:30px !important" value="2"><span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
+              @foreach($monedas as $moneda)
+              <input type="radio" name="moneda" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+              @endforeach
             </div>
           </div>
           <br>
@@ -707,8 +708,9 @@ $cas = $usuario['usuario']->casinos;
               </div>
               <div class="col-xs-6" style="margin-top:-5px">
                 <h6 class="mon_apertura">Moneda: </h6>
-                <input type="radio" name="monedaModCie" style="margin-left:60px;margin-top:-5px" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
-                <input type="radio" name="monedaModCie" style="margin-left:60px;margin-top:-5px" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
+                @foreach($monedas as $moneda)
+                <input type="radio" name="monedaModCie" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                @endforeach
               </div>
             </div>
             <br>
@@ -852,9 +854,10 @@ $cas = $usuario['usuario']->casinos;
                                 <div class="row">
                                   <div class="col-xs-3">
                                     <h5>MONEDA</h5>
-                                    <input type="radio" name="monedaApertura" style="margin-left:10px;" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
-                                    <input type="radio" name="monedaApertura" style="margin-left:10px;" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
-                                  </div>
+                                    @foreach($monedas as $moneda)
+                                    <input type="radio" name="monedaApertura" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                                    @endforeach
+                                    </div>
                                   <div class="col-xs-4">
                                     <h5>HORA DE APERTURA</h5>
                                     <div class='input-group date' id='hora_apertura' data-link-field="desde_hora" data-link-format="HH:ii">
@@ -1126,9 +1129,9 @@ $cas = $usuario['usuario']->casinos;
               </div>
               <div class="col-xs-4" style="margin-top:-10px">
                 <h6 class="mon_apertura">Moneda: </h6>
-                <input type="radio" name="monedaModApe" style="margin-left:30px;margin-top:-5px;" value="1"> <span style="font-family: Roboto-Regular; padding-left:10px;">PESOS</span> <br>
-                <input type="radio" name="monedaModApe" style="margin-left:30px;margin-top:-5px;" value="2"> <span style="font-family: Roboto-Regular; padding-left:10px;">DOLARES</span>
-              </div>
+                @foreach($monedas as $moneda)
+                <input type="radio" name="monedaModApe" style="margin-left:30px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                @endforeach</div>
             </div>
             <br>
             <div class="row">

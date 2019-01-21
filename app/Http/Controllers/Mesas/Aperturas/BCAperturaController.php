@@ -24,6 +24,7 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
+use App\Mesas\Moneda;
 use App\Mesas\Apertura;
 use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
@@ -92,11 +93,13 @@ class BCAperturaController extends Controller
 
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
     $fichas = Ficha::all();
+    $monedas = Moneda::all();
 
     return  view('CierresAperturas.CierresAperturas', ['aperturas' => $apertura,
                              'juegos' => $juegos,
                              'casinos' => $cas,
                              'fichas' => $fichas,
+                             'monedas' => $monedas,
                              'es_superusuario' => UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->es_superusuario
                             ]);
   }
