@@ -195,9 +195,9 @@ class MTMController extends Controller
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
         $id_casino = $usuario->casinos[0]->id_casino;
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        foreach ($maquinas as $maquina) {
-          $maquina->nro_admin = $maquina->nro_admin;
-        }
+        // foreach ($maquinas as $maquina) {
+        //   $maquina->nro_admin = $maquina->nro_admin;
+        // } lo comento, no le encuentro el sentido
         return ['maquinas' => $maquinas];
       }else{
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
@@ -1348,6 +1348,7 @@ class MTMController extends Controller
       return ['tipo' => $maquina->tipoMoneda];
   }
 
-
+  
 
 }
+

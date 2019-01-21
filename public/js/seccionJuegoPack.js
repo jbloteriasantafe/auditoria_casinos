@@ -17,6 +17,7 @@ $(document).ready(function(){
     $('#btn-buscar').trigger('click');
   
     // $('#maquina_mod').hide(); //maquina modelo, se clona
+    
   })
 
 //Mostrar modal para agregar nuevo Pack
@@ -38,10 +39,18 @@ $('#btn-asociar-pack-mtm').click(function(e){
     e.preventDefault();
     // $('#btn-crear-pack').val('nuevo');
     // //limpio modal
-    // $('#mensajeExito').hide();
-    // $('#frmPack').trigger('reset');
-    // $('#alertaNombrePack').hide();
+    $('#mensajeExito').hide();
+    $('#inputPackActual').val("");
+    $('#inputPackActual').attr("data-idPack", -1);
+    $('#tablaMtmJuegoPack tbody').empty();
+
+
+
     $('#modalAsociarPackMtm').modal('show');
+    $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
+    $('#inputMTM').setearElementoSeleccionado(0,"");
+    $('#inputPack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
+    $('#inputPack').setearElementoSeleccionado(0,"");
   
   });
 
@@ -456,3 +465,152 @@ $('#btn-eliminarModal').click(function (e) {
         }
     });
 });
+
+$('#quitarPack').on("click",function(e){
+    $('#inputPackActual').val("");
+    $('#inputPackActual').attr("data-idPack", -1);
+    $('#tablaMtmJuegoPack tbody').empty();
+
+});
+
+$('#btn-asociar-pack-mtm-juego').on('click',function(e){
+    e.preventDefault();
+    
+    id_pack=$('#inputPackActual').attr('data-idPack');
+    id_mtm=$('#inputMTM').attr('data-elemento-seleccionado');
+    
+    juegos=obtenerJuegosHabilitados();
+    console.log(juegos);
+
+});
+
+$('#agregarPack').on("click",function(e){
+    id_pack= $('#inputPack').attr("data-elemento-seleccionado");
+    nombre_pack=$('#inputPack').val();
+
+    if(id_pack!=0){
+        $('#inputPackActual').val(nombre_pack);
+        $('#inputPackActual').attr("data-idPack", id_pack);
+    }
+    //limpio datos cargador para setear nuevo paquete
+
+    $('#tablaMtmJuegoPack tbody').empty();
+
+    $.get("packJuegos/obtenerJuegos/" + id_pack, function(data){
+        if(data !=""){
+            data.forEach(juego => {
+                agregarRenglonListaJuegoPackMTM(juego.id_juego ,juego.nombre_juego);
+            });
+        }
+    });
+
+
+})
+
+function agregarRenglonListaJuegoPackMTM(id_juego, nombre_juego ){
+
+    var fila = $('<tr>').attr('id',id_juego);
+
+    fila.append($('<td>').append($('<input>')
+                    .attr('type','checkbox').css('margin-left','10px')
+                    .prop('checked', false)));
+
+
+    fila.append($('<td>').append($('<span>').addClass('badge')
+                                            .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
+                                            .text(nombre_juego)
+                                )
+               );       
+   
+    fila.append($('<td>').append($('<input>')
+        .attr('type','text')));
+
+    fila.append($('<td>').append($('<input>')
+        .attr('type','text')));
+        
+    
+  
+
+
+    $('#tablaMtmJuegoPack').append(fila);
+
+  }
+
+  $('#inputMTM').on('seleccionado',function(){
+
+    id_maquina=$(this).obtenerElementoSeleccionado();
+    //limpio campos
+
+    $('#inputPackActual').val("");
+    $('#inputPackActual').attr("data-idPack", -1);
+    $('#tablaMtmJuegoPack tbody').empty();
+
+
+    //pido y cargo
+    $.get("packJuegos/obtenerJuegosMTM/" + id_maquina, function(data){
+        console.log(data);
+        // TODO gestionar la informacion para cargar
+        if(data.juegos !=""){
+            
+            $('#tablaMtmJuegoPack tbody').empty();
+            for (i = 0; i < data.juegos.length; i++) {
+                if (i==0){
+                    pack=data.juegos[0];
+                    $('#inputPackActual').val(pack.identificador);
+                    $('#inputPackActual').attr("data-idPack", pack.id_pack);
+                }else{
+                    agregarJuegosPackMtm(data.juegos[i]);
+                }
+
+              } 
+            
+        }
+
+    });
+  });
+
+  function agregarJuegosPackMtm(juego){
+    var fila = $('<tr>').attr('id',juego.id_juego);
+    
+    fila.append($('<td>').append($('<input>')
+                    .attr('type','checkbox').css('margin-left','10px')
+                    .prop('checked', juego.habilitado)));
+
+
+    fila.append($('<td>').append($('<span>').addClass('badge')
+                                            .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
+                                            .text(juego.nombre_juego)
+                                )
+               );       
+   
+    fila.append($('<td>').append($('<input>')
+        .attr('type','text')));
+
+    fila.append($('<td>').append($('<input>')
+        .attr('type','text')));
+        
+    
+  
+
+
+    $('#tablaMtmJuegoPack').append(fila);
+
+
+  };
+
+  function obtenerJuegosHabilitados(){
+    var juegos=[];
+    $.each($('#tablaMtmJuegoPack tbody tr') , function(indexMayor){
+        var res={
+            id_juego:$(this).attr("id"),
+            habilitado: $(this).children().eq(0).find(':input').prop('checked'),
+            denominacion: $(this).children().eq(2).find(':input').val(),
+            devolucion: $(this).children().eq(3).find(':input').val(),
+          }
+          juegos.push(res);
+
+        });
+        return juegos
+  }
+
+

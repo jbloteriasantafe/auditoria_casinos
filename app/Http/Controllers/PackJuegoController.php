@@ -7,6 +7,7 @@ use App\Usuario;
 use App\Casino;
 use App\Juego;
 use App\PackJuego;
+use App\Maquina;
 use Illuminate\Support\Facades\DB;
 use Validator;
 
@@ -196,5 +197,45 @@ class PackJuegoController extends Controller
       return['resutlado' => $resultado];
     }
 
+
+    // obtenerJuegosDePackMTM obtiene todo los juegos relacionados con la maquina que pertenecen al paquete
+  public function obtenerJuegosDePackMTM($id_maquina){
+
+    $mtm = Maquina::find($id_maquina);  
+    $id_pack=$mtm->id_pack;
+    $resultados=array();
+    // caso donde la maquina aun no es multijuego
+    if ($id_pack==null){
+      return ['juegos'=> $resultados];
+    }
+
+    // caso en donde la maquina tiene paquete asignado
+    
+    $pack=PackJuego::find($id_pack);
+    array_push($resultados,$pack);
+
+    $juegosMTM=$mtm->juegos;
+
+    // tomo como base los juegos del pack y voy pisando con los valores de la maquina
+    foreach($pack->juegos as $jp){
+      $obj= new \stdClass();
+      $obj->id_juego=$jp->id_juego;
+      $obj->nombre_juego=$jp->nombre_juego;
+      $obj->habilitado=false;
+
+      // si la maquina lo tiene habilitado se pisa con esa informacion
+      foreach($juegosMTM as $jM){
+        if ($jp->id_juego==$jM->id_juego && $jM->habilitado){
+          $obj->habilitado=true;
+        }
+      }
+
+      array_push($resultados,$obj);
+
+    }
+    
+    return ['juegos'=>$resultados];
+
+  }
 
 }
