@@ -308,7 +308,7 @@ function obtenerDatosJuego(){
     var tablas = [];
 
     //por cada tabla de pago
-    $.each($(this).find('td:eq(3) select option') , function(indexMenor){
+    $.each($(this).find('td:eq(4) select option') , function(indexMenor){
       var tabla={
           id_tabla: $(this).val() ,
           nombre_tabla: $(this).text(),
@@ -318,10 +318,10 @@ function obtenerDatosJuego(){
     });
 
     var denominacion = "";
-    if ($(this).find('td:eq(2)').text() != "-") denominacion = $(this).find('td:eq(3)').text();
+    if ($(this).find('td:eq(2)').text() != "-") denominacion = $(this).find('td:eq(2)').text();
 
     var porcentaje_devolucion = "";
-    if ($(this).find('td:eq(3)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(4)').text();
+    if ($(this).find('td:eq(3)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(3)').text();
     var juego= {
       id_juego: $(this).attr('id'),
       nombre_juego: $(this).find('td:eq(1)').text(),
