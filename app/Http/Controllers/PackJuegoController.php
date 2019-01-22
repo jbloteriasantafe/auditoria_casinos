@@ -167,7 +167,10 @@ class PackJuegoController extends Controller
       // se elimina directamente la relacion
       $pack->juegos()->detach();
 
-      
+      DB::table('maquina')
+                ->where('id_pack','=',$pack->id_pack)
+                ->update(['id_pack' => null ]);
+                  
       DB::table('maquina_tiene_juego')
                 ->where('id_pack','=',$pack->id_pack)
                 ->update(['id_pack' => null ]);
