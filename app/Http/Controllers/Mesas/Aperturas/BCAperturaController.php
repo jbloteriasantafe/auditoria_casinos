@@ -85,6 +85,7 @@ class BCAperturaController extends Controller
                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','apertura_mesa.id_mesa_de_panio')
                   ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
                   ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                  ->join('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
                   ->whereMonth('apertura_mesa.fecha', $date->month)
                   ->whereYear('apertura_mesa.fecha',$date->year)
                   ->whereIn('mesa_de_panio.id_casino',$casinos)
@@ -321,9 +322,11 @@ class BCAperturaController extends Controller
     }
 
     if(empty($request->fecha)){
-      $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
+      $resultados = DB::table('apertura_mesa')
+                              ->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                              ->join('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
                               ->where($filtros)
                               ->whereIn('apertura_mesa.id_casino',$cas)
                               ->orderBy('apertura_mesa.fecha','desc')
@@ -334,6 +337,7 @@ class BCAperturaController extends Controller
       $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                               ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                              ->join('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
                               ->where($filtros)
                               ->whereIn('apertura_mesa.id_casino',$cas)
                               ->whereYear('apertura_mesa.fecha' , '=', $fecha[0])

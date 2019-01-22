@@ -12,11 +12,12 @@ class Mesa extends Model
   protected $table = 'mesa_de_panio';
   protected $primaryKey = 'id_mesa_de_panio';
   protected $visible = array('id_mesa_de_panio','nro_mesa','nombre','descripcion',
-                             'id_juego_mesa','id_casino','id_moneda','id_sector_mesas');
+                             'id_juego_mesa','id_casino','id_moneda','id_sector_mesas',
+                             'multimoneda');
 
 
   protected $fillable = ['nro_mesa','nombre','descripcion',
-                             'id_juego_mesa','id_casino','id_moneda','id_sector_mesas'];
+                             'id_juego_mesa','id_casino','id_moneda','id_sector_mesas','multimoneda'];
 
 
   protected $appends = array('codigo_mesa');

@@ -88,8 +88,9 @@ class ABMMesaController extends Controller
         'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
-        'id_moneda' => 'required|exists:moneda,id_moneda',
+        'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator) use ($id_casino){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
@@ -122,8 +123,9 @@ class ABMMesaController extends Controller
         'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
-        'id_moneda' => 'required|exists:moneda,id_moneda',
+        'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator)use ($id_casino,$id_juego){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
@@ -189,8 +191,9 @@ class ABMMesaController extends Controller
         'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
-        'id_moneda' => 'required|exists:moneda,id_moneda',
+        'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator) use ($id_casino,$id_mesa_de_panio){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
@@ -233,8 +236,9 @@ class ABMMesaController extends Controller
         'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
-        'id_moneda' => 'required|exists:moneda,id_moneda',
+        'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator) use ($id_casino,$id_juego,$id_mesa_de_panio){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],

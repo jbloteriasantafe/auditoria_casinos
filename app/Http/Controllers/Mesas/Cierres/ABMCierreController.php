@@ -64,20 +64,23 @@ class ABMCierreController extends Controller
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      if(!empty($validator->getData()['fecha']) &&
-          !empty($validator->getData()['id_mesa_de_panio']) &&
-          !empty($validator->getData()['hora_fin']) &&
-          !empty($validator->getData()['id_moneda'])
-        ){
-        $yaExiste = Cierre::where([
-                                    ['fecha','=',$validator->getData()['fecha']],
-                                    ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
-                                    ['hora_fin','=',$validator->getData()['hora_fin']],
-                                    ['id_moneda','=',$validator->getData()['id_moneda']]
-                                  ])
-                            ->get();
-        if(count($yaExiste) != 0){
-          $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa con esos datos.');
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if($mesa->multimoneda){
+        if(!empty($validator->getData()['fecha']) &&
+            !empty($validator->getData()['id_mesa_de_panio']) &&
+            !empty($validator->getData()['hora_fin']) &&
+            !empty($validator->getData()['id_moneda'])
+          ){
+          $yaExiste = Cierre::where([
+                                      ['fecha','=',$validator->getData()['fecha']],
+                                      ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
+                                      ['hora_fin','=',$validator->getData()['hora_fin']],
+                                      ['id_moneda','=',$validator->getData()['id_moneda']]
+                                    ])
+                              ->get();
+          if(count($yaExiste) != 0){
+            $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa con esos datos.');
+          }
         }
     }
       $validator = $this->validarFichas($validator);
