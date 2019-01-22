@@ -34,6 +34,11 @@ $('#navJuego').click(function(){
   $('#secJuego').show();
 });
 
+$('#navPaqueteJuegos').click(function(){
+  $('.seccion').hide();
+  $('#secPaqueteJuego').show();
+});
+
 $('#navProgresivo').click(function(){
   recargarDatosProgresivo();
   $('.seccion').hide();
@@ -510,6 +515,13 @@ function habilitarControles(valor){
 }
 
 function mostrarMaquina(data, accion){// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
+  if(data.maquina.id_pack==null){
+    $('#navPaqueteJuegos').attr('hidden',true);
+    $('#navJuego').attr('hidden',false);
+  }else{  
+    $('#navPaqueteJuegos').attr('hidden',false);
+    $('#navJuego').attr('hidden',true);
+  }
   casino_global = data.casino.id_casino;
   if (data.maquina.juega_progresivo==0){
     $('#juega_progresivo_m').val("NO");

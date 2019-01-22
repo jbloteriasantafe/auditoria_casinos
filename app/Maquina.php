@@ -13,7 +13,7 @@ class Maquina extends Model
   protected $connection = 'mysql';
   protected $table = 'maquina';
   protected $primaryKey = 'id_maquina';
-  protected $visible = array('id_maquina','nro_admin','marca','id_casino','marca_juego' ,'modelo','desc_marca','id_unidad_medida','nro_serie','mac','juega_progresivo','denominacion','id_isla','id_formula','id_gli_hard','id_gli_soft','id_tipo_maquina','id_tipo_gabinete','created_at','updated_at','deleted_at','id_tabla_pago','id_juego','id_estado_maquina','porcentaje_devolucion','id_formula');
+  protected $visible = array('id_maquina','nro_admin','marca','id_casino','marca_juego' ,'modelo','desc_marca','id_unidad_medida','nro_serie','mac','juega_progresivo','denominacion','id_isla','id_formula','id_gli_hard','id_gli_soft','id_tipo_maquina','id_tipo_gabinete','created_at','updated_at','deleted_at','id_tabla_pago','id_juego','id_estado_maquina','porcentaje_devolucion','id_formula','id_pack');
   public $timestamps = true;
   protected $dates = ['deleted_at'];
 

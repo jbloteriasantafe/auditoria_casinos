@@ -1429,7 +1429,6 @@
                                     <tr>
                                         <th width="10%">ACTIVO</th>
                                         <th width="25%">NOMBRE</th>
-                                        <th width="25%">PAQUETE</th>
                                         <th width="10%">DENOMINACIÓN</th>
                                         <th width="10%">% DEV</th>
                                         <th width="20%">TABLAS DE PAGO</th>
@@ -1469,12 +1468,6 @@
                                     <h5>Código de Juego</h5>
                                     <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                 </div>
-                                <div class="col-md-4">
-                                  <h5>Paquete de Juego</h5>
-                                  <select id="inputPack" class="form-control" >
-                                    <option value="-1" selected>--</option>
-                                </select>
-                              </div>
                                 
                             </div>
                             

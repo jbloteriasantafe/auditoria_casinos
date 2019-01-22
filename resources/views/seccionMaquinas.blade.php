@@ -198,6 +198,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <a href="" id="navJuego"><h4>JUEGOS</h4></a>
                         </div>
                         <div width="10%">
+                          <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
+                          <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
+                        </div>
+
+                        <div width="10%">
                               <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
                               <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
                         </div>
@@ -591,7 +596,15 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                             </div>
                         </div>
                       </div> <!-- / PASO 2 | ISLA -->
-
+                       <!-- PASO  | PAQUETE JUEGO -->
+                       <div class="seccion" id="secPaqueteJuego">
+                          <div class="row">
+                              <div class="col-md-12">
+                                <h6>LA MÁQUINA IMPLEMETA PAQUETE DE JUEGOS, LA GESTION DE SUS JUEGOS SE DEBE REALIZAR EN LA SECCIÓN "PAQUETE-JUEGOS"</h6>
+                              </div>
+                            </div>
+                      </div>
+                       <!-- PASO  | PAQUETE JUEGO -->
                       <!-- PASO 2 | JUEGO -->
                       <div class="seccion" id="secJuego">
 
@@ -605,7 +618,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <tr>
                                           <th width="10%">ACTIVO</th>
                                           <th width="25%">NOMBRE</th>
-                                          <th width="25%">PAQUETE</th>
                                           <th width="10%">DENOMINACIÓN</th>
                                           <th width="10%">% DEV</th>
                                           <th width="20%">TABLAS DE PAGO</th>
@@ -645,12 +657,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <h5>Código de Juego</h5>
                                       <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                   </div>
-                                  <div class="col-md-4">
-                                    <h5>Paquete de Juego</h5>
-                                    <select id="inputPack" class="form-control" >
-                                        <option value="-1" selected>--</option>
-                                    </select>
-                                </div>
                                   
                               </div>
                               
