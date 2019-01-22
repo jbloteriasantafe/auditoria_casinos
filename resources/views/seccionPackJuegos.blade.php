@@ -375,11 +375,11 @@ $id_usuario = session('id_usuario');
 
                           <div class="col-md-4">
                               <h5>Agregar Paquete</h5>
-                                <div class="input-group lista-datos-group">
+                                <div class="lista-datos-group">
                                   <input id="inputPack" class="form-control" type="text" value="" autocomplete="off">
-                                  <span class="input-group-btn">
+                                  {{-- <span class="input-group-btn">
                                     <button id="agregarPack" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                                  </span>
+                                  </span> --}}
                                 </div>
                             </div>
                     </div>

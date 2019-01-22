@@ -78,16 +78,16 @@ class LayoutController extends Controller
         $linea->juego = ['correcto' => true, 'valor' => $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''] ;
         
 
-        $pack_aux=DB::table('maquina_tiene_juego')
-                ->select('maquina_tiene_juego.id_pack as id_pack')
-                ->where('id_maquina','=',$detalle->maquina->id_maquina)
-                ->where('id_juego','=',$detalle->maquina->juego_activo->id_juego)
-                ->whereNotNull('id_pack')
-                ->first();
-        if($pack_aux!=null){
-        $pack=PackJuego::find($pack_aux->id_pack);
+        if($maquina->id_pack!=null){
+        $pack=PackJuego::find($maquina->id_pack);
         $linea->tiene_pack_bandera=true;
-        $linea->juegos_pack=$pack->juegos;
+        $juegos_pack_habilitados=array();
+        foreach($maquina->juegos as $j){
+          if($j->pivot->habilitado!=0){
+            array_push( $juegos_pack_habilitados,$j);
+          }
+        }
+        $linea->juegos_pack=$juegos_pack_habilitados;
         }else{
           $linea->tiene_pack_bandera=false;
         }
@@ -192,12 +192,26 @@ class LayoutController extends Controller
               $linea->juego = ['correcto' => true, 'valor' =>  $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''];
           }
 
-          if(count($maquina->juego_activo->pack)>0){
+          if($maquina->id_pack!=null){
+            $pack=PackJuego::find($maquina->id_pack);
             $linea->tiene_pack_bandera=true;
-            $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
-          }else{
-            $linea->tiene_pack_bandera=false;
-          }
+            $juegos_pack_habilitados=array();
+            foreach($maquina->juegos as $j){
+              if($j->pivot->habilitado!=0){
+                array_push( $juegos_pack_habilitados,$j);
+              }
+            }
+            $linea->juegos_pack=$juegos_pack_habilitados;
+            }else{
+              $linea->tiene_pack_bandera=false;
+            }
+
+          // if(count($maquina->juego_activo->pack)>0){
+          //   $linea->tiene_pack_bandera=true;
+          //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+          // }else{
+          //   $linea->tiene_pack_bandera=false;
+          // }
 
           $aux = $detalle_aux->where('columna', 'nro_serie');
           if($aux->count() == 1){

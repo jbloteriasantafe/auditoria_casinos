@@ -488,7 +488,10 @@ $('#btn-asociar-pack-mtm-juego').on('click',function(e){
         data: formData,
         dataType: 'json',
         success: function (resultados) {
-         console.log(resultados)
+            $('#modalAsociarPackMtm').modal('hide');
+              $('#mensajeExito h3').text('ÉXITO');
+              $('#mensajeExito p').text('La asociación fue exitosa');
+              $('#mensajeExito').show();
         },
         error: function (data) {
           
@@ -521,6 +524,29 @@ $('#agregarPack').on("click",function(e){
 
 
 })
+
+$('#inputPack').on('seleccionado',function(){
+
+    id_pack= $('#inputPack').attr("data-elemento-seleccionado");
+    nombre_pack=$('#inputPack').val();
+
+    if(id_pack!=0){
+        $('#inputPackActual').val(nombre_pack);
+        $('#inputPackActual').attr("data-idPack", id_pack);
+    }
+    //limpio datos cargador para setear nuevo paquete
+
+    $('#tablaMtmJuegoPack tbody').empty();
+
+    $.get("packJuegos/obtenerJuegos/" + id_pack, function(data){
+        $('#tablaMtmJuegoPack tbody').empty();
+        if(data !=""){
+            data.forEach(juego => {
+                agregarRenglonListaJuegoPackMTM(juego.id_juego ,juego.nombre_juego);
+            });
+        }
+    });
+});
 
 function agregarRenglonListaJuegoPackMTM(id_juego, nombre_juego ){
 
