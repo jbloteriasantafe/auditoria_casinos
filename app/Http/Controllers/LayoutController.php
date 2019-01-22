@@ -1007,18 +1007,13 @@ class LayoutController extends Controller
       $det->isla = $detalle->maquina->isla->nro_isla;
       $det->marca = $detalle->maquina->marca;
       $det->nro_serie = $detalle->maquina->nro_serie;
-      $pack_aux=DB::table('maquina_tiene_juego')
-                ->select('maquina_tiene_juego.id_pack as id_pack')
-                ->where('id_maquina','=',$detalle->maquina->id_maquina)
-                ->where('id_juego','=',$detalle->maquina->juego_activo->id_juego)
-                ->whereNotNull('id_pack')
-                ->first();
-      if($pack_aux!=null){
-        $pack=PackJuego::find($pack_aux->id_pack);
+      
+      if($detalle->maquina->id_pack!=null){
+        $pack=PackJuego::find($detalle->maquina->id_pack);
         $juego_activo=$detalle->maquina->juego_activo;
         $prefijo=$pack->prefijo;
         $nombre_juego_activo= $detalle->maquina->juego_activo->nombre_juego;
-        $juego_activo->nombre_juego=  $prefijo . " -/- " .  $nombre_juego_activo; 
+        $juego_activo->nombre_juego= "Paquete-Juegos: " . $pack->identificador; 
       }else{
         $juego_activo=$detalle->maquina->juego_activo;
       }
