@@ -334,6 +334,7 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
+
       $.get('usuarios/quienSoy',function(data){
         $('#cargador').val(data.usuario.nombre);
         $('#cargador').attr('data-cargador',data.usuario.id_usuario);
@@ -530,6 +531,9 @@ $('#btn-guardar-apertura').on('click', function(e){
               $('#mensajeErrorCargaAp').show();
             }
             if(typeof response.total_pesos_fichas_a !== 'undefined'){
+              $('#mensajeErrorCargaAp').show();
+            }
+            if(typeof response.id_moneda !== 'undefined'){
               $('#mensajeErrorCargaAp').show();
             }
 
@@ -769,6 +773,9 @@ $('#btn-guardar-cierre').on('click', function(e){
             if(typeof response.id_mesa_de_panio !== 'undefined'){
               $('#mensajeFichasError').show();
             }
+            if(typeof response.id_moneda !== 'undefined'){
+              $('#mensajeFichasError').show();
+            }
 
           },
       })
@@ -952,7 +959,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('.cas_apertura').val( data.casino.nombre);
       $('#hs_apertura').val(data.apertura.hora);
       $('.j_apertura').val(data.juego.nombre_juego);
-      $('.nro_apertura').text(data.mesa.nro_mesa);
+      $('.nro_apertura').val(data.mesa.nro_mesa);
       $("input[name='monedaModApe'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
 
@@ -1020,14 +1027,14 @@ $(document).on('click', '.modificarCyA', function(e) {
 
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
-      $('.f_cierre').text(data.cierre.fecha);
+      $('.f_cierre').val(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
-      $('.cas_cierre').text( data.casino.nombre);
+      $('.cas_cierre').val( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
-      $('.j_cierre').text(data.nombre_juego);
-      $('.nro_cierre').text(data.mesa.nro_mesa);
+      $('.j_cierre').val(data.nombre_juego);
+      $('.nro_cierre').val(data.mesa.nro_mesa);
       $('#totalAnticipoModif').val(data.cierre.total_anticipos_c);
       $('#totalModifCie').val(data.cierre.total_pesos_fichas_c);
 
@@ -1078,7 +1085,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 $(document).on('change','.modApertura',function(){
 
   $('#modificar_apertura').show();
-
+  console.log('sdfsdf',$(this).attr('data-ingresado'));
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
       if($(this).val()!=null && $(this).val()!=0)
       {   var cantidad=$(this).val();
@@ -1124,7 +1131,7 @@ $(document).on('change','.modApertura',function(){
         var cantidad=0;
         var subtotal=0;
         subtotal = Number($('#totalModifApe').val());
-        subtotal -= Number($(this).attr('data-ingresado'));
+        subtotal -= Number($(this).attr('data-ingresado')*($(this).attr('data-valor')));
 
         $('#totalModifApe').val(subtotal);
       }
@@ -1708,6 +1715,8 @@ function limpiarCargaCierre(){
   $('#horarioCie').val('');
   $('#horario_ini_c').val('');
   $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
+  document.querySelectorAll('input[name=moneda]').forEach((x) => x.checked=false);
+
 
 }
 
@@ -1720,6 +1729,7 @@ function limpiarCargaApertura(){
   $('#cargador').val('');
   $('#tablaCargaApertura tbody tr').remove();
   $('#mensajeExitoCargaAp').hide();
+  document.querySelectorAll('input[name=monedaApertura]').forEach((x) => x.checked=false);
 
 }
 
