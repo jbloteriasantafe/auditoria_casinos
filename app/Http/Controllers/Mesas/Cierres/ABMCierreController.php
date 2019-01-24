@@ -107,7 +107,6 @@ class ABMCierreController extends Controller
       $cierre->fiscalizador()->associate($request->id_fiscalizador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);
       $cierre->moneda()->associate($request->id_moneda);
-      $cierre->estado_cierre()->associate(1);//CARGADO
       $cierre->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
