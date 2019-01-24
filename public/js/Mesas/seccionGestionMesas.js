@@ -257,15 +257,23 @@ $('#btn-guardar-mesa').click(function(e){
 
   $('#mensajeExito').hide();
   var id_casino= $('#casino_mesa').val();
+  if($('#moneda_mesa').val() != 0){
+    var id_moneda = $('#moneda_mesa').val();
+    var mmoneda = 0;
+  }else{
+    var id_moneda = null;
+    var mmoneda = 1;
+  }
 
   var formData = {
     nro_mesa: $('#nro_mesa').val(),
     nombre: $('#nombre_mesa').val(),
     descripcion: $('#descripcion_mesa').val(),
     id_juego_mesa: $('#juego_mesa').val(),
-    id_moneda: $('#moneda_mesa').val(),
+    id_moneda: id_moneda,
     id_sector_mesas: $('#sector_mesa').val(),
-    id_casino: id_casino
+    id_casino: id_casino,
+    multimoneda: mmoneda,
   }
 
   $.ajaxSetup({
@@ -338,7 +346,11 @@ $(document).on('click','.infoMesa',function(e){
     $('.detalle_sector').text(data.sector.descripcion);
     $('.detalle_casino').text(data.casino.nombre);
     $('.detalle_juego').text(data.juego.nombre_juego);
-    $('.detalle_moneda').text(data.moneda.descripcion);
+    if(data.moneda !== 'undefined'){
+        $('.detalle_moneda').text(data.moneda.descripcion);
+    }else{
+        $('.detalle_moneda').text('MULTI-MONEDA');
+    }
     $('.detalle_descripcion').text(data.mesa.descripcion);
     $('.detalle_tipo').text(data.tipo_mesa.descripcion);
 
@@ -405,8 +417,14 @@ $(document).on('click','.modificarMesa',function(e){
       }
     })
     $('#monedaM option').each(function(){
-      if($(this).val() == data.moneda.id_moneda){
-        $(this).attr('selected',true);
+      if(data.moneda !== 'undefined'){
+        if($(this).val() == data.moneda.id_moneda){
+          $(this).attr('selected',true);
+        }
+      }else{
+        if($(this).val() == 0){
+          $(this).attr('selected',true);
+        }
       }
     })
 
@@ -433,6 +451,14 @@ $('#btn-modificar-mesa').click(function(){
 
   var casino=$('#casinoM').val();
 
+  if($('#monedaM').val() != 0){
+    var id_moneda = $('#monedaM').val();
+    var mmoneda = 0;
+  }else{
+    var id_moneda = null;
+    var mmoneda = 1;
+  }
+
   var formData = {
     id_mesa_de_panio: $(this).val(),
     nro_mesa: $('#numeroM').val(),
@@ -440,8 +466,9 @@ $('#btn-modificar-mesa').click(function(){
     descripcion: $('#descripcionM').val(),
     id_juego_mesa: $('#juegoM').val(),
     id_casino: casino,
-    id_moneda: $('#monedaM').val(),
-    id_sector_mesas: $('#sectorM').val()
+    id_moneda: id_moneda,
+    id_sector_mesas: $('#sectorM').val(),
+    multimoneda:mmoneda,
   }
 
   $.ajaxSetup({
