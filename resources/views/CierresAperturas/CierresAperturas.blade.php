@@ -14,6 +14,9 @@ $cas = $usuario['usuario']->casinos;
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="css/paginacion.css">
+<link rel="stylesheet" href="/css/styleSlider.css">
+
 <link href="css/bootstrap-datetimepicker.css" rel="stylesheet"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
@@ -181,33 +184,37 @@ $cas = $usuario['usuario']->casinos;
                     <h4 id="tablaInicial">APERTURAS</h4>
                   </div>
                   <div class="panel-body">
-                    <table id="tablaResultados" class="table table-fixed tablesorter ">
+                    <table id="tablaResultados" class="table  tablesorter " >
                       <thead>
                         <tr align="center" >
-                          <th class="col-md-2" style="font-size:14px;">FECHA<i class="fa fa-sort"></i></th>
-                          <th class="col-md-1" style="font-size:14px;">MESA</th>
-                          <th class="col-md-3" style="font-size:14px; text-align:center !important;">JUEGO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">CASINO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">ESTADO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">ACCIÓN</th>
+                          <th class="activa" apertura="apertura_mesa.fecha" cierre="cierre_mesa.fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA  <i class="fas fa-sort-down"></th>
+                          <th class="" apertura="mesa_de_panio.nro_mesa" cierre="mesa_de_panio.nro_mesa" style="font-size:14px; text-align:center !important;" estado="">MESA  <i class="fas fa-sort"></th>
+                          <th class="" apertura="juego_mesa.siglas" cierre="juego_mesa.siglas" style="font-size:14px; text-align:center !important;" estado="">JUEGO  <i class="fas fa-sort"></th>
+                          <th class="" apertura="apertura_mesa.hora" cierre="cierre_mesa.hora_inicio" style="font-size:14px; text-align:center !important;" estado="">HORA <i class="fas fa-sort"></th>
+                          <th class="" apertura="moneda.siglas" cierre="moneda.siglas" style="font-size:14px; text-align:center !important;" estado="">MONEDA  <i class="fas fa-sort"></th>
+                          <th class="" apertura="casino.nombre" cierre="casino.nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
+                          <th class="" apertura="apertura_mesa.id_estado_cierre" cierre="cierre_mesa.id_estado_cierre" id="estado_ocultar" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
+                          <th class="" style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
-                      <tbody  id='cuerpoTablaCyA' style="height: 380px;">
+                      <tbody  id='cuerpoTablaCyA' >
                         @foreach($aperturas as $a)
                         <tr id="{{$a->id_apertura_mesa}}">
 
-                        <td class="col-xs-2">{{$a->fecha}}</td>
-                        <td class="col-xs-1">{{$a->nro_mesa}}</td>
-                        <td class="col-xs-3"  style="text-align:center !important;">{{$a->nombre_juego}}</td>
-                        <td class="col-xs-2" style="text-align:center !important;">{{$a->nombre}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->fecha}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nro_mesa}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nombre_juego}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->hora}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->siglas_moneda}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nombre}}</td>
 
                         @if($a->id_estado_cierre == 3)
-                        <td class="col-xs-2" style="text-align:center !important;" >  <i class="fa fa-fw fa-check"   style="color: #4CAF50;"></i></td>
+                          <td class="" style="text-align:center !important">  <i class="fa fa-fw fa-check"   align="center" style="color: #4CAF50;text-align:center !important;"></i></td>
                         @else
-                        <td class="col-xs-2" style="text-align:center !important;" ><i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;"></td>
+                          <td class="" style="text-align:center !important">  <i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;text-align:center !important;"></td>
                         @endif
 
-                        <td class="col-xs-2" style="text-align:center !important;">
+                        <td class="" style="text-align:center !important;">
                           @if($a->id_estado_cierre == 3)
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
@@ -238,40 +245,47 @@ $cas = $usuario['usuario']->casinos;
                         @endforeach
                       </tbody>
                     </table>
-                    <table>
-                      <tbody>
-                        <tr id="moldeFilaCyA" class="filaClone" style="display:none">
-                          <td class="col-xs-2 L_fecha"></td>
-                          <td class="col-xs-1 L_mesa"></td>
-                          <td class="col-xs-3 L_juego" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 L_casino" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 L_estado" style="text-align:center !important;"></td>
+                  </div>
 
-                          <td class="col-xs-2" style="text-align:center !important;">
-                            <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
-                                    data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
-                                    <i class="fa fa-fw fa-search-plus"></i>
-                            </button>
-                            <button type="button" class="btn btn-warning modificarCyA" value="">
-                                    <i class="fas fa-fw fa-pencil-alt"></i>
-                            </button>
-                            <button type="button" class="btn btn-success validarCyA" value="">
-                                    <i class="fa fa-fw fa-check"></i>
-                            </button>
-                            <?php
-                              $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                            ?>
-                            @if($usuario['usuario']->elimina_cya)
-                            <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
-                                    <i class="fa fa-fw fa-trash"></i>
-                            </button>
-                            @endif
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div class="table-responsive" style="display:none">
 
-                    </div>
+
+                  <table  class="table">
+                      <tr id="moldeFilaCyA" class="filaClone" style="display:none">
+                        <td class=" L_fecha"  style="text-align:center !important;"></td>
+                        <td class=" L_mesa"   style="text-align:center !important;"></td>
+                        <td class=" L_juego"  style="text-align:center !important;"></td>
+                        <td class=" L_hora"   style="text-align:center !important;"></td>
+                        <td class=" L_moneda" style="text-align:center !important;"></td>
+                        <td class=" L_casino" style="text-align:center !important;"></td>
+                        <td class=" L_estado" style="text-align:center !important;"></td>
+
+                        <td class="" style="text-align:center !important;">
+                          <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
+                                  data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
+                                  <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          <button type="button" class="btn btn-warning modificarCyA" value="">
+                                  <i class="fas fa-fw fa-pencil-alt"></i>
+                          </button>
+                          <button type="button" class="btn btn-success validarCyA" value="">
+                                  <i class="fa fa-fw fa-check"></i>
+                          </button>
+                          <?php
+                             $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                           ?>
+                           @if($usuario['usuario']->es_superusuario)
+                           <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
+                                   <i class="fa fa-fw fa-trash"></i>
+                           </button>
+                           @endif
+                        </td>
+                      </tr>
+                  </table>
+                  </div>
+                  <legend></legend>
+                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+                  </div>
                   </div>
                 </div>
           </div>
@@ -1445,6 +1459,7 @@ $cas = $usuario['usuario']->casinos;
 
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="js/lista-datos.js" type="text/javascript"></script>
+  <script src="/js/paginacion.js" charset="utf-8"></script>
 
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/js/locales/es.js" type="text/javascript"></script>
