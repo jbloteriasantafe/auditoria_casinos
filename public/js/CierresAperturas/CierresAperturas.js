@@ -138,7 +138,7 @@ $(document).ready(function() {
         minView: 2,
       });
 
-        $('#btn-buscarCyA').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
+        $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
   });
 
   $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
@@ -224,7 +224,7 @@ $('#btn-buscarCyA').click(function(e,pagina,page_size,columna,orden){
     var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
     // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('apertura'),orden: $('#tablaResultados .activa').attr('estado')} ;
 
     if(sort_by == null){ // limpio las columnas
       $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
