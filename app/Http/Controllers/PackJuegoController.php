@@ -203,7 +203,7 @@ class PackJuegoController extends Controller
 
     // obtenerJuegosDePackMTM obtiene todo los juegos relacionados con la maquina que pertenecen al paquete
   public function obtenerJuegosDePackMTM($id_maquina){
-    //TODO validar request
+    // TODO pasar a request para validar
     $mtm = Maquina::find($id_maquina);  
     $id_pack=$mtm->id_pack;
     $resultados=array();

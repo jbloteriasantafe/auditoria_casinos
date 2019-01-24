@@ -598,10 +598,32 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       </div> <!-- / PASO 2 | ISLA -->
                        <!-- PASO  | PAQUETE JUEGO -->
                        <div class="seccion" id="secPaqueteJuego">
-                          <div class="row">
+                          <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                               <div class="col-md-12">
-                                <h6>LA MÁQUINA IMPLEMETA PAQUETE DE JUEGOS, LA GESTION DE SUS JUEGOS SE DEBE REALIZAR EN LA SECCIÓN "PAQUETE-JUEGOS"</h6>
+                                <h5>La máquina implementa paquete de juegos, la gestión de sus juegos se debe realizar en la sección “PAQUETE-JUEGOS”  </h5>
                               </div>
+                            </div>
+                          <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                            <div class="col-md-6">
+                            <h5>Paquete Actual</h5>
+                            <input id="inputPackActual" class="form-control" type="text" data-idPack="" disabled>
+                          
+                            </div>
+                            <div class="col-md-12"> 
+                              
+                                <table id="tablaMtmJuegoPack" class="table" style="margin-top:30px; margin-bottom:20px;">
+                                  <thead>
+                                    <tr>
+                                        <th width="10%">HABILITADO</th>
+                                        <th width="30%">NOMBRE</th>
+                                        <th width="10%">DENOMINACIÓN</th>
+                                        <th width="10%">% DEV</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                  </tbody>
+                                </table>
+                              </div> 
                             </div>
                       </div>
                        <!-- PASO  | PAQUETE JUEGO -->

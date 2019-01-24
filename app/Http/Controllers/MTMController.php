@@ -125,13 +125,13 @@ class MTMController extends Controller
          $return_juego->porcentaje_devolucion =  $un_juego->pivot->porcentaje_devolucion;
          $return_juego->tablasPago =  $un_juego->tablasPago;
          $return_juego->id_gli_soft = $un_juego->id_gli_soft;
-         $return_juego->pack= PackJuego::find($un_juego->pivot->id_pack);
-         if (count($return_juego->pack)<1){
-           $pack_aux= new \stdClass();
-           $pack_aux->identificador="";
-           $pack_aux->id_pack=-1;
-           $return_juego->pack=$pack_aux;
-         }
+        //  $return_juego->pack= PackJuego::find($un_juego->pivot->id_pack); la gestion del pack fue extraida, si estas en el futuro, borrar esto
+        //  if (count($return_juego->pack)<1){
+        //    $pack_aux= new \stdClass();
+        //    $pack_aux->identificador="";
+        //    $pack_aux->id_pack=-1;
+        //    $return_juego->pack=$pack_aux;
+        //  }
          if($un_juego->nombre_juego == $juego_activo->nombre_juego){
             $juego_activo = $return_juego;
             $encontrado = true;
@@ -139,6 +139,9 @@ class MTMController extends Controller
             $array[] = $return_juego;
         }
      }
+
+     // Gestion de multijuego
+     $juegos_mtm_pack=PackJuegoController::getInstancia()->obtenerJuegosDePackMTM($id);
 
      if($mtm->gliHard != null){
         if($mtm->gliHard->archivo != null){
@@ -188,7 +191,8 @@ class MTMController extends Controller
              'devolucion' => $mtm->porcentaje_devolucion,
              'unidad_medida' => $mtm->id_unidad_medida,
              'unidades' => $unidades,
-             'juegosMovimiento' => $mtm->juegos
+             'juegosMovimiento' => $mtm->juegos,
+             'juego_pack_mtm'=>$juegos_mtm_pack,
           ];
   }
 
@@ -794,8 +798,7 @@ class MTMController extends Controller
         $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
         $MTM= Maquina::find($request->id_maquina);
         //CONDICIONES ANTERIORES
-        $juego_viejo = $MTM->juego_activo;
-        $MTM->juegos()->detach();
+        
 
 
         /*
@@ -850,6 +853,8 @@ class MTMController extends Controller
         //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
         //los juegos se gestionand desde aca solo si la mtm no es multi-juego
         if($MTM->id_pack==null){
+          $juego_viejo = $MTM->juego_activo;
+          $MTM->juegos()->detach();
           foreach ($request->juego as $unJuego){
             if($unJuego['id_juego']==0){// 0 es juego nuevo
               $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);

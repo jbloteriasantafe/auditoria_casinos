@@ -441,7 +441,7 @@ $(document).on('click','.eliminar',function(){
     $('#modalEliminar').modal('show');
     $('#mensajeEliminar').text('¿Seguro que desea eliminar el paquete-juego "' + $(this).parent().parent().find('td:first').text()+'" ?' 
                                 +"\r\n"
-                                +'Esto quitará la asociación con los juegos, pero los mismos seguirán existiendo');
+                                +'Esto quitará la asociación con los juegos, pero los mismos seguirán existiendo asociados a la MTM');
 });
 
 // confirma eliminar 

@@ -503,6 +503,7 @@ function limpiarModal(){
   limpiarModalGliSoft();
   limpiarModalGliHard();
   limpiarModalFormula();
+  limpiarModaPaqueteJuegos();
 }
 
 function habilitarControles(valor){
@@ -519,6 +520,20 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     $('#navPaqueteJuegos').attr('hidden',true);
     $('#navJuego').attr('hidden',false);
   }else{  
+    // gestiona paquete de juegos
+    $('#tablaMtmJuegoPack tbody').empty();
+
+            for (i = 0; i < data.juego_pack_mtm.juegos.length; i++) {
+                if (i==0){
+                  pack=data.juego_pack_mtm.juegos[0];
+                  $('#inputPackActual').val(pack.identificador);
+                  $('#inputPackActual').attr("data-idPack", pack.id_pack);
+                }else{
+                    agregarJuegosPackMtm(data.juego_pack_mtm.juegos[i]);
+                }
+
+              } 
+    
     $('#navPaqueteJuegos').attr('hidden',false);
     $('#navJuego').attr('hidden',true);
   }
@@ -588,8 +603,46 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
 
   mostrarJuegos(data.juegos,data.juego_activo);
 
+
   data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
   data.gli_soft != null ? mostrarGliSoft(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;
   data.formula != null ? mostrarFormula(data.formula) : null;
+}
+
+function agregarJuegosPackMtm(juego){
+  den =juego.denominacion!=null ? juego.denominacion : "-" ;
+  dev =juego.porcentaje_devolucion!=null ? juego.porcentaje_devolucion : "-" ;
+  var fila = $('<tr>').attr('id',juego.id_juego);
+  
+  fila.append($('<td>').append($('<input>')
+                  .attr('type','checkbox')
+                  .attr('disabled',true)
+                 
+                  .prop('checked', juego.habilitado)));
+
+
+  fila.append($('<td>').append($('<span>').addClass('badge')
+                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
+                                          .text(juego.nombre_juego)
+                              )
+             );       
+ 
+  fila.append($('<td>').text(den));
+
+  fila.append($('<td>').text(dev));
+  
+  
+
+
+
+  $('#tablaMtmJuegoPack').append(fila);
+
+
+};
+
+function limpiarModaPaqueteJuegos(){
+    $('#inputPackActual').val("");
+    $('#inputPackActual').attr("data-idPack", -1);
+    $('#tablaMtmJuegoPack tbody').empty();
 }
