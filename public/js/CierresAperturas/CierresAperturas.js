@@ -490,6 +490,10 @@ $(document).on('click', '.btn_ver_mesa', function(e){
   $('#horarioAp').val("");
   $('#fiscalizApertura').setearElementoSeleccionado(0,"");
 
+  //setea moneda en pesos
+  $("input[name='monedaApertura'][value='1']").prop('checked', true);
+
+
   $('#bodyMesas tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
 
@@ -677,7 +681,7 @@ $('#confirmarCierre').on('click',function(e){
       $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
       $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 
-
+      $("input[name='moneda'][value='1']").prop('checked', true);
       $('#btn-guardar-cierre').show();
 
     }
@@ -1471,6 +1475,7 @@ $(document).on('click', '.validarCyA', function(e) {
   $('#validar').val(id_apertura);
   $('#validar').hide();
   $('#div_cierre').hide();
+   $('#obsValidacion').val(''),
 
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
@@ -1508,6 +1513,7 @@ $(document).on('click', '.validarCyA', function(e) {
 $(document).on('click','.comparar',function(){
 
   if($('#fechaCierreVal').val() != 0){
+    $('#tablaValidar tbody tr').remove();
 
     $('#validar').show();
     var moneda=$('.mon_validar_aper').val();
@@ -1515,7 +1521,7 @@ $(document).on('click','.comparar',function(){
     var cierre=$('#fechaCierreVal').val();
     //{id_apertura}/{id_cierre}/{id_moneda}
     $.get('compararCierre/' + apertura + '/' + cierre + '/' + moneda, function(data){
-      console.log('cierreNuevo', data);
+
       $('#div_cierre').show();
 
       // //datos cierre
@@ -1573,7 +1579,7 @@ $(document).on('click','.comparar',function(){
             //agrego icono comparando valores
             var monto_apertura = fila.find('.v_monto_apertura').text();
             var monto_cierre = fila.find('.v_monto_cierre').text();
-            console.log('montos',monto_apertura);
+
             if(monto_cierre == monto_apertura){
               fila.append($('<td>')
                   .addClass('col-xs-3').addClass('.iconoValidacion')
@@ -1589,6 +1595,7 @@ $(document).on('click','.comparar',function(){
         }
     })
   }
+
 
 });
 //cuando cambia la fecha
@@ -1618,6 +1625,7 @@ $(document).on('click', '#validar', function(e) {
     var formData= {
       id_cierre:$('#fechaCierreVal').val(),
       id_apertura:id_apertura,
+      observaciones: $('#obsValidacion').val(),
     }
 
     $.ajaxSetup({
