@@ -42,16 +42,18 @@ $('#btn-asociar-pack-mtm').click(function(e){
     $('#mensajeExito').hide();
     $('#inputPackActual').val("");
     $('#inputPackActual').attr("data-idPack", -1);
+    
     $('#tablaMtmJuegoPack tbody').empty();
 
 
 
-    $('#modalAsociarPackMtm').modal('show');
+    
     $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
     $('#inputMTM').setearElementoSeleccionado(0,"");
     $('#inputPack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
     $('#inputPack').setearElementoSeleccionado(0,"");
-  
+    ocultarErrorValidacion($('#inputMTM'));
+    $('#modalAsociarPackMtm').modal('show');
   });
 
 
@@ -494,7 +496,9 @@ $('#btn-asociar-pack-mtm-juego').on('click',function(e){
               $('#mensajeExito').show();
         },
         error: function (data) {
-          
+            if ( data.id_mtm!=""){
+                mostrarErrorValidacion($('#inputMTM'),"Campo Requerido", true);
+            }
         }
       });
     

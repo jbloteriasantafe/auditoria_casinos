@@ -170,7 +170,7 @@ class PackJuegoController extends Controller
       DB::table('maquina')
                 ->where('id_pack','=',$pack->id_pack)
                 ->update(['id_pack' => null ]);
-                  
+
       DB::table('maquina_tiene_juego')
                 ->where('id_pack','=',$pack->id_pack)
                 ->update(['id_pack' => null ]);
@@ -249,8 +249,9 @@ class PackJuegoController extends Controller
 
 
   public function asociarMtmJuegosPack(Request $data){
-    //TODO validar request, id_pack exista en pack
-
+    Validator::make($data->all(), [
+      'id_mtm'=>'required|exists:maquina,id_maquina',
+    ])->validate();
     $MTM=Maquina::find($data['id_mtm']);
     $juegos_finales=array();
     $id_pack=$data['id_pack'];
@@ -270,13 +271,8 @@ class PackJuegoController extends Controller
     }
 
     $MTM->juegos()->sync($juegos_finales);
-   $MTM->save();
+    $MTM->save();
     return ['OK'=> 'ok'];
-    // agregar/quitar id_pack a mtm
-
-    // limpiar todas las asociaciones con el juego, ya que estes seria el estado final de la mtm
-
-    // asociar cada juego con los valores de denominacion y si se encuentra habilitado
 
   }
 
