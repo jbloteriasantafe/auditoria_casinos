@@ -311,8 +311,9 @@ class BCAperturaController extends Controller
         $cas[]=$cass->id_casino;
       }
     }
+      $sort_by = $request->sort_by;
 
-    if(empty($request->fecha)){
+
       $date = \Carbon\Carbon::today();
       $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
                               ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
@@ -320,24 +321,12 @@ class BCAperturaController extends Controller
                               ->where($filtros)
                               ->whereMonth('apertura_mesa.fecha', $date->month)
                               ->whereYear('apertura_mesa.fecha',$date->year)
-                              ->whereIn('apertura_mesa.id_casino',$cas)
-                              ->orderBy('apertura_mesa.fecha','desc')
-                              ->take(31)
-                              ->get();
-    }else{
-      $fecha=explode("-", $request->fecha);
-      $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
-                              ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
-                              ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-                              ->where($filtros)
-                              ->whereIn('apertura_mesa.id_casino',$cas)
-                              ->whereYear('apertura_mesa.fecha' , '=', $fecha[0])
-                              ->whereMonth('apertura_mesa.fecha','=', $fecha[1])
-                              ->whereDay('apertura_mesa.fecha','=', $fecha[2])
-                              ->orderBy('apertura_mesa.fecha','desc')
-                              ->take(31)
-                              ->get();
-    }
+                              ->when($sort_by,function($query) use ($sort_by){
+                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                          })
+                              ->whereIn('mesa_de_panio.id_casino',$cas)
+                              ->paginate($request->page_size);
+
     return response()->json(['apertura' => $resultados], 200);
   }
 
