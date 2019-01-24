@@ -197,15 +197,15 @@ $('#btn-buscarCyA').click(function(e,pagina,page_size,columna,orden){
               dataType: 'json',
 
               success: function (data){
-                $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.cierre.total,clickIndice);
+                $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.cierre.total,clickIndiceMov);
                 $('#tablaResultados tbody tr').remove();
-
+                $('#tablaResultados').find('#estado_ocultar').hide();
                 for (var i = 0; i < data.cierre.data.length; i++) {
 
                     var fila=  generarFilaCierres(data.cierre.data[i]);
                     $('#cuerpoTablaCyA').append(fila);
                 }
-                $('#herramientasPaginacion').generarIndices(page_number,page_size,data.cierre.total,clickIndice);
+                $('#herramientasPaginacion').generarIndices(page_number,page_size,data.cierre.total,clickIndiceMov);
               },
               error: function(data){
               },
@@ -258,6 +258,9 @@ $('#btn-buscarCyA').click(function(e,pagina,page_size,columna,orden){
               $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.apertura.total,clickIndiceMov);
 
               $('#tablaResultados tbody tr').remove();
+
+              $('#tablaResultados').find('#estado_ocultar').show();
+
               for (var i = 0; i < data.apertura.data.length; i++) {
                   var fila=generarFilaAperturas(data.apertura.data[i]);
                   $('#cuerpoTablaCyA').append(fila);
@@ -1767,7 +1770,8 @@ function generarFilaCierres(data){
     fila.find('.L_moneda').text(data.siglas_moneda);
     fila.find('.L_casino').text(data.nombre);
 
-    fila.find('.L_estado').attr('display', 'none');
+    fila.find('.L_estado').hide();
+
 
 
     //attr=data-tipo sirve para luego determinar qué get o post realizar

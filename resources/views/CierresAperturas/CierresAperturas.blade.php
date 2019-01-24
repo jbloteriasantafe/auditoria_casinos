@@ -191,9 +191,9 @@ $cas = $usuario['usuario']->casinos;
                           <th class="" apertura="mesa_de_panio.nro_mesa" cierre="mesa_de_panio.nro_mesa" style="font-size:14px; text-align:center !important;" estado="">MESA  <i class="fas fa-sort"></th>
                           <th class="" apertura="juego_mesa.siglas" cierre="juego_mesa.siglas" style="font-size:14px; text-align:center !important;" estado="">JUEGO  <i class="fas fa-sort"></th>
                           <th class="" apertura="apertura_mesa.hora" cierre="cierre_mesa.hora_inicio" style="font-size:14px; text-align:center !important;" estado="">HORA <i class="fas fa-sort"></th>
-                          <th class="" apertura="moneda.silgas" cierre="moneda.siglas" style="font-size:14px; text-align:center !important;" estado="">MONEDA  <i class="fas fa-sort"></th>
+                          <th class="" apertura="moneda.siglas" cierre="moneda.siglas" style="font-size:14px; text-align:center !important;" estado="">MONEDA  <i class="fas fa-sort"></th>
                           <th class="" apertura="casino.nombre" cierre="casino.nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
-                          <th class="" apertura="apertura_mesa.id_estado_cierre" cierre="cierre_mesa.id_estado_cierre" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
+                          <th class="" apertura="apertura_mesa.id_estado_cierre" cierre="cierre_mesa.id_estado_cierre" id="estado_ocultar" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
                           <th class="" style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
