@@ -24,6 +24,7 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Moneda;
+use App\Mesas\Ficha;
 
 use App\Http\Controllers\Mesas\Aperturas\BCAperturaController;
 
@@ -56,11 +57,19 @@ class BuscarMesasController extends Controller
     $sector = $mesa->sector;
     $juego = $mesa->juego;
     $tipo_mesa = $juego->tipo_mesa;
-    $moneda = $mesa->moneda;
+
     $casino = $mesa->casino;
     $sectores = SectorMesas::where('id_casino','=',$casino->id_casino)->orderBy('descripcion','desc')->get();
     $juegos = JuegoMesa::where('id_casino','=',$casino->id_casino)->orderBy('nombre_juego','desc')->get();
     $monedas = Moneda::all();
+    if($mesa->id_moneda != null){
+      $moneda = $mesa->moneda;
+      $fichas = $moneda->fichas;
+    }else{
+      $fichas = Ficha::select('valor_ficha')->distinct('valor_ficha')->orderBy('valor_ficha','DESC')->get();
+      $moneda = null;
+    }
+
     return [
             'mesa' => $mesa,
             'sector' => $sector,
@@ -68,7 +77,7 @@ class BuscarMesasController extends Controller
             'tipo_mesa' => $tipo_mesa,
             'moneda' => $moneda,
             'casino' => $casino,
-            'fichas' => $moneda->fichas,
+            'fichas' => $fichas,
             'sectores' => $sectores,
              'juegos' => $juegos,
               'monedas' => $monedas,

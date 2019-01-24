@@ -346,10 +346,10 @@ $(document).on('click','.infoMesa',function(e){
     $('.detalle_sector').text(data.sector.descripcion);
     $('.detalle_casino').text(data.casino.nombre);
     $('.detalle_juego').text(data.juego.nombre_juego);
-    if(data.moneda !== 'undefined'){
-        $('.detalle_moneda').text(data.moneda.descripcion);
+    if(data.moneda == null || data.moneda == 'null' || data.moneda == 'undefined' ){
+      $('.detalle_moneda').text('MULTI-MONEDA');
     }else{
-        $('.detalle_moneda').text('MULTI-MONEDA');
+      $('.detalle_moneda').text(data.moneda.descripcion);
     }
     $('.detalle_descripcion').text(data.mesa.descripcion);
     $('.detalle_tipo').text(data.tipo_mesa.descripcion);
@@ -391,6 +391,10 @@ $(document).on('click','.modificarMesa',function(e){
         .val(data.juegos[i].id_juego_mesa)
         .text(data.juegos[i].nombre_juego))
     }
+    $('#monedaM')
+    .append($('<option>')
+    .val(0)
+    .text('- MULTI-MONEDA -'))
 
     for (var i = 0; i < data.monedas.length; i++) {
       $('#monedaM')
