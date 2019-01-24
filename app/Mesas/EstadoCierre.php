@@ -12,8 +12,8 @@ class EstadoCierre extends Model
   protected $visible = array('id_estado_cierre','descripcion');
   public $timestamps = false;
 
-  public function cierres(){
-    return $this->HasMany('App\Mesas\Cierres','id_estado_cierre','id_estado_cierre');
+  public function aperturas(){
+    return $this->HasMany('App\Mesas\Apertura','id_estado_cierre','id_estado_cierre');
   }
 
   public function getTableName(){

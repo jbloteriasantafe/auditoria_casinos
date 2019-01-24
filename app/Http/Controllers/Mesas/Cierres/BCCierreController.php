@@ -40,7 +40,7 @@ class BCCierreController extends Controller
     'total_anticipos_c' => 'Total de Anticipos',
     'id_fiscalizador'=>'Fiscalizador',
     'id_mesa_de_panio'=> 'Mesa de Paño',
-    'id_estado_cierre'=>'Estado',
+
   ];
 
   /**
@@ -74,7 +74,6 @@ class BCCierreController extends Controller
 
     $cierres = DB::table('cierre_mesa')
                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
-                  ->join('estado_cierre','estado_cierre.id_estado_cierre','=','cierre_mesa.id_estado_cierre')
                   ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
                   ->join('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
                   ->whereMonth('cierre_mesa.fecha', $date->month)
@@ -143,7 +142,6 @@ class BCCierreController extends Controller
         }
       }
       return response()->json(['cierre' => $cierre,
-              'estado' => $cierre->estado,
               'cargador' => $cierre->fiscalizador,
               'casino' => $cierre->casino,
               'mesa' => $mesa,
@@ -186,8 +184,7 @@ class BCCierreController extends Controller
         if(empty($request->fecha)){
           $resultados = DB::table('cierre_mesa')
                                   ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
-                                            'cierre_mesa.hora_fin',
-                                            'cierre_mesa.id_estado_cierre','cierre_mesa.fecha',
+                                            'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
                                             'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
                                           )
@@ -205,8 +202,7 @@ class BCCierreController extends Controller
           $fecha=explode("-", $request->fecha);
           $resultados = DB::table('cierre_mesa')
                                   ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
-                                            'cierre_mesa.hora_fin',
-                                            'cierre_mesa.id_estado_cierre','cierre_mesa.fecha',
+                                            'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
                                             'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
                                           )
