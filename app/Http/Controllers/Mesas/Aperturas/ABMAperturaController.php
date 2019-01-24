@@ -67,15 +67,27 @@ class ABMAperturaController extends Controller
       'fichas.*.cantidad_ficha' => ['nullable'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $ap = Apertura::where([['fecha','=',$validator->getData()['fecha']],
-                            ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']]])
-                            ->get();
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if($mesa->multimoneda){
+        if(!empty($validator->getData()['fecha']) &&
+            !empty($validator->getData()['id_mesa_de_panio']) &&
+            !empty($validator->getData()['hora']) &&
+            !empty($validator->getData()['id_moneda'])
+          ){
+        $ap = Apertura::where([
+                                ['fecha','=',$validator->getData()['fecha']],
+                                ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
+                                ['hora','=',$validator->getData()['hora']],
+                                ['id_moneda','=',$validator->getData()['id_moneda']]
+                              ])
+                              ->get();
 
-      if(count($ap)> 0 ){
-        $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
-                                 );
+        if(count($ap)> 0 ){
+          $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
+                                   );
+        }
       }
-
+    }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){

@@ -64,12 +64,28 @@ class ABMCierreController extends Controller
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $yaExiste = Cierre::where('id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio'])
-                          ->where('fecha','=',$validator->getData()['fecha'])
-                          ->get();
-      if(count($yaExiste) != 0){
-        $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa en esa fecha.');
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
+         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
+      $filtros = [
+                    ['fecha','=',$validator->getData()['fecha']],
+                    ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
+                    ['hora_fin','=',$validator->getData()['hora_fin']],
+                    ['id_moneda','=',$validator->getData()['id_moneda']]
+                  ];
+      if(!empty($validator->getData()['fecha']) &&
+          !empty($validator->getData()['id_mesa_de_panio']) &&
+          !empty($validator->getData()['hora_fin']) &&
+          !empty($validator->getData()['id_moneda'])
+        ){
+        $yaExiste = Cierre::where($filtros)
+                            ->get();
+        if(count($yaExiste) != 0){
+          $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa con esos datos.');
+        }
+      }
+
       $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
@@ -137,6 +153,10 @@ class ABMCierreController extends Controller
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
+         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
+      }
       $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){

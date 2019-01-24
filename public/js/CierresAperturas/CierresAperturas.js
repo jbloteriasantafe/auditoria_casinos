@@ -394,7 +394,7 @@ $(document).on('change','#casinoApertura',function(){
   $('#columnaDetalle').hide();
   var fecha=$('#B_fecha_apert').val();
   var id_casino=$('#casinoApertura').val();
-  $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino + '/' + fecha ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+  $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino,'mesas','id_mesa_de_panio','nro_mesa',1,true);
   $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 });
 
@@ -411,7 +411,7 @@ $('#confirmar').on('click',function(e){
       var fecha = $('#B_fecha_apert').val();
       var id_casino=$('#casinoApertura').val();
 
-      $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino + '/' + fecha ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+      $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino,'mesas','id_mesa_de_panio','nro_mesa',1,true);
 
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
@@ -1487,8 +1487,12 @@ $(document).on('click', '.validarCyA', function(e) {
     for (var i = 0; i < data.fechas_cierres.length; i++) {
       $('#fechaCierreVal')
       .append($('<option>')
-      .val(data.fechas_cierres[i].id_cierre_mesa)
-      .text(data.fechas_cierres[i].fecha))
+              .val(data.fechas_cierres[i].id_cierre_mesa)
+              .text(data.fechas_cierres[i].fecha + ' -- '+data.fechas_cierres[i].hora_inicio
+                    +' a '+ data.fechas_cierres[i].hora_fin
+                    +' -- '+data.fechas_cierres[i].siglas
+                  )
+              )
     }
 
   })

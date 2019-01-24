@@ -24,6 +24,7 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
+use App\Mesas\Moneda;
 use App\Mesas\Apertura;
 use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
@@ -84,6 +85,7 @@ class BCAperturaController extends Controller
                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','apertura_mesa.id_mesa_de_panio')
                   ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
                   ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                  ->join('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
                   ->whereMonth('apertura_mesa.fecha', $date->month)
                   ->whereYear('apertura_mesa.fecha',$date->year)
                   ->whereIn('mesa_de_panio.id_casino',$casinos)
@@ -92,11 +94,13 @@ class BCAperturaController extends Controller
 
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
     $fichas = Ficha::all();
+    $monedas = Moneda::all();
 
     return  view('CierresAperturas.CierresAperturas', ['aperturas' => $apertura,
                              'juegos' => $juegos,
                              'casinos' => $cas,
                              'fichas' => $fichas,
+                             'monedas' => $monedas,
                              'es_superusuario' => UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->es_superusuario
                             ]);
   }
@@ -254,8 +258,9 @@ class BCAperturaController extends Controller
 
                         //fechas de los cierres que puede hacer join
         $cierres = DB::table('cierre_mesa')
-                          ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.fecha')
+                          ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.fecha','moneda.siglas','cierre_mesa.hora_inicio','cierre_mesa.hora_fin')
                           ->join('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa','left outer')
+                          ->join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
                           ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                           ->where('cierre_mesa.fecha','<',$apertura->fecha)
                           ->whereNull('cierre_apertura.id_cierre_apertura')
@@ -314,20 +319,56 @@ class BCAperturaController extends Controller
       $sort_by = $request->sort_by;
 
 
-      $date = \Carbon\Carbon::today();
-      $resultados = DB::table('apertura_mesa')->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
-                              ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
-                              ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-                              ->where($filtros)
-                              ->whereMonth('apertura_mesa.fecha', $date->month)
-                              ->whereYear('apertura_mesa.fecha',$date->year)
-                              ->when($sort_by,function($query) use ($sort_by){
-                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                          })
-                              ->whereIn('mesa_de_panio.id_casino',$cas)
-                              ->paginate($request->page_size);
+    if(!empty( $request->sort_by)){
+      $sort_by = $request->sort_by;
+    }else{
 
-    return response()->json(['apertura' => $resultados], 200);
+        $sort_by = ['columna' => 'apertura_mesa.fecha','orden','desc'];
+    }
+
+    if(empty($request->fecha)){
+      $resultados = DB::table('apertura_mesa')
+                ->select('apertura_mesa.id_apertura_mesa','apertura_mesa.hora',
+                          'apertura_mesa.id_estado_cierre','apertura_mesa.fecha',
+                          'casino.nombre','juego_mesa.siglas as nombre_juego',
+                          'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                        )
+                ->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
+                ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
+                ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                ->leftJoin('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
+                ->where($filtros)
+                ->whereIn('apertura_mesa.id_casino',$cas)
+                ->orderBy('apertura_mesa.fecha','desc')
+                ->when($sort_by,function($query) use ($sort_by){
+                                return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                            })
+                ->paginate($request->page_size);
+    }else{
+      $fecha=explode("-", $request->fecha);
+      $resultados = DB::table('apertura_mesa')
+                        ->select('apertura_mesa.id_apertura_mesa','apertura_mesa.hora',
+                                  'apertura_mesa.id_estado_cierre','apertura_mesa.fecha',
+                                  'casino.nombre','juego_mesa.siglas as nombre_juego',
+                                  'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                                )
+                        ->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
+                        ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
+                        ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                        ->leftJoin('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
+                        ->where($filtros)
+                        ->whereIn('apertura_mesa.id_casino',$cas)
+                        ->whereYear('apertura_mesa.fecha' , '=', $fecha[0])
+                        ->whereMonth('apertura_mesa.fecha','=', $fecha[1])
+                        ->whereDay('apertura_mesa.fecha','=', $fecha[2])
+                        ->orderBy('apertura_mesa.fecha','desc')
+                        ->take(31)
+                        ->when($sort_by,function($query) use ($sort_by){
+                                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                    })
+                        ->paginate($request->page_size);
+    }
+    return ['apertura' => $resultados];
   }
 
   public function buscarIDMesasAperturasDelDia($fecha,$id_casino){
