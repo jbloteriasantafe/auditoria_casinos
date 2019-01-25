@@ -400,7 +400,7 @@ $cas = $usuario['usuario']->casinos;
                   </tr>
 
                 </thead>
-                <tbody>
+                <tbody >
                 </tbody>
               </table>
             </div> <!-- tablafechas -->
@@ -516,7 +516,7 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
             <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
+            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique los valores ingresados para cada ficha.</span>
           </div> <!-- mensaje -->
         </div>
       </div>

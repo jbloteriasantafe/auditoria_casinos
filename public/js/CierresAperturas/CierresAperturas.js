@@ -539,10 +539,18 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
 
   limpiarCargaApertura();
   limpiarCargaCierre();
+
   $('#columnaDetalle').hide();
   $('#columnaDetalleCie').hide();
 
+  var tbody = $("#listaMesasCierres tbody");
 
+  //si queda vacia la tabla, la oculta.
+  if (tbody.children().length == 0) {
+
+    console.log('andaaa');
+    $('.listMes').hide();
+  }
 });
 
 
@@ -868,7 +876,7 @@ $('#btn-guardar-cierre').on('click', function(e){
     $.each(f, function(index, value){
       var valor={
         id_ficha: $(this).find('.fichaValCC').attr('id'),
-        monto_ficha: $(this).find('.inputCie').val()
+        monto_ficha: $(this).find('.inputCie').attr('data-ingresado')
       }
       if(valor.monto_ficha != "" ){
         fichas.push(valor);
@@ -924,7 +932,6 @@ $('#btn-guardar-cierre').on('click', function(e){
 
           },
           error: function(data){
-            $('#mensajeError h3').text('ERROR');
 
             var response = data.responseJSON;
 
@@ -937,23 +944,18 @@ $('#btn-guardar-cierre').on('click', function(e){
             if(typeof response.hora_fin !== 'undefined'){
               mostrarErrorValidacion($('#horarioCie'),response.hora_fin[0],false);
             }
-            if(typeof response.id_fiscalizador !== 'undefined'){
-              $('#mensajeCargaConError').show();
-            }
+
             if(typeof response.total_anticipos_c !== 'undefined'){
               mostrarErrorValidacion($('#totalAnticipoCierre'),response.total_anticipos_c[0],false);
             }
             if(typeof response.fichas !== 'undefined'){
               $('#mensajeFichasError2').show();
 
+            }
+            if(typeof response.id_juego_mesa !== 'undefined' || typeof response.id_mesa_de_panio !== 'undefined' || typeof response.id_fiscalizador !== 'undefined'){
               $('#mensajeCargaConError').show();
             }
-            if(typeof response.id_juego_mesa !== 'undefined'){
-              $('#mensajeCargaConError').show();
-            }
-            if(typeof response.id_mesa_de_panio !== 'undefined'){
-              $('#mensajeCargaConError').show();
-            }
+
             if(typeof response.id_moneda !== 'undefined'){
               $('#mensajeErrorMoneda').show();
             }
@@ -964,7 +966,6 @@ $('#btn-guardar-cierre').on('click', function(e){
       })
 
 });
-
 
 
 $(document).on('click', '.infoCyA', function(e) {
