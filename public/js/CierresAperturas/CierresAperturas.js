@@ -1863,13 +1863,18 @@ function clickAgregarMesa(e) {
 
 //fc que generan la fila del listado principal:
 function generarFilaAperturas(data){
-  var piecesi = data.hora.split(':')
-  var houri, minutei;
+    if(data.hora != null){
+      var piecesi = data.hora.split(':')
+      var houri, minutei;
 
-  if(piecesi.length === 3) {
-    houri = piecesi[0];
-    minutei = piecesi[1];
-  }
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
+      }
+    }else{
+      houri = '-';
+      minutei = '-';
+    }
 
     var fila = $('#moldeFilaCyA').clone();
     fila.removeAttr('id');
@@ -1906,20 +1911,27 @@ function generarFilaAperturas(data){
 
 function generarFilaCierres(data){
 
-    var piecesi = data.hora_inicio.split(':')
-    var houri, minutei;
+    if(data.hora_inicio != null){
+      var piecesi = data.hora_inicio.split(':')
+      var houri, minutei;
 
-    if(piecesi.length === 3) {
-      houri = piecesi[0];
-      minutei = piecesi[1];
-    }
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
+      }
 
-    var piecesf= data.hora_fin.split(':')
-    var hourf, minutef;
+      var piecesf= data.hora_fin.split(':')
+      var hourf, minutef;
 
-    if(piecesf.length === 3) {
-      hourf = piecesf[0];
-      minutef = piecesf[1];
+      if(piecesf.length === 3) {
+        hourf = piecesf[0];
+        minutef = piecesf[1];
+      }
+    }else{
+      hourf = '-';
+      minutef = '-';
+      houri = '-';
+      minutei = '-';
     }
 
     var fila = $('#moldeFilaCyA').clone();
