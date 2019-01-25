@@ -22,7 +22,7 @@ class CierreApertura extends Model
   }
 
   public function controlador(){
-    return $this->belongsTo('App\User','id_controlador','id');
+    return $this->belongsTo('App\Usuario','id_controlador','id_usuario');
   }
 
   public function estado_cierre(){

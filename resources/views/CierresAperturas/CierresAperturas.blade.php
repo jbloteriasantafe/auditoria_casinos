@@ -14,6 +14,9 @@ $cas = $usuario['usuario']->casinos;
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="css/paginacion.css">
+<link rel="stylesheet" href="/css/styleSlider.css">
+
 <link href="css/bootstrap-datetimepicker.css" rel="stylesheet"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
@@ -25,7 +28,7 @@ $cas = $usuario['usuario']->casinos;
 @section('contenidoVista')
 
 <div class="row">
-
+    <div class="col-xl-3">
       <div class="row">
         <!-- botón de generar planilla de apertura -->
         <div class="col-md-12">
@@ -87,7 +90,7 @@ $cas = $usuario['usuario']->casinos;
 
 
         </div>
-
+    </div>
     <div class="col-xl-9">
           <!-- FILTROS -->
           <div class="row">
@@ -181,33 +184,37 @@ $cas = $usuario['usuario']->casinos;
                     <h4 id="tablaInicial">APERTURAS</h4>
                   </div>
                   <div class="panel-body">
-                    <table id="tablaResultados" class="table table-fixed tablesorter ">
+                    <table id="tablaResultados" class="table  tablesorter " >
                       <thead>
                         <tr align="center" >
-                          <th class="col-md-2" style="font-size:14px;">FECHA<i class="fa fa-sort"></i></th>
-                          <th class="col-md-1" style="font-size:14px;">MESA</th>
-                          <th class="col-md-3" style="font-size:14px; text-align:center !important;">JUEGO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">CASINO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">ESTADO</th>
-                          <th class="col-md-2"  style="font-size:14px;text-align:center !important;">ACCIÓN</th>
+                          <th class="activa" apertura="apertura_mesa.fecha" cierre="cierre_mesa.fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA  <i class="fas fa-sort-down"></th>
+                          <th class="" apertura="mesa_de_panio.nro_mesa" cierre="mesa_de_panio.nro_mesa" style="font-size:14px; text-align:center !important;" estado="">MESA  <i class="fas fa-sort"></th>
+                          <th class="" apertura="juego_mesa.siglas" cierre="juego_mesa.siglas" style="font-size:14px; text-align:center !important;" estado="">JUEGO  <i class="fas fa-sort"></th>
+                          <th class="" apertura="apertura_mesa.hora" cierre="cierre_mesa.hora_inicio" style="font-size:14px; text-align:center !important;" estado="">HORA <i class="fas fa-sort"></th>
+                          <th class="" apertura="moneda.siglas" cierre="moneda.siglas" style="font-size:14px; text-align:center !important;" estado="">MONEDA  <i class="fas fa-sort"></th>
+                          <th class="" apertura="casino.nombre" cierre="casino.nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
+                          <th class="" apertura="apertura_mesa.id_estado_cierre" cierre="cierre_mesa.id_estado_cierre" id="estado_ocultar" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
+                          <th class="" style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
-                      <tbody  id='cuerpoTablaCyA' style="height: 380px;">
+                      <tbody  id='cuerpoTablaCyA' >
                         @foreach($aperturas as $a)
                         <tr id="{{$a->id_apertura_mesa}}">
 
-                        <td class="col-xs-2">{{$a->fecha}}</td>
-                        <td class="col-xs-1">{{$a->nro_mesa}}</td>
-                        <td class="col-xs-3"  style="text-align:center !important;">{{$a->nombre_juego}}</td>
-                        <td class="col-xs-2" style="text-align:center !important;">{{$a->nombre}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->fecha}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nro_mesa}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nombre_juego}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->hora}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->siglas_moneda}}</td>
+                        <td class=""  style="text-align:center !important;">{{$a->nombre}}</td>
 
                         @if($a->id_estado_cierre == 3)
-                        <td class="col-xs-2" style="text-align:center !important;" >  <i class="fa fa-fw fa-check"   style="color: #4CAF50;"></i></td>
+                          <td class="" style="text-align:center !important">  <i class="fa fa-fw fa-check"   align="center" style="color: #4CAF50;text-align:center !important;"></i></td>
                         @else
-                        <td class="col-xs-2" style="text-align:center !important;" ><i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;"></td>
+                          <td class="" style="text-align:center !important">  <i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;text-align:center !important;"></td>
                         @endif
 
-                        <td class="col-xs-2" style="text-align:center !important;">
+                        <td class="" style="text-align:center !important;">
                           @if($a->id_estado_cierre == 3)
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
@@ -238,40 +245,47 @@ $cas = $usuario['usuario']->casinos;
                         @endforeach
                       </tbody>
                     </table>
-                    <table>
-                      <tbody>
-                        <tr id="moldeFilaCyA" class="filaClone" style="display:none">
-                          <td class="col-xs-2 L_fecha"></td>
-                          <td class="col-xs-1 L_mesa"></td>
-                          <td class="col-xs-3 L_juego" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 L_casino" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 L_estado" style="text-align:center !important;"></td>
+                  </div>
 
-                          <td class="col-xs-2" style="text-align:center !important;">
-                            <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
-                                    data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
-                                    <i class="fa fa-fw fa-search-plus"></i>
-                            </button>
-                            <button type="button" class="btn btn-warning modificarCyA" value="">
-                                    <i class="fas fa-fw fa-pencil-alt"></i>
-                            </button>
-                            <button type="button" class="btn btn-success validarCyA" value="">
-                                    <i class="fa fa-fw fa-check"></i>
-                            </button>
-                            <?php
-                              $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                            ?>
-                            @if($usuario['usuario']->es_superusuario)
-                            <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
-                                    <i class="fa fa-fw fa-trash"></i>
-                            </button>
-                            @endif
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div class="table-responsive" style="display:none">
 
-                    </div>
+
+                  <table  class="table">
+                      <tr id="moldeFilaCyA" class="filaClone" style="display:none">
+                        <td class=" L_fecha"  style="text-align:center !important;"></td>
+                        <td class=" L_mesa"   style="text-align:center !important;"></td>
+                        <td class=" L_juego"  style="text-align:center !important;"></td>
+                        <td class=" L_hora"   style="text-align:center !important;"></td>
+                        <td class=" L_moneda" style="text-align:center !important;"></td>
+                        <td class=" L_casino" style="text-align:center !important;"></td>
+                        <td class=" L_estado" style="text-align:center !important;"></td>
+
+                        <td class="" style="text-align:center !important;">
+                          <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
+                                  data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
+                                  <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          <button type="button" class="btn btn-warning modificarCyA" value="">
+                                  <i class="fas fa-fw fa-pencil-alt"></i>
+                          </button>
+                          <button type="button" class="btn btn-success validarCyA" value="">
+                                  <i class="fa fa-fw fa-check"></i>
+                          </button>
+                          <?php
+                             $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                           ?>
+                           @if($usuario['usuario']->es_superusuario)
+                           <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
+                                   <i class="fa fa-fw fa-trash"></i>
+                           </button>
+                           @endif
+                        </td>
+                      </tr>
+                  </table>
+                  </div>
+                  <legend></legend>
+                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+                  </div>
                   </div>
                 </div>
           </div>
@@ -322,15 +336,23 @@ $cas = $usuario['usuario']->casinos;
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-
-            <div class="col-xs-6">
+            <div class="col-md-4">
+              <h6>FECHA DE PRODUCCIÓN</h6>
+              <div class="form-group">
+                <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-xs-4">
               <h6>CASINO</h6>
               <select class="form-control" name="" id="casinoCierre" >
                 <option value="0" selected>- Seleccione un Casino -</option>
                 @foreach ($casinos as $cas)
                 <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                 @endforeach
-                <option value="4" >- Todos los Casinos-</option>
               </select>
             </div>
             <br>
@@ -358,25 +380,21 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-4">
-              <h6>FISCALIZADOR</h6>
+              <h6>FISCALIZADOR DE CARGA</h6>
               <input id="fiscalizadorCierre" class="form-control" type="text" value=""  size="100" autocomplete="off">
             </div>
             <div class="col-md-4">
-              <h6>FECHA DE PRODUCCIÓN</h6>
-              <div class="form-group">
-                <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
+              <h6>MONEDA</h6>
+              @foreach($monedas as $moneda)
+              <input type="radio" name="moneda" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+              @endforeach
             </div>
           </div>
           <br>
           <div class="row">
             <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
               <div class="col-md-4">
-                <h6>HORA INICIO</h6>
+                <h6>HORA APERTURA</h6>
                 <div class='input-group date' id='hora_cierre' data-link-field="desde_hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora de inicio" id="horario_ini_c"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -438,7 +456,6 @@ $cas = $usuario['usuario']->casinos;
 
           <div class="modal-footer">
             <button type="button" class="btn btn-successAceptar" id="btn-guardar-cierre" value="nuevo" hidden="true">GUARDAR</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           </div>
           <div id="mensajeFichasError" hidden>
             <br>
@@ -484,7 +501,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
               </div>
               <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                <h6>CARGADOR</h6>
+                <h6>FISCALIZADOR DE CARGA</h6>
                 <div class="col-xs-2 col-xs-offset-1 iconoCargadorCi">
                     <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
                 </div>
@@ -498,7 +515,7 @@ $cas = $usuario['usuario']->casinos;
           <div class="row">
             <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
                 <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                  <h6>HORA INICIO</h6>
+                  <h6>HORA APERTURA</h6>
                   <div class="row ">
 
                   <div class="col-xs-2 col-xs-offset-1 iconoFecha">
@@ -653,28 +670,27 @@ $cas = $usuario['usuario']->casinos;
 
                 <div class="col-xs-3" style:"display:inline">
                   <h6 class="linea">Casino:</h6>
-                    <h5 class="linea cas_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important"></h5>
+                  <input type="text" name="" class="form-control linea cas_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-3">
-                  <h6 class="linea">Fecha Producción: </h6>
-                  <h5 class="linea f_cierre" style="font-size:15px;color:#616161 !important;padding-left: 1px !important">MONEDA: </h5>
+                  <h6 class="linea">Fecha: </h6>
+                  <input type="text" name="" class="form-control linea f_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-2" style:"display:inline">
                   <h6 class="linea">Mesa:</h6>
-                  <h5 class="linea nro_cierre" style="font-size:15px;padding-left: 1px !important;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea nro_cierre" value="" readonly="true">
                 </div>
                 <div class="col-xs-4">
                   <h6 class="linea">Juego:</h6>
-                  <h5 class="linea j_cierre" style="font-size:15px; padding-left: 1px !important;color:#616161 !important;">JUEGO: </h5>
+                  <input type="text" name="" class="form-control linea j_cierre" value="" readonly="true">
                 </div>
                 <br>
                 <br>
             </div>
             <br>
-            <br>
             <div class="row" >
-              <div class="col-xs-4">
-                <h6 text-align="center">Hora Inicio: </h6>
+              <div class="col-xs-6">
+                <h6 text-align="center">Hora de Apertura: </h6>
                 <div class='input-group date' id='hora_In_cierre_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_inicio_cierre"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -682,7 +698,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
                 <br>
               </div>
-              <div class="col-xs-4">
+              <div class="col-xs-6">
                 <h6 text-align="center">Hora Cierre: </h6>
                 <div class='input-group date' id='hora_cierre_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_cierre_cierre"/>
@@ -692,12 +708,21 @@ $cas = $usuario['usuario']->casinos;
                 <br>
               </div>
               <br>
-              <div class="col-xs-4">
-                <h6 text-align="center" class="linea">Fiscalizador: </h6>
+            </div>
+            <div class="row">
+
+              <div class="col-xs-6">
+                <h6 text-align="center" class="linea">Fiscalizador de Carga: </h6>
                 <br>
                 <div class="">
                   <input class="linea form-control" id="fis_cierre" type="text" value=""  size="100" autocomplete="off">
                 </div>
+              </div>
+              <div class="col-xs-6" style="margin-top:-5px">
+                <h6 class="mon_apertura">Moneda: </h6>
+                @foreach($monedas as $moneda)
+                <input type="radio" name="monedaModCie" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                @endforeach
               </div>
             </div>
             <br>
@@ -720,11 +745,11 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL ($): </b></h6>
+                  <h6><b>TOTAL: </b></h6>
                   <input id="totalModifCie" type="text" value="" readonly="true">
                 </div>
                 <div class="row">
-                  <h6><b>TOTAL ANTICIPOS ($): </b></h6>
+                  <h6><b>TOTAL ANTICIPO: </b></h6>
                   <input id="totalAnticipoModif" type="text" value="">
                 </div>
                 <br><br>
@@ -746,6 +771,7 @@ $cas = $usuario['usuario']->casinos;
     </div>
   </div>
 </div>
+
 
 <!-- MODAL CARGA APERTURA -->
 <div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -777,7 +803,6 @@ $cas = $usuario['usuario']->casinos;
                         @foreach ($casinos as $cas)
                         <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                         @endforeach
-                        <option value="4" >- Todos los Casinos-</option>
                       </select>
                     </div>
                     <br>
@@ -805,7 +830,7 @@ $cas = $usuario['usuario']->casinos;
                         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                       ?>
                       <div class="col-md-6">
-                        <h6>CARGADOR</h6>
+                        <h6>Fiscalizador de Carga: </h6>
                         <input id="cargador" type="text"  name="cargador" value="" data-cargador="" readonly="true">
                       </div>
 
@@ -838,8 +863,14 @@ $cas = $usuario['usuario']->casinos;
                             <div class="detalleMesa">
                               <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
                                 <div class="row">
+                                  <div class="col-xs-3">
+                                    <h5>MONEDA</h5>
+                                    @foreach($monedas as $moneda)
+                                    <input type="radio" name="monedaApertura" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                                    @endforeach
+                                    </div>
                                   <div class="col-xs-4">
-                                    <h5>Hora</h5>
+                                    <h5>HORA DE APERTURA</h5>
                                     <div class='input-group date' id='hora_apertura' data-link-field="desde_hora" data-link-format="HH:ii">
                                         <input type='text' class="form-control" placeholder="Hora" id="horarioAp"/>
                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -847,20 +878,16 @@ $cas = $usuario['usuario']->casinos;
                                     </div>
                                     <br>
                                   </div>
-                                  <div class="col-xs-4">
-                                    <h5>FISCALIZADOR</h5>
+                                  <div class="col-xs-5">
+                                    <h5>FISCALIZADOR DE TOMA</h5>
                                       <input id="fiscalizApertura" class="form-control" type="text" value=""  size="100" autocomplete="off">
                                     <br>
                                   </div>
-                                  <div class="col-xs-4">
-                                    <h5>MONEDA</h5>
-                                      <input id="moneda" class="form-control" type="text" value=""  size="100" readonly="true">
-                                   <br>
-                                  </div>
+
                                 </div>
                                 <br>
                                 <div class="row">
-                                    <h5 align="center">FICHAS</h5>
+                                    <h6 align="center">FICHAS</h6>
                                     <div class="row">
                                       <div class=" col-xs-6">
                                     <table id="tablaCargaApertura">
@@ -888,7 +915,8 @@ $cas = $usuario['usuario']->casinos;
                                 <div class="col-xs-4" >
                                   <br>
                                   <h6 align="center">TOTAL ($):</h6><input id="totalApertura" type="text" class="form-control" value="" display="inline" readonly >
-                                  <button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
+                                  <div><button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button></div>
+
 
                                   <br>
                                 </div>
@@ -902,7 +930,7 @@ $cas = $usuario['usuario']->casinos;
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-successAceptar" id="btn-guardar-apertura" value="nuevo" hidden="true">GUARDAR</button>
-                          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                          <button type="button" class="btn btn-default" data-dismiss="modal">FINALIZAR</button>
                           <input type="text" id="id_mesa_ap" name="" value="" hidden>
                         </div>
 
@@ -977,7 +1005,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
             </div>
             <div class="col-md-4" align="center" style="border-left:1px solid #ccc">
-              <h6>FISCALIZADOR</h6>
+              <h6>FISCALIZADOR DE TOMA</h6>
               <div class="row ">
               <div class="col-xs-2 col-xs-offset-1 icoFiscaDetA">
                   <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
@@ -989,7 +1017,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
             </div>
             <div class="col-md-4" align="center" style="border-left:1px solid #ccc">
-              <h6>CARGADOR</h6>
+              <h6>FISCALIZADOR DE CARGA</h6>
               <div class="row ">
               <div class="col-xs-2 col-xs-offset-1 iconoCargadorDetA">
                   <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
@@ -1067,18 +1095,18 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <div class="row">
                 <div class="col-xs-4">
-                  <h6 class="linea">Fecha Producción: </h6>
-                    <h5 class="linea f_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <h6 class="linea">Fecha: </h6>
+                  <input type="text" name="" class="form-control linea f_apertura" value="" readonly="true">
                 </div>
 
                 <div class="col-xs-4" style:"display:inline">
                   <h6 class="linea">Casino: </h6>
-                    <h5 class="linea cas_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea cas_apertura" value="" readonly="true">
                 </div>
 
                 <div class="col-xs-4" style:"display:inline">
                   <h6 class="linea">Mesa: </h6>
-                  <h5 class="linea nro_apertura" style="font-size:13px;color:#616161 !important;"></h5>
+                  <input type="text" name="" class="form-control linea nro_apertura" value="" readonly="true">
 
                 </div>
             </div>
@@ -1087,36 +1115,35 @@ $cas = $usuario['usuario']->casinos;
             <div class="row" >
                 <div class="col-xs-4">
                   <h6 class="linea">Juego: </h6>
-                  <h5 class="linea j_apertura" style="font-size:13px; color:#616161 !important;">JUEGO: </h5>
+                  <input type="text" name="" class="form-control linea j_apertura" value="" readonly="true">
                 </div>
                 <div class="col-xs-4">
-                  <h6 class="linea">Moneda: </h6>
-                  <h5 class="linea mon_apertura" style="font-size:13px;color:#616161 !important;">MONEDA: </h5>
-                </div>
-                <div class="col-xs-4">
-                  <h6 class="linea">Cargador: </h6>
-                  <h5 class="linea car_apertura" style="font-size:13px;color:#616161 !important;">CARGADOR: </h5>
+                  <h6 class="linea">Fiscalizador de Carga: </h6>
+                  <input type="text" name="" class="form-control linea car_apertura" value="" readonly="true">
                 </div>
             </div>
             <br>
-            <br>
             <div class="row">
               <div class="col-xs-4">
-                <h6 text-align="center">Hora: </h6>
+                <h6 text-align="center">Hora de Apertura: </h6>
                 <div class='input-group date' id='hora_apertura_modif' data-link-field="hora" data-link-format="HH:ii">
                     <input type='text' class="form-control" placeholder="Hora" id="hs_apertura"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
                 </div>
-                <br>
               </div>
               <br>
+
               <div class="col-xs-4">
-                <h6 text-align="center" class="linea">Fiscalizador: </h6>
+                <h6 text-align="center" class="linea">Fiscalizador de Toma: </h6>
                 <input class="linea form-control" id="fis_apertura" type="text" value=""  size="100" autocomplete="off">
               </div>
+              <div class="col-xs-4" style="margin-top:-10px">
+                <h6 class="mon_apertura">Moneda: </h6>
+                @foreach($monedas as $moneda)
+                <input type="radio" name="monedaModApe" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                @endforeach</div>
             </div>
-            <br>
             <br>
             <div class="row">
               <div class="col-xs-6">
@@ -1136,7 +1163,7 @@ $cas = $usuario['usuario']->casinos;
               <br>
               <div class="col-md-6" align="center">
                 <div class="row">
-                  <h6><b>TOTAL ($): </b></h6>
+                  <h6><b>TOTAL: </b></h6>
                   <input id="totalModifApe" type="text" value="" readonly="true">
                 </div>
               </div>
@@ -1158,6 +1185,20 @@ $cas = $usuario['usuario']->casinos;
   </div>
 </div>
 
+<style media="screen">
+  .estilotextarea4 {
+    background-color: transparent;
+    border: 1px solid #000000;
+    height: 100%;
+    width: 100%;
+    scrollbar-arrow-color: #000066;
+    scrollbar-base-color: #000033;
+    scrollbar-dark-shadow-color: #336699;
+    scrollbar-track-color: #666633;
+    scrollbar-face-color: #cc9933;
+    scrollbar-shadow-color: #DDDDDD;
+    scrollbar-highlight-color: #CCCCCC;}
+</style>
 
 <!-- MODAL VALIDAR APERTURA -->
 <div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1234,7 +1275,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="col-md-12" style="border-top:2px solid #ccc; ">
                     <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>HORA INICIO</h6>
+                      <h6>HORA APERTURA</h6>
                       <div class="row ">
 
                       <div class="col-xs-2 col-xs-offset-1 iconoFecha">
@@ -1301,7 +1342,7 @@ $cas = $usuario['usuario']->casinos;
                     </div>
                   </div>
                   <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                    <h6>FISCALIZADOR</h6>
+                    <h6>FISCALIZADOR DE TOMA</h6>
                     <div class="col-xs-2 col-xs-offset-1 iconoFiscalizador">
                         <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
@@ -1314,7 +1355,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
                     <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>CARGADOR</h6>
+                      <h6>FISCALIZADOR DE CARGA</h6>
                       <div class="row ">
 
                       <div class="col-xs-2 col-xs-offset-1 iconoCargador">
@@ -1399,6 +1440,13 @@ $cas = $usuario['usuario']->casinos;
                   <input type="text" id="anticipos_validar" class="form-control" value="" readonly="true">
                 </div>
           </div>
+          <br>
+          <div class="row">
+            <div class="col-md-8">
+              <h6>OBSERVACIONES:</h6>
+              <textarea name="name" id="obsValidacion" rows="4" width="100%"  class="estilotextarea4"></textarea>
+            </div>
+          </div>
 
           <div class="modal-footer">
             <button id="validar" type="button" value="" class="btn btn-success" data-dismiss="modal" hidden="true">VALIDAR</button>
@@ -1431,6 +1479,7 @@ $cas = $usuario['usuario']->casinos;
 
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="js/lista-datos.js" type="text/javascript"></script>
+  <script src="/js/paginacion.js" charset="utf-8"></script>
 
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/js/locales/es.js" type="text/javascript"></script>

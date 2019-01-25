@@ -45,6 +45,7 @@ $('#btn-minimizar').click(function(){
 //Busqueda de MESAS
 $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
 
+  e.preventDefault();
   $('#mensajeExito').hide();
   $.ajaxSetup({
       headers: {
@@ -52,7 +53,7 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
       }
   });
 
-  e.preventDefault();
+
 
 
   //Fix error cuando librería saca los selectores
@@ -90,19 +91,17 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
       dataType: 'json',
 
       success: function (data) {
-        console.log('ss',data.data[0]);
+
           $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.total,clickIndiceMov);
+
           $('#cuerpoTablaMesas tr').remove();
+
           for (var i = 0; i < data.data.length; i++) {
               var filaMesa = generarFilaTabla(data.data[i]);
               $('#cuerpoTablaMesas').append(filaMesa);
           }
 
-          //Asigno valor a la variable global casinos
-        //  casinos=data.casinos;
 
-          //Me permite mostrar los nombres de los botones
-          $('[data-toggle="tooltip"]').tooltip();
 
           $('#herramientasPaginacion').generarIndices(page_number,page_size,data.total,clickIndiceMov);
       },

@@ -25,7 +25,7 @@ use App\Mesas\TipoMesa;
 use App\Mesas\Apertura;
 use App\Mesas\DetalleApertura;
 use App\Mesas\EstadoCierre;
-use App\Http\Controllers\Cierres\ABMCCierreAperturaController;
+use App\Http\Controllers\Mesas\Cierres\ABMCCierreAperturaController;
 
 //validacion de cierres
 class VAperturaController extends Controller
@@ -55,7 +55,9 @@ class VAperturaController extends Controller
 
   public function validarApertura(Request $request){
     $validator=  Validator::make($request->all(),[
-      'id_cierre' => 'required|exists:cierre_mesa,id_cierre_mesa'
+      'id_cierre' => 'required|exists:cierre_mesa,id_cierre_mesa',
+      'observacion' => 'nullable'
+
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -65,6 +67,7 @@ class VAperturaController extends Controller
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $apertura = Apertura::find($request['id_apertura']);
     $apertura->estado_cierre()->associate(3);//VISADO
+    $apertura->observacion= $request['observacion'];
     $apertura->save();
     $cacontroller = new ABMCCierreAperturaController;
     $cacontroller->asociarAperturaACierre($apertura, $request['id_cierre']);

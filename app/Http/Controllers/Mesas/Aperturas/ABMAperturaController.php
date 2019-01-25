@@ -27,7 +27,7 @@ use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 use App\Http\Controllers\Mesas\Cierres\ABMCCierreAperturaController;
 use App\Http\Controllers\UsuarioController;
-
+use App\Mesas\Ficha;
 
 class ABMAperturaController extends Controller
 {
@@ -65,16 +65,29 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' => ['nullable'],
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $ap = Apertura::where(['fecha','=',$validator->getData()['fecha'],
-                            ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']]])
-                            ->get();
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if($mesa->multimoneda){
+        if(!empty($validator->getData()['fecha']) &&
+            !empty($validator->getData()['id_mesa_de_panio']) &&
+            !empty($validator->getData()['hora']) &&
+            !empty($validator->getData()['id_moneda'])
+          ){
+        $ap = Apertura::where([
+                                ['fecha','=',$validator->getData()['fecha']],
+                                ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
+                                ['hora','=',$validator->getData()['hora']],
+                                ['id_moneda','=',$validator->getData()['id_moneda']]
+                              ])
+                              ->get();
 
-      if(count($ap)> 0 ){
-        $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
-                                 );
+        if(count($ap)> 0 ){
+          $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
+                                   );
+        }
       }
-
+    }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -85,6 +98,7 @@ class ABMAperturaController extends Controller
     if($user->usuarioTieneCasino($request->id_casino)){
       $mesa = Mesa::find($request->id_mesa_de_panio);
       $apertura = new Apertura;
+      $apertura->moneda()->associate($request->id_moneda);
       $apertura->fecha =$request->fecha;
       $apertura->hora = $request->hora;
       $apertura->total_pesos_fichas_a = $request->total_pesos_fichas_a;
@@ -126,7 +140,10 @@ class ABMAperturaController extends Controller
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
+      'id_moneda' => 'required|exists:moneda,id_moneda',
+    ], array(), self::$atributos)->after(function($validator){
+
+     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];
@@ -140,7 +157,7 @@ class ABMAperturaController extends Controller
       $apertura->fiscalizador()->associate($request->id_fiscalizador);
       $apertura->save();
       $detalles = $apertura->detalles;
-
+      $apertura->moneda()->associate($request->id_moneda);
       foreach ($detalles as $d) {
         $d->apertura()->dissociate();
         $d->delete();

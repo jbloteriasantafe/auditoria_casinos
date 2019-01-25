@@ -23,6 +23,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
 use App\Mesas\DetalleCierre;
+use App\Mesas\Ficha;
 
 class ABMCierreController extends Controller
 {
@@ -51,23 +52,41 @@ class ABMCierreController extends Controller
   public function guardar(Request $request){
     $validator=  Validator::make($request->all(),[
       'fecha' => 'required|date',
-      'hora_inicio' => 'required|date_format:"H:i"',
-      'hora_fin' => 'required|date_format:"H:i"',
+      'hora_inicio' => 'nullable|date_format:"H:i"',
+      'hora_fin' => 'nullable|date_format:"H:i"',
       'total_pesos_fichas_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
       'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $yaExiste = Cierre::where('id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio'])
-                          ->where('fecha','=',$validator->getData()['fecha'])
-                          ->get();
-      if(count($yaExiste) != 0){
-        $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa en esa fecha.');
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
+         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
+      $filtros = [
+                    ['fecha','=',$validator->getData()['fecha']],
+                    ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
+                    ['hora_fin','=',$validator->getData()['hora_fin']],
+                    ['id_moneda','=',$validator->getData()['id_moneda']]
+                  ];
+      if(!empty($validator->getData()['fecha']) &&
+          !empty($validator->getData()['id_mesa_de_panio']) &&
+          !empty($validator->getData()['hora_fin']) &&
+          !empty($validator->getData()['id_moneda'])
+        ){
+        $yaExiste = Cierre::where($filtros)
+                            ->get();
+        if(count($yaExiste) != 0){
+          $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa con esos datos.');
+        }
+      }
+
+      $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -87,7 +106,7 @@ class ABMCierreController extends Controller
       $cierre->casino()->associate($request->id_casino);
       $cierre->fiscalizador()->associate($request->id_fiscalizador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);
-      $cierre->estado_cierre()->associate(1);//CARGADO
+      $cierre->moneda()->associate($request->id_moneda);
       $cierre->save();
       $detalles = array();
       foreach ($request->fichas as $f) {
@@ -123,16 +142,21 @@ class ABMCierreController extends Controller
     $validator=  Validator::make($request->all(),[
       'id_cierre_mesa' => 'required|exists:cierre_mesa,id_cierre_mesa',
       //'fecha' => 'required|date',
-      'hora_inicio' => 'required|date_format:"H:i"',
-      'hora_fin' => 'required|date_format:"H:i"',
+      'hora_inicio' => 'nullable|date_format:"H:i"',
+      'hora_fin' => 'nullable|date_format:"H:i"',
       'total_pesos_fichas_a' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
+      'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-
+      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
+         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
+      }
+      $validator = $this->validarFichas($validator);
     })->validate();
     if(isset($validator)){
       if($validator->fails()){
@@ -146,6 +170,7 @@ class ABMCierreController extends Controller
     $cierre->hora_fin = $request->hora_fin;
     $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_a;
     $cierre->total_anticipos_c = $request->total_anticipos_c;
+    $cierre->moneda()->associate($request->id_moneda);
     $cierre->fiscalizador()->associate($request->id_fiscalizador);
     $cierre->save();
     $detalles = array();
@@ -166,4 +191,16 @@ class ABMCierreController extends Controller
    return ['cierre' => $cierre,'detalles' => $detalles];
   }
 
+  private function validarFichas($validator){
+    foreach ($validator->getData()['fichas'] as $detalle) {
+      $ficha = Ficha::find($detalle['id_ficha']);
+      $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
+      if(floor($division)* $ficha->valor_ficha != $detalle['monto_ficha']){
+        $validator->errors()->add('monto_ficha','Ya existe una apertura para la fecha.'
+                                 );
+        break;
+      }
+    }
+    return $validator;
+  }
 }

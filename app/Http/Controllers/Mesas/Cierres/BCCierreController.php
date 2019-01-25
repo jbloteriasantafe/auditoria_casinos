@@ -40,7 +40,7 @@ class BCCierreController extends Controller
     'total_anticipos_c' => 'Total de Anticipos',
     'id_fiscalizador'=>'Fiscalizador',
     'id_mesa_de_panio'=> 'Mesa de Paño',
-    'id_estado_cierre'=>'Estado',
+
   ];
 
   /**
@@ -74,8 +74,8 @@ class BCCierreController extends Controller
 
     $cierres = DB::table('cierre_mesa')
                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
-                  ->join('estado_cierre','estado_cierre.id_estado_cierre','=','cierre_mesa.id_estado_cierre')
                   ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
+                  ->join('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
                   ->whereMonth('cierre_mesa.fecha', $date->month)
                   ->whereYear('cierre_mesa.fecha',$date->year)
                   ->whereIn('mesa_de_panio.id_casino',$casinos)
@@ -99,6 +99,12 @@ class BCCierreController extends Controller
   public function getCierre($id){
     $cierre = Cierre::find($id);
     $mesa = $cierre->mesa;
+    if(!empty($cierre->moneda)){
+      $moneda =$cierre->moneda;
+    }else{
+      $moneda = $cierre->mesa->moneda;
+    }
+
     if(!empty($cierre)){
       $detalles = DB::table('ficha')
                       ->leftJoin('detalle_cierre','ficha.id_ficha','=','detalle_cierre.id_ficha')
@@ -136,7 +142,6 @@ class BCCierreController extends Controller
         }
       }
       return response()->json(['cierre' => $cierre,
-              'estado' => $cierre->estado,
               'cargador' => $cierre->fiscalizador,
               'casino' => $cierre->casino,
               'mesa' => $mesa,
@@ -144,6 +149,8 @@ class BCCierreController extends Controller
               'apertura' => $apertura,
               'detalleAP' => $detalleAP,
               'nombre_juego' => $juegoCI->nombre_juego,
+              'moneda'=> $moneda,
+
             ], 200);
     }else{
       return response()->json(['error' => 'Cierre no encontrado.'], 404);
@@ -169,36 +176,53 @@ class BCCierreController extends Controller
         $cas[]=$cass->id_casino;
       }
     }
+    if(!empty( $request->sort_by)){
+          $sort_by = $request->sort_by;
+        }else{
+          $sort_by = ['columna' => 'cierre_mesa.fecha','orden','desc'];
+        }
+        if(empty($request->fecha)){
+          $resultados = DB::table('cierre_mesa')
+                                  ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
+                                            'cierre_mesa.hora_fin','cierre_mesa.fecha',
+                                            'casino.nombre','juego_mesa.siglas as nombre_juego',
+                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                                          )
+                                  ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
+                                  ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
+                                  ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                                  ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
+                                  ->where($filtros)
+                                  ->whereIn('cierre_mesa.id_casino',$cas)
+                                  ->when($sort_by,function($query) use ($sort_by){
+                                                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                              })
+                                  ->paginate($request->page_size);
+        }else{
+          $fecha=explode("-", $request->fecha);
+          $resultados = DB::table('cierre_mesa')
+                                  ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
+                                            'cierre_mesa.hora_fin','cierre_mesa.fecha',
+                                            'casino.nombre','juego_mesa.siglas as nombre_juego',
+                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                                          )
+                                  ->join('mesa_de_panio','cierre_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
+                                  ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
+                                  ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+                                  ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
+                                  ->where($filtros)
+                                  ->whereNull('cierre_mesa.deleted_at')
+                                  ->whereIn('cierre_mesa.id_casino',$cas)
+                                  ->whereYear('cierre_mesa.fecha' , '=', $fecha[0])
+                                  ->whereMonth('cierre_mesa.fecha','=', $fecha[1])
+                                  ->whereDay('cierre_mesa.fecha','=', $fecha[2])
+                                  ->when($sort_by,function($query) use ($sort_by){
+                                                  return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                              })
+                                  ->paginate($request->page_size);
+        }
 
-    if(empty($request->fecha)){
-      $resultados = DB::table('cierre_mesa')->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
-                              ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
-                              ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-                              ->where($filtros)
-                              ->whereIn('cierre_mesa.id_casino',$cas)
-                              ->whereNull('cierre_mesa.deleted_at')
-                              ->orderBy('cierre_mesa.fecha','desc')
-                              ->take(31)
-                              ->get();
-    }else{
-      $fecha=explode("-", $request->fecha);
-      $resultados = DB::table('cierre_mesa')->join('mesa_de_panio','cierre_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
-                              ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
-                              ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-                              ->where($filtros)
-                              ->whereIn('cierre_mesa.id_casino',$cas)
-                              ->whereYear('cierre_mesa.fecha' , '=', $fecha[0])
-                              ->whereMonth('cierre_mesa.fecha','=', $fecha[1])
-                              ->whereDay('cierre_mesa.fecha','=', $fecha[2])
-                              ->whereNull('cierre_mesa.deleted_at')
-                              ->orderBy('cierre_mesa.fecha','desc')
-                              ->take(31)
-                              ->get();
-    }
-
-    return response()->json(['cierre' => $resultados], 200);
-
-
+        return ['cierre' => $resultados];
   }
 
 }
