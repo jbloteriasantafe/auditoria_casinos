@@ -192,15 +192,17 @@ class ABMCierreController extends Controller
   }
 
   private function validarFichas($validator){
-    foreach ($validator->getData()['fichas'] as $detalle) {
-      $ficha = Ficha::find($detalle['id_ficha']);
-      $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
-      if(floor($division)* $ficha->valor_ficha != $detalle['monto_ficha']){
-        $validator->errors()->add('monto_ficha','Ya existe una apertura para la fecha.'
-                                 );
-        break;
+    if(!empty($validator->getData()['fichas']) || $validator->getData()['fichas'] != null){
+      foreach ($validator->getData()['fichas'] as $detalle) {
+        $ficha = Ficha::find($detalle['id_ficha']);
+        $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
+        if(floor($division)* $ficha->valor_ficha != $detalle['monto_ficha']){
+          $validator->errors()->add('monto_ficha','Ya existe una apertura para la fecha.'
+                                   );
+          break;
+        }
       }
+      return $validator;
     }
-    return $validator;
   }
 }
