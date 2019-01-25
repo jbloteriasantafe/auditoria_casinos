@@ -194,6 +194,7 @@ class BCCierreController extends Controller
                                   ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
                                   ->where($filtros)
                                   ->whereIn('cierre_mesa.id_casino',$cas)
+                                  ->whereNull('cierre_mesa.deleted_at')
                                   ->when($sort_by,function($query) use ($sort_by){
                                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                               })

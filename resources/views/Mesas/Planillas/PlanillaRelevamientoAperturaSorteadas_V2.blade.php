@@ -165,16 +165,18 @@ footer
               <table style="padding-left:50px;">
                 <tbody>
                   <tr>
-                    <th class="tablaInicio" style="width:104px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                    <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                    <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
                     <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
                     <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                     <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
                     <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
                   </tr>
                   <tr>
-                    <td class="tablaInicio" style="width:104px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
+                    <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
                       <?php $hoy = date('j-m-y'); print_r($hoy); ?>
                     </td>
+                    <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
                     <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
                     <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
                     <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
@@ -214,16 +216,18 @@ footer
               <table style="padding-left:50px;">
                 <tbody>
                   <tr>
-                    <th class="tablaInicio" style="width:104px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                    <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                    <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
                     <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
                     <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                     <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
                     <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
                   </tr>
                   <tr>
-                    <td class="tablaInicio" style="width:104px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
+                    <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
                       <?php $hoy = date('j-m-y'); print_r($hoy); ?>
                     </td>
+                    <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
                     <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
                     <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
                     <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
