@@ -712,7 +712,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="row">
 
               <div class="col-xs-6">
-                <h6 text-align="center" class="linea">Fiscalizador de Toma: </h6>
+                <h6 text-align="center" class="linea">Fiscalizador de Carga: </h6>
                 <br>
                 <div class="">
                   <input class="linea form-control" id="fis_cierre" type="text" value=""  size="100" autocomplete="off">
@@ -1185,7 +1185,20 @@ $cas = $usuario['usuario']->casinos;
   </div>
 </div>
 
-
+<style media="screen">
+  .estilotextarea4 {
+    background-color: transparent;
+    border: 1px solid #000000;
+    height: 100%;
+    width: 100%;
+    scrollbar-arrow-color: #000066;
+    scrollbar-base-color: #000033;
+    scrollbar-dark-shadow-color: #336699;
+    scrollbar-track-color: #666633;
+    scrollbar-face-color: #cc9933;
+    scrollbar-shadow-color: #DDDDDD;
+    scrollbar-highlight-color: #CCCCCC;}
+</style>
 
 <!-- MODAL VALIDAR APERTURA -->
 <div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1426,6 +1439,13 @@ $cas = $usuario['usuario']->casinos;
                   <h6>TOTAL ANTICIPOS ($):</h6>
                   <input type="text" id="anticipos_validar" class="form-control" value="" readonly="true">
                 </div>
+          </div>
+          <br>
+          <div class="row">
+            <div class="col-md-8">
+              <h6>OBSERVACIONES:</h6>
+              <textarea name="name" id="obsValidacion" rows="4" width="100%"  class="estilotextarea4"></textarea>
+            </div>
           </div>
 
           <div class="modal-footer">
