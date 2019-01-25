@@ -287,7 +287,7 @@ $("#modalCargaApertura").on('hidden.bs.modal', function () {
     $('#btn-buscarCyA').trigger('click');
   });
 
-$(document).on('click','#tablaResultados thead tr th[value]',function(e){
+$(document).on('click','#tablaResultados thead tr th',function(e){
 
     $('#tablaResultados th').removeClass('activa');
 
