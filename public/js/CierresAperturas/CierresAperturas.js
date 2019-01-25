@@ -142,6 +142,8 @@ $(document).ready(function() {
   });
 
   $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
+  $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
+
 
 }); //fin document ready
 
@@ -536,9 +538,13 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
   $(this).parent().parent().remove();
 
   limpiarCargaApertura();
+  limpiarCargaCierre();
   $('#columnaDetalle').hide();
+  $('#columnaDetalleCie').hide();
+
 
 });
+
 
 //dentro del modal de carga apertura, presiona el botón guardar:
 $('#btn-guardar-apertura').on('click', function(e){
@@ -644,7 +650,13 @@ $('#btn-cargar-cierre').on('click', function(e){
   ocultarErrorValidacion($('#horarioCie'));
   ocultarErrorValidacion($('#B_fecha_cie'));
   ocultarErrorValidacion($('#totalAnticipoCierre'));
-  $('#mensajeFichasError').hide();
+  ocultarErrorValidacion($('#casinoCierre'));
+
+  $('#B_fecha_cie').val('');
+
+  $('#mensajeCargaConError').hide();
+  $('#mensajeFichasError2').hide();
+  $('#mensajeErrorMoneda').hide();
 
   $('#casinoCierre').val("0");
   $('.desplegable').hide();
@@ -666,34 +678,101 @@ $(document).on('change','#casinoCierre',function(){
   $('#horarioCie').val("");
   $('#totalCierre').val("");
   $('#total_anticipos_c').val("");
-
+  $('columnaDetalleCie').hide();
 });
 
 $('#confirmarCierre').on('click',function(e){
 
   e.preventDefault();
 
-    if($('#casinoCierre').val() != 0 && $('#casinoApertura').val() != 4 ){
-      $('.desplegable').show();
+    if($('#casinoCierre').val() != 0  && $('#B_fecha_cie').val().length != 0 ){
 
+      $('.desplegable').show(); //agregar mesa + fiscalizador
       var id_casino=$('#casinoCierre').val();
-      $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-      $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+
       $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
 
-      $("input[name='moneda'][value='1']").prop('checked', true);
-      $('#btn-guardar-cierre').show();
-
+      $('.listMes').hide();
+      $('#listaMesasCierres tbody tr').remove();
+      $('#columnaDetalleCie').hide();
+      $('#mensajeExitoCargaCie').hide();
     }
+  else{
+    if($('#casinoCierre').val() == 0 ){
+      mostrarErrorValidacion($('#casinoCierre'),'Campo Obligatorio',false);
+    }
+    if($('#B_fecha_cie').val().length == 0  ){
+      mostrarErrorValidacion($('#B_fecha_cie'),'Campo Obligatorio',false);
+    }
+  }
 
 })
 
-$(document).on('change','#inputMesaCierre',function(){
+$(document).on('click', '.cargarDatos', function(e){
+  e.preventDefault();
 
-  $('#tablaCargaCierreF tbody tr').remove();
-  $('#totalCierre').val("");
-  $('#total_anticipos_c').val("");
-  var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
+  var id_casino=$('#casinoCierre').val();
+
+  $('#mensajeExitoCargaAp').hide();
+  $('#mensajeErrorCargaAp').hide();
+  $('#mensajeExitoCargaCie').hide();
+
+
+  $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+
+  $('#btn-guardar-cierre').show();
+  $("input[name='moneda'][value='1']").prop('checked', true);
+
+  $('#modalCargaCierre #id_mesa_panio').val($(this).attr('data-id'));
+
+
+  //$('#hor_cierre').datepicker('1-2-3');
+  //$('#horario_ini_c').datepicker('1-2-3');
+
+  $('#listaMesasCierres tbody tr').css('background-color','#FFFFFF');
+  $(this).parent().parent().css('background-color', '#E0E0E0');
+
+  if($(this).attr('data-cargado') == true){
+
+    $('#btn-guardar-cierre').hide();
+  }
+  else{
+  //$('#listaMesasCierres tbody tr').remove();
+  $('#btn-guardar-cierre').show();
+  $('#btn-guardar-cierre').prop('disabled',false);
+  }
+  $('#columnaDetalleCie').show();
+
+  var id_mesa=$(this).attr('data-id');
+  $('#id_mesa_ap').val(id_mesa);
+
+  $.get('mesas/detalleMesa/' + id_mesa, function(data){
+
+    //$('#moneda').val(data.moneda.descripcion);
+    for (var i = 0; i < data.fichas.length; i++) {
+
+
+      var fila= $('#clonCierre').clone();
+      fila.removeAttr('id');
+      fila.attr('id', data.fichas[i].id_ficha);
+      fila.find('.fichaValCC').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
+      fila.find('.inputCie').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
+      fila.css('display', 'block');
+      $('#bodyFichasCierre').append(fila);
+     }
+
+  })
+
+});
+
+/*$(document).on('change','#inputMesaCierre',function(){
+
+   $('#tablaCargaCierreF tbody tr').remove();
+   $('#totalCierre').val("");
+   $('#total_anticipos_c').val("");
+   var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
 
    if(id_mesa != 0 && id_mesa != null){
       $.get('mesas/detalleMesa/' + id_mesa, function(data){
@@ -718,13 +797,13 @@ $(document).on('change','#inputMesaCierre',function(){
 
       })
   }
-});
+});*/
 
 $(document).on('change','.inputCie',function(){
 
   if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
 
-    if($(this).val()!='' && $(this).val()!=0) //si se ingreso un valor diferente de 0
+    if($(this).val() !== '' && $(this).val() !== 0) //si se ingreso un valor diferente de 0
     {   var cantidad=$(this).val();
         $(this).attr('data-ingresado',cantidad);
         var valor=$(this).attr('data-valor');
@@ -734,7 +813,7 @@ $(document).on('change','.inputCie',function(){
         subtotal += Number(cantidad);
         $('#totalCierre').val(subtotal);}
 
-    if ($(this).val()=='' || $(this).val()==0) { //si se ingresa el 0 o nada
+    if ($(this).val() == '' || $(this).val() == 0) { //si se ingresa el 0 o nada
       var cantidad=0;
       var subtotal=0;
       subtotal = Number($('#totalCierre').val());
@@ -743,12 +822,13 @@ $(document).on('change','.inputCie',function(){
     }
   }
   else{
-    if($(this).val()!='' && $(this).val()!=0){ //si se ingreso un valor diferente de 0
+    if($(this).val() !== '' && $(this).val() !== 0){ //si se ingreso un valor diferente de 0
         var cantidad=$(this).val();
         var subtotal=0;
         //tomo el data ingresado anteriormente y lo resto al total antes de perderlo
         subtotal = Number($('#totalCierre').val());
-        subtotal-=Number($(this).attr('data-ingresado'));
+          if(($(this).attr('data-ingresado')) !== 0){
+            subtotal-=Number($(this).attr('data-ingresado'));}
         $('#totalCierre').val(subtotal);
 
         $(this).attr('data-ingresado',cantidad);//cambio el data ingresado
@@ -768,9 +848,7 @@ $(document).on('change','.inputCie',function(){
           subtotal -= Number($(this).attr('data-ingresado') );
           $('#totalCierre').val(subtotal);
     }
-
   }
-
 })
 
 
@@ -783,21 +861,22 @@ $('#btn-guardar-cierre').on('click', function(e){
   $('#mensajeExito').hide();
   $('#recalcular').trigger('click');
 
-
     var fichas=[];
+    var id_mesa=$('#id_mesa_panio').val();
     var moneda= $('input[name=moneda]:checked').val();
-
     var f= $('#bodyFichasCierre > tr');
     $.each(f, function(index, value){
       var valor={
-        id_ficha: $(this).find('.fichaVal').attr('id'),
-        monto_ficha: $(this).find('.inputCie').val(),
-        id_moneda: moneda,
+        id_ficha: $(this).find('.fichaValCC').attr('id'),
+        monto_ficha: $(this).find('.inputCie').val()
       }
       if(valor.monto_ficha != "" ){
         fichas.push(valor);
-
       }
+      else{
+        fichas=null;
+      }
+
     })
 
       var formData= {
@@ -809,9 +888,9 @@ $('#btn-guardar-cierre').on('click', function(e){
         id_juego_mesa: $('#juegoCierre').obtenerElementoSeleccionado(),
         total_pesos_fichas_c:$('#totalCierre').val(),
         total_anticipos_c:$('#totalAnticipoCierre').val(),
-        id_mesa_de_panio:$('#inputMesaCierre').obtenerElementoSeleccionado(),
+        id_mesa_de_panio:id_mesa,
         fichas: fichas,
-        id_moneda:moneda,
+        id_moneda: moneda,
 
       }
 
@@ -828,10 +907,21 @@ $('#btn-guardar-cierre').on('click', function(e){
           dataType: 'json',
 
           success: function (data){
-            $('#modalCargaCierre').modal('hide');
-            $('#mensajeExito h3').text('ÉXITO');
-            $('#mensajeExito p').text('El Cierre se ha guardado correctamente');
-            $('#mensajeExito').show();
+
+            limpiarCargaCierre();
+
+            $('#listaMesasCierres tbody').find('#' + id_mesa).attr('data-cargado',true);
+            $('#listaMesasCierres tbody').find('#' + id_mesa).find('.btn_borrar_mesa').parent().remove();
+            $('#listaMesasCierres tbody').find('#' + id_mesa).find('.cargarDatos').prop('disabled', true);
+            $('#listaMesasCierres tbody').find('#' + id_mesa).append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50')));
+
+            $('#columnaDetalleCie').hide();
+            $('#mensajeCargaConError').hide();
+            $('#mensajeFichasError2').hide();
+            $('#mensajeErrorMoneda').hide();
+            $('#btn-guardar-cierre').hide();
+            $('#mensajeExitoCargaCie').show();
+
           },
           error: function(data){
             $('#mensajeError h3').text('ERROR');
@@ -848,28 +938,33 @@ $('#btn-guardar-cierre').on('click', function(e){
               mostrarErrorValidacion($('#horarioCie'),response.hora_fin[0],false);
             }
             if(typeof response.id_fiscalizador !== 'undefined'){
-              $('#mensajeFichasError').show();
+              $('#mensajeCargaConError').show();
             }
             if(typeof response.total_anticipos_c !== 'undefined'){
               mostrarErrorValidacion($('#totalAnticipoCierre'),response.total_anticipos_c[0],false);
             }
             if(typeof response.fichas !== 'undefined'){
-              $('#mensajeFichasError').show();
+              $('#mensajeFichasError2').show();
+
+              $('#mensajeCargaConError').show();
             }
             if(typeof response.id_juego_mesa !== 'undefined'){
-              $('#mensajeFichasError').show();
+              $('#mensajeCargaConError').show();
             }
             if(typeof response.id_mesa_de_panio !== 'undefined'){
-              $('#mensajeFichasError').show();
+              $('#mensajeCargaConError').show();
             }
             if(typeof response.id_moneda !== 'undefined'){
-              $('#mensajeFichasError').show();
+              $('#mensajeErrorMoneda').show();
             }
+
+
 
           },
       })
 
 });
+
 
 
 $(document).on('click', '.infoCyA', function(e) {
@@ -1689,6 +1784,42 @@ $(document).on('click','.eliminarCyA',function(e){
 }
 });
 
+//dentro del modal de cargar cierres, para agregar la mesa al listado
+function clickAgregarMesaCierre(e) {
+  var id_mesa_panio = $('#inputMesaCierre').attr('data-elemento-seleccionado');
+
+
+     $.get('http://' + window.location.host +"/mesas/detalleMesa/" + id_mesa_panio, function(data) {
+
+       var fila= $(document.createElement('tr'));
+       fila.attr('id', data.mesa.id_mesa_de_panio)
+           .append($('<td>')
+           .addClass('col-xs-4')
+           .text(data.mesa.nro_mesa).css('border-right','2px solid #ccc')
+         )
+         .append($('<td>')
+         .addClass('col-xs-2')
+         .append($('<span>').text(' '))
+         .append($('<button>')
+         .addClass('cargarDatos').attr('data-id',data.mesa.id_mesa_de_panio).attr('data-cargado',false)
+             .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-eye')
+           )))
+           .append($('<td>')
+           .addClass('col-xs-2')
+           .append($('<span>').text(' '))
+           .append($('<button>')
+           .addClass('btn_borrar_mesa').append($('<i>')
+           .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+             )))
+
+      $('#inputMesaCierre').setearElementoSeleccionado(0 , "");
+      $('#listaMesasCierres tbody').append(fila);
+      $('.listMes').show();
+
+
+    });
+
+}
 
 
 //dentro del modal de cargar aperturas, para agregar la mesa al listado
@@ -1800,20 +1931,15 @@ function generarFilaCierres(data){
   return fila;
 
 }
-
 function limpiarCargaCierre(){
 
-  $('#B_fecha_cie').val("");
-  $('#inputMesaCierre').setearElementoSeleccionado('0',"");
   $('#juegoCierre').setearElementoSeleccionado('0',"");
   $('#totalCierre').val('');
   $('#totalAnticipoCierre').val('');
   $('#bodyFichasCierre tr').remove();
   $('#horarioCie').val('');
   $('#horario_ini_c').val('');
-  $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
-  document.querySelectorAll('input[name=moneda]').forEach((x) => x.checked=false);
-
+  $('#id_mesa_panio').val('');
 
 }
 
