@@ -274,7 +274,7 @@ $cas = $usuario['usuario']->casinos;
                           <?php
                              $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                            ?>
-                           @if($usuario['usuario']->es_superusuario)
+                           @if($usuario['usuario']->elimina_cya)
                            <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
                                    <i class="fa fa-fw fa-trash"></i>
                            </button>
