@@ -274,7 +274,7 @@ $cas = $usuario['usuario']->casinos;
                           <?php
                              $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                            ?>
-                           @if($usuario['usuario']->es_superusuario)
+                           @if($usuario['usuario']->elimina_cya)
                            <button type="button" class="btn btn-success eliminarCyA" value="" data-tipo="">
                                    <i class="fa fa-fw fa-trash"></i>
                            </button>
@@ -337,7 +337,7 @@ $cas = $usuario['usuario']->casinos;
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
             <div class="col-md-4">
-              <h6>FECHA DE PRODUCCIÓN</h6>
+              <h6>FECHA</h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpfechaCierre' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                   <input type='text' class="form-control" placeholder="Fecha de Cierre" id="B_fecha_cie" value=" "/>
@@ -368,106 +368,162 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <br>
 
-          <div class="row desplegable" hidden>
+          <div class="row desplegable" hidden="true">
             <br>
           <div class="row">
-            <div class="col-md-4">
-              <h6 id="modif">MESA</h6>
+            <div class="col-md-6" id=inputAgregarMesaC>
+              <h6 id="agregamesac">Agregar Mesa</h6>
               <div class="row">
-                <div class="input-group lista-datos-group">
-                  <input id="inputMesaCierre" class="form-control" type="text" value="" size="100" autocomplete="off" placeholder="Ingrese el número de la mesa" >
+                <div class="input-group ">
+                  <input id="inputMesaCierre" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro. de Mesa" >
+                  <span class="input-group-btn">
+                    <button id="agregarMesaCierre" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                  </span>
                 </div>
               </div>
             </div>
             <div class="col-md-4">
-              <h6>FISCALIZADOR DE CARGA</h6>
+              <h6>FISCALIZADOR DE TOMA</h6>
               <input id="fiscalizadorCierre" class="form-control" type="text" value=""  size="100" autocomplete="off">
             </div>
-            <div class="col-md-4">
-              <h6>MONEDA</h6>
-              @foreach($monedas as $moneda)
-              <input type="radio" name="moneda" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
-              @endforeach
-            </div>
           </div>
-          <br>
-          <div class="row">
-            <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
-              <div class="col-md-4">
-                <h6>HORA APERTURA</h6>
-                <div class='input-group date' id='hora_cierre' data-link-field="desde_hora" data-link-format="HH:ii">
-                    <input type='text' class="form-control" placeholder="Hora de inicio" id="horario_ini_c"/>
-                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                    <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
-                </div>
 
-                <br>
-              </div>
-              <div class="col-md-4">
-                <h6>HORA CIERRE</h6>
-                <div class='input-group date' id='hora_CC' data-link-field="desde_hora" data-link-format="HH:ii">
-                    <input type='text' class="form-control" placeholder="Hora" id="horarioCie"/>
-                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                    <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
-                </div>
-                <br>
-              </div>
-              <div class="col-md-4">
-                <h6>JUEGO</h6>
-                <div class="row">
-                  <div class="input-group lista-datos-group">
-                    <input id="juegoCierre" class="form-control" type="text" value="" size="100" autocomplete="off" >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <br>
           <div class="row">
-            <div class="col-md-6" align="center">
-              <h6>FICHAS</h6>
-              <table text-align="center" class="table" id="tablaCargaCierreF">
+            <div class="col-xs-3 listMes"  hidden="true">
+              <h6><b>MESAS</b></h6>
+              <table id="listaMesasCierres" class="table">
                 <thead>
-                  <tr >
-                    <th class="col-md-6" align="center"><h6>VALOR</h6></th>
-                    <th class="col-md-6" align="center"><h6>MONTO</h6></th>
+                  <tr>
+                    <th class="col-xs-4"  style=" border-right:2px solid #ccc;">NRO</th>
+                    <th class="col-xs-2"> </th>
+                    <th class="col-xs-2"> </th>
                   </tr>
-                </thead>
-                <tbody id="bodyFichasCierre">
 
+                </thead>
+                <tbody >
                 </tbody>
               </table>
-
-            </div>
-            <div class="col-md-6" align="center">
-              <div class="row">
-                <h6><b>TOTAL ($): </b></h6>
-                <input id="totalCierre" type="text" value="" readonly="true" display="inline">
-                <button id="recalcular" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
-              </div>
-              <div class="row">
-                <h6><b>TOTAL ANTICIPOS ($): </b></h6>
-                <input id="totalAnticipoCierre" type="text" value="">
-              </div>
+            </div> <!-- tablafechas -->
+            <div id="mensajeExitoCargaCie" class="col-xs-8" hidden>
               <br>
-            </div>
-          </div>
-        </div>
+              <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50;">EXITO</span>
+              <br>
+              <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">El cierre ha sido guardado correctamente. </span>
+            </div> <!-- mensaje -->
+                <div id="columnaDetalleCie" class="col-xs-9" style="border-left:2px solid #ccc; border-right:2px solid #ccc;" hidden="true" >
+                  <h6 style="border-bottom:1px solid #ccc"><b>DETALLES</b></h6>
+                  <br>
+                  <div class="detalleMesaCie">
+                    <form id="frmCargaCierres" name="frmCargaCierres" class="form-horizontal" novalidate="">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <h6>MONEDA</h6>
+                          @foreach($monedas as $moneda)
+                            <input type="radio" name="moneda" style="margin-left:15px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                          @endforeach
+                        </div>
+                        <div class="col-md-4">
+                          <h6>HORA DE APERTURA</h6>
+                          <div class='input-group date' id='hora_cierre' data-link-field="desde_hora" data-link-format="HH:ii">
+                              <input type='text' class="form-control" placeholder="HH:ii" id="horario_ini_c"/>
+                              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
+                          </div>
+
+                          <br>
+                        </div>
+                        <div class="col-md-4">
+                          <h6>HORA CIERRE</h6>
+                          <div class='input-group date' id='hora_CC' data-link-field="desde_hora" data-link-format="HH:ii">
+                              <input type='text' class="form-control" placeholder="HH:ii" id="horarioCie"/>
+                              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-clock"></i></span>
+                          </div>
+                          <br>
+                        </div>
+                        <div class="col-md-4">
+                          <h6>JUEGO</h6>
+                          <div class="row">
+                            <div class="input-group lista-datos-group">
+                              <input id="juegoCierre" class="form-control" type="text" value="" size="100" autocomplete="off" >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <br>
+                    <h6 align="center">FICHAS</h6>
+                      <div class="row">
+                        <div class="col-xs-6" >
+                          <table text-align="center" class="table" id="tablaCargaCierreF">
+                            <thead>
+                              <tr class="col-xs-12">
+                                <th class="col-xs-6" align="center"><h6>VALOR</h6></th>
+                                <th class="col-xs-6" align="center" style="padding-left:70px"><h6>MONTO</h6></th>
+                              </tr>
+                            </thead>
+
+                            <tbody id="bodyFichasCierre" >
+                            </tbody>
+
+                          </table>
+                          <table>
+                            <tbody>
+                              <tr id="clonCierre" style="display:none">
+                                <td><input type="text" value="" readonly="true" class="col-xs-6 form-control fichaValCC"></td>
+                                <td><input type="text" class="col-xs-6 form-control inputCie" id="input" val=""></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <br>
+                        <br>
+                        <div class="col-xs-6">
+                          <h6><b>TOTAL: </b></h6>
+                          <input id="totalCierre" type="text" value="" readonly="true" display="inline">
+                          <button id="recalcular" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
+
+                          <h6><b>TOTAL ANTICIPOS ($): </b></h6>
+                          <input id="totalAnticipoCierre" type="text" value="">
+
+                        </div>
+                      </div>
+                        <br>
+                    </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
 
           <div class="modal-footer">
             <button type="button" class="btn btn-successAceptar" id="btn-guardar-cierre" value="nuevo" hidden="true">GUARDAR</button>
           </div>
-          <div id="mensajeFichasError" hidden>
+          <input type="text" id="id_mesa_panio" name="" value="" hidden>
+          <div id="mensajeCargaConError" hidden>
             <br>
             <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
             <br>
             <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe completar todos los campos.</span>
+          </div> <!-- mensaje -->
+          <div id="mensajeErrorMoneda" hidden>
+            <br>
+            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+            <br>
+            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La moneda no se corresponde con la mesa.</span>
+          </div> <!-- mensaje -->
+          <div id="mensajeFichasError2" hidden>
+            <br>
+            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+            <br>
+            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique los valores ingresados para cada ficha.</span>
           </div> <!-- mensaje -->
         </div>
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- MODAL DE DETALLES DE CIERRE -->
 <div class="modal fade" id="modalDetalleCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

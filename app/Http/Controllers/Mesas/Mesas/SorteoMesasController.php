@@ -59,15 +59,17 @@ class SorteoMesasController extends Controller
     $cantidadRosarioCARTAS = 8;
     $ruletasDados = null;
     $cartas = null;
+    ////los nombres de las variables quedaron sin moedificar, pero
+    ////las cartas(2) tienen a los dados(3), no la variable ruletas..
     try{
       switch($id_casino){
         case 3:
-          $ruletasDados = $this->getMesas($cantidadRosarioRULETA,$id_casino,[1,3],$fecha_backup);
-          $cartas = $this->getMesas($cantidadRosarioCARTAS,$id_casino,[2],$fecha_backup);
+          $ruletasDados = $this->getMesas($cantidadRosarioRULETA,$id_casino,[1],$fecha_backup);
+          $cartas = $this->getMesas($cantidadRosarioCARTAS,$id_casino,[2,3],$fecha_backup);
           break;
         default:
-          $ruletasDados = $this->getMesas($cantidadSFMELRULETA,$id_casino,[1,3],$fecha_backup);
-          $cartas = $this->getMesas($cantidadSFMELCARTAS,$id_casino,[2],$fecha_backup);
+          $ruletasDados = $this->getMesas($cantidadSFMELRULETA,$id_casino,[1],$fecha_backup);
+          $cartas = $this->getMesas($cantidadSFMELCARTAS,$id_casino,[2,3],$fecha_backup);
       }
       $informesSorteadas->almacenarSorteadas($ruletasDados,$cartas,$id_casino,$fecha_backup);
       return ['ruletasDados' => $ruletasDados,'cartas' => $cartas];

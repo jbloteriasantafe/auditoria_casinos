@@ -214,7 +214,7 @@
                               <div class="col-md-4">
                                   <h5>Tipo Moneda</h5>
                                   <select class="form-control" id="moneda_mesa">
-                                    <option value="0" selected class="default3">- Seleccione una Moneda -</option>
+                                    <option value="0" selected class="default3">- MULTI-MONEDA -</option>
 
                                   </select>
                                   </div>
@@ -436,7 +436,7 @@
                             <div class="col-md-4">
                                 <h5>Tipo Moneda</h5>
                                 <select class="form-control" id="monedaM">
-                                  <option value="0" selected>- Seleccione una Moneda -</option>
+                                  <option value="0" selected>- MULTI-MONEDA -</option>
                                   @foreach ($monedas as $moneda)
                                   <option value="{{$moneda->id_moneda}}">{{$moneda->descripcion}}</option>
                                   @endforeach
