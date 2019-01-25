@@ -167,7 +167,7 @@ class BCCierreController extends Controller
       $filtros[]= ['mesa_de_panio.nro_mesa','like','%'.$request->nro_mesa.'%'];
     }
     if(!empty($request->id_juego)){
-      $filtros[]= ['mesa_de_panio.id_juego','=',$request->id_juego];
+      $filtros[]= ['mesa_de_panio.id_juego_mesa','=',$request->id_juego];
     }
     if(!empty($request->id_casino)){
       $cas[] = $request->id_casino;
