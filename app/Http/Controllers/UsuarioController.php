@@ -288,6 +288,7 @@ class UsuarioController extends Controller
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
                     ->where([['nombre','like',$nombre],['user_name','like',$usuario],['email','like',$email]])
                     ->whereIn('casino.id_casino',$cas)
+                    ->whereNull('usuario.deleted_at')
                     ->distinct('id_usuario')
                     ->orderBy('user_name','asc')
                     ->get();
@@ -521,6 +522,7 @@ class UsuarioController extends Controller
                 ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                 ->whereIn('usuario_tiene_rol.id_rol',$id_rol)
                 ->where('usuario_tiene_casino.id_casino','=', $id_casino)
+                ->whereNull('usuario.deleted_at')
                 ->get();
     return $rta;
   }
