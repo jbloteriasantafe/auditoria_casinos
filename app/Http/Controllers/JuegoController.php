@@ -50,8 +50,25 @@ class JuegoController extends Controller
       $maquinas[] = $maquina;
     }
     $casinos=$juego->casinos;
+
+    $casinosUser = Usuario::find(session('id_usuario'))->casinos;
+        $reglaCasinos=array();
+        foreach($casinosUser as $casino){
+          $reglaCasinos [] = $casino->id_casino;
+         }
+
+    $packJuego=DB::table('pack_juego')
+                  ->select('pack_juego.*')
+                  ->distinct()
+                  ->join('pack_tiene_juego','pack_tiene_juego.id_pack','=','pack_juego.id_pack')
+                  ->join('pack_juego_tiene_casino','pack_juego_tiene_casino.id_pack','=','pack_juego.id_pack')
+                  ->where('pack_tiene_juego.id_juego','=',$juego->id_juego)
+                  ->wherein('pack_juego_tiene_casino.id_casino',$reglaCasinos)
+                  ->get();
+
     $tabla = TablaPago::where('id_juego', '=', $id)->get();
-    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos];
+
+    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos,'pack'=>$packJuego ];
   }
 
   public function encontrarOCrear($juego){
@@ -89,7 +106,7 @@ class JuegoController extends Controller
   public function guardarJuego(Request $request){
       //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
     Validator::make($request->all(), [
-      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
+      //'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
       'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
       'cod_juego' => 'nullable',
@@ -251,7 +268,16 @@ class JuegoController extends Controller
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, cod_identificacion
   public function buscarJuegoPorCodigoYNombre($busqueda){
-    $resultados=Juego::where('nombre_juego' , 'like' , $busqueda . '%')->get();
+    $casinos = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
+    foreach($casinos as $casino){
+      $reglaCasinos [] = $casino->id_casino;
+     }
+    $resultados=Juego::distinct()
+                      ->select('juego.*')
+                      ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
+                      ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
+                      ->where('nombre_juego' , 'like' , $busqueda . '%')->get();
                       //->orWhere('cod_identificacion' , 'like' , $busqueda . '%')->get();
 
     return ['resultados' => $resultados];

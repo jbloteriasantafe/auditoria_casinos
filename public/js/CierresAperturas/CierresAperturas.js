@@ -214,7 +214,7 @@ $("#modalCargaApertura").on('hidden.bs.modal', function () {
     $('#btn-buscarCyA').trigger('click');
   });
 
-$(document).on('click','#tablaResultados thead tr th[value]',function(e){
+$(document).on('click','#tablaResultados thead tr th',function(e){
 
     $('#tablaResultados th').removeClass('activa');
 
@@ -1798,6 +1798,18 @@ function clickAgregarMesa(e) {
 
 //fc que generan la fila del listado principal:
 function generarFilaAperturas(data){
+    if(data.hora != null){
+      var piecesi = data.hora.split(':')
+      var houri, minutei;
+
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
+      }
+    }else{
+      houri = '-';
+      minutei = '-';
+    }
 
     var fila = $('#moldeFilaCyA').clone();
     fila.removeAttr('id');
@@ -1806,7 +1818,7 @@ function generarFilaAperturas(data){
     fila.find('.L_fecha').text(data.fecha);
     fila.find('.L_juego').text(data.nombre_juego);
     fila.find('.L_mesa').text(data.nro_mesa);
-    fila.find('.L_hora').text(data.hora);
+    fila.find('.L_hora').text( houri +':'+minutei);
     fila.find('.L_moneda').text(data.siglas_moneda);
     fila.find('.L_casino').text(data.nombre);
     if(data.id_estado_cierre == 3){
@@ -1834,6 +1846,29 @@ function generarFilaAperturas(data){
 
 function generarFilaCierres(data){
 
+    if(data.hora_inicio != null){
+      var piecesi = data.hora_inicio.split(':')
+      var houri, minutei;
+
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
+      }
+
+      var piecesf= data.hora_fin.split(':')
+      var hourf, minutef;
+
+      if(piecesf.length === 3) {
+        hourf = piecesf[0];
+        minutef = piecesf[1];
+      }
+    }else{
+      hourf = '-';
+      minutef = '-';
+      houri = '-';
+      minutei = '-';
+    }
+
     var fila = $('#moldeFilaCyA').clone();
     fila.removeAttr('id');
     fila.attr('id', data.id_cierre_mesa);
@@ -1841,7 +1876,7 @@ function generarFilaCierres(data){
     fila.find('.L_fecha').text(data.fecha);
     fila.find('.L_juego').text(data.nombre_juego);
     fila.find('.L_mesa').text(data.nro_mesa);
-    fila.find('.L_hora').text(data.hora_inicio + ' '+ data.hora_fin);
+    fila.find('.L_hora').text( houri +':'+minutei + '-'+ hourf +':'+minutef);
     fila.find('.L_moneda').text(data.siglas_moneda);
     fila.find('.L_casino').text(data.nombre);
 

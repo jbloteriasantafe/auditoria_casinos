@@ -37,6 +37,8 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
+      
+       
         $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
         $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
@@ -106,7 +108,6 @@ function mostrarJuegos(juegos,juego_activo){
   $('#listaJuegosMaquina').find('p').hide();
     //Cargar juego activo
     agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true);
-
     for (var i = 0; i < juegos.length; i++) {
       agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false);
     }
@@ -115,6 +116,9 @@ function mostrarJuegos(juegos,juego_activo){
 function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo){
   denominacion = denominacion != null ? denominacion : "-"; // si denomacion vacio hardcodeo guion medio
   porcentaje_devolucion = porcentaje_devolucion != null ? porcentaje_devolucion : "-"; // si denomacion vacio hardcodeo guion medio
+ 
+  
+  
   var fila = $('<tr>').attr('id',id_juego);
 
   //Mirar si solo hay un juego cuando se agrega manuealmente, setearlo como activo
@@ -129,10 +133,12 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                                           .text(nombre_juego)
                               )
              );
-  fila.append($('<td>').append($('<span>').addClass('badge')
+             
+
+    fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(denominacion)
-                             ));
+                             ));                           
   fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(porcentaje_devolucion)
@@ -231,7 +237,6 @@ $(document).on('click', '.borrarJuegoaActivo', function(){
 function limpiarCamposJuego(){
   //Borra todos los inputs
   $('#inputJuego').setearElementoSeleccionado(0,"");
-
   $('#inputCodigo').val('');
   $('#den_sala').val('');
   $('#porcentaje_devolucion_juego').val('');
@@ -303,7 +308,7 @@ function obtenerDatosJuego(){
     var tablas = [];
 
     //por cada tabla de pago
-    $.each($(this).find('td:eq(3) select option') , function(indexMenor){
+    $.each($(this).find('td:eq(4) select option') , function(indexMenor){
       var tabla={
           id_tabla: $(this).val() ,
           nombre_tabla: $(this).text(),
@@ -317,7 +322,6 @@ function obtenerDatosJuego(){
 
     var porcentaje_devolucion = "";
     if ($(this).find('td:eq(3)').text() != "-") porcentaje_devolucion = $(this).find('td:eq(3)').text();
-
     var juego= {
       id_juego: $(this).attr('id'),
       nombre_juego: $(this).find('td:eq(1)').text(),
@@ -326,12 +330,13 @@ function obtenerDatosJuego(){
       denominacion: denominacion,
       porcentaje_devolucion: porcentaje_devolucion,
     }
-
     if($(this).find('td:eq(0) input').is(':checked')){
       juego.activo=1;
+      
     }else{
       juego.activo=0;
     }
+
 
     juegos.push(juego);
 

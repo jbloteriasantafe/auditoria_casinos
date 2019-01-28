@@ -18,6 +18,7 @@ use App\Juego;
 use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\GliSoft;
+use App\PackJuego;
 
 class MTMController extends Controller
 {
@@ -89,11 +90,15 @@ class MTMController extends Controller
       //Devuelve toda la configuracion de una maquian
      $mtm=Maquina::find($id);
 
-     if($mtm->juego_activo == null){
-       $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
-       $mtm->save();
-     }
-     $juego_activo = $mtm->juego_activo;
+     // la gestion de juego activo, se contempla solo si la mtm no es multijuego
+     
+      if($mtm->juego_activo == null){
+        $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
+        $mtm->save();
+      }
+      $juego_activo = $mtm->juego_activo;
+     
+     
 
      //OBTENGO EL GLI
      if($mtm->gliSoft != null){//si existe lo mando.
@@ -108,6 +113,7 @@ class MTMController extends Controller
       }else{//si no tiene un gli asociado, devuelve id 0
           $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
       }
+      //TODO modificar la obtencion del pack con la tabla pivote
      //JUEGOS DE LA MAQUINA
      $juegos = $mtm->juegos;
      $array = array();
@@ -119,6 +125,13 @@ class MTMController extends Controller
          $return_juego->porcentaje_devolucion =  $un_juego->pivot->porcentaje_devolucion;
          $return_juego->tablasPago =  $un_juego->tablasPago;
          $return_juego->id_gli_soft = $un_juego->id_gli_soft;
+        //  $return_juego->pack= PackJuego::find($un_juego->pivot->id_pack); la gestion del pack fue extraida, si estas en el futuro, borrar esto
+        //  if (count($return_juego->pack)<1){
+        //    $pack_aux= new \stdClass();
+        //    $pack_aux->identificador="";
+        //    $pack_aux->id_pack=-1;
+        //    $return_juego->pack=$pack_aux;
+        //  }
          if($un_juego->nombre_juego == $juego_activo->nombre_juego){
             $juego_activo = $return_juego;
             $encontrado = true;
@@ -126,6 +139,9 @@ class MTMController extends Controller
             $array[] = $return_juego;
         }
      }
+
+     // Gestion de multijuego
+     $juegos_mtm_pack=PackJuegoController::getInstancia()->obtenerJuegosDePackMTM($id);
 
      if($mtm->gliHard != null){
         if($mtm->gliHard->archivo != null){
@@ -175,7 +191,8 @@ class MTMController extends Controller
              'devolucion' => $mtm->porcentaje_devolucion,
              'unidad_medida' => $mtm->id_unidad_medida,
              'unidades' => $unidades,
-             'juegosMovimiento' => $mtm->juegos
+             'juegosMovimiento' => $mtm->juegos,
+             'juego_pack_mtm'=>$juegos_mtm_pack,
           ];
   }
 
@@ -186,9 +203,9 @@ class MTMController extends Controller
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
         $id_casino = $usuario->casinos[0]->id_casino;
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        foreach ($maquinas as $maquina) {
-          $maquina->nro_admin = $maquina->nro_admin;
-        }
+        // foreach ($maquinas as $maquina) {
+        //   $maquina->nro_admin = $maquina->nro_admin;
+        // } lo comento, no le encuentro el sentido
         return ['maquinas' => $maquinas];
       }else{
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
@@ -532,8 +549,10 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
+             
+            $id_pack_juego=null;
             
-            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]; 
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]; 
           }
         }
         if(isset($gli_soft)){
@@ -779,8 +798,7 @@ class MTMController extends Controller
         $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
         $MTM= Maquina::find($request->id_maquina);
         //CONDICIONES ANTERIORES
-        $juego_viejo = $MTM->juego_activo;
-        $MTM->juegos()->detach();
+        
 
 
         /*
@@ -833,7 +851,11 @@ class MTMController extends Controller
         */
         //JUEGOS
         //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
-        foreach ($request->juego as $unJuego){
+        //los juegos se gestionand desde aca solo si la mtm no es multi-juego
+        if($MTM->id_pack==null){
+          $juego_viejo = $MTM->juego_activo;
+          $MTM->juegos()->detach();
+          foreach ($request->juego as $unJuego){
             if($unJuego['id_juego']==0){// 0 es juego nuevo
               $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);
 
@@ -851,7 +873,10 @@ class MTMController extends Controller
                   $juegoActivo=$juego;
                   $MTM->juego_activo()->associate($juego->id_juego);
                 }
-                $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]]);
+                // la gestion de pack se quita del modal mtm
+                $id_pack_juego=null;
+                
+                $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
                 // $juegos_finales[] = ($juego->id_juego);
               }
             }
@@ -866,6 +891,9 @@ class MTMController extends Controller
           $tipo_movimiento = 7;
           $razon .= "Cambió el juego. ";
         }
+        $MTM->id_juego = $juegoActivo->id_juego;
+        }
+        
 
 
         // $MTM->juegos()->sync($juegos_finales);
@@ -898,7 +926,7 @@ class MTMController extends Controller
         $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
         $MTM->id_isla=$unaIsla->id_isla;
         $MTM->id_casino=$unaIsla->id_casino;
-        $MTM->id_juego = $juegoActivo->id_juego;
+        
         //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
         $MTM->save();
         if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
@@ -1327,6 +1355,7 @@ class MTMController extends Controller
       return ['tipo' => $maquina->tipoMoneda];
   }
 
-
+  
 
 }
+

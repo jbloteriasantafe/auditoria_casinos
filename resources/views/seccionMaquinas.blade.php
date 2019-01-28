@@ -198,6 +198,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <a href="" id="navJuego"><h4>JUEGOS</h4></a>
                         </div>
                         <div width="10%">
+                          <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
+                          <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
+                        </div>
+
+                        <div width="10%">
                               <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
                               <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
                         </div>
@@ -591,7 +596,37 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                             </div>
                         </div>
                       </div> <!-- / PASO 2 | ISLA -->
-
+                       <!-- PASO  | PAQUETE JUEGO -->
+                       <div class="seccion" id="secPaqueteJuego">
+                          <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                              <div class="col-md-12">
+                                <h5>La máquina implementa paquete de juegos, la gestión de sus juegos se debe realizar en la sección “PAQUETE-JUEGOS”  </h5>
+                              </div>
+                            </div>
+                          <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
+                            <div class="col-md-6">
+                            <h5>Paquete Actual</h5>
+                            <input id="inputPackActual" class="form-control" type="text" data-idPack="" disabled>
+                          
+                            </div>
+                            <div class="col-md-12"> 
+                              
+                                <table id="tablaMtmJuegoPack" class="table" style="margin-top:30px; margin-bottom:20px;">
+                                  <thead>
+                                    <tr>
+                                        <th width="10%">HABILITADO</th>
+                                        <th width="30%">NOMBRE</th>
+                                        <th width="10%">DENOMINACIÓN</th>
+                                        <th width="10%">% DEV</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                  </tbody>
+                                </table>
+                              </div> 
+                            </div>
+                      </div>
+                       <!-- PASO  | PAQUETE JUEGO -->
                       <!-- PASO 2 | JUEGO -->
                       <div class="seccion" id="secJuego">
 
@@ -605,8 +640,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <tr>
                                           <th width="10%">ACTIVO</th>
                                           <th width="25%">NOMBRE</th>
-                                          <th width="20%">DENOMINACIÓN</th>
-                                          <th width="15%">% DEV</th>
+                                          <th width="10%">DENOMINACIÓN</th>
+                                          <th width="10%">% DEV</th>
                                           <th width="20%">TABLAS DE PAGO</th>
                                           <th width="10%">ACCIÓN</th>
                                       </tr>
@@ -633,28 +668,32 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                           </div>
 
                           <div id="juegoPlegado" class="collapse">
-                              <div class="row" style="padding-bottom: 15px;">
+                              <div class="row" >
                                   <div class="col-md-4">
                                       <h5>Nombre Juego</h5>
                                         <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
                                       <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
                                       <!-- <datalist id="juego"> </datalist> -->
                                   </div>
-                                  <div class="col-md-3">
+                                  <div class="col-md-4">
                                       <h5>Código de Juego</h5>
-                                      <input id="inputCodigo" data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
+                                      <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                   </div>
-                                  <div class="col-md-3">
-                                      <h5>Den. de Sala</h5>
-                                      <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
-                                  </div>
-                                  <div class="col-md-2">
-                                      <h5>% Dev</h5>
-                                      <input id="porcentaje_devolucion_juego" class="form-control" type="text" name="" value="" placeholder="ej: 95.21">
-                                  </div>
+                                  
+                              </div>
+                              
+                              <div class="row" style="padding-bottom: 15px;">
+                                <div class="col-md-4">
+                                  <h5>Den. de Sala</h5>
+                                  <input id="den_sala" class="form-control" type="text" name="" value="" placeholder="ej: 0.1/0.5/1">
+                              </div>
+                              <div class="col-md-4">
+                                  <h5>% Dev</h5>
+                                  <input id="porcentaje_devolucion_juego" class="form-control" type="text" name="" value="" placeholder="ej: 95.21">
+                              </div>
                               </div>
 
-                              <div class="row" style="padding-bottom: 15px;">
+                              <div class="row" style="padding-bottom: 15px;border-top: 1px solid #eee; padding-top: 15px;">
                                   <div id="tablas_de_pago" class="col-md-12">
                                       <h5 style="display:inline; margin-right:10px;">Tablas de pago</h5>
                                       <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
