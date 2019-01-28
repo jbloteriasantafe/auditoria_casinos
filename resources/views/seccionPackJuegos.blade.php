@@ -26,7 +26,7 @@ $id_usuario = session('id_usuario');
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-                                  <div class="col-md-3">
+                                  {{-- <div class="col-md-3">
                                     <h5>Nombre del juego</h5>
                                     <input id="buscadorNombre" class="form-control" placeholder="Nombre del juego">
                                   </div>
@@ -37,7 +37,7 @@ $id_usuario = session('id_usuario');
                                   <div class="col-md-3">
                                     <h5>Código de certificado</h5>
                                     <input id="buscadorCodigo" class="form-control" placeholder="Código de identificación">
-                                  </div>
+                                  </div> --}}
                                   <div class="col-md-3">
                                     <h5 style="color:#ffffff;">Buscar</h5>
                                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
@@ -54,16 +54,16 @@ $id_usuario = session('id_usuario');
                         <div class="col-md-12">
                           <div class="panel panel-default">
                             <div class="panel-heading">
-                                <h4>TODOS LOS JUEGOS</h4>
+                                <h4>PAQUETE DE JUEGOS</h4>
                             </div>
                             <div class="panel-body">
                               <table id="tablaResultados" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-3" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="" estado="">ACCIONES</th>
+                                    <th class="col-xs-5" value="pack.identificador" estado="">IDENTIFICADOR <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="pack.prefijo" estado="">PREFIJO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="pack.cant" estado="">JUEGOS ASOCIADOS <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3 text-right" value="" estado="">ACCIONES</th>
                                   </tr>
                                 </thead>
                                 <tbody id="cuerpoTabla" style="height: 350px;">
@@ -81,7 +81,7 @@ $id_usuario = session('id_usuario');
 
 
                 <div class="col-lg-12 col-xl-3">
-                  <div class="row">
+                  {{-- <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-nuevo" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -98,10 +98,10 @@ $id_usuario = session('id_usuario');
                       </div>
                      </a>
                     </div>
-                  </div>
+                  </div> --}}
 
 
-                  {{-- <div class="row">
+                  <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-nuevo-pack" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -111,7 +111,7 @@ $id_usuario = session('id_usuario');
                               <div class="col-xs-12">
                                 <center>
                                     <h5 class="txtLogo">+</h5>
-                                    <h4 class="txtNuevo">NUEVO PACK</h4>
+                                    <h4 class="txtNuevo">NUEVO PAQUETE</h4>
                                 </center>
                               </div>
                           </div>
@@ -120,8 +120,28 @@ $id_usuario = session('id_usuario');
                     </div>
                   </div>
 
-
+                  {{-- boton asociar paquete con mtm --}}
                   <div class="row">
+                    <div class="col-lg-12">
+                     <a href="" id="btn-asociar-pack-mtm" style="text-decoration: none;">
+                      <div class="panel panel-default panelBotonNuevo">
+                          <center><img class="imgNuevo" src="/img/logos/juegos_white.png"><center>
+                          <div class="backgroundNuevo"></div>
+                          <div class="row">
+                              <div class="col-xs-12">
+                                <center>
+                                    <h5 class="txtLogo">+</h5>
+                                    <h4 class="txtNuevo">ASOCIAR PAQUETE-MTM</h4>
+                                </center>
+                              </div>
+                          </div>
+                      </div>
+                     </a>
+                    </div>
+                  </div>
+                  {{-- fin de boton asociar paquete con mtm --}}
+
+                  {{-- <div class="row">
                     <div class="col-lg-12">
                      <a href="" id="btn-open-asociar-pack-juego" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
@@ -305,11 +325,91 @@ $id_usuario = session('id_usuario');
             <div class="modal-footer">
               <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-crear-pack" value="nuevo">ACEPTAR</button>
               <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+              <input type="hidden" id="id_pack" name="id_pack" value="0">
             </div>
           </div>
         </div>
       </div>
 </div>
+
+
+
+
+
+
+   <!-- Modal Asociar Paquete-MTM-->
+   <div class="modal fade" id="modalAsociarPackMtm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width: 70%">
+       <div class="modal-content">
+         <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+           <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+           <h3 class="modal-title">| ASOCIAR PAQUETE CON MTM</h3>
+          </div>
+
+          <div  id="colapsado" class="collapse in">
+
+          <div class="modal-body modalCuerpo">
+
+     
+
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <h5>Agregar Máquina</h5>
+                              <div class="lista-datos-group">
+                                <input id="inputMTM" class="form-control" type="text" value="" autocomplete="off">
+                              </div>
+                          </div>
+
+                          <div class="col-md-4">
+                              <h5>Paquete Actual</h5>
+                              <div class="input-group ">
+                                  <input id="inputPackActual" class="form-control" type="text" data-idPack="" disabled>
+                                  <span class="input-group-btn">
+                                    <button id="quitarPack" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-trash"></i></button>
+                                  </span>
+                                </div>
+                            </div>
+
+                          <div class="col-md-4">
+                              <h5>Agregar Paquete</h5>
+                                <div class="lista-datos-group">
+                                  <input id="inputPack" class="form-control" type="text" value="" autocomplete="off">
+                                  {{-- <span class="input-group-btn">
+                                    <button id="agregarPack" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                                  </span> --}}
+                                </div>
+                            </div>
+                    </div>
+                    
+
+            <table id="tablaMtmJuegoPack" class="table" style="margin-top:30px; margin-bottom:20px;">
+              <thead>
+                <tr>
+                    <th width="10%">HABILITADO</th>
+                    <th width="30%">NOMBRE</th>
+                    <th width="10%">DENOMINACIÓN</th>
+                    <th width="10%">% DEV</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-successAceptar btnConEspera" id="btn-asociar-pack-mtm-juego" >ACEPTAR</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+
     
 
     <!-- Modal Asociar Pack-Juego-->
@@ -328,11 +428,12 @@ $id_usuario = session('id_usuario');
             <div class="modal-body modalCuerpo">
               <div class="row" style="padding-bottom: 15px;">
                 <div class="col-md-12">
-                  <h6>BUSCAR PACK</h6>
+                  <h6>PAQUETE DE JUEGOS</h6>
               </div>
                 <div class="col-md-6">
                       <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
-                    <input id="inputNombrePack" class="form-control" type="text" autocomplete="off" placeholder="Nombre Pack" />
+                    <input id="inputNombrePack" disabled />
+                    <input type="hidden" id="id_pack_asociacion" name="id_pack_asociacion" value="0">
                     <!-- <datalist id="juego"> </datalist> -->
                   </div>
               </div>
@@ -431,5 +532,7 @@ $id_usuario = session('id_usuario');
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionJuegos.js" charset="utf-8"></script>
+    <script src="js/seccionJuegoPack.js" charset="utf-8"></script>
+    {{-- <script src="js/seccionJuegos.js" charset="utf-8"></script> --}}
+    <script src="js/lista-datos.js" type="text/javascript"></script>
     @endsection

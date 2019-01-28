@@ -82,7 +82,6 @@ $(document).on('click','.validar',function(e){
     $('#id_layout_parcial').val(id_layout_parcial);
 
     $.get( 'http://' + window.location.host + '/layouts/obtenerLayoutParcialValidar/' + id_layout_parcial, function(data) {
-        console.log(data);
         $('#validarFechaActual').val(data.layout_parcial.fecha);
         $('#validarFechaEjecucion').val(data.layout_parcial.fecha_ejecucion);
         $('#validarCasino').val(data.casino);
@@ -204,13 +203,85 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
   var nro_serie = popGenerico.clone().attr('data-content',fila.nro_serie.valor_antiguo)
                              .append(inputGenerico.clone().addClass('nro_serie').attr('data-original',data_serie).val(fila.nro_serie.valor));
 
+
+ var juegosPack='<div align="left">';
+ var botonMultiJuego;                           
+ if (fila.tiene_pack_bandera){
+
+  if (estado == "Validar") {
+    fila.juegos_pack.forEach(j => {
+      juegosPack=  juegosPack
+                     +   '<span style="position:relative;top:-3px;">'+ j.nombre_juego +'</span><br>'
+                     
+   });
+  }
+  else{
+    fila.juegos_pack.forEach(j => {
+      juegosPack=  juegosPack
+                     +   '<input type="radio" class="seleccionJuego" value="'+ j.nombre_juego +'" data-idjuego="'+j.id_juego+'" >'
+                     +   '<span style="position:relative;top:-3px;">'+ j.nombre_juego +'</span><br>'
+                     
+   });
+  }
+
+    
+    juegosPack= juegosPack+'</div>';
+
+
+     botonMultiJuego = $('<button>')
+    .attr('data-trigger','manual')
+    .attr('data-toggle','popover')
+    .attr('data-placement','left')
+    .attr('data-html','true')
+    .attr('title','JUEGOS')
+    .attr('data-content',juegosPack)
+    .attr('type','button')
+    .addClass('btn btn-warning pop medida')
+    
+    .append($('<i>').addClass('fas fa-exchange-alt'));
+
+ }else{
+  botonMultiJuego="-"
+ }                            
+ 
+
+ 
  var bandera = false; //Si tuvo algun error
+
+  // para gestion de pack de juego se agregan validaciones para distinguir si el juego cambio dentro del paquete
+
+  if (fila.tiene_pack_bandera){//posee pack
+
+    if (fila.juego.valor_antiguo != "") {//cambio el juego
+      inPack=false;
+      fila.juegos_pack.forEach(j => {
+
+        if(fila.juego.valor==j.nombre_juego){//el juego pertenece al pack
+          inPack=true;
+        }
+                       
+     });
+
+     if(inPack){// cambio el juego dentro de los valores del pack
+      juego.addClass('modificado').find('input').css('border','2px solid blue');bandera=true;
+     }else{// cambio por uno que no pertence al pack
+      juego.addClass('modificado').find('input').css('border','2px solid red');bandera=true;
+     }
+
+      
+    }
+
+
+  }else{// no implementa pack 
+    if (fila.juego.valor_antiguo != "") {juego.addClass('modificado').find('input').css('border','2px solid red');bandera=true;}
+  }
+
 
   //Para validar habilitar el POP
   if (fila.nro_admin.valor_antiguo != "") {maquina.addClass('modificado').find('input').css('border','2px solid red');bandera=true;}
   if (fila.nro_isla.valor_antiguo != "") {isla.addClass('modificado').find('input').css('border','2px solid red'); bandera=true;}
   if (fila.marca.valor_antiguo != "") {fabricante.addClass('modificado').find('input').css('border','2px solid red');bandera=true;}
-  if (fila.juego.valor_antiguo != "") {juego.addClass('modificado').find('input').css('border','2px solid red');bandera=true;}
+  
   if (fila.nro_serie.valor_antiguo != "") {nro_serie.addClass('modificado').find('input').css('border','2px solid red');bandera=true;}
 
   var no_toma = $('<input>').attr('type','checkbox').addClass('checkboxLayout check_notoma').prop('checked', fila.no_toma).prop('disabled',false);
@@ -236,6 +307,7 @@ function agregarFilaTablaMaquinasLayout(fila,modal,estado){
   filaMaquinaLayout.append($('<td>').append(maquina));
   filaMaquinaLayout.append($('<td>').append(isla));
   filaMaquinaLayout.append($('<td>').append(fabricante));
+  filaMaquinaLayout.append($('<td>').append(botonMultiJuego));
   filaMaquinaLayout.append($('<td>').append(juego));
   filaMaquinaLayout.append($('<td>').append(nro_serie));
   filaMaquinaLayout.append($('<td>').append(no_toma));
@@ -1207,3 +1279,29 @@ function clearSelection(){
         sel.removeAllRanges();
     }
 }
+
+$(document).on('click','.pop',function(e){
+  e.preventDefault();
+ //estos era util para obtener info
+  var fila = $(this).parent().parent();
+  $('.pop').not(this).popover('hide');
+  
+  if ($(this).next('div.popover:visible').length){
+    $(this).popover('hide');
+  }else{
+    $(this).popover('show');
+  }
+});
+
+
+// cambia el el nombre del juego dentro de los valores posibles del paquete
+$(document).on('click','.seleccionJuego',function(e){
+  e.preventDefault();
+ //estos era util para obtener info
+  var fila = $(this).parent().parent().parent().parent().parent();
+  var nombre_juego=$(this).val();
+  $('.pop').not(this).popover('hide');
+  $(this).popover('show');
+  fila.children().find('.juego').val(nombre_juego)
+  
+});

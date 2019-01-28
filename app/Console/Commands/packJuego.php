@@ -97,8 +97,6 @@ class packJuego extends Command
             $table->foreign('id_pack')->references('id_pack')->on('pack_juego');
         });
     }
-
 }
 
 
-// Se agrega en master la creacion de tablas

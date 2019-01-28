@@ -34,6 +34,11 @@ $('#navJuego').click(function(){
   $('#secJuego').show();
 });
 
+$('#navPaqueteJuegos').click(function(){
+  $('.seccion').hide();
+  $('#secPaqueteJuego').show();
+});
+
 $('#navProgresivo').click(function(){
   recargarDatosProgresivo();
   $('.seccion').hide();
@@ -167,6 +172,7 @@ $('#btn-guardar').click(function(e){
     formData.append('juego['+i+'][activo]', juegos[i]['activo']);
     formData.append('juego['+i+'][denominacion]', juegos[i]['denominacion']);
     formData.append('juego['+i+'][porcentaje_devolucion]', juegos[i]['porcentaje_devolucion']);
+    formData.append('juego['+i+'][id_pack]', juegos[i]['id_pack']);
     // formData.append('juego['+i+'][cod_identificacion]', juegos[i]['cod_identificacion']);
 
     if(juegos[i]['tablas'].length){
@@ -455,6 +461,7 @@ function ocultarAlertasMaquina(){
 }
 
 function limpiarModalMaquina(){
+  $('#inputPack').val('-');
   $('#frmMaquina').trigger('reset');
   $('#listaExpedientes li').remove();
   ocultarAlertasMaquina();
@@ -496,6 +503,7 @@ function limpiarModal(){
   limpiarModalGliSoft();
   limpiarModalGliHard();
   limpiarModalFormula();
+  limpiarModaPaqueteJuegos();
 }
 
 function habilitarControles(valor){
@@ -508,6 +516,27 @@ function habilitarControles(valor){
 }
 
 function mostrarMaquina(data, accion){// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
+  if(data.maquina.id_pack==null){
+    $('#navPaqueteJuegos').attr('hidden',true);
+    $('#navJuego').attr('hidden',false);
+  }else{  
+    // gestiona paquete de juegos
+    $('#tablaMtmJuegoPack tbody').empty();
+
+            for (i = 0; i < data.juego_pack_mtm.juegos.length; i++) {
+                if (i==0){
+                  pack=data.juego_pack_mtm.juegos[0];
+                  $('#inputPackActual').val(pack.identificador);
+                  $('#inputPackActual').attr("data-idPack", pack.id_pack);
+                }else{
+                    agregarJuegosPackMtm(data.juego_pack_mtm.juegos[i]);
+                }
+
+              } 
+    
+    $('#navPaqueteJuegos').attr('hidden',false);
+    $('#navJuego').attr('hidden',true);
+  }
   casino_global = data.casino.id_casino;
   if (data.maquina.juega_progresivo==0){
     $('#juega_progresivo_m').val("NO");
@@ -574,8 +603,46 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
 
   mostrarJuegos(data.juegos,data.juego_activo);
 
+
   data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
   data.gli_soft != null ? mostrarGliSoft(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;
   data.formula != null ? mostrarFormula(data.formula) : null;
+}
+
+function agregarJuegosPackMtm(juego){
+  den =juego.denominacion!=null ? juego.denominacion : "-" ;
+  dev =juego.porcentaje_devolucion!=null ? juego.porcentaje_devolucion : "-" ;
+  var fila = $('<tr>').attr('id',juego.id_juego);
+  
+  fila.append($('<td>').append($('<input>')
+                  .attr('type','checkbox')
+                  .attr('disabled',true)
+                 
+                  .prop('checked', juego.habilitado)));
+
+
+  fila.append($('<td>').append($('<span>').addClass('badge')
+                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
+                                          .text(juego.nombre_juego)
+                              )
+             );       
+ 
+  fila.append($('<td>').text(den));
+
+  fila.append($('<td>').text(dev));
+  
+  
+
+
+
+  $('#tablaMtmJuegoPack').append(fila);
+
+
+};
+
+function limpiarModaPaqueteJuegos(){
+    $('#inputPackActual').val("");
+    $('#inputPackActual').attr("data-idPack", -1);
+    $('#tablaMtmJuegoPack tbody').empty();
 }

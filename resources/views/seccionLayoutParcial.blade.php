@@ -551,7 +551,8 @@ use Illuminate\Http\Request;
                                           <tr>
                                               <th width="6%">MTM</th>
                                               <th width="6%">ISLA</th>
-                                              <th width="20%">FABRICANTE</th>
+                                              <th width="10%">FABRICANTE</th>
+                                              <th width="10%">PAQUETE-JUEGO</th>
                                               <th width="25%">JUEGO</th>
                                               <th width="15%">N° SERIE</th>
                                               <th width="4%">NT</th>
@@ -779,7 +780,8 @@ use Illuminate\Http\Request;
                                           <tr>
                                               <th width="6%">MTM</th>
                                               <th width="6%">ISLA</th>
-                                              <th width="20%">FABRICANTE</th>
+                                              <th width="10%">FABRICANTE</th>
+                                              <th width="10%">PAQUETE-JUEGO</th>
                                               <th width="25%">JUEGO</th>
                                               <th width="15%">N° SERIE</th>
                                               <th width="4%">NO</th>

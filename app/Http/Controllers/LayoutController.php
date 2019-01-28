@@ -24,7 +24,7 @@ use App\DetalleLayoutTotal;
 use App\MaquinaAPedido;
 use App\Isla;
 use App\TipoCausaNoToma;
-
+use App\PackJuego;
 /*
   Controllador encargado de crear(o usar backup), modifciar o borrar
   cargar y validar
@@ -76,6 +76,29 @@ class LayoutController extends Controller
           $linea->tipo = ['correcto' => true, 'valor' => '-', 'valor_antiguo' => ''] ;
         }
         $linea->juego = ['correcto' => true, 'valor' => $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''] ;
+        
+
+        if($maquina->id_pack!=null){
+        $pack=PackJuego::find($maquina->id_pack);
+        $linea->tiene_pack_bandera=true;
+        $juegos_pack_habilitados=array();
+        foreach($maquina->juegos as $j){
+          if($j->pivot->habilitado!=0){
+            array_push( $juegos_pack_habilitados,$j);
+          }
+        }
+        $linea->juegos_pack=$juegos_pack_habilitados;
+        }else{
+          $linea->tiene_pack_bandera=false;
+        }
+        //refactor para tomar el pack correspondiente a la tabla asociacion con maquina y juego
+        // if(count($maquina->juego_activo->pack)>0){
+        //   $linea->tiene_pack_bandera=true;
+        //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+        // }else{
+        //   $linea->tiene_pack_bandera=false;
+        // }
+        
         $linea->nro_serie = ['correcto' => true, 'valor' => $maquina->nro_serie, 'valor_antiguo' => ''] ;
         $linea->id_maquina =  $maquina->id_maquina;
         $progresivo = ProgresivoController::getInstancia()->obtenerProgresivoPorIdMaquina($maquina->id_maquina);
@@ -168,6 +191,27 @@ class LayoutController extends Controller
             }else{
               $linea->juego = ['correcto' => true, 'valor' =>  $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''];
           }
+
+          if($maquina->id_pack!=null){
+            $pack=PackJuego::find($maquina->id_pack);
+            $linea->tiene_pack_bandera=true;
+            $juegos_pack_habilitados=array();
+            foreach($maquina->juegos as $j){
+              if($j->pivot->habilitado!=0){
+                array_push( $juegos_pack_habilitados,$j);
+              }
+            }
+            $linea->juegos_pack=$juegos_pack_habilitados;
+            }else{
+              $linea->tiene_pack_bandera=false;
+            }
+
+          // if(count($maquina->juego_activo->pack)>0){
+          //   $linea->tiene_pack_bandera=true;
+          //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
+          // }else{
+          //   $linea->tiene_pack_bandera=false;
+          // }
 
           $aux = $detalle_aux->where('columna', 'nro_serie');
           if($aux->count() == 1){
@@ -963,7 +1007,17 @@ class LayoutController extends Controller
       $det->isla = $detalle->maquina->isla->nro_isla;
       $det->marca = $detalle->maquina->marca;
       $det->nro_serie = $detalle->maquina->nro_serie;
-      $det->juego = $detalle->maquina->juego_activo;
+      
+      if($detalle->maquina->id_pack!=null){
+        $pack=PackJuego::find($detalle->maquina->id_pack);
+        $juego_activo=$detalle->maquina->juego_activo;
+        $prefijo=$pack->prefijo;
+        $nombre_juego_activo= $detalle->maquina->juego_activo->nombre_juego;
+        $juego_activo->nombre_juego= "Paquete-Juegos: " . $pack->identificador; 
+      }else{
+        $juego_activo=$detalle->maquina->juego_activo;
+      }
+      $det->juego =$juego_activo;
       $det->denominacion = $detalle->denominacion;//vacio al momento de carga
       $det->porcentaje_devolucion = $detalle->porcentaje_devolucion;//vacio al momento de carga
       $det->diferencias = $detalle->campos_con_diferencia;
