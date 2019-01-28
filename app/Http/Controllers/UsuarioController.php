@@ -310,6 +310,7 @@ class UsuarioController extends Controller
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
                     ->whereIn('casino.id_casino',$cas)
                     ->distinct('id_usuario')
+                    ->whereNull('usuario.deleted_at')
                     ->orderBy('user_name','asc')
                     ->get();
     $rolController= RolController::getInstancia();
