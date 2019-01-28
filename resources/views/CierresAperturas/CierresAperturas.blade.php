@@ -1500,6 +1500,50 @@ $cas = $usuario['usuario']->casinos;
 
 @endsection
 
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">| AYUDA</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <h6>GESTIÓN DE CIERRES Y APERTURAS</h6>
+  <p>
+    Desde esta sección se podrán visualizar los cierres y aperturas cargados, ordenados por fecha,
+    y generar las planillas de Relevamiento de Aperturas.
+    Los datos cargados pueden filtrarse, cargar y editar. Sólo las aperturas se validan, seleccionando
+    el cierre con el que se desea realizar dicha acción, para luego poder comparar datos de cada mesa.
+    <br><br>
+
+    <h6>CIERRES</h6>
+    Desde el botón "Nuevo Cierre", podrán cargarse simultaneamente los Cierres correspondientes a una fecha de producción
+    especificada y a un casino especificados en la ventana de carga, de las diferentes mesas que abrieron. Para guardar
+    la información cargada para cada mesa, se debe presionar el botón "Guardar", y esta aparecerá con un tilde en el listado
+    de mesas a cargar. Una vez que se hayan cargado todos los datos de cierre de cada mesa, se presiona el botón "Finalizar"
+    para cerrar la ventana de carga.
+    Luego podrán visualizarse en el listado principal, los Cierres cargados hasta el momento, ordenados por fecha y paginados.
+    Estos pueden filtrarse por mesa, fecha, juego y casino, desplazando la barra de "FILTROS".
+    Además se puede acceder a los detalles de cada cierre, modificarse y eliminar, según los roles y permisos de cada usuario.
+    <br><br>
+    <h6>APERTURAS</h6>
+    Desde el botón "Generar Planilla Apertura", se genera un archivo con cinco planillas en las que se detallan las mesas que
+    han sido seleccionadas por sorteo para relevar su apertura.
+    Desde el botón "Cargar Apertura, podrán cargarse simultaneamente las Aperturas correspondientes a una fecha de producción
+    especificada y a un casino especificados en la ventana de carga, de las mesas relevadas. Para guardar la información
+    cargada para cada mesa, se debe presionar el botón "Guardar", y esta aparecerá con un tilde en el listado de mesas a cargar.
+    Una vez que se hayan cargado todos los datos de apertura de cada mesa, se presiona el botón "Finalizar" para cerrar la
+    ventana de carga.
+    Luego podrán visualizarse en el listado principal, las Aperturas cargadas hasta el momento, ordenadas por fecha y paginadas.
+    Estas pueden filtrarse por mesa, fecha, juego y casino, desplazando la barra de "FILTROS".
+    Además se puede acceder a los detalles de cada Apertura, modificarse, eliminarse y validarse, según los roles y permisos de
+    cada usuario.
+    Para la validación se debe seleccionar el Cierre que se corresponda con la Apertura a validar, en la selección se detalla
+    la hora, la moneda y fecha del cierre.  En caso de haber diferencias, podrá validarse con Observación.  Una vez validada,
+    esta apertura aparecerá en el listado principal con una tilde verde en la columna "Estado".
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
+
 @section('scripts')
 
   <!-- JavaScript personalizado -->
