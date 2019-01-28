@@ -167,7 +167,7 @@ class BCCierreController extends Controller
       $filtros[]= ['mesa_de_panio.nro_mesa','like','%'.$request->nro_mesa.'%'];
     }
     if(!empty($request->id_juego)){
-      $filtros[]= ['mesa_de_panio.id_juego','=',$request->id_juego];
+      $filtros[]= ['mesa_de_panio.id_juego_mesa','=',$request->id_juego];
     }
     if(!empty($request->id_casino)){
       $cas[] = $request->id_casino;
@@ -194,6 +194,7 @@ class BCCierreController extends Controller
                                   ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
                                   ->where($filtros)
                                   ->whereIn('cierre_mesa.id_casino',$cas)
+                                  ->whereNull('cierre_mesa.deleted_at')
                                   ->when($sort_by,function($query) use ($sort_by){
                                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                               })
