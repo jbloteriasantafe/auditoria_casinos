@@ -430,12 +430,10 @@ $(document).on('click', '.btn_ver_mesa', function(e){
 
   $('#mensajeExitoCargaAp').hide();
   $('#mensajeErrorCargaAp').hide();
-  $('#horarioAp').val("");
-  $('#fiscalizApertura').setearElementoSeleccionado(0,"");
 
   //setea moneda en pesos
   $("input[name='monedaApertura'][value='1']").prop('checked', true);
-
+  limpiarCargaApertura();
 
   $('#bodyMesas tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
@@ -632,7 +630,6 @@ $(document).on('change','#casinoCierre',function(){
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
   $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
-//  $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
   $('#fiscalizadorCierre').val('');
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -683,6 +680,7 @@ $(document).on('click', '.cargarDatos', function(e){
   $('#mensajeExitoCargaAp').hide();
   $('#mensajeErrorCargaAp').hide();
   $('#mensajeExitoCargaCie').hide();
+  limpiarCargaCierre();
 
 
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
@@ -1923,7 +1921,6 @@ function limpiarCargaApertura(){
   $('#cargador').val('');
   $('#tablaCargaApertura tbody tr').remove();
   $('#mensajeExitoCargaAp').hide();
-  document.querySelectorAll('input[name=monedaApertura]').forEach((x) => x.checked=false);
 
 }
 
