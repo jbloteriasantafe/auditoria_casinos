@@ -25,79 +25,6 @@ $(document).ready(function() {
 
     });
 
-    //$('#filtroMesa').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + cas,'usuarios' ,'id_usuario','nombre',1,false);
-
-  $('#hora_apertura').datetimepicker({
-      language:  'es',
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'HH:ii',
-      pickerPosition: "bottom-left",
-      startView: 1,
-      minView: 0,
-      maxView: 1,
-      container: $('#modalCargaApertura')
-    });
-
-  $('#hora_cierre').datetimepicker({
-    language:  'es',
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 1,
-    minView: 0,
-    maxView: 1,
-    container: $('#modalCargaCierre')
-  });
-
-  $('#hora_CC').datetimepicker({
-    language: 'es',
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 1,
-    minView: 0,
-    maxView: 1,
-    container: $('#modalCargaCierre')
-  });
-  //hora para modificar apertura
-  $('#hora_apertura_modif').datetimepicker({
-      language:  'es',
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'HH:ii',
-      pickerPosition: "bottom-left",
-      startView: 1,
-      minView: 0,
-      maxView: 1,
-      container: $('#modalModificarApertura')
-    });
-
-  $('#hora_In_cierre_modif').datetimepicker({
-        language:  'es',
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'HH:ii',
-        pickerPosition: "bottom-left",
-        startView: 1,
-        minView: 0,
-        maxView: 1,
-        container: $('#modalModificarCierre')
-  });
-
-  $('#hora_cierre_modif').datetimepicker({
-          language:  'es',
-          autoclose: 1,
-          todayHighlight: 1,
-          format: 'HH:ii',
-          pickerPosition: "bottom-left",
-          startView: 1,
-          minView: 0,
-          maxView: 1,
-          container: $('#modalModificarCierre')
-        });
 
   $(function(){
     $('#dtpFechaApert').datetimepicker({
@@ -382,10 +309,13 @@ $('#btn-cargar-apertura').on('click', function(e){
 
   ocultarErrorValidacion($('#B_fecha_apert'));
   ocultarErrorValidacion($('#horarioAp'));
+  ocultarErrorValidacion($('#casinoApertura'));
+
   $('#mensajeErrorCargaAp').hide();
   $('#casinoApertura').val("0");
 
   $('.detallesCargaAp').hide();
+  $('#btn-finalizar-apertura').hide();
 
   $('#modalCargaApertura').modal('show');
 
@@ -427,15 +357,24 @@ $('#confirmar').on('click',function(e){
         $('#cargador').attr('data-cargador',data.usuario.id_usuario);
       })
       }
+      else{
+        if($('#casinoApertura').val() == 0 ){
+          mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
+        }
+        if($('#B_fecha_apert').val().length == 0  ){
+          mostrarErrorValidacion($('#B_fecha_apert'),'Campo Obligatorio',false);
+        }
+      }
 })
 
 $(document).on('change','.inputApe',function(){
 
+  var num= Numeros($(this).val());
 
   if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
 
-        if($(this).val()!='' && $(this).val()!=0)
-        {   var cantidad=$(this).val();
+        if(num != '' && num != 0)
+        {   var cantidad=num;
             $(this).attr('data-ingresado',cantidad);
             var valor=$(this).attr('data-valor');
 
@@ -446,18 +385,19 @@ $(document).on('change','.inputApe',function(){
             $('#totalApertura').val(subtotal);
         }
 
-        if ($(this).val()==''|| $(this).val()==0) {
+        if (num ==''|| num ==0) {
           var cantidad=0;
           var subtotal=0;
           subtotal = Number($('#totalApertura').val());
-          subtotal -= Number($(this).attr('data-ingresado'));
+          subtotal -= Number(($(this).attr('data-ingresado')) * ($(this).attr('data-valor')));
 
           $('#totalApertura').val(subtotal);
         }
   }
   else{
-        if($(this).val()!='' && $(this).val()!=0)
-        {   var cantidad=$(this).val();
+        if(num !='' && num !=0)
+        {
+            var cantidad=num;
             var valor=$(this).attr('data-valor');
             var subtotal=0;
 
@@ -473,16 +413,17 @@ $(document).on('change','.inputApe',function(){
 
             $('#totalApertura').val(total);
         }
-        if ($(this).val()==''|| $(this).val()==0) {
+        if (num ==''|| num ==0) {
           var cantidad=0;
           var subtotal=0;
           subtotal = Number($('#totalApertura').val());
-          subtotal -= Number(($(this).attr('data-ingresado')) * ($(this).attr('data-valor')));
+          subtotal -= Number($(this).attr('data-ingresado'));
 
           $('#totalApertura').val(subtotal);
         }
     }
 });
+
 
 $(document).on('click', '.btn_ver_mesa', function(e){
   e.preventDefault();
@@ -614,10 +555,8 @@ $('#btn-guardar-apertura').on('click', function(e){
             $('#bodyMesas').find('#' + id_mesa).find('.btn_ver_mesa').prop('disabled', true);
             $('#bodyMesas').find('#' + id_mesa).append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50')));
             $('#mensajeExitoCargaAp').show();
-            //$('#modalCargaApertura').modal('hide');
-            // $('#mensajeExito h3').text('ÉXITO');
-            // $('#mensajeExito p').text('Apertura guardada correctamente');
-            // $('#mensajeExito').show();
+            $('#btn-guardar-apertura').hide();
+            $('#btn-finalizar-apertura').show();
           },
           error: function(data){
             $('#mensajeError h3').text('ERROR');
@@ -639,11 +578,22 @@ $('#btn-guardar-apertura').on('click', function(e){
             if(typeof response.id_moneda !== 'undefined'){
               $('#mensajeErrorCargaAp').show();
             }
+            $('#btn-guardar-apertura').prop('disabled',false);
 
           },
       })
 
 });
+
+
+//btn finalizar dentro del modal carga apertura
+$('#btn-finalizar-apertura').on('click', function(){
+
+    $('#modalCargaApertura').modal('hide');
+    $('#mensajeExito h3').text('ÉXITO');
+    $('#mensajeExito p').text('Las Aperturas cargadas han sido guardadas correctamente');
+    $('#mensajeExito').show();
+})
 
 
 //CIERRES CIERRES CIERRES CIERRES Cierres
@@ -670,6 +620,8 @@ $('#btn-cargar-cierre').on('click', function(e){
   $('.desplegable').hide();
 
   $('#btn-guardar-cierre').hide();
+  $('#btn-finalizar-cierre').hide();
+
   $('#modalCargaCierre').modal('show');
 
 })
@@ -680,7 +632,8 @@ $(document).on('change','#casinoCierre',function(){
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
   $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
-  $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+//  $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+  $('#fiscalizadorCierre').val('');
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
   $('#horarioCie').val("");
@@ -698,13 +651,18 @@ $('#confirmarCierre').on('click',function(e){
       $('.desplegable').show(); //agregar mesa + fiscalizador
       var id_casino=$('#casinoCierre').val();
 
-      $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
+      // $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      // $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
 
       $('.listMes').hide();
       $('#listaMesasCierres tbody tr').remove();
       $('#columnaDetalleCie').hide();
       $('#mensajeExitoCargaCie').hide();
+
+      $.get('usuarios/quienSoy',function(data){
+        $('#fiscalizadorCierre').val(data.usuario.nombre);
+        $('#fiscalizadorCierre').attr('data-cargador',data.usuario.id_usuario);
+      })
     }
   else{
     if($('#casinoCierre').val() == 0 ){
@@ -775,44 +733,15 @@ $(document).on('click', '.cargarDatos', function(e){
 
 });
 
-/*$(document).on('change','#inputMesaCierre',function(){
-
-   $('#tablaCargaCierreF tbody tr').remove();
-   $('#totalCierre').val("");
-   $('#total_anticipos_c').val("");
-   var id_mesa = $('#inputMesaCierre').obtenerElementoSeleccionado();
-
-   if(id_mesa != 0 && id_mesa != null){
-      $.get('mesas/detalleMesa/' + id_mesa, function(data){
-
-        //$('#moneda').val(data.moneda.descripcion);
-        for (var i = 0; i < data.fichas.length; i++) {
-
-          var fila=$(document.createElement('tr'));
-
-          fila.attr('id', data.fichas[i].id_ficha)
-              .append($('<td>')
-              .addClass('col-md-6').addClass('fichaVal').attr('id',data.fichas[i].id_ficha)
-              .append($('<input>').prop('readonly','true')
-              .val(data.fichas[i].valor_ficha)))
-              .append($('<td>')
-              .addClass('col-md-6')
-              .append($('<input>').addClass('inputCie').attr('id', 'input').val("")
-              .attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0)))
-
-          $('#bodyFichasCierre').append(fila);
-         }
-
-      })
-  }
-});*/
 
 $(document).on('change','.inputCie',function(){
 
+  var num= Numeros($(this).val());
+
   if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
 
-    if($(this).val() !== '' && $(this).val() !== 0) //si se ingreso un valor diferente de 0
-    {   var cantidad=$(this).val();
+    if(num !== '' && num !== 0) //si se ingreso un valor diferente de 0
+    {   var cantidad=num;
         $(this).attr('data-ingresado',cantidad);
         var valor=$(this).attr('data-valor');
 
@@ -821,7 +750,7 @@ $(document).on('change','.inputCie',function(){
         subtotal += Number(cantidad);
         $('#totalCierre').val(subtotal);}
 
-    if ($(this).val() == '' || $(this).val() == 0) { //si se ingresa el 0 o nada
+    if (num == '' || num == 0) { //si se ingresa el 0 o nada
       var cantidad=0;
       var subtotal=0;
       subtotal = Number($('#totalCierre').val());
@@ -830,8 +759,8 @@ $(document).on('change','.inputCie',function(){
     }
   }
   else{
-    if($(this).val() !== '' && $(this).val() !== 0){ //si se ingreso un valor diferente de 0
-        var cantidad=$(this).val();
+    if(num !== '' && num !== 0){ //si se ingreso un valor diferente de 0
+        var cantidad=num;
         var subtotal=0;
         //tomo el data ingresado anteriormente y lo resto al total antes de perderlo
         subtotal = Number($('#totalCierre').val());
@@ -849,7 +778,7 @@ $(document).on('change','.inputCie',function(){
 
         $('#totalCierre').val(total);}
 
-    if ($(this).val()=='' || $(this).val()==0) { //si se ingresa el 0 o nada
+    if (num=='' || num==0) { //si se ingresa el 0 o nada
           var cantidad=0;
           var subtotal=0;
           subtotal = Number($('#totalCierre').val());
@@ -857,13 +786,15 @@ $(document).on('change','.inputCie',function(){
           $('#totalCierre').val(subtotal);
     }
   }
-})
+});
 
 
 //dentro del modal de carga de cierre, presiona el botón guardar
 $('#btn-guardar-cierre').on('click', function(e){
 
   e.preventDefault();
+
+  $(this).prop('disabled',true);
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
@@ -891,7 +822,7 @@ $('#btn-guardar-cierre').on('click', function(e){
         fecha: $('#B_fecha_cie').val(),
         hora_inicio: $('#horario_ini_c').val(),
         hora_fin:$('#horarioCie').val(),
-        id_fiscalizador: $('#fiscalizadorCierre').obtenerElementoSeleccionado(),
+        id_fiscalizador: $('#fiscalizadorCierre').attr('data-cargador'),
         id_casino: $('#casinoCierre').val(),
         id_juego_mesa: $('#juegoCierre').obtenerElementoSeleccionado(),
         total_pesos_fichas_c:$('#totalCierre').val(),
@@ -929,6 +860,7 @@ $('#btn-guardar-cierre').on('click', function(e){
             $('#mensajeErrorMoneda').hide();
             $('#btn-guardar-cierre').hide();
             $('#mensajeExitoCargaCie').show();
+            $('#btn-finalizar-cierre').show();
 
           },
           error: function(data){
@@ -938,27 +870,21 @@ $('#btn-guardar-cierre').on('click', function(e){
             if(typeof response.fecha !== 'undefined'){
               mostrarErrorValidacion($('#B_fecha_cie'),response.fecha[0],false);
             }
-            if(typeof response.hora_inicio !== 'undefined'){
-              mostrarErrorValidacion($('#horario_ini_c'),response.hora_inicio[0],false);
-            }
-            if(typeof response.hora_fin !== 'undefined'){
-              mostrarErrorValidacion($('#horarioCie'),response.hora_fin[0],false);
-            }
 
-            if(typeof response.total_anticipos_c !== 'undefined'){
-              mostrarErrorValidacion($('#totalAnticipoCierre'),response.total_anticipos_c[0],false);
-            }
             if(typeof response.fichas !== 'undefined'){
               $('#mensajeFichasError2').show();
 
             }
             if(typeof response.id_juego_mesa !== 'undefined' || typeof response.id_mesa_de_panio !== 'undefined' || typeof response.id_fiscalizador !== 'undefined'){
               $('#mensajeCargaConError').show();
+              $('#mensajeCargaConError').focus();
             }
 
             if(typeof response.id_moneda !== 'undefined'){
               $('#mensajeErrorMoneda').show();
             }
+
+            $('#btn-guardar-cierre').prop('disabled',false);
 
 
 
@@ -967,6 +893,15 @@ $('#btn-guardar-cierre').on('click', function(e){
 
 });
 
+//btn finalizar dentro del modal de carga de cierre
+$('#btn-finalizar-cierre').on('click', function(){
+
+  $('#modalCargaCierre').modal('hide');
+  $('#mensajeExito h3').text('EXITO');
+  $('#mensajeExito p').text('Los Cierres cargados han sido guardados correctamente.');
+  $('#mensajeExito').show();
+
+})
 
 $(document).on('click', '.infoCyA', function(e) {
 
@@ -1977,4 +1912,18 @@ function limpiarModalValidar(){
   $('#fechaCierreVal option').not('.defecto').remove();
   $('#tablaValidar tbody tr').remove();
 
+}
+
+function Numeros(string){//Solo numeros
+    var out = '';
+    var filtro = '1234567890';//Caracteres validos
+
+    //Recorrer el texto y verificar si el caracter se encuentra en la lista de validos
+    for (var i=0; i<string.length; i++)
+       if (filtro.indexOf(string.charAt(i)) != -1)
+             //Se añaden a la salida los caracteres validos
+	     out += string.charAt(i);
+
+    //Retornar valor filtrado
+    return out;
 }
