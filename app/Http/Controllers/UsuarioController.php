@@ -46,6 +46,20 @@ class UsuarioController extends Controller
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                   $validator->errors()->add('email', 'Formato de email inválido.');
                 }
+                $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
+                $cas = array();
+                foreach ($user->casinos as $cass) {
+                  $cas[]=$cass->id_casino;
+                }
+                $lotiene = false;
+                foreach ($cas as $c) {
+                  if($c == $validator->getData()['id_casino']){
+                    $lotiene = true;
+                  }
+                }
+                if(!$lotiene){
+                  $validator->errors()->add('id_casino', 'FAIL.');
+                }
       });
 
      $validator->validate();
@@ -262,17 +276,54 @@ class UsuarioController extends Controller
     $usuario = (empty($request->usuario)) ? '%' : '%'.$request->usuario.'%';
     $email = (empty($request->email)) ? '%' : '%'.$request->email.'%';
 
-    $resultado = Usuario::where([['nombre','like',$nombre],['user_name','like',$usuario],['email','like',$email]])
-                        ->get();
+    $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = array();
+    foreach ($user->casinos as $cass) {
+      $cas[]=$cass->id_casino;
+    }
+
+    $resultado=DB::table('usuario')
+                    ->select('usuario.*')
+                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+                    ->where([['nombre','like',$nombre],['user_name','like',$usuario],['email','like',$email]])
+                    ->whereIn('casino.id_casino',$cas)
+                    ->whereNull('usuario.deleted_at')
+                    ->distinct('id_usuario')
+                    ->orderBy('user_name','asc')
+                    ->get();
 
     return ['usuarios' => $resultado];
 
   }
 
   public function buscarTodo(){
-    $resultados=Usuario::orderBy('user_name','asc')->get();
+    $user = $this->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = array();
+    foreach ($user->casinos as $cass) {
+      $cas[]=$cass->id_casino;
+    }
+
+    $resultados=DB::table('usuario')
+                    ->select('usuario.*')
+                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+                    ->whereIn('casino.id_casino',$cas)
+                    ->distinct('id_usuario')
+                    ->whereNull('usuario.deleted_at')
+                    ->orderBy('user_name','asc')
+                    ->get();
     $rolController= RolController::getInstancia();
-    $casinos=Casino::all();
+    $resultado = DB::table('usuario_tiene_rol')
+                    ->whereIn('id_rol',[2])
+                    ->where('id_usuario','=',$user->id_usuario)
+                    ->get();
+    if(count($resultado) > 0){
+      $casinos=Casino::whereIn('id_casino',$cas)->get();
+    }else{
+      $casinos=Casino::all();
+    }
+
     $roles=$rolController->getAll();
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
@@ -472,6 +523,7 @@ class UsuarioController extends Controller
                 ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                 ->whereIn('usuario_tiene_rol.id_rol',$id_rol)
                 ->where('usuario_tiene_casino.id_casino','=', $id_casino)
+                ->whereNull('usuario.deleted_at')
                 ->get();
     return $rta;
   }

@@ -376,7 +376,7 @@ $cas = $usuario['usuario']->casinos;
               <div class="row">
                 <div class="input-group ">
                   <input id="inputMesaCierre" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro. de Mesa" >
-                  <span class="input-group-btn">
+                  <span class="input-group-btn" style="display:block;">
                     <button id="agregarMesaCierre" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                   </span>
                 </div>
