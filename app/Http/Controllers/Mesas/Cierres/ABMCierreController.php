@@ -196,8 +196,8 @@ class ABMCierreController extends Controller
       foreach ($validator->getData()['fichas'] as $detalle) {
         $ficha = Ficha::find($detalle['id_ficha']);
         $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
-        if(floor($division)* $ficha->valor_ficha != $detalle['monto_ficha']){
-          $validator->errors()->add('monto_ficha','Ya existe una apertura para la fecha.'
+        if(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0){
+          $validator->errors()->add('monto_ficha','El monto no es múltiplo del valor.'
                                    );
           break;
         }
