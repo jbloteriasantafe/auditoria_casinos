@@ -133,7 +133,7 @@ class BCAperturaController extends Controller
                                      'detalle_cierre.monto_ficha',
                                      'detalle_cierre.id_detalle_cierre'
                             )
-                            ->join('ficha','ficha.id_ficha', '=', 'detalle_apertura.id_ficha')
+                            ->rightJoin('ficha','ficha.id_ficha', '=', 'detalle_apertura.id_ficha')
                             ->leftJoin('detalle_cierre','detalle_cierre.id_detalle_cierre' ,'=' ,'detalle_apertura.id_detalle_cierre')
                             ->where('detalle_apertura.id_apertura_mesa', '=', $apertura->id_apertura_mesa)
                             ->where('ficha.id_moneda', '=',$moneda->id_moneda)
@@ -148,7 +148,7 @@ class BCAperturaController extends Controller
                                      'detalle_cierre.monto_ficha',
                                      'detalle_cierre.id_detalle_cierre'
                             )
-                            ->join('ficha','ficha.id_ficha', '=', 'detalle_cierre.id_ficha')
+                            ->rightJoin('ficha','ficha.id_ficha', '=', 'detalle_cierre.id_ficha')
                             ->leftJoin('detalle_apertura','detalle_cierre.id_detalle_cierre' ,'=' ,'detalle_apertura.id_detalle_cierre')
                             ->where('detalle_cierre.id_cierre_mesa', '=', $cierre->id_cierre_mesa)
                             ->where('ficha.id_moneda', '=',$moneda->id_moneda)
