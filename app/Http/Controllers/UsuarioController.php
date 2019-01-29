@@ -320,11 +320,13 @@ class UsuarioController extends Controller
                     ->get();
     if(count($resultado) > 0){
       $casinos=Casino::whereIn('id_casino',$cas)->get();
+      $roles = Rol::whereNotIn('id_rol',[1,5,6]);
     }else{
       $casinos=Casino::all();
+      $roles=$rolController->getAll();
     }
 
-    $roles=$rolController->getAll();
+
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
   }
