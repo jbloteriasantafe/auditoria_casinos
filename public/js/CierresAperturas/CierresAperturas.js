@@ -920,7 +920,7 @@ $(document).on('click', '.infoCyA', function(e) {
 
       $('.mesa_det_apertura').text(data.mesa.nombre + ' - ' + data.moneda.descripcion);
       $('.fecha_det_apertura').text(data.apertura.fecha);
-      $('.juego_det_apertura').text(data.mesa.nombre_juego);
+      $('.juego_det_apertura').text(data.juego.nombre_juego);
       $('.hora_apertura_det').text(data.apertura.hora);
       $('.cargador_det_apertura').text(data.cargador.nombre);
       $('.fisca_det_apertura').text(data.fiscalizador.nombre);
@@ -1948,7 +1948,7 @@ function limpiarModalValidar(){
 
 function Numeros(string){//Solo numeros
     var out = '';
-    var filtro = '1234567890';//Caracteres validos
+    var filtro = '1234567890.,';//Caracteres validos
 
     //Recorrer el texto y verificar si el caracter se encuentra en la lista de validos
     for (var i=0; i<string.length; i++)
