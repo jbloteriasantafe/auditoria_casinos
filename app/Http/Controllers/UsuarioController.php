@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Response;
 use App\Usuario;
+use App\Rol;
 use App\Casino;
 use App\Relevamiento;
 use App\SecRecientes;
