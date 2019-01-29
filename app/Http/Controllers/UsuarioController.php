@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Response;
 use App\Usuario;
+use App\Rol;
 use App\Casino;
 use App\Relevamiento;
 use App\SecRecientes;
@@ -320,11 +321,13 @@ class UsuarioController extends Controller
                     ->get();
     if(count($resultado) > 0){
       $casinos=Casino::whereIn('id_casino',$cas)->get();
+      $roles = Rol::whereNotIn('id_rol',[1,5,6])->get();
     }else{
       $casinos=Casino::all();
+      $roles=$rolController->getAll();
     }
 
-    $roles=$rolController->getAll();
+
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
   }
