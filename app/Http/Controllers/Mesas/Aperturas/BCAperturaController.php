@@ -155,34 +155,52 @@ class BCAperturaController extends Controller
                             ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_cierre.id_detalle_cierre', 'detalle_apertura.cantidad_ficha','ficha.valor_ficha','detalle_cierre.monto_ficha')
                             ->union($first)
                             ->orderBy('valor_ficha','desc')->get();
-      }else{
+      }
+      else{
               $cierre = null;
-              $fichasap = Ficha::where('id_moneda','=',$moneda->id_moneda)->get();
-              $detallesApertura = $apertura->detalles;
-              $detalles= array();
-              $entro = 0;
-              foreach ($fichasap as $f) {
-                foreach ($detallesApertura as $d) {
-                  if($d->id_ficha == $f->id_ficha){
-                    $entro = 1;
-                    $detalles[] = [
-                                    'id_detalle_apertura' => $d->id_detalle_apertura,
-                                    'cantidad_ficha' => $d->cantidad_ficha,
-                                    'monto_ficha' => ($d->cantidad_ficha * $f->valor_ficha),
-                                    'valor_ficha' => $f->valor_ficha,
-                                  ];
-                  }
-                }
-                if(!$entro){
-                  $detalles[] = [
-                                  'id_detalle_apertura' => null,
-                                  'cantidad_ficha' => 0,
-                                  'monto_ficha' => 0,
-                                  'valor_ficha' => $f->valor_ficha,
-                                ];
-                  $entro=0;
-                }
-              }
+              //$fichasap = Ficha::where('id_moneda','=',$moneda->id_moneda)->orderBy('valor','desc')->get();
+            //$detallesApertura = $apertura->detalles()->orderBy('ficha.valor','desc');
+              //$detalles= array();
+              //$entro = 0;
+              $detalles = DB::table('ficha')
+                              ->select('DA.id_detalle_apertura',
+                                       'DA.cantidad_ficha',
+                                        DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
+                                        'ficha.valor_ficha')
+                              ->leftJoin('detalle_apertura as DA',function ($join) use($id){
+                                    $join->on('DA.id_ficha','=','ficha.id_ficha')
+                                    ->where('DA.id_apertura_mesa','=',$id);
+                                  })
+                              ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                              ->whereNull('ficha.deleted_at')
+                              ->groupBy('DA.id_detalle_apertura',
+                                        'ficha.id_ficha',
+                                         'DA.cantidad_ficha',
+                                         'ficha.valor_ficha')
+                              ->orderBy('ficha.valor_ficha','desc')
+                              ->get();
+              // foreach ($fichasap as $f) {
+              //   foreach ($detallesApertura as $d) {
+              //     if($d->id_ficha == $f->id_ficha){
+              //       $entro = 1;
+              //       $detalles[] = [
+              //                       'id_detalle_apertura' => $d->id_detalle_apertura,
+              //                       'cantidad_ficha' => $d->cantidad_ficha,
+              //                       'monto_ficha' => ($d->cantidad_ficha * $f->valor_ficha),
+              //                       'valor_ficha' => $f->valor_ficha,
+              //                     ];
+              //     }
+              //   }
+              //   if(!$entro){
+              //     $detalles[] = [
+              //                     'id_detalle_apertura' => null,
+              //                     'cantidad_ficha' => 0,
+              //                     'monto_ficha' => 0,
+              //                     'valor_ficha' => $f->valor_ficha,
+              //                   ];
+              //     $entro=0;
+              //   }
+              // }
               //ANDA CUANDO QUIERE:
               // $detalles = DB::table('ficha')
               //                 ->select(
@@ -290,6 +308,7 @@ class BCAperturaController extends Controller
                         ->where('detalle_apertura.id_apertura_mesa','=',$id)
                         ->where('ficha.id_moneda','=',$moneda->id_moneda)
                         ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_apertura.cantidad_ficha','ficha.valor_ficha')
+                        ->orderBy('ficha.valor_ficha','desc')
                         ->get();
 
                         //fechas de los cierres que puede hacer join
