@@ -515,7 +515,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_nro_isla_relevada = null;
        $rel->toma1_descripcion_sector_relevado = null;
      }else{
-       $toma_relev = $relevamiento->toma_relevamiento_movimiento;//$this->obtenerTomaRelevamiento($maquina->id_maquina,$relev_mov->id_log_movimiento);
+       $toma_relev = $relevamiento->toma_relevamiento_movimiento->first();
        $rel->toma1_cont1 = $toma_relev->vcont1;
        $rel->toma1_cont2 = $toma_relev->vcont2;
        $rel->toma1_cont3 = $toma_relev->vcont3;

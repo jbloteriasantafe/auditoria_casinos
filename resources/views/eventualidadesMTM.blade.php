@@ -740,7 +740,7 @@
             <input id="fecha_fiscalizacion" type="text" name="" value="" hidden>
             <input id="relevamiento" type="text" name="" value="" hidden>
             <input id="maquina" type="text" name="" value="" hidden>
-              <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >ERROR</button>
+              <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >CANCELAR</button>
               <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value="" > VISAR </button>
 
               <div id="mensajeErrorVal" hidden>
