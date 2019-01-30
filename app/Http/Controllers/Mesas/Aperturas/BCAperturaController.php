@@ -117,7 +117,8 @@ class BCAperturaController extends Controller
     }else{
       $moneda = $apertura->mesa->moneda;
     }
-    if(isset($apertura->cierre_apertura)){
+    if(!empty($apertura)){
+      if(isset($apertura->cierre_apertura)){
         $conjunto = $apertura->cierre_apertura;
         $cierre = $conjunto->cierre;
 
