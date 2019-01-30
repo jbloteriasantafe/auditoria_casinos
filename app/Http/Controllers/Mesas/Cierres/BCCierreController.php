@@ -106,22 +106,17 @@ class BCCierreController extends Controller
     }
 
     if(!empty($cierre)){
-      $detalles = DB::table('ficha')
-                      ->leftJoin('detalle_cierre','ficha.id_ficha','=','detalle_cierre.id_ficha')
-                      ->where('detalle_cierre.id_cierre_mesa','=',$id)
-                      ->orWhereNull('detalle_cierre.id_cierre_mesa')
-                      ->where('ficha.id_moneda','=',$mesa->moneda->id_moneda)
-                      ->orderBy('ficha.valor_ficha','desc')
-                      ->get();
-      $detalleC = array();
-
-      foreach ($detalles as $init) {
-        $detalleC[] = [ 'monto_ficha' => $init->monto_ficha,
-                        'valor_ficha' => $init->valor_ficha,
-                        'id_ficha' => $init->id_ficha,
-                        'id_detalle_cierre' => $init->id_detalle_cierre,
-                        ];
-      }
+      $detalles = DB::table('ficha as F')
+                          ->select('DC.monto_ficha','F.valor_ficha','F.id_ficha',
+                                    'DC.id_detalle_cierre')
+                          ->leftJoin('detalle_cierre as DC',function ($join) use($id){
+                                $join->on('DC.id_ficha','=','F.id_ficha')
+                                ->where('DC.id_cierre_mesa','=',$id);
+                              })
+                          ->where('F.id_moneda','=',$moneda->id_moneda)
+                          ->whereNull('F.deleted_at')
+                          ->orderBy('F.valor_ficha','desc')
+                          ->get();
       $juegoCI = $cierre->mesa->juego;
 
       //Apertura asociada
@@ -145,7 +140,7 @@ class BCCierreController extends Controller
               'cargador' => $cierre->fiscalizador,
               'casino' => $cierre->casino,
               'mesa' => $mesa,
-              'detallesC' => $detalleC,//detalles del cierre
+              'detallesC' => $detalles,//detalles del cierre
               'apertura' => $apertura,
               'detalleAP' => $detalleAP,
               'nombre_juego' => $juegoCI->nombre_juego,
