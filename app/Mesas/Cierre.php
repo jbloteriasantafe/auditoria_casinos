@@ -14,7 +14,7 @@ class Cierre extends Model
   protected $visible = array('id_cierre_mesa','fecha','hora_inicio',
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_moneda'
+                              'id_mesa_de_panio','id_moneda','hora_inicio_format','hora_fin_format'
                             );
   public $timestamps = false;
 
@@ -24,6 +24,26 @@ class Cierre extends Model
                               'id_tipo_cierre','id_mesa_de_panio',
                               'id_estado_cierre','id_moneda'];
 
+  protected $appends = array('hora_inicio_format','hora_fin_format');
+
+  public function getHoraInicioFormatAttribute(){
+    if($this->hora_inicio != null){
+      $hora = explode(':',$this->hora_inicio);
+      $hora_inicio = $hora[0].':'.$hora[1];
+      return $hora_inicio;
+    }else{
+      return '--:--';
+    }
+  }
+  public function getHoraFinFormatAttribute(){
+    if($this->hora_fin != null){
+      $hora = explode(':',$this->hora_fin);
+      $hora_inicio = $hora[0].':'.$hora[1];
+      return $hora_inicio;
+    }else{
+      return '--:--';
+    }
+  }
 
   public function moneda(){
     return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');
