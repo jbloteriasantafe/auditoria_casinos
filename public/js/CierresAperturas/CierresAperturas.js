@@ -1062,6 +1062,8 @@ $(document).on('click', '.modificarCyA', function(e) {
     ocultarErrorValidacion($('#car_apertura'));
     ocultarErrorValidacion($('#fis_apertura'));
     $('#modificarFichasAp tr').remove();
+    $('#errorModificar2').hide();
+
 
     var id_apertura=$(this).val();
     //guardo el id para hacer el guardar despues
@@ -1120,6 +1122,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         $('#totalModifApe').val(total);
       })
+      $('#modificar_apertura').show();
 
       $('#modalModificarApertura').modal('show');
 
@@ -1133,6 +1136,8 @@ $(document).on('click', '.modificarCyA', function(e) {
     ocultarErrorValidacion($('#hs_inicio_cierre'));
     ocultarErrorValidacion($('#totalAnticipoModif'));
     ocultarErrorValidacion($('#fis_cierre'));
+    $('#errorModificarCierre2').hide();
+    $('#errorModificarCierre').hide();
 
     $('#modificarFichasCie tr').remove();
     var id_cierre= $(this).val();
@@ -1202,8 +1207,6 @@ $(document).on('click', '.modificarCyA', function(e) {
 //detecta modificaciones en los inputs de modificacion de apertura
 $(document).on('change','.modApertura',function(){
 
-  $('#modificar_apertura').show();
-  console.log('sdfsdf',$(this).attr('data-ingresado'));
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
       if($(this).val()!=null && $(this).val()!=0)
       {   var cantidad=$(this).val();
@@ -1256,16 +1259,8 @@ $(document).on('change','.modApertura',function(){
     }
 })
 
-//SI SE MODIFICA ALGUNO DE LOS CAMPOS DE FISCALIZADOR O HORA, SE MUESTRA EL BTN
-$(document).on('change','#fis_apertura',function(){
-  $('#modificar_apertura').show();
-});
 
-$(document).on('change','#hs_apertura',function(){
-  $('#modificar_apertura').show();
-});
-
-//Guardar El modificarC
+//Guardar El modificar apertura
 $('#modificar_apertura').on('click', function(e){
   e.preventDefault();
 
@@ -1324,6 +1319,9 @@ $('#modificar_apertura').on('click', function(e){
             if(typeof response.hora !== 'undefined'){
               mostrarErrorValidacion($('#hs_apertura'),response.hora[0],false);
             }
+            if(typeof response.id_moneda !== 'undefined'){
+              $('#errorModificar2').show();
+            }           }
             if(typeof response.id_fiscalizador !== 'undefined'){
               mostrarErrorValidacion($('#fis_apertura'),response.id_fiscalizador[0],false);
             }
@@ -1394,20 +1392,6 @@ $(document).on('change','.modCierre',function(){
 
 })
 
-//SI SE MODIFICA ALGUNO DE LOS CAMPOS DE FISCALIZADOR O HORA, SE MUESTRA EL BTN
-$(document).on('change','#fis_cierre',function(){
-  $('#modificar_cierre').show();
-});
-
-$(document).on('change','#hs_cierre_cierre',function(){
-  $('#modificar_cierre').show();
-});
-$(document).on('change','#hs_inicio_cierre',function(){
-  $('#modificar_cierre').show();
-});
-$(document).on('change','#totalAnticipoModif',function(){
-  $('#modificar_cierre').show();
-});
 
 //Guardar El modificarC
 $('#modificar_cierre').on('click', function(e){
@@ -1466,20 +1450,15 @@ $('#modificar_cierre').on('click', function(e){
 
             var response = data.responseJSON.errors;
 
-            if(typeof response.hora_inicio !== 'undefined'){
-              mostrarErrorValidacion($('#hs_inicio_cierre'),response.hora_inicio[0],false);
-            }
-            if(typeof response.hora_fin !== 'undefined'){
-              mostrarErrorValidacion($('#hs_cierre_cierre'),response.hora_fin[0],false);
-            }
+
             if(typeof response.id_fiscalizador !== 'undefined'){
               mostrarErrorValidacion($('#fis_cierre'),response.id_fiscalizador[0],false);
             }
             if(typeof response.total_pesos_fichas_a !== 'undefined'){
               $('#errorModificarCierre').show();
             }
-            if(typeof response.total_anticipos_c !== 'undefined'){
-              $('#errorModificarCierre').show();
+            if(typeof response.id_moneda !== 'undefined'){
+              $('#errorModificarCierre2').show();
             }
             if(typeof response.fichas !== 'undefined'){
               $('#errorModificarCierre').show();
