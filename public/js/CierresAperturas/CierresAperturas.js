@@ -1852,17 +1852,21 @@ function generarFilaCierres(data){
         houri = piecesi[0];
         minutei = piecesi[1];
       }
+        if (data.hora_fin != null) {
+          var piecesf= data.hora_fin.split(':')
+          var hourf, minutef;
 
-      var piecesf= data.hora_fin.split(':')
-      var hourf, minutef;
+          if(piecesf.length === 3) {
+            hourf = piecesf[0];
+            minutef = piecesf[1];
+          }
 
-      if(piecesf.length === 3) {
-        hourf = piecesf[0];
-        minutef = piecesf[1];
-      }
+        } else {
+            hourf = '-';
+            minutef = '-';
+        }
+
     }else{
-      hourf = '-';
-      minutef = '-';
       houri = '-';
       minutei = '-';
     }
