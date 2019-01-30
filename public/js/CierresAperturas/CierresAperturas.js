@@ -1321,7 +1321,7 @@ $('#modificar_apertura').on('click', function(e){
             }
             if(typeof response.id_moneda !== 'undefined'){
               $('#errorModificar2').show();
-            }           }
+            }
             if(typeof response.id_fiscalizador !== 'undefined'){
               mostrarErrorValidacion($('#fis_apertura'),response.id_fiscalizador[0],false);
             }
