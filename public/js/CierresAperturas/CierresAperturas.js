@@ -1120,6 +1120,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         $('#totalModifApe').val(total);
       })
+      $('#modificar_apertura').show();
 
       $('#modalModificarApertura').modal('show');
 
@@ -1202,8 +1203,6 @@ $(document).on('click', '.modificarCyA', function(e) {
 //detecta modificaciones en los inputs de modificacion de apertura
 $(document).on('change','.modApertura',function(){
 
-  $('#modificar_apertura').show();
-  console.log('sdfsdf',$(this).attr('data-ingresado'));
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
       if($(this).val()!=null && $(this).val()!=0)
       {   var cantidad=$(this).val();
@@ -1256,16 +1255,8 @@ $(document).on('change','.modApertura',function(){
     }
 })
 
-//SI SE MODIFICA ALGUNO DE LOS CAMPOS DE FISCALIZADOR O HORA, SE MUESTRA EL BTN
-$(document).on('change','#fis_apertura',function(){
-  $('#modificar_apertura').show();
-});
 
-$(document).on('change','#hs_apertura',function(){
-  $('#modificar_apertura').show();
-});
-
-//Guardar El modificarC
+//Guardar El modificar apertura
 $('#modificar_apertura').on('click', function(e){
   e.preventDefault();
 

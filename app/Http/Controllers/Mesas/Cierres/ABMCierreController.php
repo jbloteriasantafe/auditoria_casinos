@@ -152,7 +152,8 @@ class ABMCierreController extends Controller
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      $cierre=Cierre::find($validator->getData()['id_cierre_mesa']);
+      $mesa = $cierre->mesa;
       if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
          $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
