@@ -800,7 +800,7 @@ $cas = $usuario['usuario']->casinos;
             </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="modificar_cierre" value="nuevo" hidden="true">GUARDAR CAMBIOS</button>
+          <button type="button" class="btn btn-successAceptar" id="modificar_cierre" value="nuevo" >GUARDAR CAMBIOS</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           <input id="id_cierre" type="text" name="" value="" hidden="true">
         </div>
@@ -810,6 +810,13 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique los valores cargados.</span>
         </div> <!-- mensaje -->
+        <div id="errorModificarCierre2" hidden>
+          <br>
+          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+          <br>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La moneda elegida no es corresta.</span>
+        </div> <!-- mensaje -->
+
     </div>
   </div>
 </div>
@@ -1210,6 +1217,12 @@ $cas = $usuario['usuario']->casinos;
           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
           <br>
           <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique los valores cargados.</span>
+        </div> <!-- mensaje -->
+        <div id="errorModificar2" hidden>
+          <br>
+          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+          <br>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La moneda elegida no es correcta.</span>
         </div> <!-- mensaje -->
     </div>
   </div>
