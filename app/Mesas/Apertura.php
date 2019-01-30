@@ -11,7 +11,8 @@ class Apertura extends Model
   protected $primaryKey = 'id_apertura_mesa';
   protected $visible = array('id_apertura_mesa','fecha','hora','total_pesos_fichas_a',
                               'total_anticipos_a', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_estado_cierre','id_cargador','id_moneda'
+                              'id_mesa_de_panio','id_estado_cierre','id_cargador',
+                              'id_moneda','hora_format'
                             );
   public $timestamps = false;
 
@@ -21,6 +22,18 @@ class Apertura extends Model
                               'total_anticipos_c', 'id_fiscalizador',
                               'id_tipo_cierre','id_mesa_de_panio',
                               'id_estado_cierre','id_moneda'];
+
+  protected $appends = array('hora_format');
+
+  public function getHoraFormatAttribute(){
+    if($this->hora != null){
+      $hora = explode(':',$this->hora);
+      $hora_inicio = $hora[0].':'.$hora[1];
+      return $hora_inicio;
+    }else{
+      return '--:--';
+    }
+  }
 
   public function cierre_apertura(){
     return $this->hasOne('App\Mesas\CierreApertura','id_apertura_mesa','id_apertura_mesa');
