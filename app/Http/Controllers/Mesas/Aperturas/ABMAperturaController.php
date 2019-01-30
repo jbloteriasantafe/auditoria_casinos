@@ -144,7 +144,8 @@ class ABMAperturaController extends Controller
       'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
-      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
+      $apertura=Apertura::find($validator->getData()['id_apertura']);
+      $mesa = $apertura->mesa;
       if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
          $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
