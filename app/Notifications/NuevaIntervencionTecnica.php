@@ -62,7 +62,7 @@ class NuevaIntervencionTecnica extends Notification
               ->subject('Tienes una intervención técnica para revisar - CAS Lotería de Santa Fe')
               ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,
                                                                 'main' => $main,
-                                                                'ruta' => 'http://localhost:8000/eventualidades',
+                                                                'ruta' => 'http://10.1.121.30:8000/eventualidades',
                                                                 'boton' => 'VER INTERVENCIONES TÉCNICAS'
                                                               ]);
     }

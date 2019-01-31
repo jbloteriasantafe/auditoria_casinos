@@ -56,7 +56,7 @@ class NuevaIntervencionMtm extends Notification
               ->subject('Tienes una intervención de MTMs para revisar - CAS Lotería de Santa Fe')
               ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,
                                                                 'main' => $main,
-                                                                'ruta' => 'http://localhost:8000/eventualidadesMTM',
+                                                                'ruta' => 'http://10.1.121.30:8000/eventualidadesMTM',
                                                                 'boton' => 'VER INTERVENCIONES MTMs'
                                                               ]);
     }
