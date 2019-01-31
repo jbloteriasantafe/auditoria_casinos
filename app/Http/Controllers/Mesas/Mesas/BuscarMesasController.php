@@ -193,7 +193,14 @@ class BuscarMesasController extends Controller
                   ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                   ->whereNull('mesa_de_panio.deleted_at')
                   ->orderBy('mesa_de_panio.nro_mesa','asc')->get();
-    return ['mesas'=>$mesas];
+    $resultado = array();
+    foreach ($mesas as $m) {
+      $resultado[] = [
+                      'id_mesa_de_panio' => $m->id_mesa_de_panio,
+                      'nro_mesa' => $m->nro_mesa . ' - '.$m->siglas,
+                    ];
+    }
+    return ['mesas'=>$resultado];
   }
 
   public function buscarMesaPorNroCasinoSinApertura($id_casino,$fecha,$nro_mesa){

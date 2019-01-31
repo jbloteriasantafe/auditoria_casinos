@@ -181,12 +181,14 @@ class BCCierreController extends Controller
                                   ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
                                             'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
-                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa',
+                                            'cierre_apertura.id_cierre_mesa as cierre_validado'
                                           )
                                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
                                   ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                                   ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                                   ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
+                                  ->leftJoin('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa')
                                   ->where($filtros)
                                   ->whereIn('cierre_mesa.id_casino',$cas)
                                   ->whereNull('cierre_mesa.deleted_at')

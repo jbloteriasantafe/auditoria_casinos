@@ -176,7 +176,7 @@ class BCAperturaController extends Controller
       }
         $detalles = DB::table('ficha')
                             ->select('DA.id_detalle_apertura',
-                                      'ficha.id_ficha',
+                                     'ficha.id_ficha',
                                      'DA.cantidad_ficha',
                                       DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
                                       'ficha.valor_ficha')
