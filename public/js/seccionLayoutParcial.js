@@ -1281,7 +1281,7 @@ function clearSelection(){
 }
 
 $(document).on('click','.pop',function(e){
-  e.preventDefault();
+  //e.preventDefault(); reestablece funcionamiento de layaout gestionar 
  //estos era util para obtener info
   var fila = $(this).parent().parent();
   $('.pop').not(this).popover('hide');

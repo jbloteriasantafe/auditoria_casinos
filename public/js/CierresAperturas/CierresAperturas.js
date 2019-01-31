@@ -921,7 +921,7 @@ $(document).on('click', '.infoCyA', function(e) {
       $('.mesa_det_apertura').text(data.mesa.nombre + ' - ' + data.moneda.descripcion);
       $('.fecha_det_apertura').text(data.apertura.fecha);
       $('.juego_det_apertura').text(data.juego.nombre_juego);
-      $('.hora_apertura_det').text(data.apertura.hora);
+      $('.hora_apertura_det').text(data.apertura.hora_format);
       $('.cargador_det_apertura').text(data.cargador.nombre);
       $('.fisca_det_apertura').text(data.fiscalizador.nombre);
       $('#totalAperturaDet').val(data.apertura.total_pesos_fichas_a);
@@ -975,14 +975,14 @@ $(document).on('click', '.infoCyA', function(e) {
       $('.cargador_det_cierre').text(data.cargador.nombre);
 
       if(data.cierre.hora_fin != null){
-        $('.hora_cierre_det').text(data.cierre.hora_fin);
+        $('.hora_cierre_det').text(data.cierre.hora_fin_format);
       }
       else{
         $('.hora_cierre_det').text(' - ');
 
       }
       if(data.cierre.hora_inicio != null){
-        $('.inicio_cierre_det').text(data.cierre.hora_inicio);
+        $('.inicio_cierre_det').text(data.cierre.hora_inicio_format);
       }
       else{
         $('.inicio_cierre_det').text(' - ');
@@ -1077,7 +1077,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('#fis_apertura').setearElementoSeleccionado(data.fiscalizador.id_usuario, data.fiscalizador.nombre);
       $('.car_apertura').val(data.cargador.nombre);
       $('.cas_apertura').val( data.casino.nombre);
-      $('#hs_apertura').val(data.apertura.hora);
+      $('#hs_apertura').val(data.apertura.hora_format);
       $('.j_apertura').val(data.juego.nombre_juego);
       $('.nro_apertura').val(data.mesa.nro_mesa);
       $("input[name='monedaModApe'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
@@ -1154,8 +1154,8 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
       $('.cas_cierre').val( data.casino.nombre);
-      $('#hs_cierre_cierre').val(data.cierre.hora_fin);
-      $('#hs_inicio_cierre').val(data.cierre.hora_inicio);
+      $('#hs_cierre_cierre').val(data.cierre.hora_fin_format);
+      $('#hs_inicio_cierre').val(data.cierre.hora_inicio_format);
       $('.j_cierre').val(data.nombre_juego);
       $('.nro_cierre').val(data.mesa.nro_mesa);
       $('#totalAnticipoModif').val(data.cierre.total_anticipos_c);
