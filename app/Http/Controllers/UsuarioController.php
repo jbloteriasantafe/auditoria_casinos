@@ -287,7 +287,7 @@ class UsuarioController extends Controller
                     ->select('usuario.*')
                     ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->where([['nombre','like',$nombre],['user_name','like',$usuario],['email','like',$email]])
+                    ->where([['usuario.nombre','like',$nombre],['usuario.user_name','like',$usuario],['usuario.email','like',$email]])
                     ->whereIn('casino.id_casino',$cas)
                     ->whereNull('usuario.deleted_at')
                     ->distinct('id_usuario')
@@ -319,12 +319,12 @@ class UsuarioController extends Controller
                     ->whereIn('id_rol',[2])
                     ->where('id_usuario','=',$user->id_usuario)
                     ->get();
-    if(count($resultado) > 0){
+    if(count($resultado) > 0){//el usuario es administrador
       $casinos=Casino::whereIn('id_casino',$cas)->get();
       $roles = Rol::whereNotIn('id_rol',[1,5,6])->get();
     }else{
       $casinos=Casino::all();
-      $roles=$rolController->getAll();
+      $roles=Rol::all();
     }
 
 
