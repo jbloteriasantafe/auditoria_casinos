@@ -1194,6 +1194,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 
         total += Number(ingresado);
 
+
         $('#totalModifCie').val(total);
       })
 
@@ -1207,9 +1208,12 @@ $(document).on('click', '.modificarCyA', function(e) {
 //detecta modificaciones en los inputs de modificacion de apertura
 $(document).on('change','.modApertura',function(){
 
+  var num= Numeros($(this).val());
+
+
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
-      if($(this).val()!=null && $(this).val()!=0)
-      {   var cantidad=$(this).val();
+      if(num!=null && num!=0)
+      {   var cantidad=num;
           $(this).attr('data-ingresado',cantidad);
           var valor=$(this).attr('data-valor');
 
@@ -1220,7 +1224,7 @@ $(document).on('change','.modApertura',function(){
           $('#totalModifApe').val(subtotal);
       }
 
-      if ($(this).val()==null|| $(this).val()==0) {
+      if (num || num==0) {
         var cantidad=0;
         var subtotal=0;
         subtotal = Number($('#totalModifApe').val());
@@ -1230,8 +1234,8 @@ $(document).on('change','.modApertura',function(){
       }
     }
     else{
-      if($(this).val()!=null && $(this).val()!=0)
-      {   var cantidad=$(this).val();
+      if(num!=null && num!=0)
+      {   var cantidad=num;
           var valor=$(this).attr('data-valor');
           var ingresado=$(this).attr('data-ingresado');
           var subtotal = 0;
@@ -1248,7 +1252,7 @@ $(document).on('change','.modApertura',function(){
 
           $('#totalModifApe').val(total);
       }
-      if ($(this).val()=='' || $(this).val()==0) {
+      if (num=='' || num==0) {
         var cantidad=0;
         var subtotal=0;
         subtotal = Number($('#totalModifApe').val());
@@ -1341,19 +1345,21 @@ $('#modificar_apertura').on('click', function(e){
 //modifica el monto de alguna ficha
 $(document).on('change','.modCierre',function(){
 
+  var num= Numeros($(this).val());
+
   if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
 
-    if($(this).val()!=null && $(this).val()!=0) //si se ingreso un valor diferente de 0
-    {   var cantidad=$(this).val();
+    if(num!=null && num!=0) //si se ingreso un valor diferente de 0
+    {   var cantidad=num;
         $(this).attr('data-ingresado',cantidad);
         //var valor=$(this).attr('data-valor');
 
         var subtotal=0;
-        subtotal = Number($('#totalCierre').val());
+        subtotal = Number($('#totalModifCie').val());
         subtotal += Number(cantidad);
         $('#totalModifCie').val(subtotal);}
 
-    if ($(this).val()==null || $(this).val()==0) { //si se ingresa el 0 o nada
+    if (num==null || num==0) { //si se ingresa el 0 o nada
       var cantidad=0;
       var subtotal=0;
       subtotal = Number($('#totalModifCie').val());
@@ -1362,8 +1368,8 @@ $(document).on('change','.modCierre',function(){
     }
   }
   else{
-    if($(this).val()!=null && $(this).val()!=0){ //si se ingreso un valor diferente de 0
-        var cantidad=$(this).val();
+    if(num!=null && num!=0){ //si se ingreso un valor diferente de 0
+        var cantidad=num;
         var subtotal=0;
         //tomo el data ingresado anteriormente y lo resto al total antes de perderlo
         subtotal = Number($('#totalModifCie').val());
@@ -1380,7 +1386,7 @@ $(document).on('change','.modCierre',function(){
 
         $('#totalModifCie').val(total);}
 
-    if ($(this).val()=='' || $(this).val()==0) { //si se ingresa el 0 o nada
+    if (num=='' || num==0) { //si se ingresa el 0 o nada
           var cantidad=0;
           var subtotal=0;
           subtotal = Number($('#totalModifCie').val());
