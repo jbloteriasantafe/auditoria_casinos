@@ -82,6 +82,7 @@ class ABMCRelevamientosAperturaController extends Controller
               .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
               .'.zip';
     //dd(app_path() . "/" .$nombreZip);
+    
     if(file_exists( public_path().'/Mesas/'.$nombreZip)){
       return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
     }else{
