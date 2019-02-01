@@ -111,6 +111,7 @@ class ABMCierreController extends Controller
       $cierre->moneda()->associate($request->id_moneda);
       $cierre->save();
       $detalles = array();
+      $total_pesos_fichas_c =0;
       foreach ($request->fichas as $f) {
           if($f['monto_ficha'] != 0){
           $ficha = new DetalleCierre;
@@ -120,7 +121,12 @@ class ABMCierreController extends Controller
           $ficha->cierre()->associate($cierre->id_cierre_mesa);
           $ficha->save();
           $detalles[] = $ficha;
+          $total_pesos_fichas_c+=$f['monto_ficha'];
         }
+      }
+      if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
+        $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
+        $cierre->save();
       }
      return ['cierre' => $cierre,'detalles' => $detalles];
     }else{
@@ -183,6 +189,7 @@ class ABMCierreController extends Controller
       $d->cierre()->dissociate();
       $d->delete();
     }
+    $total_pesos_fichas_c = 0;
     foreach ($request->fichas as $f) {
       if($f['monto_ficha'] != 0){
         $ficha = new DetalleCierre;
@@ -191,24 +198,35 @@ class ABMCierreController extends Controller
         $ficha->cierre()->associate($cierre->id_cierre_mesa);
         $ficha->save();
         $detalles[] = $ficha;
+        $total_pesos_fichas_c+=$f['monto_ficha'];
       }
+    }
+    if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
+      $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
+      $cierre->save();
     }
    return ['cierre' => $cierre,'detalles' => $detalles];
   }
 
   private function validarFichas($validator){
     $aux = 0;
-    if(!empty($validator->getData()['fichas']) || $validator->getData()['fichas'] != null){
+    $total_pesos_fichas_c = 0;
+    if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
       foreach ($validator->getData()['fichas'] as $detalle) {
         $ficha = Ficha::find($detalle['id_ficha']);
         $division = round(($detalle['monto_ficha'] / $ficha->valor_ficha), 2);
-        if(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
-          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha']))){
+
+        if($detalle['monto_ficha'] != 0 &&(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
+          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))){
 
           $validator->errors()->add('fichas.'.$aux.'.monto_ficha','El monto no es múltiplo del valor.'
                                    );
         }
+        $total_pesos_fichas_c+= $detalle['monto_ficha'];
         $aux++;
+      }
+      if($total_pesos_fichas_c == 0){
+        $validator->errors()->add('fichas','No ha ingresado los montos.');
       }
       return $validator;
     }
