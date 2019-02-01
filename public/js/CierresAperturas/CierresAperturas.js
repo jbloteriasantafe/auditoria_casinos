@@ -1060,6 +1060,10 @@ $(document).on('click', '.infoCyA', function(e) {
       else{
         $('#anticipos_detalle').val(' - ');
       }
+      if(data.detalleAP != null){
+
+        $('.aperturaVinculada').show();
+        $('#datosApertCierre').text('DATOS APERTURA');
 
        for (var i = 0; i < data.detalleAP.length; i++) {
          var fila2 = $(document.createElement('tr'));
@@ -1083,7 +1087,12 @@ $(document).on('click', '.infoCyA', function(e) {
          $('#datosCierreFichasApertura').append(fila2);
        }
 
-        $('#totalA_det_cierre').val(data.apertura.total_pesos_fichas_a)
+        $('#totalA_det_cierre').val(data.apertura.total_pesos_fichas_a);
+      }
+      else{
+        $('.aperturaVinculada').hide();
+        $('#datosApertCierre').text('AÚN NO SE HA VINCULADO NINGUNA APERTURA AÚN');
+      }
     })
   }
 });

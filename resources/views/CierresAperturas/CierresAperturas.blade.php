@@ -595,7 +595,7 @@ $cas = $usuario['usuario']->casinos;
                         <i class="far fa-calendar-alt fa-2x" style="position:relative; left:-1px;"></i>
                     </div>
                     <div class="col-xs-6" align="center">
-                        <h5 class=" hora_cierre_det" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
+                        <h5 class="fecha_detalle_cierre" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
                     </div>
                   </div>
                 </div>
@@ -658,12 +658,12 @@ $cas = $usuario['usuario']->casinos;
           </div>
           <div class="row" style="border-bottom:1px solid #ccc; text-align:center;">
             <br>
-              <h3 align="center" style="display:inline;position:relative;top:-2px;" align="center">DATOS APERTURA</h3> <i class="fas fa-clipboard-check" style="font-size:30px;"></i>
+              <h3 align="center" style="display:inline;position:relative;top:-2px;" align="center" id="datosApertCierre">DATOS APERTURA</h3> <i class="fas fa-clipboard-check" style="font-size:30px;"></i>
               <br>
               <br>
           </div>
           <br>
-          <div class="row" style="border-top: 1px solid: #ccc;">
+          <div class="row  aperturaVinculada" style="border-top: 1px solid: #ccc;">
             <div class="col-md-8" align="center">
               <table style="border-collapse: separate;" class="table table-striped">
                 <thead>
