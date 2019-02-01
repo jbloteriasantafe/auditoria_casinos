@@ -4,15 +4,17 @@ namespace App\Mesas;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Apertura extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'apertura_mesa';
   protected $primaryKey = 'id_apertura_mesa';
   protected $visible = array('id_apertura_mesa','fecha','hora','total_pesos_fichas_a',
                               'total_anticipos_a', 'id_fiscalizador',
                               'id_mesa_de_panio','id_estado_cierre','id_cargador',
-                              'id_moneda','hora_format'
+                              'id_moneda','hora_format','created_at','deleted_at'
                             );
   public $timestamps = false;
 

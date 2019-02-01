@@ -14,7 +14,7 @@ class Cierre extends Model
   protected $visible = array('id_cierre_mesa','fecha','hora_inicio',
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_moneda','hora_inicio_format','hora_fin_format'
+                              'id_mesa_de_panio','id_moneda','hora_inicio_format','hora_fin_format','deleted_at'
                             );
   public $timestamps = false;
 
