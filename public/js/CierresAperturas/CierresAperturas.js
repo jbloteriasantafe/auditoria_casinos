@@ -1091,7 +1091,7 @@ $(document).on('click', '.infoCyA', function(e) {
       }
       else{
         $('.aperturaVinculada').hide();
-        $('#datosApertCierre').text('AÚN NO SE HA VINCULADO NINGUNA APERTURA AÚN');
+        $('#datosApertCierre').text('AÚN NO SE HA VINCULADO NINGUNA APERTURA');
       }
     })
   }
@@ -1606,13 +1606,26 @@ $(document).on('click', '.validarCyA', function(e) {
     $('.mon_validar_aper').text(data.moneda.descripcion);
     $('.mon_validar_aper').val(data.moneda.id_moneda);
     $('#total_aper_validar').val(data.apertura.total_pesos_fichas_a);
+    var hora_inicio_cierre,hora_fin_cierre;
 
     for (var i = 0; i < data.fechas_cierres.length; i++) {
+
+      if(data.fechas_cierres[i].hora_inicio == null){
+          hora_inicio_cierre = '--';
+      }else{
+        hora_inicio_cierre = data.fechas_cierres[i].hora_inicio ;
+      }
+
+      if(data.fechas_cierres[i].hora_fin == null){
+          hora_fin_cierre = '--';
+      }else{
+        hora_fin_cierre = data.fechas_cierres[i].hora_fin ;
+      }
       $('#fechaCierreVal')
       .append($('<option>')
               .val(data.fechas_cierres[i].id_cierre_mesa)
-              .text(data.fechas_cierres[i].fecha + ' -- '+data.fechas_cierres[i].hora_inicio
-                    +' a '+ data.fechas_cierres[i].hora_fin
+              .text(data.fechas_cierres[i].fecha + ' -- '+hora_inicio_cierre
+                    +' a '+ hora_fin_cierre
                     +' -- '+data.fechas_cierres[i].siglas
                   )
               )

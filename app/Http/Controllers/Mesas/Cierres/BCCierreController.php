@@ -127,14 +127,23 @@ class BCCierreController extends Controller
         $conjunto = $cierre->cierre_apertura;
         $apertura = $conjunto->apertura;
         $juegoAP = $apertura->mesa->juego;
-        $detalleAP = array();
-        foreach ($apertura->detalles as $det) {
-          $cant = $det->cantidad_ficha;
-          $valor = $det->ficha->valor_ficha;
-          $detalleAP[] = ['monto_ficha' => ($cant * $valor),
-                          'valor_ficha' => $valor,
-                          ];
-        }
+        $detalleAP = DB::table('ficha')
+                            ->select(
+                                      DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
+                                      'ficha.valor_ficha')
+                            ->leftJoin('detalle_apertura as DA',function ($join) use($id){
+                                  $join->on('DA.id_ficha','=','ficha.id_ficha')
+                                  ->where('DA.id_apertura_mesa','=',$id);
+                                })
+                            ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                            ->whereNull('ficha.deleted_at')
+                            ->groupBy('DA.id_detalle_apertura',
+                                      'ficha.id_ficha',
+                                       'DA.cantidad_ficha',
+                                       'ficha.valor_ficha')
+                            ->orderBy('ficha.valor_ficha','desc')
+                            ->get();
+        
       }
       return response()->json(['cierre' => $cierre,
               'cargador' => $cierre->fiscalizador,
