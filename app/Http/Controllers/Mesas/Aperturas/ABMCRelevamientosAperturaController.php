@@ -79,7 +79,7 @@ class ABMCRelevamientosAperturaController extends Controller
     $codigo_casino = $cas->codigo;
 
     $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
-              .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup." day"))
+              .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cantidad_dias_backup-1)." day"))
               .'.zip';
     //dd(app_path() . "/" .$nombreZip);
     if(file_exists( public_path().'/Mesas/'.$nombreZip)){
