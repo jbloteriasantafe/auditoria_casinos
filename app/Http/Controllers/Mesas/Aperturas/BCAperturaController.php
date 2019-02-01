@@ -94,6 +94,7 @@ class BCAperturaController extends Controller
                   ->whereMonth('apertura_mesa.fecha', $date->month)
                   ->whereYear('apertura_mesa.fecha',$date->year)
                   ->whereIn('mesa_de_panio.id_casino',$casinos)
+                  ->whereNull('apertura_mesa.deleted_at')
                   ->orderBy('fecha' , 'DESC')
                   ->get();
 
@@ -368,6 +369,7 @@ class BCAperturaController extends Controller
                 ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                 ->leftJoin('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
                 ->where($filtros)
+                ->whereNull('apertura_mesa.deleted_at')
                 ->whereIn('apertura_mesa.id_casino',$cas)
                 ->orderBy('apertura_mesa.fecha','desc')
                 ->when($sort_by,function($query) use ($sort_by){
@@ -391,6 +393,7 @@ class BCAperturaController extends Controller
                         ->whereYear('apertura_mesa.fecha' , '=', $fecha[0])
                         ->whereMonth('apertura_mesa.fecha','=', $fecha[1])
                         ->whereDay('apertura_mesa.fecha','=', $fecha[2])
+                        ->whereNull('apertura_mesa.deleted_at')
                         ->orderBy('apertura_mesa.fecha','desc')
                         ->take(31)
                         ->when($sort_by,function($query) use ($sort_by){
