@@ -1928,7 +1928,7 @@ function generarFilaAperturas(data){
     fila.find('.infoCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     fila.find('.modificarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     fila.find('.validarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_apertura_mesa);
+    fila.find('.eliminarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     if(data.id_estado_cierre == 3){
       fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
