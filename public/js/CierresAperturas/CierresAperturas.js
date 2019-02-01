@@ -388,6 +388,9 @@ $(document).on('change','.inputApe',function(){
         if (num ==''|| num ==0) {
           var cantidad=0;
           var subtotal=0;
+
+          $(this).attr('data-ingresado',cantidad);
+
           subtotal = Number($('#totalApertura').val());
           subtotal -= Number(($(this).attr('data-ingresado')) * ($(this).attr('data-valor')));
 
@@ -405,21 +408,25 @@ $(document).on('change','.inputApe',function(){
             subtotal -= Number(valor * $(this).attr('data-ingresado'));//resto antes de perderlo
             $('#totalApertura').val(subtotal);
 
-            $(this).attr('data-ingresado',cantidad);
-
             var total=0;
             total = Number($('#totalApertura').val());
             total += Number(valor * cantidad);//valor nuevo
 
             $('#totalApertura').val(total);
+
+            $(this).attr('data-ingresado',cantidad);
         }
         if (num ==''|| num ==0) {
           var cantidad=0;
+          var valor=$(this).attr('data-valor');
           var subtotal=0;
+
           subtotal = Number($('#totalApertura').val());
-          subtotal -= Number($(this).attr('data-ingresado'));
+          subtotal -= Number($(this).attr('data-ingresado') * valor );
 
           $('#totalApertura').val(subtotal);
+          $(this).attr('data-ingresado',cantidad);
+
         }
     }
 });
@@ -754,6 +761,8 @@ $(document).on('change','.inputCie',function(){
       subtotal = Number($('#totalCierre').val());
       subtotal -= Number($(this).attr('data-ingresado') );
       $('#totalCierre').val(subtotal);
+      $(this).attr('data-ingresado',cantidad);
+
     }
   }
   else{
@@ -782,9 +791,13 @@ $(document).on('change','.inputCie',function(){
           subtotal = Number($('#totalCierre').val());
           subtotal -= Number($(this).attr('data-ingresado') );
           $('#totalCierre').val(subtotal);
+
+          $(this).attr('data-ingresado',cantidad);
+
     }
   }
-});
+})
+
 
 
 //dentro del modal de carga de cierre, presiona el botón guardar
@@ -1210,9 +1223,8 @@ $(document).on('change','.modApertura',function(){
 
   var num= Numeros($(this).val());
 
-
     if($(this).attr('data-ingresado') == 0){ //si no hay valor en el input modificado
-      if(num!=null && num!=0)
+      if(num !='' && num!=0)
       {   var cantidad=num;
           $(this).attr('data-ingresado',cantidad);
           var valor=$(this).attr('data-valor');
@@ -1224,17 +1236,19 @@ $(document).on('change','.modApertura',function(){
           $('#totalModifApe').val(subtotal);
       }
 
-      if (num || num==0) {
+      if (num==''|| num==0) {
         var cantidad=0;
         var subtotal=0;
         subtotal = Number($('#totalModifApe').val());
         subtotal -= Number($(this).attr('data-ingresado'));
 
         $('#totalModifApe').val(subtotal);
+        $(this).attr('data-ingresado',cantidad);
+
       }
     }
     else{
-      if(num!=null && num!=0)
+      if(num!='' && num!=0)
       {   var cantidad=num;
           var valor=$(this).attr('data-valor');
           var ingresado=$(this).attr('data-ingresado');
@@ -1259,6 +1273,8 @@ $(document).on('change','.modApertura',function(){
         subtotal -= Number($(this).attr('data-ingresado')*($(this).attr('data-valor')));
 
         $('#totalModifApe').val(subtotal);
+        $(this).attr('data-ingresado',cantidad);
+
       }
     }
 })
@@ -1364,7 +1380,10 @@ $(document).on('change','.modCierre',function(){
       var subtotal=0;
       subtotal = Number($('#totalModifCie').val());
       subtotal -= Number($(this).attr('data-ingresado') );
+
       $('#totalModifCie').val(subtotal);
+      $(this).attr('data-ingresado',cantidad);
+
     }
   }
   else{
@@ -1391,7 +1410,10 @@ $(document).on('change','.modCierre',function(){
           var subtotal=0;
           subtotal = Number($('#totalModifCie').val());
           subtotal -= Number($(this).attr('data-ingresado') );
+
           $('#totalModifCie').val(subtotal);
+          $(this).attr('data-ingresado',cantidad);
+
     }
 
   }
