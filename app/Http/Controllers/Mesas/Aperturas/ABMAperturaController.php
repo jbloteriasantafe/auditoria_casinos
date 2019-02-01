@@ -42,6 +42,7 @@ class ABMAperturaController extends Controller
     'id_tipo_cierre'=> 'Tipo de Cierre',
     'id_mesa_de_panio'=> 'Mesa de Paño',
     'id_estado_cierre'=>'Estado',
+    'fichas.*.cantidad_ficha' => 'cantidad'
   ];
 
   /**
@@ -64,7 +65,7 @@ class ABMAperturaController extends Controller
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' => ['nullable'],
+      'fichas.*.cantidad_ficha' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
@@ -141,7 +142,7 @@ class ABMAperturaController extends Controller
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'fichas.*.cantidad_ficha' =>  ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $apertura=Apertura::find($validator->getData()['id_apertura']);
@@ -168,7 +169,7 @@ class ABMAperturaController extends Controller
         $d->apertura()->dissociate();
         $d->delete();
       }
-      foreach ($apertura->detalles as $f) {
+      foreach ($request['fichas'] as $f) {
         if($f['cantidad_ficha'] != 0){
           $ficha = new DetalleApertura;
           $ficha->ficha()->associate($f['id_ficha']);

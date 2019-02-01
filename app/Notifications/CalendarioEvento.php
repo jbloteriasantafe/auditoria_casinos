@@ -55,7 +55,7 @@ class CalendarioEvento extends Notification
               ->subject('Tienes un nuevo evento - CAS Lotería de Santa Fe')
               ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,
                                                                 'main' => $main,
-                                                                'ruta' => 'http://localhost:8000/calendario_eventos',
+                                                                'ruta' => 'http://10.1.121.30:8000/calendario_eventos',
                                                                 'boton' => 'VER CALENDARIO'
                                                               ]);
     }

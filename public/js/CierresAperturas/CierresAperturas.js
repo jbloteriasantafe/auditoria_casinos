@@ -450,30 +450,28 @@ $(document).on('click', '.btn_ver_mesa', function(e){
     $('#btn-guardar-apertura').hide();
   }
   else{
-  $('#tablaCargaApertura tbody tr').remove();
-  $('#totalApertura').val('');
-  $('#btn-guardar-apertura').show();
-  $('#btn-guardar-apertura').prop('disabled',false);
+    $('#tablaCargaApertura tbody tr').remove();
+    $('#totalApertura').val('');
+    $('#btn-guardar-apertura').show();
+    $('#btn-guardar-apertura').prop('disabled',false);
+    $('#columnaDetalle').show();
+    var id_mesa=$(this).attr('data-id');
+    $('#id_mesa_ap').val(id_mesa);
 
-  $('#columnaDetalle').show();
-  var id_mesa=$(this).attr('data-id');
-  $('#id_mesa_ap').val(id_mesa);
+    $.get('mesas/detalleMesa/' + id_mesa, function(data){
 
-  $.get('mesas/detalleMesa/' + id_mesa, function(data){
+      for (var i = 0; i < data.fichas.length; i++) {
 
-    $('#moneda').val(data.moneda.descripcion);
-
-    for (var i = 0; i < data.fichas.length; i++) {
-
-      var fila= $('#filaFichasClon').clone();
-      fila.removeAttr('id');
-      fila.attr('id', data.fichas[i].id_ficha);
-      fila.find('.fichaVal').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
-      fila.find('.inputApe').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
-      fila.css('display', 'block');
-      $('#tablaCargaApertura #bodyCApertura').append(fila);
-     }
-  })
+        var fila= $('#filaFichasClon').clone();
+        fila.removeAttr('id');
+        fila.attr('id', data.fichas[i].id_ficha);
+        fila.find('.fichaVal').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
+        fila.find('.inputApe').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
+        fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha');
+        fila.css('display', 'block');
+        $('#tablaCargaApertura #bodyCApertura').append(fila);
+      }
+    })
   }
 })
 
@@ -563,30 +561,41 @@ $('#btn-guardar-apertura').on('click', function(e){
             $('#btn-guardar-apertura').hide();
             $('#btn-finalizar-apertura').show();
           },
-          error: function(data){
-            $('#mensajeError h3').text('ERROR');
-            console.log('ddd',data);
-            var response = data.responseJSON;
 
-            if(typeof response.fecha !== 'undefined'){
-              mostrarErrorValidacion($('#B_fecha_apert'),response.fecha[0],false);
-            }
-            if(typeof response.hora !== 'undefined'){
-              mostrarErrorValidacion($('#horarioAp'),response.hora[0],false);
-            }
-            if(typeof response.id_fiscalizador !== 'undefined'){
-              $('#mensajeErrorCargaAp').show();
-            }
-            if(typeof response.total_pesos_fichas_a !== 'undefined'){
-              $('#mensajeErrorCargaAp').show();
-            }
-            if(typeof response.id_moneda !== 'undefined'){
-              $('#mensajeErrorCargaAp').show();
-            }
-            $('#btn-guardar-apertura').prop('disabled',false);
+        error: function (reject) {
+              if( reject.status === 422 ) {
+                  var errors = $.parseJSON(reject.responseText);
+                  $.each(errors, function (key, val) {
+                    if(key == 'fecha'){
+                      mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
+                    }
+                    if(key == 'hora'){
+                      mostrarErrorValidacion($('#horarioAp'),val[0],false);
+                    }
+                    if(key == 'id_fiscalizador'){
+                      mostrarErrorValidacion($('#fiscalizApertura'),val[0],false);
+                    }
+                    if(key== 'total_pesos_fichas_a'){
+                      $('#mensajeErrorCargaAp').show();
+                    }
+                    if(key == 'id_moneda'){
+                      $('#mensajeErrorCargaAp').show();
+                    }
+                    $('#btn-guardar-apertura').prop('disabled',false);
 
-          },
-      })
+                    if(key != 'hora' && key != 'fecha' &&
+                       key != 'id_fiscalizador' && key != 'id_moneda' &&
+                       key != 'total_pesos_fichas_a'
+                      ){
+                        var splitt = key.split('.');
+                        mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                    }
+                  });
+              }else{
+                $('#mensajeErrorCargaAp').show();
+              }
+          }
+    })
 
 });
 
@@ -730,6 +739,7 @@ $(document).on('click', '.cargarDatos', function(e){
       fila.attr('id', data.fichas[i].id_ficha);
       fila.find('.fichaValCC').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
       fila.find('.inputCie').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
+      fila.find('.inputCie').addClass('fichas'+i+'monto_ficha');
       fila.css('display', 'block');
       $('#bodyFichasCierre').append(fila);
      }
@@ -874,32 +884,50 @@ $('#btn-guardar-cierre').on('click', function(e){
             $('#btn-finalizar-cierre').show();
 
           },
-          error: function(data){
+          error: function (reject) {
+              $('#mensajeError h3').text('ERROR');
+                if( reject.status === 422 ) {
+                    var errors = $.parseJSON(reject.responseText);
+                    $.each(errors, function (key, val) {
 
-            var response = data.responseJSON;
+                      if(key == 'fecha'){
+                        mostrarErrorValidacion($('#B_fecha_cie'),val[0],false);
 
-            if(typeof response.fecha !== 'undefined'){
-              mostrarErrorValidacion($('#B_fecha_cie'),response.fecha[0],false);
+                      }
+                      if(key == 'id_moneda'){
+                        $('#mensajeErrorMoneda').show();
+                      }
+                      if(key == 'id_juego_mesa' || key == 'id_mesa_de_panio' ){
+                        $('#mensajeCargaConError').show();
+                      }
+
+                      if(key == 'total_pesos_fichas_c'){
+                        $('#mensajeCargaConError').show();
+                      }
+                      if(key == 'hora_inicio'){
+                        mostrarErrorValidacion($('#horario_ini_c'),val[0],false);
+                      }
+                      if(key == 'hora_fin'){
+                        mostrarErrorValidacion($('#horarioCie'),val[0],false);
+                      }
+                      if(key == 'fichas'){
+                        $('#mensajeFichasError2').show();
+                      }
+                      if(key != 'id_moneda' && key != 'id_fiscalizador' &&
+                         key != 'total_pesos_fichas_c' && key != 'fichas' &&
+                         key != 'hora_inicio' && key != 'hora_fin' &&
+                         key != 'id_juego_mesa' && key != 'id_mesa_de_panio' && key != 'fecha'
+                        ){
+                          var splitt = key.split('.');
+                          mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                      }
+                    });
+                      $('#btn-guardar-cierre').prop('disabled',false);
+                }else{
+                    $('#errorModificarCierre').show();
+                      $('#btn-guardar-cierre').prop('disabled',false);
+                }
             }
-
-            if(typeof response.fichas !== 'undefined'){
-              $('#mensajeFichasError2').show();
-
-            }
-            if(typeof response.id_juego_mesa !== 'undefined' || typeof response.id_mesa_de_panio !== 'undefined' || typeof response.id_fiscalizador !== 'undefined'){
-              $('#mensajeCargaConError').show();
-              $('#mensajeCargaConError').focus();
-            }
-
-            if(typeof response.id_moneda !== 'undefined'){
-              $('#mensajeErrorMoneda').show();
-            }
-
-            $('#btn-guardar-cierre').prop('disabled',false);
-
-
-
-          },
       })
 
 });
@@ -1109,13 +1137,13 @@ $(document).on('click', '.modificarCyA', function(e) {
 
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modApertura').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','center')
+                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','center')
                   .attr('data-valor',data.detalles[i].valor_ficha).attr('data-ingresado', data.detalles[i].cantidad_ficha)))
             }
             else{
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modApertura').attr('id', 'input').val(0).css('text-align','center')
+                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','center')
                   .attr('data-valor',data.detalles[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
@@ -1187,13 +1215,13 @@ $(document).on('click', '.modificarCyA', function(e) {
 
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modCierre').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','center')
+                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','center')
                   .attr('data-valor',data.detallesC[i].valor_ficha).attr('data-ingresado', data.detallesC[i].monto_ficha)))
             }
             else{
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modCierre').attr('id', 'input').val(0).css('text-align','center')
+                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','center')
                   .attr('data-valor',data.detallesC[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
@@ -1298,8 +1326,15 @@ $('#modificar_apertura').on('click', function(e){
         id_ficha: $(this).find('.fichaVal').attr('id'),
         cantidad_ficha: $(this).find('.modApertura').val()
       }
-      if(valor.cantidad_ficha != "" ){
-        fichas.push(valor);}
+      if(valor.cantidad_ficha != "" && valor.cantidad_ficha != "0" ){
+        fichas.push(valor);
+      }else{
+        valor={
+          id_ficha: $(this).find('.fichaVal').attr('id'),
+          cantidad_ficha: 0
+        }
+          fichas.push(valor);
+      }
 
     })
 
@@ -1331,30 +1366,39 @@ $('#modificar_apertura').on('click', function(e){
              $('#mensajeExito h3').text('ÉXITO');
              $('#mensajeExito p').text('Apertura guardada correctamente');
              $('#mensajeExito').show();
-          },
-          error: function(data){
+          },error: function (reject) {
+                if( reject.status === 422 ) {
+                    var errors = $.parseJSON(reject.responseText);
+                    $.each(errors, function (key, val) {
+                      if(key == 'id_moneda'){
+                        $('#errorModificar2').show();
+                      }
+                      if(key == 'id_fiscalizador'){
+                        mostrarErrorValidacion($('#fis_apertura'),val[0],false);
+                      }
+                      if(key == 'total_pesos_fichas_a'){
+                        $('#errorModificar').show();
+                      }
+                      if(key == 'hora'){
+                        mostrarErrorValidacion($('#hs_apertura'),val[0],false);
+                      }
 
-            var response = data.responseJSON.errors;
-
-            if(typeof response.hora !== 'undefined'){
-              mostrarErrorValidacion($('#hs_apertura'),response.hora[0],false);
+                      if(key == 'fichas'){
+                        $('#errorModificar').show();
+                      }
+                      if(key != 'id_moneda' && key != 'id_fiscalizador' &&
+                         key != 'total_pesos_fichas_c' && key != 'fichas'
+                        ){
+                          var splitt = key.split('.');
+                          mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                          $('#errorModificar').show();
+                      }
+                    });
+                }else{
+                  $('#errorModificar').show();
+                }
             }
-            if(typeof response.id_moneda !== 'undefined'){
-              $('#errorModificar2').show();
-            }
-            if(typeof response.id_fiscalizador !== 'undefined'){
-              mostrarErrorValidacion($('#fis_apertura'),response.id_fiscalizador[0],false);
-            }
-            if(typeof response.total_pesos_fichas_a !== 'undefined'){
-              $('#errorModificar').show();
-            }
-            if(typeof response.fichas !== 'undefined'){
-              $('#errorModificar').show();
-            }
-
-          },
       })
-
 });
 
 //MODIFICAR CIERRE
@@ -1438,8 +1482,15 @@ $('#modificar_cierre').on('click', function(e){
         id_ficha: $(this).find('.fichaVal').attr('id'),
         monto_ficha: $(this).find('.modCierre').val()
       }
-      if(valor.monto_ficha != "" ){
-        fichas.push(valor);}
+      if(valor.monto_ficha != "" && valor.monto_ficha != "0" ){
+        fichas.push(valor);
+      }else{
+        valor={
+          id_ficha: $(this).find('.fichaVal').attr('id'),
+          monto_ficha: 0
+        }
+        fichas.push(valor);
+      }
 
     })
 
@@ -1474,25 +1525,44 @@ $('#modificar_cierre').on('click', function(e){
              $('#mensajeExito p').text('Cierre guardado correctamente');
              $('#mensajeExito').show();
           },
-          error: function(data){
 
-            var response = data.responseJSON.errors;
+          error: function (reject) {
+                if( reject.status === 422 ) {
+                    var errors = $.parseJSON(reject.responseText);
+                    console.log(errors);
+                    $.each(errors, function (key, val) {
+                      if(key == 'id_moneda'){
+                        $('#errorModificarCierre2').show();
+                      }
+                      if(key == 'id_fiscalizador'){
+                        mostrarErrorValidacion($('#fis_cierre'),val[0],false);
+                      }
+                      if(key == 'total_pesos_fichas_c'){
+                        $('#errorModificarCierre').show();
+                      }
+                      if(key == 'hora_inicio'){
+                        $('#errorModificarCierre').show();
+                      }
+                      if(key == 'hora_fin'){
+                        $('#errorModificarCierre').show();
+                      }
+                      if(key == 'fichas'){
+                        $('#errorModificarCierre').show();
+                      }
+                      if(key != 'id_moneda' && key != 'id_fiscalizador' &&
+                         key != 'total_pesos_fichas_c' && key != 'fichas' &&
+                         key != 'hora_inicio' && key != 'hora_fin'
+                        ){
+                          var splitt = key.split('.');
+                          mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                          $('#errorModificarCierre').show();
+                      }
+                    });
+                }else{
+                    $('#errorModificarCierre').show();
+                }
+            }
 
-
-            if(typeof response.id_fiscalizador !== 'undefined'){
-              mostrarErrorValidacion($('#fis_cierre'),response.id_fiscalizador[0],false);
-            }
-            if(typeof response.total_pesos_fichas_a !== 'undefined'){
-              $('#errorModificarCierre').show();
-            }
-            if(typeof response.id_moneda !== 'undefined'){
-              $('#errorModificarCierre2').show();
-            }
-            if(typeof response.fichas !== 'undefined'){
-              $('#errorModificarCierre').show();
-            }
-
-          },
       })
 
 });
@@ -1851,7 +1921,7 @@ function generarFilaAperturas(data){
 
 function generarFilaCierres(data){
 
-    if(data.hora_inicio != null){
+  if(data.hora_inicio != null){
       var piecesi = data.hora_inicio.split(':')
       var houri, minutei;
 
@@ -1859,23 +1929,25 @@ function generarFilaCierres(data){
         houri = piecesi[0];
         minutei = piecesi[1];
       }
-        if (data.hora_fin != null) {
-          var piecesf= data.hora_fin.split(':')
-          var hourf, minutef;
-
-          if(piecesf.length === 3) {
-            hourf = piecesf[0];
-            minutef = piecesf[1];
-          }
-
-        } else {
-            hourf = '-';
-            minutef = '-';
-        }
-
     }else{
+      var houri, minutei;
       houri = '-';
       minutei = '-';
+
+    }
+    if (data.hora_fin != null) {
+      var piecesf= data.hora_fin.split(':')
+      var hourf, minutef;
+
+      if(piecesf.length === 3) {
+        hourf = piecesf[0];
+        minutef = piecesf[1];
+      }
+
+    } else {
+      var hourf, minutef;
+        hourf = '-';
+        minutef = '-';
     }
 
     var fila = $('#moldeFilaCyA').clone();
@@ -1903,7 +1975,7 @@ function generarFilaCierres(data){
     fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
     fila.css('display', '');
 
-    if(data.id_estado_cierre == 3){
+    if(data.cierre_validado != null){
       fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
       fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();

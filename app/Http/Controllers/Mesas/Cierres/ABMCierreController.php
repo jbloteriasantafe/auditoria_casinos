@@ -86,7 +86,9 @@ class ABMCierreController extends Controller
         }
       }
 
-      $validator = $this->validarFichas($validator);
+      if(!empty($validator->getData()['fichas'])){
+       $validator = $this->validarFichas($validator);
+     }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -157,7 +159,9 @@ class ABMCierreController extends Controller
       if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
          $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
-      $validator = $this->validarFichas($validator);
+       if(!empty($validator->getData()['fichas'])){
+        $validator = $this->validarFichas($validator);
+      }
     })->validate();
     if(isset($validator)){
       if($validator->fails()){
@@ -166,7 +170,6 @@ class ABMCierreController extends Controller
     }
 
     $cierre = Cierre::find($request->id_cierre_mesa);
-    $cierre->fecha =$request->fecha;
     $cierre->hora_inicio = $request->hora_inicio;
     $cierre->hora_fin = $request->hora_fin;
     $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_a;
@@ -185,6 +188,7 @@ class ABMCierreController extends Controller
         $ficha = new DetalleCierre;
         $ficha->ficha()->associate($f['id_ficha']);
         $ficha->monto_ficha = $f['monto_ficha'];
+        $ficha->cierre()->associate($cierre->id_cierre_mesa);
         $ficha->save();
         $detalles[] = $ficha;
       }
@@ -193,15 +197,18 @@ class ABMCierreController extends Controller
   }
 
   private function validarFichas($validator){
+    $aux = 0;
     if(!empty($validator->getData()['fichas']) || $validator->getData()['fichas'] != null){
       foreach ($validator->getData()['fichas'] as $detalle) {
         $ficha = Ficha::find($detalle['id_ficha']);
-        $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
-        if(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0){
-          $validator->errors()->add('monto_ficha','El monto no es múltiplo del valor.'
+        $division = round(($detalle['monto_ficha'] / $ficha->valor_ficha), 2);
+        if(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
+          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha']))){
+
+          $validator->errors()->add('fichas.'.$aux.'.monto_ficha','El monto no es múltiplo del valor.'
                                    );
-          break;
         }
+        $aux++;
       }
       return $validator;
     }
