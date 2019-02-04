@@ -92,6 +92,7 @@ class ProgresivoController extends Controller
   }
 
   public function obtenerProgresivo($id){
+    // TODO evaluar el caso que un progresivo no tiene nivieles, en ese caso falla 
     //funcion que obtiene progresivo con $id.
     $progresivo = Progresivo::find($id);
     $pozos = array();

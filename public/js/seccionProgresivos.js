@@ -287,7 +287,7 @@ $(document).on('change' , '.radioGroup' , function(){
 function agregarPozo(nro_pozo){
   var retorno =  '<div class="row pozo" id="pozo_'+ nro_pozo +'" data-id="0">'
   +   '<div id="seccionAgregarProgresivo'+ nro_pozo +'" style="cursor:pointer;" class="cAgregarProgresivo" data-toggle="collapse" data-target="#collapseAgregarProgresivo'+nro_pozo+'">'
-  +       '<div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">'
+  +       '<div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;">'
   +           '<div class="col-xs-10">'
   +               '<h4>POZO: <i class="fa fa-fw fa-angle-down"></i></h4>'
   +           '</div>'
