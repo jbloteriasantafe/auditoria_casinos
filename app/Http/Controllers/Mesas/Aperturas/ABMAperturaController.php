@@ -122,7 +122,8 @@ class ABMAperturaController extends Controller
           $ficha->cantidad_ficha = $f['cantidad_ficha'];
           $ficha->apertura()->associate($apertura->id_apertura_mesa);
           $ficha->save();
-          $total_pesos_fichas_a+=$f['cantidad_ficha']*$ficha->valor_ficha;
+          $fixa = Ficha::find($f['id_ficha']);
+          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
         }
       }
       if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
@@ -184,7 +185,8 @@ class ABMAperturaController extends Controller
           $ficha->cantidad_ficha = $f['cantidad_ficha'];
           $ficha->apertura()->associate($apertura->id_apertura_mesa);
           $ficha->save();
-          $total_pesos_fichas_a+=$f['cantidad_ficha']*$ficha->valor_ficha;
+          $fixa = Ficha::find($f['id_ficha']);
+          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
         }
       }
       if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
