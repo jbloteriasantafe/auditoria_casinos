@@ -639,6 +639,11 @@ $cas = $usuario['usuario']->casinos;
                                   <span>Cierres y Aperturas</span>
                                 </div>
                               </li>
+                              <li>
+                                <div id="opcApuestas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/apuestas'" href="#" style="cursor: pointer;">
+                                  <span>Gestionar Apuestas </span>
+                                </div>
+                              </li>
                             </ul>
                         </li>
 
