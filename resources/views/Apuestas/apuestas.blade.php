@@ -602,11 +602,11 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <h6 style="font-size:16px !important;">TURNO</h6>
                 <input type="text" class="form-control" id="turnoRelevadoBUp" name="" value="" >
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <button type="button" id="buscarBackUp" class="button btn-infoBuscar" style="margin-top:32px" name="button">BUSCAR</button>
               </div>
             </div>
@@ -709,7 +709,12 @@
 
             <div class="modal-body modalCuerpo" >
 
-
+              <div id="iconoCarga" class="sk-folding-cube">
+                <div class="sk-cube1 sk-cube"></div>
+                <div class="sk-cube2 sk-cube"></div>
+                <div class="sk-cube4 sk-cube"></div>
+                <div class="sk-cube3 sk-cube"></div>
+              </div>
 
 
             </div>

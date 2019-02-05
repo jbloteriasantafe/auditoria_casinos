@@ -8,6 +8,10 @@ $(document).ready(function() {
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
+    $('#filtroTurno').val('0');
+    $('#B_fecha_filtro').val('');
+    $('#filtroCasino').val('0');
+
 
     $(function(){
       $('#dtpFecha').datetimepicker({
@@ -60,6 +64,7 @@ $(document).ready(function() {
             container:$('#modalCargaBackUp')
           });
     });
+
     $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
 
 });
@@ -136,7 +141,13 @@ $('#btn-backUp').on('click',function(e){
   $('#B_fecha_bup').val('').prop('readonly',false);
   $('#B_fecha_bupEj').val('').prop('readonly',false);
   $('#turnoRelevadoBUp').val('').prop('readonly',false);
+  $('#turnoRelevadoBUp').generarDataList("turnos/buscarTurnos" ,'turnos','id_turno','nro_turno' ,1,true);
+  $('#turnoRelevadoBUp').setearElementoSeleccionado('',0);
+
   $('.desplegarCarga').hide();
+  $('#mensajeErrorBuscarBUp').hide();
+  $('#mensajeErrorCargaBUp').hide();
+
   $('#btn-guardar-backUp').hide();
 
   $('#modalCargaBackUp').modal('show');
@@ -151,123 +162,84 @@ $('#buscarBackUp').on('click', function(e){
 
   var fechaCreacion = $('#B_fecha_bup').val();
   var fechaEjecucion = $('#B_fecha_bupEj').val();
-  var turno = $('#turnoRelevadoBUp').val();
-  $('#B_fecha_bup').prop('readonly',true);
-  $('#turnoRelevadoBUp').prop('readonly',true);
-  $('#B_fecha_bupEj').prop('readonly',true);
+  var turno = $('#turnoRelevadoBUp').obtenerElementoSeleccionado();
+
 
   if(fechaCreacion !='' && turno !=''  && fechaEjecucion !=''){
 
-    $('.desplegarCarga').show();
-    $('#btn-guardar-backUp').show();
+    $('#B_fecha_bup').prop('readonly',true);
+    $('#turnoRelevadoBUp').prop('readonly',true);
+    $('#B_fecha_bupEj').prop('readonly',true);
 
-    $.get('apuestas/obtenerRelevamientoBackUp/' + fechaCreacion + '/' + fechaEjecucion + '/' + turno, function(data){
+    var formData= {
+      fecha: fechaEjecucion,
+      nro_turno: turno,
+      created_at: fechaCreacion,
 
-      console.log('data',data);
-      //if(typeof data != 'undefined')
+    }
 
-      var id_relevamiento=data.relevamiento.id_relevamiento_apuestas;
-      var id_casino=data.relevamiento.id_casino;
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    });
 
-      $('#fiscalizadorBUp').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
-      $('#hora_prop_BUp').val(data.relevamiento.hora_propuesta).prop('readonly',true);
+    $.ajax({
+        type: 'POST',
+        url: 'apuestas/obtenerRelevamientoBackUp',
+        data: formData,
+        dataType: 'json',
 
-      var aux_nro_fila = 0;
+        success: function (data){
 
-       for (var i = 0; i < data.mesasporjuego.length; i++) {
-         for (var j = 0; j < data.mesasporjuego[i].mesas.length; j++){
+          $('#mensajeErrorCargaBUp').hide();
 
-           var fila= generarFilaCargaBUp(data.mesasporjuego[i].mesas[j],aux_nro_fila,data.estados);
+          $('.desplegarCarga').show();
+          $('#btn-guardar-backUp').show();
 
-           fila.find('.juego_up').text(data.mesasporjuego[i].juego);
+        var id_relevamiento=data.relevamiento.id_relevamiento_apuestas;
+        var id_casino=data.relevamiento.id_casino;
 
-           $('#tablaCargaBUp tbody').append(fila);
-           aux_nro_fila++;
+        $('#fiscalizadorBUp').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+        $('#hora_prop_BUp').val(data.relevamiento.hora_propuesta).prop('readonly',true);
+
+        var aux_nro_fila = 0;
+
+         for (var i = 0; i < data.mesasporjuego.length; i++) {
+           for (var j = 0; j < data.mesasporjuego[i].mesas.length; j++){
+
+             var fila= generarFilaCargaBUp(data.mesasporjuego[i].mesas[j],aux_nro_fila,data.estados);
+
+             fila.find('.juego_up').text(data.mesasporjuego[i].juego);
+
+             $('#tablaCargaBUp tbody').append(fila);
+             aux_nro_fila++;
+           }
          }
-         //$('#tablaCargaBUp').css('display','');
-       }
+
+        },
+
+        error: function (data) {
+
+            var response= data.responseJSON.errors;
+
+              if(typeof response != 'undefined'){
+                $('#mensajeErrorBuscarBUp').show();
+              }
+              $('#B_fecha_bup').prop('readonly',false);
+              $('#turnoRelevadoBUp').prop('readonly',false);
+              $('#B_fecha_bupEj').prop('readonly',false);
+          }
+
      })
    }
+   else {
+     $('#B_fecha_bup').prop('readonly',false);
+     $('#turnoRelevadoBUp').prop('readonly',false);
+     $('#B_fecha_bupEj').prop('readonly',false);
+     $('#mensajeErrorCargaBUp').show();
+   }
 });
-
-//guardar backUp dentro del modal
-$('#btn-guardar-backUp').on('click',function(e){
-
-  e.preventDefault();
-
-  var detalles=[];
-
-  var f= $('#tablaCargaBUp tbody > tr');
-
-  //recorro tabla para enviar datos de relevamiento
-  $.each(f, function(index, value){
-
-    if($(this) != 'undefined'){
-      var d={
-        id_detalle: $(this).attr('id'),
-        minimo: $(this).find('.min_up').val(),
-        maximo:$(this).find('.max_up').val(),
-        id_estado_mesa:$(this).find('.estado_up').val(),
-      }
-        detalles.push(d);
-    }
-      })
-
-
-
-      var formData= {
-        hora:$('#hora_ejec_BUp').val(),
-        detalles:detalles,
-        id_fiscalizador:$('#fiscalizadorBUp').obtenerElementoSeleccionado(),
-        observaciones:$('#obsBUp').val(),
-      }
-
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      });
-
-      $.ajax({
-          type: 'POST',
-          url: 'apuestas/cargarRelevamiento',
-          data: formData,
-          dataType: 'json',
-
-          success: function (data){
-
-            $('#modalCargaBackUp').modal('hide');
-            $('#mensajeExito h3').text('ÉXITO');
-            $('#mensajeExito p').text('Relevamiento GUARDADO. ');
-            $('#mensajeExito').show();
-            $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
-          },
-          error: function (reject) {
-                if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
-                    $.each(errors, function (key, val) {
-                      if(key == 'detalles'){
-
-                        $('#mensajeErrorCargaBUp').show();
-                      }
-                      if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_BUp'),val[0],false);
-                      }
-                      if(key != 'hora' && key != 'detalles'){
-                          var splitt = key.split('.');
-                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                      }
-                      if(typeof errors.id_fiscalizador != 'undefined'){
-                        mostrarErrorValidacion($('#fiscalizadorBUp'),errors.id_fiscalizador,false);
-                      }
-
-                    });
-                }
-            }
-      })
-
-});
-
 //btn generar planillas
 $('#btn-generar').on('click', function(e){
 
@@ -287,8 +259,8 @@ $('#btn-generar').on('click', function(e){
       dataType: 'json',
 
        beforeSend: function(data){
-         $('#modalRelevamiento').find('.modal-body').html('<div class="loading"><img src="/img/ajax-loader(1).gif" alt="loading" /><br>Un momento, por favor...</div>').css('text-align','center');
          $('#modalRelevamiento').modal('show');
+         $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
 
       },
       success: function (data) {
@@ -306,7 +278,6 @@ $('#btn-generar').on('click', function(e){
           }
 
           iframe.src = data.url_zip;
-          console.log('7777',iframe);
 
       },
       error: function (data) {
@@ -572,7 +543,6 @@ $('#btn-guardar-modif').on('click',function(e){
 $(document).on('click','.eliminarApuesta',function(e){
 
    var id=$(this).val();
-   console.log(id);
 
 
  $.get('apuestas/baja/' + id, function(data){
@@ -648,7 +618,6 @@ $(document).on('click', '.validarApuesta', function(e){
         for (var i = 0; i < data.abiertas_por_juego.length; i++) {
 
           var fila2= generarFilaValidar2(data.abiertas_por_juego[i]);
-          console.log('fffff',fila2);
 
           $('#mesasPorJuego').append(fila2);
 
