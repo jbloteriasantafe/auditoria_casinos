@@ -329,8 +329,8 @@
                         <br>
                         <div class="row">
                             <div class="col-lg-12">
-                                <h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                                <div class="columna">
+                                 <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
+                                <div class="columna" style="padding-top: 15px;">
                                 </div>
                             </div>
                         </div>
@@ -455,7 +455,7 @@
                   </div> <!-- /Fin panel minimizable -->
 
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-successAceptar" id="btn-guardar-ind" value="nuevo">ACEPTAR</button>
+                    <button type="button" class="btn btn-successAceptar" id="btn-guardar-link" value="nuevo">ACEPTAR</button>
                     <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
                     <input type="hidden" id="id_progresivo" value="0">
                   </div>
