@@ -339,6 +339,8 @@ class ProgresivoController extends Controller
           $maquina->pozo()->associate($pozo->id_pozo);
           $maquina->save();
         }
+      }else{
+        
       }
       if(!empty($request->pozos['niveles'])){
         foreach ($request->pozos['niveles'] as $index=>$nivel){
