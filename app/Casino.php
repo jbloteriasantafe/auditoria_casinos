@@ -13,6 +13,9 @@ class Casino extends Model
   protected $visible = array('id_casino','nombre','codigo');
   public $timestamps = false;
 
+  public function turnos(){
+    return $this->hasMany('App\Turno','id_casino','id_casino');
+  }
   public function unidades_medida(){
     return $this->belongsToMany('App\UnidadMedida','casino_tiene_unidad_medida','id_casino','id_unidad_medida');
   }
@@ -55,7 +58,11 @@ class Casino extends Model
 
   public function juegos(){
     return $this->belongsToMany('App\Juego','casino_tiene_juego','id_casino','id_juego');
-}
+  }
+
+  public function mesas(){
+    return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
+  }
 
   public static function boot(){
         parent::boot();
