@@ -633,3 +633,20 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::get('sectores-mesas/eliminarSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@eliminarSector');
   Route::post('sectores-mesas/buscarSectores','Mesas\Sectores\ABMCSectoresController@filtrarSectores');
   Route::post('sectores-mesas/guardar','Mesas\Sectores\ABMCSectoresController@guardar');
+
+
+  //apuestas
+  Route::get('/apuestas', 'Mesas\Apuestas\BCApuestasController@buscarTodo');
+  Route::post('/apuestas/buscarRelevamientosApuestas', 'Mesas\Apuestas\BCApuestasController@filtros');
+  Route::post('apuestas/generarRelevamientoApuestas', 'Mesas\Apuestas\BCApuestasController@obtenerNombreZip');
+  Route::get('apuestas/descargarZipApuestas/{nombre}', 'Mesas\Apuestas\BCApuestasController@descargarZip');
+  Route::get('apuestas/obtenerDatos/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamientoCarga');
+  Route::post('apuestas/cargarRelevamiento','Mesas\Apuestas\ABMApuestasController@cargarRelevamiento');
+  Route::get('apuestas/relevamientoCargado/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamientoApuesta');
+  Route::get('apuestas/baja/{id_relevamiento}', 'Mesas\Apuestas\BVApuestasController@eliminar');
+  Route::post('apuestas/validar', 'Mesas\Apuestas\BVApuestasController@validar');
+  Route::get('apuestas/obtenerRelevamientoBackUp/{fechaCr}/{fechaEj}/{turno}', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
+  Route::get('apuestas/imprimir/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanilla');
+
+  Route::get('apuestas/obtenerRequerimientos','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
+  Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
