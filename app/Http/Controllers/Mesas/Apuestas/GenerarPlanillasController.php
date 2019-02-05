@@ -90,7 +90,7 @@ class GenerarPlanillasController extends Controller
               $arregloRutas[] = $ruta;
             }
           }
-          $nombreZip = 'Planillas-Apuestas-'.$casino->nombre
+          $nombreZip = 'Planillas-Apuestas-'.$casino->codigo
                     .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
                     .'.zip';
 

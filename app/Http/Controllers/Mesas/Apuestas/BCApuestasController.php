@@ -263,7 +263,7 @@ class BCApuestasController extends Controller
     $cas = $user->casinos->first();
     $codigo_casino = $cas->codigo;
 
-    $nombreZip = 'Planillas-Apuestas-'.$cas->nombre
+    $nombreZip = 'Planillas-Apuestas-'.$cas->codigo
               .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".((self::$cantidad_dias_backup)-1)." day"))
               .'.zip';
      //dd(  public_path().'/Mesas/'.$nombreZip);
