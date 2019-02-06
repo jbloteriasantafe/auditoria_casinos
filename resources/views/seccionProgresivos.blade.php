@@ -281,14 +281,14 @@
                       <div class="row">
                         <div class="col-md-6 col-lg-6">
                           <h5>Nombre Progresivo</h5>
-                          <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                          <input id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
                           <br>
                           <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
                         </div>
                         <div class="col-xs-6 col-md-6 col-lg-6">
                           <h5>Valor Máximo</h5>
-                          <input id="maximo" type="text" class="form-control" placeholder="Valor Máximo">
+                          <input id="maximo_ind" type="text" class="form-control" placeholder="Valor Máximo">
                         </div>
                       </div>
                       <br>
@@ -327,7 +327,7 @@
                           </div>
                         </div>
                         <br>
-                        <div class="row">
+                        <div class="row" id="niveles_ind">
                             <div class="col-lg-12">
                                  <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
                                 <div class="columna" style="padding-top: 15px;">
@@ -342,7 +342,7 @@
                   <div class="modal-footer">
                     <button type="button" class="btn btn-successAceptar" id="btn-guardar-ind" value="nuevo">ACEPTAR</button>
                     <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-                    <input type="hidden" id="id_progresivo" value="0">
+                    <input type="hidden" id="id_progresivo_ind" value="0">
                   </div>
 
                 </div> <!-- Fin modal-header -->
@@ -369,21 +369,21 @@
                       <div class="row">
                         <div class="col-md-6 col-lg-6">
                           <h5>Nombre Progresivo</h5>
-                          <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                          <input id="nombre_progresivo_link" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
                           <br>
                           <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
                         </div>
                         <div class="col-xs-6 col-md-6 col-lg-6">
                           <h5>Valor Máximo</h5>
-                          <input id="maximo" type="text" class="form-control" placeholder="Valor Máximo">
+                          <input id="maximo_link" type="text" class="form-control" placeholder="Valor Máximo">
                         </div>
                       </div>
                       
                       <div id="cuerpo_individual">
                         
                         
-                        <div class="row">
+                        <div class="row" id="niveles_link">
                             <div class="col-lg-12">
                               <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
                               <div class="columna" style="padding-top: 15px;">
@@ -457,7 +457,7 @@
                   <div class="modal-footer">
                     <button type="button" class="btn btn-successAceptar" id="btn-guardar-link" value="nuevo">ACEPTAR</button>
                     <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-                    <input type="hidden" id="id_progresivo" value="0">
+                    <input type="hidden" id="id_progresivo_link" value="0">
                   </div>
 
                 </div> <!-- Fin modal-header -->

@@ -140,7 +140,131 @@ $('#btn-nuevo-link').click(function(e){
 
 });
 
+// Modal aceptar nuevo progresivo linkeado
 
+$('#btn-guardar-link').on('click', function(e){
+    $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+  var niveles = [];
+  var pozos = [];
+
+  // Carga de niveles
+  $('#niveles_link').find(".columna").children().each(function(indexNivel){
+    var nivel = {
+      id_nivel: $(this).attr('data-id'),
+      nro_nivel : $(this).find(".nro_nivel").val(),
+      nombre_nivel: $(this).find('.nombre_nivel').val(),
+      //porc_oculto : $(this).find(".porc_oculto").val(), Se quita hasta formalizar su utilidad
+      porc_visible: $(this).find(".porc_visible").val(),
+      base: $(this).find(".base").val(),
+    }
+    niveles.push(nivel);
+
+  });
+
+  // carga de pozos
+  $('#contenedorPozosLink').children().each(function(indexPozo){
+    var maquinas= [];
+    $(this).find(".listaMaquinas").children().each(function(indexMaquina){
+      var maquina;
+      maquina = {
+          id_maquina : $(this).val(),
+      }
+      maquinas.push(maquina);
+    });
+
+    var pozo = {
+      maquinas: maquinas,
+    };
+    pozos.push(pozo);
+
+  });
+
+  var formData = {
+     id_progresivo : $('#id_progresivo_link').val(),
+     nombre:$('#nombre_progresivo_link').val() ,
+     tipo: "LINKEADO", //$('#selectTipoProgresivos').val(), se cambia el modal, solo puede ser link
+     pozos: pozos , //si es individual manda un solo pozo
+     maximo: $('#maximo_link').val(),
+     niveles: niveles,
+     //porc_recuperacion : $('#porcentaje_recuperacion').val(), se elimina este valor hasta formalizar utilidad
+  }
+
+  var state = $('#btn-guardar').val();
+  var type = "POST";
+  var url = ((state == "modificar") ? 'progresivos/modificarProgresivo':'progresivos/guardarProgresivo');
+  
+  $.ajax({
+      type: type,
+      url: url,
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+
+          $('.modal').modal('hide');
+
+          $('#mensajeExito').show();
+
+          var pageNumber = $('#herramientasPaginacion').getCurrentPage();
+          var tam = $('#herramientasPaginacion').getPageSize();
+          var columna = $('#tablaLayouts .activa').attr('value');
+          var orden = $('#tablaLayouts .activa').attr('estado');
+
+          $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+      },
+      error: function (data) {
+  //         //console.log('Error:', data);
+  //         var response = JSON.parse(data.responseText);
+  //
+  //         limpiarAlertas();
+  //
+  //         if(typeof response.nombre_progresivo !== 'undefined'){
+  //           $('#nombre_progresivo').addClass('alerta');
+  //           $('#alerta-nombre-progresivo').text(response.nombre_progresivo[0]);
+  //           $('#alerta-nombre-progresivo').show();
+  //         }
+  //
+  //         var i=0;
+  //         $('#columna .NivelProgresivo').each(function(){
+  //           var error=' ';
+  //           if(typeof response['niveles.'+ i +'.nro_nivel'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.nro_nivel']+'<br>';
+  //             $(this).find('#nro_nivel').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.nombre_nivel'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.nombre_nivel']+'<br>';
+  //             $(this).find('#nombre_nivel').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.porc_oculto'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.porc_oculto']+'<br>';
+  //             $(this).find('#porc_oculto').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.porc_visible'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.porc_visible']+'<br>';
+  //             $(this).find('#porc_visible').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.base'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.base']+'<br>';
+  //             $(this).find('#base').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.maximo'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.maximo']+'<br>';
+  //             $(this).find('#maximo').addClass('alerta');
+  //           }
+  //           if(error != ' '){
+  //           var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
+  //             $(this).append(alerta);
+  //           }
+  //           i++;
+  //         })
+
+      }
+  });
+  
+});
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
@@ -293,8 +417,8 @@ $('#selectTipoProgresivos').on('change' , function(){
 
 $('#btn-agregarPozo-link').click(function(){
   // solo se agrega un pozo si existen maquinas a quien asignarselo
-  var listaMaquinas = $(this).parent().parent().find('.listaMaquinas').clone();
-  if (listaMaquinas.find('li').length >0){
+  var listaMaquinas = $(this).parent().parent().find('.listaMaquinas').find('li').clone();
+  if (listaMaquinas.length >0){
     var nro_pozo = $('#contenedorPozosLink').children().length + 1 ;
     var pozo = agregarPozo(nro_pozo);
     //var radio_button_group = clonarRadioButton(nro_pozo);
