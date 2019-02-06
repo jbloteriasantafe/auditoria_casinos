@@ -252,6 +252,11 @@ $cas = $usuario['usuario']->casinos;
                 <h6 style="font-size:16px !important;">TURNO</h6>
                   <input type="text" class="form-control" id="turnoRelevado" name="" value="" readonly="true">
               </div>
+              <div class="col-md-4">
+                <h5>A: Abierto</h5>
+                <h5>C: Cerrada</h5>
+                <h5>T: Torneo</h5>
+              </div>
             </div>
             <br>
             <div class="row">

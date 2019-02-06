@@ -307,7 +307,7 @@ $(document).on('click', '.cargarApuesta', function(e){
       $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
-      $('#turnoRelevado').val(data.turno.id_turno).prop('readonly', true);
+      $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
 
       var aux_nro_fila = 0;
 
