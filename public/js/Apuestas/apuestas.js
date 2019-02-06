@@ -864,14 +864,14 @@ function generarFilaValidar(data,e){
   var id=data.id_estado_mesa -1;
 
 
-    fila.append($('<td>').text(data.nombre_juego).css('text-align','center'))
-        .append($('<td>').text(data.nro_mesa).css('text-align','center'))
-        .append($('<td>').text(data.posiciones).css('text-align','center'))
+    fila.append($('<td>').addClass('col-xs-2').text(data.nombre_juego).css('text-align','center'))
+        .append($('<td>').addClass('col-xs-2').text(data.nro_mesa).css('text-align','center'))
+        .append($('<td>').addClass('col-xs-2').text(data.posiciones).css('text-align','center'))
 
 
-        .append($('<td>').text(e[id].descripcion_mesa).css('text-align','center'))
-        .append($('<td>').text(data.minimo).css('text-align','center'))
-        .append($('<td>').text(data.maximo).css('text-align','center'))
+        .append($('<td>').addClass('col-xs-2').text(e[id].descripcion_mesa).css('text-align','center'))
+        .append($('<td>').addClass('col-xs-2').text(data.minimo).css('text-align','center'))
+        .append($('<td>').addClass('col-xs-2').text(data.maximo).css('text-align','center'))
 
       return fila;
 }

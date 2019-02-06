@@ -472,7 +472,7 @@ $cas = $usuario['usuario']->casinos;
 
           </div>
           <br>
-          <div class="row">
+          <div class="row table-responsive">
             <table id="tablaValidar"class="table table-fixed table-striped ">
               <thead style="height:40px">
                 <th class="col-xs-2"><h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">JUEGO</h6> </th>

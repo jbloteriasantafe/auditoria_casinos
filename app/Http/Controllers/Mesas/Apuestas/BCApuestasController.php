@@ -10,9 +10,12 @@ use App\Http\Controllers\Controller;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use DateTime;
+use Dompdf\Dompdf;
 
+use PDF;
+use View;
 use App\Usuario;
 use App\Casino;
 use App\Turno;
@@ -348,9 +351,9 @@ class BCApuestasController extends Controller
     $datos =$controller->obtenerDatosRelevamiento($id_relevamiento);
     $rel->paginas = $datos['paginas'];
     $rel->nro_paginas = $datos['nro_paginas'];
-    $rel->fecha = $relevamiento->fecha;
-    $rel->fecha_backup = $fecha_backup;
-    $rel->turno = $turno->nro_turno;
+    $rel->fecha = $relevamiento->created_at;
+    $rel->fecha_backup = $relevamiento->fecha;
+    $rel->turno = $relevamiento->nro_turno;
     $hora = explode(':',$relevamiento->hora_propuesta);
     $rel->hora_propuesta = $hora[0].':'.$hora[1];
 
@@ -358,13 +361,13 @@ class BCApuestasController extends Controller
     $rel->fiscalizador = $relevamiento->fiscalizador->nombre;
     $rel->hora_ejecucion = $relevamiento->hora_ejecucion;
 
-    $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
+    $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas2', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view);
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 565, $casino->codigo."/".$rel->fecha."/T-".$turno->nro_turno, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 565, $relevamiento->casino->codigo."/".$rel->fecha."/T-".$relevamiento->nro_turno, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
   }
