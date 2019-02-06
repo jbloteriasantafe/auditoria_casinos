@@ -856,20 +856,26 @@ function generarFilaCarga(data,nro_row,e){
 
 function generarFilaValidar(data,e){
 
-  var fila = $(document.createElement('tr'));
-  var id=data.id_estado_mesa -1;
+    var fila = $('#moldeValidar').clone();
+    fila.removeAttr('id');
 
+     var id=data.id_estado_mesa -1;
 
-    fila.append($('<td>').addClass('col-xs-2').text(data.nombre_juego).css('text-align','center'))
-        .append($('<td>').addClass('col-xs-2').text(data.nro_mesa).css('text-align','center'))
-        .append($('<td>').addClass('col-xs-2').text(data.posiciones).css('text-align','center'))
+     fila.find('.juego_val').text(data.nombre_juego);
+     fila.find('.nro_mesa_val').text(data.nro_mesa);
+     fila.find('.pos_val').text(data.posiciones);
+     for (var i = 0; i < e.length; i++) {
+          fila.find('.estado_val').append($('<option>').val(e[i].id_estado_mesa).text(e[i].descripcion_mesa));
+     }
 
+     fila.find('.estado_val').val(e[id].id_estado_mesa).prop('selected',true);
+     fila.find('.min_val').val(data.minimo).css('text-align','center');
+     fila.find('.max_val').val(data.maximo).css('text-align','center');
 
-        .append($('<td>').addClass('col-xs-2').text(e[id].descripcion_mesa).css('text-align','center'))
-        .append($('<td>').addClass('col-xs-2').text(data.minimo).css('text-align','center'))
-        .append($('<td>').addClass('col-xs-2').text(data.maximo).css('text-align','center'))
-
-      return fila;
+     fila.css('display','block');
+     $('#dd').css('display','block');
+     return fila;
+     
 }
 
 function generarFilaCargaBUp(data,nro_row,e){

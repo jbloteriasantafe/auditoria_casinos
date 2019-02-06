@@ -464,7 +464,7 @@
           </div>
           <br>
           <div class="row">
-            <table id="tablaValidar"class="table table-fixed table-striped ">
+            <table id="tablaValidar"class="table table-fixed table-striped " style="width:100%">
               <thead style="height:40px">
                 <th class="col-xs-2"><h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">JUEGO</h6> </th>
                 <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold ">NRO MESA</h6> </th>
@@ -481,20 +481,20 @@
             </table>
             <div class="table table-responsive" id="dd" style="display:none;">
 
-            <table class="table table-striped " >
+            <table class="table table-fixed table-striped " style="width:100%">
                 <tr id="moldeValidar" class="filaClone" style="display:none">
                   <td class="col-xs-2 juego_val" rowspan="1" nowrap  style="text-align:center !important;"></td>
                   <td class="col-xs-2 nro_mesa_val" rowspan="1" nowrap style="text-align:center !important;"></td>
                   <td class="col-xs-2 pos_val" rowspan="1" nowrap style="text-align:center !important;"></td>
                   <td class="col-xs-2">
-                    <select class=" form-control estado_val" id="" rowspan="1" style="text-align:center !important;">
+                    <select class="col-xs-2 form-control estado_val" id="" rowspan="1" nowrap style="align:center !important;margin-left:7px">
                     </select>
                   </td>
                   <td class="col-xs-2">
-                    <input type="text" style="text-align:center !important;" id="" rowspan="1" class=" form-control min_val" name="" value="">
+                    <input type="text" style="align:center !important;margin-left:7px" id="" rowspan="1" nowrap class="col-xs-2 form-control min_val" name="" value="">
                   </td>
                   <td class="col-xs-2">
-                    <input type="text"  style="text-align:center !important;" id="" rowspan="1" class=" form-control max_val" name="" value="">
+                    <input type="text"  style="align:center !important;margin-left:7px" id="" rowspan="1"  nowrap class="col-xs-2 form-control max_val" name="" value="">
 
                   </td>
                 </tr>
