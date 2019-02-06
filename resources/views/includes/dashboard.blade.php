@@ -642,7 +642,7 @@ $cas = $usuario['usuario']->casinos;
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_apuestas'))
                               <li>
                                 <div id="opcApuestas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/apuestas'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Apuestas </span>
+                                  <span>Apuestas Mínimas</span>
                                 </div>
                               </li>
                               @endif

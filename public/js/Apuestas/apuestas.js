@@ -4,7 +4,7 @@ $(document).ready(function() {
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas Mínimos');
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
