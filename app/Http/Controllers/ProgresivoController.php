@@ -282,9 +282,14 @@ public function guardarProgresivo(Request $request){
     // TODO evaluar el valor maximo si es por progresivo y / o por nivel
   })->validate();
 
+  $casinos = Usuario::find(session('id_usuario'))->casinos;
+
   $progresivo = new Progresivo;
   $progresivo->nombre_progresivo = $request->nombre;
   $progresivo->maximo = $request->maximo;
+  // la creacion es solo para un casino, de tener varios, solo se crea para el primero
+  // esta aclaracion solo impcata para el superusuario que es el unico con multiples casinos
+  $progresivo->id_casino=$casino[0]->id_casino;
   //$progresivo->porc_recuperacion= $request->porc_recuperacion; dato que no se esta relevando
 
   if($request->tipo == 'LINKEADO'){
