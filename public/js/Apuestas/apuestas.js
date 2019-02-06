@@ -4,7 +4,7 @@ $(document).ready(function() {
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas Mínimos');
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
@@ -307,7 +307,7 @@ $(document).on('click', '.cargarApuesta', function(e){
       $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
-      $('#turnoRelevado').val(data.turno.id_turno).prop('readonly', true);
+      $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
 
       var aux_nro_fila = 0;
 
