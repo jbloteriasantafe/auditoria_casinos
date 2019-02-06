@@ -4,6 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+
+/*
+
+  Tener en cuenta que 0 no es ningin dia,
+  1 es el LUNES,..,7 es el DOMINGO
+  para obtener que nro de dia es:
+  ->format('w'); ->>retorna 0 si es domingo, el resto de los dias esta OK
+
+
+*/
 class Turno extends Model
 {
   protected $connection = 'mysql';
@@ -26,21 +36,22 @@ class Turno extends Model
   private function elegirdia($dia){
     switch ($dia) {
       case 1:
-        return 'L';
+        return 'Lunes';
       case 2:
-        return 'Ma';
+        return 'Martes';
       case 3:
-        return 'Mi';
+        return 'Miercoles';
       case 4:
-        return 'J';
+        return 'Jueves';
       case 5:
-        return 'V';
+        return 'Viernes';
       case 6:
-        return 'S';
+        return 'Sabado';
       case 7:
-        return 'D';
+        return 'Domingo';
       default:
-        return 'NN';
+
+        return 'NoEncontrado';
         break;
     }
   }
