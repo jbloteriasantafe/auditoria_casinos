@@ -263,6 +263,8 @@ class ABMApuestasController extends Controller
       $relevamiento->estado()->associate(3);//finalizado = carga completa
       $relevamiento->save();
       $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
+      $relevamiento->es_backup = 0;
+      $relevamiento->save();
       return response()->json(['exito' => 'Relevamiento cargado!'], 200);
     }else{
       return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];

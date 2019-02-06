@@ -160,7 +160,7 @@ $cas = $usuario['usuario']->casinos;
                           <th class="activa" value="fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA  <i class="fas fa-sort-down"></th>
                           <th class="" value="nro_turno" style="font-size:14px; text-align:center !important;" estado="">TURNO  <i class="fas fa-sort"></th>
                           <th class="" value="nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
-                          <th class="" value="estado_mesa" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
+                          <th class="" value="id_estado_relevamiento" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
                           <th class="" style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
