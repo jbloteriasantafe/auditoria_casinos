@@ -113,7 +113,6 @@ class BCApuestasController extends Controller
                           })
                 ->where($filtros)
                 ->whereIn('RA.id_casino',$cas)
-
                 ->where('RA.es_backup','=',0)
                 ->distinct('RA.id_relevamiento_apuestas')
                 ->orderBy('RA.fecha','desc')

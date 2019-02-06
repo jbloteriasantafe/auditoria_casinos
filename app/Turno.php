@@ -13,6 +13,26 @@ class Turno extends Model
   'dia_desde', 'dia_hasta' , 'entrada','salida' , 'nro_turno','hora_propuesta');
   public $timestamps = false;
 
+  protected $appends = array('nombre_dia_desde','nombre_dia_hasta');
+
+
+  public function getNombreDiaDesdeAttribute(){
+    switch ($this->dia_desde) {
+      case 1:
+        return 'L';
+      case 1:
+        return 'Ma';
+      case 1:
+        return 'Mi';
+      case 1:
+        return 'J';
+      default:
+        // code...
+        break;
+    }
+  }
+
+
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
