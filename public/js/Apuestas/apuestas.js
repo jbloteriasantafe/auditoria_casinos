@@ -872,14 +872,14 @@ function generarFilaValidar(data,e){
           fila.find('.estado_val').append($('<option>').val(e[i].id_estado_mesa).text(e[i].descripcion_mesa));
      }
 
-     fila.find('.estado_val').val(e[id].id_estado_mesa).prop('selected',true);
-     fila.find('.min_val').val(data.minimo).css('text-align','center');
-     fila.find('.max_val').val(data.maximo).css('text-align','center');
+     fila.find('.estado_val').val(e[id].id_estado_mesa).prop('selected',true).prop('disabled',true);
+     fila.find('.min_val').val(data.minimo).css('text-align','center').prop('disabled',true);
+     fila.find('.max_val').val(data.maximo).css('text-align','center').prop('disabled',true);
 
      fila.css('display','block');
      $('#dd').css('display','block');
      return fila;
-     
+
 }
 
 function generarFilaCargaBUp(data,nro_row,e){
