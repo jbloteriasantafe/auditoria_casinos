@@ -200,7 +200,7 @@ $('#buscarBackUp').on('click', function(e){
         var id_relevamiento=data.relevamiento.id_relevamiento_apuestas;
         var id_casino=data.relevamiento.id_casino;
 
-        $('#fiscalizadorBUp').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+        $('#fiscalizadorBUp').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
         $('#hora_prop_BUp').val(data.relevamiento.hora_propuesta).prop('readonly',true);
 
         var aux_nro_fila = 0;
@@ -221,7 +221,7 @@ $('#buscarBackUp').on('click', function(e){
 
         error: function (data) {
 
-            var response= data.responseJSON.errors;
+            var response= data.responseJSON;
 
               if(typeof response != 'undefined'){
                 $('#mensajeErrorBuscarBUp').show();
@@ -304,7 +304,7 @@ $(document).on('click', '.cargarApuesta', function(e){
 
       var id_casino=data.relevamiento.id_casino;
 
-      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
       $('#turnoRelevado').val(data.turno.id_turno).prop('readonly', true);
@@ -384,7 +384,7 @@ $('#btn-guardar').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -421,8 +421,8 @@ $(document).on('click', '.modificarApuesta', function(e){
 
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
-       $('#fiscalizadorMod').setearElementoSeleccionado(data.fiscalizador.id,data.fiscalizador.name);
+       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','nombre',1);
+       $('#fiscalizadorMod').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
 
        $('#B_fecha_modificar').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
        $('#turnoRelevadoMod').val(data.turno.id_turno).prop('readonly', true);
@@ -515,7 +515,7 @@ $('#btn-guardar-modif').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -570,8 +570,8 @@ $(document).on('click', '.validarApuesta', function(e){
       $('#btn-validar').val(data.relevamiento_apuestas.id_relevamiento_apuestas);
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorVal').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
-       $('#fiscalizadorVal').setearElementoSeleccionado(data.fiscalizador.id,data.fiscalizador.name);
+       $('#fiscalizadorVal').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','nombre',1);
+       $('#fiscalizadorVal').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
 
        $('#B_fecha_val').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
        $('#turnoRelevadoVal').val(data.turno.id_turno).prop('readonly', true);
@@ -677,7 +677,7 @@ $('#btn-minimo').on('click',function(e){
     $('#apuestaMinimo').text('Apuesta mínima: ' + data.apuesta).prop('disabled',true);
     $('#cantMinimo').text('Cantidad de Mesas abiertas: ' + data.cant_mesas).prop('disabled',true);
 
-    $('#juegoNuevo').generarDataList("juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+    $('#juegoNuevo').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
   })
 
@@ -792,8 +792,12 @@ function generarFila(data){
                           .append($('<i>').addClass('fa fa-fw fa-check').append($('</i>')
                           .append($('</button>')))))
                           .append($('<button>').addClass('btn btn-success eliminarApuesta').val(data.id_relevamiento_apuestas)
-                          .append($('<i>').addClass('fa fa-fw fa-trash').append($('</i>')
-                          .append($('</button>'))))))
+                                  .append($('<i>').addClass('fa fa-fw fa-trash').append($('</i>')
+                                                                                        .append($('</button>'))
+                                                                                        )
+                                          )
+                                        )
+                    )
 
         if(data.id_estado_relevamiento == 4){
           fila.find('.cargarApuesta').hide();

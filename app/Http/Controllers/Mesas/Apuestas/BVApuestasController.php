@@ -16,7 +16,7 @@ use App\Usuario;
 use App\Casino;
 use App\Turno;
 use App\SecRecientes;
-
+use App\Http\Controllers\UsuarioController;
 use App\Mesas\Mesa;
 use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;

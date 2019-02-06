@@ -21,7 +21,7 @@ use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-
+use App\Http\Controllers\UsuarioController;
 use App\Mesas\JuegoMesa;
 use App\Mesas\ApuestaMinimaJuego;
 use App\Http\Controllers\Mesas\Apuestas\ABMApuestasController;

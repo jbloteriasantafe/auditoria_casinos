@@ -19,7 +19,7 @@ use App\Turno;
 use App\SecRecientes;
 use App\Mesas\JuegoMesa;
 use App\Mesas\ApuestaMinimaJuego;
-
+use App\Http\Controllers\UsuarioController;
 class ABMCApuestaMinimaController extends Controller
 {
   private static $atributos = [
@@ -56,6 +56,7 @@ class ABMCApuestaMinimaController extends Controller
   }
 
   public function obtenerApuestaMinima(){
+
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     foreach($user->casinos as $casino){

@@ -1,3 +1,12 @@
+<?php
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
+use Illuminate\Http\Request;
+
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+$id_usuario = $usuario['usuario']->id_usuario;
+$cas = $usuario['usuario']->casinos;
+?>
 @extends('includes.dashboard')
 @section('headerLogo')
 
@@ -116,7 +125,7 @@
                     <select class="form-control" name="" id="filtroTurno">
                       <option value="0" selected>- Todos los Turnos -</option>
                       @foreach ($turnos as $t)
-                      <option value="{{$t->id_turno}}">{{$t->nro_turno}}</option>
+                      <option value="{{$t->id_turno}}">#{{$t->nro_turno}} -{{$t->entrada}} a {{$t->salida}}- {{$t->casino->codigo}}</option>
                       @endforeach
                     </select>
                   </div>
@@ -183,11 +192,11 @@
                             <button type="button" class="btn btn-success validarApuesta" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
-                            @hasrole('SUPERUSUARIO')
+                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-success eliminarApuesta" value="">
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
-                            @endhasrole
+                            @endif
                           </td>
                         </tr>
                     </table>
