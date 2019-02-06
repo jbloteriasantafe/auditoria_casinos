@@ -17,21 +17,33 @@ class Turno extends Model
 
 
   public function getNombreDiaDesdeAttribute(){
-    switch ($this->dia_desde) {
+    return $this->elegirdia($this->dia_desde);
+  }
+  public function getNombreDiaHastaAttribute(){
+    return $this->elegirdia($this->dia_hasta);
+  }
+
+  private function elegirdia($dia){
+    switch ($dia) {
       case 1:
         return 'L';
-      case 1:
+      case 2:
         return 'Ma';
-      case 1:
+      case 3:
         return 'Mi';
-      case 1:
+      case 4:
         return 'J';
+      case 5:
+        return 'V';
+      case 6:
+        return 'S';
+      case 7:
+        return 'D';
       default:
-        // code...
+        return 'NN';
         break;
     }
   }
-
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');

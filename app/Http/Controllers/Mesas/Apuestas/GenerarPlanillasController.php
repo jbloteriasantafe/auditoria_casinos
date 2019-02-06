@@ -67,7 +67,10 @@ class GenerarPlanillasController extends Controller
               $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
               $dia_carbon = Carbon::now()->addDays($i);
               $numeroDia = $dia_carbon->format('w');
-              
+              if($numeroDia == 0){
+                $numeroDia = 7;
+              }
+              //si el turno esta el dia de fecha_backup entonces se crea
               if($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta){
                 //busco si existe el que estoy creando
 
@@ -95,10 +98,10 @@ class GenerarPlanillasController extends Controller
                 $arregloRutasTurno[] = $ruta;
               }
             }
-            $date->isoFormat('dddd');
-            $nombreZipTurno = 'TURNO-N'.$turno->nro_turno.$dia_inicio.$dia_fin.'.zip';
+            $nombreZipTurno = 'TURNO-N'.$turno->nro_turno.'-D'.$turno->nombre_dia_desde.'a'.$turno->nombre_dia_hasta.'.zip';
             Zipper::make('public/Mesas/RelevamientosApuestas/'.$nombreZipTurno)->add($arregloRutasTurno)->close();
             $arregloRutas[] = $nombreZipTurno;
+            File::delete($arregloRutasTurno);
           }
           $nombreZip = 'Planillas-Apuestas-'.$casino->codigo
                     .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
