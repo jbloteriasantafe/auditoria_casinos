@@ -113,6 +113,8 @@ class BCApuestasController extends Controller
                           })
                 ->where($filtros)
                 ->whereIn('RA.id_casino',$cas)
+
+                ->where('RA.es_backup','=',0)
                 ->distinct('RA.id_relevamiento_apuestas')
                 ->orderBy('RA.fecha','desc')
                 ->whereNull('RA.deleted_at')
@@ -144,6 +146,7 @@ class BCApuestasController extends Controller
                         ->where($filtros)
                         ->whereIn('RA.id_casino',$cas)
                         ->whereNull('RA.deleted_at')
+                        ->where('RA.es_backup','=',0)
                         ->whereYear('RA.fecha' , '=', $fecha[0])
                         ->whereMonth('RA.fecha','=', $fecha[1])
                         ->whereDay('RA.fecha','=', $fecha[2])
