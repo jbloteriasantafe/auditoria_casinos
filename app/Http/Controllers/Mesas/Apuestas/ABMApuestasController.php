@@ -26,7 +26,7 @@ use App\Mesas\DetalleRelevamientoApuestas;
 
 use DateTime;
 use Dompdf\Dompdf;
-
+use App\Http\Controllers\UsuarioController;
 use PDF;
 use View;
 
@@ -262,7 +262,7 @@ class ABMApuestasController extends Controller
       $relevamiento->cargador()->associate($user->id);
       $relevamiento->estado()->associate(3);//finalizado = carga completa
       $relevamiento->save();
-      $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas);
+      $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
       return response()->json(['exito' => 'Relevamiento cargado!'], 200);
     }else{
       return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];
@@ -271,13 +271,14 @@ class ABMApuestasController extends Controller
 
   }
 
-  public function eliminarRelevamientosFecha($fecha,$turno,$id_relevamiento_apuestas){
+  public function eliminarRelevamientosFecha($fecha,$turno,$id_relevamiento_apuestas,$casino){
     $relevamientos = RelevamientoApuestas::where([['id_turno','=',$turno],
                                                   ['id_casino','=',$casino->id_casino],
                                                   ['fecha','=',$fecha]
                                                 ])
-                                                ->whereNotIn('id_relevamiento_apuestas','=',$id_relevamiento_apuestas)
+                                                ->whereNotIn('id_relevamiento_apuestas',[$id_relevamiento_apuestas])
                                                 ->get();
+                                            //dd($relevamientos);
     foreach ($relevamientos as $rel) {
       foreach ($rel->detalles as $det) {
         $det->relevamiento()->dissociate();

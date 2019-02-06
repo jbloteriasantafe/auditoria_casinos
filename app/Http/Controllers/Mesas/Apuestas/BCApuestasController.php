@@ -18,7 +18,7 @@ use App\Casino;
 use App\Turno;
 use App\SecRecientes;
 use App\Http\Controllers\Mesas\Apuestas\GenerarPlanillasController;
-
+use App\Http\Controllers\UsuarioController;
 use App\Mesas\Mesa;
 use App\Mesas\EstadoMesa;
 use App\Mesas\JuegoMesa;
@@ -76,7 +76,7 @@ class BCApuestasController extends Controller
 
     $filtros = array();
     if(!empty($request->id_turno) && $request->id_turno != 0){
-      $filtros[]= ['relevamiento_apuestas_mesas.id_turno','=',$request->id_turno];
+      $filtros[]= ['RA.id_turno','=',$request->id_turno];
     }
 
     if(!empty($request->id_casino) && $request->id_casino != 0){
@@ -241,6 +241,8 @@ class BCApuestasController extends Controller
                         ->orderBy('DRA.nombre_juego','asc')
                         ->get();
 
+    }else{
+      $abiertas_por_juego = null;
     }
 
 
