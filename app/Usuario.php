@@ -52,6 +52,10 @@ class Usuario extends Model
       }
     }
 
+    public function relevamientos_apuestas(){
+      return $this->belongsToMany('App\Mesas\RelevamientoApuestas','fiscalizador_relevo_apuesta','id_usuario','id_relevamiento_apuestas_mesas');
+    }
+
     public function roles(){
 	     return $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol');
     }
