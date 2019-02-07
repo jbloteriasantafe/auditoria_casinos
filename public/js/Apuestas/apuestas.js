@@ -841,9 +841,7 @@ $(document).on('click','.btn_borrar_fisca',function(){
 
   var tipo= $(this).attr('data-tipo');
   var id=$(this).attr('id');
-  console.log('click');
-  console.log('tipo',tipo);
-  console.log('id',id);
+
 
   if(tipo=='modificar'){
     $('#fiscalizadoresPartModif tbody').find('#' + id).remove();
@@ -851,6 +849,10 @@ $(document).on('click','.btn_borrar_fisca',function(){
   }
   if(tipo=='cargar'){
     $('#fiscalizadoresPart tbody').find('#' + id).remove();
+  }
+  if(tipo=='cargarBUp'){
+    $('#fiscalizadoresPartBUp tbody').find('#' + id).remove();
+
   }
 })
 
@@ -1167,7 +1169,7 @@ function clickAgregarFisca(e) {
                .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
                .append($('<span>').text(' '))
                .append($('<button>')
-               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargarBUp')
                .append($('<i>')
                .addClass('fas').addClass('fa-fw').addClass('fa-trash')
                  )))
