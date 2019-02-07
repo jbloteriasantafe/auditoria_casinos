@@ -64,7 +64,7 @@ class ABMCApuestaMinimaController extends Controller
     foreach($user->casinos as $casino){
       $casinos[]=$casino->id_casino;
     }
-    $todos = ApuestaMinimaJuego::whereIn('id_casino',[$casinos])->with('juego','casino','moneda')
+    $todos = ApuestaMinimaJuego::whereIn('id_casino',[$casinos[0]])->with('juego','casino','moneda')
       ->get();
     $pesos = null;
     $dolares = null;
@@ -89,7 +89,7 @@ class ABMCApuestaMinimaController extends Controller
 
     }
 
-    $haymesasdolares = Mesa::where('id_moneda','=',2)->get();
+    $haymesasdolares = Mesa::where('id_moneda','=',2)->whereIn('id_casino',[$casinos[0]])->get();
 
     if($pesos == null){
       $pesos = new ApuestaMinimaJuego;
