@@ -249,16 +249,15 @@ $cas = $usuario['usuario']->casinos;
           </div>
           <div class="row" style="border-bottom:2px solid #ccc;">
             <div class="col-md-4">
-              <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
+              <h6 style="font-size:15px !important;">FISCALIZADOR DE TOMA</h6>
               <div class="input-group ">
                 <input id="fiscalizadorCarga" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
                 <span class="input-group-btn" style="display:block;">
-                  <button id="agregarFisca" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                  <button id="agregarFisca" class="btn btn-default btn-lista-datos" data-carga="normal" type="button"><i class="fa fa-plus"></i></button>
                 </span>
               </div>
             </div>
-            <div class="col-md-5">
-              <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+            <div class="col-md-5" style="border-right:1px solid #ccc">
               <table class="table" id="fiscalizadoresPart">
                 <tbody>
                 </tbody>
@@ -266,9 +265,9 @@ $cas = $usuario['usuario']->casinos;
             </div>
 
             <div class="col-md-3">
-              <h5>A: Abierta</h5>
-              <h5>C: Cerrada</h5>
-              <h5>T: En Torneo</h5>
+              <h5 style="font-size:15px !important">A: Abierta</h5>
+              <h5 style="font-size:15px !important">C: Cerrada</h5>
+              <h5 style="font-size:15px !important">T: En Torneo</h5>
             </div>
           </div>
           <br>
@@ -377,8 +376,7 @@ $cas = $usuario['usuario']->casinos;
               </span>
             </div>
           </div>
-          <div class="col-md-5">
-            <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+          <div class="col-md-5" style="border-right:1px solid #ccc">
             <table class="table" id="fiscalizadoresPartModif">
               <tbody>
               </tbody>
@@ -386,9 +384,9 @@ $cas = $usuario['usuario']->casinos;
           </div>
 
           <div class="col-md-3">
-            <h5>A: Abierta</h5>
-            <h5>C: Cerrada</h5>
-            <h5>T: En Torneo</h5>
+            <h5 style="font-size:15px !important">A: Abierta</h5>
+            <h5 style="font-size:15px !important">C: Cerrada</h5>
+            <h5 style="font-size:15px !important">T: En Torneo</h5>
           </div>
 
         </div>
@@ -574,7 +572,7 @@ $cas = $usuario['usuario']->casinos;
 
 <!-- modal para modificar el minimo solicitado -->
 <div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="width: 80%" >
+  <div class="modal-dialog modal-lg" style="width: 50%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -584,30 +582,30 @@ $cas = $usuario['usuario']->casinos;
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:16px">REQUERIMIENTOS ACTUALES</h6>
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important">REQUERIMIENTOS ACTUALES</h6>
             <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimo">Juego: </h6>
+            <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimo">Juego: </h6>
             <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimo">Apuesta Mínima: </h6>
+            <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimo">Apuesta Mínima: </h6>
             <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimo">Cantidad de mesas abiertas: </h6>
+            <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimo">Cantidad de mesas abiertas: </h6>
             <br>
 
           </div>
           <div class="row">
-            <h6>MODIFICACIONES:</h6>
-
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important">MODIFICACIONES:</h6>
+            <br>
             <div class="row">
               <div class="col-xs-4">
-                <h6>Juego:</h6>
+                <h6 style="font-size:16px">Juego:</h6>
                 <input type="text" class="form-control" id="juegoNuevo" name="" value="">
               </div>
               <div class="col-xs-4">
-                <h6>Apuesta mínima:</h6>
+                <h6 style="font-size:16px">Apuesta mínima:</h6>
                 <input type="text" class="form-control" id="apuestaNueva" name="" value="">
               </div>
               <div class="col-xs-4">
-                <h6>Cantidad de Mesas Abiertas:</h6>
+                <h6 style="font-size:16px">Cantidad de Mesas Abiertas:</h6>
                 <input type="text" class="form-control" id="cantidadNueva" name="" value="">
               </div>
             </div>
@@ -666,19 +664,29 @@ $cas = $usuario['usuario']->casinos;
 
               <div class="row ">
                 <div class="row">
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">HORA PROPUESTA</h6>
+                  <div class="col-md-2">
+                    <h6 style="font-size:16px !important;">HS PROPUESTA</h6>
                   <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_BUp" value="">
                   </div>
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">HORA EJECUCIÓN</h6>
+                  <div class="col-md-2">
+                    <h6 style="font-size:16px !important;">HS EJECUCIÓN</h6>
                     <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_BUp" value="">
                   </div>
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
-                    <input class="linea form-control" id="fiscalizadorBUp" type="text" value=""  size="100" autocomplete="off">
+                  <div class="col-md-3">
+                    <h6 style="font-size:15px !important;">FISCALIZADOR DE TOMA</h6>
+                    <div class="input-group ">
+                      <input id="fiscalizadorBUp" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
+                      <span class="input-group-btn" style="display:block;">
+                        <button id="agregarFiscaBUp" class="btn btn-default btn-lista-datos" data-carga="backup" type="button"><i class="fa fa-plus"></i></button>
+                      </span>
+                    </div>
                   </div>
-
+                  <div class="col-md-4" style="margin-left:25px !important">
+                    <table class="table" id="fiscalizadoresPartBUp">
+                      <tbody >
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
               <br>
@@ -740,12 +748,19 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
           </div> <!-- mensaje -->
+          <div id="mensajeErrorBuscarBUp" hidden>
+            <br>
+            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+            <br>
+            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No se ha encontrado Relevamientos que coincidan con los datos ingresados.</span>
+          </div> <!-- mensaje -->
         </div>
 
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- MODAL PARA GENERAR PLANILLAS  DE BACK UP -->
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

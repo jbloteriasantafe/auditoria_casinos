@@ -4,7 +4,7 @@ $(document).ready(function() {
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas Mínimos');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores Mínimos de Apuestas');
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
@@ -65,6 +65,8 @@ $(document).ready(function() {
           });
     });
     $('#modalCarga #agregarFisca').click(clickAgregarFisca);
+    $('#modalCargaBackUp #agregarFiscaBUp').click(clickAgregarFisca);
+
     $('#modalModificar #agregarFiscaMod').click(clickAgregarFiscaMod);
 
     $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
@@ -306,7 +308,7 @@ $(document).on('click', '.cargarApuesta', function(e){
 
       var id_casino=data.relevamiento.id_casino;
 
-      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
       $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
@@ -430,7 +432,7 @@ $(document).on('click', '.modificarApuesta', function(e){
 
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
        console.log('dataaaa',data);
        for (var i = 0; i < data.fiscalizadores.length; i++) {
          var fila= generarTablaFisca(data.fiscalizadores[i]);
@@ -1040,47 +1042,69 @@ function limpiarCargaBUp(){
 
 //dentro del modal de cargar relevamiento, para agregar la mesa al listado
 function clickAgregarFisca(e) {
-  var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
 
-     $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+  if($(this).attr('data-carga') == 'normal'){
+    var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
 
-       var fila= $(document.createElement('tr'));
-       fila.attr('id', data.usuario.id)
-           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .text(data.usuario.name)
-         )
-           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .addClass('col-xs-2')
-           .append($('<span>').text(' '))
-           .append($('<button>')
-           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','cargar')
-           .append($('<i>')
-           .addClass('fas').addClass('fa-fw').addClass('fa-trash')
-             )))
+       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
 
-         $('#fiscalizadoresPart tbody').append(fila);
-      $('#fiscalizadorCarga').setearElementoSeleccionado(0 , "");
+           var fila= $(document.createElement('tr'));
+           fila.attr('id', data.usuario.id_usuario)
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .text(data.usuario.nombre)
+             )
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .addClass('col-xs-2')
+               .append($('<span>').text(' '))
+               .append($('<button>')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .append($('<i>')
+               .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+                 )))
 
+             $('#fiscalizadoresPart tbody').append(fila);
+             $('#fiscalizadorCarga').setearElementoSeleccionado(0 , "");
+      });
+  }
+  if($(this).attr('data-carga') == 'backup'){
 
-    });
+    var id = $('#fiscalizadorBUp').obtenerElementoSeleccionado();
 
+       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+
+           var fila= $(document.createElement('tr'));
+           fila.attr('id', data.usuario.id_usuario)
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .text(data.usuario.nombre)
+             )
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .append($('<span>').text(' '))
+               .append($('<button>')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .append($('<i>')
+               .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+                 )))
+
+             $('#fiscalizadoresPartBUp tbody').append(fila);
+             $('#fiscalizadorBUp').setearElementoSeleccionado(0 , "");
+      });
+  }
 }
-
 function clickAgregarFiscaMod(e) {
   var id = $('#fiscalizadorMod').obtenerElementoSeleccionado();
 
      $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
 
        var fila= $(document.createElement('tr'));
-       fila.attr('id', data.usuario.id)
+       fila.attr('id', data.usuario.id_usuario)
            .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .text(data.usuario.name)
+           .text(data.usuario.nombre)
          )
            .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
            .addClass('col-xs-2')
            .append($('<span>').text(' '))
            .append($('<button>')
-           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','modificar')
+           .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','modificar')
            .append($('<i>')
            .addClass('fas').addClass('fa-fw').addClass('fa-trash')
              )))
@@ -1096,15 +1120,15 @@ function clickAgregarFiscaMod(e) {
 //genera la fila dentro de la tabla participantes en el modificar
 function generarTablaFisca(data){
     var fila= $(document.createElement('tr'));
-    fila.attr('id', data.id)
+    fila.attr('id', data.id_usuario)
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-        .text(data.name)
+        .text(data.nombre)
       )
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
         .addClass('col-xs-2')
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('btn_borrar_fisca').attr('id',data.id).attr('data-tipo','modificar')
+        .addClass('btn_borrar_fisca').attr('id',data.id_usuario).attr('data-tipo','modificar')
         .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-trash')
           )))
 
