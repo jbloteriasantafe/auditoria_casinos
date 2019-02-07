@@ -60,6 +60,7 @@ class ABMApuestasController extends Controller
     $relevamiento->hora_propuesta = $turno->hora_propuesta;
     $relevamiento->turno()->associate($turno->id_turno);
     $relevamiento->nro_turno = $turno->nro_turno;
+    $relevamiento->cumplio_minimo = 0;
     $relevamiento->estado()->associate(1);//generado
     if($fecha != date('Y-m-d')){
       $relevamiento->es_backup = 1;
