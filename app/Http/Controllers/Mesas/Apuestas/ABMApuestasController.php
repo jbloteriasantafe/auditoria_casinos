@@ -284,8 +284,11 @@ class ABMApuestasController extends Controller
     }
   }
 
+  //solo en pesos
+
   public function verificarMinimoApuestas($relevamiento){
     $minimos = ApuestaMinimaJuego::where('id_casino','=',$relevamiento->id_casino)
+                                  ->where('id_moneda','=',1)
                                   ->get();
     foreach($minimos as $minimo){
       $detalles_relevamiento = DetalleRelevamientoApuestas::where('id_juego_mesa','=',$minimo->id_juego_mesa)
