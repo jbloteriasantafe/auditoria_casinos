@@ -327,7 +327,7 @@ class BCApuestasController extends Controller
      }
 
      $cas=array();
-     $user = Auth::user();
+     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
      foreach ($user->casinos as $cass) {
        $cas[]=$cass->id_casino;
      }

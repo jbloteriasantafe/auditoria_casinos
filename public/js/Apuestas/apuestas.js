@@ -1,10 +1,9 @@
 $(document).ready(function() {
 
-
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas Mínimos');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores Mínimos de Apuestas');
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
@@ -65,6 +64,8 @@ $(document).ready(function() {
           });
     });
     $('#modalCarga #agregarFisca').click(clickAgregarFisca);
+    $('#modalCargaBackUp #agregarFiscaBUp').click(clickAgregarFisca);
+
     $('#modalModificar #agregarFiscaMod').click(clickAgregarFiscaMod);
 
     $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
@@ -151,6 +152,7 @@ $('#btn-backUp').on('click',function(e){
   $('#mensajeErrorCargaBUp').hide();
 
   $('#btn-guardar-backUp').hide();
+
 
   $('#modalCargaBackUp').modal('show');
 
@@ -242,6 +244,85 @@ $('#buscarBackUp').on('click', function(e){
      $('#mensajeErrorCargaBUp').show();
    }
 });
+
+//guardar backUp dentro del modal
+$('#btn-guardar-backUp').on('click',function(e){
+
+  e.preventDefault();
+
+  var detalles=[];
+
+  var f= $('#tablaCargaBUp tbody > tr');
+
+  //recorro tabla para enviar datos de relevamiento
+  $.each(f, function(index, value){
+
+    if($(this) != 'undefined'){
+      var d={
+        id_detalle: $(this).attr('id'),
+        minimo: $(this).find('.min_up').val(),
+        maximo:$(this).find('.max_up').val(),
+        id_estado_mesa:$(this).find('.estado_up').val(),
+      }
+        detalles.push(d);
+    }
+      })
+
+
+      var formData= {
+        hora:$('#hora_ejec_BUp').val(),
+        detalles:detalles,
+        id_fiscalizador:$('#fiscalizadorBUp').obtenerElementoSeleccionado(),
+        observaciones:$('#obsBUp').val(),
+      }
+
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      });
+
+      $.ajax({
+          type: 'POST',
+          url: 'apuestas/cargarRelevamiento',
+          data: formData,
+          dataType: 'json',
+
+          success: function (data){
+
+            $('#modalCargaBackUp').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('Relevamiento GUARDADO. ');
+            $('#mensajeExito').show();
+            $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
+          },
+          error: function (reject) {
+                if( reject.status === 422 ) {
+                    var errors = $.parseJSON(reject.responseText);
+                    $.each(errors, function (key, val) {
+                      if(key == 'detalles'){
+
+                        $('#mensajeErrorCargaBUp').show();
+                      }
+                      if(key == 'hora'){
+                        mostrarErrorValidacion( $('#hora_ejec_BUp'),val[0],false);
+                      }
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores' ){
+                          var splitt = key.split('.');
+                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                      }
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCargaBUp').show();
+                      }
+
+                    });
+                }
+            }
+      })
+
+});
+
+
 //btn generar planillas
 $('#btn-generar').on('click', function(e){
 
@@ -306,7 +387,7 @@ $(document).on('click', '.cargarApuesta', function(e){
 
       var id_casino=data.relevamiento.id_casino;
 
-      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
       $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
@@ -395,7 +476,8 @@ $('#btn-guardar').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
+                    console.log('ee',errors);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -404,12 +486,13 @@ $('#btn-guardar').on('click',function(e){
                       if(key == 'hora'){
                         mostrarErrorValidacion( $('#hora_ejec_carga'),val[0],false);
                       }
-                      if(key != 'hora' && key != 'detalles'){
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores'){
                           var splitt = key.split('.');
                         mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
-                      if(typeof errors.fiscalizadores != 'undefined'){
-                        $('#mensajeErrorCarga').text('Debe cargar al menos un Fiscalizador de toma').show();                      }
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCarga').show();
+                                        }
                     });
                 }
             }
@@ -430,7 +513,7 @@ $(document).on('click', '.modificarApuesta', function(e){
 
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
        console.log('dataaaa',data);
        for (var i = 0; i < data.fiscalizadores.length; i++) {
          var fila= generarTablaFisca(data.fiscalizadores[i]);
@@ -534,7 +617,7 @@ $('#btn-guardar-modif').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -548,7 +631,7 @@ $('#btn-guardar-modif').on('click',function(e){
                         mostrarErrorValidacion( $('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
                       if(typeof errors.id_fiscalizador != 'undefined'){
-                        mostrarErrorValidacion($('#fiscalizadorMod'),errors.id_fiscalizador,false);
+                        $('#mensajeErrorModificar').show();
                       }
                     });
                 }
@@ -1002,6 +1085,8 @@ function limpiarCarga(){
   $('#B_fecha_carga').val('');
   $('#fiscalizadorCarga').setearElementoSeleccionado(0,'');
   $('#obsCarga').val('');
+  $('#fiscalizadoresPart tbody tr').remove();
+
 
 }
 
@@ -1013,6 +1098,8 @@ function limpiarModificar(){
   $('#hora_prop_mod').val('');
   $('#hora_ejec_mod').val('');
   $('#obsModificacion').val('');
+  $('#fiscalizadoresPartModif tbody tr').remove();
+
 
 }
 
@@ -1022,6 +1109,7 @@ function limpiarValidar(){
   $('#hora_ejec_val').val('');
   $('#obsValidacion').val('');
   $('#obsFiscalizador').val('');
+  $('#fiscalizadoresPartVal tbody tr').remove();
 
 }
 
@@ -1035,52 +1123,75 @@ function limpiarCargaBUp(){
   $('#hora_prop_BUp').val('');
   $('#fiscalizadorBUp').setearElementoSeleccionado(0,'');
   $('#obsBUp').val('');
+  $('#fiscalizadoresPartBUp tbody tr').remove();
 
 }
 
 //dentro del modal de cargar relevamiento, para agregar la mesa al listado
 function clickAgregarFisca(e) {
-  var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
 
-     $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+  if($(this).attr('data-carga') == 'normal'){
+    var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
 
-       var fila= $(document.createElement('tr'));
-       fila.attr('id', data.usuario.id)
-           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .text(data.usuario.name)
-         )
-           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .addClass('col-xs-2')
-           .append($('<span>').text(' '))
-           .append($('<button>')
-           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','cargar')
-           .append($('<i>')
-           .addClass('fas').addClass('fa-fw').addClass('fa-trash')
-             )))
+       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
 
-         $('#fiscalizadoresPart tbody').append(fila);
-      $('#fiscalizadorCarga').setearElementoSeleccionado(0 , "");
+           var fila= $(document.createElement('tr'));
+           fila.attr('id', data.usuario.id_usuario)
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .text(data.usuario.nombre)
+             )
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .addClass('col-xs-2')
+               .append($('<span>').text(' '))
+               .append($('<button>')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .append($('<i>')
+               .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+                 )))
 
+             $('#fiscalizadoresPart tbody').append(fila);
+             $('#fiscalizadorCarga').setearElementoSeleccionado(0 , "");
+      });
+  }
+  if($(this).attr('data-carga') == 'backup'){
 
-    });
+    var id = $('#fiscalizadorBUp').obtenerElementoSeleccionado();
 
+       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+
+           var fila= $(document.createElement('tr'));
+           fila.attr('id', data.usuario.id_usuario)
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .text(data.usuario.nombre)
+             )
+               .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+               .append($('<span>').text(' '))
+               .append($('<button>')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .append($('<i>')
+               .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+                 )))
+
+             $('#fiscalizadoresPartBUp tbody').append(fila);
+             $('#fiscalizadorBUp').setearElementoSeleccionado(0 , "");
+      });
+  }
 }
-
 function clickAgregarFiscaMod(e) {
   var id = $('#fiscalizadorMod').obtenerElementoSeleccionado();
 
      $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
 
        var fila= $(document.createElement('tr'));
-       fila.attr('id', data.usuario.id)
+       fila.attr('id', data.usuario.id_usuario)
            .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-           .text(data.usuario.name)
+           .text(data.usuario.nombre)
          )
            .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
            .addClass('col-xs-2')
            .append($('<span>').text(' '))
            .append($('<button>')
-           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','modificar')
+           .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','modificar')
            .append($('<i>')
            .addClass('fas').addClass('fa-fw').addClass('fa-trash')
              )))
@@ -1096,15 +1207,15 @@ function clickAgregarFiscaMod(e) {
 //genera la fila dentro de la tabla participantes en el modificar
 function generarTablaFisca(data){
     var fila= $(document.createElement('tr'));
-    fila.attr('id', data.id)
+    fila.attr('id', data.id_usuario)
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-        .text(data.name)
+        .text(data.nombre)
       )
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
         .addClass('col-xs-2')
         .append($('<span>').text(' '))
         .append($('<button>')
-        .addClass('btn_borrar_fisca').attr('id',data.id).attr('data-tipo','modificar')
+        .addClass('btn_borrar_fisca').attr('id',data.id_usuario).attr('data-tipo','modificar')
         .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-trash')
           )))
 
