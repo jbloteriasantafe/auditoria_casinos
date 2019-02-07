@@ -77,7 +77,7 @@ class TurnosController extends Controller
     $trr = array();
     foreach ($turnos as $t) {
       $trr[] = [
-                'nro_turno' => $t->nro_turno.' '.$t->entrada.' a '.$t->salida.'-'.$t->casino->codigo,
+                'nro_turno' => $t->nro_turno.' '.$t->nombre_dia_desde.' a '.$t->nombre_dia_hasta.'-'.$t->casino->codigo,
                 'id_turno' => $t->id_turno,
                 ];
     }
