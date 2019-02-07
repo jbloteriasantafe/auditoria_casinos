@@ -97,16 +97,9 @@ class ABMCApuestaMinimaController extends Controller
       $pesos->save();
     }
     if($dolares == null && count($haymesasdolares)>0){
-      $dol = new ApuestaMinimaJuego;
-      $dol->moneda()->associate(2);
-      $dol->casino()->associate($casinos[0]);
-      $dol->save();
-      $dolares = ['apuesta' => $dol->apuesta_minima,
-               'cant_mesas' => $dol->cantidad_requerida,
-               'juego' => $dol->nombre_juego,
-               'casino' => $dol->casino,
-               'moneda' => $dol->moneda
-              ];
+      $dolares = new ApuestaMinimaJuego;
+      $dolares->moneda()->associate(2);
+      $dolares->save();
     }
     return ['pesos' => $apuestas, 'dolares' =>$dolares];
   }
