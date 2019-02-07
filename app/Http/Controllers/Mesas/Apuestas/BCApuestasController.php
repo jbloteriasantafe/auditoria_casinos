@@ -256,7 +256,7 @@ class BCApuestasController extends Controller
             'turno' => $relevamiento->turno,
             'detalles' => $detalles,
             'estados' => $estados,
-            'fiscalizador' => $relevamiento->fiscalizador,
+            'fiscalizadores' => $relevamiento->fiscalizadores,
             'cargador' => $relevamiento->cargador,
             'total_abiertas' => $abiertas,
             'cumplio_minimo' => $minimo,
