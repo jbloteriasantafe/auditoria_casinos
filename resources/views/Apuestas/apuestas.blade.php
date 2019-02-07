@@ -582,7 +582,7 @@ $cas = $usuario['usuario']->casinos;
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold">REQUERIMIENTOS ACTUALES</h6>
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="req">REQUERIMIENTOS ACTUALES</h6>
             <br>
             <div class="row">
               <div class="col-xs-6">

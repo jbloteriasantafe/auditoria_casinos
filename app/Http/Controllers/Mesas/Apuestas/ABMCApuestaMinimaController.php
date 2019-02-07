@@ -101,7 +101,7 @@ class ABMCApuestaMinimaController extends Controller
       $dolares->moneda()->associate(2);
       $dolares->save();
     }
-    return ['pesos' => $apuestas, 'dolares' =>$dolares];
+    return ['pesos' => $pesos, 'dolares' =>$dolares];
   }
 
   public function eliminar($id){

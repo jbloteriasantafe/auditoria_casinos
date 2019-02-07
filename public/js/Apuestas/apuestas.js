@@ -775,8 +775,8 @@ $('#btn-minimo').on('click',function(e){
 
   e.preventDefault();
 
-  $('#juegoNuevo').setearElementoSeleccionado(" ",0);
-  $('#juegoNuevoDol').setearElementoSeleccionado(" ",0);
+  $('#juegoNuevo').setearElementoSeleccionado(0,"");
+  $('#juegoNuevoDol').setearElementoSeleccionado(0,"");
 
   $('#cantidadNuevaDol').val('');
   $('#cantidadNueva').val('');
@@ -785,22 +785,27 @@ $('#btn-minimo').on('click',function(e){
 
 
   $.get('apuestas/obtenerRequerimientos', function(data){
+    var casino=(data.pesos.casino.nombre).toUpperCase();
 
-    $('#juegoMinimo').text('Juego: ' + data.minimo_pesos.juego).prop('disabled',true);
-    $('#apuestaMinimo').text('Apuesta mínima: ' + data.minimo_pesos.apuesta).prop('disabled',true);
-    $('#cantMinimo').text('Cantidad de Mesas abiertas: ' + data.minimo_pesos.cant_mesas).prop('disabled',true);
+    $('#req').text('REQUERIMIENTOS ACTUALES ' + casino);
+    $('#juegoMinimo').text('Juego: ' + data.pesos.juego).prop('disabled',true);
+    $('#apuestaMinimo').text('Apuesta mínima: ' + data.pesos.apuesta).prop('disabled',true);
+    $('#cantMinimo').text('Cantidad de Mesas abiertas: ' + data.pesos.cant_mesas).prop('disabled',true);
 
-    $('#juegoNuevo').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+    $('#juegoNuevo').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.pesos.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
-    if(data.minimo_dolares != null){
-      $('#juegoMinimoDol').text('Juego: ' + data.minimo_dolares.juego).prop('disabled',true);
-      $('#apuestaMinimoDol').text('Apuesta mínima: ' + data.minimo_dolares.apuesta).prop('disabled',true);
-      $('#cantMinimoDol').text('Cantidad de Mesas abiertas: ' + data.minimo_dolares.cant_mesas).prop('disabled',true);
+    if(data.dolares.apuesta != null){
+      $('#juegoMinimoDol').text('Juego: ' + data.dolares.juego).prop('disabled',true);
+      $('#apuestaMinimoDol').text('Apuesta mínima: ' + data.dolares.apuesta).prop('disabled',true);
+      $('#cantMinimoDol').text('Cantidad de Mesas abiertas: ' + data.dolares.cant_mesas).prop('disabled',true);
 
-      $('#juegoNuevoDol').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
-
+      $('#juegoNuevoDol').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.pesos.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
     }
-
+    if(data.dolares.apuesta == null){
+      $('#juegoNuevoDol').prop('disabled',true);
+      $('#apuestaNuevaDol').prop('disabled',true);
+      $('#cantidadNuevaDol').prop('disabled',true);
+    }
   })
 
   $('#modalMinimo').modal('show');
