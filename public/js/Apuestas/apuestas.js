@@ -776,15 +776,30 @@ $('#btn-minimo').on('click',function(e){
   e.preventDefault();
 
   $('#juegoNuevo').setearElementoSeleccionado(" ",0);
+  $('#juegoNuevoDol').setearElementoSeleccionado(" ",0);
+
+  $('#cantidadNuevaDol').val('');
+  $('#cantidadNueva').val('');
+  $('#apuestaNuevaDol').val('');
+  $('#apuestaNuevaDol').val('');
 
 
   $.get('apuestas/obtenerRequerimientos', function(data){
 
-    $('#juegoMinimo').text('Juego: ' + data.juego).prop('disabled',true);
-    $('#apuestaMinimo').text('Apuesta mínima: ' + data.apuesta).prop('disabled',true);
-    $('#cantMinimo').text('Cantidad de Mesas abiertas: ' + data.cant_mesas).prop('disabled',true);
+    $('#juegoMinimo').text('Juego: ' + data.minimo_pesos.juego).prop('disabled',true);
+    $('#apuestaMinimo').text('Apuesta mínima: ' + data.minimo_pesos.apuesta).prop('disabled',true);
+    $('#cantMinimo').text('Cantidad de Mesas abiertas: ' + data.minimo_pesos.cant_mesas).prop('disabled',true);
 
     $('#juegoNuevo').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+
+    if(data.minimo_dolares != null){
+      $('#juegoMinimoDol').text('Juego: ' + data.minimo_dolares.juego).prop('disabled',true);
+      $('#apuestaMinimoDol').text('Apuesta mínima: ' + data.minimo_dolares.apuesta).prop('disabled',true);
+      $('#cantMinimoDol').text('Cantidad de Mesas abiertas: ' + data.minimo_dolares.cant_mesas).prop('disabled',true);
+
+      $('#juegoNuevoDol').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + data.casino.id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+
+    }
 
   })
 
@@ -795,10 +810,26 @@ $('#btn-guardar-minimo').on('click',function(e){
 
   e.preventDefault();
 
-  var formData= {
+  var modificaciones=[];
+  var minimo_pesos={
+    id_moneda:1,
     id_juego:$('#juegoNuevo').obtenerElementoSeleccionado(),
     apuesta:$('#apuestaNueva').val(),
     cantidad:$('#cantidadNueva').val(),
+  };
+  var minimo_dolares={
+    id_moneda: 2,
+    id_juego:$('#juegoNuevoDol').obtenerElementoSeleccionado(),
+    apuesta:$('#apuestaNuevaDol').val(),
+    cantidad:$('#cantidadNuevaDol').val(),
+  };
+
+    modificaciones.push(minimo_pesos);
+    modificaciones.push(minimo_dolares)
+
+
+  var formData= {
+    modificaciones:modificaciones
   }
 
   $.ajaxSetup({
@@ -1227,9 +1258,9 @@ function generarTablaFisca(data){
 
 function generarValidarFisca(data){
     var fila= $(document.createElement('tr'));
-    fila.attr('id', data.id)
+    fila.attr('id', data.id_usuario)
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
-        .text(data.name)
+        .text(data.nombre)
       )
 
 
