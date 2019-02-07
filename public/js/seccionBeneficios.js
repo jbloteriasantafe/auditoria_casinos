@@ -460,7 +460,7 @@ $(document).on('click','#btn-validar',function(e){
 
         $('#mensajeExito').hide();
         $('#mensajeExito h3').text('BENEFICIOS validados');
-        $('#mensajeExito h4').text('Los beneficios fueron validados correctamente');
+        $('#mensajeExito p').text('Los beneficios fueron validados correctamente');
         $('#mensajeExito div').css('background-color','#6dc7be');
         $('#mensajeExito').show();
         $('#btn-buscar').trigger('click');
