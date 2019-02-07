@@ -42,6 +42,7 @@ class ABMAperturaController extends Controller
     'id_tipo_cierre'=> 'Tipo de Cierre',
     'id_mesa_de_panio'=> 'Mesa de Paño',
     'id_estado_cierre'=>'Estado',
+    'fichas.*.cantidad_ficha' => 'cantidad'
   ];
 
   /**
@@ -64,7 +65,7 @@ class ABMAperturaController extends Controller
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' => ['nullable'],
+      'fichas.*.cantidad_ficha' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
@@ -89,6 +90,7 @@ class ABMAperturaController extends Controller
                                    );
         }
       }
+      $validator = $this->validarFichas($validator);
 
     })->validate();
     if(isset($validator)){
@@ -112,15 +114,21 @@ class ABMAperturaController extends Controller
       $apertura->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
       $apertura->save();
       $detalles = array();
-      foreach ($request->fichas as $f) {
+      $total_pesos_fichas_a = 0;
+      foreach ($request['fichas'] as $f) {
         if($f['cantidad_ficha'] != 0){
           $ficha = new DetalleApertura;
           $ficha->ficha()->associate($f['id_ficha']);
           $ficha->cantidad_ficha = $f['cantidad_ficha'];
           $ficha->apertura()->associate($apertura->id_apertura_mesa);
           $ficha->save();
-          $detalles[] = $ficha;
+          $fixa = Ficha::find($f['id_ficha']);
+          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
         }
+      }
+      if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
+        $apertura->total_pesos_fichas_a = $total_pesos_fichas_a;
+        $apertura->save();
       }
 
       //$cacontroller = new ABMCCierreAperturaController;
@@ -141,7 +149,7 @@ class ABMAperturaController extends Controller
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'fichas' => 'required',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'fichas.*.cantidad_ficha' =>  ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $apertura=Apertura::find($validator->getData()['id_apertura']);
@@ -149,6 +157,7 @@ class ABMAperturaController extends Controller
       if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
          $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
+      $validator = $this->validarFichas($validator);
      })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -168,22 +177,43 @@ class ABMAperturaController extends Controller
         $d->apertura()->dissociate();
         $d->delete();
       }
-      foreach ($apertura->detalles as $f) {
+      $total_pesos_fichas_a = 0;
+      foreach ($request['fichas'] as $f) {
         if($f['cantidad_ficha'] != 0){
           $ficha = new DetalleApertura;
           $ficha->ficha()->associate($f['id_ficha']);
           $ficha->cantidad_ficha = $f['cantidad_ficha'];
           $ficha->apertura()->associate($apertura->id_apertura_mesa);
           $ficha->save();
+          $fixa = Ficha::find($f['id_ficha']);
+          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
         }
       }
-       return response()->json(['exito' => 'Apertura Modificada'], 200);
+      if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
+        $apertura->total_pesos_fichas_a = $total_pesos_fichas_a;
+        $apertura->save();
+      }
+      return response()->json(['exito' => 'Apertura Modificada'], 200);
     }else{
 
       return response()->json(['autorizacion' => 'No está autorizado para realizar esta accion.'], 404);
     }
   }
 
+  private function validarFichas($validator){
+    $aux = 0;
+    $total_pesos_fichas_a = 0;
+    if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
+      foreach ($validator->getData()['fichas'] as $detalle) {
+        $total_pesos_fichas_a+= $detalle['cantidad_ficha'];
+      }
 
+      if($total_pesos_fichas_a == 0){
+        $validator->errors()->add('fichas','No ha ingresado los montos.');
+      }
+      return $validator;
+
+    }
+  }
 
 }

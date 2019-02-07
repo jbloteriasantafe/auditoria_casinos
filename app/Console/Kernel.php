@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\asociarJuegoCasino::class,
         Commands\packJuego::class,
+        Commands\GenerarRelevamientosApuestas::class,
         SortearMesas::class,
     ];
 
@@ -41,6 +42,14 @@ class Kernel extends ConsoleKernel
       $schedule->command('RAM:sortear')
                ->dailyAt('16:30')
                ->runInBackground();
+
+     $schedule->command('RelevamientoApuestas:generar')
+             ->dailyAt('00:45')
+             ->runInBackground();
+
+     $schedule->command('RelevamientoApuestas:generar')
+             ->dailyAt('17:10')
+             ->runInBackground();
 
         //dd('se hizo');
 

@@ -1468,9 +1468,9 @@
                                     <h5>Código de Juego</h5>
                                     <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                 </div>
-                                
+
                             </div>
-                            
+
                             <div class="row" style="padding-bottom: 15px;">
                               <div class="col-md-4">
                                 <h5>Den. de Sala</h5>

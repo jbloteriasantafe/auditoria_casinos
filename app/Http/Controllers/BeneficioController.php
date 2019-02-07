@@ -251,8 +251,13 @@ class BeneficioController extends Controller
         $beneficio_mensual->bruto = $acumulado;
         //$beneficio_mensual->iea = algo;
         $beneficio_mensual->save();
+      }else{
+        return response()->json("Faltan importar beneficios", 404);
       }
+
     }
+    // TODO gestionar el error en el caso de que no se importaron los producidos
+    // ene se caso no va dar error pero tampoco va generar el producido mensual
     return "true";
   }
 

@@ -56,7 +56,7 @@ class RelevamientoGenerado extends Notification
               ->subject('Tienes un movimiento para relevar - CAS Lotería de Santa Fe')
               ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,
                                                                 'main' => $main,
-                                                                'ruta' => 'http://localhost:8000/relevamientos_movimientos',
+                                                                'ruta' => 'http://10.1.121.30:8000/relevamientos_movimientos',
                                                                 'boton' => 'VER RELEVAMIENTOS'
                                                               ]);
     }

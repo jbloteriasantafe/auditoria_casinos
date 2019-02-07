@@ -64,7 +64,7 @@ class NuevoMovimiento extends Notification
             //           ])
             ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,
                                                               'main' => $main,
-                                                              'ruta' => 'http://localhost:8000/movimientos',
+                                                              'ruta' => 'http://10.1.121.30:8000/movimientos',
                                                               'boton' => 'VER MOVIMIENTOS'
                                                             ]);
         // return (new MailMessage)

@@ -86,7 +86,9 @@ class ABMCierreController extends Controller
         }
       }
 
-      $validator = $this->validarFichas($validator);
+      if(!empty($validator->getData()['fichas'])){
+       $validator = $this->validarFichas($validator);
+     }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -109,6 +111,7 @@ class ABMCierreController extends Controller
       $cierre->moneda()->associate($request->id_moneda);
       $cierre->save();
       $detalles = array();
+      $total_pesos_fichas_c =0;
       foreach ($request->fichas as $f) {
           if($f['monto_ficha'] != 0){
           $ficha = new DetalleCierre;
@@ -118,7 +121,12 @@ class ABMCierreController extends Controller
           $ficha->cierre()->associate($cierre->id_cierre_mesa);
           $ficha->save();
           $detalles[] = $ficha;
+          $total_pesos_fichas_c+=$f['monto_ficha'];
         }
+      }
+      if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
+        $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
+        $cierre->save();
       }
      return ['cierre' => $cierre,'detalles' => $detalles];
     }else{
@@ -157,7 +165,9 @@ class ABMCierreController extends Controller
       if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
          $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
-      $validator = $this->validarFichas($validator);
+       if(!empty($validator->getData()['fichas'])){
+        $validator = $this->validarFichas($validator);
+      }
     })->validate();
     if(isset($validator)){
       if($validator->fails()){
@@ -166,7 +176,6 @@ class ABMCierreController extends Controller
     }
 
     $cierre = Cierre::find($request->id_cierre_mesa);
-    $cierre->fecha =$request->fecha;
     $cierre->hora_inicio = $request->hora_inicio;
     $cierre->hora_fin = $request->hora_fin;
     $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_a;
@@ -180,28 +189,44 @@ class ABMCierreController extends Controller
       $d->cierre()->dissociate();
       $d->delete();
     }
+    $total_pesos_fichas_c = 0;
     foreach ($request->fichas as $f) {
       if($f['monto_ficha'] != 0){
         $ficha = new DetalleCierre;
         $ficha->ficha()->associate($f['id_ficha']);
         $ficha->monto_ficha = $f['monto_ficha'];
+        $ficha->cierre()->associate($cierre->id_cierre_mesa);
         $ficha->save();
         $detalles[] = $ficha;
+        $total_pesos_fichas_c+=$f['monto_ficha'];
       }
+    }
+    if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
+      $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
+      $cierre->save();
     }
    return ['cierre' => $cierre,'detalles' => $detalles];
   }
 
   private function validarFichas($validator){
-    if(!empty($validator->getData()['fichas']) || $validator->getData()['fichas'] != null){
+    $aux = 0;
+    $total_pesos_fichas_c = 0;
+    if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
       foreach ($validator->getData()['fichas'] as $detalle) {
         $ficha = Ficha::find($detalle['id_ficha']);
-        $division = $detalle['monto_ficha'] / $ficha->valor_ficha ;
-        if(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0){
-          $validator->errors()->add('monto_ficha','El monto no es múltiplo del valor.'
+        $division = round(($detalle['monto_ficha'] / $ficha->valor_ficha), 2);
+
+        if($detalle['monto_ficha'] != 0 &&(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
+          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))){
+
+          $validator->errors()->add('fichas.'.$aux.'.monto_ficha','El monto no es múltiplo del valor.'
                                    );
-          break;
         }
+        $total_pesos_fichas_c+= $detalle['monto_ficha'];
+        $aux++;
+      }
+      if($total_pesos_fichas_c == 0){
+        $validator->errors()->add('fichas','No ha ingresado los montos.');
       }
       return $validator;
     }

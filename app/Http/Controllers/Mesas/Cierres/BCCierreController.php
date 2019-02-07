@@ -127,14 +127,23 @@ class BCCierreController extends Controller
         $conjunto = $cierre->cierre_apertura;
         $apertura = $conjunto->apertura;
         $juegoAP = $apertura->mesa->juego;
-        $detalleAP = array();
-        foreach ($apertura->detalles as $det) {
-          $cant = $det->cantidad_ficha;
-          $valor = $det->ficha->valor_ficha;
-          $detalleAP[] = ['monto_ficha' => ($cant * $valor),
-                          'valor_ficha' => $valor,
-                          ];
-        }
+        $detalleAP = DB::table('ficha')
+                            ->select(
+                                      DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
+                                      'ficha.valor_ficha')
+                            ->leftJoin('detalle_apertura as DA',function ($join) use($id){
+                                  $join->on('DA.id_ficha','=','ficha.id_ficha')
+                                  ->where('DA.id_apertura_mesa','=',$id);
+                                })
+                            ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                            ->whereNull('ficha.deleted_at')
+                            ->groupBy('DA.id_detalle_apertura',
+                                      'ficha.id_ficha',
+                                       'DA.cantidad_ficha',
+                                       'ficha.valor_ficha')
+                            ->orderBy('ficha.valor_ficha','desc')
+                            ->get();
+        
       }
       return response()->json(['cierre' => $cierre,
               'cargador' => $cierre->fiscalizador,
@@ -181,12 +190,14 @@ class BCCierreController extends Controller
                                   ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.hora_inicio',
                                             'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
-                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
+                                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa',
+                                            'cierre_apertura.id_cierre_mesa as cierre_validado'
                                           )
                                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
                                   ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
                                   ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
                                   ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
+                                  ->leftJoin('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa')
                                   ->where($filtros)
                                   ->whereIn('cierre_mesa.id_casino',$cas)
                                   ->whereNull('cierre_mesa.deleted_at')
