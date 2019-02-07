@@ -12,7 +12,7 @@ class ApuestaMinimaJuego extends Model
   protected $table = 'apuesta_minima_juego';
   protected $primaryKey = 'id_apuesta_minima';
   protected $visible = array('id_apuesta_minima','descripcion','id_juego_mesa',
-                              'cantidad_requerida','apuesta_minima'
+                              'cantidad_requerida','apuesta_minima','id_moneda'
                               );
   public $timestamps = false;
 
@@ -22,6 +22,10 @@ class ApuestaMinimaJuego extends Model
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
+
+  public function moneda(){
+    return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');
   }
 
   public function getTableName(){
