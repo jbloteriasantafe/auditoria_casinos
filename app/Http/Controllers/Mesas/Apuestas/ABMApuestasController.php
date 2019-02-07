@@ -23,7 +23,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\RelevamientoApuestas;
 use App\Mesas\DetalleRelevamientoApuestas;
-
+use App\Mesas\ApuestaMinimaJuego;
 use DateTime;
 use Dompdf\Dompdf;
 use App\Http\Controllers\UsuarioController;

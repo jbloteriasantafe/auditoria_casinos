@@ -1,6 +1,5 @@
 $(document).ready(function() {
 
-
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
@@ -154,6 +153,7 @@ $('#btn-backUp').on('click',function(e){
 
   $('#btn-guardar-backUp').hide();
 
+
   $('#modalCargaBackUp').modal('show');
 
 })
@@ -244,6 +244,85 @@ $('#buscarBackUp').on('click', function(e){
      $('#mensajeErrorCargaBUp').show();
    }
 });
+
+//guardar backUp dentro del modal
+$('#btn-guardar-backUp').on('click',function(e){
+
+  e.preventDefault();
+
+  var detalles=[];
+
+  var f= $('#tablaCargaBUp tbody > tr');
+
+  //recorro tabla para enviar datos de relevamiento
+  $.each(f, function(index, value){
+
+    if($(this) != 'undefined'){
+      var d={
+        id_detalle: $(this).attr('id'),
+        minimo: $(this).find('.min_up').val(),
+        maximo:$(this).find('.max_up').val(),
+        id_estado_mesa:$(this).find('.estado_up').val(),
+      }
+        detalles.push(d);
+    }
+      })
+
+
+      var formData= {
+        hora:$('#hora_ejec_BUp').val(),
+        detalles:detalles,
+        id_fiscalizador:$('#fiscalizadorBUp').obtenerElementoSeleccionado(),
+        observaciones:$('#obsBUp').val(),
+      }
+
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      });
+
+      $.ajax({
+          type: 'POST',
+          url: 'apuestas/cargarRelevamiento',
+          data: formData,
+          dataType: 'json',
+
+          success: function (data){
+
+            $('#modalCargaBackUp').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('Relevamiento GUARDADO. ');
+            $('#mensajeExito').show();
+            $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
+          },
+          error: function (reject) {
+                if( reject.status === 422 ) {
+                    var errors = $.parseJSON(reject.responseText);
+                    $.each(errors, function (key, val) {
+                      if(key == 'detalles'){
+
+                        $('#mensajeErrorCargaBUp').show();
+                      }
+                      if(key == 'hora'){
+                        mostrarErrorValidacion( $('#hora_ejec_BUp'),val[0],false);
+                      }
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores' ){
+                          var splitt = key.split('.');
+                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                      }
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCargaBUp').show();
+                      }
+
+                    });
+                }
+            }
+      })
+
+});
+
+
 //btn generar planillas
 $('#btn-generar').on('click', function(e){
 
@@ -397,7 +476,8 @@ $('#btn-guardar').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
+                    console.log('ee',errors);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -406,12 +486,13 @@ $('#btn-guardar').on('click',function(e){
                       if(key == 'hora'){
                         mostrarErrorValidacion( $('#hora_ejec_carga'),val[0],false);
                       }
-                      if(key != 'hora' && key != 'detalles'){
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores'){
                           var splitt = key.split('.');
                         mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
-                      if(typeof errors.fiscalizadores != 'undefined'){
-                        $('#mensajeErrorCarga').text('Debe cargar al menos un Fiscalizador de toma').show();                      }
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCarga').show();
+                                        }
                     });
                 }
             }
@@ -536,7 +617,7 @@ $('#btn-guardar-modif').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -550,7 +631,7 @@ $('#btn-guardar-modif').on('click',function(e){
                         mostrarErrorValidacion( $('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
                       if(typeof errors.id_fiscalizador != 'undefined'){
-                        mostrarErrorValidacion($('#fiscalizadorMod'),errors.id_fiscalizador,false);
+                        $('#mensajeErrorModificar').show();
                       }
                     });
                 }
@@ -1004,6 +1085,8 @@ function limpiarCarga(){
   $('#B_fecha_carga').val('');
   $('#fiscalizadorCarga').setearElementoSeleccionado(0,'');
   $('#obsCarga').val('');
+  $('#fiscalizadoresPart tbody tr').remove();
+
 
 }
 
@@ -1015,6 +1098,8 @@ function limpiarModificar(){
   $('#hora_prop_mod').val('');
   $('#hora_ejec_mod').val('');
   $('#obsModificacion').val('');
+  $('#fiscalizadoresPartModif tbody tr').remove();
+
 
 }
 
@@ -1024,6 +1109,7 @@ function limpiarValidar(){
   $('#hora_ejec_val').val('');
   $('#obsValidacion').val('');
   $('#obsFiscalizador').val('');
+  $('#fiscalizadoresPartVal tbody tr').remove();
 
 }
 
@@ -1037,6 +1123,7 @@ function limpiarCargaBUp(){
   $('#hora_prop_BUp').val('');
   $('#fiscalizadorBUp').setearElementoSeleccionado(0,'');
   $('#obsBUp').val('');
+  $('#fiscalizadoresPartBUp tbody tr').remove();
 
 }
 

@@ -324,7 +324,7 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
           <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;" id="cambiar">Deben completarse todos los datos solicitados.</span>
         </div> <!-- mensaje -->
       </div>
     </div>
