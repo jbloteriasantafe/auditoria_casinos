@@ -293,6 +293,7 @@ class BCApuestasController extends Controller
   }
 
   public function buscarRelevamientosBackUp(Request $request){
+
     $relevamiento = null;
     $validator=  Validator::make($request->all(),[
       'fecha' => 'required|date_format:"Y-m-d"',
@@ -307,13 +308,13 @@ class BCApuestasController extends Controller
 
       $fecha = explode('-',$validator->getData()['created_at']);
       $relevamiento = RelevamientoApuestas::whereDay('created_at','=',$fecha[2])
-                                            ->whereMonth('created_at','=',$fecha[1])
-                                            ->whereYear('created_at','=',$fecha[0])
-                                            ->where('nro_turno','=',$validator->getData()['nro_turno'])
-                                            ->where('fecha','=',$validator->getData()['fecha'])
-                                            ->where('es_backup','=','1')
-                                            ->whereIn('id_casino',$cas)
-                                            ->get();
+                                             ->whereMonth('created_at','=',$fecha[1])
+                                             ->whereYear('created_at','=',$fecha[0])
+                                             ->where('id_turno','=',$request['nro_turno'])
+                                             ->where('fecha','=',$request['fecha'])
+                                             ->where('es_backup','=','1')
+                                             ->whereIn('id_casino',$cas)
+                                             ->get();
                                           //  dd($validator->getData()['nro_turno']);
       if(count($relevamiento) != 1){
         $validator->errors()->add('error','No se pudo encontrar un relevamiento.'

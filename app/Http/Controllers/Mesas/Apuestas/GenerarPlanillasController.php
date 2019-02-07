@@ -52,67 +52,82 @@ class GenerarPlanillasController extends Controller
   {
   }
 
-    public function generarRelevamientosApuestas(){
-      File::deleteDirectory('public/Mesas/RelevamientosApuestas');
-      File::makeDirectory('public/Mesas/RelevamientosApuestas');
-      $apuestasController = new ABMApuestasController;
+  public function generarRelevamientosApuestas(){
+    //dd(public_path().'/Mesas/RelevamientosAperturas');
+    if(file_exists( public_path().'/Mesas/RelevamientosApuestas')){
+      File::deleteDirectory(public_path().'/Mesas/RelevamientosApuestas');
+      File::makeDirectory(public_path().'/Mesas/RelevamientosApuestas');
+    }else{
+      if(!file_exists( public_path().'/Mesas')){
+          File::makeDirectory(public_path().'/Mesas');
+      }
+      File::makeDirectory(public_path().'/Mesas/RelevamientosApuestas');
+    }
+    $apuestasController = new ABMApuestasController;
 
-      $casinos = Casino::all();
-      $arregloRutas = array();
-      $fecha_hoy = Carbon::now()->format("Y-m-d");
-      foreach ($casinos as $casino) {
-        foreach ($casino->turnos as $turno) {
-          $arregloRutasTurno = array();
-            for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
-              $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
-              $dia_carbon = Carbon::now()->addDays($i);
-              $numeroDia = $dia_carbon->format('w');
-              if($numeroDia == 0){
-                $numeroDia = 7;
-              }
-              //si el turno esta el dia de fecha_backup entonces se crea
-              if($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta){
-                //busco si existe el que estoy creando
-
-                if($i>0){
-                  $backUp = 1;
-                }else{
-                  $backUp = 0;
-                }
-                $relevamiento = RelevamientoApuestas::where([['id_turno','=',$turno->id_turno],
-                                                              ['id_casino','=',$casino->id_casino],
-                                                              ['es_backup','=',$backUp],
-                                                              ['fecha','=',$fecha_backup],
-                                                              ['created_at','=',$fecha_hoy]
-                                                            ])->get();
-                if(count($relevamiento) != 1){
-                  $id_relevamiento = $apuestasController->crearRelevamientoApuestas($casino,$turno,$fecha_backup);
-                }else{
-                  $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
-                }
-                $dompdf = $this->generarPlanilla( $id_relevamiento,$turno, $fecha_backup, $casino);
-                $output = $dompdf->output();
-                $ruta = "public/Mesas/RelevamientosApuestas/Relevamiento-Apuestas-".$fecha_backup.
-                      '-Turno-N'.$turno->nro_turno.'_'.$turno->dia_desde.''.$turno->dia_hasta.".pdf";
-                file_put_contents($ruta, $output);
-                $arregloRutasTurno[] = $ruta;
-              }
+    $casinos = Casino::all();
+    $arregloRutas = array();
+    $fecha_hoy = Carbon::now()->format("Y-m-d");
+    foreach ($casinos as $casino) {
+      foreach ($casino->turnos as $turno) {
+        $arregloRutasTurno = array();
+          for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+            $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+            $dia_carbon = Carbon::now()->addDays($i);
+            $numeroDia = $dia_carbon->format('w');
+            if($numeroDia == 0){
+              $numeroDia = 7;
             }
-            $nombreZipTurno = 'TURNO-N'.$turno->nro_turno.'-D'.$turno->nombre_dia_desde.'a'.$turno->nombre_dia_hasta.'.zip';
-            Zipper::make('public/Mesas/RelevamientosApuestas/'.$nombreZipTurno)->add($arregloRutasTurno)->close();
+            //si el turno esta el dia de fecha_backup entonces se crea
+            if($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta){
+              //busco si existe el que estoy creando
+
+              if($i>0){
+                $backUp = 1;
+              }else{
+                $backUp = 0;
+              }
+              $relevamiento = RelevamientoApuestas::where([['id_turno','=',$turno->id_turno],
+                                                            ['id_casino','=',$casino->id_casino],
+                                                            ['es_backup','=',$backUp],
+                                                            ['fecha','=',$fecha_backup],
+                                                            ['created_at','=',$fecha_hoy]
+                                                          ])->get();
+              if(count($relevamiento) != 1){
+                $id_relevamiento = $apuestasController->crearRelevamientoApuestas($casino,$turno,$fecha_backup);
+              }else{
+                $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
+              }
+              $dompdf = $this->generarPlanilla( $id_relevamiento,$turno, $fecha_backup, $casino);
+              $output = $dompdf->output();
+              $ruta = public_path()."/Mesas/RelevamientosApuestas/Valores_Minimos_Apuestas-fecha_".$fecha_backup.
+                      '_Turno-Nro-'.$turno->nro_turno.'-Dias-'.$turno->nombre_dia_desde.'-a-'.$turno->nombre_dia_hasta.".pdf";
+
+
+              file_put_contents($ruta, $output);
+              $arregloRutasTurno[] = $ruta;
+            }
+          }
+          if(count($arregloRutasTurno)>0 ){
+            //lo crea y no lo encuentra
+            $nombreZipTurno = public_path().'/Mesas/RelevamientosApuestas/'.'Valores_Minimos_Apuestas_'.$fecha_hoy.'_al_'.$fecha_backup.'-TURNO-Nro-'.
+                               $turno->nro_turno.'-Dias-'.$turno->nombre_dia_desde.'-a-'.$turno->nombre_dia_hasta.'.zip';
+            Zipper::make($nombreZipTurno)->add($arregloRutasTurno)->close();
             $arregloRutas[] = $nombreZipTurno;
             File::delete($arregloRutasTurno);
           }
-          $nombreZip = 'Planillas-Apuestas-'.$casino->codigo
-                    .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
-                    .'.zip';
-
-          Zipper::make('public/Mesas/RelevamientosApuestas/'.$nombreZip)->add($arregloRutas)->close();
-          File::delete($arregloRutas);
-          $arregloRutas = array();
         }
-      }
+        $nombreZip = 'Planillas-Apuestas-'.$casino->codigo
+                  .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
+                  .'.zip';
 
+        Zipper::make(public_path().'/Mesas/RelevamientosApuestas/'.$nombreZip)->add($arregloRutas)->close();
+        File::delete($arregloRutas);
+        $arregloRutas = array();
+      }
+    }
+
+    
 
     //falta agregarle nro de pagina .-
     private function generarPlanilla( $id_relevamiento,
