@@ -4,6 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+
+/*
+
+  Tener en cuenta que 0 no es ningin dia,
+  1 es el LUNES,..,7 es el DOMINGO
+  para obtener que nro de dia es:
+  ->format('w'); ->>retorna 0 si es domingo, el resto de los dias esta OK
+
+
+*/
 class Turno extends Model
 {
   protected $connection = 'mysql';
@@ -12,6 +22,39 @@ class Turno extends Model
   protected $visible = array('id_turno','id_layout_parcial','id_casino',
   'dia_desde', 'dia_hasta' , 'entrada','salida' , 'nro_turno','hora_propuesta');
   public $timestamps = false;
+
+  protected $appends = array('nombre_dia_desde','nombre_dia_hasta');
+
+
+  public function getNombreDiaDesdeAttribute(){
+    return $this->elegirdia($this->dia_desde);
+  }
+  public function getNombreDiaHastaAttribute(){
+    return $this->elegirdia($this->dia_hasta);
+  }
+
+  private function elegirdia($dia){
+    switch ($dia) {
+      case 1:
+        return 'Lunes';
+      case 2:
+        return 'Martes';
+      case 3:
+        return 'Miercoles';
+      case 4:
+        return 'Jueves';
+      case 5:
+        return 'Viernes';
+      case 6:
+        return 'Sabado';
+      case 7:
+        return 'Domingo';
+      default:
+
+        return 'NoEncontrado';
+        break;
+    }
+  }
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');

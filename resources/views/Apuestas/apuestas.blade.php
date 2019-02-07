@@ -212,152 +212,68 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 
-  <!-- MODAL CARGA RELEVAMIENTO -->
+<!-- MODAL CARGA RELEVAMIENTO -->
 <div class="modal fade" id="modalCarga" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
-    <div class="modal-dialog modal-lg" style="width: 70%;">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color:#1DE9B6;">
-          <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-          <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-          <h3 class="modal-title">| CARGA RELEVAMIENTO DE VALORES DE APUESTAS </h3>
-        </div>
-        <div  id="colapsado" class="collapse in">
-          <div class="modal-body" style="font-family: Roboto;">
-            <div class="row" style="border-bottom:2px solid #ccc;">
-              <div class="col-md-4">
-                <h6 style="font-size:16px !important;">FECHA</h6>
-                <div class="form-group">
-                  <div class='input-group date' id='dtpFechaCarga' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                    <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_carga" value=" "/>
-                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <h6 style="font-size:16px !important;">HORA PROPUESTA</h6>
-                <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_carga" value="">
-              </div>
-              <div class="col-md-4">
-                <h6 style="font-size:16px !important;">HORA EJECUCIÓN</h6>
-                <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_carga" value="">
-              </div>
-            </div>
-            <div class="row" style="border-bottom:2px solid #ccc;">
-              <div class="col-md-4">
-                <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
-                <input class="linea form-control" id="fiscalizadorCarga" type="text" value=""  size="100" autocomplete="off">
-              </div>
-              <div class="col-md-4">
-                <h6 style="font-size:16px !important;">TURNO</h6>
-                  <input type="text" class="form-control" id="turnoRelevado" name="" value="" readonly="true">
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <table id="tablaCarga"class="table table-fixed table-striped ">
-                <thead style="height:40px">
-                  <th class="col-xs-2"><h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">JUEGO</h6> </th>
-                  <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold ">NRO MESA</h6> </th>
-                  <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">POSICIONES</h6> </th>
-                  <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">ESTADO (A|C|T)</h6> </th>
-                  <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">MÍNIMA</h6> </th>
-                  <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">MÁXIMA</h6> </th>
-
-                </thead>
-
-                <tbody style=" height:420px; width:100%">
-
-                </tbody>
-              </table>
-              <div class="table table-responsive" id="ff" style="display:none;">
-
-              <table class="table table-striped " >
-                  <tr id="moldeCarga" class="filaClone" style="display:none">
-                    <td class="col-xs-2 juego_carga" rowspan="1" nowrap  style="text-align:center !important;"></td>
-                    <td class="col-xs-2 nro_mesa" rowspan="1" nowrap style="text-align:center !important;"></td>
-                    <td class="col-xs-2 pos_carga" rowspan="1" nowrap style="text-align:center !important;"></td>
-                    <td class="col-xs-2">
-                      <select class=" form-control estado_carga" id="" rowspan="1" style="text-align:center !important;">
-                      </select>
-                    </td>
-                    <td class="col-xs-2">
-                      <input type="text" style="text-align:center !important;" id="" rowspan="1" class=" form-control min_carga" name="" value="">
-                    </td>
-                    <td class="col-xs-2">
-                      <input type="text"  style="text-align:center !important;" id="" rowspan="1" class=" form-control max_carga" name="" value="">
-
-                    </td>
-                  </tr>
-
-              </table>
-              </div>
-            </div>
-            <div class="row">
-              <h6 style="font-size:16px;font-weight:bold">OBSERVACIONES:</h6>
-              <textarea name="name" id="obsCarga" rows="2" style="resize:none;display:block;width:80% !important;margin-left:10px;align:center" wrap="off" class="estilotextarea4"></textarea>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo" hidden="true">GUARDAR</button>
-          </div>
-
-          <div id="mensajeErrorCarga" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
-          </div> <!-- mensaje -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-<!-- MODAL MODIFICAR -->
-<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="width: 80%" >
+  <div class="modal-dialog modal-lg" style="width: 70%;">
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#FFA726;">
+      <div class="modal-header" style="background-color:#1DE9B6;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| MODIFICACIÓN DE RELEVAMIENTO DE VALORES DE APUESTAS </h3>
+        <h3 class="modal-title">| CARGA RELEVAMIENTO DE VALORES DE APUESTAS </h3>
       </div>
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h6 style="font-size:16px !important;">FECHA</h6>
               <div class="form-group">
-                <div class='input-group date' id='dtpFechaModificar' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_modificar" value=" "/>
+                <div class='input-group date' id='dtpFechaCarga' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                  <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_carga" value=" "/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h6 style="font-size:16px !important;">HORA PROPUESTA</h6>
-              <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_mod" value="">
+              <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_carga" value="">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h6 style="font-size:16px !important;">HORA EJECUCIÓN</h6>
-              <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_mod" value="">
+              <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_carga" value="">
+            </div>
+            <div class="col-md-3">
+              <h6 style="font-size:16px !important;">TURNO</h6>
+                <input type="text" class="form-control" id="turnoRelevado" name="" value="" readonly="true">
             </div>
           </div>
           <div class="row" style="border-bottom:2px solid #ccc;">
             <div class="col-md-4">
               <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
-              <input class="linea form-control" id="fiscalizadorMod" type="text" value=""  size="100" autocomplete="off">
+              <div class="input-group ">
+                <input id="fiscalizadorCarga" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
+                <span class="input-group-btn" style="display:block;">
+                  <button id="agregarFisca" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                </span>
+              </div>
             </div>
-            <div class="col-md-4">
-              <h6 style="font-size:16px !important;">TURNO</h6>
-                <input type="text" class="form-control" id="turnoRelevadoMod" name="" value="" readonly="true">
+            <div class="col-md-5">
+              <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+              <table class="table" id="fiscalizadoresPart">
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="col-md-3">
+              <h5>A: Abierta</h5>
+              <h5>C: Cerrada</h5>
+              <h5>T: En Torneo</h5>
             </div>
           </div>
-          <br><br>
+          <br>
           <div class="row">
-            <table id="tablaModificar"class="table table-fixed table-striped ">
+            <table id="tablaCarga"class="table table-fixed table-striped ">
               <thead style="height:40px">
                 <th class="col-xs-2"><h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">JUEGO</h6> </th>
                 <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold ">NRO MESA</h6> </th>
@@ -368,26 +284,26 @@ $cas = $usuario['usuario']->casinos;
 
               </thead>
 
-              <tbody style=" height:380px; width:100%">
+              <tbody style=" height:420px; width:100%">
 
               </tbody>
             </table>
-            <div class="table table-responsive" id="dd" style="display:none;">
+            <div class="table table-responsive" id="ff" style="display:none;">
 
             <table class="table table-striped " >
-                <tr id="moldeModificacion" class="filaClone" style="display:none">
-                  <td class="col-xs-2 juego_mod" rowspan="1" nowrap  style="text-align:center !important;"></td>
-                  <td class="col-xs-2 nro_mesa_mod" rowspan="1" nowrap style="text-align:center !important;"></td>
-                  <td class="col-xs-2 pos_mod" rowspan="1" nowrap style="text-align:center !important;"></td>
+                <tr id="moldeCarga" class="filaClone" style="display:none">
+                  <td class="col-xs-2 juego_carga" rowspan="1" nowrap  style="text-align:center !important;"></td>
+                  <td class="col-xs-2 nro_mesa" rowspan="1" nowrap style="text-align:center !important;"></td>
+                  <td class="col-xs-2 pos_carga" rowspan="1" nowrap style="text-align:center !important;"></td>
                   <td class="col-xs-2">
-                    <select class=" form-control estado_mod" id="" rowspan="1" style="text-align:center !important;">
+                    <select class=" form-control estado_carga" id="" rowspan="1" style="text-align:center !important;">
                     </select>
                   </td>
                   <td class="col-xs-2">
-                    <input type="text" style="text-align:center !important;" id="" rowspan="1" class=" form-control min_mod" name="" value="">
+                    <input type="text" style="text-align:center !important;" id="" rowspan="1" class=" form-control min_carga" name="" value="">
                   </td>
                   <td class="col-xs-2">
-                    <input type="text"  style="text-align:center !important;" id="" rowspan="1" class=" form-control max_mod" name="" value="">
+                    <input type="text"  style="text-align:center !important;" id="" rowspan="1" class=" form-control max_carga" name="" value="">
 
                   </td>
                 </tr>
@@ -396,15 +312,16 @@ $cas = $usuario['usuario']->casinos;
             </div>
           </div>
           <div class="row">
-            <h6>OBSERVACIONES:</h6>
-            <textarea name="name" id="obsModificacion" rows="2" style="resize:none;display:block;width:80% !important;margin-left:10px;align:center" wrap="off" class="estilotextarea4"></textarea>
-
+            <h6 style="font-size:16px;font-weight:bold">OBSERVACIONES:</h6>
+            <textarea name="name" id="obsCarga" rows="2" style="resize:none;display:block;width:80% !important;margin-left:10px;align:center" wrap="off" class="estilotextarea4"></textarea>
           </div>
         </div>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-guardar-modif" value="nuevo" hidden="true">GUARDAR</button>
+          <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo" hidden="true">GUARDAR</button>
         </div>
-        <div id="mensajeErrorModificar" hidden>
+
+        <div id="mensajeErrorCarga" hidden>
           <br>
           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
           <br>
@@ -415,6 +332,125 @@ $cas = $usuario['usuario']->casinos;
   </div>
 </div>
 
+<!-- MODAL MODIFICAR -->
+<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg" style="width: 80%" >
+  <div class="modal-content">
+    <div class="modal-header" style="background-color:#FFA726;">
+      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+      <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+      <h3 class="modal-title">| MODIFICACIÓN DE RELEVAMIENTO DE VALORES DE APUESTAS </h3>
+    </div>
+    <div  id="colapsado" class="collapse in">
+      <div class="modal-body" style="font-family: Roboto;">
+        <div class="row" style="border-bottom:2px solid #ccc;">
+          <div class="col-md-3">
+            <h6 style="font-size:16px !important;">FECHA</h6>
+            <div class="form-group">
+              <div class='input-group date' id='dtpFechaModificar' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_modificar" value=" "/>
+                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <h6 style="font-size:16px !important;">HORA PROPUESTA</h6>
+            <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_mod" value="">
+          </div>
+          <div class="col-md-3">
+            <h6 style="font-size:16px !important;">HORA EJECUCIÓN</h6>
+            <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_mod" value="">
+          </div>
+          <div class="col-md-3">
+            <h6 style="font-size:16px !important;">TURNO</h6>
+              <input type="text" class="form-control" id="turnoRelevadoMod" name="" value="" readonly="true">
+          </div>
+        </div>
+        <div class="row" style="border-bottom:2px solid #ccc;">
+          <div class="col-md-4">
+            <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
+            <div class="input-group ">
+              <input id="fiscalizadorMod" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
+              <span class="input-group-btn" style="display:block;">
+                <button id="agregarFiscaMod" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+              </span>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+            <table class="table" id="fiscalizadoresPartModif">
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-md-3">
+            <h5>A: Abierta</h5>
+            <h5>C: Cerrada</h5>
+            <h5>T: En Torneo</h5>
+          </div>
+
+        </div>
+        <br><br>
+        <div class="row">
+          <table id="tablaModificar"class="table table-fixed table-striped ">
+            <thead style="height:40px">
+              <th class="col-xs-2"><h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">JUEGO</h6> </th>
+              <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold ">NRO MESA</h6> </th>
+              <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">POSICIONES</h6> </th>
+              <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">ESTADO (A|C|T)</h6> </th>
+              <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">MÍNIMA</h6> </th>
+              <th class="col-xs-2"> <h6 style="text-align:center !important;color:#212121 !important;font-size:17px;font-weight:bold">MÁXIMA</h6> </th>
+
+            </thead>
+
+            <tbody style=" height:380px; width:100%">
+
+            </tbody>
+          </table>
+          <div class="table table-responsive" id="dd" style="display:none;">
+
+          <table class="table table-striped " >
+              <tr id="moldeModificacion" class="filaClone" style="display:none">
+                <td class="col-xs-2 juego_mod" rowspan="1" nowrap  style="text-align:center !important;"></td>
+                <td class="col-xs-2 nro_mesa_mod" rowspan="1" nowrap style="text-align:center !important;"></td>
+                <td class="col-xs-2 pos_mod" rowspan="1" nowrap style="text-align:center !important;"></td>
+                <td class="col-xs-2">
+                  <select class=" form-control estado_mod" id="" rowspan="1" style="text-align:center !important;">
+                  </select>
+                </td>
+                <td class="col-xs-2">
+                  <input type="text" style="text-align:center !important;" id="" rowspan="1" class=" form-control min_mod" name="" value="">
+                </td>
+                <td class="col-xs-2">
+                  <input type="text"  style="text-align:center !important;" id="" rowspan="1" class=" form-control max_mod" name="" value="">
+
+                </td>
+              </tr>
+
+          </table>
+          </div>
+        </div>
+        <div class="row">
+          <h6>OBSERVACIONES:</h6>
+          <textarea name="name" id="obsModificacion" rows="2" style="resize:none;display:block;width:80% !important;margin-left:10px;align:center" wrap="off" class="estilotextarea4"></textarea>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-successAceptar" id="btn-guardar-modif" value="nuevo" hidden="true">GUARDAR</button>
+      </div>
+      <div id="mensajeErrorModificar" hidden>
+        <br>
+        <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+        <br>
+        <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
+      </div> <!-- mensaje -->
+    </div>
+  </div>
+</div>
+</div>
 
 <!-- MODAL VALIDAR -->
 <div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -432,19 +468,15 @@ $cas = $usuario['usuario']->casinos;
               <h6 style="font-size:16px !important;">FECHA</h6>
                 <input type='text' class="form-control"  id="B_fecha_val" value=" " readonly="true">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <h6 style="font-size:16px !important;">HS PROPUESTA</h6>
               <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_val" value="" readonly="true">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <h6 style="font-size:16px !important;">HS EJECUCIÓN</h6>
               <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_val" value="" readonly="true">
             </div>
             <div class="col-md-3">
-              <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
-              <input class="linea form-control" id="fiscalizadorVal" type="text" value=""  size="100" autocomplete="off" readonly="true">
-            </div>
-            <div class="col-md-2">
               <h6 style="font-size:16px !important;">TURNO</h6>
                 <input type="text" class="form-control" id="turnoRelevadoVal" name="" value="" readonly="true">
             </div>
@@ -452,25 +484,35 @@ $cas = $usuario['usuario']->casinos;
 
           <br>
           <br>
-          <div class="row" style="border-bottom:1px solid #ccc; border-top:1px solid #ccc">
-            <h6 style="text-align:center !important;font-size:17px">MESAS ABIERTAS EN ESTA FECHA: </h6>
+          <div class="row" style="border-collapse: collapse;position:relative">
+            <div class="col-xs-6">
+              <table  style="width:100%;"  class="table table-responsive">
+                <h6 style="text-align:center !important;font-size:16px">MESAS ABIERTAS EN ESTA FECHA: </h6>
+                <thead>
+                  <th> <h5 style="font-size:14px; text-align:center !important">JUEGO</h5> </th>
+                  <th> <h5 style="font-size:14px; text-align:center !important">CANTIDAD</h5> </th>
+                </thead>
+                <tbody id="mesasPorJuego">
 
-            <table class="table table-striped" style="width:50%;text-align:center !important;margin-left:210px !important">
-              <thead>
-                <th> <h5 style="font-size:16px; text-align:center !important">JUEGO</h5> </th>
-                <th> <h5 style="font-size:16px; text-align:center !important">CANTIDAD</h5> </th>
-              </thead>
-              <tbody id="mesasPorJuego">
+                </tbody>
+              </table>
+            </div>
+            <div class="col-xs-6">
 
-              </tbody>
-            </table>
+              <table id="fiscalizadoresPartVal" style="width:100%;position:relative" class="table table-responsive" >
+                <h6 style="font-size:16px !important;">FISCALIZADOR/ES DE TOMA</h6>
 
+                <tbody>
+                </tbody>
+              </table>
+            </div>
           </div>
           <br>
-          <div class="row">
-            <h6 class="cumpleMin">CUMPLIÓ MÍNIMO REQUERIDO:</h6>
+          <br>
+          <!-- <div class="row">
+            <h6 class="cumpleMin" style="font-size:16px !important;">CUMPLIÓ MÍNIMO REQUERIDO:</h6>
 
-          </div>
+          </div> -->
           <br>
           <div class="row">
             <table id="tablaValidar"class="table table-fixed table-striped " style="width:100%">

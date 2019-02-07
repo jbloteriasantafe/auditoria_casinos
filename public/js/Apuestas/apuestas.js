@@ -4,7 +4,7 @@ $(document).ready(function() {
     $('#barraMesas').attr('aria-expanded','true');
     $('#mesasPanio').removeClass();
     $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores de Apuestas Mínimos');
     $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
     $('#opcApuestas').addClass('opcionesSeleccionado');
 
@@ -64,6 +64,8 @@ $(document).ready(function() {
             container:$('#modalCargaBackUp')
           });
     });
+    $('#modalCarga #agregarFisca').click(clickAgregarFisca);
+    $('#modalModificar #agregarFiscaMod').click(clickAgregarFiscaMod);
 
     $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
 
@@ -304,10 +306,10 @@ $(document).on('click', '.cargarApuesta', function(e){
 
       var id_casino=data.relevamiento.id_casino;
 
-      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
       $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
-      $('#turnoRelevado').val(data.turno.id_turno).prop('readonly', true);
+      $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
 
       var aux_nro_fila = 0;
 
@@ -336,6 +338,17 @@ $('#btn-guardar').on('click',function(e){
   e.preventDefault();
 
   var detalles=[];
+  var fiscalizadores=[];
+
+  var d= $('#fiscalizadoresPart tbody > tr');
+
+  $.each(d, function(index, value){
+
+    if($(this) != 'undefined'){
+
+        fiscalizadores.push($(this).attr('id'));
+    }
+      })
 
   var f= $('#tablaCarga tbody > tr');
 
@@ -353,12 +366,10 @@ $('#btn-guardar').on('click',function(e){
     }
       })
 
-
-
       var formData= {
         hora:$('#hora_ejec_carga').val(),
         detalles:detalles,
-        id_fiscalizador:$('#fiscalizadorCarga').obtenerElementoSeleccionado(),
+        fiscalizadores:fiscalizadores,
         observaciones:$('#obsCarga').val(),
       }
 
@@ -384,7 +395,7 @@ $('#btn-guardar').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = $.parseJSON(reject.responseText).errors;
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -397,16 +408,14 @@ $('#btn-guardar').on('click',function(e){
                           var splitt = key.split('.');
                         mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
-                      if(typeof errors.id_fiscalizador != 'undefined'){
-                        mostrarErrorValidacion($('#fiscalizadorCarga'),errors.id_fiscalizador,false);
-                      }
+                      if(typeof errors.fiscalizadores != 'undefined'){
+                        $('#mensajeErrorCarga').text('Debe cargar al menos un Fiscalizador de toma').show();                      }
                     });
                 }
             }
       })
 
 })
-
 
 //modificar relevamiento cargado
 $(document).on('click', '.modificarApuesta', function(e){
@@ -421,8 +430,12 @@ $(document).on('click', '.modificarApuesta', function(e){
 
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','nombre',1);
-       $('#fiscalizadorMod').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','name',1);
+       console.log('dataaaa',data);
+       for (var i = 0; i < data.fiscalizadores.length; i++) {
+         var fila= generarTablaFisca(data.fiscalizadores[i]);
+         $('#fiscalizadoresPartModif tbody').append(fila);
+       }
 
        $('#B_fecha_modificar').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
        $('#turnoRelevadoMod').val(data.turno.id_turno).prop('readonly', true);
@@ -444,7 +457,6 @@ $(document).on('click', '.modificarApuesta', function(e){
        $('#hora_ejec_mod').val(hs + ':' + mm);
        $('#hora_prop_mod').val(data.relevamiento_apuestas.hora_propuesta).prop('readonly',true);
 
-
        //sirve para crear indices sobre las filas de detalles
         var aux_nro_fila = 0;
         for (var i = 0; i < data.detalles.length; i++) {
@@ -455,9 +467,7 @@ $(document).on('click', '.modificarApuesta', function(e){
 
           aux_nro_fila++;
         }
-
   })
-
    $('#modalModificar').modal('show');
 
 })
@@ -467,7 +477,17 @@ $('#btn-guardar-modif').on('click',function(e){
   e.preventDefault();
 
   var detalles=[];
+  var fiscalizadores=[];
 
+  var d= $('#fiscalizadoresPartModif tbody > tr');
+
+  $.each(d, function(index, value){
+
+    if($(this) != 'undefined'){
+
+        fiscalizadores.push($(this).attr('id'));
+    }
+      })
   var f= $('#tablaModificar tbody > tr');
 
   //recorro tabla para enviar datos de relevamiento
@@ -485,11 +505,10 @@ $('#btn-guardar-modif').on('click',function(e){
       })
 
 
-
       var formData= {
         hora:$('#hora_ejec_mod').val(),
         detalles:detalles,
-        id_fiscalizador:$('#fiscalizadorMod').obtenerElementoSeleccionado(),
+        fiscalizadores:fiscalizadores,
         observaciones:$('#obsModificacion').val()
       }
 
@@ -515,7 +534,7 @@ $('#btn-guardar-modif').on('click',function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = $.parseJSON(reject.responseText).errors;
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
 
@@ -570,8 +589,11 @@ $(document).on('click', '.validarApuesta', function(e){
       $('#btn-validar').val(data.relevamiento_apuestas.id_relevamiento_apuestas);
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorVal').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id','nombre',1);
-       $('#fiscalizadorVal').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+       for (var i = 0; i < data.fiscalizadores.length; i++) {
+        var fila= generarValidarFisca(data.fiscalizadores[i]);
+
+        $('#fiscalizadoresPartVal tbody').append(fila);
+       }
 
        $('#B_fecha_val').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
        $('#turnoRelevadoVal').val(data.turno.id_turno).prop('readonly', true);
@@ -618,6 +640,7 @@ $(document).on('click', '.validarApuesta', function(e){
         for (var i = 0; i < data.abiertas_por_juego.length; i++) {
 
           var fila2= generarFilaValidar2(data.abiertas_por_juego[i]);
+          console.log('fffff',fila2);
 
           $('#mesasPorJuego').append(fila2);
 
@@ -627,6 +650,7 @@ $(document).on('click', '.validarApuesta', function(e){
 
   $('#modalValidar').modal('show');
 });
+
 
 //validar dentro del modal
 $('#btn-validar').on('click', function(e){
@@ -730,6 +754,22 @@ $(document).on('click','.imprimirApuesta',function(){
 
 })
 
+$(document).on('click','.btn_borrar_fisca',function(){
+
+  var tipo= $(this).attr('data-tipo');
+  var id=$(this).attr('id');
+  console.log('click');
+  console.log('tipo',tipo);
+  console.log('id',id);
+
+  if(tipo=='modificar'){
+    $('#fiscalizadoresPartModif tbody').find('#' + id).remove();
+
+  }
+  if(tipo=='cargar'){
+    $('#fiscalizadoresPart tbody').find('#' + id).remove();
+  }
+})
 
 /*****************PAGINACION******************/
 $(document).on('click','#tablaResultadosApuestas thead tr th[value]',function(e){
@@ -995,5 +1035,91 @@ function limpiarCargaBUp(){
   $('#hora_prop_BUp').val('');
   $('#fiscalizadorBUp').setearElementoSeleccionado(0,'');
   $('#obsBUp').val('');
+
+}
+
+//dentro del modal de cargar relevamiento, para agregar la mesa al listado
+function clickAgregarFisca(e) {
+  var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
+
+     $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+
+       var fila= $(document.createElement('tr'));
+       fila.attr('id', data.usuario.id)
+           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+           .text(data.usuario.name)
+         )
+           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+           .addClass('col-xs-2')
+           .append($('<span>').text(' '))
+           .append($('<button>')
+           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','cargar')
+           .append($('<i>')
+           .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+             )))
+
+         $('#fiscalizadoresPart tbody').append(fila);
+      $('#fiscalizadorCarga').setearElementoSeleccionado(0 , "");
+
+
+    });
+
+}
+
+function clickAgregarFiscaMod(e) {
+  var id = $('#fiscalizadorMod').obtenerElementoSeleccionado();
+
+     $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+
+       var fila= $(document.createElement('tr'));
+       fila.attr('id', data.usuario.id)
+           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+           .text(data.usuario.name)
+         )
+           .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+           .addClass('col-xs-2')
+           .append($('<span>').text(' '))
+           .append($('<button>')
+           .addClass('btn_borrar_fisca').attr('id',data.usuario.id).attr('data-tipo','modificar')
+           .append($('<i>')
+           .addClass('fas').addClass('fa-fw').addClass('fa-trash')
+             )))
+
+         $('#fiscalizadoresPartModif tbody').append(fila);
+      $('#fiscalizadorMod').setearElementoSeleccionado(0 , "");
+
+
+    });
+
+}
+
+//genera la fila dentro de la tabla participantes en el modificar
+function generarTablaFisca(data){
+    var fila= $(document.createElement('tr'));
+    fila.attr('id', data.id)
+        .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+        .text(data.name)
+      )
+        .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+        .addClass('col-xs-2')
+        .append($('<span>').text(' '))
+        .append($('<button>')
+        .addClass('btn_borrar_fisca').attr('id',data.id).attr('data-tipo','modificar')
+        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-trash')
+          )))
+
+    return fila;
+
+}
+
+function generarValidarFisca(data){
+    var fila= $(document.createElement('tr'));
+    fila.attr('id', data.id)
+        .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
+        .text(data.name)
+      )
+
+
+    return fila;
 
 }
