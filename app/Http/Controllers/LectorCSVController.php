@@ -974,7 +974,7 @@ class LectorCSVController extends Controller
             $daux->valor=0;
             $daux->id_maquina=$m->id_maquina;
             $daux->id_producido=$producido->id_producido;
-            //$daux->save();
+            $daux->save();
             $cant_mtm_forzadas=$cant_mtm_forzadas+1;
             array_push($id_mtm_forzadas,$m->id_maquina);
           }
