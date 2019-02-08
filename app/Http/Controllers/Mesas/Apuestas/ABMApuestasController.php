@@ -23,7 +23,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\RelevamientoApuestas;
 use App\Mesas\DetalleRelevamientoApuestas;
-
+use App\Mesas\ApuestaMinimaJuego;
 use DateTime;
 use Dompdf\Dompdf;
 use App\Http\Controllers\UsuarioController;
@@ -60,6 +60,7 @@ class ABMApuestasController extends Controller
     $relevamiento->hora_propuesta = $turno->hora_propuesta;
     $relevamiento->turno()->associate($turno->id_turno);
     $relevamiento->nro_turno = $turno->nro_turno;
+    $relevamiento->cumplio_minimo = 0;
     $relevamiento->estado()->associate(1);//generado
     if($fecha != date('Y-m-d')){
       $relevamiento->es_backup = 1;
@@ -225,19 +226,34 @@ class ABMApuestasController extends Controller
   }
 
 
-  // cuando carga un relevamiento->destroy los del día que haya de backup
+
   public function cargarRelevamiento(Request $request){
     $validator=  Validator::make($request->all(),[
       'hora' => 'required|date_format:"H:i"',
       'observaciones' => 'nullable',
-      'id_fiscalizador' => 'required|exists:usuario,id_usuario',
+      'fiscalizadores' => 'required',
+      //'fiscalizadores.*.id_fiscalizador' => 'required|exists:users,id',
       'detalles' => 'required',
       'detalles.*.id_detalle' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
-      'detalles.*.minimo' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'detalles.*.maximo' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'detalles.*.minimo' => 'nullable|integer|min:1',
+      'detalles.*.maximo' => 'nullable|integer|min:1',
       'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
     ], array(), self::$atributos)->after(function($validator){
-
+      $i = 0;
+      foreach ($validator->getData()['detalles'] as $fila) {
+        if($fila['id_estado_mesa'] == 1 &&
+          (empty($fila['minimo']) || empty($fila['maximo']))){
+            $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
+            $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
+          }
+          if($fila['minimo'] > $fila['maximo']){
+            $validator->errors()->add('detalles.'.$i.'.minimo', 'Es mayor que el máximo');
+          }
+          if($fila['maximo'] < $fila['minimo']){
+            $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
+          }
+          $i++;
+      }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -258,20 +274,49 @@ class ABMApuestasController extends Controller
       $relevamiento = $detalle->relevamiento;
       $relevamiento->observaciones = $request->observaciones;
       $relevamiento->hora_ejecucion = $request->hora;
-      $relevamiento->fiscalizador()->associate($request->id_fiscalizador);
+
       $relevamiento->cargador()->associate($user->id);
       $relevamiento->estado()->associate(3);//finalizado = carga completa
-      $relevamiento->save();
-      $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
       $relevamiento->es_backup = 0;
       $relevamiento->save();
+      $fiscas = array_unique($request->fiscalizadores);
+      if(!empty($fiscas) && count($relevamiento->fiscalizadores) > 0){
+        $relevamiento->fiscalizadores()->sync($fiscas);
+      }else{
+        $relevamiento->fiscalizadores()->detach();
+        $relevamiento->fiscalizadores()->sync($fiscas);
+      }
+
+      $this->verificarMinimoApuestas($relevamiento);
+
+      $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
       return response()->json(['exito' => 'Relevamiento cargado!'], 200);
     }else{
       return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];
     }
-
-
   }
+
+  //solo en pesos
+
+  public function verificarMinimoApuestas($relevamiento){
+    $minimos = ApuestaMinimaJuego::where('id_casino','=',$relevamiento->id_casino)
+                                  ->where('id_moneda','=',1)
+                                  ->get();
+    foreach($minimos as $minimo){
+      $detalles_relevamiento = DetalleRelevamientoApuestas::where('id_juego_mesa','=',$minimo->id_juego_mesa)
+                                                            //->where('id_moneda','=',$minimo->id_moneda)
+                                                            ->where('minimo','=',$minimo->apuesta_minima)
+                                                            ->get();
+      if(count($detalles_relevamiento) >= $minimo->cantidad_requerida){
+        $relevamiento->cumplio_minimo = 1;
+      }else{
+        $relevamiento->cumplio_minimo = 0;
+      }
+
+    }
+  }
+
+
 
   public function eliminarRelevamientosFecha($fecha,$turno,$id_relevamiento_apuestas,$casino){
     $relevamientos = RelevamientoApuestas::where([['id_turno','=',$turno],

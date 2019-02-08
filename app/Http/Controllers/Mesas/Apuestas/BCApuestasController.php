@@ -256,7 +256,7 @@ class BCApuestasController extends Controller
             'turno' => $relevamiento->turno,
             'detalles' => $detalles,
             'estados' => $estados,
-            'fiscalizador' => $relevamiento->fiscalizador,
+            'fiscalizadores' => $relevamiento->fiscalizadores,
             'cargador' => $relevamiento->cargador,
             'total_abiertas' => $abiertas,
             'cumplio_minimo' => $minimo,
@@ -293,6 +293,7 @@ class BCApuestasController extends Controller
   }
 
   public function buscarRelevamientosBackUp(Request $request){
+
     $relevamiento = null;
     $validator=  Validator::make($request->all(),[
       'fecha' => 'required|date_format:"Y-m-d"',
@@ -309,7 +310,7 @@ class BCApuestasController extends Controller
       $relevamiento = RelevamientoApuestas::whereDay('created_at','=',$fecha[2])
                                             ->whereMonth('created_at','=',$fecha[1])
                                             ->whereYear('created_at','=',$fecha[0])
-                                            ->where('nro_turno','=',$validator->getData()['nro_turno'])
+                                            ->where('id_turno','=',$validator->getData()['nro_turno'])
                                             ->where('fecha','=',$validator->getData()['fecha'])
                                             ->where('es_backup','=','1')
                                             ->whereIn('id_casino',$cas)
@@ -327,7 +328,7 @@ class BCApuestasController extends Controller
      }
 
      $cas=array();
-     $user = Auth::user();
+     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
      foreach ($user->casinos as $cass) {
        $cas[]=$cass->id_casino;
      }
@@ -336,7 +337,7 @@ class BCApuestasController extends Controller
      $relevamiento = RelevamientoApuestas::whereDay('created_at','=',$fecha[2])
                                            ->whereMonth('created_at','=',$fecha[1])
                                            ->whereYear('created_at','=',$fecha[0])
-                                           ->where('nro_turno','=',$request['nro_turno'])
+                                           ->where('id_turno','=',$request['nro_turno'])
                                            ->where('fecha','=',$request['fecha'])
                                            ->where('es_backup','=','1')
                                            ->whereIn('id_casino',$cas)

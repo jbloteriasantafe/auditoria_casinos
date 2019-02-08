@@ -24,12 +24,12 @@ use App\Http\Controllers\permisoController;
                             <div id="collapseFiltrosRoles" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-                                  <div class="col-md-3">
+                                  <div class="col-md-6">
                                     <h5>Rol</h5>
                                     <input id="buscadorRol" class="form-control" placeholder="Rol">
                                   </div>
-                                  <div class="col-md-3">
-                                    <h4 style="color:#F5F5F5;">boton buscar</h4>
+                                  <div class="col-md-3" style="margin-top:30px !important">
+
                                     <button id="buscarRol" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                   </div>
                                 </div>
@@ -102,12 +102,12 @@ use App\Http\Controllers\permisoController;
                             <div id="collapseFiltrosPermisos" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-                                  <div class="col-md-3">
+                                  <div class="col-md-6">
                                     <h5>Permiso</h5>
                                     <input id="buscadorPermiso" class="form-control" placeholder="Permiso">
                                   </div>
-                                  <div class="col-md-3">
-                                    <h4 style="color:#F5F5F5;">boton buscar</h4>
+                                  <div class="col-md-3" style="margin-top:30px !important">
+
                                     <button id="buscarPermiso" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                   </div>
                                 </div>
