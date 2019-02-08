@@ -303,10 +303,12 @@ class ABMApuestasController extends Controller
                                   ->where('id_moneda','=',1)
                                   ->get();
     foreach($minimos as $minimo){
-      $detalles_relevamiento = DetalleRelevamientoApuestas::where('id_juego_mesa','=',$minimo->id_juego_mesa)
-                                                            //->where('id_moneda','=',$minimo->id_moneda)
-                                                            ->where('minimo','=',$minimo->apuesta_minima)
-                                                            ->get();
+      $detalles_relevamiento = DB::table('detalle_relevamiento_apuestas as DET')
+                                    ->join('mesa_de_panio as M','M.id_mesa_de_panio','=','DET.id_mesa_de_panio')
+                                    ->where('DET.id_juego_mesa','=',$minimo->id_juego_mesa)
+                                    ->where('M.id_moneda','=',$minimo->id_moneda)
+                                    ->where('DET.minimo','=',$minimo->apuesta_minima)
+                                    ->get();
       if(count($detalles_relevamiento) >= $minimo->cantidad_requerida){
         $relevamiento->cumplio_minimo = 1;
       }else{
@@ -314,6 +316,8 @@ class ABMApuestasController extends Controller
       }
 
     }
+
+    $relevamiento->save();
   }
 
 
