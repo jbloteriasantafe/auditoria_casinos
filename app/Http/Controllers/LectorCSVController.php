@@ -909,6 +909,15 @@ class LectorCSVController extends Controller
       }
     }
 
+    // Dependiendo del archivo a importar, se ignora cierta candidad de lineas
+    if ($id_tipo_moneda==1){
+      // moneda en pesos
+      $linIgnore=5;
+    }else{
+      // moneda en dolares
+      $linIgnore=2;
+    }
+
     $path = $archivoCSV->getRealPath();
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
@@ -917,12 +926,12 @@ class LectorCSVController extends Controller
                       OPTIONALLY ENCLOSED BY '\"'
                       ESCAPED BY '\"'
                       LINES TERMINATED BY '\\n'
-                      IGNORE 5 LINES
+                      IGNORE %d LINES
                       (@0,@1,@2,@3,@4)
                        SET id_producido = '%d',
                                 maquina = SUBSTRING(@1,1,4),
                                   valor = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2))
-                      ",$path,$producido->id_producido);
+                      ",$path,$linIgnore,$producido->id_producido);
 
     $pdo->exec($query);
 
@@ -959,13 +968,13 @@ class LectorCSVController extends Controller
           $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
                                 ->where("id_producido","=", $producido->id_producido)
                                 ->count();
-
+          
           if(!$cant){
             $daux= new DetalleProducido;
             $daux->valor=0;
             $daux->id_maquina=$m->id_maquina;
             $daux->id_producido=$producido->id_producido;
-            $daux->save();
+            //$daux->save();
             $cant_mtm_forzadas=$cant_mtm_forzadas+1;
             array_push($id_mtm_forzadas,$m->id_maquina);
           }
