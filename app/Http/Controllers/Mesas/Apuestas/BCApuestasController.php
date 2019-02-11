@@ -92,35 +92,27 @@ class BCApuestasController extends Controller
     if(!empty( $request->sort_by)){
       $sort_by = $request->sort_by;
     }else{
-        $sort_by = ['columna' => 'apertura_mesa.fecha','orden','desc'];
+        $sort_by = ['columna' => 'relevamiento_apuestas.fecha','orden','desc'];
     }
 
     if(empty($request->fecha)){
       $resultados = DB::table('relevamiento_apuestas_mesas as RA')
                 ->select(
                           'RA.id_relevamiento_apuestas',
-                          'RA.fecha','RA.id_casino',
-                            'casino.nombre',
-                            'turno.nro_turno',
-                           DB::raw('COUNT(DRA.id_estado_mesa) as cantidad_abiertas'),
+                          'RA.fecha',
+                          'RA.id_casino',
+                          'casino.nombre',
+                          'turno.nro_turno',
                           'RA.id_estado_relevamiento'
                         )
                 ->join('casino','casino.id_casino','=','RA.id_casino')
                 ->join('turno','RA.id_turno','=','turno.id_turno')
-                ->leftJoin('detalle_relevamiento_apuestas as DRA',function ($join) {
-                            $join->on('RA.id_relevamiento_apuestas','=','DRA.id_relevamiento_apuestas')
-                            ->where('DRA.id_estado_mesa','=',1);
-                          })
                 ->where($filtros)
                 ->whereIn('RA.id_casino',$cas)
                 ->where('RA.es_backup','=',0)
                 ->distinct('RA.id_relevamiento_apuestas')
                 ->orderBy('RA.fecha','desc')
                 ->whereNull('RA.deleted_at')
-                ->groupBy('DRA.nombre_juego','RA.id_relevamiento_apuestas',
-                          'DRA.id_estado_mesa','RA.fecha','RA.id_casino','casino.nombre',
-                          'turno.nro_turno','RA.id_estado_relevamiento'
-                          )
                 ->when($sort_by,function($query) use ($sort_by){
                                 return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                             })
@@ -130,18 +122,14 @@ class BCApuestasController extends Controller
       $resultados = DB::table('relevamiento_apuestas_mesas as RA')
                         ->select(
                                   'RA.id_relevamiento_apuestas',
-                                  'RA.fecha','RA.id_casino',
-                                    'casino.nombre',
-                                    'turno.nro_turno',
-                                  DB::raw('COUNT(DRA.id_estado_mesa) as cantidad_abiertas'),
-                                   'RA.id_estado_relevamiento'
+                                  'RA.fecha',
+                                  'RA.id_casino',
+                                  'casino.nombre',
+                                  'turno.nro_turno',
+                                  'RA.id_estado_relevamiento'
                                 )
                         ->join('turno','RA.id_turno','=','turno.id_turno')
                         ->join('casino','casino.id_casino','=','RA.id_casino')
-                        ->leftJoin('detalle_relevamiento_apuestas as DRA',function ($join) {
-                                    $join->on('RA.id_relevamiento_apuestas','=','DRA.id_relevamiento_apuestas')
-                                    ->where('DRA.id_estado_mesa','=',1);
-                                  })
                         ->where($filtros)
                         ->whereIn('RA.id_casino',$cas)
                         ->whereNull('RA.deleted_at')
@@ -149,10 +137,6 @@ class BCApuestasController extends Controller
                         ->whereYear('RA.fecha' , '=', $fecha[0])
                         ->whereMonth('RA.fecha','=', $fecha[1])
                         ->whereDay('RA.fecha','=', $fecha[2])
-                        ->groupBy('DRA.nombre_juego','RA.id_relevamiento_apuestas',
-                                  'DRA.id_estado_mesa','RA.fecha','RA.id_casino',
-                                  'casino.nombre',
-                                  'turno.nro_turno','RA.id_estado_relevamiento')
                         ->orderBy('RA.fecha','desc')
                         ->distinct('RA.id_relevamiento_apuestas')
                         ->when($sort_by,function($query) use ($sort_by){

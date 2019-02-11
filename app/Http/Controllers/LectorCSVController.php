@@ -673,6 +673,7 @@ class LectorCSVController extends Controller
                                             GROUP BY maquina) AS prod_a
 
                        WHERE prod_a.maquina = mtm.nro_admin
+                         AND mtm.deleted_at IS NULL 
                          AND mtm.id_casino = '%d'
                        ",$producido->id_producido,$producido->id_producido,$casino);
 
@@ -909,6 +910,15 @@ class LectorCSVController extends Controller
       }
     }
 
+    // Dependiendo del archivo a importar, se ignora cierta candidad de lineas
+    if ($id_tipo_moneda==1){
+      // moneda en pesos
+      $linIgnore=5;
+    }else{
+      // moneda en dolares
+      $linIgnore=2;
+    }
+
     $path = $archivoCSV->getRealPath();
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE producido_temporal
@@ -917,12 +927,12 @@ class LectorCSVController extends Controller
                       OPTIONALLY ENCLOSED BY '\"'
                       ESCAPED BY '\"'
                       LINES TERMINATED BY '\\n'
-                      IGNORE 5 LINES
+                      IGNORE %d LINES
                       (@0,@1,@2,@3,@4)
                        SET id_producido = '%d',
                                 maquina = SUBSTRING(@1,1,4),
                                   valor = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2))
-                      ",$path,$producido->id_producido);
+                      ",$path,$linIgnore,$producido->id_producido);
 
     $pdo->exec($query);
 
@@ -932,7 +942,9 @@ class LectorCSVController extends Controller
                        WHERE prod.id_producido = '%d'
                          AND prod.maquina = mtm.nro_admin
                          AND mtm.id_casino = 3
-                       ",$producido->id_producido);
+                         AND mtm.deleted_at IS NULL 
+                         AND mtm.id_tipo_moneda = '%d'
+                       ",$producido->id_producido,$id_tipo_moneda);
 
     $pdo->exec($query);
 
@@ -959,7 +971,7 @@ class LectorCSVController extends Controller
           $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
                                 ->where("id_producido","=", $producido->id_producido)
                                 ->count();
-
+          
           if(!$cant){
             $daux= new DetalleProducido;
             $daux->valor=0;

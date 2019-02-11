@@ -235,13 +235,25 @@ class ABMApuestasController extends Controller
       //'fiscalizadores.*.id_fiscalizador' => 'required|exists:users,id',
       'detalles' => 'required',
       'detalles.*.id_detalle' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
-      'detalles.*.minimo' => ['required_if:detalles.*.id_estado_mesa,1',
-                              'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'detalles.*.maximo' => ['required_if:detalles.*.id_estado_mesa,1',
-                              'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'detalles.*.minimo' => 'nullable|integer|min:1',
+      'detalles.*.maximo' => 'nullable|integer|min:1',
       'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
     ], array(), self::$atributos)->after(function($validator){
-
+      $i = 0;
+      foreach ($validator->getData()['detalles'] as $fila) {
+        if($fila['id_estado_mesa'] == 1 &&
+          (empty($fila['minimo']) || empty($fila['maximo']))){
+            $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
+            $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
+          }
+          if($fila['minimo'] > $fila['maximo']){
+            $validator->errors()->add('detalles.'.$i.'.minimo', 'Es mayor que el máximo');
+          }
+          if($fila['maximo'] < $fila['minimo']){
+            $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
+          }
+          $i++;
+      }
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
@@ -284,14 +296,19 @@ class ABMApuestasController extends Controller
     }
   }
 
+  //solo en pesos
+
   public function verificarMinimoApuestas($relevamiento){
     $minimos = ApuestaMinimaJuego::where('id_casino','=',$relevamiento->id_casino)
+                                  ->where('id_moneda','=',1)
                                   ->get();
     foreach($minimos as $minimo){
-      $detalles_relevamiento = DetalleRelevamientoApuestas::where('id_juego_mesa','=',$minimo->id_juego_mesa)
-                                                            //->where('id_moneda','=',$minimo->id_moneda)
-                                                            ->where('minimo','=',$minimo->apuesta_minima)
-                                                            ->get();
+      $detalles_relevamiento = DB::table('detalle_relevamiento_apuestas as DET')
+                                    ->join('mesa_de_panio as M','M.id_mesa_de_panio','=','DET.id_mesa_de_panio')
+                                    ->where('DET.id_juego_mesa','=',$minimo->id_juego_mesa)
+                                    ->where('M.id_moneda','=',$minimo->id_moneda)
+                                    ->where('DET.minimo','=',$minimo->apuesta_minima)
+                                    ->get();
       if(count($detalles_relevamiento) >= $minimo->cantidad_requerida){
         $relevamiento->cumplio_minimo = 1;
       }else{
@@ -299,6 +316,8 @@ class ABMApuestasController extends Controller
       }
 
     }
+
+    $relevamiento->save();
   }
 
 

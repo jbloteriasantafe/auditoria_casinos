@@ -36,7 +36,7 @@ $cas = $usuario['usuario']->casinos;
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">GENERAR PLANILLAS VALORES DE APUESTAS </h4>
+                        <h4 class="txtNuevo">GENERAR RELEVAMIENTO</h4>
                     </center>
                   </div>
                 </div>
@@ -63,7 +63,7 @@ $cas = $usuario['usuario']->casinos;
           </a>
       </div>
     </div>
-
+    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_abm_apuesta_minima'))
     <div class="row">
       <div class="col-md-12">
         <a href="" id="btn-minimo" dusk="btn-nuevo" style="text-decoration: none;">
@@ -84,6 +84,7 @@ $cas = $usuario['usuario']->casinos;
           </a>
       </div>
     </div>
+    @endif
   </div>
 
     <div class="col-xl-9">
@@ -148,7 +149,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-xs-12">
                 <div class="panel panel-default">
                   <div class="panel-heading">
-                    <h4>RELEVAMIENTOS CARGADOS</h4>
+                    <h4>RELEVAMIENTOS</h4>
                   </div>
                   <div class="panel-body">
                     <div class="table-responsive">
@@ -829,6 +830,39 @@ $cas = $usuario['usuario']->casinos;
 
 
 
+  @endsection
+
+
+  <!-- Comienza modal de ayuda -->
+  @section('tituloDeAyuda')
+  <h3 class="modal-title" style="color: #fff;">| AYUDA</h3>
+  @endsection
+  @section('contenidoAyuda')
+  <div class="col-md-12">
+    <h6>GESTIÓN DE CIERRES Y APERTURAS</h6>
+    <p>
+      Desde esta sección se podrán visualizar los relevamientos que fueron generados por el sistema.
+      Estos relevamientos son uno por cada turno existente.
+      <br><br>
+
+      <h6>DESCARGA DE PLANILLAS</h6>
+      Desde el botón "GENERAR RELEVAMIENTO", podrán descargar las planillas para el día y 4 más (relevamientos SIN SISTEMA).
+      Estos se encuentran en un archivo ".zip", el cual a su vez contiene tantos archivos ".zip" como turnos distintos haya,
+       con sus respectivas planillas.
+      <br><br>
+      <h6>CARGA DE RELEVAMIENTOS</h6>
+      En el listado de relevamientos, figuran los que se crean cada día (fecha de generación del día y fecha de producción del día).
+      A estos últimos, se los debe buscar en el listado, utilizando los filtros de ser necesario. En la fila posee un botón para realizar
+      la carga del relevamiento.
+      Si se desea cargar un relevamiento que haya sido generado en una fecha anterior a la fecha de producción, se deberá hacer
+      click en el botón "CARGAR RELEVAMIENTO SIN SISTEMA", se lo buscará con los datos solicitados y se procederá a realizar su carga.
+      (Deberá ingresar un único valor en los campos "mínimo" y "máximo" del relevamiento de cada mesa).
+    </p>
+    <h6>VALIDACIÓN</h6>
+    Una vez realizada la carga, se habilita la validación, con la posibilidad de realizar comentarios sobre lo relevado.
+    <h6>VISUALIZACIÓN</h6>
+    Finalmente, los relevamientos se pueden visualizar en una planilla.
+  </div>
   @endsection
 
   @section('scripts')
