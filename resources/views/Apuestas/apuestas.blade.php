@@ -101,7 +101,7 @@ $cas = $usuario['usuario']->casinos;
 
                 <div class="row">
                   <div class="col-xs-3">
-                    <h5>Fecha</h5>
+                    <h5>Fecha de Producción</h5>
                     <div class="form-group">
                       <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                         <input type='text' class="form-control" id="B_fecha_filtro" value=""/>
@@ -158,7 +158,7 @@ $cas = $usuario['usuario']->casinos;
                     <table id="tablaResultadosApuestas" class="table tablesorter" >
                       <thead>
                         <tr align="center" >
-                          <th class="activa" value="fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA  <i class="fas fa-sort-down"></th>
+                          <th class="activa" value="fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA PRODUCCIÓN <i class="fas fa-sort-down"></th>
                           <th class="" value="nro_turno" style="font-size:14px; text-align:center !important;" estado="">TURNO  <i class="fas fa-sort"></th>
                           <th class="" value="nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
                           <th class="" value="id_estado_relevamiento" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
@@ -679,7 +679,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-3">
-              <h6 style="font-size:16px !important;">FECHA EJECUCIÓN</h6>
+              <h6 style="font-size:16px !important;">FECHA PRODUCCIÓN</h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaBUpEjecucion'  data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                   <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_bupEj" value=" "/>
