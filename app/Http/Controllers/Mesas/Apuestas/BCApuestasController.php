@@ -243,7 +243,7 @@ class BCApuestasController extends Controller
             'fiscalizadores' => $relevamiento->fiscalizadores,
             'cargador' => $relevamiento->cargador,
             'total_abiertas' => $abiertas,
-            'cumplio_minimo' => $minimo,
+            'cumplio_minimo' => $relevamiento->cumplio_minimo,
             'abiertas_por_juego' => $abiertas_por_juego,
            ];
   }

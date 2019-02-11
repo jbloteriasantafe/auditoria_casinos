@@ -689,7 +689,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-3">
-              <h6 style="font-size:16px !important;">FECHA EJECUCIÓN</h6>
+              <h6 style="font-size:16px !important;">FECHA PRODUCCIÓN</h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaBUpEjecucion'  data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                   <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_bupEj" value=" "/>
