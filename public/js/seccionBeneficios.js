@@ -273,6 +273,7 @@ function generarFilaModal(beneficio){
                           .addClass('btn').addClass('btn-info').addClass('ver-producido')
                           .attr('data-idProducido',beneficio.id_producido)
                           .attr('disabled',boolProducido)
+                          .attr('title','DETALLES PRODUCIDO')
                       ));
 
     return fila;
