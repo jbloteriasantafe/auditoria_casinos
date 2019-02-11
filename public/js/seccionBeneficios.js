@@ -278,8 +278,8 @@ function generarFilaModal(beneficio){
     return fila;
 }
 
-$(document).on('click','.ver-producido',function(){
-  
+$(document).on('click','.ver-producido',function(e){
+  e.preventDefault();
   id_producido=$(this).attr('data-idProducido')
   console.log(id_producido);
   window.open('producidos/generarPlanilla/' + id_producido,'_blank');
