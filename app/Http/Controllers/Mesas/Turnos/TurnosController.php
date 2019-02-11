@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\UsuarioController;
+
 
 use App\Usuario;
 use App\Casino;
@@ -41,7 +43,6 @@ class TurnosController extends Controller
    */
   public function __construct()
   {
-      $this->middleware();
   }
 
 
@@ -67,7 +68,7 @@ class TurnosController extends Controller
   }
 
   public function buscarTurnos($nro_turno){
-    $usuario = Auth::user();
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     foreach($usuario->casinos as $casino){
       $casinos[]=$casino->id_casino;
@@ -76,7 +77,7 @@ class TurnosController extends Controller
     $trr = array();
     foreach ($turnos as $t) {
       $trr[] = [
-                'nro_turno' => $t->nro_turno.' '.$t->entrada.' a '.$t->salida.'-'.$t->casino->codigo,
+                'nro_turno' => $t->nro_turno.' '.$t->nombre_dia_desde.' a '.$t->nombre_dia_hasta.'-'.$t->casino->codigo,
                 'id_turno' => $t->id_turno,
                 ];
     }

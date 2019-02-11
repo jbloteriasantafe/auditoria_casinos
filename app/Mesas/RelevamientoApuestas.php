@@ -15,6 +15,7 @@ class RelevamientoApuestas extends Model
                               'hora_propuesta','id_turno', 'id_fiscalizador',
                               'id_cargador','id_casino','id_estado_relevamiento',
                               'observaciones_validacion','observaciones','es_backup',
+                              'cumplio_minimo',
                               'nro_turno','created_at','deleted_at'
                             );
   public $timestamps = false;
@@ -30,11 +31,9 @@ class RelevamientoApuestas extends Model
     return $this->belongsTo('App\Turno','id_turno','id_turno');
   }
 
-
-  public function fiscalizador(){
-    return $this->belongsTo('App\Usuario','id_fiscalizador','id_usuario');
+  public function fiscalizadores(){
+    return $this->belongsToMany('App\Usuario','fiscalizador_relevo_apuesta','id_relevamiento_apuestas_mesas','id_usuario');
   }
-
   public function cargador(){
     return $this->belongsTo('App\Usuario','id_cargador','id_usuario');
   }

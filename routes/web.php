@@ -645,7 +645,7 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::get('apuestas/relevamientoCargado/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamientoApuesta');
   Route::get('apuestas/baja/{id_relevamiento}', 'Mesas\Apuestas\BVApuestasController@eliminar');
   Route::post('apuestas/validar', 'Mesas\Apuestas\BVApuestasController@validar');
-  Route::get('apuestas/obtenerRelevamientoBackUp/{fechaCr}/{fechaEj}/{turno}', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
+  Route::post('apuestas/obtenerRelevamientoBackUp', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
   Route::get('apuestas/imprimir/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanilla');
   Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 

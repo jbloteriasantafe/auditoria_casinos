@@ -36,7 +36,7 @@ $cas = $usuario['usuario']->casinos;
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">GENERAR PLANILLAS VALORES DE APUESTAS </h4>
+                        <h4 class="txtNuevo">GENERAR RELEVAMIENTO</h4>
                     </center>
                   </div>
                 </div>
@@ -63,7 +63,7 @@ $cas = $usuario['usuario']->casinos;
           </a>
       </div>
     </div>
-
+    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_abm_apuesta_minima'))
     <div class="row">
       <div class="col-md-12">
         <a href="" id="btn-minimo" dusk="btn-nuevo" style="text-decoration: none;">
@@ -84,6 +84,7 @@ $cas = $usuario['usuario']->casinos;
           </a>
       </div>
     </div>
+    @endif
   </div>
 
     <div class="col-xl-9">
@@ -100,7 +101,7 @@ $cas = $usuario['usuario']->casinos;
 
                 <div class="row">
                   <div class="col-xs-3">
-                    <h5>Fecha</h5>
+                    <h5>Fecha de Producción</h5>
                     <div class="form-group">
                       <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                         <input type='text' class="form-control" id="B_fecha_filtro" value=""/>
@@ -148,7 +149,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="col-xs-12">
                 <div class="panel panel-default">
                   <div class="panel-heading">
-                    <h4>RELEVAMIENTOS CARGADOS</h4>
+                    <h4>RELEVAMIENTOS</h4>
                   </div>
                   <div class="panel-body">
                     <div class="table-responsive">
@@ -157,7 +158,7 @@ $cas = $usuario['usuario']->casinos;
                     <table id="tablaResultadosApuestas" class="table tablesorter" >
                       <thead>
                         <tr align="center" >
-                          <th class="activa" value="fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA  <i class="fas fa-sort-down"></th>
+                          <th class="activa" value="fecha" style="font-size:14px; text-align:center !important;" estado="desc">FECHA PRODUCCIÓN <i class="fas fa-sort-down"></th>
                           <th class="" value="nro_turno" style="font-size:14px; text-align:center !important;" estado="">TURNO  <i class="fas fa-sort"></th>
                           <th class="" value="nombre" style="font-size:14px; text-align:center !important;" estado="">CASINO  <i class="fas fa-sort"></th>
                           <th class="" value="id_estado_relevamiento" style="font-size:14px; text-align:center !important;">ESTADO  <i class="fas fa-sort"></th>
@@ -249,16 +250,15 @@ $cas = $usuario['usuario']->casinos;
           </div>
           <div class="row" style="border-bottom:2px solid #ccc;">
             <div class="col-md-4">
-              <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
+              <h6 style="font-size:15px !important;">FISCALIZADOR DE TOMA</h6>
               <div class="input-group ">
                 <input id="fiscalizadorCarga" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
                 <span class="input-group-btn" style="display:block;">
-                  <button id="agregarFisca" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                  <button id="agregarFisca" class="btn btn-default btn-lista-datos" data-carga="normal" type="button"><i class="fa fa-plus"></i></button>
                 </span>
               </div>
             </div>
-            <div class="col-md-5">
-              <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+            <div class="col-md-5" style="border-right:1px solid #ccc">
               <table class="table" id="fiscalizadoresPart">
                 <tbody>
                 </tbody>
@@ -266,9 +266,9 @@ $cas = $usuario['usuario']->casinos;
             </div>
 
             <div class="col-md-3">
-              <h5>A: Abierta</h5>
-              <h5>C: Cerrada</h5>
-              <h5>T: En Torneo</h5>
+              <h5 style="font-size:15px !important">A: Abierta</h5>
+              <h5 style="font-size:15px !important">C: Cerrada</h5>
+              <h5 style="font-size:15px !important">T: En Torneo</h5>
             </div>
           </div>
           <br>
@@ -325,7 +325,7 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
           <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;" id="cambiar">Deben completarse todos los datos solicitados.</span>
         </div> <!-- mensaje -->
       </div>
     </div>
@@ -377,8 +377,7 @@ $cas = $usuario['usuario']->casinos;
               </span>
             </div>
           </div>
-          <div class="col-md-5">
-            <h6 style="font-size:16px !important;">Participantes del relevamiento</h6>
+          <div class="col-md-5" style="border-right:1px solid #ccc">
             <table class="table" id="fiscalizadoresPartModif">
               <tbody>
               </tbody>
@@ -386,9 +385,9 @@ $cas = $usuario['usuario']->casinos;
           </div>
 
           <div class="col-md-3">
-            <h5>A: Abierta</h5>
-            <h5>C: Cerrada</h5>
-            <h5>T: En Torneo</h5>
+            <h5 style="font-size:15px !important">A: Abierta</h5>
+            <h5 style="font-size:15px !important">C: Cerrada</h5>
+            <h5 style="font-size:15px !important">T: En Torneo</h5>
           </div>
 
         </div>
@@ -584,31 +583,67 @@ $cas = $usuario['usuario']->casinos;
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:16px">REQUERIMIENTOS ACTUALES</h6>
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="req">REQUERIMIENTOS ACTUALES</h6>
             <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimo">Juego: </h6>
-            <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimo">Apuesta Mínima: </h6>
-            <br>
-            <h6 style="font-size:14px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimo">Cantidad de mesas abiertas: </h6>
-            <br>
+            <div class="row">
+              <div class="col-xs-6">
+                <h6 style="font-size:16px; text-align:center !important">PESOS</h6>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimo">Juego: </h6>
+                <br>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimo">Apuesta Mínima: </h6>
+                <br>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimo">Cantidad de mesas abiertas: </h6>
+                <br>
+              </div>
+              <div class="col-xs-6" style="border-left:1px solid #ccc">
+                <h6 style="font-size:16px;text-align:center !important">DÓLARES</h6>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimoDol">Juego: </h6>
+                <br>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimoDol">Apuesta Mínima: </h6>
+                <br>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimoDol">Cantidad de mesas abiertas: </h6>
+                <br>
+              </div>
+            </div>
+
 
           </div>
           <div class="row">
-            <h6>MODIFICACIONES:</h6>
-
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important; font-weight:bold">MODIFICACIONES:</h6>
+            <br>
             <div class="row">
-              <div class="col-xs-4">
-                <h6>Juego:</h6>
-                <input type="text" class="form-control" id="juegoNuevo" name="" value="">
+              <div class="col-xs-6" style="border-right:1px solid #ccc">
+                <h6 style="font-size:16px; text-align:center !important;border-bottom:1px solid #ccc">PESOS</h6>
+                <br>
+                <div class="col-xs-3">
+                  <h6 style="font-size:16px">Juego:</h6>
+                  <input type="text" class="form-control" id="juegoNuevo" name="" value="">
+                </div>
+                <div class="col-xs-4">
+                  <h6 style="font-size:16px">Apuesta Min.:</h6>
+                  <input type="text" class="form-control" id="apuestaNueva" name="" value="">
+                </div>
+                <div class="col-xs-5">
+                  <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
+                  <input type="text" class="form-control" id="cantidadNueva" name="" value="">
+                </div>
               </div>
-              <div class="col-xs-4">
-                <h6>Apuesta mínima:</h6>
-                <input type="text" class="form-control" id="apuestaNueva" name="" value="">
+              <div class="col-xs-6">
+                <h6 style="font-size:16px;text-align:center !important;border-bottom:1px solid #ccc">DÓLARES</h6>
+                <br>
+                <div class="col-xs-3">
+                  <h6 style="font-size:16px">Juego:</h6>
+                  <input type="text" class="form-control" id="juegoNuevoDol" name="" value="">
+                </div>
+                <div class="col-xs-4">
+                  <h6 style="font-size:16px">Apuesta Min.:</h6>
+                  <input type="text" class="form-control" id="apuestaNuevaDol" name="" value="">
+                </div>
+                <div class="col-xs-5">
+                  <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
+                  <input type="text" class="form-control" id="cantidadNuevaDol" name="" value="">
+                </div>
               </div>
-              <div class="col-xs-4">
-                <h6>Cantidad de Mesas Abiertas:</h6>
-                <input type="text" class="form-control" id="cantidadNueva" name="" value="">
               </div>
             </div>
           </div>
@@ -644,7 +679,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-md-3">
-              <h6 style="font-size:16px !important;">FECHA EJECUCIÓN</h6>
+              <h6 style="font-size:16px !important;">FECHA PRODUCCIÓN</h6>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaBUpEjecucion'  data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                   <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecha_bupEj" value=" "/>
@@ -666,19 +701,29 @@ $cas = $usuario['usuario']->casinos;
 
               <div class="row ">
                 <div class="row">
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">HORA PROPUESTA</h6>
+                  <div class="col-md-2">
+                    <h6 style="font-size:16px !important;">HS PROPUESTA</h6>
                   <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_prop_BUp" value="">
                   </div>
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">HORA EJECUCIÓN</h6>
+                  <div class="col-md-2">
+                    <h6 style="font-size:16px !important;">HS EJECUCIÓN</h6>
                     <input type="time" name="horarioRel" class="form-control" style="padding-top:0px;" id="hora_ejec_BUp" value="">
                   </div>
-                  <div class="col-md-4">
-                    <h6 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h6>
-                    <input class="linea form-control" id="fiscalizadorBUp" type="text" value=""  size="100" autocomplete="off">
+                  <div class="col-md-3">
+                    <h6 style="font-size:15px !important;">FISCALIZADOR DE TOMA</h6>
+                    <div class="input-group ">
+                      <input id="fiscalizadorBUp" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
+                      <span class="input-group-btn" style="display:block;">
+                        <button id="agregarFiscaBUp" class="btn btn-default btn-lista-datos" data-carga="backup" type="button"><i class="fa fa-plus"></i></button>
+                      </span>
+                    </div>
                   </div>
-
+                  <div class="col-md-4" style="margin-left:25px !important">
+                    <table class="table" id="fiscalizadoresPartBUp">
+                      <tbody >
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
               <br>
@@ -740,12 +785,19 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Deben completarse todos los datos solicitados.</span>
           </div> <!-- mensaje -->
+          <div id="mensajeErrorBuscarBUp" hidden>
+            <br>
+            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+            <br>
+            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No se ha encontrado Relevamientos que coincidan con los datos ingresados.</span>
+          </div> <!-- mensaje -->
         </div>
 
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- MODAL PARA GENERAR PLANILLAS  DE BACK UP -->
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -778,6 +830,39 @@ $cas = $usuario['usuario']->casinos;
 
 
 
+  @endsection
+
+
+  <!-- Comienza modal de ayuda -->
+  @section('tituloDeAyuda')
+  <h3 class="modal-title" style="color: #fff;">| AYUDA</h3>
+  @endsection
+  @section('contenidoAyuda')
+  <div class="col-md-12">
+    <h6>GESTIÓN DE CIERRES Y APERTURAS</h6>
+    <p>
+      Desde esta sección se podrán visualizar los relevamientos que fueron generados por el sistema.
+      Estos relevamientos son uno por cada turno existente.
+      <br><br>
+
+      <h6>DESCARGA DE PLANILLAS</h6>
+      Desde el botón "GENERAR RELEVAMIENTO", podrán descargar las planillas para el día y 4 más (relevamientos SIN SISTEMA).
+      Estos se encuentran en un archivo ".zip", el cual a su vez contiene tantos archivos ".zip" como turnos distintos haya,
+       con sus respectivas planillas.
+      <br><br>
+      <h6>CARGA DE RELEVAMIENTOS</h6>
+      En el listado de relevamientos, figuran los que se crean cada día (fecha de generación del día y fecha de producción del día).
+      A estos últimos, se los debe buscar en el listado, utilizando los filtros de ser necesario. En la fila posee un botón para realizar
+      la carga del relevamiento.
+      Si se desea cargar un relevamiento que haya sido generado en una fecha anterior a la fecha de producción, se deberá hacer
+      click en el botón "CARGAR RELEVAMIENTO SIN SISTEMA", se lo buscará con los datos solicitados y se procederá a realizar su carga.
+      (Deberá ingresar un único valor en los campos "mínimo" y "máximo" del relevamiento de cada mesa).
+    </p>
+    <h6>VALIDACIÓN</h6>
+    Una vez realizada la carga, se habilita la validación, con la posibilidad de realizar comentarios sobre lo relevado.
+    <h6>VISUALIZACIÓN</h6>
+    Finalmente, los relevamientos se pueden visualizar en una planilla.
+  </div>
   @endsection
 
   @section('scripts')

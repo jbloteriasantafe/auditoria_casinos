@@ -171,7 +171,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
     <!-- Modal validar beneficio -->
     <div class="modal fade" id="modalValidarBeneficio" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:60%;">
+          <div class="modal-dialog" style="width:70%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
@@ -213,8 +213,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                               <th width="12%">CALCULADO</th>
                                               <th width="12%">BENEFICIO</th>
                                               <th width="12%">DIFERENCIA</th>
-                                              <th width="4%">AJUSTE</th>
-                                              <th width="50%">OBSERVACIÓN</th>
+                                              <th width="3%"></th>
+                                              <th width="49%">OBSERVACIÓN</th>
+                                              <th width="3%"></th>
                                           </tr>
                                       </thead>
                                       <tbody id="cuerpoTabla" style="color:black;">
