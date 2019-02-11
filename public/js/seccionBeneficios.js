@@ -193,6 +193,12 @@ function clickIndice(e,pageNumber,tam){
 function generarFilaModal(beneficio){
   var fila = $(document.createElement('tr'));
 
+  var boolProducido= false;
+
+  if(!beneficio.id_producido){
+    boolProducido=true
+  }
+  
   console.log(beneficio);
 
   var diferencia = beneficio.diferencia;
@@ -259,8 +265,26 @@ function generarFilaModal(beneficio){
           .append($('<textarea>').addClass('form-control').css('resize','vertical'))
       )
 
+      .append($('<td>')
+      .append($('<button>')
+                          .append($('<i>')
+                              .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search')
+                          )
+                          .addClass('btn').addClass('btn-info').addClass('ver-producido')
+                          .attr('data-idProducido',beneficio.id_producido)
+                          .attr('disabled',boolProducido)
+                          .attr('title','DETALLES PRODUCIDO')
+                      ));
+
     return fila;
 }
+
+$(document).on('click','.ver-producido',function(e){
+  e.preventDefault();
+  id_producido=$(this).attr('data-idProducido')
+  console.log(id_producido);
+  window.open('producidos/generarPlanilla/' + id_producido,'_blank');
+});
 
 //Generar las filas para la tabla de los beneficios mensuales
 function generarFilaTabla(beneficio){
