@@ -673,6 +673,7 @@ class LectorCSVController extends Controller
                                             GROUP BY maquina) AS prod_a
 
                        WHERE prod_a.maquina = mtm.nro_admin
+                         AND mtm.deleted_at IS NULL 
                          AND mtm.id_casino = '%d'
                        ",$producido->id_producido,$producido->id_producido,$casino);
 
@@ -941,7 +942,9 @@ class LectorCSVController extends Controller
                        WHERE prod.id_producido = '%d'
                          AND prod.maquina = mtm.nro_admin
                          AND mtm.id_casino = 3
-                       ",$producido->id_producido);
+                         AND mtm.deleted_at IS NULL 
+                         AND mtm.id_tipo_moneda = '%d'
+                       ",$producido->id_producido,$id_tipo_moneda);
 
     $pdo->exec($query);
 
