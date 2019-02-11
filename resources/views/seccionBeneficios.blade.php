@@ -213,8 +213,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                               <th width="12%">CALCULADO</th>
                                               <th width="12%">BENEFICIO</th>
                                               <th width="12%">DIFERENCIA</th>
-                                              <th width="4%">AJUSTE</th>
-                                              <th width="50%">OBSERVACIÓN</th>
+                                              <th width="3%"></th>
+                                              <th width="49%">OBSERVACIÓN</th>
+                                              <th width="3%"></th>
                                           </tr>
                                       </thead>
                                       <tbody id="cuerpoTabla" style="color:black;">

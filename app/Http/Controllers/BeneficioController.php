@@ -91,7 +91,7 @@ class BeneficioController extends Controller
       $paginacion = " ORDER BY ".$request->sort_by['columna']." ".$request->sort_by['orden'].$paginacion;
     }
 
-    $select = " SELECT tipo_moneda.descripcion AS tipo_moneda, casino.nombre as casino, diferencias_mes.* ";
+    $select = " SELECT tipo_moneda.descripcion AS tipo_moneda, casino.nombre as casino, diferencias_mes.*";
 
     $query = "
      FROM (SELECT SUM(CASE WHEN ROUND(diferencia_dia.valor) != 0 THEN 1 ELSE 0 END) AS diferencias_mes, beneficio.id_casino AS id_casino, beneficio.id_tipo_moneda AS id_tipo_moneda, YEAR(beneficio.fecha) AS anio, MONTH(beneficio.fecha) AS mes
@@ -371,7 +371,8 @@ class BeneficioController extends Controller
                                                   DB::raw('(CAST(beneficio.valor AS DECIMAL(15,2))) as beneficio'),
                                                   DB::raw('(CAST((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) AS DECIMAL(15,2))) AS beneficio_calculado'),
                                                   DB::raw('(CAST(((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS DECIMAL(15,2))) AS diferencia'),
-                                                  DB::raw('CASE WHEN ((IFNULL(producido.id_producido,0)) != 0) THEN 1 ELSE 0 END AS existe_producido'))
+                                                  DB::raw('CASE WHEN ((IFNULL(producido.id_producido,0)) != 0) THEN 1 ELSE 0 END AS existe_producido'),
+                                                  'producido.id_producido as id_producido')
                                         ->leftJoin('producido',function ($leftJoin) use ($id_casino,$id_tipo_moneda,$anio,$mes){
                                           $leftJoin->on('producido.fecha','=','beneficio.fecha')
                                                ->where([['producido.id_casino','=',$id_casino],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
