@@ -451,6 +451,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 </div>
 
+
 <!-- MODAL VALIDAR -->
 <div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" style="width: 80%" >
@@ -484,26 +485,35 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <br>
           <div class="row" style="border-collapse: collapse;position:relative">
-            <div class="col-xs-6">
+            <div class="col-xs-5" style="border-right:1px solid #ccc">
               <table  style="width:100%;"  class="table table-responsive">
-                <h6 style="text-align:center !important;font-size:16px">MESAS ABIERTAS EN ESTA FECHA: </h6>
-                <thead>
-                  <th> <h5 style="font-size:14px; text-align:center !important">JUEGO</h5> </th>
-                  <th> <h5 style="font-size:14px; text-align:center !important">CANTIDAD</h5> </th>
+                <h6 style="text-align:center !important;font-size:16px; border-bottom:1px solid #ccc; padding-bottom: 10px;">MESAS ABIERTAS EN ESTA FECHA: </h6>
+                <thead >
+                  <th style="border-right:2px solid #ccc; padding-bottom:3px !important"> <h5 style="font-size:14px !important; text-align:center !important; ">JUEGO</h5> </th>
+                  <th style="padding-bottom:3px !important"> <h5 style="font-size:14px !important; text-align:center !important">CANTIDAD</h5> </th>
+
                 </thead>
                 <tbody id="mesasPorJuego">
 
                 </tbody>
               </table>
             </div>
-            <div class="col-xs-6">
-
+            <div class="col-xs-5" style="border-right:1px solid #ccc">
               <table id="fiscalizadoresPartVal" style="width:100%;position:relative" class="table table-responsive" >
                 <h6 style="font-size:16px !important;">FISCALIZADOR/ES DE TOMA</h6>
 
                 <tbody>
                 </tbody>
               </table>
+            </div>
+            <div class="col-xs-2">
+              <table id="cumplio_min" style="width:100%;position:relative" class="table table-responsive" >
+                <h6 style="font-size:16px !important;border-bottom:1px solid #ccc; padding-bottom: 10px;">CUMPLIÓ MÍNIMO:</h6>
+
+                <tbody>
+                </tbody>
+              </table>
+
             </div>
           </div>
           <br>
