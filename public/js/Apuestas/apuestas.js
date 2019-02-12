@@ -1151,6 +1151,8 @@ function limpiarValidar(){
   $('#obsValidacion').val('');
   $('#obsFiscalizador').val('');
   $('#fiscalizadoresPartVal tbody tr').remove();
+  $('#cumplio_min tbody tr').remove();
+  $('#mesasPorJuego tbody tr').remove();
 
 }
 
