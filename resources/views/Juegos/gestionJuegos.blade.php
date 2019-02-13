@@ -131,7 +131,7 @@
 
 
   <!-- MODAL NUEVO JUEGO -->
-  <div class="modal fade" id="modalAltaJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="modalAltaJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-80%">
       <div class="modal-content">
         <div class="modal-header" style="background-color:#1DE9B6;">
@@ -202,7 +202,7 @@
 
 
     <!-- MODAL MODIFICAR JUEGO -->
-  <div class="modal fade" id="modalModificarJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="modalModificarJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg">
            <div class="modal-content">
               <div class="modal-header" style="background-color:#FFA726;">
@@ -333,7 +333,7 @@
         </div>
       </a>
     </div>
-    
+
   <div class=" col-xl-9"> <!-- columna de FILTROS y TABLA -->
     <div class="row"> <!-- fila de FILTROS -->
       <div class="col-xl-12">
@@ -403,7 +403,7 @@
 </div>
 
 <!-- MODAL NUEVO SECTOR -->
-<div class="modal fade" id="modalAltaSector" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalAltaSector" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-70%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">

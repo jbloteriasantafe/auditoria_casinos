@@ -214,7 +214,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL CARGA RELEVAMIENTO -->
-<div class="modal fade" id="modalCarga" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+<div class="modal fade" id="modalCarga" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70%;">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -333,7 +333,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL MODIFICAR -->
-<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
 <div class="modal-dialog modal-lg" style="width: 80%" >
   <div class="modal-content">
     <div class="modal-header" style="background-color:#FFA726;">
@@ -453,7 +453,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL VALIDAR -->
-<div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#4FC3F7;">
@@ -582,7 +582,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- modal para modificar el minimo solicitado -->
-<div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -667,7 +667,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL BACKUP -->
-<div class="modal fade" id="modalCargaBackUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaBackUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">

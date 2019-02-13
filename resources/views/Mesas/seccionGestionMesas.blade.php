@@ -156,7 +156,7 @@
   </div>
 
   <!-- MODAL NUEVA MESA -->
-      <div class="modal fade" id="modalAltaMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal fade" id="modalAltaMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
             <div class="modal-dialog modal-lg">
                <div class="modal-content">
                   <div class="modal-header" style="background-color:#1DE9B6;">
@@ -241,7 +241,7 @@
       </div>
 
       <!-- FIN MODAL GUIA -->
-      <style media="screen">
+    <style media="screen">
 
       .contenedorFecha p {
         font-family: Roboto-Regular;
@@ -262,7 +262,8 @@
       .tmesa .fa-pencil-alt {
         color: #FFC107;
       }
-      </style>
+    </style>
+
   <!-- MODAL DETALLE -->
   <div class="modal fade" id="modalDetalleMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -373,7 +374,7 @@
 
   <!-- MODAL MODIFICAR MESA -->
 
-  <div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
       <div class="modal-dialog modal-lg">
            <div class="modal-content">
               <div class="modal-header" style="background-color:#FFA726">
@@ -462,7 +463,6 @@
 
 
   <!-- MODAL ELIMINAR -->
-
   <div class="modal fade" id="modalAlertaEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
