@@ -54,7 +54,7 @@ class GenerarPlanillasController extends Controller
 
   public function generarRelevamientosApuestas(){
     $mel = Casino::find(1);
-    foreach ($mel->turnos as $t) {
+    foreach ($mel->turnos as $turno) {
       $arregloRutasTurno = array();
         for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
           $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
