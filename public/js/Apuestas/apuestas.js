@@ -521,7 +521,7 @@ $(document).on('click', '.modificarApuesta', function(e){
        }
 
        $('#B_fecha_modificar').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
-       $('#turnoRelevadoMod').val(data.turno.id_turno).prop('readonly', true);
+       $('#turnoRelevadoMod').val(data.turno.nro_turno).prop('readonly', true);
        $('#obsModificacion').val(data.relevamiento_apuestas.observaciones);
 
        if(data.relevamiento_apuestas.hora_ejecucion != null){
