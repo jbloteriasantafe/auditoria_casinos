@@ -53,9 +53,9 @@ class GenerarPlanillasController extends Controller
   }
 
   public function generarRelevamientosApuestas(){
-  
+
     $dia_carbon = Carbon::now()->addDays(0);
-    $numeroDia = $dia_carbon->format('e');
+    $numeroDia = $dia_carbon->format('w');
     dd($numeroDia);
     //dd(public_path().'/Mesas/RelevamientosAperturas');
     if(file_exists( public_path().'/Mesas/RelevamientosApuestas')){
