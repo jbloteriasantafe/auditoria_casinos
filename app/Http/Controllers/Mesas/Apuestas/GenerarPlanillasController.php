@@ -54,7 +54,31 @@ class GenerarPlanillasController extends Controller
 
   public function generarRelevamientosApuestas(){
     $mel = Casino::find(1);
-    dd($mel->turnos);
+    foreach ($mel->turnos as $t) {
+      $arregloRutasTurno = array();
+        for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+          $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+          $dia_carbon = Carbon::now()->addDays($i);
+          $numeroDia = $dia_carbon->format('w');
+          if($numeroDia == 0){
+            $numeroDia = 7;
+          }
+          //si el turno esta el dia de fecha_backup entonces se crea
+          if(
+            (($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta) ||
+            (($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta)
+            ){
+            //busco si existe el que estoy creando
+
+            $arregloRutasTurno[] = ['dia_nro' => $numeroDia,
+                                    'fecha' => $fecha_backup,
+                                    'turno' => $turno->nro_turno,
+                                    'turno_dia_Desde' => $turno->nombre_dia_desde
+                                  ];
+          }
+        }
+    }
+    dd($arregloRutasTurno);
     // $dia_carbon = Carbon::now()->addDays(0);
     // $numeroDia = $dia_carbon->format('w');
     // $dia_carbon2 = Carbon::now()->addDays(4);
