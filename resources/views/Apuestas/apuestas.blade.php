@@ -36,7 +36,7 @@ $cas = $usuario['usuario']->casinos;
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">GENERAR RELEVAMIENTO</h4>
+                        <h4 class="txtNuevo">IMPRIMIR PLANILLAS DE RELEVAMIENTO</h4>
                     </center>
                   </div>
                 </div>
