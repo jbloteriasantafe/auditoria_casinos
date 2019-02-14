@@ -79,7 +79,10 @@ class GenerarPlanillasController extends Controller
               $numeroDia = 7;
             }
             //si el turno esta el dia de fecha_backup entonces se crea
-            if($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta){
+            if(
+              (($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta) ||
+              (($numeroDia <= $turno->dia_desde && $numeroDia >= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta)
+              ){
               //busco si existe el que estoy creando
 
               if($i>0){
@@ -127,7 +130,7 @@ class GenerarPlanillasController extends Controller
       }
     }
 
-    
+
 
     //falta agregarle nro de pagina .-
     private function generarPlanilla( $id_relevamiento,
