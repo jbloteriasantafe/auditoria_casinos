@@ -53,7 +53,8 @@ class GenerarPlanillasController extends Controller
   }
 
   public function generarRelevamientosApuestas(){
-
+    $mel = Casino::find(1);
+    dd($mel->turnos);
     // $dia_carbon = Carbon::now()->addDays(0);
     // $numeroDia = $dia_carbon->format('w');
     // $dia_carbon2 = Carbon::now()->addDays(4);
