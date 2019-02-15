@@ -59,10 +59,10 @@ class ABMMesaController extends Controller
       $id_casino = $request->id_casino;
       switch ($id_casino) {
         case 1://mel
-          return $this->store_nro_mesa_continuo($request, $id_casino);
+          return store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
           break;
         case 2://sfe
-          return $this->store_nro_mesa_continuo($request, $id_casino);
+          return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
           break;
         case 3://ros
           return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);

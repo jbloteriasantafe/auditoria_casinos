@@ -235,14 +235,16 @@ class ABMApuestasController extends Controller
       //'fiscalizadores.*.id_fiscalizador' => 'required|exists:users,id',
       'detalles' => 'required',
       'detalles.*.id_detalle' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
-      'detalles.*.minimo' => 'nullable|integer|min:1',
-      'detalles.*.maximo' => 'nullable|integer|min:1',
+      'detalles.*.minimo' => 'nullable|integer|min:0',
+      'detalles.*.maximo' => 'nullable|integer|min:0',
       'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
     ], array(), self::$atributos)->after(function($validator){
       $i = 0;
       foreach ($validator->getData()['detalles'] as $fila) {
         if($fila['id_estado_mesa'] == 1 &&
-          (empty($fila['minimo']) || empty($fila['maximo']))){
+          ((empty($fila['minimo']) || empty($fila['maximo'])) ||
+           ($fila['minimo']==0 || $fila['maximo']==0))
+          ){
             $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
             $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
           }

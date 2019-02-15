@@ -325,7 +325,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL CARGA cierre -->
-<div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -704,7 +704,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL MODIFICAR CIERRE -->
-<div class="modal fade" id="modalModificarCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificarCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
@@ -823,7 +823,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL CARGA APERTURA -->
-<div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -991,7 +991,6 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 
-
 <!--MODAL DE DETALLES DE APERTURA -->
 <div class="modal fade" id="modalDetalleApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -1123,7 +1122,7 @@ $cas = $usuario['usuario']->casinos;
 </style>
 
 <!-- MODAL MODIFICAR APERTURA -->
-<div class="modal fade" id="modalModificarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 75%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
@@ -1244,7 +1243,7 @@ $cas = $usuario['usuario']->casinos;
 </style>
 
 <!-- MODAL VALIDAR APERTURA -->
-<div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width:50%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
