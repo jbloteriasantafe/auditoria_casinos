@@ -1186,7 +1186,7 @@ class LayoutController extends Controller
 
     //me fijo si ya habia generados control layout para el dia de hoy que no sean back up, si hay los borro
 
-    $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy]])->get();
+    $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy],['turno',$request->turno]])->get();
 
     foreach($layouts_totales as $unControLayout){
       $unControLayout->delete();

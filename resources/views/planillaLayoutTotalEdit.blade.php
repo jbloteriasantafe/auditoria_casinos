@@ -84,7 +84,7 @@ p {
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
         <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div>
         <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / h:i');
+        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
 
         <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(Ingresar total de máquinas observadas por isla)</i>:</div>
@@ -144,9 +144,9 @@ p {
         </div>
 
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
-        <div class="camposInfo" style="top: 12px; right:294px;"></span>1</div> <!-- COLOCAR TURNO -->
+        <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div> 
         <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / h:i');
+        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
 
               <div class="divTable">
