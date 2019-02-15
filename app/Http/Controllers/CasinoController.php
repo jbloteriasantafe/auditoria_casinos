@@ -47,10 +47,11 @@ class CasinoController extends Controller
 
     $dia_semana = date('w');
 
+    
     $hora_dia = date('H:i:s');
 
     $entrada_min = Turno::where([['id_casino' , $id] , ['dia_desde' ,'<=', $dia_semana], ['dia_hasta' ,'>=', $dia_semana]])->min('entrada');
-
+    
     if($hora_dia < $entrada_min){
       if($dia_semana == 0){
         $dia_semana= 6;
