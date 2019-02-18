@@ -190,10 +190,10 @@ $cas = $usuario['usuario']->casinos;
                             <button type="button" class="btn btn-warning modificarApuesta" value="">
                                     <i class="fas fa-fw fa-pencil-alt"></i>
                             </button>
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-success validarApuesta" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
-                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-success eliminarApuesta" value="">
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
