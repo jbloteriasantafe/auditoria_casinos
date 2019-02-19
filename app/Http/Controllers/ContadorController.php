@@ -21,6 +21,7 @@ class ContadorController extends Controller
     return self::$instance;
   }
 
+  // eliminarContador elimina los detalles contadores y por ultimo el contador horarios
   public function eliminarContador($id_contador){
     Validator::make(['id_contador' => $id_contador]
                    ,['id_contador' => 'required|exists:contador_horario,id_contador_horario']
@@ -42,7 +43,8 @@ class ContadorController extends Controller
                        ",$id_contador);
     $pdo->exec($query);
   }
-
+  // modificarContador modifica los detalles contador, asocaciado a un unico contador horario
+  // se ajusta de acuerdo a un tipo de ajuste y se asocia al mismo
   public function modificarContador(Request $request){
     Validator::make($request->all(), [
                     'detalles' => 'nullable',
@@ -71,6 +73,9 @@ class ContadorController extends Controller
     }
   }
 
+  // estaCerrado  retorna los contadores cerrados que coinciden con los parametros
+  // se considera cerrado el contador horario cuando se ya se valido el mismo, es decir, todos los detalles contadores
+  // del contador horario, fueron validados
   public function estaCerrado($fecha,$id_casino,$tipo_moneda){
     //cerrado significa que se haya validado el producido de la misma fecha en cuestion
     $contadores= ContadorHorario::where([['fecha' , '=' , $fecha],['id_casino' , '=' , $id_casino] , ['id_tipo_moneda' , '=' , $tipo_moneda->id_tipo_moneda]])->get();
@@ -99,6 +104,8 @@ class ContadorController extends Controller
     return $resultado;
   }
 
+  // estaCerradoMaquina verifica para una maquina en una fecha, si el contador horario asociado esta cerrad
+  // tambien verifica si tiene importado los contadores y sus respectivo detalle contador
   public function estaCerradoMaquina($fecha,$id_maquina){
     $resultado = DetalleContadorHorario::join('contador_horario' , 'detalle_contador_horario.id_contador_horario' , '=' , 'contador_horario.id_contador_horario')
                                          ->where([['contador_horario.fecha' ,$fecha],['detalle_contador_horario.id_maquina' , $id_maquina]])
