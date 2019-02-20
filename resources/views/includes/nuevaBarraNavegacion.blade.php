@@ -598,7 +598,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
                   </div>
                   @endif
-
+                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_beneficios'))
                   <!-- TABLERO CONTROL -->
 
                   <div class="nivelMenu1">
@@ -636,7 +636,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                       </div>
 
                   </div> <!-- /#menu2_tablero -->
-
+                  
                   <!-- MENÚ INFORMES -->
                   <div class="nivelMenu1">
                       <div id="menu_informes" class="iconoDireccion1" data-toggle="collapse" data-target="#menu2_informes">
@@ -673,7 +673,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                       </div>
 
                   </div> <!-- /#menu2_informe -->
-
+                  @endif
 
               </div>
             </div>
