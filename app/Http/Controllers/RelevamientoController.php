@@ -47,8 +47,9 @@ class RelevamientoController extends Controller
     return self::$instance;
   }
 
-  //devuelve los sectores sin validar, si está vacia, esta validado
-  //evalua que todos los sectores sean relevados y que los mismos esten visados
+  // estaValidado devuelve los sectores sin validar, si está vacia, esta validado
+  // tiene en cuenta que todos los sectores tengan relevamiento visados, en ese caso
+  // el estado a verificar es 7 -> rel visado
   public function estaValidado($fecha, $id_casino,$tipo_moneda){
     $relevamientos=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
                                 ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ])
@@ -92,6 +93,7 @@ class RelevamientoController extends Controller
     return view('seccionRelevamientos', ['casinos' => $usuario->casinos ,'estados' => $estados ,'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all()]);
   }
 
+  // buscarRelevamientos busca relevamientos de acuerdo a los filtros
   public function buscarRelevamientos(Request $request){
     $reglas = Array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
