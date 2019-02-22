@@ -168,7 +168,7 @@ class GenerarPlanillasController extends Controller
     }
 
 
-    private function esElDiaDelTurno($nro_dia, $turno){
+    private function esElDiaDelTurno($numeroDia, $turno){
       //hay un unico dia en el turno
       if($turno->dia_desde == $turno->dia_hasta && $numeroDia == $turno->dia_desde){
         return true;
