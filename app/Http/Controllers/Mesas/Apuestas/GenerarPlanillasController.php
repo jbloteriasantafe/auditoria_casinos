@@ -175,11 +175,11 @@ class GenerarPlanillasController extends Controller
       }
 
       //el dia que incia el turno es menor que el que termina
-      if(($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta){
+      if(($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde < $turno->dia_hasta){
         return true;
       }
       //el dia que incia el turno es mayor que el que termina
-      if(($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta){
+      if(($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde > $turno->dia_hasta){
         return true;
       }
       return false;
