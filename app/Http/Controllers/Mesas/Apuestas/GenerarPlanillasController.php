@@ -113,7 +113,9 @@ class GenerarPlanillasController extends Controller
               $numeroDia = 7;
             }
             //si el turno esta el dia de fecha_backup entonces se crea
-            if($turno->dia_desde == $turno->dia_hasta && $numeroDia == $turno->dia_desde){
+
+            //si el dia del turno es uno solo y el $numeroDia justo coincide..
+            if($this->esElDiaDelTurno($numeroDia,$turno)){
               //busco si existe el que estoy creando
 
               if($i>0){
@@ -144,42 +146,6 @@ class GenerarPlanillasController extends Controller
 
               file_put_contents($ruta, $output);
               $arregloRutasTurno[] = $ruta;
-            }else{
-              if(
-                (($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta) ||
-                (($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta)
-                ){
-                //busco si existe el que estoy creando
-
-                if($i>0){
-                  $backUp = 1;
-                }else{
-                  $backUp = 0;
-                }
-                $relevamiento = RelevamientoApuestas::where([['id_turno','=',$turno->id_turno],
-                                                              ['id_casino','=',$casino->id_casino],
-                                                              ['es_backup','=',$backUp],
-                                                              ['fecha','=',$fecha_backup],
-                                                              ['created_at','=',$fecha_hoy]
-                                                            ])->get();
-                if(count($relevamiento) == 1){
-                  $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
-                }else{
-                  if(count($relevamiento) == 0){
-                    $id_relevamiento = $apuestasController->crearRelevamientoApuestas($casino,$turno,$fecha_backup);
-                  }else{
-                    $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
-                  }
-                }
-                $dompdf = $this->generarPlanilla( $id_relevamiento,$turno, $fecha_backup, $casino);
-                $output = $dompdf->output();
-                $ruta = public_path()."/Mesas/RelevamientosApuestas/Valores_Minimos_Apuestas-fecha_".$fecha_backup.
-                        '_Turno-Nro-'.$turno->nro_turno.'-Dias-'.$turno->nombre_dia_desde.'-a-'.$turno->nombre_dia_hasta.".pdf";
-
-
-                file_put_contents($ruta, $output);
-                $arregloRutasTurno[] = $ruta;
-              }
             }
           }
           if(count($arregloRutasTurno)>0 ){
@@ -201,6 +167,23 @@ class GenerarPlanillasController extends Controller
       }
     }
 
+
+    private function esElDiaDelTurno($nro_dia, $turno){
+      //hay un unico dia en el turno
+      if($turno->dia_desde == $turno->dia_hasta && $numeroDia == $turno->dia_desde){
+        return true;
+      }
+
+      //el dia que incia el turno es menor que el que termina
+      if(($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta){
+        return true;
+      }
+      //el dia que incia el turno es mayor que el que termina
+      if(($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta){
+        return true;
+      }
+      return false;
+    }
 
 
     //falta agregarle nro de pagina .-
