@@ -251,7 +251,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   });
 
   e.preventDefault();
-
+  
   var page_size = (page_size != null) ? page_size : 10;
   var page_number = (pagina != null) ? pagina : 1;
   var sort_by = (columna != null) ? {columna,orden} : null;
@@ -269,11 +269,11 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
   // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+  var sort_by = (columna != null) ? {columna,orden} : {columna: "maquina_a_pedido.fecha",orden:"desc"} ; // pro defecto ordena por la mas nueva
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
-
+ 
 
   var formData = {
     nro_admin: $('#nro_admin').val(),
