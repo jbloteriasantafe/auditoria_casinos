@@ -1084,7 +1084,7 @@ class MTMController extends Controller
         $maquina->save();
       }
     }else{
-      foreach ($arreglo as $id_maquina) {
+      foreach ($arreglo_maquinas as $id_maquina) {
         $maquina= Maquina::find($id_maquina);
         $maquina->marca_juego=  $this->abreviarMarca($maquina->marca) . ' - ' . $maquina->juego_activo->nombre_juego;
         $maquina->save();

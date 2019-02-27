@@ -845,7 +845,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
      }
@@ -1325,7 +1325,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
       }
@@ -1733,7 +1733,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
      }
@@ -1870,7 +1870,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator>getMessageBag()->toArray()
             ];
         }
      }
