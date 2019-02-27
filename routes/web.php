@@ -255,6 +255,7 @@ Route::post('movimientos/movimientosSinExpediente','LogMovimientoController@movi
 Route::get('movimientos/obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
 Route::get('movimientos/buscarJuegoMovimientos/{nombre_juego}', 'JuegoController@buscarJuegoMovimientos');
 Route::get('movimientos/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
+Route::get('movimientos/obtenerMTM/{id_maquina}','LogMovimientoController@obtenerMaquina');
 Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@obtenerMaquinasIsla');
 Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
 Route::get('movimientos/maquinasEnviadasAFiscalizar/{id_movimiento}','RelevamientoMovimientoController@maquinasEnviadasAFiscalizar');

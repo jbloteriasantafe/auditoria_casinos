@@ -455,8 +455,8 @@
 
                     </div>
                    </div>
-
-                   <div class="col-md-4" id="busqSector">
+                   {{-- Se saca el movimiento por sector porque son demsiadas mtm para ser manipuladas en un modal --}}
+                   {{-- <div class="col-md-4" id="busqSector">
                      <h6>Seleccionar Sector</h6>
                      <div class="row">
 
@@ -468,7 +468,7 @@
                        </div>
 
                      </div>
-                   </div>
+                   </div> --}}
                    <div class="col-md-4" >
                      <h6>Fecha: </h6>
                      <div class="form-group">

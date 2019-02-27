@@ -1177,6 +1177,19 @@ class MTMController extends Controller
     return $maquina;
   }
 
+  // modificarDenominacionJuego cambia la denominacion del juego activo de la mtm
+  public function modificarDenominacionJuego( $denominacion, $id_maquina){
+    $m = Maquina::find($id_maquina);
+    $id_juego_activo=$m->juego_activo->id_juego;
+    DB:: table('maquina_tiene_juego')
+      ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
+      ->Update(['denominacion' => $denominacion]);
+      
+    $razon = "Se cambió denominacio al juego activo";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
+    return $m;
+  }
+
   public function buscarMaquinasPorNota($id_nota){
     $maquinas=DB::table('maquina')
     ->select('maquina.*')

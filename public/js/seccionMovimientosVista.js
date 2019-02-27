@@ -906,11 +906,9 @@ function clickAgregarMaqDenominacion(e) {
   var id_maq = $('#inputMaq2').attr('data-elemento-seleccionado');
 
   if (id_maq != 0) {
-    $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maq, function(data) {
-        agregarMaqDenominacion(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.denominacion,
-                                data.juegosMovimiento, data.juego_activo.id_juego,
-                                data.juego_activo.nombre_juego, data.maquina.porcentaje_devolucion,
-                                data.unidad_medida, data.unidades, 1);
+    $.get('http://' + window.location.host +"/movimientos/obtenerMTM/" + id_maq, function(data) {
+      agregarMDenominacion(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.denominacion,
+        data.maquina.porcentaje_devolucion,data.maquina.id_unidad_medida, data.unidades, 1);
 
         $('#inputMaq2').setearElementoSeleccionado(0 , "");
 

@@ -546,7 +546,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
       }
@@ -567,9 +567,11 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
-
+            // el cambio de denominacion por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
+            // MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarDenominacionJuego($maquina['denominacion'],$maquina['id_maquina']);
             $maq= Maquina::find($maquina['id_maquina']);
+            // TODO evaluar el caso de dos relevamientos para la misma mtm
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
               $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($req['id_log_movimiento'], $maq);
@@ -2002,12 +2004,16 @@ class LogMovimientoController extends Controller
 
   public function obtenerMaquinasSector($id_sector){
       //dado un casino,devuelve sectores que concuerden con el nombre del sector
-      $maquinas = DB::table('maquina')
-                      ->select('maquina.*')
-                      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      $maquinas = Maquina::
+                        join('isla','isla.id_isla','=','maquina.id_isla')
                       ->join('sector','sector.id_sector','=','isla.id_sector')
                       ->where('sector.id_sector' , '=' , $id_sector)
                       ->get();
+      
+      foreach($maquinas as  $m){
+        $m->denominacion= $m->obtenerDenominacion();
+        $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+      }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
 
@@ -2016,15 +2022,33 @@ class LogMovimientoController extends Controller
 
   public function obtenerMaquinasIsla($id_isla){
       //dado un casino,devuelve sectores que concuerden con el nro admin dado
-      $maquinas = DB::table('maquina')
-                      ->select('maquina.*')
-                      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      $maquinas = Maquina::
+                        join('isla','isla.id_isla','=','maquina.id_isla')
                       ->where('isla.id_isla' , '=' , $id_isla)
                       ->get();
+      // se cambia el valor devuelto de denominacion y % dev por los valores del juego activo
+
+      foreach($maquinas as  $m){
+        $m->denominacion= $m->obtenerDenominacion();
+        $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+      }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
      return ['maquinas' => $maquinas,'unidades' => $unidades];
   }
+
+  public function obtenerMaquina($id_maquina){
+    //dado un casino,devuelve sectores que concuerden con el nombre del sector
+    $m = Maquina::Find($id_maquina);
+    
+    $m->denominacion= $m->obtenerDenominacion();
+    $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+    
+
+    $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
+
+    return ['maquina' => $m,'unidades' => $unidades];
+}
 
   ///////////PRUEBAS////////////////////////////////////////////////////////////
 
