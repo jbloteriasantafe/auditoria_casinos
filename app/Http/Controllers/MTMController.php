@@ -1176,7 +1176,7 @@ class MTMController extends Controller
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
-
+  
   // modificarDenominacionJuego cambia la denominacion del juego activo de la mtm
   public function modificarDenominacionJuego( $denominacion, $id_maquina){
     $m = Maquina::find($id_maquina);
@@ -1285,6 +1285,19 @@ class MTMController extends Controller
     $razon = "Se modificó devolucion";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
     $maq->save();
+  }
+
+  // modificarDevolucionJuego cambia el porcentaje de devolucion del juego activo asociado a la mtm
+  public function modificarDevolucionJuego($porcentaje_devolucion,$id_maquina){
+    $m = Maquina::find($id_maquina);
+    $id_juego_activo=$m->juego_activo->id_juego;
+    DB:: table('maquina_tiene_juego')
+      ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
+      ->Update(['porcentaje_devolucion' => $porcentaje_devolucion]);
+    $razon = "Se modificó el procentaje de devolucion del juego activo";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
+    
+    return $m;
   }
 
   public function modificarJuego($id_juego,$id_maquina){

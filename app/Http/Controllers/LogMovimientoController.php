@@ -583,7 +583,10 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
+            // MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarDevolucionJuego($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {

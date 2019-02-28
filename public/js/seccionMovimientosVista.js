@@ -825,7 +825,7 @@ $(document).on('click','.modificarDenominacion',function(){
 
       break;
       case '6': //devolución
-          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE DEVOLUCIÓN');
+          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE %DEV DE JUEGO');
           $('#segunda_columna').show().text('% DEVOLUCIÓN');
           $('#tercer_columna').hide();
           $('#denom_comun').hide();
@@ -1076,10 +1076,10 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
 
   //TIPO DE MOVIMIENTO ES %DEVOLUCION:
   if(t_mov==6){
-
     fila.append($('<td>')
       .append($('<input>')
       .addClass('devolucion_modificada form-control')
+      .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
           .val(dev)));
   };
 
