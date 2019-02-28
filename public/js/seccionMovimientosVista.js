@@ -805,7 +805,7 @@ $(document).on('click','.modificarDenominacion',function(){
 
   switch (tmov) {
     case '5'://denominación
-          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE DENOMINACIÓN');
+          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE DENOMINACIÓN DE JUEGO');
           $('#segunda_columna').show().text('DENOMINACIÓN');
           $('#tercer_columna').show();
           $('#denom_comun').show();
@@ -1049,6 +1049,8 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
                               .append($('<i>').addClass('fa fa-fw fa-trash'));
   var t_mov = $('#modalDenominacion').find('#id_t_mov').val();
 
+  // se busca migrar la denominacion a valores validos, por lo que se la convierte a numerico
+  denFloat=denominacionToFloat(denom)
   //Se agregan todas las columnas para la fila
   fila.append($('<td>').text(nro_admin))
   //TIPO DE MOVIMIENTO ES DENOMINACION:
@@ -1057,17 +1059,18 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
     fila.append($('<td>')
         .append($('<input>')
         .addClass('denominacion_modificada form-control')
-        .val(denom)))
+        .attr("type","number").attr("step","0.01").attr("min","0.01")
+        .val( denFloat)))
 
-  var select = $('<select>').addClass('unidad_denominacion form-control');
+  // var select = $('<select>').addClass('unidad_denominacion form-control');
 
-    for (var j = 0; j < unidades.length; j++) {
-        var tipo = unidades[j].descripcion;
-        var id = unidades[j].id_unidad_medida;
-        select.append($('<option>').text(tipo).val(id));
-    }
-    select.val(unidad_seleccionada);
-    fila.append($('<td>').append(select));
+  //   for (var j = 0; j < unidades.length; j++) {
+  //       var tipo = unidades[j].descripcion;
+  //       var id = unidades[j].id_unidad_medida;
+  //       select.append($('<option>').text(tipo).val(id));
+  //   }
+  //   select.val(unidad_seleccionada);
+  //  fila.append($('<td>').append(""));
 
   };
 
@@ -1095,13 +1098,15 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
 $('#todosDen').on('click', function(){
 
   var den_comun=$('#denom_comun').val();
-  var unidad_comun=$('#unidad_comun').val();
+  //var unidad_comun=$('#unidad_comun').val();
   var tabla= $('#tablaDenominacion tbody > tr');
-
-  $.each(tabla, function(index, value){
-    $('.denominacion_modificada').val(den_comun);
-    $('.unidad_denominacion').val(unidad_comun);
-  });
+  if (den_comun !=""){
+    $.each(tabla, function(index, value){
+      $('.denominacion_modificada').val(den_comun);
+      //$('.unidad_denominacion').val(unidad_comun);
+    });
+  }
+  
 
 })
 $('#todosDev').on('click', function(){
@@ -2495,3 +2500,11 @@ $('#modalMaquina #nro_admin').on("keyup", function(e){
   $('#modalMaquina .modal-title').text(text);
 
 });
+
+function denominacionToFloat(den) {
+  if (den=="" || den==null) {
+    return parseFloat(0.01)
+  }
+  denf=den.replace(",",".")
+  return parseFloat(denf)
+}
