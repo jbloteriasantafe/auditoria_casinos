@@ -1294,7 +1294,7 @@ class MTMController extends Controller
     DB:: table('maquina_tiene_juego')
       ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
       ->Update(['porcentaje_devolucion' => $porcentaje_devolucion]);
-    $razon = "Se modificó el procentaje de devolucion del juego activo";
+    $razon = "Se modificó el procentaje de devolución del juego activo";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
     
     return $m;

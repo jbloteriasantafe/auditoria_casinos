@@ -1113,11 +1113,11 @@ $('#todosDev').on('click', function(){
 
   var dev_comun=$('#devol_comun').val();
   var tabla= $('#tablaDenominacion tbody > tr');
-
-  $.each(tabla, function(index, value){
-    $('.devolucion_modificada').val(dev_comun);
-  });
-
+  if (dev_comun!=""){
+    $.each(tabla, function(index, value){
+      $('.devolucion_modificada').val(dev_comun);
+    });
+  }
 })
 //cierra modal y limpio el data list de arriba
 $('#modalDenominacion').on('hidden.bs.modal', function() {

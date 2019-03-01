@@ -514,7 +514,7 @@
             <div class="row">
 
               <div class="col-md-4">
-              <h5 id="nuevaDev" hidden="">Nueva Devolución: </h5> <input type="number" step="0.01" min="80" max="100" name="" value="" id="devol_comun" hidden>
+              <h5 id="nuevaDev" hidden="">Nueva Devolución: </h5> <input type="number" step="0.01" min="80.01" max="100" name="" value="" id="devol_comun" hidden>
               </div>
 
               <div class="col-md-4">
