@@ -47,8 +47,9 @@ class RelevamientoController extends Controller
     return self::$instance;
   }
 
-  //devuelve los sectores sin validar, si está vacia, esta validado
-  //evalua que todos los sectores sean relevados y que los mismos esten visados
+  // estaValidado devuelve los sectores sin validar, si está vacia, esta validado
+  // tiene en cuenta que todos los sectores tengan relevamiento visados, en ese caso
+  // el estado a verificar es 7 -> rel visado
   public function estaValidado($fecha, $id_casino,$tipo_moneda){
     $relevamientos=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
                                 ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ])
@@ -92,6 +93,7 @@ class RelevamientoController extends Controller
     return view('seccionRelevamientos', ['casinos' => $usuario->casinos ,'estados' => $estados ,'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all()]);
   }
 
+  // buscarRelevamientos busca relevamientos de acuerdo a los filtros
   public function buscarRelevamientos(Request $request){
     $reglas = Array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -129,7 +131,7 @@ class RelevamientoController extends Controller
 
     return $resultados;
   }
-
+  // obtenerRelevamiento 
   public function obtenerRelevamiento($id_relevamiento){
     $usuario_actual = UsuarioController::getInstancia()->quienSoy();
     $relevamiento = Relevamiento::find($id_relevamiento);
@@ -200,6 +202,8 @@ class RelevamientoController extends Controller
             'usuario_actual' => $usuario_actual];
   }
 
+  // existeRelevamiento retorna una bandera indicando si existe relevamiento que no se a backup
+  // si esta con estado generado retorna 1 , sino existe retorna 0 y 2 para los demas estados
   public function existeRelevamiento($id_sector){
     Validator::make(['id_sector' => $id_sector],[
         'id_sector' => 'required|exists:sector,id_sector'
@@ -214,7 +218,12 @@ class RelevamientoController extends Controller
 
     return $resultados;
   }
-
+  // crearRelevamiento crea un nuevo relevamiento
+  // limpia los existentes , se considera que se puede regenerar
+  // considera las maquinas para un sector y las maquinas a pedido
+  // genera para el relevamiento, segun la cantidad de maquinas, los detalles relevamientos
+  // genera los backup para la carga sin sistema
+  // genera las planillas , comprime las de backup y se descargan
   public function crearRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
@@ -430,6 +439,7 @@ class RelevamientoController extends Controller
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
   }
 
+  // cargarRelevamiento se guardan los detalles relevamientos de la toma de los fisca
   public function cargarRelevamiento(Request $request){
     Validator::make($request->all(), [
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
@@ -521,6 +531,8 @@ class RelevamientoController extends Controller
             'esAdministrador' => AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'relevamiento_validar')];
   }
 
+  // eliminarRelevamientosBackUp funcion de utilidad, borra los relevamientos backup, se la llama
+  // cuando se cierra el relevamiento
   private function eliminarRelevamientosBackUp($relevamiento){
     $relevamientos = Relevamiento::where([['id_sector',$relevamiento->sector->id_sector],['fecha',$relevamiento->fecha],['backup',1]])->get();
     foreach($relevamientos as $rel){
@@ -530,7 +542,9 @@ class RelevamientoController extends Controller
       $rel->delete();
     }
   }
-
+  // validarRelevamiento valida un relevamiento, le cambia el estado a visado
+  // tambien verifica si todos los relevamientos para ese sector estan validados, en ese caso
+  // se cambia el estado al 7 "rel visado", es decir, todos los relevamientos generados, estan visados
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
@@ -604,6 +618,7 @@ class RelevamientoController extends Controller
             'detalles' => $relevamiento->detalles];
   }
 
+  // obtenerRelevamientoVisado 
   public function obtenerRelevamientoVisado($id_relevamiento){
 
     $relevamiento = Relevamiento::find($id_relevamiento);
@@ -688,8 +703,8 @@ class RelevamientoController extends Controller
 
     return $ruta;
   }
-
-  public function crearPlanilla($id_relevamiento){// CREAR Y GUARDAR RELEVAMIENTO
+  // crearPlanilla crea y guarda la planilla de relevamiento
+  public function crearPlanilla($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
     $rel= new \stdClass();
     $rel->nro_relevamiento = $relevamiento->nro_relevamiento;
@@ -750,8 +765,11 @@ class RelevamientoController extends Controller
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
   }
-
-  public function crearPlanillaValidado($id_relevamiento){// CREAR Y GUARDAR RELEVAMIENTO
+  // crearPlanillaValidado crea el informe final con los relevamiento de todos los sectores
+  // hace un resumen total y lo mustra
+  // tiene en cuenta los estados totales de errores y la descripcion de los mismos
+  // no es estatico, se recalclcula cada vez que se llama
+  public function crearPlanillaValidado($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
     $casino = $relevamiento->sector->casino;
     foreach($casino->sectores as $sector){
@@ -947,6 +965,7 @@ class RelevamientoController extends Controller
     return $dompdf;
   }
 
+  // calcularMTMsHabilitadas 
   private function calcularMTMsHabilitadas($id_casino){
     $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
                                           ->orWhere('descripcion' , 'Reingreso')
@@ -965,7 +984,7 @@ class RelevamientoController extends Controller
               ->first()->cantidad;
 
   }
-
+  // calcular_sin_isla retorna la cantidad de maquinas sin isla en un casino
   private function calcular_sin_isla($id_casino){
     return DB::table('maquina')
               ->select(DB::raw('COUNT(id_maquina) as cantidad'))

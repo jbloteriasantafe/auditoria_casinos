@@ -506,7 +506,12 @@ class LectorCSVController extends Controller
         fclose($fichero);
         return 'fin lector';
   }
-
+  // importarContadorSantaFeMelincue crea un nuevo contador horario
+  // carga en una tabla temporal los datos del archivo csv
+  // al temporal lo opera para para tomar los ultimos datos de los contadores
+  // genera un join con las maquinas para tener valores de maquinas que existan en el maestro de mtm
+  // y con esto se va agregado en los detalles_contadores
+  // luego elimina los temporales 
   public function importarContadorSantaFeMelincue($archivoCSV,$casino){
 
     $contador = new ContadorHorario;
@@ -605,6 +610,14 @@ class LectorCSVController extends Controller
     return ['id_contador_horario' => $contador->id_contador_horario,'fecha' => $contador->fecha,'casino' => $contador->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => ContadorHorario::find($contador->id_contador_horario)->tipo_moneda->descripcion];
   }
 
+  // importarProducidoSantaFeMelincue crea nuevo producido
+  // inserta en una tabla temporal , formateando a valores validos
+  // luego toma esta tabla , hace un join con maquinas para tomar solo las mtm del maestro validas
+  // y va generando los detalles producidos
+  // es posbile que en el archivo no envien mtm (diversos motivos) en ese caso se fuerza a que tenga
+  // producido 0 y se genera un log en el archivo de producido
+  // como santa fe y melincue tiene en el archivo el beneficio en su ultima linea
+  // tambien se crea el archivo de beneficio
   public function importarProducidoSantaFeMelincue($archivoCSV,$casino){
 
     $producido = new Producido;
@@ -753,7 +766,9 @@ class LectorCSVController extends Controller
   //fin de implementacion 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
-
+  // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
+  // solo se toma la linea de beneficio para insertar en la tabla real
+  // luego se elimina los temporales
   public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
 
     $pdo = DB::connection('mysql')->getPdo();
@@ -807,7 +822,11 @@ class LectorCSVController extends Controller
 
     return ['id_beneficio' => $ben->id_beneficio,'fecha' => $ben->fecha,'casino' => $ben->casino->nombre,'tipo_moneda' => $ben->tipo_moneda->descripcion];
   }
-
+  // importarContadorRosario misma metodologia que en santa fe, se tiene en cuenta el formato
+  // de archivo de rosario y que tienen distintos tipos de moneda
+  // se tiene en cuenta la denominacion de carga, esto permite realziar las transformaciones de 
+  // creadito a plata, esta denominacion la toma del maestro de maquinas 
+  // se deja de manera estatica la denominacion que se tomo al momento de cargar
   public function importarContadorRosario($archivoCSV,$fecha,$id_tipo_moneda){
 
         $contador = new ContadorHorario;
@@ -882,7 +901,11 @@ class LectorCSVController extends Controller
 
         return ['id_contador_horario' => $contador->id_contador_horario,'fecha' => $contador->fecha,'casino' => $contador->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => ContadorHorario::find($contador->id_contador_horario)->tipo_moneda->descripcion];
   }
-
+  // importarProducidoRosario se inserta la informacion en una tabla temporal, formateando lo necesario
+  // se consiera el tipo de moneda generar el formato
+  // luego se realiza el join con mtm para importar producidos en maquinas que existan en el maestro y sean validas
+  // se considera la posibilidad que en el archivo no se envien reportes de mtm (diversos motivos)
+  // en ese caso se fuerza el valor de producido a cero y se genera un log de las maquinas que no reportaron
   public function importarProducidoRosario($archivoCSV,$fecha,$id_tipo_moneda){
 
     $producido = new Producido;
@@ -989,7 +1012,8 @@ class LectorCSVController extends Controller
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
-
+  // importarBeneficioRosario vuelca el contenido del csv en un temporal, formateando los datos necesarios
+  // luego vuelca en la tabla real
   public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda){
 
     $pdo = DB::connection('mysql')->getPdo();
