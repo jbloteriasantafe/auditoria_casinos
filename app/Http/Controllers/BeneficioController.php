@@ -90,7 +90,7 @@ class BeneficioController extends Controller
     if($request->sort_by != null){
       $paginacion = " ORDER BY ".$request->sort_by['columna']." ".$request->sort_by['orden'].$paginacion;
     }else{
-      $paginacion = " ORDER BY diferencias_mes.anio desc".$paginacion;
+      $paginacion = " ORDER BY diferencias_mes.anio desc, diferencias_mes.mes".$paginacion;
     }
 
     $select = " SELECT tipo_moneda.descripcion AS tipo_moneda, casino.nombre as casino, diferencias_mes.*";
