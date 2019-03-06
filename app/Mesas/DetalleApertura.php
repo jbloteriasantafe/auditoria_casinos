@@ -10,9 +10,18 @@ class DetalleApertura extends Model
   protected $table = 'detalle_apertura';
   protected $primaryKey = 'id_detalle_apertura';
   protected $visible = array('id_detalle_apertura','id_ficha','cantidad_ficha',
-                              'id_apertura_mesa','id_detalle_cierre'
-                            );
-  public $timestamps = false;
+                                'id_apertura_mesa','id_detalle_cierre','monto_ficha','ficha_valor'
+                              );
+    public $timestamps = false;
+    protected $appends = array('monto_ficha','ficha_valor');
+
+    public function getFichaValorAttribute(){
+      return $this->ficha->valor_ficha;
+    }
+
+    public function getMontoFichaAttribute(){
+      return $this->cantidad_ficha * $this->ficha->valor_ficha;
+    }
 
   public function apertura()
   {

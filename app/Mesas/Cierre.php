@@ -14,7 +14,8 @@ class Cierre extends Model
   protected $visible = array('id_cierre_mesa','fecha','hora_inicio',
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_moneda','hora_inicio_format','hora_fin_format','deleted_at'
+                              'id_mesa_de_panio','id_estado_cierre','id_moneda',
+                              'hora_inicio_format','hora_fin_format','total_pesos','total_cantidad_fichas'
                             );
   public $timestamps = false;
 
@@ -24,7 +25,21 @@ class Cierre extends Model
                               'id_tipo_cierre','id_mesa_de_panio',
                               'id_estado_cierre','id_moneda'];
 
-  protected $appends = array('hora_inicio_format','hora_fin_format');
+
+  protected $appends = array('hora_inicio_format','hora_fin_format','total_cantidad_fichas','total_pesos');
+
+  public function getTotalPesosAttribute(){
+    return $this->total_pesos_fichas_c;
+  }
+
+
+  public function getTotalCantidadFichasAttribute(){
+    $suma = 0;
+    foreach ($this->detalles as $det) {
+      $suma+=$det->cantidad_ficha_cierre;
+    }
+    return $suma;
+  }
 
   public function getHoraInicioFormatAttribute(){
     if($this->hora_inicio != null){
