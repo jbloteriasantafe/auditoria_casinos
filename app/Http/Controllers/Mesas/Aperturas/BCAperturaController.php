@@ -212,56 +212,76 @@ class BCAperturaController extends Controller
   }
 
   public function obtenerDetallesApCierre($id_apertura,$id_cierre, $id_moneda){
+    // if($id_apertura == null || $id_cierre == null || $id_moneda == null){
+    //   return response()->json(['error' => 'NULL pointer exception.'], 522);
+    // }else{
+    //   $first = DB::table('detalle_apertura')
+    //               ->select(
+    //                 'detalle_apertura.id_detalle_apertura',
+    //                          'detalle_apertura.cantidad_ficha',
+    //                          DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
+    //                          'ficha.valor_ficha',
+    //                          'ficha.id_ficha',
+    //                          'detalle_cierre.monto_ficha',
+    //                          'detalle_cierre.id_detalle_cierre'
+    //                 )
+    //                 ->join('ficha','ficha.id_ficha', '=', 'detalle_apertura.id_ficha')
+    //                 ->leftJoin('detalle_cierre',function ($join) use($id_cierre) {
+    //                             $join->on('detalle_cierre.id_ficha' ,'=' ,'ficha.id_ficha')
+    //                             ->where('detalle_cierre.id_cierre_mesa', '=', $id_cierre);
+    //                           })
+    //                 ->where('detalle_apertura.id_apertura_mesa', '=', $id_apertura)
+    //                 ->where('ficha.id_moneda', '=',$id_moneda)
+    //                 ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_cierre.id_detalle_cierre', 'detalle_apertura.cantidad_ficha','ficha.valor_ficha','detalle_cierre.monto_ficha');
+    //   $detalles = DB::table('detalle_cierre')
+    //               ->select(
+    //                 'detalle_apertura.id_detalle_apertura',
+    //                          'detalle_apertura.cantidad_ficha',
+    //                          DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
+    //                          'ficha.valor_ficha',
+    //                          'ficha.id_ficha',
+    //                          'detalle_cierre.monto_ficha',
+    //                          'detalle_cierre.id_detalle_cierre'
+    //                 )
+    //                 ->join('ficha','ficha.id_ficha', '=', 'detalle_cierre.id_ficha')
+    //                 ->leftJoin('detalle_apertura',function ($join)use($id_apertura) {
+    //                             $join->on('ficha.id_ficha' ,'=' ,'detalle_apertura.id_ficha')
+    //                             ->where('detalle_apertura.id_apertura_mesa', '=', $id_apertura);
+    //                           })
+    //                 ->where('detalle_cierre.id_cierre_mesa', '=', $id_cierre)
+    //                 ->where('ficha.id_moneda', '=',$id_moneda)
+    //                 ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_cierre.id_detalle_cierre', 'detalle_apertura.cantidad_ficha','ficha.valor_ficha','detalle_cierre.monto_ficha')
+    //                 ->union($first)
+    //                 ->orderBy('valor_ficha','desc')
+    //                 ->get();
+    //   $cierre = Cierre::find($id_cierre);
+    //
+    //   return ['detalles_join' => $detalles,
+    //           'cierre' => $cierre,
+    //           'casino' => $cierre->casino,
+    //           'cargador' => $cierre->fiscalizador,
+    //           'tipo_mesa'=> $cierre->tipo_mesa,
+    //          ];
     if($id_apertura == null || $id_cierre == null || $id_moneda == null){
       return response()->json(['error' => 'NULL pointer exception.'], 522);
     }else{
-      $first = DB::table('detalle_apertura')
-                  ->select(
-                    'detalle_apertura.id_detalle_apertura',
-                             'detalle_apertura.cantidad_ficha',
-                             DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
-                             'ficha.valor_ficha',
-                             'ficha.id_ficha',
-                             'detalle_cierre.monto_ficha',
-                             'detalle_cierre.id_detalle_cierre'
-                    )
-                    ->join('ficha','ficha.id_ficha', '=', 'detalle_apertura.id_ficha')
-                    ->leftJoin('detalle_cierre',function ($join) use($id_cierre) {
-                                $join->on('detalle_cierre.id_ficha' ,'=' ,'ficha.id_ficha')
-                                ->where('detalle_cierre.id_cierre_mesa', '=', $id_cierre);
-                              })
-                    ->where('detalle_apertura.id_apertura_mesa', '=', $id_apertura)
-                    ->where('ficha.id_moneda', '=',$id_moneda)
-                    ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_cierre.id_detalle_cierre', 'detalle_apertura.cantidad_ficha','ficha.valor_ficha','detalle_cierre.monto_ficha');
-      $detalles = DB::table('detalle_cierre')
-                  ->select(
-                    'detalle_apertura.id_detalle_apertura',
-                             'detalle_apertura.cantidad_ficha',
-                             DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
-                             'ficha.valor_ficha',
-                             'ficha.id_ficha',
-                             'detalle_cierre.monto_ficha',
-                             'detalle_cierre.id_detalle_cierre'
-                    )
-                    ->join('ficha','ficha.id_ficha', '=', 'detalle_cierre.id_ficha')
-                    ->leftJoin('detalle_apertura',function ($join)use($id_apertura) {
-                                $join->on('ficha.id_ficha' ,'=' ,'detalle_apertura.id_ficha')
-                                ->where('detalle_apertura.id_apertura_mesa', '=', $id_apertura);
-                              })
-                    ->where('detalle_cierre.id_cierre_mesa', '=', $id_cierre)
-                    ->where('ficha.id_moneda', '=',$id_moneda)
-                    ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_cierre.id_detalle_cierre', 'detalle_apertura.cantidad_ficha','ficha.valor_ficha','detalle_cierre.monto_ficha')
-                    ->union($first)
-                    ->orderBy('valor_ficha','desc')
-                    ->get();
+      $apertura = Apertura::find($id_apertura);
       $cierre = Cierre::find($id_cierre);
 
-      return ['detalles_join' => $detalles,
-              'cierre' => $cierre,
-              'casino' => $cierre->casino,
-              'cargador' => $cierre->fiscalizador,
-              'tipo_mesa'=> $cierre->tipo_mesa,
-             ];
+      $fichas = Ficha::where('id_moneda','=',$id_moneda)
+                      ->where('created_at','<=',$apertura->created_at)
+                      ->orderBy('valor_ficha','desc')
+                      ->withTrashed()
+                      ->get();
+
+                      return ['fichas' => $fichas,
+                              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor'),
+                              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor'),
+                              'cierre' => $cierre,
+                              'casino' => $cierre->casino,
+                              'cargador' => $cierre->fiscalizador,
+                              'tipo_mesa'=> $cierre->tipo_mesa,
+                             ];
     }
   }
 
