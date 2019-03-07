@@ -2045,7 +2045,7 @@ class LogMovimientoController extends Controller
     $m = Maquina::Find($id_maquina);
     
     $m->denominacion= $m->obtenerDenominacion();
-    $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+    $m->porcentaje_devolucion= $m->obtenerPorcentajeDevolucion();
     
 
     $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();

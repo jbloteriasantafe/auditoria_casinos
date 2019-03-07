@@ -827,7 +827,7 @@ $(document).on('click','.modificarDenominacion',function(){
       case '6': //devolución
           $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE %DEV DE JUEGO');
           $('#segunda_columna').show().text('% DEVOLUCIÓN');
-          $('#tercer_columna').hide();
+          $('#tercer_columna').show();
           $('#denom_comun').hide();
           $('#unidad_comun').hide();
           $('#devol_comun').show();
@@ -847,7 +847,7 @@ $(document).on('click','.modificarDenominacion',function(){
       case '7': //juego
           $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE JUEGO');
           $('#segunda_columna').show().text('JUEGO');
-          $('#tercer_columna').hide();
+          $('#tercer_columna').show();
           $('#denom_comun').hide();
           $('#unidad_comun').hide();
           $('#devol_comun').hide();
@@ -1055,12 +1055,13 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
   fila.append($('<td>').text(nro_admin))
   //TIPO DE MOVIMIENTO ES DENOMINACION:
   if(t_mov==5){
-
+    
     fila.append($('<td>')
         .append($('<input>')
         .addClass('denominacion_modificada form-control')
         .attr("type","number").attr("step","0.01").attr("min","0.01")
         .val( denFloat)))
+    fila.append($('<td>'));
 
   // var select = $('<select>').addClass('unidad_denominacion form-control');
 
@@ -1076,11 +1077,13 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
 
   //TIPO DE MOVIMIENTO ES %DEVOLUCION:
   if(t_mov==6){
+    
     fila.append($('<td>')
       .append($('<input>')
       .addClass('devolucion_modificada form-control')
       .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
           .val(dev)));
+    fila.append($('<td>'));
   };
 
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar

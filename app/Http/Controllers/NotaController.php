@@ -71,13 +71,16 @@ class NotaController extends Controller
       if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
           $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
           $nota->save();
-          $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
+          // Se quita la integracion de expediente con movimientos
+          // $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
       }else{//es REINGRESO
           $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
           $nota->save();
-          $log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
+          // Se quita la integracion de expediente con movimientos
+          //$log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
       }
-      $nota->log_movimiento()->associate($log->id_log_movimiento);
+      // Se quita la integracion de expediente con movimientos
+      //$nota->log_movimiento()->associate($log->id_log_movimiento);
     }
     $nota->save();
   }
@@ -87,7 +90,7 @@ class NotaController extends Controller
   {
 
     $log_id = intval($request['id_log_movimiento']);
-    $logMovsController = new LogMovimientoController();
+    //$logMovsController = new LogMovimientoController(); 
     $nota = new Nota;
 
     $nota->fecha = $request['fecha'];
@@ -101,7 +104,7 @@ class NotaController extends Controller
 
 
 
-    $logMov =$logMovsController->asociarExpediente($log_id, $id_expediente);
+    $logMov =LogMovimientoController::getInstancia()->asociarExpediente($log_id, $id_expediente);
     $nota->tipo_movimiento()->associate($logMov->id_tipo_movimiento);
 
       $nota->save();
@@ -123,10 +126,10 @@ class NotaController extends Controller
     $nota->save();
 
 
-
-    $idl = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$id_tipo_movimiento);
-    $nota->log_movimiento()->associate(intval($idl->id_log_movimiento));
-    $nota->save();
+    // Se quita la integracion de expediente con movimientos
+    // $idl = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$id_tipo_movimiento);
+    // $nota->log_movimiento()->associate(intval($idl->id_log_movimiento));
+    // $nota->save();
     return $nota->id_nota;
   }
 

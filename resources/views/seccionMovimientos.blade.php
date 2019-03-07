@@ -553,7 +553,7 @@
                   <tr>
                     <th class="col-xs-3" >MÁQUINAS A MODIFICAR</th>
                     <th id="segunda_columna" class="col-xs-4" text-align="center"></th>
-                    {{-- <th id="tercer_columna" class="col-xs-4"></th> --}}
+                    <th id="tercer_columna" class="col-xs-4"></th> 
                     <th class="col-xs-1" >
                       <button id="btn-borrarTodo" type="button" name="button" class="btn btn-default" style="border-radius:0px;">
                           BORRAR TODOS
