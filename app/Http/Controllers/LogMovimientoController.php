@@ -599,7 +599,7 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarJuego($maquina['id_juego'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarJuegoConDenYPorc($maquina['id_juego'],$maquina['id_maquina'],$maquina['denominacion'],$maquina['porcentaje_devolucion']);
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
@@ -2030,14 +2030,21 @@ class LogMovimientoController extends Controller
                       ->where('isla.id_isla' , '=' , $id_isla)
                       ->get();
       // se cambia el valor devuelto de denominacion y % dev por los valores del juego activo
-
+      $maqUI=  array();
       foreach($maquinas as  $m){
-        $m->denominacion= $m->obtenerDenominacion();
-        $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+
+        $mtemp = new \stdClass();
+        $mtemp->id_maquina = $m->id_maquina;
+        $mtemp->nro_admin = $m->nro_admin;
+        $mtemp->id_unidad_medida = $m->id_unidad_medida;
+        $mtemp->denominacion= $m->obtenerDenominacion();
+        $mtemp->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+        $mtemp->juego_obj= $m->juego_activo;
+        $maqUI[]=$mtemp;
       }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
-     return ['maquinas' => $maquinas,'unidades' => $unidades];
+     return ['maquinas' => $maqUI,'unidades' => $unidades];
   }
 
   public function obtenerMaquina($id_maquina){
@@ -2046,11 +2053,13 @@ class LogMovimientoController extends Controller
     
     $m->denominacion= $m->obtenerDenominacion();
     $m->porcentaje_devolucion= $m->obtenerPorcentajeDevolucion();
+
+    $juego_activo= $m->juego_activo;
     
 
     $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
 
-    return ['maquina' => $m,'unidades' => $unidades];
+    return ['maquina' => $m,'unidades' => $unidades , 'juego_activo' => $juego_activo];
 }
 
   ///////////PRUEBAS////////////////////////////////////////////////////////////

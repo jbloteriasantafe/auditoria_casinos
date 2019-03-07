@@ -807,7 +807,8 @@ $(document).on('click','.modificarDenominacion',function(){
     case '5'://denominación
           $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE DENOMINACIÓN DE JUEGO');
           $('#segunda_columna').show().text('DENOMINACIÓN');
-          $('#tercer_columna').show();
+          $('#tercer_columna').show().text('');
+          $('#cuarta_columna').show().text('');
           $('#denom_comun').show();
           $('#unidad_comun').show();
           $('#devol_comun').hide();
@@ -827,7 +828,8 @@ $(document).on('click','.modificarDenominacion',function(){
       case '6': //devolución
           $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE %DEV DE JUEGO');
           $('#segunda_columna').show().text('% DEVOLUCIÓN');
-          $('#tercer_columna').show();
+          $('#tercer_columna').show().text('');
+          $('#cuarta_columna').show().text('');
           $('#denom_comun').hide();
           $('#unidad_comun').hide();
           $('#devol_comun').show();
@@ -847,7 +849,8 @@ $(document).on('click','.modificarDenominacion',function(){
       case '7': //juego
           $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE JUEGO');
           $('#segunda_columna').show().text('JUEGO');
-          $('#tercer_columna').show();
+          $('#tercer_columna').show().text('DENOMINACIÓN');
+          $('#cuarta_columna').show().text('% DEVOLUCIÓN');
           $('#denom_comun').hide();
           $('#unidad_comun').hide();
           $('#devol_comun').hide();
@@ -870,7 +873,7 @@ $(document).on('click','.modificarDenominacion',function(){
   }
   $('#tablaDenominacion tbody tr').remove();
    $.get('movimientos/buscarMaquinasMovimiento/' + mov, function(data){
-
+      // TODO solucionar, no esta cargando las mtm
        if(data.maquinas.length != 0){
         //console.log('data:',data.unidades);
         console.log('77',data);
@@ -908,7 +911,7 @@ function clickAgregarMaqDenominacion(e) {
   if (id_maq != 0) {
     $.get('http://' + window.location.host +"/movimientos/obtenerMTM/" + id_maq, function(data) {
       agregarMDenominacion(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.denominacion,
-        data.maquina.porcentaje_devolucion,data.maquina.id_unidad_medida, data.unidades, 1);
+        data.maquina.porcentaje_devolucion,data.maquina.id_unidad_medida, data.unidades, 1 , data.juego_activo);
 
         $('#inputMaq2').setearElementoSeleccionado(0 , "");
 
@@ -1009,7 +1012,7 @@ function clickAgregarIslaDen(e){
       for (var i = 0; i < data.maquinas.length; i++) {
 
         agregarMDenominacion(data.maquinas[i].id_maquina, data.maquinas[i].nro_admin, data.maquinas[i].denominacion,
-                                data.maquinas[i].porcentaje_devolucion,data.maquinas[i].id_unidad_medida, data.unidades, 1);
+                                data.maquinas[i].porcentaje_devolucion,data.maquinas[i].id_unidad_medida, data.unidades, 1, data.maquinas[i].juego_obj);
       }
 
 
@@ -1041,7 +1044,7 @@ $('#btn-borrarTodo').on('click', function() {
     $('#tablaDenominacion tbody tr').remove();
 });
 
-function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccionada, unidades, p) {
+function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccionada, unidades, p , juego_activo) {
 
   //console.log('LLEGA:',id_juego);
   var fila = $('<tr>').attr('id', id_maquina);
@@ -1061,17 +1064,10 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
         .addClass('denominacion_modificada form-control')
         .attr("type","number").attr("step","0.01").attr("min","0.01")
         .val( denFloat)))
+    // se agrega elementos vacios para que sea aceptable visiblemente
+    fila.append($('<td>'));
     fila.append($('<td>'));
 
-  // var select = $('<select>').addClass('unidad_denominacion form-control');
-
-  //   for (var j = 0; j < unidades.length; j++) {
-  //       var tipo = unidades[j].descripcion;
-  //       var id = unidades[j].id_unidad_medida;
-  //       select.append($('<option>').text(tipo).val(id));
-  //   }
-  //   select.val(unidad_seleccionada);
-  //  fila.append($('<td>').append(""));
 
   };
 
@@ -1083,7 +1079,41 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
       .addClass('devolucion_modificada form-control')
       .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
           .val(dev)));
+    // se agrega elementos vacios para que sea aceptable visiblemente
     fila.append($('<td>'));
+    fila.append($('<td>'));
+  };
+
+  //TIPO DE MOVIMIENTO ES JUEGO:
+  if(t_mov==7){
+    //select de juego
+  var input = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
+
+  fila.append($('<td>').append(input)); //falta el denom y el devol
+
+  input.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos','id_juego','nombre_juego',1);
+
+  // setea el valor actual en el buscador de juego
+  input.setearElementoSeleccionado(juego_activo.id_juego,juego_activo.nombre_juego);
+  
+  // agrega denominacion de juego
+  fila.append($('<td>')
+  .append($('<input>')
+  .addClass('denominacion_modificada form-control')
+  .attr("type","number").attr("step","0.01").attr("min","0.01")
+  .val( denFloat)))
+
+  // agrega % dev de juego
+  fila.append($('<td>')
+      .append($('<input>')
+      .addClass('devolucion_modificada form-control')
+      .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
+          .val(dev)));
+
+
+  //input.setearElementoSeleccionado(0,"");
+
+
   };
 
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
@@ -1170,8 +1200,8 @@ $(document).on('click','#btn-enviar-denom',function(e){
           var maquina={
             id_maquina: $(this).attr('id'),
             id_juego:$(this).find('.juego_modif').obtenerElementoSeleccionado(),
-            denominacion:"",
-            porcentaje_devolucion:"",
+            denominacion:$(this).find('.denominacion_modificada').val(),
+            porcentaje_devolucion:$(this).find('.devolucion_modificada').val(),
             id_unidad_medida:""
           }
             break;

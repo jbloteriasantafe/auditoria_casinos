@@ -1309,6 +1309,18 @@ class MTMController extends Controller
 
   }
 
+  // modificarJuegoConDenYPorc utilidad para movimiento, realiza el camibo de juego con denominacion y porcentaje de devolucion
+  // estos cambios se aplican al juego activo y a sus relaciones
+  public function modificarJuegoConDenYPorc($id_juego,$id_maquina, $denominacion, $porcentaje_devolucion){
+    $maq=Maquina::find($id_maquina);
+    $maq->juego_activo()->associate($id_juego);
+    $maq->save();
+    $maq->juegos()->syncWithoutDetaching([$id_juego => ['denominacion' => $denominacion, 'porcentaje_devolucion' => $porcentaje_devolucion]]);
+    $razon = "Se modificó juego activo con su denominación y porcentaje de devolución";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
+
+  }
+
   public function modificarJuegoMovimiento($id_juego,$id_maquina,$porcentaje_devolucion,$id_unidad_medida,$denominacion){
     $maq=Maquina::find($id_maquina);
     $maq->denominacion = $denominacion;
