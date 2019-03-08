@@ -805,7 +805,7 @@ $(document).on('click','.modificarDenominacion',function(){
 
   switch (tmov) {
     case '5'://denominación
-          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE DENOMINACIÓN DE JUEGO');
+          $('.modal-title').text('ASIGNACIÓN: CAMBIO DE DENOMINACIÓN DE JUEGO');
           $('#segunda_columna').show().text('DENOMINACIÓN');
           $('#tercer_columna').show().text('');
           $('#cuarta_columna').show().text('');
@@ -826,7 +826,7 @@ $(document).on('click','.modificarDenominacion',function(){
 
       break;
       case '6': //devolución
-          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE %DEV DE JUEGO');
+          $('.modal-title').text('ASIGNACIÓN: CAMBIO DE %DEV DE JUEGO');
           $('#segunda_columna').show().text('% DEVOLUCIÓN');
           $('#tercer_columna').show().text('');
           $('#cuarta_columna').show().text('');
@@ -847,7 +847,7 @@ $(document).on('click','.modificarDenominacion',function(){
 
       break;
       case '7': //juego
-          $('.modal-title').text('ASIGNACIÓN DE CAMBIO DE JUEGO');
+          $('.modal-title').text('ASIGNACIÓN: CAMBIO DE JUEGO');
           $('#segunda_columna').show().text('JUEGO');
           $('#tercer_columna').show().text('DENOMINACIÓN');
           $('#cuarta_columna').show().text('% DEVOLUCIÓN');
@@ -873,7 +873,6 @@ $(document).on('click','.modificarDenominacion',function(){
   }
   $('#tablaDenominacion tbody tr').remove();
    $.get('movimientos/buscarMaquinasMovimiento/' + mov, function(data){
-      // TODO solucionar, no esta cargando las mtm
        if(data.maquinas.length != 0){
         //console.log('data:',data.unidades);
         console.log('77',data);
