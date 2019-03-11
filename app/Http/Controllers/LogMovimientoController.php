@@ -2003,6 +2003,34 @@ class LogMovimientoController extends Controller
     return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
 
+  // validarRelevamientoEventualidadConObserv valida un relevamiento que nace de una intervencion de MTM
+  // tambien se agrega observaciones del administrador
+  public function validarRelevamientoEventualidadConObserv(Request $request){
+    // TODO validar la nueva observacion
+    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
+    $id_usuario = session('id_usuario');
+    $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
+    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
+    $id_usuario = session('id_usuario');
+    if($this->noEsControlador($id_usuario,  $logMov)){
+      $logMov->controladores()->attach($id_usuario);
+      $logMov->save();
+    }
+    //a las tomas de los relevamientos las marco como validadas
+    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relev_mov, 1, $request->observacion);//retorna las observaciones de la toma
+    $maquina = $relev_mov->maquina;
+    $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
+              ->where('id_estado_relevamiento','=',4 )->get();
+    //dd([count($logMov->relevamientos_movimientos),count($relss)]);
+    if(count($logMov->relevamientos_movimientos) == count($relss)){
+      $logMov->estado_relevamiento()->associate(4);
+      $logMov->estado_movimiento()->associate(4);
+      $logMov->save();
+    }
+
+    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+  }
+
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
 
   public function obtenerMaquinasSector($id_sector){
