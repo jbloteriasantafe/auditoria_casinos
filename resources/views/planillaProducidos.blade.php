@@ -74,5 +74,21 @@ tr:nth-child(even) {
                 </tr>
                 @endforeach
               </table>
+              @if(!empty($MTMobservaciones))
+                <br><br>
+                
+                <table>
+                  <tr>
+                    <th class="tablaInicio">MTM</th>
+                    <th class="tablaInicio">OBSERVACIONES</th>
+                  </tr>
+                  @foreach ($MTMobservaciones as $mtmObs)
+                  <tr>
+                    <td class="tablaCampos">{{$mtmObs->maquina}}</td>
+                    <td class="tablaCampos">{{$mtmObs->observacion}}</td>
+                  </tr>
+                  @endforeach
+                </table>
+              @endif
   </body>
 </html>
