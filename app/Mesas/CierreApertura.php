@@ -12,7 +12,8 @@ class CierreApertura extends Model
   protected $primaryKey = 'id_cierre_apertura';
   protected $visible = array('id_cierre_apertura','id_cierre_mesa','id_apertura_mesa',
                              'id_estado_cierre','id_mesa_de_panio','id_juego_mesa',
-                             'id_controlador'
+                             'id_controlador','fecha_produccion','diferencias',
+                             'id_casino'
                             );
   public $timestamps = false;
 
