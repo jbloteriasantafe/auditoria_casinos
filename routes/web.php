@@ -617,6 +617,8 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
   Route::post('aperturas/validarApertura','Mesas\Aperturas\VAperturaController@validarApertura');
   Route::get('aperturas/obtenerApValidar/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@obtenerApParaValidar');
+  Route::get('aperturas/desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura');
+
 
 
 //Sección Juegos
@@ -654,3 +656,7 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
 
   Route::get('apuestas/obtenerRequerimientos','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
+
+//informes fiscalizadores
+Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
+Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
