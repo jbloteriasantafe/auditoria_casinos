@@ -730,6 +730,14 @@
                                         <h6>OBSERVACIONES:</h6>
                                       <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
                                     </div>
+                                    
+                                    @if($esControlador == 1)
+                                      <div class="col-lg-12">
+                                        <h6>OBSERVACIONES ADMIN:</h6>
+                                        <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
+                                      </div>
+                                    @endif
+
                                   </div>
                                   </div>
                                 </div> <!-- fin row de detalle -->

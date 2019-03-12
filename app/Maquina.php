@@ -114,24 +114,29 @@ class Maquina extends Model
     return $this->id_maquina;
   }
 
+  // obtenerPorcentajeDevolucion obtiene el porcentaje de devolucion del juego activo
+  // sino existe devuelve vacio
   public function obtenerPorcentajeDevolucion(){
+    
     $id_juego = $this->juego_activo->id_juego;
     $resultado = $this->juegos->where('id_juego' , $id_juego)->first();
-    if(isset($resultado) && $resultado->porcentaje_devolucion != null){
-      return $resultado->porcentaje_devolucion;
-    }else{
-      return $this->porcentaje_devolucion;
+
+    if(isset($resultado)){
+      return  $resultado->pivot->porcentaje_devolucion;
     }
+    return null;
   }
 
+  // obtenerDenominacion obtiene la denominacion del juego activo o "" sino existe
   public function obtenerDenominacion(){
+    
     $id_juego = $this->juego_activo->id_juego;
     $resultado = $this->juegos->where('id_juego' , $id_juego)->first();
-    if(isset($resultado) && $resultado->porcentaje_devolucion != null){
-      return $resultado->denominacion;
-    }else{
-      return $this->denominacion;
+    
+    if(isset($resultado)){
+      return  $resultado->pivot->denominacion;
     }
+    return null;
   }
 
 }

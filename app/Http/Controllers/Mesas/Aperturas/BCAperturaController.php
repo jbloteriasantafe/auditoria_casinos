@@ -274,14 +274,14 @@ class BCAperturaController extends Controller
                       ->withTrashed()
                       ->get();
 
-                      return ['fichas' => $fichas,
-                              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor'),
-                              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor'),
-                              'cierre' => $cierre,
-                              'casino' => $cierre->casino,
-                              'cargador' => $cierre->fiscalizador,
-                              'tipo_mesa'=> $cierre->tipo_mesa,
-                             ];
+      return ['fichas' => $fichas,
+              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor'),
+              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor'),
+              'cierre' => $cierre,
+              'casino' => $cierre->casino,
+              'cargador' => $cierre->fiscalizador,
+              'tipo_mesa'=> $cierre->tipo_mesa,
+             ];
     }
   }
 
