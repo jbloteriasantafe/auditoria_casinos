@@ -734,7 +734,7 @@
                                     @if($esControlador == 1)
                                       <div class="col-lg-12">
                                         <h6>OBSERVACIONES ADMIN:</h6>
-                                        <textarea id="observacionesAdmin" class="form-control"   style="resize:vertical;"></textarea>
+                                        <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
                                       </div>
                                     @endif
 

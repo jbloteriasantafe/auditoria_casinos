@@ -2004,7 +2004,8 @@ class LogMovimientoController extends Controller
   }
 
   // validarRelevamientoEventualidadConObserv valida un relevamiento que nace de una intervencion de MTM
-  // tambien se agrega observaciones del administrador
+  // tambien se agrega observaciones del administrador, esto se guarda dentro del campo observacion unico del modelo
+  // con una bandera de descripcion de admin
   public function validarRelevamientoEventualidadConObserv(Request $request){
     // TODO validar la nueva observacion
     //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
