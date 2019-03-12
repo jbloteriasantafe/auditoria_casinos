@@ -108,6 +108,7 @@ class GenerarInformesFiscalizadorController extends Controller
       }
       $ids_rels[] = $rel->id_relevamiento_apuestas;
     }
+    dd($ids_rels);
 
     $cantidad_mesas_abiertas = DB::table('detalle_relevamiento_apuestas')
                                     ->select('id_mesa_de_panio')
