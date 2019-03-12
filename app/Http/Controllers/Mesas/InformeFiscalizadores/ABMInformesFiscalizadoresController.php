@@ -59,7 +59,7 @@ class ABMInformesFiscalizadoresController extends Controller
       $informe->cumplio_minimo = 0;
       $informe->cantidad_abiertas_con_minimo = 0;
       $informe->cant_mesas_abiertas = 0;
-      $informe->apuesta_minima()->associate($minima->id_apuesta_minima_juego);
+      $informe->apuesta_minima()->associate($minima->id_apuesta_minima);
       $informe->casino()->associate($casino->id_casino);
       $informe->save();
       //dd($informe);
