@@ -108,6 +108,7 @@ class GenerarInformesFiscalizadorController extends Controller
       }
       $ids_rels[] = $rel->id_relevamiento_apuestas;
     }
+    if($informe->fecha == '2019-03-06' && $informe->id_casino==2)
     dd($ids_rels);
 
     $cantidad_mesas_abiertas = DB::table('detalle_relevamiento_apuestas')
