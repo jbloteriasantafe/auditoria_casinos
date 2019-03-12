@@ -16,7 +16,6 @@ use App\Http\Controllers\Usuarios\UsuarioController;
 use App\Usuario;
 use App\Casino;
 use App\SecRecientes;
-use App\Http\Controllers\UsuarioController;
 
 use App\Http\Controllers\Cierres\ABMCCierreAperturaController;
 
@@ -47,14 +46,17 @@ class BCInformesController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','permission:m_ver_seccion_informe_fiscalizadores']);
+      $this->middleware(['auth']);
   }
 
   public function index(){
+    dd('asdgjb');
+    return view('InformesFiscalizadores.informeDiario',['casinos'=>$casinos]);
     $uc = new UsuarioController;
-    $uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones');
+    //$uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones');
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = $user->casinos;
+    dd('trgh');
     return view('InformesFiscalizadores.informeDiario',['casinos'=>$casinos]);
   }
 
