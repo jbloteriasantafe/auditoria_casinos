@@ -45,7 +45,7 @@ class GenerarInformesFiscalizadorController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','permission:m_generar_informes_fiscalizadores']);
+      $this->middleware(['tiene_permiso:m_ver_seccion_informe_fiscalizadores']);
   }
 
   public function iniciarInformeDiario($cierre_apertura){

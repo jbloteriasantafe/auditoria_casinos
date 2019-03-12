@@ -658,7 +658,7 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
 
 //informes fiscalizadores
-Route::get('/informeDiarioBasico','InformesFiscalizadores\BCInformesController@index');
-Route::post('informeDiarioBasico/buscar', 'InformeFiscalizadores\BCInformesController@filtros');
+Route::get('/informeDiarioBasico','Mesas\InformeFiscalizadores\BCInformesController@index');
+Route::post('informeDiarioBasico/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
 Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
 Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');

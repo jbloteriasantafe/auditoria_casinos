@@ -33,7 +33,7 @@ class InformeFiscalizadores extends Model
   }
 
   public function apuesta_minima(){
-    return $this->belongsTo('App\Mesas\ApuestaMinimaJuego','id_apuesta_minima_juego','id_apuesta_minima_juego');
+    return $this->belongsTo('App\Mesas\ApuestaMinimaJuego','id_apuesta_minima_juego','id_apuesta_minima');
   }
 
   public function getTableName(){

@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use View;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Usuarios\UsuarioController;
+use App\Http\Controllers\UsuarioController;
 
 use App\Usuario;
 use App\Casino;
 use App\SecRecientes;
 
-use App\Http\Controllers\Cierres\ABMCCierreAperturaController;
+use App\Http\Controllers\Mesas\Cierres\ABMCCierreAperturaController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -32,7 +32,6 @@ use App\Mesas\Cierre;
 use App\Mesas\Apertura;
 use App\Mesas\CierreApertura;
 
-
 use Carbon\Carbon;
 
 use Exception;
@@ -46,17 +45,16 @@ class BCInformesController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth']);
+      $this->middleware(['tiene_permiso:m_ver_seccion_informe_fiscalizadores']);
   }
 
   public function index(){
-    dd('asdgjb');
-    return view('InformesFiscalizadores.informeDiario',['casinos'=>$casinos]);
+    $pep = new ABMCCierreAperturaController;
+    $pep->revivirElPasado();
     $uc = new UsuarioController;
-    //$uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones');
+    $uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones','informeDiarioBasico');
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = $user->casinos;
-    dd('trgh');
     return view('InformesFiscalizadores.informeDiario',['casinos'=>$casinos]);
   }
 
@@ -140,17 +138,17 @@ class BCInformesController extends Controller
                                   ->distinct('detalle_relevamiento_apuestas.id_mesa_de_panio')
                                   ->get();
 
-
-   $mesasImportadasAbiertas=DB::table('detalle_importacion_diaria_mesas')
-                                    ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio',DB::raw('COUNT(detalle_importacion_diaria_mesas.id_mesa_de_panio) as cantidad_abiertas'))
-                                    ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
-                                          '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
-                                    ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
-                                    ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
-                                    ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
-                                    ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->get();
+                                  $mesasImportadasAbiertas = [];
+   // $mesasImportadasAbiertas=DB::table('detalle_importacion_diaria_mesas')
+   //                                  ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio',DB::raw('COUNT(detalle_importacion_diaria_mesas.id_mesa_de_panio) as cantidad_abiertas'))
+   //                                  ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
+   //                                        '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
+   //                                  ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
+   //                                  ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
+   //                                  ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
+   //                                  ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
+   //                                  ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
+   //                                  ->get();
   //La cant de mesas relevadas como abiertas coincide con la cant de Mesas
   //importadas con utilidad !=0
 

@@ -34,6 +34,10 @@ class CierreApertura extends Model
     return $this->belongsTo('App\Mesas\Apertura','id_apertura_mesa','id_apertura_mesa');
   }
 
+    public function casino(){
+      return $this->belongsTo('App\Casino','id_casino','id_casino');
+    }
+
   public function cierre(){
      return $this->belongsTo('App\Mesas\Cierre','id_cierre_mesa','id_cierre_mesa');
   }

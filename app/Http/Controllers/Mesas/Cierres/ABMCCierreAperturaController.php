@@ -29,7 +29,7 @@ use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 
-use App\Http\Controllers\InformeFiscalizadores\GenerarInformesFiscalizadorController;
+use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
 
 //validacion de cierres
