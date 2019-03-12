@@ -114,6 +114,7 @@ class GenerarInformesFiscalizadorController extends Controller
                                     ->whereIn('id_relevamiento_apuestas',$ids_rels)
                                     ->where('id_estado_mesa','=',1)
                                     ->distinct('id_mesa_de_panio')
+                                    ->get()
                                     ->count();
 
     $cantidad_con_minimo =  DB::table('detalle_relevamiento_apuestas')
@@ -121,6 +122,7 @@ class GenerarInformesFiscalizadorController extends Controller
                                     ->whereIn('id_relevamiento_apuestas',$ids_rels)
                                     ->where('minimo','=',$informe->apuesta_minima->apuesta_minima)
                                     ->distinct('id_mesa_de_panio')
+                                    ->get()
                                     ->count();
     $cierres = Cierre::where('fecha','=',$informe->fecha)
                       ->where('id_casino','=',$informe->id_casino)

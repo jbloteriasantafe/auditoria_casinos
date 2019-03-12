@@ -50,8 +50,8 @@ class BCInformesController extends Controller
 
   public function index(){
     //descomentar si es necesario crear los informes de fisc del pasado que no hayan sido creados
-    // $pep = new ABMCCierreAperturaController;
-    // $pep->revivirElPasado();
+    $pep = new ABMCCierreAperturaController;
+    $pep->revivirElPasado();
     $uc = new UsuarioController;
     $uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones','informeDiarioBasico');
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
