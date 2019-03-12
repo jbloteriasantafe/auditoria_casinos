@@ -47,7 +47,7 @@ class BCInformesController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','permission:m_bc_informes_fiscalizadores']);
+      $this->middleware(['auth','permission:m_ver_seccion_informe_fiscalizadores']);
   }
 
   public function index(){
