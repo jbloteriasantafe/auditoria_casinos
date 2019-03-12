@@ -646,6 +646,14 @@ $cas = $usuario['usuario']->casinos;
                                 </div>
                               </li>
                               @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informe_fiscalizadores'))
+                              <li>
+                                <div id="opcInformesFisca" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiarioBasico'" href="#" style="cursor: pointer;">
+                                  <span>Informes Diarios </span>
+                                </div>
+                              </li>
+                              @endif
+
                             </ul>
                         </li>
 

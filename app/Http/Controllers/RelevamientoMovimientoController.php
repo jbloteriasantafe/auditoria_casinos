@@ -406,6 +406,31 @@ class RelevamientoMovimientoController extends Controller
       return $razon;
    }
 
+ //el controlador valida la toma, si encuentra un error la marca con error.
+ // se agrega campo de observacion, es decir , al momento de validar, solo se puede alterar el valor de la
+ // observacion el resto son valores de estados
+ public function validarRelevamientoTomaConObservacion($relevamiento, $validado, $obsAdmin){
+  $toma = TomaRelevamientoMovimiento::where('id_relevamiento_movimiento','=',$relevamiento->id_relev_mov)->get()->first();
+  
+  if($validado == 1){
+      $relevamiento->estado_relevamiento()->associate(4);//validado
+  }else{
+    $relevamiento->estado_relevamiento()->associate(6);//Error
+  }
+  
+    if ($obsAdmin!="") {
+      $obsFisca=$toma->observaciones;
+      $obsFisca=$obsFisca . " \n . ***Observaciones Admin**** :  \n";
+      $obsTotal= $obsFisca . $obsAdmin;
+      $toma->observaciones= $obsTotal;
+      $toma->save();
+    }
+    
+  $relevamiento->save();
+  $razon = $toma->observaciones;
+  return $razon;
+}
+
    public function eliminarRelevamiento($id_relev_mov)
    {
      $rel = RelevamientoMovimiento::find($id_relev_mov);

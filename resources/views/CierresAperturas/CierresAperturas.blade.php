@@ -219,6 +219,10 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
                           </button>
+                          <button type="button" class="btn btn-info desvincular" value="{{$a->id_apertura_mesa}}">
+                            <i class="fas fa-fw fa-unlink"></i>
+                          </button>
+
                           @else
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
@@ -264,6 +268,9 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
                                   data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
                                   <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          <button type="button" class="btn btn-info desvincular" value="">
+                            <i class="fas fa-fw fa-unlink"></i>
                           </button>
                           <button type="button" class="btn btn-warning modificarCyA" value="">
                                   <i class="fas fa-fw fa-pencil-alt"></i>
@@ -323,6 +330,29 @@ $cas = $usuario['usuario']->casinos;
       </div>
 </div>
 
+<!-- modal alerta desvinculación -->
+<div class="modal fade" id="modalDesvinculacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content" style="border-radius:5px !important">
+           <div class="modal-header" style="background-color:#0D47A1;">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <h3 class="modal-title">| ALERTA</h3>
+            </div>
+
+            <div  id="colapsadoNuevo" class="collapse in">
+              <div class="modal-body modalCuerpo">
+                <h6>Esta Apertura fue vinculada a un Cierre determinado mediante la validación,
+                    puede observarse en los detalles de la misma.</h6>
+                <h6>¿Desea deshacer esta validación y desvincular el Cierre?</h6>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-info" id="btn-desvincular" value="">DESVINCULAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+</div>
 
 <!-- MODAL CARGA cierre -->
 <div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
