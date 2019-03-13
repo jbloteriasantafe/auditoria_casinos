@@ -74,5 +74,37 @@ tr:nth-child(even) {
                 </tr>
                 @endforeach
               </table>
+              @if(!empty($MTMobservaciones))
+              <div style="page-break-after:always;"></div>
+                <div class="encabezadoImg">
+                  <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+                  <h2><span>RMTM09 | Ajuste de producidos diarios por máquina tragamonedas (MTM) en {{$pro->tipo_moneda}}</span></h2>
+                </div>
+                  <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
+                  <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');
+                        print_r($hoy); ?></span></div>
+
+                  <div class="titulo">
+                    Fecha de producido: <div class="camposInfo" style="top:88px; right:545px;">{{$pro->fecha_prod}}</div>
+                  </div>
+
+                  <div class="camposInfo" style="top:88px; right:345px; font: bold 12px Helvetica, Sans-Serif;">Casino:</div>
+                  <div class="camposInfo" style="top:88px; right:300px;">{{$pro->casinoNom}}</div>
+
+                <br><br>
+                
+                <table>
+                  <tr>
+                    <th class="tablaInicio">MTM</th>
+                    <th class="tablaInicio">OBSERVACIONES</th>
+                  </tr>
+                  @foreach ($MTMobservaciones as $mtmObs)
+                  <tr>
+                    <td class="tablaCampos">{{$mtmObs->maquina}}</td>
+                    <td class="tablaCampos">{{$mtmObs->observacion}}</td>
+                  </tr>
+                  @endforeach
+                </table>
+              @endif
   </body>
 </html>

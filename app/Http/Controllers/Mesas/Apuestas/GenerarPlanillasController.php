@@ -53,6 +53,40 @@ class GenerarPlanillasController extends Controller
   }
 
   public function generarRelevamientosApuestas(){
+    // $mel = Casino::find(1);
+    //       $arregloRutasTurno = array();
+    // foreach ($mel->turnos as $turno) {
+    //
+    //     for ($i=0; $i < self::$cantidad_dias_backup; $i++) {
+    //       $fecha_backup = Carbon::now()->addDays($i)->format("Y-m-d");
+    //       $dia_carbon = Carbon::now()->addDays($i);
+    //       $numeroDia = $dia_carbon->format('w');
+    //       if($numeroDia == 0){
+    //         $numeroDia = 7;
+    //       }
+    //       //si el turno esta el dia de fecha_backup entonces se crea
+    //       if(
+    //         (($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde <= $turno->dia_hasta) ||
+    //         (($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde >= $turno->dia_hasta)
+    //         ){
+    //         //busco si existe el que estoy creando
+    //
+    //         $arregloRutasTurno[] = ['dia_nro' => $numeroDia,
+    //                                 'fecha' => $fecha_backup,
+    //                                 'turno' => $turno->nro_turno,
+    //                                 'turno_dia_Desde' => $turno->nombre_dia_desde
+    //                               ];
+    //       }
+    //     }
+    // }
+    // dd($arregloRutasTurno);
+
+    //--se probo que melincue si anda.
+    // $dia_carbon = Carbon::now()->addDays(0);
+    // $numeroDia = $dia_carbon->format('w');
+    // $dia_carbon2 = Carbon::now()->addDays(4);
+    // $numeroDia2 = $dia_carbon2->format('w');
+    // dd($numeroDia,$numeroDia2,$dia_carbon2, $dia_carbon2->format('e'));
     //dd(public_path().'/Mesas/RelevamientosAperturas');
     if(file_exists( public_path().'/Mesas/RelevamientosApuestas')){
       File::deleteDirectory(public_path().'/Mesas/RelevamientosApuestas');
@@ -79,7 +113,9 @@ class GenerarPlanillasController extends Controller
               $numeroDia = 7;
             }
             //si el turno esta el dia de fecha_backup entonces se crea
-            if($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta){
+
+            //si el dia del turno es uno solo y el $numeroDia justo coincide..
+            if($this->esElDiaDelTurno($numeroDia,$turno)){
               //busco si existe el que estoy creando
 
               if($i>0){
@@ -93,10 +129,14 @@ class GenerarPlanillasController extends Controller
                                                             ['fecha','=',$fecha_backup],
                                                             ['created_at','=',$fecha_hoy]
                                                           ])->get();
-              if(count($relevamiento) != 1){
-                $id_relevamiento = $apuestasController->crearRelevamientoApuestas($casino,$turno,$fecha_backup);
-              }else{
+              if(count($relevamiento) == 1){
                 $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
+              }else{
+                if(count($relevamiento) == 0){
+                  $id_relevamiento = $apuestasController->crearRelevamientoApuestas($casino,$turno,$fecha_backup);
+                }else{
+                  $id_relevamiento = $relevamiento->first()->id_relevamiento_apuestas;
+                }
               }
               $dompdf = $this->generarPlanilla( $id_relevamiento,$turno, $fecha_backup, $casino);
               $output = $dompdf->output();
@@ -127,7 +167,24 @@ class GenerarPlanillasController extends Controller
       }
     }
 
-    
+
+    private function esElDiaDelTurno($numeroDia, $turno){
+      //hay un unico dia en el turno
+      if($turno->dia_desde == $turno->dia_hasta && $numeroDia == $turno->dia_desde){
+        return true;
+      }
+
+      //el dia que incia el turno es menor que el que termina
+      if(($numeroDia >= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde < $turno->dia_hasta){
+        return true;
+      }
+      //el dia que incia el turno es mayor que el que termina
+      if(($numeroDia <= $turno->dia_desde && $numeroDia <= $turno->dia_hasta) && $turno->dia_desde > $turno->dia_hasta){
+        return true;
+      }
+      return false;
+    }
+
 
     //falta agregarle nro de pagina .-
     private function generarPlanilla( $id_relevamiento,

@@ -36,7 +36,7 @@ $cas = $usuario['usuario']->casinos;
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">GENERAR RELEVAMIENTO</h4>
+                        <h4 class="txtNuevo">IMPRIMIR PLANILLAS DE RELEVAMIENTO</h4>
                     </center>
                   </div>
                 </div>
@@ -190,10 +190,10 @@ $cas = $usuario['usuario']->casinos;
                             <button type="button" class="btn btn-warning modificarApuesta" value="">
                                     <i class="fas fa-fw fa-pencil-alt"></i>
                             </button>
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-success validarApuesta" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
-                            @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-success eliminarApuesta" value="">
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
@@ -214,7 +214,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL CARGA RELEVAMIENTO -->
-<div class="modal fade" id="modalCarga" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+<div class="modal fade" id="modalCarga" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70%;">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -333,7 +333,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL MODIFICAR -->
-<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
 <div class="modal-dialog modal-lg" style="width: 80%" >
   <div class="modal-content">
     <div class="modal-header" style="background-color:#FFA726;">
@@ -451,8 +451,9 @@ $cas = $usuario['usuario']->casinos;
 </div>
 </div>
 
+
 <!-- MODAL VALIDAR -->
-<div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalValidar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#4FC3F7;">
@@ -484,26 +485,35 @@ $cas = $usuario['usuario']->casinos;
           <br>
           <br>
           <div class="row" style="border-collapse: collapse;position:relative">
-            <div class="col-xs-6">
+            <div class="col-xs-5" style="border-right:1px solid #ccc">
               <table  style="width:100%;"  class="table table-responsive">
-                <h6 style="text-align:center !important;font-size:16px">MESAS ABIERTAS EN ESTA FECHA: </h6>
-                <thead>
-                  <th> <h5 style="font-size:14px; text-align:center !important">JUEGO</h5> </th>
-                  <th> <h5 style="font-size:14px; text-align:center !important">CANTIDAD</h5> </th>
+                <h6 style="text-align:center !important;font-size:16px; border-bottom:1px solid #ccc; padding-bottom: 10px;">MESAS ABIERTAS EN ESTA FECHA: </h6>
+                <thead >
+                  <th style="border-right:2px solid #ccc; padding-bottom:3px !important"> <h5 style="font-size:14px !important; text-align:center !important; ">JUEGO</h5> </th>
+                  <th style="padding-bottom:3px !important"> <h5 style="font-size:14px !important; text-align:center !important">CANTIDAD</h5> </th>
+
                 </thead>
                 <tbody id="mesasPorJuego">
 
                 </tbody>
               </table>
             </div>
-            <div class="col-xs-6">
-
+            <div class="col-xs-5" style="border-right:1px solid #ccc">
               <table id="fiscalizadoresPartVal" style="width:100%;position:relative" class="table table-responsive" >
                 <h6 style="font-size:16px !important;">FISCALIZADOR/ES DE TOMA</h6>
 
                 <tbody>
                 </tbody>
               </table>
+            </div>
+            <div class="col-xs-2">
+              <table id="cumplio_min" style="width:100%;position:relative" class="table table-responsive" >
+                <h6 style="font-size:16px !important;border-bottom:1px solid #ccc; padding-bottom: 10px;">CUMPLIÓ MÍNIMO:</h6>
+
+                <tbody>
+                </tbody>
+              </table>
+
             </div>
           </div>
           <br>
@@ -572,7 +582,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- modal para modificar el minimo solicitado -->
-<div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -657,7 +667,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL BACKUP -->
-<div class="modal fade" id="modalCargaBackUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaBackUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">

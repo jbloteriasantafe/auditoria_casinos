@@ -455,8 +455,8 @@
 
                     </div>
                    </div>
-
-                   <div class="col-md-4" id="busqSector">
+                   {{-- Se saca el movimiento por sector porque son demsiadas mtm para ser manipuladas en un modal --}}
+                   {{-- <div class="col-md-4" id="busqSector">
                      <h6>Seleccionar Sector</h6>
                      <div class="row">
 
@@ -468,7 +468,7 @@
                        </div>
 
                      </div>
-                   </div>
+                   </div> --}}
                    <div class="col-md-4" >
                      <h6>Fecha: </h6>
                      <div class="form-group">
@@ -491,16 +491,16 @@
               <br>
 
               <div class="col-md-4">
-                <h5 id="nuevaDen" hidden="" >Nueva Denominación: </h5> <input class="form-control" type="text" name="" value="" id="denom_comun" hidden>
+                <h5 id="nuevaDen" hidden="" >Nueva Denominación: </h5> <input class="form-control" type="number" step=0.01 min=0.01 name="" value="" id="denom_comun" hidden>
               </div>
-              <div class="col-md-4">
+              {{-- <div class="col-md-4">
                   <h5 id="nuevaUni" hidden="">Unidad de Medida: </h5>
                   <select class="form-control" name="" id="unidad_comun">
                      <option value="0">- Seleccione unidad -</option>
                      <option value="1">CRED</option>
                      <option value="2">PESOS</option>
                    </select>
-              </div>
+              </div> --}}
               <div class="col-md-4">
                 <h5 id="aplicar" style="color:white !important;"  hidden>fgfdgfhgfh</h5>
                 <button id="todosDen" class="btn btn-default" type="button" name="button" hidden="">
@@ -514,7 +514,7 @@
             <div class="row">
 
               <div class="col-md-4">
-              <h5 id="nuevaDev" hidden="">Nueva Devolución: </h5> <input type="text" name="" value="" id="devol_comun" hidden>
+              <h5 id="nuevaDev" hidden="">Nueva Devolución: </h5> <input type="number" step="0.01" min="80.01" max="100" name="" value="" id="devol_comun" hidden>
               </div>
 
               <div class="col-md-4">
@@ -551,10 +551,11 @@
               <table id="tablaDenominacion" class="table">
                 <thead>
                   <tr>
-                    <th class="col-xs-3" >MÁQUINAS A MODIFICAR</th>
-                    <th id="segunda_columna" class="col-xs-4" text-align="center"></th>
-                    <th id="tercer_columna" class="col-xs-4">UNIDAD DE MEDIDA</th>
-                    <th class="col-xs-1">
+                    <th class="col-xs-2" >MTM A MODIFICAR</th>
+                    <th id="segunda_columna" class="col-xs-3"></th>
+                    <th id="tercer_columna" class="col-xs-3"></th> 
+                    <th id="cuarta_columna" class="col-xs-3"></th> 
+                    <th class="col-xs-1" >
                       <button id="btn-borrarTodo" type="button" name="button" class="btn btn-default" style="border-radius:0px;">
                           BORRAR TODOS
                       </button>
@@ -577,7 +578,7 @@
           <input id="id_t_mov" type="text" name="" value="" hidden="">
           <input id="id_mov_denominacion" type="text" name="" value="" hidden="">
           <button id="btn-pausar-denom" type="button" class="btn btn-default" data-dismiss="modal">PAUSAR CARGA</button>
-          <button id="btn-enviar-denom" type="button" class="btn btn-default" value="" >ENVIAR A FISCALIZAR</button>
+          <button id="btn-enviar-denom" type="button" class="btn btn-default" value="" >APLICAR Y   ENVIAR A FISCALIZAR</button>
           <button id="boton-cancelar-denom" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
 
           <div id="mensajeFiscalizacionError2" hidden>

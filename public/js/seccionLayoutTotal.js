@@ -479,7 +479,6 @@ $('#btn-salir').click(function(){
 $('.selectCasinos').on('change',function(){
   var id_casino = $('option:selected' , this).attr('id');
   var selectCasino = $(this)
-
   $.get('http://' + window.location.host +"/casinos/obtenerTurno/" + id_casino, function(data){
       $('#turno').val(data.turno);
   });

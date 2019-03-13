@@ -432,6 +432,32 @@ $(document).on('change','.inputApe',function(){
 });
 
 
+//desvincular una apertura y un cierre. Cuando se valido mal la apertura
+$(document).on('click', '.desvincular', function(e){
+  e.preventDefault();
+
+  $('#modalDesvinculacion').modal('show');
+  $('#btn-desvincular').val($(this).val());
+
+});
+
+ $(document).on('click', '#btn-desvincular', function(e){
+
+  var id=$(this).val();
+
+  $.get('aperturas/desvincularApertura/' + id, function(data){
+
+    if(data==1){
+      $('#modalDesvinculacion').modal('hide');
+      $('#mensajeExito p').text('Se ha desvinculado el cierre de esta Apertura.');
+      $('#mensajeExito').show();
+      $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
+    }
+  })
+})
+
+
+
 $(document).on('click', '.btn_ver_mesa', function(e){
   e.preventDefault();
 
@@ -1583,49 +1609,35 @@ $(document).on('click', '.validarCyA', function(e) {
   $('#mensajeErrorValApertura').hide();
 
   $('#mensajeExito').hide();
-
   limpiarModalValidar();
 
   var id_apertura=$(this).val();
   $('#validar').val(id_apertura);
   $('#validar').hide();
   $('#div_cierre').hide();
-   $('#obsValidacion').val(''),
 
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
-    $('.nro_validar').text(data.mesa.nro_mesa);
-    $('.fechaAp_validar_aper').text(data.apertura.fecha);
-    $('.j_validar').text(data.juego.nombre_juego);
-    $('.cas_validar').text(data.casino.nombre);
+    $('.nro_validar').text('MESA: ' +data.mesa.nro_mesa);
+    $('.fechaAp_validar_aper').text('FECHA APERTURA: ' + data.apertura.fecha);
+    $('.j_validar').text('JUEGO: ' +data.juego.nombre_juego);
+    $('.cas_validar').text('CASINO: ' + data.casino.nombre);
 
-    $('.hs_validar_aper').text(data.apertura.hora);
-    $('.fis_validar_aper').text(data.fiscalizador.nombre);
-    $('.car_validar_aper').text(data.cargador.nombre);
-    $('.tipo_validar_aper').text(data.tipo_mesa.descripcion);
-    $('.mon_validar_aper').text(data.moneda.descripcion);
+    $('.hs_validar_aper').text('HORA APERTURA: ' + data.apertura.hora_format);
+    $('.fis_validar_aper').text('FISCALIZADOR DE TOMA: '+ data.fiscalizador.name);
+    $('.car_validar_aper').text('FISCALIZADOR DE CARGA: '+ data.cargador.user_name);
+    $('.tipo_validar_aper').text('TIPO MESA: ' + data.tipo_mesa.descripcion);
+    $('.mon_validar_aper').text('MONEDA: ' +  data.moneda.descripcion);
     $('.mon_validar_aper').val(data.moneda.id_moneda);
     $('#total_aper_validar').val(data.apertura.total_pesos_fichas_a);
-    var hora_inicio_cierre,hora_fin_cierre;
+    $('#obsValidacion').val("");
 
     for (var i = 0; i < data.fechas_cierres.length; i++) {
-
-      if(data.fechas_cierres[i].hora_inicio == null){
-          hora_inicio_cierre = '--';
-      }else{
-        hora_inicio_cierre = data.fechas_cierres[i].hora_inicio ;
-      }
-
-      if(data.fechas_cierres[i].hora_fin == null){
-          hora_fin_cierre = '--';
-      }else{
-        hora_fin_cierre = data.fechas_cierres[i].hora_fin ;
-      }
       $('#fechaCierreVal')
       .append($('<option>')
               .val(data.fechas_cierres[i].id_cierre_mesa)
-              .text(data.fechas_cierres[i].fecha + ' -- '+hora_inicio_cierre
-                    +' a '+ hora_fin_cierre
+              .text(data.fechas_cierres[i].fecha + ' -- '+data.fechas_cierres[i].hora_inicio
+                    +' a '+ data.fechas_cierres[i].hora_fin
                     +' -- '+data.fechas_cierres[i].siglas
                   )
               )
@@ -1633,7 +1645,9 @@ $(document).on('click', '.validarCyA', function(e) {
 
   })
 
-  $('#modalValidarApertura').modal('show');
+  $('#obsValidacion').focus();
+
+  $('#modalValidarApertura2').modal('show');
 
 });
 
@@ -1641,6 +1655,7 @@ $(document).on('click', '.validarCyA', function(e) {
 $(document).on('click','.comparar',function(){
 
   if($('#fechaCierreVal').val() != 0){
+
     $('#tablaValidar tbody tr').remove();
 
     $('#validar').show();
@@ -1648,83 +1663,86 @@ $(document).on('click','.comparar',function(){
     var apertura=$('#validar').val();
     var cierre=$('#fechaCierreVal').val();
     //{id_apertura}/{id_cierre}/{id_moneda}
-    $.get('compararCierre/' + apertura + '/' + cierre + '/' + moneda, function(data){
-
+  $.get('compararCierre/' + apertura + '/' + cierre + '/' + moneda, function(data){
       $('#div_cierre').show();
 
       // //datos cierre
       if(data.cierre == null){
-        $('.hs_inicio_validar').text('-');
-        $('.hs_cierre_validar').text('-');
-        $('.f_validar').text('-');
+        $('.hs_inicio_validar').text('HORA APERTURA: -');
+        $('.hs_cierre_validar').text('HORA CIERRE: -');
+        $('.f_validar').text('FECHA: -');
         $('#anticipos_validar').val('-');
         $('#total_cierre_validar').val('-');
       }else {
-        $('.hs_inicio_validar').text(data.cierre.hora_inicio);
-        $('.hs_cierre_validar').text(data.cierre.hora_fin);
-        $('.f_validar').text(data.cierre.fecha);
+        $('.hs_inicio_validar').text('HORA APERTURA: ' + data.cierre.hora_inicio_format);
+        $('.hs_cierre_validar').text('HORA CIERRE: ' + data.cierre.hora_fin_format);
+        $('.f_validar').text('FECHA: ' + data.cierre.fecha);
         $('#anticipos_validar').val(data.cierre.total_anticipos_c);
         $('#total_cierre_validar').val(data.cierre.total_pesos_fichas_c);
       }
 
-      if(data.detalles_join.length > 0){
+      //relleno de tabla validar: creo la tabla con solo las fichas
+      //recibidas, luego recorro los detalles,la tabla y completo
 
-        for (var i = 0; i < data.detalles_join.length; i++) {
+        for (var i = 0; i < data.fichas.length; i++) {
 
-          var fila= $(document.createElement('tr'));
+          var fila= $('#clonarTFichasV').clone();
+          fila.removeAttr('id');
+          fila.attr('id',data.fichas[i].id_ficha);
 
-          fila.attr('id', data.detalles_join[i].id_ficha);
+          fila.find('.valor_validar').addClass('v_id_ficha').addClass('cierre').text(data.fichas[i].valor_ficha);
+          fila.find('.cant_cierre_validar').text(0);
+          fila.find('.cant_apertura_validar').text(0);
 
+          fila.css('display','');
+          $('#mostrarTablaValidar').css('display','block');
 
-          //pregunto si hay detalle_cierre cargado
-          if(data.detalles_join[i].id_detalle_cierre != null && data.detalles_join[i].monto_ficha!= null){
-              fila.append($('<td>')
-                  .addClass('col-xs-3').addClass('v_id_ficha').addClass('cierre').text(data.detalles_join[i].valor_ficha).css('font-weight','bold'))
-                  .append($('<td>')
-                  .addClass('col-xs-3').addClass('v_monto_cierre').addClass('cierre').text(data.detalles_join[i].monto_ficha).css('font-weight','bold'));
+          $('#tablaValidar #validarFichas').append(fila);
+        }
 
-            }else{
-                fila.append($('<td>')
-                    .addClass('col-xs-3').addClass('v_id_ficha').addClass('cierre').text(data.detalles_join[i].valor_ficha).css('font-weight','bold'))
-                    .append($('<td>')
-                    .addClass('col-xs-3').addClass('v_monto_cierre').addClass('cierre').text('0').css('font-weight','bold'))
+        for (var i = 0; i < data.detalles_cierre.length; i++) {
 
-              }
-
-        //  pregunto si hay apertura cargada
-            if(data.detalles_join[i].id_detalle_apertura != null && data.detalles_join[i].monto_ficha_apertura != null){
-
-              fila.append($('<td>')
-                  .addClass('col-xs-3').addClass('v_monto_apertura').text(data.detalles_join[i].monto_ficha_apertura).css('font-weight','bold'))
+          var t=$('#tablaValidar tbody > tr');
+          $.each(t, function(index, value){
+            if($(this).attr('id') == data.detalles_cierre[i].id_ficha){
+              // var cant=Number(data.detalles_cierre[i].monto_ficha / $(this).find('.valor_validar'));
+              // console.log('cant',cant);
+              $(this).find('.cant_cierre_validar').addClass('cierre').text(data.detalles_cierre[i].cantidad_ficha);
 
             }
-            else {
-              fila.append($('<td>')
-                  .addClass('col-xs-3').addClass('v_monto_apertura').text('0').css('font-weight','bold').prop('readonly',true))
+          })
+        }
+        for (var i = 0; i < data.detalles_apertura.length; i++) {
+
+          var t=$('#tablaValidar tbody > tr');
+          $.each(t, function(index, value){
+            if($(this).attr('id') == data.detalles_apertura[i].id_ficha){
+
+              $(this).find('.cant_apertura_validar').text(data.detalles_apertura[i].cantidad_ficha);
 
             }
+          })
+        }
+
 
             //agrego icono comparando valores
-            var monto_apertura = fila.find('.v_monto_apertura').text();
-            var monto_cierre = fila.find('.v_monto_cierre').text();
 
-            if(monto_cierre == monto_apertura){
-              fila.append($('<td>')
-                  .addClass('col-xs-3').addClass('.iconoValidacion')
-                  .append($('<i>').addClass('fa fa-fw fa-check').css('color', '#66BB6A')));
-            }else {
-              fila.append($('<td>')
-                  .addClass('col-xs-3').addClass('.iconoValidacion')
-                  .append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F')));
-            }
+            var t=$('#tablaValidar tbody > tr');
 
-            $('#tablaValidar #validarFichas').append(fila);
-          }
-        }
-    })
-  }
+            $.each(t, function(index, value){
 
+                var fichas_apertura = $(this).find('.cant_apertura_validar').text();
+                var fichas_cierre = $(this).find('.cant_cierre_validar').text();
 
+                if(fichas_cierre == fichas_apertura){
+                  $(this).find('.diferencias_validar').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#66BB6A'));
+                }
+                else{
+                  $(this).find('.diferencias_validar').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F'))
+                }
+            })
+  })
+}
 });
 //cuando cambia la fecha
 $(document).on('change', '#fechaCierreVal', function(e) {
@@ -1770,7 +1788,7 @@ $(document).on('click', '#validar', function(e) {
 
         success: function (data){
 
-          $('#modalValidarApertura').modal('hide');
+          $('#modalValidarApertura2').modal('hide');
           $('#mensajeExito h3').text('ÉXITO');
           $('#mensajeExito p').text('Apertura Validada correctamente. ');
           $('#mensajeExito').show();
@@ -1923,16 +1941,24 @@ function generarFilaAperturas(data){
     }else{
         fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
     }
-
-
-    fila.find('.infoCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.modificarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.validarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.eliminarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
+    fila.find('.infoCyA').val(data.id_apertura_mesa);
+    fila.find('.modificarCyA').val(data.id_apertura_mesa);
+    fila.find('.validarCyA').val(data.id_apertura_mesa);
+    fila.find('.desvincular').val(data.id_apertura_mesa);
+    fila.find('.eliminarCyA').val(data.id_apertura_mesa);
     if(data.id_estado_cierre == 3){
-      fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
-      fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
-      fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
+      fila.find('.validarCyA').val(data.id_apertura_mesa).hide();
+      fila.find('.eliminarCyA').val(data.id_apertura_mesa).hide();
+      fila.find('.modificarCyA').val(data.id_apertura_mesa).hide();
+      fila.find('.desvincular').show();
+      fila.find('.infoCyA').show();
+    }
+    else {
+      fila.find('.validarCyA').show();
+      fila.find('.eliminarCyA').show();
+      fila.find('.modificarCyA').show();
+      fila.find('.desvincular').hide();
+      fila.find('.infoCyA').hide();
     }
     fila.css('display', '');
 

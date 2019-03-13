@@ -689,6 +689,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
   $('.validarEv').prop('disabled', true);
   $('.errorEv').prop('disabled',true);
   $('#observacionesToma').hide();
+  $('#observacionesAdmin').val('');
   //oculto botones de error y validacion porque voy a visar de a una
   $('#enviarValidarEv').hide();
   $('#errorValidacionEv').hide();
@@ -891,17 +892,58 @@ $(document).on('click','.verMaquinaEv',function(){
 
 //botón validar dentro del modal validar
 $(document).on('click', '#enviarValidarEv', function(){
-
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+    });
     $('.detalleMaqVal').hide();
 
     var id=$(this).val();
+    var observacion= $('#observacionesAdmin').val();
+    var formData={
+      id_relev_mov: id,
+      observacion: observacion,
+    }
+  
 
+    $.ajax({
+      type: 'POST',
+      url: 'eventualidadesMTM/visarConObservacion',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        if(data.id_estado_relevamiento == 4){
+          $('#mensajeExitoValidacion').show();
+          $('#enviarValidarEv').hide();
+          $('#errorValidarEv').hide();
+    
+  
+          $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
+  
+              var maq=$(this).parent().find('.verMaquinaEv').attr('data-relevamiento');
+              console.log('44',maq);
+              if (maq == id){
+                var cambio = $(this).parent().find('.verMaquinaEv');
+                cambio.attr('data-estado',4);
+                $(this).append($('<td>')
+                    .addClass('col-xs-2')
+                    .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+              }
+          });
+        }
+      },
+      error: function (data) {
+        console.log('Error:', data);
+      }
+      });
+      /*
     $.get('eventualidadesMTM/visar/' + id, function(data){
       if(data.id_estado_relevamiento == 4){
         $('#mensajeExitoValidacion').show();
         $('#enviarValidarEv').hide();
         $('#errorValidarEv').hide();
-
+  
 
         $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
 
@@ -916,10 +958,9 @@ $(document).on('click', '#enviarValidarEv', function(){
             }
         });
       }
-
-    })
-
-});
+*/
+    }); 
+    
 $('#modalValidacionEventualidadMTM').on('hidden.bs.modal', function() {
 
   $('#btn-buscarEventualidadMTM').trigger('click');

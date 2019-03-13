@@ -101,7 +101,7 @@ class ProducidoController extends Controller
 
     return view('seccionProducidos' , ['casinos' => $casinos , 'producidos' => $producidos, 'ultimos' => $producidosAValidar]);
   }
-
+  // buscarProducidos 
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
@@ -145,7 +145,7 @@ class ProducidoController extends Controller
 
     return ['producidos' => $producidos];
   }
-
+  // eliminarProducido elimina el producido y los detalles producidos asociados
   public function eliminarProducido($id_producido){
     Validator::make(['id_producido' => $id_producido]
                    ,['id_producido' => 'required|exists:producido,id_producido']
@@ -169,7 +169,7 @@ class ProducidoController extends Controller
 
     $pdo->exec($query);
   }
-
+  // modificarProducido modifica los detalles producidos asociados a un producido
   public function modificarProducido(Request $request){
     Validator::make($request->all(), [
                     'detalles' => 'nullable',
@@ -186,7 +186,9 @@ class ProducidoController extends Controller
     }
 
   }
-
+  // datosAjusteMTM obitne los producidos con las maquinas que dan diferencias
+  // con la informacion necesaria para ser evaluados por el auditor
+  // TODO el guardado temporal no esta funcionando, pero no se usa tampoco
   public function datosAjusteMTM($id_maquina,$id_producido){
     $producido=Producido::find($id_producido);
     $casino=$producido->casino->id_casino;
@@ -244,7 +246,7 @@ class ProducidoController extends Controller
               //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
             ];
     }else{
-      ///FALTAAAAAAAAAA EDITAR
+   
       foreach ($mtm_datos as $row) {
           $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
                                                   $row['id_detalle_producido'],
@@ -272,8 +274,7 @@ class ProducidoController extends Controller
     }
   }
 
-  //método en proceso de analisis
-  //problemas de los datos que muestra como contadores al momento de dar diferencia
+  // ajustarProducido 
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
 
       $producido=Producido::find($id_producido);
@@ -369,6 +370,11 @@ class ProducidoController extends Controller
             ];
   }
 
+  // calcularDiferencia calcula la diferencia que hay entre el producido calculado a partir de los contadores
+  // y el producido importado
+  // considera los casos donde no hay contadores importados, en ese caso los setea como 0
+  // tiene en cuenta la denominacion para la conversion a dinero, solo en caso del casino de rosario, porque los contadores 
+  // se importan en creditos
   public function calcularDiferencia($casino,$id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion,$denominacion_carga_inicial, $denominacion_carga_final){
       $resultado=array();
       //if($id_detalle_contador_final!=null){
@@ -460,6 +466,8 @@ class ProducidoController extends Controller
       return $resultado;
   }
 
+  // verAjusteAutomatico genera los ajustes automaticos 
+  // pueden ser calculados numericamente de forma automatica
   public function verAjusteAutomatico($arreglo_diferencia){
     $numero=$arreglo_diferencia['diferencia']/$arreglo_diferencia['denominacion'];
     while($numero % 10  == 0){
@@ -571,6 +579,8 @@ class ProducidoController extends Controller
     return true;
   }
 
+  // guardarAjuste guarda el ajuste realizado por el auditor
+  // solo se guarda si luego del ajuste , la diferencia es nula, es decir, es correto el ajuste
   public function guardarAjuste(Request $request){
 
       Validator::make($request->all(), [
@@ -831,6 +841,8 @@ class ProducidoController extends Controller
 
   }
 
+  // generarPlanilla crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
+  // junto a los ajustes , ya sean automaticos o manual
   public function generarPlanilla($id_producido){
     $producido = Producido::find($id_producido);
     $resultados = DB::table('detalle_producido')->join('ajuste_producido','detalle_producido.id_detalle_producido','=','ajuste_producido.id_detalle_producido')
@@ -838,7 +850,7 @@ class ProducidoController extends Controller
                                         ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
                                         ->where('detalle_producido.id_producido',$id_producido)
                                         ->select('maquina.nro_admin as nro_maquina','ajuste_producido.producido_calculado as prod_calc',
-                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado')
+                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado', 'detalle_producido.observacion as obs')
                                         ->orderBy('nro_maquina','asc')
                                         ->get();
 
@@ -857,6 +869,7 @@ class ProducidoController extends Controller
     $pro->fecha_prod = $dia."-".$mes."-".$año;
 
     $ajustes = array();
+    $MTMobservaciones= array();
     foreach($resultados as $resultado){
       $res = new \stdClass();
       $res->maquina = $resultado->nro_maquina;
@@ -866,9 +879,16 @@ class ProducidoController extends Controller
       $res->descripcion = $resultado->d;
       $res->calculado_operado=number_format($resultado->prod_calc_operado, 2, ",", ".");
       $ajustes[] = $res;
+      // agrego a una lista todas aquellas mtm con observaciones para ser motrada en otra tabla
+      if ($resultado->obs!=""){
+        $resObs=new \stdClass();
+        $resObs->maquina = $resultado->nro_maquina;
+        $resObs->observacion=$resultado->obs;
+        $MTMobservaciones[]=$resObs;
+      }
     };
 
-    $view = View::make('planillaProducidos',compact('ajustes','pro'));
+    $view = View::make('planillaProducidos',compact('ajustes','pro','MTMobservaciones'));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

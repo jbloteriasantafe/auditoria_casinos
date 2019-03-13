@@ -219,6 +219,10 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
                           </button>
+                          <button type="button" class="btn btn-info desvincular" value="{{$a->id_apertura_mesa}}">
+                            <i class="fas fa-fw fa-unlink"></i>
+                          </button>
+
                           @else
                           <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" data-tipo="apertura">
                                   <i class="fa fa-fw fa-search-plus"></i>
@@ -264,6 +268,9 @@ $cas = $usuario['usuario']->casinos;
                           <button type="button" class="btn btn-info infoCyA" value="" data-toggle:"tooltip"
                                   data-placement:"top" title: "VER MÁS" data-delay:"{show:300, hide:100}">
                                   <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          <button type="button" class="btn btn-info desvincular" value="">
+                            <i class="fas fa-fw fa-unlink"></i>
                           </button>
                           <button type="button" class="btn btn-warning modificarCyA" value="">
                                   <i class="fas fa-fw fa-pencil-alt"></i>
@@ -323,9 +330,32 @@ $cas = $usuario['usuario']->casinos;
       </div>
 </div>
 
+<!-- modal alerta desvinculación -->
+<div class="modal fade" id="modalDesvinculacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content" style="border-radius:5px !important">
+           <div class="modal-header" style="background-color:#0D47A1;">
+             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+             <h3 class="modal-title">| ALERTA</h3>
+            </div>
+
+            <div  id="colapsadoNuevo" class="collapse in">
+              <div class="modal-body modalCuerpo">
+                <h6>Esta Apertura fue vinculada a un Cierre determinado mediante la validación,
+                    puede observarse en los detalles de la misma.</h6>
+                <h6>¿Desea deshacer esta validación y desvincular el Cierre?</h6>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-info" id="btn-desvincular" value="">DESVINCULAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+</div>
 
 <!-- MODAL CARGA cierre -->
-<div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -704,7 +734,7 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 <!-- MODAL MODIFICAR CIERRE -->
-<div class="modal fade" id="modalModificarCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificarCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
@@ -823,7 +853,7 @@ $cas = $usuario['usuario']->casinos;
 
 
 <!-- MODAL CARGA APERTURA -->
-<div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
@@ -991,7 +1021,6 @@ $cas = $usuario['usuario']->casinos;
 </div>
 
 
-
 <!--MODAL DE DETALLES DE APERTURA -->
 <div class="modal fade" id="modalDetalleApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -1123,7 +1152,7 @@ $cas = $usuario['usuario']->casinos;
 </style>
 
 <!-- MODAL MODIFICAR APERTURA -->
-<div class="modal fade" id="modalModificarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalModificarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 75%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
@@ -1243,9 +1272,9 @@ $cas = $usuario['usuario']->casinos;
     scrollbar-highlight-color: #CCCCCC;}
 </style>
 
-<!-- MODAL VALIDAR APERTURA -->
-<div class="modal fade" id="modalValidarApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="width:50%">
+<!-- modal de validar -->
+<div class="modal fade" id="modalValidarApertura2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg" style="width:70%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -1259,10 +1288,10 @@ $cas = $usuario['usuario']->casinos;
           <!-- row de seleccion de fecha -->
           <div class="row" style=" border-bottom:2px solid #ccc; padding-bottom:20px">
             <div class="col-xs-5">
-              <h6 display="inline-block">Seleccione un Cierre para validar esta Apertura:</h6>
+              <h6 display="inline-block" style="font-size:19px !important; padding:0px;margin:0px !important;">Seleccione un Cierre para validar esta Apertura:</h6>
             </div>
             <div class="col-xs-4" >
-              <select class="form-control" display="inline-block" style="padding-right:40px" name="selFecha" id="fechaCierreVal">
+              <select class="form-control" display="inline-block" style="padding-right:40px;margin:0px !important;padding-left:0px;" name="selFecha" id="fechaCierreVal">
                 <option value="0" selected class="defecto">- Seleccione una Fecha -</option>
               </select>
             </div>
@@ -1273,170 +1302,40 @@ $cas = $usuario['usuario']->casinos;
             <br>
           </div>
 
-          <!-- datos del cierre -->
-          <div class="row" id="div_cierre" style="border-bottom:2px solid #ccc;" hidden>
-            <div class="col-md-1" align="center" >
-              <h1 style="padding-top:110px;padding-bottom:134px;font-family:'Roboto-Black';">C</h1>
-            </div>
-            <div class="col-md-11">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>MESA</h6>
-                    <div class="col-xs-2 col-xs-offset-1 iconoMesa">
-                        <i class="fas fa-clipboard-check fa-2x" style="position:relative; left:-1px;"></i>
-                    </div>
-                    <div class="col-xs-6" align="center">
-                      <h5 class="nro_validar" style="color: #000 !important; font-size: 14px;">nro mesa</h5>
-                    </div>
-                  </div>
-                  <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>JUEGO</h6>
-                    <div class="col-xs-2 col-xs-offset-0 iconoJuego">
-                        <i class="fas fa-dice fa-2x" style="position:relative; left:-1px;"></i>
-                    </div>
-                    <div class="col-xs-6" align="center">
-                      <h5 class="j_validar" style="color: #000 !important; font-size: 14px;"></h5>
-                    </div>
-                  </div>
-                  <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                    <h6>CASINO</h6>
-                    <div class="row">
-                      <div class="col-xs-2 col-xs-offset-1 iconoFecha">
-                        <span class="icono" style="padding-bottom: 56px; position:relative; left:-1px; size:2px">
-                          @svg('casinos','iconoCasinos')
-                        </span>
-                      </div>
-                      <div class="col-xs-6" align="center">
-                          <h5 class="cas_validar" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12" style="border-top:2px solid #ccc; ">
-                    <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>HORA APERTURA</h6>
-                      <div class="row ">
-
-                      <div class="col-xs-2 col-xs-offset-1 iconoFecha">
-                          <i class="far fa-clock fa-2x" style="position:relative; left:-1px;"></i>
-                      </div>
-                      <div class="col-xs-6" align="center">
-                          <h5 class="hs_inicio_validar" style="color: #000 !important; font-size: 14px;" >10:20 H</h5>
-                      </div>
-                      </div>
-                      <br>
-                    </div>
-                    <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>HORA CIERRE</h6>
-                      <div class="row">
-                      <div class="col-xs-2 col-xs-offset-1 iconoFecha">
-                          <i class="far fa-clock fa-2x" style="position:relative; left:-1px;"></i>
-                      </div>
-                      <div class="col-xs-6" align="center">
-                          <h5 class=" hs_cierre_validar" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
-                      </div>
-                    </div>
-                      <br>
-                    </div>
-                    <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                      <h6>FECHA CIERRE</h6>
-                      <div class="row">
-                        <div class="col-xs-2 col-xs-offset-1 iconoCalendarr">
-                            <i class="far fa-calendar-alt fa-2x" style="position:relative; left:-1px;"></i>
-                        </div>
-                        <div class="col-xs-6" align="center">
-                            <h5 class="f_validar" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- datos de la apertura -->
           <div class="row">
-            <div class="col-md-1" align="center" style=" border-bottom:2px solid #ccc;">
-              <h1 style="padding-top:110px;padding-bottom:134px;font-family:'Roboto-Black';">A</h1>
-            </div>
-            <div class="col-md-11">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>HORA APERTURA</h6>
-                    <div class="col-xs-2 col-xs-offset-1 iconoMesa">
-                        <i class="fas fa-clipboard-check fa-2x" style="position:relative; left:-1px;"></i>
-                    </div>
-                    <div class="col-xs-6" align="center">
-                      <h5 class="hs_validar_aper" style="color: #000 !important; font-size: 14px;">nro mesa</h5>
-                    </div>
-                  </div>
-                  <div class="col-md-4" align="center" style=" border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <h6>FECHA APERTURA</h6>
-                    <div class="col-xs-2 col-xs-offset-0 iconoJuego">
-                        <i class="fas fa-dice fa-2x" style="position:relative; left:-1px;"></i>
-                    </div>
-                    <div class="col-xs-6" align="center">
-                      <h5 class="fechaAp_validar_aper" style="color: #000 !important; font-size: 14px;"></h5>
-                    </div>
-                  </div>
-                  <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                    <h6>FISCALIZADOR DE TOMA</h6>
-                    <div class="col-xs-2 col-xs-offset-1 iconoFiscalizador">
-                        <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
-                    </div>
-                    <div class="col-xs-6" align="center">
-                      <h5 class="fis_validar_aper" style="color: #000 !important; font-size: 14px;"></h5>
-                    </div>
-                  </div>
-                </div>
+            <div class="col-xs-6" align="center" style=" border-bottom:2px solid #ccc;">
+              <div class="row" style="border-bottom:2px solid #ccc">
+                <h6>APERTURA</h6>
               </div>
-              <div class="row">
-                <div class="col-md-12" style="border-top:2px solid #ccc; border-bottom:2px solid #ccc;">
-                    <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>FISCALIZADOR DE CARGA</h6>
-                      <div class="row ">
-
-                      <div class="col-xs-2 col-xs-offset-1 iconoCargador">
-                          <i class="far fa-user fa-2x" style="position:relative; left:-1px;"></i>
-                      </div>
-                      <div class="col-xs-6" align="center">
-                          <h5 class="car_validar_aper" style="color: #000 !important; font-size: 14px;" >10:20 H</h5>
-                      </div>
-                      </div>
-                      <br>
-                    </div>
-                    <div class="col-md-4" align="center" style="border-right:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                      <h6>TIPO MESA</h6>
-                      <div class="row">
-                      <div class="col-xs-2 col-xs-offset-1 iconoTMesa">
-                          <i class="fas fa-info-circle fa-2x" style="position:relative; left:-1px;"></i>
-                      </div>
-                      <div class="col-xs-6" align="center">
-                          <h5 class="tipo_validar_aper" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
-                      </div>
-                    </div>
-                      <br>
-                    </div>
-                    <div class="col-md-4" align="center" style="padding-top:30px; padding-bottom:30px;">
-                      <h6>TIPO MONEDA </h6>
-                      <div class="row">
-                        <div class="col-xs-2 col-xs-offset-1 iconoMonedaV">
-                            <i class="fas fa-hand-holding-usd fa-2x" style="position:relative; left:-1px;"></i>
-                        </div>
-                        <div class="col-xs-6" align="center">
-                            <h5 class="mon_validar_aper" style="color: #000 !important; font-size: 14px;">10:20 H</h5>
-                        </div>
-                      </div>
-                    </div>
-                </div>
+            <div class="row" style="background-color:#BDBDBD;">
+              <div class="col-md-12" style="border-right: 3px solid #aaa">
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="hs_validar_aper"></h6>
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="fechaAp_validar_aper"></h6>
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="fis_validar_aper"></h6>
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="car_validar_aper"></h6>
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="tipo_validar_aper"></h6>
+                <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="mon_validar_aper"></h6>
               </div>
             </div>
           </div>
+
+          <!-- datos del cierre -->
+          <div class="col-xs-6" id="div_cierre" style="border-bottom:2px solid #ccc;" hidden>
+                <h6 style="text-align:center !important">CIERRE</h6>
+              <div class="row" style="background-color:#BDBDBD;">
+                <div class="col-xs-12">
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="nro_validar"></h6>
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="j_validar"></h6>
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="cas_validar"></h6>
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="hs_inicio_validar"></h6>
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="hs_cierre_validar"></h6>
+                  <h6 style="font-size:17px !important;text-align:left !important;margin-left:15px;" class="f_validar"></h6>
+                </div>
+            </div>
+          </div>
+        </div>
+
           <br>
           <div class="row" style="border-bottom:1px solid #ccc; text-align:center;">
             <h3 align="center" style="padding-bottom:20px; display:inline;position:relative;top:-2px;">DATOS GENERALES</h3><i class="fas fa-info-circle" style="font-size:30px;"></i>
@@ -1445,48 +1344,58 @@ $cas = $usuario['usuario']->casinos;
           </div>
           <div class="row" style="border-bottom:1px solid #ccc;">
               <h6 align="center">FICHAS</h6>
-            <table  style="border-collapse: separate;"  class="table table-striped" align="center" id="tablaValidar">
+            <table  style="border-collapse: separate;"  class="table table-bordered" align="center" id="tablaValidar">
               <thead>
                 <tr>
                   <th class="col-xs-3" style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px;  border-right:1px solid #ccc;border-bottom:1px solid #ccc;">
-                    <h5 style="font-size: 15px; text-align: center !important ">VALOR</h5>
+                    <h5 style="font-size: 15px !important;color:#aaa !important;color:#aaa !important; text-align: center !important ">VALOR</h5>
                   </th>
                   <th class="col-xs-3" style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px;border-right:1px solid #ccc; border-bottom:1px solid #ccc;">
-                    <h5 style="font-size: 15px;text-align: center !important ">MONTO CIERRE</h5>
+                    <h5 style="font-size: 15px !important;color:#aaa !important;color:#aaa !important;text-align: center !important ">CANTIDAD CIERRE</h5>
                   </th>
                   <th class="col-xs-3" style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px;border-right:1px solid #ccc; border-bottom:1px solid #ccc;">
-                    <h5 style="font-size: 15px; text-align: center !important ">MONTO APERTURA</h5>
+                    <h5 style="font-size: 15px !important;color:#aaa !important;color:#aaa !important; text-align: center !important ">CANTIDAD APERTURA</h5>
                   </th>
-                  <th class="col-xs-3" style="padding-bottom:8px;padding-top:8px;padding-left:8px;padding-right:8px; border-bottom:1px solid #ccc;">
-                    <h5 style="font-size: 15px; text-align: center !important ">DIFERENCIAS</h5>  </th>
+                  <th class="col-xs-3" style="padding-bottom:8px;padding-top:8px;color:#aaa !important;padding-left:8px;padding-right:8px; border-bottom:1px solid #ccc;">
+                    <h5 style="font-size: 15px !important;color:#aaa !important; text-align: center !important ">DIFERENCIAS</h5>  </th>
                 </tr>
               </thead>
               <tbody id="validarFichas" align="center" style="border-spacing: 7px 7px;">
 
               </tbody>
             </table>
-
+            <div class="table table-responsive" id="mostrarTablaValidar"  style="display:none">
+              <table class="table" style="padding:0px !important">
+                <tbody >
+                  <tr class"filaClone" id="clonarTFichasV" style="display:none; padding:0px !important;">
+                    <td class="valor_validar" style="padding:1px !important;text-align:center !important;"></td>
+                    <td class="cant_cierre_validar" style="padding:1px !important;text-align:center !important;font-weight: bold"></td>
+                    <td class="cant_apertura_validar" style="padding:1px !important;text-align:center !important;"></td>
+                    <td class="diferencias_validar" style="padding:1px !important;text-align:center !important; "></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
         </div>
-           <br>
-           <br>
+
            <div class="row">
                 <div class="col-md-4">
-                  <h6>TOTAL CIERRE ($):</h6>
+                  <h6>TOTAL CIERRE</h6>
                   <input type="text" id="total_cierre_validar" class="form-control" value="" readonly="true">
                 </div>
                 <div class="col-md-4" >
-                  <h6>TOTAL APERTURA ($):</h6>
+                  <h6>TOTAL APERTURA</h6>
                   <input type="text" id="total_aper_validar" class="form-control" value="" readonly="true">
                 </div>
                 <div class="col-md-4" >
-                  <h6>TOTAL ANTICIPOS ($):</h6>
+                  <h6>TOTAL ANTICIPOS</h6>
                   <input type="text" id="anticipos_validar" class="form-control" value="" readonly="true">
                 </div>
           </div>
           <br>
           <div class="row">
             <div class="col-md-8">
-              <h6>OBSERVACIONES:</h6>
+              <h6>OBSERVACIONES</h6>
               <textarea name="name" id="obsValidacion" rows="4" width="100%"  class="estilotextarea4"></textarea>
             </div>
           </div>

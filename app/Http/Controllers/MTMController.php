@@ -1083,7 +1083,7 @@ class MTMController extends Controller
         $maquina->save();
       }
     }else{
-      foreach ($arreglo as $id_maquina) {
+      foreach ($arreglo_maquinas as $id_maquina) {
         $maquina= Maquina::find($id_maquina);
         $maquina->marca_juego=  $this->abreviarMarca($maquina->marca) . ' - ' . $maquina->juego_activo->nombre_juego;
         $maquina->save();
@@ -1171,9 +1171,22 @@ class MTMController extends Controller
     $maquina->denominacion = $denominacion;
     $maquina->id_unidad_medida = $id_unidad_medida;
     $maquina->save();
-    $razon = "Se cambió denominacion y unidad medida.";
+    $razon = "Se cambió cambiar denominacion y unidad medida.";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
+  }
+  
+  // modificarDenominacionJuego cambia la denominacion del juego activo de la mtm
+  public function modificarDenominacionJuego( $denominacion, $id_maquina){
+    $m = Maquina::find($id_maquina);
+    $id_juego_activo=$m->juego_activo->id_juego;
+    DB:: table('maquina_tiene_juego')
+      ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
+      ->Update(['denominacion' => $denominacion]);
+      
+    $razon = "Se cambió denominacio al juego activo";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
+    return $m;
   }
 
   public function buscarMaquinasPorNota($id_nota){
@@ -1273,11 +1286,36 @@ class MTMController extends Controller
     $maq->save();
   }
 
+  // modificarDevolucionJuego cambia el porcentaje de devolucion del juego activo asociado a la mtm
+  public function modificarDevolucionJuego($porcentaje_devolucion,$id_maquina){
+    $m = Maquina::find($id_maquina);
+    $id_juego_activo=$m->juego_activo->id_juego;
+    DB:: table('maquina_tiene_juego')
+      ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
+      ->Update(['porcentaje_devolucion' => $porcentaje_devolucion]);
+    $razon = "Se modificó el procentaje de devolución del juego activo";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
+    
+    return $m;
+  }
+
   public function modificarJuego($id_juego,$id_maquina){
     $maq=Maquina::find($id_maquina);
     $maq->juego_activo()->associate($id_juego);
     $maq->save();
     $razon = "Se modificó juego activo";
+    LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
+
+  }
+
+  // modificarJuegoConDenYPorc utilidad para movimiento, realiza el camibo de juego con denominacion y porcentaje de devolucion
+  // estos cambios se aplican al juego activo y a sus relaciones
+  public function modificarJuegoConDenYPorc($id_juego,$id_maquina, $denominacion, $porcentaje_devolucion){
+    $maq=Maquina::find($id_maquina);
+    $maq->juego_activo()->associate($id_juego);
+    $maq->save();
+    $maq->juegos()->syncWithoutDetaching([$id_juego => ['denominacion' => $denominacion, 'porcentaje_devolucion' => $porcentaje_devolucion]]);
+    $razon = "Se modificó juego activo con su denominación y porcentaje de devolución";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
 
   }

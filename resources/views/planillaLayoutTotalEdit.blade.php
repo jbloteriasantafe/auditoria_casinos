@@ -84,7 +84,7 @@ p {
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
         <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div>
         <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / h:i');
+        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
 
         <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(Ingresar total de máquinas observadas por isla)</i>:</div>
@@ -144,9 +144,9 @@ p {
         </div>
 
         <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
-        <div class="camposInfo" style="top: 12px; right:294px;"></span>1</div> <!-- COLOCAR TURNO -->
+        <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div> 
         <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / h:i');
+        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
 
               <div class="divTable">
@@ -346,19 +346,12 @@ p {
               </div>
               <br>
               <div style="font-size: 11px; text-decoration: underline;"> Códigos:</div>
-              <div style="font-size: 11px;"><strong>NTF</strong> -> No funciona touch.</div>
-              <div style="font-size: 11px;"><strong>NEIS</strong> -> No se encuentra en isla/sala.</div>
-              <div style="font-size: 11px;"><strong>EJ</strong> -> En juego.</div>
-              <div style="font-size: 11px;"><strong>SLDA</strong> -> Sin llave de auditoría.</div>
               <div style="font-size: 11px;"><strong>FDS</strong> -> Fuera de servicio.</div>
               <div style="font-size: 11px;"><strong>MT</strong> -> Módulo tildado.</div>
-              <div style="font-size: 11px;"><strong>CL</strong> -> Corte de luz.</div>
-              <div style="font-size: 11px;"><strong>FDLS</strong> -> Fuera de la sala.</div>
               <div style="font-size: 11px;"><strong>FDST</strong> -> Fuera de servicio temporal.</div>
               <div style="font-size: 11px;"><strong>TM</strong> -> Tareas de mantenimiento.</div>
               <div style="font-size: 11px;"><strong>FDS</strong> -> No funciona la botonera.</div>
-              <div style="font-size: 11px; padding: -144px 0px 0px 185px;"><strong>MA</strong> -> Máquinia apagada.</div>
-              <div style="font-size: 11px; padding: -131px 0px 0px 185px;"><strong>EDF</strong> -> Error de fórmula.</div>
-              <div style="font-size: 11px; padding: -118px 0px 0px 185px;"><strong>TP</strong> -> Trabajo en el plato.</div>
+              <div style="font-size: 11px;"><strong>MA</strong> -> Máquinia apagada.</div>
+              <div style="font-size: 11px;"><strong>TP</strong> -> Trabajo en el plato.</div>
   </body>
 </html>

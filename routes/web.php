@@ -255,6 +255,7 @@ Route::post('movimientos/movimientosSinExpediente','LogMovimientoController@movi
 Route::get('movimientos/obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
 Route::get('movimientos/buscarJuegoMovimientos/{nombre_juego}', 'JuegoController@buscarJuegoMovimientos');
 Route::get('movimientos/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
+Route::get('movimientos/obtenerMTM/{id_maquina}','LogMovimientoController@obtenerMaquina');
 Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@obtenerMaquinasIsla');
 Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
 Route::get('movimientos/maquinasEnviadasAFiscalizar/{id_movimiento}','RelevamientoMovimientoController@maquinasEnviadasAFiscalizar');
@@ -300,6 +301,7 @@ Route::get('eventualidadesMTM/tiposMovIntervMTM', 'LogMovimientoController@tipos
 Route::get('eventualidadesMTM/relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
 Route::get('eventualidadesMTM/imprimirEventualidadMTM/{id_mov}/{esNueva}','LogMovimientoController@imprimirEventualidadMTM');
 Route::get('eventualidadesMTM/visar/{id_relevamiento}', 'LogMovimientoController@validarRelevamientoEventualidad');
+Route::post('eventualidadesMTM/visarConObservacion/', 'LogMovimientoController@validarRelevamientoEventualidadConObserv');
 
 
 /******
@@ -615,6 +617,8 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
   Route::post('aperturas/validarApertura','Mesas\Aperturas\VAperturaController@validarApertura');
   Route::get('aperturas/obtenerApValidar/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@obtenerApParaValidar');
+  Route::get('aperturas/desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura');
+
 
 
 //Sección Juegos
@@ -652,3 +656,9 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
 
   Route::get('apuestas/obtenerRequerimientos','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
+
+//informes fiscalizadores
+Route::get('/informeDiarioBasico','Mesas\InformeFiscalizadores\BCInformesController@index');
+Route::post('informeDiarioBasico/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
+Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
+Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');

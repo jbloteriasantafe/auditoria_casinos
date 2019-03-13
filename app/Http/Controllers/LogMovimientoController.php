@@ -546,7 +546,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
       }
@@ -567,9 +567,11 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
-
+            // el cambio de denominacion por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
+            // MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarDenominacionJuego($maquina['denominacion'],$maquina['id_maquina']);
             $maq= Maquina::find($maquina['id_maquina']);
+            // TODO evaluar el caso de dos relevamientos para la misma mtm
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
               $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($req['id_log_movimiento'], $maq);
@@ -581,7 +583,10 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
+            // MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarDevolucionJuego($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
+            
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
@@ -594,7 +599,7 @@ class LogMovimientoController extends Controller
           foreach ($req['maquinas'] as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            MTMController::getInstancia()->modificarJuego($maquina['id_juego'],$maquina['id_maquina']);
+            MTMController::getInstancia()->modificarJuegoConDenYPorc($maquina['id_juego'],$maquina['id_maquina'],$maquina['denominacion'],$maquina['porcentaje_devolucion']);
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
@@ -843,7 +848,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
      }
@@ -1323,7 +1328,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
       }
@@ -1731,7 +1736,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator->getMessageBag()->toArray()
             ];
         }
      }
@@ -1868,7 +1873,7 @@ class LogMovimientoController extends Controller
         if ($validator->fails())
         {
           return [
-                'errors' => $v->getMessageBag()->toArray()
+                'errors' => $validator>getMessageBag()->toArray()
             ];
         }
      }
@@ -1998,16 +2003,49 @@ class LogMovimientoController extends Controller
     return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
   }
 
+  // validarRelevamientoEventualidadConObserv valida un relevamiento que nace de una intervencion de MTM
+  // tambien se agrega observaciones del administrador, esto se guarda dentro del campo observacion unico del modelo
+  // con una bandera de descripcion de admin
+  public function validarRelevamientoEventualidadConObserv(Request $request){
+    // TODO validar la nueva observacion
+    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
+    $id_usuario = session('id_usuario');
+    $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
+    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
+    $id_usuario = session('id_usuario');
+    if($this->noEsControlador($id_usuario,  $logMov)){
+      $logMov->controladores()->attach($id_usuario);
+      $logMov->save();
+    }
+    //a las tomas de los relevamientos las marco como validadas
+    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relev_mov, 1, $request->observacion);//retorna las observaciones de la toma
+    $maquina = $relev_mov->maquina;
+    $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
+              ->where('id_estado_relevamiento','=',4 )->get();
+    //dd([count($logMov->relevamientos_movimientos),count($relss)]);
+    if(count($logMov->relevamientos_movimientos) == count($relss)){
+      $logMov->estado_relevamiento()->associate(4);
+      $logMov->estado_movimiento()->associate(4);
+      $logMov->save();
+    }
+
+    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+  }
+
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////
 
   public function obtenerMaquinasSector($id_sector){
       //dado un casino,devuelve sectores que concuerden con el nombre del sector
-      $maquinas = DB::table('maquina')
-                      ->select('maquina.*')
-                      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      $maquinas = Maquina::
+                        join('isla','isla.id_isla','=','maquina.id_isla')
                       ->join('sector','sector.id_sector','=','isla.id_sector')
                       ->where('sector.id_sector' , '=' , $id_sector)
                       ->get();
+      
+      foreach($maquinas as  $m){
+        $m->denominacion= $m->obtenerDenominacion();
+        $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+      }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
 
@@ -2016,15 +2054,42 @@ class LogMovimientoController extends Controller
 
   public function obtenerMaquinasIsla($id_isla){
       //dado un casino,devuelve sectores que concuerden con el nro admin dado
-      $maquinas = DB::table('maquina')
-                      ->select('maquina.*')
-                      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      $maquinas = Maquina::
+                        join('isla','isla.id_isla','=','maquina.id_isla')
                       ->where('isla.id_isla' , '=' , $id_isla)
                       ->get();
+      // se cambia el valor devuelto de denominacion y % dev por los valores del juego activo
+      $maqUI=  array();
+      foreach($maquinas as  $m){
+
+        $mtemp = new \stdClass();
+        $mtemp->id_maquina = $m->id_maquina;
+        $mtemp->nro_admin = $m->nro_admin;
+        $mtemp->id_unidad_medida = $m->id_unidad_medida;
+        $mtemp->denominacion= $m->obtenerDenominacion();
+        $mtemp->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
+        $mtemp->juego_obj= $m->juego_activo;
+        $maqUI[]=$mtemp;
+      }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
-     return ['maquinas' => $maquinas,'unidades' => $unidades];
+     return ['maquinas' => $maqUI,'unidades' => $unidades];
   }
+
+  public function obtenerMaquina($id_maquina){
+    //dado un casino,devuelve sectores que concuerden con el nombre del sector
+    $m = Maquina::Find($id_maquina);
+    
+    $m->denominacion= $m->obtenerDenominacion();
+    $m->porcentaje_devolucion= $m->obtenerPorcentajeDevolucion();
+
+    $juego_activo= $m->juego_activo;
+    
+
+    $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
+
+    return ['maquina' => $m,'unidades' => $unidades , 'juego_activo' => $juego_activo];
+}
 
   ///////////PRUEBAS////////////////////////////////////////////////////////////
 

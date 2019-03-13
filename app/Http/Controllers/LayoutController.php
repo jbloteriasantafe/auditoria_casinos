@@ -56,7 +56,9 @@ class LayoutController extends Controller
 
     return view('seccionLayoutParcial', ['casinos' => $casinos , 'estados' => $estados]);
   }
-
+  // obtenerLayoutParcial retorna la informacion para la carga del layout, 
+  // obtiene los detalles de layout
+  // considera si una maquina dentro del layout implementa paquete de juegos, retornando una bandera y los juegos habilitados
   public function obtenerLayoutParcial($id){
       $layout_parcial = LayoutParcial::find($id);
 
@@ -140,7 +142,10 @@ class LayoutController extends Controller
               'usuario_fiscalizador' => $layout_parcial->usuario_fiscalizador,
             ];
   }
-
+  // obtenerLayoutParcialValidar recupera el layout para validar, con los datos cargados en el relevamiento
+  // evalua los cambios en los juegos
+  // evalua el cambio de nro de serie
+  // si la maquina implementa paquete de juegos, se realiza validaciones sobre los juegos activos
   public function obtenerLayoutParcialValidar($id){
       $layout_parcial = LayoutParcial::find($id);
 
@@ -484,7 +489,10 @@ class LayoutController extends Controller
   }
 
   
-
+  // crearLayoutParcial crea layout parcial
+  // elimina los backup previos, genera un ordenamiento dependiendo del casino
+  // toma un random dentro de las maquinas habilitadas
+  // crea la planilla y los nuevos backup a partir de este relevamiento
   public function crearLayoutParcial(Request $request){
 
     Validator::make($request->all(),[
@@ -662,7 +670,7 @@ class LayoutController extends Controller
     return['existeLayoutParcial' => 1];
      }
   }
-
+  // buscarLayoutsParciales 
   public function buscarLayoutsParciales(Request $request){
     $reglas = Array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -701,7 +709,7 @@ class LayoutController extends Controller
 
     return $resultados;
   }
-
+  // cargarLayoutParcial carla el layout parcial y sus detalles
   public function cargarLayoutParcial(Request $request){
     Validator::make($request->all(),[
       'id_layout_parcial' => 'required|exists:layout_parcial,id_layout_parcial',
@@ -976,8 +984,10 @@ class LayoutController extends Controller
 
     return $ruta;
   }
-
-  public function crearPlanillaLayoutParcial($layout_parcial){// CREAR Y GUARDAR RELEVAMIENTO
+  // crearPlanillaLayoutParcial crea la planilla de layout parcial para relevar
+  // considera los paquetes de juegos, si tiene, muestra un mensajes que describe
+  // sino lo implemtna , muestra el juego activo
+  public function crearPlanillaLayoutParcial($layout_parcial){
     $rel= new \stdClass();
     $rel->nro_relevamiento = $layout_parcial->nro_layout_parcial;
     $rel->casinoCod = $layout_parcial->sector->casino->codigo;
@@ -1108,6 +1118,7 @@ class LayoutController extends Controller
 
   /*************LAYOUT TOTAL*************/
 
+  // buscarLayoutsTotales retorna los layout total filtrados por los parametros de busqueda
   public function buscarLayoutsTotales(Request $request){
     $reglas = Array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -1167,6 +1178,9 @@ class LayoutController extends Controller
             'usuario_fiscalizador' => $layout_total->usuario_fiscalizador];
   }
 
+  // crearLayoutTotal crea el relevamiento y los backup
+  // los orgena segun el casino 
+
   public function crearLayoutTotal(Request $request){
 
     Validator::make($request->all(),[
@@ -1186,7 +1200,7 @@ class LayoutController extends Controller
 
     //me fijo si ya habia generados control layout para el dia de hoy que no sean back up, si hay los borro
 
-    $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy]])->get();
+    $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy],['turno',$request->turno]])->get();
 
     foreach($layouts_totales as $unControLayout){
       $unControLayout->delete();
@@ -1267,7 +1281,9 @@ class LayoutController extends Controller
 
     return $ruta;
   }
-
+  // crearPlanillaLayoutTotal crea planilla de layout total
+  // tiene en cuenta la cantidad de maquinas habilitadas dentro de una isla
+  // se guardan los totales y el front decide cuando mostrarlos
   public function crearPlanillaLayoutTotal($layout_total, $cargado=false){// CREAR Y GUARDAR RELEVAMIENTO
     $rel= new \stdClass();
     $rel->nro_relevamiento = $layout_total->nro_layout_total;
@@ -1357,7 +1373,8 @@ class LayoutController extends Controller
     $headers = array('Content-Type' => 'application/octet-stream',);
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
   }
-
+  // cargarLayoutTotal se carga el layout total solo con los valores de las mtm
+  // consideradas con algun tipo de fallo
   public function cargarLayoutTotal(Request $request){
     Validator::make($request->all(),[
         'id_layout_total' => 'required|exists:layout_total,id_layout_total',
@@ -1442,6 +1459,7 @@ class LayoutController extends Controller
             'detalles' => $layout_total->detalles];
   }
 
+  // validarLayoutTotal cambia el estado del relevamiento
   public function validarLayoutTotal(Request $request){
 
     Validator::make($request->all(),[
@@ -1466,6 +1484,7 @@ class LayoutController extends Controller
     return ['layout' => $layout];
   }
 
+  
   public function usarLayoutTotalBackup(Request $request){
     Validator::make($request->all(),[
         'id_casino' => 'required|exists:casino,id_casino',

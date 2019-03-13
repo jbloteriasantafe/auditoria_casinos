@@ -12,20 +12,33 @@ class Apertura extends Model
   protected $table = 'apertura_mesa';
   protected $primaryKey = 'id_apertura_mesa';
   protected $visible = array('id_apertura_mesa','fecha','hora','total_pesos_fichas_a',
-                              'total_anticipos_a', 'id_fiscalizador',
-                              'id_mesa_de_panio','id_estado_cierre','id_cargador',
-                              'id_moneda','hora_format','created_at','deleted_at'
-                            );
-  public $timestamps = false;
+                            'total_anticipos_a', 'id_fiscalizador',
+                            'id_mesa_de_panio','id_estado_cierre','id_cargador',
+                            'observacion','id_moneda','hora_format','created_at',
+                            'deleted_at','total_pesos'
+                          );
+public $timestamps = false;
 
 
-  protected $fillable = ['fecha','hora_inicio',
-                              'hora_fin','total_pesos_fichas_c',
-                              'total_anticipos_c', 'id_fiscalizador',
-                              'id_tipo_cierre','id_mesa_de_panio',
-                              'id_estado_cierre','id_moneda'];
+protected $fillable = ['fecha','hora_inicio',
+                            'hora_fin','total_pesos_fichas_c',
+                            'total_anticipos_c', 'id_fiscalizador',
+                            'id_tipo_cierre','id_mesa_de_panio',
+                            'id_estado_cierre','id_moneda'];
 
-  protected $appends = array('hora_format');
+protected $appends = array('hora_format','total_cantidad_fichas','total_pesos');
+
+public function getTotalPesosAttribute(){
+  return $this->total_pesos_fichas_a;
+}
+
+public function getTotalCantidadFichasAttribute(){
+  $suma = 0;
+  foreach ($this->detalles as $det) {
+    $suma+=$det->cantidad_ficha;
+  }
+  return $suma;
+}
 
   public function getHoraFormatAttribute(){
     if($this->hora != null){

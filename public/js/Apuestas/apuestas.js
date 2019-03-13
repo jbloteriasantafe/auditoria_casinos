@@ -521,7 +521,7 @@ $(document).on('click', '.modificarApuesta', function(e){
        }
 
        $('#B_fecha_modificar').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
-       $('#turnoRelevadoMod').val(data.turno.id_turno).prop('readonly', true);
+       $('#turnoRelevadoMod').val(data.turno.nro_turno).prop('readonly', true);
        $('#obsModificacion').val(data.relevamiento_apuestas.observaciones);
 
        if(data.relevamiento_apuestas.hora_ejecucion != null){
@@ -723,14 +723,17 @@ $(document).on('click', '.validarApuesta', function(e){
         for (var i = 0; i < data.abiertas_por_juego.length; i++) {
 
           var fila2= generarFilaValidar2(data.abiertas_por_juego[i]);
-          console.log('fffff',fila2);
-
           $('#mesasPorJuego').append(fila2);
 
         }
 
+        if(data.cumplio_minimo != 0){
+            $('#cumplio_min').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('padding-top','10px').css('margin-left','30px')));
+        }
+        if(data.cumplio_minimo == 0){
+          $('#cumplio_min').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('padding-top','10px').css('margin-left','30px')));
+        }
   })
-
   $('#modalValidar').modal('show');
 });
 
@@ -1148,6 +1151,8 @@ function limpiarValidar(){
   $('#obsValidacion').val('');
   $('#obsFiscalizador').val('');
   $('#fiscalizadoresPartVal tbody tr').remove();
+  $('#cumplio_min tbody tr').remove();
+  $('#mesasPorJuego tbody tr').remove();
 
 }
 

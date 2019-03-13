@@ -11,6 +11,8 @@ use App\Maquina;
 use Illuminate\Support\Facades\DB;
 use Validator;
 
+// PackJuegoController ABM de pack de juegos, tambies es resposable de mantener
+// asociaciones con juegos y mtm
 class PackJuegoController extends Controller
 {   
 
@@ -31,7 +33,7 @@ class PackJuegoController extends Controller
       return view('seccionPackJuegos' , ['casinos' => $casinos]);
     }
 
-    // Busca los pack de juegos teniendo en cuenta los casinos que tiene el usuario
+    // buscarPackJuegoPorNombre busca los pack de juegos teniendo en cuenta los casinos que tiene el usuario
     public function buscarPackJuegoPorNombre($busqueda){
         $casinos = Usuario::find(session('id_usuario'))->casinos;
         $reglaCasinos=array();
@@ -46,6 +48,8 @@ class PackJuegoController extends Controller
         return ['resultados' => $resultados];
       }
 
+      // guardarPackJuego crea una nueva intancia de paquete juego
+      // si el usuario tiene mas de un casino (solo el SU), se tomará el primero
       public function guardarPackJuego(Request $request){
         
       Validator::make($request->all(), [
@@ -70,6 +74,7 @@ class PackJuegoController extends Controller
       return ['packJuego' => $packJuego];
     }
 
+    // asociarPackJuego sicroniza los ids de juego con un paquete
     public function asociarPackJuego(Request $request){
         Validator::make($request->all(), [
             'id_pack' => 'required|exists:pack_juego,id_pack',
@@ -79,10 +84,12 @@ class PackJuegoController extends Controller
 
           $packJuego=PackJuego::Find($request->id_pack);
           $packJuego->juegos()->sync($request->juegos_ids);
-
+          // TODO ver si tendria utilidad mas informacion, por el momento basta con el paquete
           return ['cantAsociados', $packJuego];
     }
 
+    // buscar retorna los paquetes de acuerdo a los filtros de busqueda
+    // como no se definieron los filtros por los usuarios, se deja comentado 
     public function buscar(Request $request){
       $reglas=array();
       $casinos = Usuario::find(session('id_usuario'))->casinos;
@@ -123,13 +130,14 @@ class PackJuegoController extends Controller
       return $resultados;
     }
 
-
+    // obtenerPackJuego obtiene paquete por id
     public function obtenerPackJuego($id){
       $packJuego = PackJuego::find($id);
 
       return ['pack' => $packJuego];
     }
 
+    // obtenerJuegosDePack obtiene todos los juegos de un pack
     public function obtenerJuegosDePack($id){
       $casinos = Usuario::find(session('id_usuario'))->casinos;
       $reglaCasinos=array();
@@ -149,9 +157,10 @@ class PackJuegoController extends Controller
 
     }
 
-
+    // eliminarPack elimina la asociacion del pack con el casino
+    // si es el ultimo, elimina el pack
     public function eliminarPack($id){
-      // quiuto de la tabla relacion 
+      // quito de la tabla relacion 
       $casinos = Usuario::find(session('id_usuario'))->casinos;
       $reglaCasinos=array();
       foreach($casinos as $casino){
@@ -183,7 +192,7 @@ class PackJuegoController extends Controller
       return 'ok';
     }
 
-
+    // modificarPackJuego modifica solo los datos asociados al pack
     public function modificarPackJuego(Request $request){
 
       Validator::make($request->all(), [
@@ -247,7 +256,8 @@ class PackJuegoController extends Controller
 
   }
 
-
+  // asociarMtmJuegosPack apartir de los juegos del pack, crea la realacion de juego con mtm
+  // con los datos en la tabla relacion de denominacion , %dev y el id_pack distinto de null
   public function asociarMtmJuegosPack(Request $data){
     Validator::make($data->all(), [
       'id_mtm'=>'required|exists:maquina,id_maquina',
