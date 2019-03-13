@@ -51,7 +51,7 @@
                     <select class="form-control" id="F_Juego">
                       <option value="" selected>- Seleccione un Juego -</option>
                       @foreach ($juegos as $juego)
-                      <option value="{{$juego->nombre_juego}}">{{$juego->nombre_juego}}  - {{$juego->casino->codigo}}</option>
+                      <option value="{{$juego->id_juego_mesa}}">{{$juego->nombre_juego}}  - {{$juego->casino->codigo}}</option>
                       @endforeach
                       <option value="0" >- Todos los juegos-</option>
                     </select>
