@@ -98,7 +98,7 @@ class GenerarInformesFiscalizadorController extends Controller
     $asociados_con_diferencias = CierreApertura::where('fecha_produccion','=',$informe->fecha)
                                  ->where('id_casino','=',$informe->id_casino)
                                  ->where('diferencias','=',1)
-                                 ->count();
+                                 ->get()->count();
 
     $cumplio_minimo =0;
     $ids_rels = array();
@@ -108,8 +108,6 @@ class GenerarInformesFiscalizadorController extends Controller
       }
       $ids_rels[] = $rel->id_relevamiento_apuestas;
     }
-    if($informe->fecha == '2019-03-06' && $informe->id_casino==2)
-    dd($ids_rels);
 
     $cantidad_mesas_abiertas = DB::table('detalle_relevamiento_apuestas')
                                     ->select('id_mesa_de_panio')
