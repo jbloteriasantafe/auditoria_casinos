@@ -1489,7 +1489,7 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
-    debugger;
+    
     var medida = $(this).siblings('input:checked').val();
     //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
