@@ -31,7 +31,7 @@ use App\Mesas\DetalleImportacionDiariaMesas;
 use App\Mesas\Cierre;
 use App\Mesas\Apertura;
 use App\Mesas\CierreApertura;
-use App\Http\Controllers\InformeFiscalizadores\GenerarInformesFiscalizadorController;
+use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
 use Carbon\Carbon;
 
