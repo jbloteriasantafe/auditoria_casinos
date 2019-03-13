@@ -31,6 +31,7 @@ use App\Mesas\DetalleImportacionDiariaMesas;
 use App\Mesas\Cierre;
 use App\Mesas\Apertura;
 use App\Mesas\CierreApertura;
+use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
 use Carbon\Carbon;
 
@@ -50,8 +51,8 @@ class BCInformesController extends Controller
 
   public function index(){
     //descomentar si es necesario crear los informes de fisc del pasado que no hayan sido creados
-    $pep = new ABMCCierreAperturaController;
-    $pep->revivirElPasado();
+    // $pep = new ABMCCierreAperturaController;
+    // $pep->revivirElPasado();
     $uc = new UsuarioController;
     $uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones','informeDiarioBasico');
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -116,6 +117,13 @@ class BCInformesController extends Controller
 
   public function imprimirPlanilla($id_informe){
     $informe = InformeFiscalizadores::find($id_informe);
+
+        $aperturas = Apertura::where('fecha','=','2019-03-06')
+                              ->where('id_estado_cierre','=',3)//visado
+                              ->get();
+        $pep = new GenerarInformesFiscalizadorController;
+        $pep->updateInforme($informe,$aperturas);
+
 
     $rel = new \stdClass();
     $rel->informe = $informe;
