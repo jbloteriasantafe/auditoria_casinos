@@ -1489,7 +1489,7 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
-
+    
     var medida = $(this).siblings('input:checked').val();
     //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
@@ -1523,11 +1523,18 @@ $(document).on('click','.ajustar',function(e){
 
     }
     else {
+        
+        denMaestro=fila.attr('data-denominacion');
+        
+        if (denMaestro==""){
+          denMaestro=0.01
+        }
+
         fila.attr('data-medida', 2);
-        fila.attr('data-denominacion', 0.01) //Cambia la denominacion
+        fila.attr('data-denominacion',denMaestro) //Cambia la denominacion
         boton.find('i').removeClass('fa-life-ring').addClass('fa-usd-circle');
 
-        enviarCambioDenominacion(fila.attr('id'), 2, 0.01);
+        enviarCambioDenominacion(fila.attr('id'), 2, denMaestro);
     }
 
 });
