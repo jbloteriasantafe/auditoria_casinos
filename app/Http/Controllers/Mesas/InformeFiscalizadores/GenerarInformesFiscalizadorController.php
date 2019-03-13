@@ -90,7 +90,7 @@ class GenerarInformesFiscalizadorController extends Controller
     }
   }
 
-  private function updateInforme($informe,$aperturas){
+  public function updateInforme($informe,$aperturas){
     $relevamientos_apuestas = RelevamientoApuestas::where('fecha','=',$informe->fecha)
                                                     ->where('id_casino','=',$informe->id_casino)
                                                     ->get();
