@@ -1171,8 +1171,8 @@ class MTMController extends Controller
     $maquina = Maquina::find($id_maquina);
     $maquina->denominacion = $denominacion;
     $maquina->id_unidad_medida = $id_unidad_medida;
-    //$maquina->save();
-    $razon = "Se intentó cambiar denominacion y unidad medida. Funcion bloqueda";
+    $maquina->save();
+    $razon = "Se cambió cambiar denominacion y unidad medida.";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
