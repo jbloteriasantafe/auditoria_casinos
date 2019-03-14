@@ -93,7 +93,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                     <th class="tablaInicio" style="text-align: center;">ISLA</th>
                     <th class="tablaInicio" style="text-align: center;">PRODUCIDO CALCULADO OBSERVADO</th>
                     <th class="tablaInicio" style="text-align: center;">PRODUCIDO CALCULADO DEL SISTEMA</th>
-                    <th class="tablaInicio" style="text-align: center;">CAUSA DE NO TOMA</th>
+                    <th class="tablaInicio" style="text-align: center;">MOTIVO DE LA DIFERENCIA</th>
                     <th class="tablaInicio" style="text-align: center;">OBSERVACIONES</th>
                   </tr>
                   @if(isset($rel->detalles))

@@ -849,7 +849,7 @@ class RelevamientoController extends Controller
             }else{
                 //sino se importaron contadores pero si se relevaron los contadores de la maquina
                 $sin_contadorImportado_relevada+=1;
-                $det->no_toma = '---';
+                $det->no_toma = 'FALTA DE IMPORTACIÓN';
             }
             $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
             if($check != null){
@@ -886,7 +886,12 @@ class RelevamientoController extends Controller
                   $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
                   $no_tomadas++;
               }else{
-                  $det->no_toma = '---';
+                // se tomo, pero da diferencia, en este punto se evalua si es truncada
+                if($diferencia % 1000000 == 0){
+                  $det->no_toma = 'TRUNCAMIENTO';
+                }else{
+                  $det->no_toma = 'ERROR GENERAL';
+                }                  
               }
               //chequearMTMpedida
               $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);

@@ -153,7 +153,7 @@ class BuscarMesasController extends Controller
         $reglas[]=['sector_mesas.id_sector_mesas' , '=' , $request->id_sector];
       }
       if(isset($request->nombre_juego)){
-        $reglas[]=['juego_mesa.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
+        $reglas[]=['juego_mesa.id_juego_mesa' , '=' ,  $request->nombre_juego  ];
       }
 
       if($request->casino==0){
