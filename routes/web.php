@@ -602,7 +602,7 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   Route::post('cierres/guardar', 'Mesas\Cierres\ABMCierreController@guardar');
   Route::post('cierres/modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
   Route::get('cierres/obtenerCierres/{id_cierre}', 'Mesas\Cierres\BCCierreController@getCierre');
-  Route::get('cierres/bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre');
+  Route::get('cierres/bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
   Route::get('mesas/obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
 
   //Aperturas
@@ -611,7 +611,7 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   Route::get('aperturas/obtenerAperturas/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@getApertura');
   Route::post('aperturas/guardarApertura', 'Mesas\Aperturas\ABMAperturaController@guardar');
   Route::post('aperturas/modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
-  Route::get('aperturas/bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura');
+  Route::get('aperturas/bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
   Route::post('aperturas/generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
   Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
   Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
