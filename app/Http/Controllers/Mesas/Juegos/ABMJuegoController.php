@@ -138,8 +138,9 @@ class ABMJuegoController extends Controller
   public function eliminarJuego($id){
     $juego = JuegoMesa::find($id);
     foreach ($juego->mesas as $mesa) {
-      $mesa->juego()->dissociate();
-      $mesa->save();
+      // $mesa->juego()->dissociate();
+      // $mesa->save();
+      return 0;
     }
     $juego->delete();
     return ['juego' => $juego];
