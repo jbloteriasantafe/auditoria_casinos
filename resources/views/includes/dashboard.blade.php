@@ -672,14 +672,14 @@ $cas = $usuario['usuario']->casinos;
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informes'))
 
                           <li>
-                              <div id="barraInformes" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
+                              <div id="barraInformesMesas" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
                                 <span class="flechita">
                                     <i class="fa fa-angle-right"></i>
                                   </span>
                                   <span class="icono" style="padding-bottom: 54px;">
                                     @svg('informes','iconoInformes')
                                   </span>
-                                  <span>Informes</span>
+                                  <span>Informes </span>
                               </div>
 
                               <!-- SEGUNDO NIVEL -->
@@ -724,7 +724,7 @@ $cas = $usuario['usuario']->casinos;
 
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
                                                                                                             'informes_mtm','informes_bingos','informes_mesas']))
-                        <div class="separadoresMenu">ESTADÍSTICAS</div>
+                        <div class="separadoresMenu">ESTADÍSTICAS MTM</div>
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
                         <li>
                             <div id="barraEstadisticas" class="opcionesHover" data-target="#tablero" data-toggle="collapse" href="#">
@@ -785,20 +785,7 @@ $cas = $usuario['usuario']->casinos;
                                 </div>
                               </li>
                               @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_bingos'))
-                              <li>
-                                <div id="opcInformesBingos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesBingo'" href="#" style="cursor: pointer;">
-                                  <span>Bingos</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_mesas'))
-                              <li>
-                                <div id="opcInformesMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesJuegos'" href="#" style="cursor: pointer;">
-                                  <span>Mesa de paños</span>
-                                </div>
-                              </li>
-                              @endif
+                              
                             </ul>
 
                         </li>
