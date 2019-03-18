@@ -12,23 +12,25 @@
 
 
 <div class="col-lg-12 tab_content" id="pant_juegos" hidden="true">
-  <div class="col-xl-3">
-      <a href="" id="btn-nuevo-juego" dusk="btn-nuevo" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-            <div class="backgroundNuevo"></div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                      <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVO JUEGO</h4>
-                  </center>
-                </div>
+
+    <div class="row">
+      <div class="col-xl-12">
+          <a href="" id="btn-nuevo-juego" dusk="btn-nuevo" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+                <div class="backgroundNuevo"></div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <center>
+                          <h5 class="txtLogo">+</h5>
+                          <h4 class="txtNuevo">NUEVO JUEGO</h4>
+                      </center>
+                    </div>
+                  </div>
               </div>
-          </div>
-        </a>
-  </div>
-  <div class="col-xl-9" >
+            </a>
+      </div>
+    </div>
       <div class="row"> <!-- fila de FILTROS -->
         <div class="col-md-12">
           <div id="contenedorFiltros" class="panel panel-default">
@@ -51,11 +53,10 @@
                   <div class="col-md-4">
                     <h5>CASINO</h5>
                     <select class="form-control" id="FiltroCasino">
-                      <option value="" selected>- Seleccione un Casino-</option>
                       @foreach ($casinos as $cas)
                       <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                       @endforeach
-                      <option value="0" >- Todos los casinos-</option>
+                      <option value="0" selected>- Todos los casinos-</option>
                     </select>
                   </div>
                   <div class="col-md-4">
@@ -118,21 +119,17 @@
                     </tbody>
                   </table>
 
-
                 </div>
             </div>
           </div>
       </div>  <!--/fila TABLA -->
-  </div>
 
 </div>
 
 
-
-
   <!-- MODAL NUEVO JUEGO -->
-  <div class="modal fade" id="modalAltaJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-80%">
+<div class="modal fade" id="modalAltaJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" style="width:70%">
       <div class="modal-content">
         <div class="modal-header" style="background-color:#1DE9B6;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -198,11 +195,11 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 
 
     <!-- MODAL MODIFICAR JUEGO -->
-  <div class="modal fade" id="modalModificarJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div class="modal fade" id="modalModificarJuego" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg">
            <div class="modal-content">
               <div class="modal-header" style="background-color:#FFA726;">
@@ -281,7 +278,7 @@
             </div>
           </div>
         </div>
-  </div>
+</div>
 
 
   <!-- MODAL ELIMINAR -->
@@ -292,21 +289,19 @@
 
            <div class="modal-header" style="background: #d9534f; color: #E53935;">
              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-             <h3 class="modal-titleEliminar" style="color:#000000;">CONFIMAR ELIMINACIÓN</h3>
+             <h3 class="modal-titleEliminar" style="color:#000000;">| ALERTA</h3>
            </div>
 
           <div class="modal-body" style="color:#fff; background-color:#FFFFF;">
 
-                  <!-- Si no anda falta el <fieldset> -->
-                <h4 id="eliminarJuego" style="color:#000000"></h4>
+                <h6 style="color:#000000 !important; font-size:14px;">¿ESTA SEGURO QUE DESEA ELIMINAR ESTE JUEGO?</h6>
                 <br>
-                <h5 style="color:#000000 !important; font-size:14px;">¿Esta seguro que desea eliminarlo?</h5>
+                <h6 id="msjeliminarJuego" style="color:#000000"></h6>
 
           </div>
           <br>
           <div class="modal-footer">
-            <button type="button" id="btn-eliminar-juego" value="" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
-
+            <button type="button" class="btn btn-dangerEliminar" id="btn-eliminar-juego" value="" data-dismiss="modal">ELIMINAR</button>
           </div>
       </div>
     </div>
@@ -316,25 +311,25 @@
 
   <!-- SECTORES MESAS -->
 <div class="col-lg-12 tab_content" id="pant_sectores" hidden="true">
-
-  <div class="col-xl-3">
-    <a href="" id="btn-nuevo-sector" dusk="btn-nuevo" style="text-decoration: none;">
-      <div class="panel panel-default panelBotonNuevo">
-        <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-          <div class="backgroundNuevo"></div>
-          <div class="row">
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo">+</h5>
-                <h4 class="txtNuevo">NUEVO SECTOR</h4>
-              </center>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-
   <div class=" col-xl-9"> <!-- columna de FILTROS y TABLA -->
+    <div class="row">
+      <div class="col-xl-12">
+        <a href="" id="btn-nuevo-sector" dusk="btn-nuevo" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+              <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                    <h5 class="txtLogo">+</h5>
+                    <h4 class="txtNuevo">NUEVO SECTOR</h4>
+                  </center>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+    </div>
     <div class="row"> <!-- fila de FILTROS -->
       <div class="col-xl-12">
         <div id="contenedorFiltrosSectores" class="panel panel-default">
@@ -352,7 +347,7 @@
                   <h5>MESA</h5>
                   <input id="s_mesa" type="text" name="" class="form-control" value="0" placeholder="Número de Mesa">
                 </div>
-                <div class="col-md-3">
+              <div class="col-md-3">
                   <h5>CASINO</h5>
                   <select class="form-control" id="s_casino">
                     <option value="" selected>- Seleccione un Casino-</option>
@@ -384,9 +379,9 @@
             <table id="tablaSectores" class="table table-striped">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;">NOMBRE <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >CASINO <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >MESAS <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;">NOMBRE </th>
+                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >CASINO </th>
+                  <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >MESAS </th>
                   <th class="col-xs-3" style="font-size:14px; text-align:center !important;" >ACCIONES</th>
                 </tr>
               </thead>
@@ -446,6 +441,34 @@
   </div>
 </div>
 
+<!-- MODAL ELIMINAR SECTOR-->
+<div class="modal fade" id="modalAlertaSector" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-70%">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color:#D50000">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title">| ALERTA</h3>
+      </div>
+
+      <div id="colapsado" class="collapse in">
+        <div class="modal-body">
+          <h6 style="color:#000000; font-size: 18px !important; text-align:center !important"> ¿ESTA SEGURO QUE DESEA ELIMINAR ESTE SECTOR?</h6>
+          <div class="row">
+
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dangerEliminar" id="btn-baja-sector" value="">ELIMINAR</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
 @endsection
 
   <!-- Comienza modal de ayuda -->
@@ -474,9 +497,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
   <script src="js/Juegos/gestionJuegos.js"></script>
-
-
-
 
 
   @endsection

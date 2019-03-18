@@ -9,29 +9,31 @@
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="/css/styleSlider.css">
 
+
 @endsection
 @section('contenidoVista')
 
 
-
-  <div class="row">
-    <div class="col-lg-12 col-xl-9">
-      <a href="" id="btn-nueva-mesa" dusk="btn-nuevo" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-            <div class="backgroundNuevo"></div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                      <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVA MESA</h4>
-                  </center>
-                </div>
-                </div>
+<div class="row">
+  <div class="col-lg-12 col-xl-9">
+    <a href="" id="btn-nueva-mesa" dusk="btn-nuevo" style="text-decoration: none;">
+      <div class="panel panel-default panelBotonNuevo">
+        <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+          <div class="backgroundNuevo"></div>
+            <div class="row">
+              <div class="col-xs-12">
+                <center>
+                    <h5 class="txtLogo">+</h5>
+                    <h4 class="txtNuevo">NUEVA MESA</h4>
+                </center>
               </div>
-            </div>
-          </a>
+          </div>
       </div>
+    </a>
+  </div>
+
+</div>
+  <div class="row">
     <div class="col-lg-12 col-xl-9"> <!-- columna de FILTROS y TABLA -->
       <div class="row"> <!-- fila de FILTROS -->
         <div class="col-md-12">
@@ -49,11 +51,10 @@
                   <div class="col-md-4">
                     <h5>Juego</h5>
                     <select class="form-control" id="F_Juego">
-                      <option value="" selected>- Seleccione un Juego -</option>
+                      <option value="" selected>- Todos los juegos -</option>
                       @foreach ($juegos as $juego)
                       <option value="{{$juego->id_juego_mesa}}">{{$juego->nombre_juego}}  - {{$juego->casino->codigo}}</option>
                       @endforeach
-                      <option value="0" >- Todos los juegos-</option>
                     </select>
                   </div>
                   <div class="col-md-4">
@@ -153,6 +154,7 @@
         </div> <!-- Fin de la columna FILTROS y TABLA -->
 
 
+
   </div>
 
   <!-- MODAL NUEVA MESA -->
@@ -169,12 +171,18 @@
                     <div class="modal-body">
                       <form id="frmAltaMesa" name="frmAltaMesa" class="form-horizontal" novalidate="">
                           <div class="row">
-                              <div class="col-md-6">
+                              <div class="col-md-4">
                                   <h5>Número de Mesa</h5>
                                   <input type="text" class="form-control" id="nro_mesa" placeholder="Número de Mesa" name="user_name">
                                   <br>
                               </div>
-                              <div class="col-md-6">
+                              <div class="col-md-4">
+                                  <h5>Número Administrativo</h5>
+                                  <input type="text" class="form-control" id="nro_adm_mesa" placeholder="Número Adm." name="user_name">
+                                  <span class="help-block" style="color: #0D47A1 !important;margin-top:0px !important; font-size:11px !important;padding-left:5px !important"><i>*Nro de manejo interno de casinos</i></span>
+                                  <br>
+                              </div>
+                              <div class="col-md-4">
                                   <h5>Nombre</h5>
                                   <input type="text" class="form-control" id="nombre_mesa" name="name" placeholder="Nombre Mesa" value="">
                                   <br>
@@ -192,6 +200,7 @@
                                     <option value="0" selected class="default">- Seleccione un Casino-</option>
 
                                   </select>
+                                  <span class="help-block" style="margin-top:0px !important; font-size:11px !important;padding-left:5px !important; color: #0D47A1 !important"><i>*Seleccione para habilitar el resto de los campos</i></span>
                                   <br>
                               </div>
                             </div>
@@ -262,8 +271,7 @@
       .tmesa .fa-pencil-alt {
         color: #FFC107;
       }
-    </style>
-
+      </style>
   <!-- MODAL DETALLE -->
   <div class="modal fade" id="modalDetalleMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -277,9 +285,10 @@
           <div id="colapsado" class="collapse in">
             <div class="modal-body">
                 <div class="row" style=" border-bottom:2px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                  <div class="col-xs-6" style="text-align:center;position:relative; left:65px;right:2px;">
+                  <div class="col-xs-6" style="text-align:center;position:relative; left:40px;">
                     <br>
-                    <h6 class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 26px;display:inline">mesa</h6>
+                    <h6 class="detalle_nombre" style="font-family: Roboto-BoldCondensed; font-size: 24px;display:inline">mesa</h6>
+                    <h6 class="detalle_descripcion" style="font-family: Roboto-Regular;font-size:18px; display:inline">Nro</h6>
                     <br>
                   </div>
                     <div class="col-xs-6 offset-xs-4 iconoInfo">
@@ -373,8 +382,7 @@
     </div>
 
   <!-- MODAL MODIFICAR MESA -->
-
-  <div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal fade" id="modalModificarMesa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
       <div class="modal-dialog modal-lg">
            <div class="modal-content">
               <div class="modal-header" style="background-color:#FFA726">
@@ -386,12 +394,17 @@
             <div id="colapsado" class="collapse in">
                   <div class="modal-body" style="font-family: Roboto;">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <h5>Número de Mesa</h5>
                                 <input type="text" class="form-control" id="numeroM" placeholder="Número de Mesa" name="user_name">
                                 <br>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <h5>Número Adminitrativo</h5>
+                                <input type="text" class="form-control" id="numeroAdmM" placeholder="Número de Mesa" name="user_name">
+                                <br>
+                            </div>
+                            <div class="col-md-4">
                                 <h5>Nombre</h5>
                                 <input type="text" class="form-control" id="nombreM" name="name" placeholder="Nombre Mesa" value="">
                                 <br>
@@ -437,7 +450,7 @@
                             <div class="col-md-4">
                                 <h5>Tipo Moneda</h5>
                                 <select class="form-control" id="monedaM">
-                                  <option value="0" selected>- MULTI-MONEDA -</option>
+                                  <option value="0" selected class="default3">- MULTI-MONEDA -</option>
                                   @foreach ($monedas as $moneda)
                                   <option value="{{$moneda->id_moneda}}">{{$moneda->descripcion}}</option>
                                   @endforeach
@@ -463,6 +476,7 @@
 
 
   <!-- MODAL ELIMINAR -->
+
   <div class="modal fade" id="modalAlertaEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
@@ -522,8 +536,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
   <script src="js/Mesas/seccionGestionMesas.js"></script>
-
-
 
 
 
