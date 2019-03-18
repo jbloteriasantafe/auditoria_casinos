@@ -1941,11 +1941,11 @@ function generarFilaAperturas(data){
     }else{
         fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
     }
-    fila.find('.infoCyA').val(data.id_apertura_mesa);
-    fila.find('.modificarCyA').val(data.id_apertura_mesa);
-    fila.find('.validarCyA').val(data.id_apertura_mesa);
+    fila.find('.infoCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
+    fila.find('.modificarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
+    fila.find('.validarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     fila.find('.desvincular').val(data.id_apertura_mesa);
-    fila.find('.eliminarCyA').val(data.id_apertura_mesa);
+    fila.find('.eliminarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
     if(data.id_estado_cierre == 3){
       fila.find('.validarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.eliminarCyA').val(data.id_apertura_mesa).hide();

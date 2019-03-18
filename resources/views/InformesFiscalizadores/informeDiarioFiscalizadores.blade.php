@@ -62,7 +62,7 @@ footer
               </thead>
 
               <tbody>
-                <tr style="border-bottom:1px solid #ccc; font-size:15px; width:100% !important;">
+                <tr style="border-bottom:0px solid #ccc; font-size:15px; width:100% !important; color:white;">
                   FGHFH
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">

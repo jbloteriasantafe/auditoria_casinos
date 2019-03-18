@@ -29,6 +29,9 @@ use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 
+use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
+
+
 //validacion de cierres
 class ABMCCierreAperturaController extends Controller
 {
@@ -56,29 +59,43 @@ class ABMCCierreAperturaController extends Controller
   }
 
   public function asociarAperturaACierre(Apertura $apertura,$id_cierre){
-      $cierre = Cierre::find($id_cierre);
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cierre = Cierre::find($id_cierre);
+    $mesa = Mesa::find($apertura->id_mesa_de_panio);
+    $caobject = new CierreApertura;
 
-      $mesa = Mesa::find($apertura->id_mesa_de_panio);
-      $caobjetct = new CierreApertura;
-      $c  = $cierre->id_cierre_mesa;
+    $caobject->controlador()->associate($user->id_usuario);
+    $caobject->apertura()->associate($apertura->id_apertura_mesa);
+    $caobject->cierre()->associate($cierre->id_cierre_mesa);
+    $caobject->estado_cierre()->associate(3);
+    $caobject->mesa()->associate($mesa->id_mesa_de_panio);
+    $caobject->juego()->associate($mesa->id_juego_mesa);
+    $caobject->fecha_produccion = $apertura->fecha;
+    $caobject->casino()->associate($cierre->id_casino);
 
-      $caobjetct->controlador()->associate($user->id_usuario);
-      $caobjetct->apertura()->associate($apertura->id_apertura_mesa);
-      $caobjetct->cierre()->associate($c);
-      $caobjetct->estado_cierre()->associate(3);
-      $caobjetct->mesa()->associate($mesa->id_mesa_de_panio);
-      $caobjetct->juego()->associate($mesa->id_juego_mesa);
-      $caobjetct->save();
+    $diferencias = $this->ascociarDetalles($apertura,$cierre);
 
-      $this->ascociarDetalles($apertura,$cierre);
+    if($diferencias || (count($cierre->detalles) != count($apertura->detalles))){
+      $diferencias = 1;
     }
-  
+    $caobject->diferencias = $diferencias;
+    $caobject->save();
+
+    $informeController = new GenerarInformesFiscalizadorController;
+    $informeController->iniciarInformeDiario($caobject);
+
+  }
 
   public function ascociarDetalles($apertura,$cierre){
+    $diferencias = 0;
     $det_aperturas_con_Dcierres = DB::table('detalle_apertura')
-      ->select('detalle_apertura.id_detalle_apertura','detalle_cierre.id_detalle_cierre')
+      ->select('detalle_apertura.id_detalle_apertura',
+               'detalle_cierre.id_detalle_cierre',
+               'detalle_cierre.monto_ficha',
+               'ficha.valor_ficha'
+               )
       ->join('detalle_cierre','detalle_apertura.id_ficha','=','detalle_cierre.id_ficha')
+      ->join('ficha','ficha.id_ficha','=','detalle_apertura.id_ficha')
       ->where('detalle_apertura.id_apertura_mesa',$apertura->id_apertura_mesa)
       ->where('detalle_cierre.id_cierre_mesa',$cierre->id_cierre_mesa)
       ->get();
@@ -89,6 +106,128 @@ class ABMCCierreAperturaController extends Controller
       $det_ap->save();
     }
 
+    $deApertura = DB::table('detalle_apertura as DA')
+                            ->select('DA.id_ficha',
+                                     DB::raw( 'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha')
+                                    )
+                            ->join('ficha','ficha.id_ficha','=','DA.id_ficha')
+                            ->where('DA.id_apertura_mesa','=',$apertura->id_apertura_mesa)
+                            ->orderBy('ficha.valor_ficha')
+                            ->groupBy('DA.id_ficha','DA.cantidad_ficha','ficha.valor_ficha')
+                            ->get()->toArray();
+
+    $deCierre = DB::table('detalle_cierre as DC')
+                            ->select('DC.id_ficha',
+                                     'DC.monto_ficha'
+                                    )
+                            ->join('ficha','ficha.id_ficha','=','DC.id_ficha')
+                            ->where('DC.id_cierre_mesa','=',$cierre->id_cierre_mesa)
+                            ->orderBy('ficha.valor_ficha')
+                            ->get()->toArray();
+    $diferencias = 0;
+    foreach ($deApertura as $ap) {
+      if(!$this->estaEn($ap,$deCierre)){
+        $diferencias = 1;
+        break;
+      }
+    }
+
+    return $diferencias;
   }
 
+  private function estaEn($ap,$deCierre){
+    foreach ($deCierre as $ci) {
+      if($ci->id_ficha == $ap->id_ficha &&
+         $ci->monto_ficha == $ap->monto_ficha){
+           return 1;
+         }
+    }
+  }
+
+
+  public function obtenerMesasConDiferencias($fecha){
+    $resultados = CierreApertura::where('fecha_produccion','=',$fecha)
+                                  ->where('diferencias','=',1)
+                                  ->get();
+    $diferencias = array();
+    $todo = array();
+    if(count($resultados) > 0){
+      foreach ($resultados as $cierre_apertura) {
+        $diff = $cierre_apertura->apertura->total_pesos_fichas_a -
+                $cierre_apertura->cierre->total_pesos_fichas_c;
+
+        if($cierre_apertura->apertura->observacion == null){
+          $obs = '';
+        }else{
+          $obs = $cierre_apertura->apertura->observacion;
+        }
+        $diferencias[] = [
+                            'mesa' => $cierre_apertura->mesa->codigo_mesa,
+                            'diferencia' => abs($diff),
+                            'observacion' => $obs
+                          ];
+      }
+      return $diferencias;
+    }else{
+      return null;
+    }
+  }
+
+
+  public function desvincularApertura($id_apertura){
+    $apertura = Apertura::findOrFail($id_apertura);
+    $vinculo = $apertura->cierre_apertura;
+    //$vinculo->apertura()->dissociate();
+    //$vinculo->cierre()->dissociate();
+    $vinculo->delete();
+    $apertura->estado_cierre()->associate(1);
+    $apertura->save();
+    return 1;
+  }
+
+  public function revivirElPasado(){
+    $aperturasValidadas = CierreApertura::all();
+    $informeController = new GenerarInformesFiscalizadorController;
+    foreach($aperturasValidadas as $apOk){
+      //agregarle los atributos que le falten al cierre_apertura
+      $apOk->fecha_produccion = $apOk->apertura->fecha;
+      $apOk->diferencias = $this->calcularDifferencias($apOk);
+      $apOk->casino()->associate($apOk->apertura->id_casino);
+      $apOk->save();
+
+      $informeController->iniciarInformeDiario($apOk);
+    }
+  }
+
+  public function calcularDifferencias($apOk){
+    $apertura = $apOk->apertura;
+    $cierre = $apOk->cierre;
+    $deApertura = DB::table('detalle_apertura as DA')
+                            ->select('DA.id_ficha',
+                                     DB::raw( 'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha')
+                                    )
+                            ->join('ficha','ficha.id_ficha','=','DA.id_ficha')
+                            ->where('DA.id_apertura_mesa','=',$apertura->id_apertura_mesa)
+                            ->orderBy('ficha.valor_ficha')
+                            ->groupBy('DA.id_ficha','DA.cantidad_ficha','ficha.valor_ficha')
+                            ->get()->toArray();
+
+    $deCierre = DB::table('detalle_cierre as DC')
+                            ->select('DC.id_ficha',
+                                     'DC.monto_ficha'
+                                    )
+                            ->join('ficha','ficha.id_ficha','=','DC.id_ficha')
+                            ->where('DC.id_cierre_mesa','=',$cierre->id_cierre_mesa)
+                            ->orderBy('ficha.valor_ficha')
+                            ->get()->toArray();
+    $diferencias = 0;
+    foreach ($deApertura as $ap) {
+      if(!$this->estaEn($ap,$deCierre)){
+        $diferencias = 1;
+        break;
+      }
+    }
+
+    return $diferencias;
+  }
 }

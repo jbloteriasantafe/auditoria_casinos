@@ -24,6 +24,7 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
+use App\Mesas\CierreApertura;
 use App\Mesas\Moneda;
 use App\Mesas\Apertura;
 use App\Mesas\DetalleCierre;
@@ -66,6 +67,11 @@ class BCAperturaController extends Controller
     //VER CONDICIONES PARA QUE SE PUEDA BORRAR UN CIERRE
     $apertura = Apertura::find($id);
     $apertura->delete();
+    $cya = CierreApertura::where('id_apertura_mesa','=',$apertura->id_apertura_mesa)->get()->first();
+    if($cya != null){
+      $cya->delete();
+      //chequear que el informe diario se actualice.- FALTASs
+    }
     //return ['cierre' => $cierre];
     //return 1;
     return response()->json(['apertura' => $apertura], 200);

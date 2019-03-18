@@ -12,7 +12,8 @@ class CierreApertura extends Model
   protected $primaryKey = 'id_cierre_apertura';
   protected $visible = array('id_cierre_apertura','id_cierre_mesa','id_apertura_mesa',
                              'id_estado_cierre','id_mesa_de_panio','id_juego_mesa',
-                             'id_controlador'
+                             'id_controlador','fecha_produccion','diferencias',
+                             'id_casino'
                             );
   public $timestamps = false;
 
@@ -32,6 +33,10 @@ class CierreApertura extends Model
   public function apertura(){
     return $this->belongsTo('App\Mesas\Apertura','id_apertura_mesa','id_apertura_mesa');
   }
+
+    public function casino(){
+      return $this->belongsTo('App\Casino','id_casino','id_casino');
+    }
 
   public function cierre(){
      return $this->belongsTo('App\Mesas\Cierre','id_cierre_mesa','id_cierre_mesa');
