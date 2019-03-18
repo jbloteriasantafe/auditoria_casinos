@@ -596,17 +596,7 @@ $cas = $usuario['usuario']->casinos;
                             </ul>
                         </li>
                         @endif
-                        <li>
-                            <div class="opcionesHover" href="#">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('bingos','iconoBingos')
-                                </span>
-                                <span>Bingos</span>
-                            </div>
-                        </li>
+
                         <li>
                             <div id="barraMesas" class="opcionesHover" data-target="#mesasPanio" data-toggle="collapse" href="#">
                                 <span class="flechita">
@@ -656,6 +646,53 @@ $cas = $usuario['usuario']->casinos;
 
                             </ul>
                         </li>
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_importaciones'))
+                        <div class="separadoresMenu" style="font-size:11px !important">GESTIÓN CONTABLE MESAS</div>
+                          <li>
+                              <div id="barraImportaciones" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/importacionDiaria'" href="#" style="cursor: pointer;">
+
+                                  <span class="icono" style="padding-bottom: 56px;">
+                                    @svg('expedientes','iconoExpedientes')
+                                  </span>
+                                  <span>Importaciones</span>
+
+                              </div>
+                          </li>
+                        @endif
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informes'))
+
+                          <li>
+                              <div id="barraInformes" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
+                                <span class="flechita">
+                                    <i class="fa fa-angle-right"></i>
+                                  </span>
+                                  <span class="icono" style="padding-bottom: 54px;">
+                                    @svg('informes','iconoInformes')
+                                  </span>
+                                  <span>Informes</span>
+                              </div>
+
+                              <!-- SEGUNDO NIVEL -->
+                              <ul class="subMenu1 collapse" id="informes">
+                                <li>
+                                  <div id="opcInfoDiario" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;">
+                                    <span>Diario</span>
+                                  </div>
+                                </li>
+                                <li>
+                                  <div id="opcInfoMensual" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;">
+                                    <span>Mensual</span>
+                                  </div>
+                                </li>
+
+                                <li>
+                                  <div id="opcInfoInteranuales" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;">
+                                    <span>Anuales</span>
+                                  </div>
+                                </li>
+                              </ul>
+                          </li>
+                          @endif
 
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>

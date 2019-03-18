@@ -662,3 +662,28 @@ Route::get('/informeDiarioBasico','Mesas\InformeFiscalizadores\BCInformesControl
 Route::post('informeDiarioBasico/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
 Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
 Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
+
+//importaciones
+Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
+Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
+Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
+Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
+Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
+Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');
+Route::post('importacionMensual/filtros','Mesas\Importaciones\Mesas\MensualController@filtros');
+Route::get('importacionMensual/verImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@buscar');
+Route::post('importacionMensual/guardar','Mesas\Importaciones\Mesas\MensualController@guardarObservacion');
+Route::get('importacionMensual/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@eliminar');
+
+//informes
+Route::get('/informeAnual',function(){
+    return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
+Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
+Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexMensuales');
+Route::get('informeDiario/imprimir/{id_imp}','Mesas\InformesMesas\BCInformesController@imprimirDiario');
+Route::post('informeDiario/buscar','Mesas\InformesMesas\InformesController@filtrarDiarios');
+Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexDiarios');
+Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
+Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
+Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
