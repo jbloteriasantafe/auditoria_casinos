@@ -785,7 +785,7 @@ $cas = $usuario['usuario']->casinos;
                                 </div>
                               </li>
                               @endif
-                              
+
                             </ul>
 
                         </li>
@@ -836,13 +836,6 @@ $cas = $usuario['usuario']->casinos;
                 <button class="btn btn-default salir" type="button" name="button">SALIR</button>
             </div>
         </div>
-
-
-
-
-
-
-
 
         <!-- Modal Error -->
         <div id="mensajeError"  hidden>

@@ -681,10 +681,10 @@ Route::get('/informeAnual',function(){
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
 Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
-Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexMensuales');
+Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexDiarios');
 Route::get('informeDiario/imprimir/{id_imp}','Mesas\InformesMesas\BCInformesController@imprimirDiario');
 Route::post('informeDiario/buscar','Mesas\InformesMesas\InformesController@filtrarDiarios');
-Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexDiarios');
+Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales');
 Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
 Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');

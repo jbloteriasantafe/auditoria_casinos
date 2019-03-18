@@ -3,8 +3,8 @@ $(document).ready(function() {
   $('#barraInformes').attr('aria-expanded','true');
   $('#informes').removeClass();
   $('#informes').addClass('subMenu1 collapse in');
-  $('#opcInfoMensuales').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#opcInfoMensuales').addClass('opcionesSeleccionado');
+  $('#opcInfoMensual').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#opcInfoMensual').addClass('opcionesSeleccionado');
   $('.tituloSeccionPantalla').hide();
   $('#btn-ayuda').hide();
 
