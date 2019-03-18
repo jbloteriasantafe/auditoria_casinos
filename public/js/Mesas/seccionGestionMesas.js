@@ -1,13 +1,10 @@
 $(document).ready(function() {
+  $('#barraGestionMesas').attr('aria-expanded','true');
 
+  $('.tituloSeccionPantalla').text('Gestionar Mesas');
+  $('#barraGestionMesas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#barraGestionMesas').addClass('opcionesSeleccionado');
 
-    $('#barraMesas').attr('aria-expanded','true');
-    $('#mesasPanio').removeClass();
-    $('#mesasPanio').addClass('subMenu1 collapse in');
-
-    $('.tituloSeccionPantalla').text('Gestionar Mesas');
-    $('#opcGestionarMesas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-    $('#opcGestionarMesas').addClass('opcionesSeleccionado');
 
   $('#collapseFiltros #F_Nro').val("");
   $('#collapseFiltros #F_Sector').val("");
@@ -17,13 +14,6 @@ $(document).ready(function() {
 
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
-
-  // $("#tablaMesas").tablesorter({
-  //     headers: {
-  //       3: {sorter:false}
-  //     }
-  // });
-  $('[data-toggle="popover"]').popover();
 
     //PAGINACION
     $('#btn-buscarMesas').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
@@ -45,7 +35,6 @@ $('#btn-minimizar').click(function(){
 //Busqueda de MESAS
 $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
 
-  e.preventDefault();
   $('#mensajeExito').hide();
   $.ajaxSetup({
       headers: {
@@ -53,7 +42,7 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
       }
   });
 
-
+  e.preventDefault();
 
 
   //Fix error cuando librería saca los selectores
@@ -75,7 +64,7 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
 
   var formData = {
     nro_mesa: $('#F_Nro').val(),
-    nombre_juego: $('#F_Juego').val(),
+    id_juego: $('#F_Juego').val(),
     casino: $('#F_Casino').val(),
     id_tipo_mesa: $('#F_Tipo').val(),
     id_sector: $('#F_Sector').val(),
@@ -92,18 +81,14 @@ $('#btn-buscarMesas').click(function(e,pagina,page_size,columna,orden){
 
       success: function (data) {
 
-          $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.total,clickIndiceMov);
-
+          $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.total,clickIndice);
           $('#cuerpoTablaMesas tr').remove();
-
           for (var i = 0; i < data.data.length; i++) {
               var filaMesa = generarFilaTabla(data.data[i]);
               $('#cuerpoTablaMesas').append(filaMesa);
           }
 
-
-
-          $('#herramientasPaginacion').generarIndices(page_number,page_size,data.total,clickIndiceMov);
+          $('#herramientasPaginacion').generarIndices(page_number,page_size,data.total,clickIndice);
       },
       error: function (data) {
           console.log('Error:', data);
@@ -129,11 +114,11 @@ $(document).on('click','#tablaMesas thead tr th[value]',function(e){
     }
   }
   $('#tablaMesas th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndiceMov(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
 
-function clickIndiceMov(e,pageNumber,tam){
+function clickIndice(e,pageNumber,tam){
 
   if(e != null){
     e.preventDefault();
@@ -152,10 +137,10 @@ function generarFilaTabla(mesa){
   fila.removeAttr('id');
   fila.attr('id',  mesa.id_mesa_de_panio);
 
-  fila.find('.nroMesa').text(mesa.nro_mesa).val('nro_mesa');
-  fila.find('.juegoMesa').text(mesa.nombre_juego).val('nombre_juego');
-  fila.find('.sectorMesa').text(mesa.nombre_sector).val('nombre_sector');
-  fila.find('.casinoMesa').text(mesa.nombre).val('casino.nombre');
+  fila.find('.nroMesa').text(mesa.nro_mesa);
+  fila.find('.juegoMesa').text(mesa.nombre_juego);
+  fila.find('.sectorMesa').text(mesa.nombre_sector);
+    fila.find('.casinoMesa').text(mesa.nombre);
   fila.find('.infoMesa').val(mesa.id_mesa_de_panio);
   fila.find('.modificarMesa').val(mesa.id_mesa_de_panio);
   fila.find('.eliminarMesa').val(mesa.id_mesa_de_panio);
@@ -177,6 +162,8 @@ $('#btn-nueva-mesa').click(function(e){
   $('#nombre_mesa').val(" ");
   ocultarErrorValidacion($('#nro_mesa'));
   $('#nro_mesa').val(" ");
+  ocultarErrorValidacion($('#nro_adm_mesa'));
+  $('#nro_adm_mesa').val(" ");
   ocultarErrorValidacion($('#descripcion_mesa'));
   $('#descripcion_mesa').val(" ");
 
@@ -191,7 +178,7 @@ $('#btn-nueva-mesa').click(function(e){
   $('#mensajeExito').hide();
 
   $.get('mesas/cargarDatos', function(data){
-    console.log('dara',data);
+
     for (var i = 0; i < data.casinos.length; i++) {
       $('#casino_mesa')
       .append($('<option>')
@@ -246,6 +233,7 @@ $(document).on('change','#casino_mesa',function(){
     })
   }
 
+
 });
 
 
@@ -266,6 +254,7 @@ $('#btn-guardar-mesa').click(function(e){
 
   var formData = {
     nro_mesa: $('#nro_mesa').val(),
+    nro_admin: $('#nro_adm_mesa').val(),
     nombre: $('#nombre_mesa').val(),
     descripcion: $('#descripcion_mesa').val(),
     id_juego_mesa: $('#juego_mesa').val(),
@@ -296,19 +285,25 @@ $('#btn-guardar-mesa').click(function(e){
       $('#mensajeExito p').text('La MESA fue creada correctamente');
       $('#mensajeExito').show();
 
-      $('#btn-buscarMesas').trigger('click',[1,10,'mesa_de_panio.nro_mesa','desc']);
+      var t= $('#herramientasPaginacion').getPageSize();
+
+      //recargo la pág para que aparezca el nuevo movimientos en la tabla de movimientos
+      $('#btn-buscarMesas').trigger('click',[1,t,'mesa_de_panio.nro_mesa','desc']);
 
 
     },
     error:function(data){
 
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorAlta').show();
       }
       if(typeof response.nombre !== 'undefined'){
           mostrarErrorValidacion($('#nombre_mesa'),response.nombre[0]);
+      }
+      if(typeof response.nro_admin !== 'undefined'){
+          mostrarErrorValidacion($('#nro_adm_mesa'),response.nro_admin[0]);
       }
       if(typeof response.nro_mesa !== 'undefined'){
           mostrarErrorValidacion($('#nro_mesa'),response.nro_mesa[0]);
@@ -341,7 +336,7 @@ $(document).on('click','.infoMesa',function(e){
   $.get('mesas/detalleMesa/'+ id_mesa, function(data){
 
     $('.detalle_nro').text(data.mesa.nro_mesa);
-    $('.detalle_nombre').text((data.mesa.nombre).toUpperCase());
+    $('.detalle_nombre').text(data.mesa.nombre);
     $('.detalle_sector').text(data.sector.descripcion);
     $('.detalle_casino').text(data.casino.nombre);
     $('.detalle_juego').text(data.juego.nombre_juego);
@@ -350,6 +345,7 @@ $(document).on('click','.infoMesa',function(e){
     }else{
       $('.detalle_moneda').text(data.moneda.descripcion);
     }
+
     $('.detalle_descripcion').text(data.mesa.descripcion);
     $('.detalle_tipo').text(data.tipo_mesa.descripcion);
 
@@ -366,21 +362,30 @@ $(document).on('click','.modificarMesa',function(e){
 
   e.preventDefault();
 
+  ocultarErrorValidacion($('#casinoM'));
+  ocultarErrorValidacion($('#sectorM'));
+  ocultarErrorValidacion($('#juegoM'));
+  ocultarErrorValidacion($('#monedaM'));
+  ocultarErrorValidacion($('#numeroM'));
+  ocultarErrorValidacion($('#numeroAdmM'));
+  ocultarErrorValidacion($('#descripcionM'));
+  ocultarErrorValidacion($('#nombreM'));
+
+
   $('#mensajeErrorModificacion').hide();
   var id=$(this).val();
 
   $.get('mesas/detalleMesa/' + id, function(data){
 
-    console.log('mesa', data);
     $('#nombreM').val(data.mesa.nombre);
     $('#casinoM').val(data.casino.id_casino);
     $('#descripcionM').val(data.mesa.descripcion);
     $('#numeroM').val(data.mesa.nro_mesa);
+    $('#numeroAdmM').val(data.mesa.nro_admin);
 
     $('#sectorM option').not('.default1').remove();
     $('#juegoM option').not('.default2').remove();
     $('#monedaM option').not('.default3').remove();
-
 
 
     for (var i = 0; i < data.juegos.length; i++) {
@@ -390,10 +395,6 @@ $(document).on('click','.modificarMesa',function(e){
         .val(data.juegos[i].id_juego_mesa)
         .text(data.juegos[i].nombre_juego))
     }
-    $('#monedaM')
-    .append($('<option>')
-    .val(0)
-    .text('- MULTI-MONEDA -'))
 
     for (var i = 0; i < data.monedas.length; i++) {
       $('#monedaM')
@@ -401,6 +402,10 @@ $(document).on('click','.modificarMesa',function(e){
       .val(data.monedas[i].id_moneda)
       .text(data.monedas[i].descripcion))
     }
+    $('#monedaM')
+        .append($('<option>')
+        .val(0)
+        .text('- MULTI-MONEDA -'))
 
     for (var i = 0; i < data.sectores.length; i++) {
       $('#sectorM')
@@ -465,6 +470,7 @@ $('#btn-modificar-mesa').click(function(){
   var formData = {
     id_mesa_de_panio: $(this).val(),
     nro_mesa: $('#numeroM').val(),
+    nro_admin: $('#numeroAdmM').val(),
     nombre: $('#nombreM').val(),
     descripcion: $('#descripcionM').val(),
     id_juego_mesa: $('#juegoM').val(),
@@ -507,6 +513,9 @@ $('#btn-modificar-mesa').click(function(){
       }
       if(typeof response.nro_mesa !== 'undefined'){
           mostrarErrorValidacion($('#numeroM'),response.nro_mesa[0]);
+      }
+      if(typeof response.nro_admin !== 'undefined'){
+          mostrarErrorValidacion($('#numeroAdmM'),response.nro_admin[0]);
       }
       if(typeof response.id_moneda !== 'undefined'){
         $('#mensajeErrorModificacion').show();
