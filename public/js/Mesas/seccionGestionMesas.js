@@ -294,7 +294,7 @@ $('#btn-guardar-mesa').click(function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorAlta').show();
@@ -503,7 +503,7 @@ $('#btn-modificar-mesa').click(function(){
     },
     error:function(data){
       console.log('error', data);
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorModificacion').show();

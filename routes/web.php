@@ -678,6 +678,7 @@ Route::get('importacionMensual/eliminarImportacion/{id_imp}','Mesas\Importacione
 
 //informes
 Route::get('/informeAnual',function(){
+  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
 Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
 Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexMensuales');

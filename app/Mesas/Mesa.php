@@ -16,7 +16,7 @@ class Mesa extends Model
                              'multimoneda','codigo_mesa','nro_admin');
 
 
-  protected $fillable = ['nro_mesa','nombre','descripcion','nro_admin'
+  protected $fillable = ['nro_mesa','nombre','descripcion','nro_admin',
                              'id_juego_mesa','id_casino','id_moneda','id_sector_mesas','multimoneda'];
 
 

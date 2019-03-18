@@ -228,7 +228,7 @@ $('#btn-guardar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
       console.log('data',response);
 
       if(typeof response.nombre_juego !== 'undefined'){
@@ -299,7 +299,7 @@ $('#btn-guardar-sector').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.descripcion !== 'undefined'){
         mostrarErrorValidacion($('#nombre_sector'),response.descripcion[0],false);
@@ -390,7 +390,7 @@ $('#btn-modificar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON.errors;
+      var response = data.responseJSON;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#modif_nom'),response.nombre_juego[0],false);
