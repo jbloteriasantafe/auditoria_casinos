@@ -51,7 +51,24 @@ class Kernel extends ConsoleKernel
              ->dailyAt('17:10')
              ->runInBackground();
 
-        //dd('se hizo');
+     $schedule->call(function () {
+
+         $comando = DB::table('comando_a_ejecutar')
+             ->where(['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')])
+             ->get();
+            foreach ($comando as $c) {
+              switch ($c->nombre_comando) {
+                case 'IDM:calcularDiff':
+                  $impController->calcularDiffIDM();
+                  break;
+              
+                default:
+
+                  break;
+              }
+            }
+     })->everyThirtyMinutes();
+
 
     }
 
