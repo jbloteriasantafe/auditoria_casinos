@@ -57,7 +57,7 @@ class IndexController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','tiene_permiso:m_bc_diario_mensual']);
+      $this->middleware(['tiene_permiso:m_bc_diario_mensual']);
   }
 
   public function indexMensuales(){

@@ -41,11 +41,10 @@ class ABMMesaController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_gestionar_mesas']);
-   }
-
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_gestionar_mesas']);
+  }
 
 
   /**
@@ -59,17 +58,21 @@ class ABMMesaController extends Controller
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $id_casino = $request->id_casino;
       switch ($id_casino) {
-        // case 1://mel
-        //   return $this->store_nro_mesa_continuo($request, $id_casino);
-        //   break;
-        // case 2://sfe
-        //   return $this->store_nro_mesa_continuo($request, $id_casino);
-        //   break;
+        case 1://mel
+          return store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
+          break;
+        case 2://sfe
+          return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
+          break;
         case 3://ros
           return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
           break;
         default:
-          return $this->store_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa);
+          $validator = new Validator;
+          $validator->errors()
+                    ->add('id_casino',
+                          'La identificación del casino no es válida.');
+          return ['errors' => $validator->messages()->toJson()];
           break;
       }
 
@@ -82,13 +85,12 @@ class ABMMesaController extends Controller
       $validator=  Validator::make($request->all(),[
         'nro_mesa' => ['required','integer'],
         'nombre' => 'required|max:100',
-        'descripcion' => 'required|max:100',
+        'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
         'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
-        'multimoneda' => 'required_if:id_moneda,null',
-        'nro_admin' => 'required|integer'
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator) use ($id_casino){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
@@ -115,24 +117,20 @@ class ABMMesaController extends Controller
 
   private function store_nro_mesa_rosario(Request $request, $id_casino,$id_juego)
   {
-    $nro_admin_mesa = $request->nro_admin;
       $validator=  Validator::make($request->all(),[
         'nro_mesa' => ['required','integer'],
         'nombre' => 'required|max:100',
-        'descripcion' => 'required|max:100',
+        'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
         'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
-        'multimoneda' => 'required_if:id_moneda,null',
-        'nro_admin' => 'required|integer'
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator)use ($id_casino,$id_juego){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
                               ['id_casino','=',$id_casino],
-                              ['id_juego_mesa','=',$id_juego],
-                              ['nro_admin','=',$nro_admin_mesa],
-                            ])
+                              ['id_juego_mesa','=',$id_juego]])
                         ->get();
         if(count($mesas)> 0){
           $validator->errors()->add('nro_mesa', 'Ya existe una mesa con el numero '.$validator->getData()['nro_mesa'].'.');
@@ -162,23 +160,23 @@ class ABMMesaController extends Controller
       $id_casino = $request->id_casino;
       $validator = new Validator;
       switch ($id_casino) {
-        // case 1://mel
-        // return
-        //   $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_mesa_de_panio);
-        //   break;
-        // case 2://sfe
-        // return
-        //   $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_mesa_de_panio);
-        //   break;
+        case 1://mel
+        return
+          $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_mesa_de_panio);
+          break;
+        case 2://sfe
+        return
+          $this->modif_nro_mesa_continuo($request, $id_casino,$request->id_mesa_de_panio);
+          break;
         case 3://ros
-          return $this->modif_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
+        return
+          $this->modif_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
           break;
         default:
-            return $this->modif_nro_mesa_rosario($request, $id_casino,$request->id_juego_mesa,$request->id_mesa_de_panio);
-          // $validator->errors()
-          //           ->add('id_casino',
-          //                 'La identificación del casino no es válida.');
-          // return ['errors' => $validator->messages()->toJson()];
+          $validator->errors()
+                    ->add('id_casino',
+                          'La identificación del casino no es válida.');
+          return ['errors' => $validator->messages()->toJson()];
           break;
       }
 
@@ -190,13 +188,12 @@ class ABMMesaController extends Controller
         'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
         'nro_mesa' => ['required','integer'],
         'nombre' => 'required|max:100',
-        'descripcion' => 'required|max:100',
+        'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
         'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
-        'multimoneda' => 'required_if:id_moneda,null',
-        'nro_admin' => 'required|integer'
+        'multimoneda' => 'required_if:id_moneda,null'
       ], array(), self::$atributos)->after(function($validator) use ($id_casino,$id_mesa_de_panio){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
@@ -215,7 +212,15 @@ class ABMMesaController extends Controller
        }
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
-         $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
+         $mesa = Mesa::find($request->id_mesa_de_panio);
+         $mesa->nro_mesa = $request['nro_mesa'];
+         $mesa->nombre = $request['nombre'];
+         $mesa->descripcion = $request['descripcion'];
+         $mesa->juego()->associate($request['id_juego_mesa']);
+         $mesa->moneda()->associate($request['id_moneda']);
+         $mesa->sector()->associate($request['id_sector_mesas']);
+         $mesa->save();
+
          return $mesa;
       }else{
         return ['errors' => ['autorizacion'=>'No está autorizado para realizar esta accion.']];
@@ -224,24 +229,21 @@ class ABMMesaController extends Controller
 
   private function modif_nro_mesa_rosario(Request $request, $id_casino,$id_juego,$id_mesa_de_panio)
   {
-    $nro_admin_mesa = $request->nro_admin;
       $validator=  Validator::make($request->all(),[
         'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
         'nro_mesa' => ['required','integer'],
         'nombre' => 'required|max:100',
-        'descripcion' => 'required|max:100',
+        'descripcion' => 'nullable|max:100',
         'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
         'id_casino' => 'required|exists:casino,id_casino',
         'id_moneda' => 'required_if:multimoneda,0|nullable|exists:moneda,id_moneda',
         'id_sector_mesas' => 'required|exists:sector_mesas,id_sector_mesas',
-        'multimoneda' => 'required_if:id_moneda,null',
-        'nro_admin' => 'required|integer'
-      ], array(), self::$atributos)->after(function($validator) use ($nro_admin_mesa,$id_casino,$id_juego,$id_mesa_de_panio){
+        'multimoneda' => 'required_if:id_moneda,null'
+      ], array(), self::$atributos)->after(function($validator) use ($id_casino,$id_juego,$id_mesa_de_panio){
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
                               ['id_casino','=',$id_casino],
                               ['id_juego_mesa','=',$id_juego],
-                              ['nro_admin','=',$nro_admin_mesa],
                               ['id_mesa_de_panio','!=',$id_mesa_de_panio]])
                         ->get();
         if(count($mesas)> 0){
@@ -257,8 +259,14 @@ class ABMMesaController extends Controller
 
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
-        $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
-
+        $mesa = Mesa::find($request->id_mesa_de_panio);
+        $mesa->nro_mesa = $request['nro_mesa'];
+        $mesa->nombre = $request['nombre'];
+        $mesa->descripcion = $request['descripcion'];
+        $mesa->juego()->associate($request['id_juego_mesa']);
+        $mesa->moneda()->associate($request['id_moneda']);
+        $mesa->sector()->associate($request['id_sector_mesas']);
+        $mesa->save();
         return $mesa;
 
       }else{

@@ -60,7 +60,7 @@ class BCInformesController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','tiene_permiso:m_bc_diario_mensual']);//rol a definir por gusti-> en ppio AUDITOR
+      $this->middleware(['tiene_permiso:m_bc_diario_mensual']);//rol a definir por gusti-> en ppio AUDITOR
   }
 
   public function imprimirDiario($id_importacion){

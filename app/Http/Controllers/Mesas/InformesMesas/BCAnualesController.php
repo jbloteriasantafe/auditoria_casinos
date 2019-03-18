@@ -60,7 +60,7 @@ class BCAnualesController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','tiene_permiso:m_bc_anuales']);//rol a definir por gusti-> en ppio AUDITOR
+      $this->middleware(['tiene_permiso:m_bc_anuales']);//rol a definir por gusti-> en ppio AUDITOR
   }
 
   public function buscarPorAnioCasinoMoneda(Request $request){

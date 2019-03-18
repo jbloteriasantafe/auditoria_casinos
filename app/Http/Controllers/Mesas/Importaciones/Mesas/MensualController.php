@@ -59,7 +59,7 @@ class MensualController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','tiene_permiso:m_importar']);//rol a definir por gusti-> en ppio AUDITOR
+      $this->middleware(['tiene_permiso:m_importar']);//rol a definir por gusti-> en ppio AUDITOR
   }
 
   public function buscarTodo(){

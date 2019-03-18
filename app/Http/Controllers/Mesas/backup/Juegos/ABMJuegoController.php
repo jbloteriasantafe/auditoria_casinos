@@ -45,33 +45,36 @@ class ABMJuegoController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_gestionar_juegos_mesas']);
-   }
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_gestionar_juegos_mesas']);
+  }
 
   public function guardar(Request $request){
     $id_casino = $request->id_casino;
     $validator=  Validator::make($request->all(),[
-      'nombre_juego' => ['required','max:100',
-                          'unique:juego_mesa,nombre_juego,'.$id_casino.',id_casino'],
-      'siglas' => ['required','max:4',
-                    'unique:juego_mesa,siglas,'.$id_casino.',id_casino'],
+      'nombre_juego' => ['required','max:100',Rule::unique('juego_mesa')
+                                           ->where('id_casino','=',$id_casino)],
+      'siglas' => ['required','max:6',Rule::unique('juego_mesa')
+                                           ->where('id_casino','=',$id_casino)],
       'id_tipo_mesa' => 'required|exists:tipo_mesa,id_tipo_mesa',
       'id_casino' => 'required|exists:casino,id_casino',
-      'posiciones' => 'required|integer',
+      'posiciones' => 'required|integer'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
       if ($validator->fails()){
           return ['errors' => $validator->messages()->toJson()];
           }
      }
-     $user =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($id_casino)){
       $juegomesa = JuegoMesa::create($request->all());
      return $juegomesa;
     }else{
-      return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];
+      $val = new Validator;
+      $val->errors()->add('autorizacion', 'No está autorizado para realizar esta accion.');
+
+      return ['errors' => $val->messages()->toJson()];
     }
   }
 
@@ -110,10 +113,10 @@ class ABMJuegoController extends Controller
     $id_casino = JuegoMesa::find($request->id_juego_mesa)->casino->id_casino;
     $validator=  Validator::make($request->all(),[
       'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa',
-      'nombre_juego' => ['required','max:100',
-                          'unique:juego_mesa,nombre_juego,'.$id_casino.',id_casino'],
-      'siglas' => ['required','max:4',
-                   'unique:juego_mesa,siglas,'.$id_casino.',id_casino'],
+      'nombre_juego' => ['required','max:100',Rule::unique('juego_mesa')
+                                           ->where('id_casino','=',$id_casino)],
+      'siglas' => ['required','max:6',Rule::unique('juego_mesa')
+                                           ->where('id_casino','=',$id_casino)],
       'posiciones' => 'required|integer'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
@@ -125,7 +128,7 @@ class ABMJuegoController extends Controller
     $juego = JuegoMesa::find($request->id_juego_mesa);
     $juego->nombre_juego= $request->nombre_juego;
     $juego->siglas= $request->siglas;
-    $juego->posiciones = $request->posiciones;
+    $juego->posiciones = $request['posiciones'];
     $juego->save();
 
 
@@ -135,14 +138,13 @@ class ABMJuegoController extends Controller
   public function eliminarJuego($id){
     $juego = JuegoMesa::find($id);
     foreach ($juego->mesas as $mesa) {
-      return 0;
       // $mesa->juego()->dissociate();
       // $mesa->save();
+      return 0;
     }
     $juego->delete();
     return ['juego' => $juego];
   }
-
 
 
 }
