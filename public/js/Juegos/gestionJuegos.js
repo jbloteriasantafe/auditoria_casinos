@@ -307,7 +307,6 @@ $('#btn-guardar-sector').on('click', function(e){
       if(typeof response.id_casino !== 'undefined'){
         mostrarErrorValidacion($('#casino_sector'),response.id_casino[0],false);
       }
-
     }
   })
 })
