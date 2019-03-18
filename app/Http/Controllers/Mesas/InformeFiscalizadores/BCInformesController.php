@@ -147,17 +147,17 @@ class BCInformesController extends Controller
                                   ->distinct('detalle_relevamiento_apuestas.id_mesa_de_panio')
                                   ->get();
 
-                                  $mesasImportadasAbiertas = [];
-   // $mesasImportadasAbiertas=DB::table('detalle_importacion_diaria_mesas')
-   //                                  ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio',DB::raw('COUNT(detalle_importacion_diaria_mesas.id_mesa_de_panio) as cantidad_abiertas'))
-   //                                  ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
-   //                                        '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
-   //                                  ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
-   //                                  ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
-   //                                  ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-   //                                  ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
-   //                                  ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-   //                                  ->get();
+                                  //$mesasImportadasAbiertas = [];
+   $mesasImportadasAbiertas=DB::table('detalle_importacion_diaria_mesas')
+                                    ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio',DB::raw('COUNT(detalle_importacion_diaria_mesas.id_mesa_de_panio) as cantidad_abiertas'))
+                                    ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
+                                          '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
+                                    ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
+                                    ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
+                                    ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
+                                    ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
+                                    ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
+                                    ->get();
   //La cant de mesas relevadas como abiertas coincide con la cant de Mesas
   //importadas con utilidad !=0
 

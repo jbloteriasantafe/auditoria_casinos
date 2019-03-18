@@ -24,11 +24,10 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 
-
 class ABMCSectoresController extends Controller
 {
   private static $atributos = [
-    'id_sectores' => 'Identificación del sector',
+    'id_sectores' => 'Identificacion del sector',
     'descripcion' => 'Descripción',
     'id_tipo_mesa' => 'Tipo de Mesa',
     'id_juego_mesa' => 'Juego de Mesa',
@@ -45,16 +44,16 @@ class ABMCSectoresController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_gestionar_juegos_mesas']);
-   }
-
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_gestionar_juegos_mesas']);
+  }
 
   public function guardar(Request $request){
     $id_casino = $request->id_casino;
     $validator =  Validator::make($request->all(),[
-      'descripcion' => ['required','max:100','unique:sector_mesas,descripcion,'.$id_casino.',id_casino'],
+      'descripcion' => ['required','max:100',Rule::unique('sector_mesas')
+                                           ->where('id_casino','=',$id_casino)],
       'id_casino' => 'required|exists:casino,id_casino'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
@@ -103,14 +102,14 @@ class ABMCSectoresController extends Controller
     if(isset($request->nro_mesa) && !empty($request->nro_mesa) && $request->nro_mesa !=0){
       $reglas[]=['mesa_de_panio.nro_mesa' , 'like' , '%' . $request->nro_mesa . '%'];
     }
-    if($request->id_tipo_mesa !='0' && !empty($request->id_tipo_mesa)){
+    if($request->id_tipo_mesa !=0 && !empty($request->id_tipo_mesa)){
       $reglas[]=['juego_mesa.id_tipo_mesa' , 'like' , '%' . $request->id_tipo_mesa . '%'];
     }
-    if($request->descripcion_sector !='0' && !empty($request->descripcion_sector)){
-      $reglas[]=['sector_mesas.descripcion'  , 'like' , '%' .$request->descripcion_sector . '%'];
+    if($request->descripcion_sector !=0 && !empty($request->descripcion_sector)){
+      $reglas[]=['sector_mesas.descripcion' , '=' , $request->descripcion_sector];
     }
-    //dd($request->descripcion_sector != '0' , !empty($request->descripcion_sector));
-    if($request->casino=='0' || empty($request->casino)){
+
+    if($request->casino==0 || empty($request->casino)){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $casinos = array();
       foreach($usuario->casinos as $casino){
@@ -139,9 +138,6 @@ class ABMCSectoresController extends Controller
                           'mesas' => $s->lista_mesas,
                         ];
     }
-
     return ['sectores' => $sectoresymesas];
   }
-
-
 }

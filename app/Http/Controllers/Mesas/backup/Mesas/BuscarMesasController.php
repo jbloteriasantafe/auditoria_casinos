@@ -47,10 +47,10 @@ class BuscarMesasController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_buscar_mesas']);
-   }
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_buscar_mesas']);
+  }
 
   public function getMesa($id_mesa_de_panio){
     $mesa = Mesa::findOrFail($id_mesa_de_panio);
@@ -59,8 +59,8 @@ class BuscarMesasController extends Controller
     $tipo_mesa = $juego->tipo_mesa;
 
     $casino = $mesa->casino;
-    $sectores = SectorMesas::where('id_casino','=',$casino->id_casino)->get();
-    $juegos = JuegoMesa::where('id_casino','=',$casino->id_casino)->get();
+    $sectores = SectorMesas::where('id_casino','=',$casino->id_casino)->orderBy('descripcion','desc')->get();
+    $juegos = JuegoMesa::where('id_casino','=',$casino->id_casino)->orderBy('nombre_juego','desc')->get();
     $monedas = Moneda::all();
     if($mesa->id_moneda != null){
       $moneda = $mesa->moneda;
@@ -69,6 +69,7 @@ class BuscarMesasController extends Controller
       $fichas = Ficha::select('valor_ficha')->distinct('valor_ficha')->orderBy('valor_ficha','DESC')->get();
       $moneda = null;
     }
+
     return [
             'mesa' => $mesa,
             'sector' => $sector,
@@ -78,13 +79,12 @@ class BuscarMesasController extends Controller
             'casino' => $casino,
             'fichas' => $fichas,
             'sectores' => $sectores,
-            'juegos' => $juegos,
-            'monedas' => $monedas,
+             'juegos' => $juegos,
+              'monedas' => $monedas,
           ];
   }
 
   public function getMesas(){
-
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = array();
 
@@ -93,18 +93,17 @@ class BuscarMesasController extends Controller
     }
 
     $casinos = DB::table('usuario')
-                    ->select('casino.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->where('usuario.id_usuario','=',$user->id)
-                    ->get();
+              ->select('casino.*')
+              ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+              ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+              ->where('usuario.id_usuario','=',$user->id_usuario)
+              ->get();
 
 
     $sectores = SectorMesas::whereIn('id_casino',$cas)->get();
     $juegos = JuegoMesa::whereIn('id_casino',$cas)->get();
     $tipos= TipoMesa::all();
     $moneda= Moneda::all();
-
     return view('Mesas.seccionGestionMesas',  [ 'sectores' => $sectores ,
                                                 'juegos' => $juegos,
                                                 'tipo_mesa'=>$tipos,
@@ -126,7 +125,7 @@ class BuscarMesasController extends Controller
                     ->select('casino.*')
                     ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
                     ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->where('usuario.id_usuario','=',$user->id)
+                    ->where('usuario.id_usuario','=',$user->id_usuario)
                     ->get();
 
 
@@ -154,10 +153,7 @@ class BuscarMesasController extends Controller
         $reglas[]=['sector_mesas.id_sector_mesas' , '=' , $request->id_sector];
       }
       if(isset($request->nombre_juego)){
-        $reglas[]=['juego_mesa.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
-      }
-      if(isset($request->id_juego)){
-        $reglas[]=['juego_mesa.id_juego_mesa' , '=' , $request->id_juego  ];
+        $reglas[]=['juego_mesa.id_juego_mesa' , '=' ,  $request->nombre_juego  ];
       }
 
       if($request->casino==0){
@@ -197,7 +193,6 @@ class BuscarMesasController extends Controller
                   ->whereIn('mesa_de_panio.id_casino',[$id_casino])
                   ->whereNull('mesa_de_panio.deleted_at')
                   ->orderBy('mesa_de_panio.nro_mesa','asc')->get();
-
     $resultado = array();
     foreach ($mesas as $m) {
       $resultado[] = [
@@ -234,10 +229,9 @@ class BuscarMesasController extends Controller
   }
 
   public function datosSegunCasino($id_casino){
-    $sectores = SectorMesas::where('id_casino','=',$id_casino)->get();
-    $juegos = JuegoMesa::where('id_casino','=',$id_casino)->get();
-    $moneda = Moneda::all();
-    return ['sectores' => $sectores, 'juegos' => $juegos, 'moneda' => $moneda];
+  $sectores = SectorMesas::where('id_casino','=',$id_casino)->get();
+  $juegos = JuegoMesa::where('id_casino','=',$id_casino)->get();
+  $moneda = Moneda::all();
+  return ['sectores' => $sectores, 'juegos' => $juegos, 'moneda' => $moneda];
   }
-
 }

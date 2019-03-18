@@ -46,10 +46,11 @@ class BuscarJuegoController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_buscar_juegos_mesas']);
-   }
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_buscar_juegos_mesas']);
+  }
+
 
 
   public function getAll(){
@@ -57,19 +58,21 @@ class BuscarJuegoController extends Controller
     return $todos;
   }
 
-  //tambien trae los sectores
   public function buscarTodo(){
+    $uc = new UsuarioController;
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
     foreach($usuario->casinos as $casino){
       $casinos[]=$casino->id_casino;
     }
-
-    $juegos = JuegoMesa::whereIn('id_casino',$casinos)->orderBy('nombre_juego','asc')->get();
-    $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
+    $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->orderBy('nombre_juego','asc')->get();
     $tipos = TipoMesa::all();
+    $sectores = SectorMesas::whereIn('id_casino',$casinos)->with('casino')->orderBy('descripcion','desc')->get();
+
+    $uc->agregarSeccionReciente('Juegos','juegos');
     $casinos = $usuario->casinos;
-    return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos, 'tipos_mesas' => $tipos,'sectores' =>$sectores]);
+    return view('Juegos.gestionJuegos' , ['casinos' => $casinos,'juegos' => $juegos,
+     'tipos_mesas' => $tipos,'es_superusuario' => $usuario->es_superusuario,'sectores' => $sectores]);
   }
 
   //busca juegos bajo el criterio "contiene". @param nombre_juego, siglas
@@ -112,19 +115,16 @@ class BuscarJuegoController extends Controller
     if(!empty($request->nombre_juego) ){
       $reglas[]=['juego_mesa.nombre_juego', 'like' , '%' . $request->nombre_juego  .'%'];
     }
-  //  if(!empty($request->codigoId)){
-  //    $reglas[]=['juego_mesa.siglas', 'like' , '%' . $request->siglas  .'%'];
-  //  }
+
     if(!empty($request->id_tipo_mesa)){
       $reglas[]=['juego_mesa.id_tipo_mesa', '=', $request->id_tipo_mesa];
     }
-    if(!empty($request->id_mesa)){
+    if(!empty($request->id_mesa) && $request->id_mesa !=0 ){
       $reglas[]=['mesa_de_panio.nro_mesa','like' , '%' . $request->id_mesa.'%'];
     }
     $casinos = array();
     if($request->id_casino==0){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      
       foreach($usuario->casinos as $casino){
         $casinos[]=$casino->id_casino;
       }
@@ -132,16 +132,17 @@ class BuscarJuegoController extends Controller
       $casinos[]=$request->id_casino;
     }
 
+
     $resultados=DB::table('juego_mesa')
               ->select('juego_mesa.*','casino.nombre','tipo_mesa.*')
               ->leftJoin('tipo_mesa','tipo_mesa.id_tipo_mesa','=','juego_mesa.id_tipo_mesa')
               ->join('casino','casino.id_casino','=','juego_mesa.id_casino')
               ->leftJoin('mesa_de_panio','mesa_de_panio.id_juego_mesa','=','juego_mesa.id_juego_mesa')
               ->where($reglas)
-              ->whereNull('juego_mesa.deleted_at')
               ->whereIn('juego_mesa.id_casino',$casinos)
               ->orderBy('nombre_juego','asc')
-              ->distinct('juego_mesa.id_juego_mesa')
+              ->whereNull('juego_mesa.deleted_at')
+              ->distinct('id_juego_mesa')
               ->get();
 
 
