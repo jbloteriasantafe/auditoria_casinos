@@ -1,21 +1,17 @@
-$(document).ready(function() {
+$(document).ready(function(e) {
 
-
-  $('#barraMesas').attr('aria-expanded','true');
-  $('#mesasPanio').removeClass();
-  $('#mesasPanio').addClass('subMenu1 collapse in');
-
+  $('#barraJuegosSectores').attr('aria-expanded','true');
 
   $('.tituloSeccionPantalla').hide();
+  $('#barraJuegosSectores').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#barraJuegosSectores').addClass('opcionesSeleccionado');
   //$('.tituloSeccionPantalla').text('Gestionar Juegos');
   var fila= $('#filaFichasClon').clone();
 
-  $('.tituloSeccionPantalla').text('Gestión: ');
   $('#juegosSec').show();
   $('#juegosSec').css('display','inline-block');
 
   //$('#juegosSec').find('#b_juego').addClass('active');
-
 
   $('#btn-ayuda').hide();
   $('#opcJuegos').attr('style','border-left: 6px solid #185891; background-color: #131836;');
@@ -34,6 +30,7 @@ $(document).ready(function() {
   $('#FiltroCasino').val(0);
   $('#FiltroTipo').val(0);
 
+//pestañas
   $(".tab_content").hide(); //Hide all content
   	$("ul.juegosSec li:first").addClass("active").show(); //Activate first tab
   	$(".tab_content:first").show(); //Show first tab content
@@ -41,6 +38,7 @@ $(document).ready(function() {
 
 }); //fin document ready
 
+//PESTAÑAS
 $("ul.juegosSec li").click(function() {
 
     $("ul.juegosSec li").removeClass("active"); //Remove any "active" class
@@ -57,7 +55,6 @@ $("ul.juegosSec li").click(function() {
     return false;
 });
 
-
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){
   if($(this).data("minimizar")==true){
@@ -69,28 +66,6 @@ $('#btn-minimizar').click(function(){
   }
 });
 
-//  $(document).on('click','#b_juego',function(e){
-// //
-// //   e.preventDefault();
-// //
-// //   $('#juegosSec').find('#b_sector').removeClass('active');
-// //   $('#juegosSec').find('#b_juego').addClass('active');
-// //
-//     $('#juegosSec').find('#b_juego').opcionesSeleccionado();
-// //
-//  })
-//
-// $(document).on('click','#b_sector',function(e){
-// //
-// //    e.preventDefault();
-// //    $('#juegosSec').find('#b_sector').addClass('active');
-// //
-//    $('#juegosSec').find('#b_sector').opcionesSeleccionado();
-// //    $('#juegosSec').find('#b_juego').removeClass('active');
-// //
-//   })
-
-
 //presiona el bton de búsqueda
 $('#btn-buscarJuegos').click(function(e){
 
@@ -98,9 +73,6 @@ $('#btn-buscarJuegos').click(function(e){
 
   $('#cuerpoTablaJuegos tr').remove();
 
-  //var fila = $(document.createElement('tr'));
-
-  $('#tituloBusquedaJuegos').text('JUEGOS ENCONTRADOS');
         var formData= {
           id_mesa: $('#FiltroMesa').val(),
           nombre_juego:$('#FiltroNombre').val(),
@@ -122,7 +94,13 @@ $('#btn-buscarJuegos').click(function(e){
 
             success: function (data){
             //  $('#tablaResultados tbody tr').remove();
+            if(data.length > 0){
+                $('#tituloBusquedaJuegos').text('Se han encontrado ' + data.length + ' juegos');
+            }
+            else{
+              $('#tituloBusquedaJuegos').text('No han encontrado resultados');
 
+            }
               for (var i = 0; i < data.length; i++) {
                 console.log('data',data.lenght);
 
@@ -147,7 +125,6 @@ $('#btn-buscarSectores').click(function(e){
 
   //var fila = $(document.createElement('tr'));
 
-  $('#tituloBusquedaSectores').text('SECTORES ENCONTRADOS');
   var formData= {
 
     nro_mesa: $('#s_mesa').val(),
@@ -170,6 +147,13 @@ $('#btn-buscarSectores').click(function(e){
 
       success: function (data){
         $('#cuerpoTablaSectores tr').remove();
+
+        if(data.sectores.length > 0){
+          $('#tituloBusquedaSectores').text('Se han encontrado ' + data.sectores.length + ' sectores');
+        }
+        else{
+          $('#tituloBusquedaSectores').text('No se han encontrado sectores');
+        }
 
         for (var i = 0; i < data.sectores.length; i++) {
           console.log('data',data.sectores.length);
@@ -195,8 +179,6 @@ $('#btn-nuevo-juego').on('click', function(e){
   ocultarErrorValidacion($('#casino_juego'));
   ocultarErrorValidacion($('#tipo_mesa_juego'));
   ocultarErrorValidacion($('#posicionesJuego'));
-
-
 
   $('#nombre_juego').val(" ");
   $('#siglas_juego').val(" ");
@@ -231,7 +213,7 @@ $('#btn-guardar-juego').on('click', function(e){
 
   $.ajax({
     type: 'POST',
-    url: 'mesas-juegos/nuevoJuego/',
+    url: 'mesas-juegos/nuevoJuego',
     data: formData,
     dataType: 'json',
 
@@ -246,7 +228,8 @@ $('#btn-guardar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
+      console.log('data',response);
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#nombre_juego'),response.nombre_juego[0],false);
@@ -271,10 +254,8 @@ $('#btn-guardar-juego').on('click', function(e){
 $('#btn-nuevo-sector').on('click', function(e){
 
   e.preventDefault();
-  ocultarErrorValidacion($('#nombre_juego'));
-  ocultarErrorValidacion($('#siglas_juego'));
-  ocultarErrorValidacion($('#casino_juego'));
-  ocultarErrorValidacion($('#tipo_mesa_juego'));
+  ocultarErrorValidacion($('#nombre_sector'));
+  ocultarErrorValidacion($('#casino_sector'));
   $('#mensajeExito').hide();
 
 
@@ -318,7 +299,7 @@ $('#btn-guardar-sector').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
 
       if(typeof response.descripcion !== 'undefined'){
         mostrarErrorValidacion($('#nombre_sector'),response.descripcion[0],false);
@@ -343,7 +324,7 @@ $(document).on('click','.modificarJuego',function(e){
   var id_juego= $(this).val();
   $('#btn-modificar-juego').val(id_juego);
 
-  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuego/'+ id_juego, function(data){
     console.log(data);
 
     $('#modif_nom').val(data.juego.nombre_juego);
@@ -409,13 +390,16 @@ $('#btn-modificar-juego').on('click', function(e){
     },
     error:function(data){
 
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
 
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#modif_nom'),response.nombre_juego[0],false);
       }
       if(typeof response.siglas !== 'undefined'){
         mostrarErrorValidacion($('#modif_siglas'),response.siglas[0],false);
+      }
+      if(typeof response.posiciones !== 'undefined'){
+        mostrarErrorValidacion($('#modif_pos'),response.posiciones[0],false);
       }
     }
   })
@@ -427,13 +411,15 @@ $(document).on('click','.eliminarJuego',function(e){
   e.preventDefault();
 
   $('#mensajeExito').hide();
+  $('#mensajeError').hide();
+
   var id_juego= $(this).val();
   $('#btn-eliminar-juego').val(id_juego);
 
-  $.get('mesas-juegos/obtenerJuegoMesa/'+ id_juego, function(data){
+  $.get('mesas-juegos/obtenerJuego/'+ id_juego, function(data){
 
     for (var i = 0; i < data.mesas.length; i++) {
-      $('#eliminarJuego').text('Este juego esta asociado a las siguientes mesas: ' + data.mesas[i].nro_mesa + '- ');
+      $('#msjeliminarJuego').text('Este juego esta asociado a las siguientes mesas: ' + data.mesas[i].nro_mesa + '- ');
     }
     $('#modalAlertaEliminar').modal('show');
 
@@ -448,11 +434,20 @@ $('#btn-eliminar-juego').on('click', function(e){
   var id= $(this).val();
   $.get('mesas-juegos/bajaJuego/' + id  , function(data){
 
-    $('#modAlertaEliminar').modal('hide');
+    if(data==0){
+      $('#modAlertaEliminar').modal('hide');
+      $('#mensajeError h3').text('ERROR');
+      $('#mensajeError p').text('No es posible eliminar este Juego, posee mesas asociadas.');
+      $('#mensajeError').show();
+    }
+    else{
+      $('#modAlertaEliminar').modal('hide');
 
-    $('#mensajeExito h3').text('ÉXITO');
-    $('#mensajeExito p').text('JUEGO ELIMINADO');
-    $('#mensajeExito').show();
+      $('#mensajeExito h3').text('ÉXITO');
+      $('#mensajeExito p').text('JUEGO ELIMINADO');
+      $('#mensajeExito').show();
+    }
+
 
    $('#btn-buscarJuegos').trigger('click');
 
@@ -464,28 +459,39 @@ $('#btn-eliminar-juego').on('click', function(e){
 //ELIMINAR SERCTOR
 $(document).on('click','.eliminarSector',function(e){
   e.preventDefault();
+  $('#modalAlertaSector').modal('show');
 
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
+  $('#btn-baja-sector').val($(this).val());
+});
+
+
+$('#btn-baja-sector').on('click',function(){
 
   var id_sector= $(this).val();
 
   $.get('sectores-mesas/eliminarSector/'+ id_sector, function(data){
 
     if(data==0){
+      $('#modalAlertaSector').modal('hide');
+
       $('#mensajeError h3').text('ERROR');
       $('#mensajeError p').text('No es posible eliminar este sector, posee mesas asociadas.');
       $('#mensajeError').show();
       $('#btn-buscarSectores').trigger('click');
     }
     else{
+      $('#modalAlertaSector').modal('hide');
+
       $('#mensajeExito h3').text('ÉXITO');
       $('#mensajeExito p').text('El sector fue eliminado correctamente');
       $('#mensajeExito').show();
+      $('#btn-buscarSectores').trigger('click');
+
     }
   });
-});
-
+})
 
 //filas iniciales
 function generarFilaJuegos(data){
