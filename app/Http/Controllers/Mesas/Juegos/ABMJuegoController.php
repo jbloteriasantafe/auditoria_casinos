@@ -82,6 +82,7 @@ class ABMJuegoController extends Controller
           ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
           ->where('juego_mesa.id_juego_mesa','=',$id)
           ->get();
+          
     return ['juego' => $juego,
             'mesas' => $mesas,
             'tipo_mesa' => $juego->tipo_mesa,
