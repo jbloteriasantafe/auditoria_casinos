@@ -311,9 +311,9 @@ class ImportadorController extends Controller
     $importacion->save();
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
-    $path = "drop1.csv";//$validator->getData()['archivo']->getRealPath();
+    $path = $validator->getData()['archivo']->getRealPath();
 
-    $query = sprintf("LOAD DATA  INFILE '%s'
+    $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE filas_csv_mesas_bingos
                       FIELDS TERMINATED BY ';'
                       OPTIONALLY ENCLOSED BY '\"'
