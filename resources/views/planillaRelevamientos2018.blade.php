@@ -189,7 +189,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                   </table>
                   <div class="referencias">
                     @foreach($rel->causas_no_toma as $causa_no_toma)
-                      <span class="codigoReferencia"> {{ $causa_no_toma->codigo}} </span><span class="descripcionReferencia"> : {{ $causa_no_toma->descripcion}} </span>
+                      <span class="codigoReferencia">{{$causa_no_toma->codigo}} </span><span class="descripcionReferencia">:{{$causa_no_toma->descripcion}} </span>
                     @endforeach
                   </div>
 
