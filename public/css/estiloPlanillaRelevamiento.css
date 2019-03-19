@@ -77,7 +77,7 @@ body {
   /*margin-bottom: 0px;*/
   margin: 0px;
   padding: 18px 0px 0px 0px;
-  line-height: 0px;
+  /* line-height: 0px; */
 }
 .codigoReferencia {
   font-weight: bold;
