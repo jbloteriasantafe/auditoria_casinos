@@ -187,7 +187,7 @@ $('#btn-guardarDiario').on('click', function(e){
           error: function (data) {
             ///debería mostrar el mensaje y nada más.
             console.log('error',data);
-            var response = data.responseJSON.errors;
+            var response = data.responseJSON;
 
             $('#modalImportacionDiaria').find('.modal-footer').children().show();
             $('#frmImportacion').show();
