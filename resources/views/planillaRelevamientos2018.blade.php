@@ -95,15 +95,15 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                                       </tr>';
 
                     $tabla2 = '
-                               </table>
-                               <div class="referencias">';
-                                 foreach($rel->causas_no_toma as $causa_no_toma){
-                                   $tabla2 = $tabla2.'<span class="codigoReferencia">' . $causa_no_toma->codigo . '</span><span class="descripcionReferencia"> : '. $causa_no_toma->descripcion . '</span> ';
-                                 }
+                               </table>';
+                              //  <div class="referencias">';
+                              //    foreach($rel->causas_no_toma as $causa_no_toma){
+                              //      $tabla2 = $tabla2.'<span class="codigoReferencia">' . $causa_no_toma->codigo . '</span><span class="descripcionReferencia"> : '. $causa_no_toma->descripcion . '</span> ';
+                              //    }
 
 
 
-                    $tabla2 = $tabla2.'</div>
+                    $tabla2 = $tabla2.'
                     <table style="margin-top:10px; page-break-before: always;">
                                       <tr>
                                         <th class="contador">CONTADOR 1</th>
