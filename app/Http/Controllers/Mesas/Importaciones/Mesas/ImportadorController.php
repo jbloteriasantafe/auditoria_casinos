@@ -192,7 +192,7 @@ class ImportadorController extends Controller
                                       AND (juego.nombre_juego LIKE csv.row_1
                                             OR juego.siglas LIKE csv.row_1
                                           )
-                                      AND mesa.nro_mesa = csv.row_2
+                                      AND mesa.nro_admin = csv.row_2
                                       AND moneda.id_moneda = '%d'
                                       AND juego.id_tipo_mesa = tipo_mesa.id_tipo_mesa
                                       AND juego.deleted_at IS NULL
