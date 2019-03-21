@@ -25,7 +25,7 @@ $cas = $usuario['usuario']->casinos;
 @section('contenidoVista')
 
 <div class="row">
-  <div class="col-xl-3">
+  <div class="col-md-3">
     <div class="row">
       <div class="col-md-12">
         <a href="" id="btn-generar" dusk="btn-nuevo" style="text-decoration: none;">
@@ -87,7 +87,7 @@ $cas = $usuario['usuario']->casinos;
     @endif
   </div>
 
-    <div class="col-xl-9">
+    <div class="col-md-9">
       <!-- FILTROS -->
       <div class="row">
         <div class="col-md-12">
