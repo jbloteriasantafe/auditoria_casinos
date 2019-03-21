@@ -28,7 +28,7 @@ $cas = $usuario['usuario']->casinos;
 @section('contenidoVista')
 
 <div class="row">
-    <div class="col-xl-3">
+    <div class="col-md-3">
       <div class="row">
         <!-- botón de generar planilla de apertura -->
         <div class="col-md-12">
@@ -91,7 +91,7 @@ $cas = $usuario['usuario']->casinos;
 
         </div>
     </div>
-    <div class="col-xl-9">
+    <div class="col-md-9">
           <!-- FILTROS -->
           <div class="row">
                 <div class="col-md-12">
