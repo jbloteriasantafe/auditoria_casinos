@@ -1113,6 +1113,7 @@ function generarFilaTabla(event,controlador){
 
     if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
     if(controlador == 0 ){fila.find('.btn_validarEvmtm').hide();}
+    if (controlador == 1 && estado==8) {fila.find('.btn_validarEvmtm').hide()}
     if(controlador == 1 && estado == 6){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
     if(controlador==1 && estado==1){fila.find('.btn_cargarEvmtm').hide(); fila.find('.btn_borrarEvmtm').hide();}
 
