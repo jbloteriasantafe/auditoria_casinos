@@ -12,7 +12,7 @@ class ComandoEnEspera extends Model
   protected $connection = 'mysql';
   protected $table = 'comando_a_ejecutar';
   protected $primaryKey = 'id_comando_a_ejecutar';
-  protected $visible = array('id_comando_a_ejecutar','nombre_comando','fecha_a_ejecutar';
+  protected $visible = array('id_comando_a_ejecutar','nombre_comando','fecha_a_ejecutar');
 
   public function getTableName(){
     return $this->table;
