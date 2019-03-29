@@ -78,7 +78,13 @@ footer
                   <td><i>Cantidad de Mesas Totales: {{$rel->informe->cant_mesas_totales}}</i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
-                  <td><i>Cantidad de Mesas con Diferencias: {{$rel->informe->cant_mesas_con_diferencias}}</i></td>
+                  <td><i>Cantidad de Mesas con Diferencias:
+                    @if($rel->informe->cant_mesas_con_diferencias == 0)
+                    0
+                    @else
+                    {{$rel->informe->cant_mesas_con_diferencias}}
+                    @endif
+                  </i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Mesas con el Valor Mínimo: {{$rel->informe->cantidad_abiertas_con_minimo}}</i></td>
