@@ -24,6 +24,7 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
   $('#columnaDetalle').hide();
+  $('#btn-buscar').trigger('click');
 });
 
 $(function () {
