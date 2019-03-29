@@ -1179,7 +1179,7 @@ class LayoutController extends Controller
   }
 
   // crearLayoutTotal crea el relevamiento y los backup
-  // los orgena segun el casino 
+  // los ordena segun el casino 
 
   public function crearLayoutTotal(Request $request){
 
