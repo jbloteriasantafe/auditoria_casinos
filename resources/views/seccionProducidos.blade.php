@@ -108,39 +108,7 @@ use Illuminate\Http\Request;
                         </tr>
                       </thead>
                       <tbody style="height: 350px;">
-                        @foreach($producidos as $producido)
-                          <tr id="{{$producido['producido']->id_producido}}">
-                            <td class="col-xs-2">{{$producido['producido']->casino->nombre}}</td>
-                            <td class="col-xs-2">{{$producido['producido']->fecha}}</td>
-                            <td class="tipo_moneda col-xs-1" data-tipo="{{$producido['producido']->tipo_moneda->id_tipo_moneda}}">{{$producido['producido']->tipo_moneda->descripcion}}</td>
-                            <!-- si el producido esta validado -->
-                            @if($producido['producido']->validado == 1)
-                                <td class="col-xs-1"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
-                            @else
-                                <td class="col-xs-1"><i class="fas fa-fw fa-times" style="color:#EF5350;"></td>
-                            @endif
 
-                            <!-- iniciales cerrados -->
-                            @if(empty($producido['cerrado']))
-                                <td class="col-xs-1"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
-                            @else
-                                <td class="col-xs-1"><i class="fas fa-fw fa-times" style="color:#EF5350;"></td>
-                            @endif
-
-                            <!--  si los contadores finales estan validados-->
-                            @if(empty($producido['validado']))
-                                <td class="col-xs-2"><i class="fa fa-fw fa-check" style="color:#66BB6A;"></td>
-                            @else
-                                <td class="col-xs-2"><i class="fas fa-fw fa-times" style="color:#EF5350;"></td>
-                            @endif
-                            <td class="col-xs-2">
-                              @if(empty($producido['cerrado']) && empty($producido['validado']) && $producido['producido']->validado == 0)
-                                <button class="btn btn-warning carga popInfo" type="button" value="{{$producido['producido']->id_producido}}" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Ajustar"><i class="fa fa-fw fa-upload"></i></button>
-                              @endif
-                                <button class="btn btn-info planilla popInfo" type="button" value="{{$producido['producido']->id_producido}}" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Imprimir" ><i class="fa fa-fw fa-print"></i></button>
-                            </td>
-                          </tr>
-                        @endforeach
                       </tbody>
                     </table>
                   </div>
