@@ -87,14 +87,19 @@ $cas = $usuario['usuario']->casinos;
               </ul>
 
               <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:60%;" hidden="true">
-              <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
-              <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
-           </ul>
+                <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
+                <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
+              </ul>
 
-           <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:60%;" hidden="true">
-             <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
-             <li id="imp_mensual"><a href="#pest_mensual"  style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
-          </ul>
+              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:80%;" hidden="true">
+                <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Detalles Canon y Pagos</a></li>
+                <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Actualización Valores</a></li>
+              </ul>
+
+             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:60%;" hidden="true">
+               <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
+               <li id="imp_mensual"><a href="#pest_mensual"  style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
+            </ul>
 
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
               <ul class="opcionesBarraSuperior" style=" width:30%;align:right;">
@@ -703,7 +708,28 @@ $cas = $usuario['usuario']->casinos;
                               </ul>
                           </li>
                           @endif
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_canon'))
+                          <li>
+                            <div id="barraCanon" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;">
 
+                                <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('informes','iconoCanon')
+                                </span>
+                                <span>Canon</span>
+
+                            </div>
+                          </li>
+                          @endif
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_imagenes_bunker'))
+                          <li>
+                            <div id="barraImagenes" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/solicitudImagenes'" href="#" style="cursor: pointer; padding-left:15px; ">
+                              <span class="icono" >
+                                @svg('camara','iconoCamara')
+                              </span>
+                              <span>Imágenes Bunker</span>
+                            </div>
+                          </li>
+                          @endif
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                         <li>
