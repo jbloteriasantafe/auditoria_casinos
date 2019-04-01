@@ -45,7 +45,7 @@ class TurnosController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['permiso:abmc_turnos']);
+      $this->middleware(['tiene_permiso:abmc_turnos']);
   }
 
 
