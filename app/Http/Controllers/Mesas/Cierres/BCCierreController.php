@@ -113,6 +113,10 @@ class BCCierreController extends Controller
                                 $join->on('DC.id_ficha','=','F.id_ficha')
                                 ->where('DC.id_cierre_mesa','=',$id);
                               })
+                          ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','F.id_ficha')
+                          ->where('ficha_tiene_casino.id_casino','=',$cierre->id_casino)
+                          ->whereNull('ficha_tiene_casino.deleted_at')
+                          ->where('ficha_tiene_casino.created_at','<=',$fecha_cierre)
                           ->where('F.id_moneda','=',$moneda->id_moneda)
                           ->whereNull('F.deleted_at')
                           ->orderBy('F.valor_ficha','desc')
@@ -129,23 +133,27 @@ class BCCierreController extends Controller
         $juegoAP = $apertura->mesa->juego;
         $id_ap=$apertura->id_apertura_mesa;
         $detalleAP = DB::table('ficha')
-                            ->select('DA.id_detalle_apertura',
-                                     'ficha.id_ficha',
+                          ->select('DA.id_detalle_apertura',
+                                   'ficha.id_ficha',
+                                   'DA.cantidad_ficha',
+                                    DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
+                                    'ficha.valor_ficha')
+                          ->leftJoin('detalle_apertura as DA',function ($join) use($id_ap){
+                                $join->on('DA.id_ficha','=','ficha.id_ficha')
+                                ->where('DA.id_apertura_mesa','=',$id_ap);
+                              })
+                          ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                          ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
+                          ->whereNull('ficha_tiene_casino.deleted_at')
+                          ->where('ficha_tiene_casino.created_at','<=',$apertura->created_at)
+                          ->where('ficha.id_moneda','=',$apertura->id_moneda)
+                          ->whereNull('ficha.deleted_at')
+                          ->groupBy('DA.id_detalle_apertura',
+                                    'ficha.id_ficha',
                                      'DA.cantidad_ficha',
-                                      DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
-                                      'ficha.valor_ficha')
-                            ->leftJoin('detalle_apertura as DA',function ($join) use($id_ap){
-                                  $join->on('DA.id_ficha','=','ficha.id_ficha')
-                                  ->where('DA.id_apertura_mesa','=',$id_ap);
-                                })
-                            ->where('ficha.id_moneda','=',$apertura->id_moneda)
-                            ->whereNull('ficha.deleted_at')
-                            ->groupBy('DA.id_detalle_apertura',
-                                      'ficha.id_ficha',
-                                       'DA.cantidad_ficha',
-                                       'ficha.valor_ficha')
-                            ->orderBy('ficha.valor_ficha','desc')
-                            ->get();
+                                     'ficha.valor_ficha')
+                          ->orderBy('ficha.valor_ficha','desc')
+                          ->get();
 
       }
       return response()->json(['cierre' => $cierre,

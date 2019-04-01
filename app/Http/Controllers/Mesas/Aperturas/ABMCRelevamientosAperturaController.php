@@ -36,6 +36,9 @@ use Carbon\Carbon;
 use Exception;
 use Zipper;
 use File;
+
+use App\Mesas\ComandoEnEspera;
+use App\Mesas\FichaTieneCasino;
 use App\Http\Controllers\Mesas\Mesas\SorteoMesasController;
 use App\Http\Controllers\Mesas\InformesMesas\ABCMesasSorteadasController;
 
@@ -86,8 +89,20 @@ class ABMCRelevamientosAperturaController extends Controller
     if(file_exists( public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)){
       return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
     }else{
-      return 0;
-    }
+      enEspera = DB::table('comando_a_ejecutar')
+            ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
+                    ['nombre_comando','=','RAM:sortear']
+                    ])
+            ->get()->count();
+        if($enEspera == 0){
+          $agrega_comando = new ComandoEnEspera;
+          $agrega_comando->nombre_comando = 'RAM:sortear';
+          $agrega_comando->fecha_a_ejecutar = Carbon::now()->addMinutes(30)->format('Y:m:d H:i:s');
+          $agrega_comando->save();
+        }
+
+        return response()->json(['apertura' => 'Por favor reintente en 15 minutos...'], 404);
+      }
   }
 
   public function creaRelevamientoZip(){
@@ -170,19 +185,21 @@ class ABMCRelevamientosAperturaController extends Controller
 
 
       $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-      $m_ordenadas = $rmesas->sortBy('codigo_mesa');
+      $m_ordenadas = $rmesas->sortBy('codigo_sector');
       $lista_mesas = array();
       $sublista = array();
       $contador = 1;
       foreach ($m_ordenadas as $m) {
         if($contador == 35){ //30 = cant de mesas que entran de 1
-          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa,
+                         'sector'=> $m->nombre_sector];
 
           $lista_mesas[] = $sublista;
           $sublista = array();
           $contador = 1;
         }else{
-          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa];
+          $sublista[] = ['codigo_mesa'=> $m->codigo_mesa,
+                         'sector'=> $m->nombre_sector];
 
           $contador++;
         }
@@ -201,7 +218,13 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->fecha = $dia."-".$mes."-".$año;
       $rel->casino = $cas->nombre;
 
-      $rel->fichas = Ficha::select('valor_ficha')->distinct('valor_ficha')->orderBy('valor_ficha','DESC')->get();
+      $fichas = FichaTieneCasino::where('id_casino',$cas->id_casino)
+                                        ->get()
+                                        ->unique('valor_ficha')
+                                        ->sortByDesc('valor_ficha');
+      $rel->fichas = $fichas->map(function ($fichas ) {
+          return $fichas->only(['valor_ficha']);
+        });
       $rel->cant_fichas = $rel->fichas->count();
       if($rel->cant_fichas > 15){
         $rel->paginas = [1,2]; //->cantidad de mesas que se deben relevar obligatoriamente (de a pares)
