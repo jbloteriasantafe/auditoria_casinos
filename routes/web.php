@@ -66,6 +66,12 @@ Route::post('casinos/guardarCasino','CasinoController@guardarCasino');
 Route::get('/casinos/obtenerTurno/{id}','CasinoController@obtenerTurno');
 Route::post('casinos/modificarCasino','CasinoController@modificarCasino');
 Route::delete('casinos/eliminarCasino/{id}','CasinoController@eliminarCasino');
+Route::get('casinos/get', 'CasinoController@getAll');
+Route::get('casinos/getCasinos', 'CasinoController@getParaUsuario');
+Route::get('casinos/getMeses/{id_casino}', 'CasinoController@meses');
+Route::get('casinos/getFichas','CasinoController@getFichas');
+
+
 /***********
 Expedientes
 ***********/
