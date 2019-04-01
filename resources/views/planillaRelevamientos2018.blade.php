@@ -174,11 +174,11 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                       @php
                         $maquina = $maquina + 1;
 
-                        if($hoja == 1 && $maquina == 9) {
+                        if($hoja == 1 && $maquina == 8) {
                           $hoja = $hoja + 1;
                           $maquina = 1;
                         }
-                        else if ($hoja > 1 && $maquina == 10){
+                        else if ($hoja > 1 && $maquina == 9){
                           $hoja = $hoja + 1;
                           $maquina = 1;
                         }
@@ -189,7 +189,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                   </table>
                   <div class="referencias">
                     @foreach($rel->causas_no_toma as $causa_no_toma)
-                      <span class="codigoReferencia"> {{ $causa_no_toma->codigo}} </span><span class="descripcionReferencia"> : {{ $causa_no_toma->descripcion}} </span>
+                      <span class="codigoReferencia">{{$causa_no_toma->codigo}} </span><span class="descripcionReferencia">:{{$causa_no_toma->descripcion}} </span>
                     @endforeach
                   </div>
 

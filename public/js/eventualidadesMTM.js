@@ -1,14 +1,12 @@
 var eventoAEliminar;
 var mtmEv=[];
 $(document).ready(function(){
-
   var t= $('#tablaResultadosEvMTM tbody > tr .fecha_eventualidad');
 
     $.each(t, function(index, value){
       console.log($(this));
     $(this).text(convertirDate($(this).text()));
     });
-
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -60,7 +58,8 @@ $(document).ready(function(){
        });
    });
 
-
+   
+   $('#btn-buscarEventualidadMTM').trigger('click');
 });
 $('#cantidad').on('keypress',function(e){
     if(e.which == 13) {
@@ -1031,7 +1030,6 @@ $("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
 });
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event,controlador){
-
   var fila = $(document.createElement('tr'));
   var fecha;
   var tipo_ev;
@@ -1113,8 +1111,9 @@ function generarFilaTabla(event,controlador){
       )
     );
 
-    if(estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
-    if(controlador == 0 && estado == 6){fila.find('.btn_validarEvmtm').hide();}
+    if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
+    if(controlador == 0 ){fila.find('.btn_validarEvmtm').hide();}
+    if (controlador == 1 && estado==8) {fila.find('.btn_validarEvmtm').hide()}
     if(controlador == 1 && estado == 6){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
     if(controlador==1 && estado==1){fila.find('.btn_cargarEvmtm').hide(); fila.find('.btn_borrarEvmtm').hide();}
 

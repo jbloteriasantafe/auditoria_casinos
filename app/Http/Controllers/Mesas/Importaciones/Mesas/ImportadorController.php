@@ -192,7 +192,7 @@ class ImportadorController extends Controller
                                       AND (juego.nombre_juego LIKE csv.row_1
                                             OR juego.siglas LIKE csv.row_1
                                           )
-                                      AND mesa.nro_mesa = csv.row_2
+                                      AND mesa.nro_admin = csv.row_2
                                       AND moneda.id_moneda = '%d'
                                       AND juego.id_tipo_mesa = tipo_mesa.id_tipo_mesa
                                       AND juego.deleted_at IS NULL
@@ -281,9 +281,9 @@ class ImportadorController extends Controller
     $path = $validator->getData()['archivo']->getRealPath();
     $fila = 1;
     if (($gestor = fopen($path, "r")) !== FALSE) {
-        while (($datos = fgetcsv($gestor, 1000, ",")) == 1) {
+        while (($datos = fgetcsv($gestor, 1000, ";")) == 1) {
             $cantidad_columnas = count($datos);
-            if($cantidad_columnas == 5){
+            if($cantidad_columnas == 6){
               //ok
             }else{
               $validator->errors()->add('error','Las columnas del archivo deben ser: \nJUEGO,NRO MESA,DROP,UTILIDAD,FILL,CREDIT.');

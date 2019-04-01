@@ -400,7 +400,7 @@
                                 <br>
                             </div>
                             <div class="col-md-4">
-                                <h5>Número Adminitrativo</h5>
+                                <h5>Número Administrativo</h5>
                                 <input type="text" class="form-control" id="numeroAdmM" placeholder="Número de Mesa" name="user_name">
                                 <br>
                             </div>

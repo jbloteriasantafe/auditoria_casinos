@@ -32,6 +32,7 @@ use App\Mesas\MesasSorteadas;
 use App\Http\Controllers\Mesas\InformesMesas\ABCMesasSorteadasController;
 
 use Exception;
+
 //validacion de cierres
 class SorteoMesasController extends Controller
 {
@@ -45,10 +46,10 @@ class SorteoMesasController extends Controller
    *
    * @return void
    */
-   public function __construct()
-   {
-     $this->middleware(['tiene_permiso:m_sortear_mesas']);
-   }
+  public function __construct()
+  {
+    $this->middleware(['tiene_permiso:m_sortear_mesas']);
+  }
 
   public function sortear($id_casino,$fecha_backup){
     $informesSorteadas = new ABCMesasSorteadasController;
@@ -58,18 +59,20 @@ class SorteoMesasController extends Controller
     $cantidadRosarioCARTAS = 8;
     $ruletasDados = null;
     $cartas = null;
+    ////los nombres de las variables quedaron sin moedificar, pero
+    ////las cartas(2) tienen a los dados(3), no la variable ruletas..
     try{
       switch($id_casino){
         case 3:
-          $ruletas = $this->getMesas($cantidadRosarioRULETA,$id_casino,[1],$fecha_backup);
-          $cartasDados = $this->getMesas($cantidadRosarioCARTAS,$id_casino,[2,3],$fecha_backup);
+          $ruletasDados = $this->getMesas($cantidadRosarioRULETA,$id_casino,[1],$fecha_backup);
+          $cartas = $this->getMesas($cantidadRosarioCARTAS,$id_casino,[2,3],$fecha_backup);
           break;
         default:
-          $ruletas = $this->getMesas($cantidadSFMELRULETA,$id_casino,[1],$fecha_backup);
-          $cartasDados = $this->getMesas($cantidadSFMELCARTAS,$id_casino,[2,3],$fecha_backup);
+          $ruletasDados = $this->getMesas($cantidadSFMELRULETA,$id_casino,[1],$fecha_backup);
+          $cartas = $this->getMesas($cantidadSFMELCARTAS,$id_casino,[2,3],$fecha_backup);
       }
       $informesSorteadas->almacenarSorteadas($ruletasDados,$cartas,$id_casino,$fecha_backup);
-      return ['ruletas' => $ruletasDados,'cartasDados' => $cartas];
+      return ['ruletasDados' => $ruletasDados,'cartas' => $cartas];
     }catch(Exception $e){
                 dd($e);
        throw new \App\Exceptions\PlanillaException('No se pudo realizar el sorteo de mesas.');
@@ -77,10 +80,12 @@ class SorteoMesasController extends Controller
   }
 
   private function getMesas($cantidad, $id_casino, $tipo,$fecha_backup){
-
+    // $tipo = [3];
+    // $id_casino = 1;
+    // $cantidad = 2;
     $mesas = array();
     $mesas_pond = $this->obtenerPonderadas($tipo,$id_casino,$fecha_backup);
-
+    //dd($mesas_pond->cantidad);
     if($mesas_pond->cantidad){
       if($mesas_pond->cantidad == 1){
         $mesas = DB::table('mesa_de_panio')
@@ -95,6 +100,13 @@ class SorteoMesasController extends Controller
                             ->get();
         $mesas = $mesas->merge($mesas_pond->mesas);
 
+        /*
+        $collection = collect(['product_id' => 1, 'price' => 100]);
+
+        $merged = $collection->merge(['price' => 200, 'discount' => false]);
+
+        $merged->all();
+        */
       }else{
         $mesas = DB::table('mesa_de_panio')
                             ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
@@ -173,5 +185,7 @@ class SorteoMesasController extends Controller
 
     return ['ruletasDados' => $rta->mesas['ruletasDados'],'cartas' => $rta->mesas['cartas']];
   }
+
+
 
 }

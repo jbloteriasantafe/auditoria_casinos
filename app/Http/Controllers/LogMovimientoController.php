@@ -1438,6 +1438,9 @@ class LogMovimientoController extends Controller
     $log->controladores()->detach();
     foreach ($log->relevamientos_movimientos as $rel) {
       $rel->log_movimiento()->dissociate();
+      foreach($rel->toma_relevamiento_movimiento as $toma){
+        $toma->delete();  
+      }
       RelevamientoMovimiento::destroy($rel->id_relev_mov);
     }
     LogMovimiento::destroy($log->id_log_movimiento);

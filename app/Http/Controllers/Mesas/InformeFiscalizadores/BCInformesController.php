@@ -201,7 +201,7 @@ class BCInformesController extends Controller
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(20, 815, $informe->casino->codigo."/".$informe->fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
+    return $dompdf->stream($informe->fecha.'-informe-diario.pdf', Array('Attachment'=>0));
   }
 
 }

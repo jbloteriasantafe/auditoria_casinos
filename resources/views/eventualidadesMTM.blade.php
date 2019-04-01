@@ -124,7 +124,7 @@
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
-                  @foreach($eventualidades as $eventualidad)
+                  {{-- @foreach($eventualidades as $eventualidad)
                   <tr id="{{$eventualidad->id_log_movimiento}}">
                     <td class="col-xs-2 fecha_eventualidad">{{$eventualidad->fecha}}</td>
                     <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
@@ -157,7 +157,7 @@
 
                     </td>
                   </tr>
-                  @endforeach
+                  @endforeach --}}
                 </tbody>
               </table>
             </div>
