@@ -6,10 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Casino;
 use App\Turno;
+use App\Mesas\Ficha;
+use App\Mesas\FichaTieneCasino;
+use App\MesCasino;
+use Carbon\Carbon;
+use Validator;
 
+use App\Http\Controllers\Controller;
 class CasinoController extends Controller
 {
   private static $instance;
+
+  private static $atributos = [
+      'nombre' => 'Nombre del Casino',
+      'codigo' => 'Código del Casino',
+    ];
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
@@ -17,6 +28,7 @@ class CasinoController extends Controller
     }
     return self::$instance;
   }
+
 
   public function buscarTodo(){
     $casinos = Casino::all();
@@ -287,8 +299,16 @@ private function asociarTurnos($turnos, $casino){
       $turnoObj->entrada = $turno['entrada'];
       $turnoObj->salida = $turno['salida'];
       $turnoObj->nro_turno = $turno['nro'];
-      $time = Carbon::createFromTimeString($turno['salida'], 'America/Argentina/Buenos_Aires');
-      $turnoObj->hora_propuesta = $time->subHour();
+
+      $hh = explode(':', $turno['salida']);
+      if($hh[0] == '00'){
+        $hora_salida = '23:00';
+      }else{
+        $nro_hora = $hh[0]-1;
+        $hora_salida =  $nro_hora.':'.'00';
+      }
+
+      $turnoObj->hora_propuesta = $hora_salida;
       $turnoObj->casino()->associate(0);
 
       $collection->push($turnoObj);
