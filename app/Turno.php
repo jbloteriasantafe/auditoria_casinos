@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /*
 
@@ -20,8 +20,12 @@ class Turno extends Model
   protected $table = 'turno';
   protected $primaryKey = 'id_turno';
   protected $visible = array('id_turno','id_layout_parcial','id_casino',
-  'dia_desde', 'dia_hasta' , 'entrada','salida' , 'nro_turno','hora_propuesta');
+  'dia_desde', 'dia_hasta' , 'entrada','salida' , 'nro_turno','hora_propuesta',
+    'created_at','deleted_at','updated_at');
   public $timestamps = false;
+
+  protected $fillable = ['nro_turno','dia_desde','dia_hasta','entrada',
+                               'salida','id_casino'];
 
   protected $appends = array('nombre_dia_desde','nombre_dia_hasta');
 
@@ -63,6 +67,10 @@ class Turno extends Model
   public function relevamientos_apuestas(){
     return $this->hasMany('App\Mesas\RelevamientoApuestas','id_turno','id_turno');
   }
+
+    public function getId(){
+      return $this->id_turno;
+    }
 
 
   // public function nro_turno($casino, $date){//dependiendo del datetime y el casino, devuelvo el casino que corresponde
