@@ -449,6 +449,7 @@ Route::post('/layouts/crearLayoutParcial','LayoutController@crearLayoutParcial')
 Route::post('/layouts/usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
 
 
+
 //PARCIAL
 Route::get('/layouts/existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
 Route::get('/layouts/existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
@@ -694,3 +695,38 @@ Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales
 Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
 Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
+
+
+Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
+  Route::get('/canon','Mesas\Canon\IndexController@index');
+  Route::post('canon/modificar','Mesas\Canon\ABMCCanonController@modificar');
+  Route::get('canon/obtenerCanon/{id_cas}','Mesas\Canon\ABMCCanonController@obtenerCanon');
+
+});
+
+Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function () {
+  Route::get('canon/generarTablaActualizacion1/{id}/{anio}','Mesas\Canon\ActualizarValoresController@forzarActualizacion');
+});
+
+Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
+  Route::post('canon/guardarPago','Mesas\Canon\APagosController@crear');
+  Route::post('canon/modificarPago','Mesas\Canon\APagosController@modificar');
+
+});
+
+Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
+  Route::post('canon/buscarPagos','Mesas\Canon\BPagosController@filtros');
+  Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+  Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+  Route::post('canon/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+
+});
+
+Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {
+  Route::post('solicitudImagenes/buscar','Mesas\Bunker\ABMCImgBunkerController@filtros');
+  Route::get('solicitudImagenes/obtenerMesas/{id}', 'Mesas\Bunker\ABMCImgBunkerController@obtenerBunker');
+  Route::get('solicitudImagenes/hayCoincidencia/{drop}/{id_detalle}', 'Mesas\Bunker\ABMCImgBunkerController@consultarDiferencias');
+  Route::post('solicitudImagenes/sorteoFechasMesas', 'Mesas\Bunker\ABMCImgBunkerController@altaImgsBunker');
+  Route::post('solicitudImagenes/guardar','Mesas\Bunker\ABMCImgBunkerController@cargar');
+  Route::get('/solicitudImagenes','Mesas\Bunker\ABMCImgBunkerController@index');
+});
