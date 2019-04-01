@@ -24,6 +24,7 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
   $('#columnaDetalle').hide();
+  $('#btn-buscar').trigger('click');
 });
 
 $(function () {
@@ -586,7 +587,10 @@ function agregarFilaTabla(producido, casino){
     icono_cont_fin= 'fas fa-fw fa-times';
     color_cont_fin = color_rojo;
   }
-   if(producido.cerrado.length == 0 && producido.validado.length == 0 && producido.producido.validado == 0){
+  // se saca la validacion de relevamientos visados porque dado un dia donde no se generen relevamientos,
+  // no se pueden seguir cargando producios, pero si se deja la marca que no se visaron
+   //if(producido.cerrado.length == 0 && producido.validado.length == 0 && producido.producido.validado == 0){
+    if(producido.cerrado.length == 0 && producido.producido.validado == 0){
     var tr = $('<tr>').append($('<td>').addClass('col-xs-2').text(producido.casino.nombre))
                       .append($('<td>').addClass('col-xs-2').text(producido.producido.fecha))
                       .append($('<td>').addClass('col-xs-2 tipo_moneda').text(producido.tipo_moneda.descripcion))
