@@ -24,6 +24,8 @@ use Spatie\Permission\Models\Permission;
 use Carbon\Carbon;
 use App\Turno;
 
+
+/////------DEPRECATED
 class TurnosController extends Controller
 {
   private static $atributos = [
