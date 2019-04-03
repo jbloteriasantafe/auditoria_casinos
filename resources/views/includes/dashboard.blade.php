@@ -677,7 +677,7 @@ $cas = $usuario['usuario']->casinos;
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informes'))
 
                           <li>
-                              <div id="barraInformesMesas" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
+                              <div id="barraInformesMesas" class="opcionesHover" data-target="#informes2" data-toggle="collapse" href="#">
                                 <span class="flechita">
                                     <i class="fa fa-angle-right"></i>
                                   </span>
@@ -688,7 +688,7 @@ $cas = $usuario['usuario']->casinos;
                               </div>
 
                               <!-- SEGUNDO NIVEL -->
-                              <ul class="subMenu1 collapse" id="informes">
+                              <ul class="subMenu1 collapse" id="informes2">
                                 <li>
                                   <div id="opcInfoDiario" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;">
                                     <span>Diario</span>
