@@ -55,7 +55,7 @@ class UsuarioController extends Controller
                 }
                 $lotiene = false;
                 foreach ($cas as $c) {
-                  foreach ($$validator->getData()['casinos'] as $cc) {
+                  foreach ($validator->getData()['casinos'] as $cc) {
                     if($c == $cc){
                       $lotiene = true;
                     }
