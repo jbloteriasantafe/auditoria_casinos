@@ -41,6 +41,7 @@ class UsuarioController extends Controller
       'contraseña' => ['required', 'max:45'],
       'nombre' => ['required'],
       'imagen' => ['nullable', 'image'],
+      'casinos' => 'required'
      ])->after(function ($validator){
                  //validar que descripcion no exista
                 $email =$validator->getData()['email'];
@@ -54,8 +55,10 @@ class UsuarioController extends Controller
                 }
                 $lotiene = false;
                 foreach ($cas as $c) {
-                  if($c == $validator->getData()['id_casino']){
-                    $lotiene = true;
+                  foreach ($$validator->getData()['casinos'] as $cc) {
+                    if($c == $cc){
+                      $lotiene = true;
+                    }
                   }
                 }
                 if(!$lotiene){
