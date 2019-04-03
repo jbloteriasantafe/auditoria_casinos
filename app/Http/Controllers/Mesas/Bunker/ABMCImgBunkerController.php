@@ -101,18 +101,25 @@ class ABMCImgBunkerController extends Controller
     //dd($start);
     $fechas_collect = collect();
     for ($i=0; $i <3 ; $i++) {
-      $random = rand($start->format('j'),$end->format('j'));
-      if($fechas_collect->contains(['dia' => $random])){
+       $j = 0;
+      do {
+        $j++;
         $random = rand($start->format('j'),$end->format('j'));
-      }
+        if(!$fechas_collect->contains(['dia' => $random])){
+          $cierres = Cierre::whereYear('fecha','=',$anio)
+                              ->whereMonth('fecha','=',$mes)
+                              ->whereDay('fecha','=',$random)
+                              ->where('id_casino','=',$casino->id_casino)
+                              ->inRandomOrder()
+                              ->take($cantidad)
+                              ->get();
+        }else{
+          $cierres = null;
+        }
+      } while($fechas_collect->contains(['dia' => $random]) && $cierres != null && $j<= $end->format('j'));
 
-      $cierres = Cierre::whereYear('fecha','=',$anio)
-                          ->whereMonth('fecha','=',$mes)
-                          ->whereDay('fecha','=',$random)
-                          ->where('id_casino','=',$casino->id_casino)
-                          ->inRandomOrder()
-                          ->take($cantidad)
-                          ->get();
+
+
       if(count($cierres) != 0){
         $fechas_collect->push($random);
       }
