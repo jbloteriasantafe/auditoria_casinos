@@ -339,8 +339,6 @@ class APagosController extends Controller
       $utilidad = $this->calcularProporcional($request->mes, $anioCuota, $casino);
     }
 
-
-
     $pago->total_mes_anio_anterior = $informeAnterior['total_mes_actual'];//utilidad
     $pago->total_mes_actual = $utilidad;
     $pago->cotizacion_euro_anterior = $informeAnterior['cotizacion_euro_actual'];
@@ -349,14 +347,15 @@ class APagosController extends Controller
     $pago->cotizacion_dolar_anterior = $informeAnterior['cotizacion_dolar_actual'];
     $pago->mes_detalle= $request->mes;//es el mes del pago
     //$pago->informe_final_mesas($informe)->associate();
-    $pago->total_pagado =$request->total_pagado;
+    $pago->total_pagado =$request->total_pago_pesos;
     $pago->fecha_cobro = $request->fecha_pago;
     $pago->impuestos = $request->impuestos;
     //$pago->casino()->associate($casino->id);
     $pago->mes_casino()->associate($request->mes);
     $pago->save();
 
-    return ['importeCorrespondiente' => $importe];
+    return response()->json([], 200);
+
   }
 
 
