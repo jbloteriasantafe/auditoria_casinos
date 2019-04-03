@@ -107,7 +107,7 @@ class ABMCImgBunkerController extends Controller
       }
 
       $cierres = Cierre::whereYear('fecha','=',$anio)
-                          ->whereMonth('fecha','=',1)
+                          ->whereMonth('fecha','=',$mes)
                           ->whereDay('fecha','=',$random)
                           ->where('id_casino','=',$casino->id_casino)
                           ->inRandomOrder()
