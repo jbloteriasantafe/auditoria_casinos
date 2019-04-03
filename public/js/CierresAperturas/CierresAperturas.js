@@ -1613,8 +1613,11 @@ $(document).on('click', '.validarCyA', function(e) {
 
   var id_apertura=$(this).val();
   $('#validar').val(id_apertura);
-  $('#validar').hide();
   $('#div_cierre').hide();
+  $('#validar-diferencia').val(id_apertura);
+  $('#validar').hide();
+  $('#validar-diferencia').hide();
+
 
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
@@ -1659,6 +1662,8 @@ $(document).on('click','.comparar',function(){
     $('#tablaValidar tbody tr').remove();
 
     $('#validar').show();
+    $('#validar-diferencia').show();
+
     var moneda=$('.mon_validar_aper').val();
     var apertura=$('#validar').val();
     var cierre=$('#fechaCierreVal').val();
@@ -1753,6 +1758,7 @@ $(document).on('change', '#fechaCierreVal', function(e) {
 
   if(t==0){
     $('#validar').hide();
+    $('#validar-diferencia').hide();
   }
 
   $('#tablaValidar tbody tr').remove();
@@ -1793,6 +1799,54 @@ $(document).on('click', '#validar', function(e) {
           $('#mensajeExito p').text('Apertura Validada correctamente. ');
           $('#mensajeExito').show();
           $('#btn-buscarCyA').trigger('click');
+        },
+        error: function(data){
+
+           var response = data.responseJSON.errors;
+
+           if(typeof response.id_cierre !== 'undefined'){
+             $('#mensajeErrorValApertura').show();
+           }
+          // if(typeof response.hora_fin !== 'undefined'){
+          //   mostrarErrorValidacion($('#hs_cierre_cierre'),response.hora_fin[0],false);
+          // }
+        },
+    })
+
+});
+
+$(document).on('click', '#validar-diferencia', function(e) {
+  e.preventDefault();
+  $('#mensajeExito').hide();
+
+  var id_apertura = $(this).val();
+
+    var formData= {
+      id_cierre:$('#fechaCierreVal').val(),
+      id_apertura:id_apertura,
+      diferencia:1,
+      observaciones: $('#obsValidacion').val(),
+    }
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'aperturas/validarApertura',
+        data: formData,
+        dataType: 'json',
+
+        success: function (data){
+
+          $('#modalValidarApertura2').modal('hide');
+          $('#mensajeExito h3').text('ÉXITO');
+          $('#mensajeExito p').text('Apertura Validada correctamente. ');
+          $('#mensajeExito').show();
+          $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
         },
         error: function(data){
 
@@ -1938,22 +1992,30 @@ function generarFilaAperturas(data){
     fila.find('.L_casino').text(data.nombre);
     if(data.id_estado_cierre == 3){
       fila.find('.L_estado').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
-    }else{
+    }
+    if(data.id_estado_cierre == 1){
         fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
     }
-    fila.find('.infoCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.modificarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    fila.find('.validarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
+    if(data.id_estado_cierre == 2){
+      fila.find('.L_estado').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
+        fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-exclamation').css('color', '#FFC107').css('text-align','center'));
+    }
+    fila.find('.L_estado').show();
+    
+    fila.find('.infoCyA').val(data.id_apertura_mesa);
+    fila.find('.modificarCyA').val(data.id_apertura_mesa);
+    fila.find('.validarCyA').val(data.id_apertura_mesa);
     fila.find('.desvincular').val(data.id_apertura_mesa);
-    fila.find('.eliminarCyA').attr('data-tipo', 'apertura').val(data.id_apertura_mesa);
-    if(data.id_estado_cierre == 3){
+    fila.find('.eliminarCyA').val(data.id_apertura_mesa);
+
+    if(data.id_estado_cierre == 3 || data.id_estado_cierre == 2){
       fila.find('.validarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.eliminarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.modificarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.desvincular').show();
       fila.find('.infoCyA').show();
     }
-    else {
+    else{
       fila.find('.validarCyA').show();
       fila.find('.eliminarCyA').show();
       fila.find('.modificarCyA').show();
@@ -2023,10 +2085,33 @@ function generarFilaCierres(data){
     fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
     fila.css('display', '');
 
-    if(data.cierre_validado != null){
-      fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
-      fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
-      fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
+    switch (data.id_estado_cierre) {
+      case 1://generado
+        fila.find('.infoCierre').hide();
+        fila.find('.eliminarCierre').show();
+        fila.find('.modificarCierre').show();
+        fila.find('.validarCierre').show();
+        break;
+      case 2://p/aperturas
+        fila.find('.infoCierre').hide();
+        fila.find('.eliminarCierre').show();
+        fila.find('.modificarCierre').show();
+        fila.find('.validarCierre').show();
+        break;
+      case 3://validado desde la pestaña cierres
+        fila.find('.infoCierre').show();
+        fila.find('.eliminarCierre').hide();
+        fila.find('.modificarCierre').hide();
+        fila.find('.validarCierre').hide();
+        break;
+      case 4://validado con apertura, desde aperturas
+        fila.find('.infoCierre').show();
+        fila.find('.eliminarCierre').hide();
+        fila.find('.modificarCierre').hide();
+        fila.find('.validarCierre').hide();
+        break;
+      default:
+
     }
   return fila;
 

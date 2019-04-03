@@ -1401,7 +1401,8 @@ $cas = $usuario['usuario']->casinos;
           </div>
 
           <div class="modal-footer">
-            <button id="validar" type="button" value="" class="btn btn-success" data-dismiss="modal" hidden="true">VALIDAR</button>
+            <button id="validar" type="button" value="" class="btn btn-successAceptar" data-dismiss="modal" hidden="true">VALIDAR</button>
+            <button id="validar-diferencia" type="button" value="" class="btn btn-successAceptar" data-dismiss="modal" hidden="true">VALIDAR CON DIFERENCIA</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
           </div>
 
