@@ -226,7 +226,7 @@ class ImportadorController extends Controller
     return 1;
   }
 
-  private function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
+  public function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
     $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
     $total_diario = 0 ;
     $diferencias = 0;

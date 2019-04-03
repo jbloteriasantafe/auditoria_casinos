@@ -62,7 +62,7 @@ footer
 
               <tbody>
                 <tr style="border-bottom:1px solid #ccc; font-size:15px;">
-                  FGHFH
+                  
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Cierres cargados: {{$rel->informe->cant_cierres}}</i></td>
