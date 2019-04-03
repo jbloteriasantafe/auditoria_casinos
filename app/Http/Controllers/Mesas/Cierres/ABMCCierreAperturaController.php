@@ -208,8 +208,9 @@ class ABMCCierreAperturaController extends Controller
       $fhoy = Carbon::now()->format('Y-m-d');
       if(count($detInformePago) == 0 && $fhoy <= $fechamascincuenta){
         $vinculo = $apertura->cierre_apertura;
-        //$vinculo->apertura()->dissociate();
-        //$vinculo->cierre()->dissociate();
+        $cierre = $vinculo->cierre;
+        $cierre->estado_cierre()->associate(1);
+        $cierre->save();
         $vinculo->delete();
         $apertura->estado_cierre()->associate(1);
         $apertura->save();

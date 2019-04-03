@@ -231,7 +231,7 @@ class BCAperturaController extends Controller
                           ->join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
                           ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
                           ->where('cierre_mesa.fecha','<',$apertura->fecha)
-                          ->where('cierre_mesa.id_estado_cierre','>',4)
+                          ->where('cierre_mesa.id_estado_cierre','<',4)
                           ->whereNull('cierre_apertura.id_cierre_apertura')
                           ->whereNull('cierre_mesa.deleted_at')
                           ->orderBy('fecha' , 'DESC')
