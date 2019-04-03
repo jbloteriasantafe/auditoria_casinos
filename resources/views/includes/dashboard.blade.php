@@ -91,7 +91,7 @@ $cas = $usuario['usuario']->casinos;
                 <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
               </ul>
 
-              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:80%;" hidden="true">
+              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:60%;" hidden="true">
                 <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Detalles Canon y Pagos</a></li>
                 <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Actualización Valores</a></li>
               </ul>
