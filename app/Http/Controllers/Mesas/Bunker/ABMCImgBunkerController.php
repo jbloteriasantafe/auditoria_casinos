@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Bunker;
+namespace App\Http\Controllers\Mesas\Bunker;
 
 use Auth;
 use Session;

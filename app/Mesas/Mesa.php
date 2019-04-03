@@ -43,6 +43,15 @@ class Mesa extends Model
             return $this->codigo_mesa;
           }
         }
+
+        public function getNombreSectorAttribute(){
+     if(isset($this->sector)){
+       $j =$this->sector;
+       return $j->descripcion;
+     }else{
+       return 's/s';
+     }
+   }
   public function sector(){
     return $this->belongsTo('App\Mesas\SectorMesas','id_sector_mesas','id_sector_mesas');
   }

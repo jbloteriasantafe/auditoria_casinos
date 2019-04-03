@@ -89,7 +89,7 @@ class ABMCRelevamientosAperturaController extends Controller
     if(file_exists( public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)){
       return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
     }else{
-      enEspera = DB::table('comando_a_ejecutar')
+      $enEspera = DB::table('comando_a_ejecutar')
             ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
                     ['nombre_comando','=','RAM:sortear']
                     ])
@@ -218,13 +218,23 @@ class ABMCRelevamientosAperturaController extends Controller
       $rel->fecha = $dia."-".$mes."-".$año;
       $rel->casino = $cas->nombre;
 
-      $fichas = FichaTieneCasino::where('id_casino',$cas->id_casino)
-                                        ->get()
-                                        ->unique('valor_ficha')
-                                        ->sortByDesc('valor_ficha');
-      $rel->fichas = $fichas->map(function ($fichas ) {
-          return $fichas->only(['valor_ficha']);
-        });
+      $fichas = DB::table('ficha')
+                    ->select('ficha.valor_ficha')
+                    ->join('ficha_tiene_casino as fc','fc.id_ficha','=','ficha.id_ficha')
+                    ->where('fc.id_casino','=',$cas->id_casino)
+                    ->whereNull('fc.deleted_at')
+                    ->whereNull('ficha.deleted_at')
+                    ->distinct('ficha.valor_ficha')
+                    ->orderBy('valor_ficha','desc')
+                    ->get();
+      $rel->fichas = $fichas;              
+      // $fichas = FichaTieneCasino::where('id_casino',$cas->id_casino)
+      //                                   ->get()
+      //                                   ->unique('valor_ficha')
+      //                                   ->sortByDesc('valor_ficha');
+      // $rel->fichas = $fichas->map(function ($fichas ) {
+      //     return $fichas->only(['valor_ficha']);
+      //   });
       $rel->cant_fichas = $rel->fichas->count();
       if($rel->cant_fichas > 15){
         $rel->paginas = [1,2]; //->cantidad de mesas que se deben relevar obligatoriamente (de a pares)

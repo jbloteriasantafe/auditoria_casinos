@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Canon;
+namespace App\Http\Controllers\Mesas\Canon;
 
 use Auth;
 use Session;
@@ -61,6 +61,6 @@ class IndexController extends Controller
 
   public function index(){
 
-    return view ('Canon.canon',['casinos'=>UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos]);
+    return view ('Canon.canon',['casinos'=> UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos]);
   }
 }

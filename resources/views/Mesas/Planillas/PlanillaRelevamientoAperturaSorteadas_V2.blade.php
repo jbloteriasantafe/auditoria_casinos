@@ -61,7 +61,7 @@ footer
                       <table style="border-collapse: collapse;">
                         <tbody>
                           <tr>
-                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="2">MESAS</th>
+                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
                           </tr>
                           <tr>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>

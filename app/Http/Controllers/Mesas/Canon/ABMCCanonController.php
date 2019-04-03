@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Canon;
+namespace App\Http\Controllers\Mesas\Canon;
 
 use Auth;
 use Session;
