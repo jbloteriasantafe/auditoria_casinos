@@ -241,6 +241,7 @@ $(document).on('click','.cargarSorteo', function(e){
   $('.cant_cds').val('');
   $('#obsSorteo').val('');
   $('#desplazarTMEsas').hide();
+  $('.verObs').hide();
   $('#tablaMesasSorteadas tbody tr').remove();
   $('#tablaMesasSorteadas2 tbody tr').remove();
   $('#tablaMesasSorteadas3 tbody tr').remove();
@@ -307,6 +308,7 @@ $(document).on('change','.cant_cds',function(){
     //$('.continuarCarga').prop('readonly',false);
 
     $('#desplazarTMEsas').hide();
+    $('.verObs').hide();
     $('#tablaMesasSorteadas tbody tr').remove();
     $('#tablaMesasSorteadas2 tbody tr').remove();
     $('#tablaMesasSorteadas3 tbody tr').remove();
@@ -426,6 +428,7 @@ $(document).on('click', '.continuarCarga',function(e){
   var id=  $('.continuarCarga').val();
 
   $('#desplazarTMEsas').show();
+  $('.verObs').show();
   $('#errorCdId').hide();
   $('.continuarCarga').prop('disabled',true);
 

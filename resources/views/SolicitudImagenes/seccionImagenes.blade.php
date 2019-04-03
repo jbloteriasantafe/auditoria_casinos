@@ -202,6 +202,7 @@
       <br>
       <div class="row" style="border-bottom: 1px solid #ccc;" id="desplazarTMEsas" hidden="true">
         <br>
+        <br>
             <h6  style="font-size:16px; text-align:center !important;font-weight: bold;">DATOS DE LAS IMÁGENES</h6>
             <br>
             <ul class="nav nav-tabs nav-justified pestaniasFechas" id="pestaniasFechas" style=" width:80%;" hidden="true">
@@ -262,8 +263,9 @@
             </div>
           </div>
           <br>
-          <div class="col-md-12">
-            <h6 style="font-size:16px;margin-left:15px !important">OBSERVACIONES: </h6>
+          <div class="row verObs" hidden="true">
+            <br>
+            <h6 style="font-size:16px;margin-left:15px !important" >OBSERVACIONES: </h6>
             <textarea name="name" id="obsSorteo" style="width:70% !important;height:auto !important; margin-left:15px" readonly="true" class="estilotextarea4"></textarea>
           </div>
           <br>
