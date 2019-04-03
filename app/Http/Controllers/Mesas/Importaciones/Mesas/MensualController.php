@@ -378,7 +378,7 @@ class MensualController extends Controller
  }
 
 
-  private function actualizarTotales($id_importacion_mensual_mesas)
+  public function actualizarTotales($id_importacion_mensual_mesas)
   {
     $imp = ImportacionMensualMesas::find($id_importacion_mensual_mesas);
     $total_mensual = 0;

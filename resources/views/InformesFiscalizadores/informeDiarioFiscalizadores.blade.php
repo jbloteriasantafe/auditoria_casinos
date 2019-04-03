@@ -48,28 +48,33 @@ footer
 
         <div class="encabezadoImg">
               <img style="margin-top:-6px !important" src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <br>
-              <h2><span>RMES02 | Informe Diario, Mesas de Paño.</span></h2>
+              <h2><span>PMES01 | Informe Diario - Mesas de Paño</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-25px;">FECHA INFORME</div>
               <div class="camposInfo" style="right:0px;"></span>{{$rel->informe->fecha}}</div>
 
-            <table class="tablaInicio"  style="border-collapse: collapse;" width= '90%'>
+            <table class="tablaInicio"  style="border-collapse: collapse;">
               <thead>
                 <th style="font-size:15px; text-align:center !important">
-                  DATOS
+                  DATOS - {{$rel->informe->fecha}}
                 </th>
               </thead>
 
               <tbody>
-                <tr style="border-bottom:0px solid #ccc; font-size:15px; width:100% !important; color:white;">
-                  FGHFH
+                <tr style="border-bottom:1px solid #ccc; font-size:15px;">
+                  
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Cierres cargados: {{$rel->informe->cant_cierres}}</i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
+                  <td><i>Cantidad de Cierres sin validar: {{$rel->informe->cie_sin_validar}}</i></td>
+                </tr>
+                <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Aperturas relevadas: {{$rel->informe->cant_aperturas}}</i></td>
+                </tr>
+                <tr style="border-bottom:1px solid #ccc">
+                  <td><i>Cantidad de Aperturas sin validar: {{$rel->informe->ap_sin_validar}}</i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Mesas Abiertas: {{$rel->informe->cant_mesas_abiertas}}</i></td>
@@ -89,9 +94,9 @@ footer
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Mesas con el Valor Mínimo: {{$rel->informe->cantidad_abiertas_con_minimo}}</i></td>
                 </tr>
-                @if($rel->informe->cumplio_minimo == '1')
+                @if($rel->informe->cumplio_minimo != '1')
                 <tr style="border-bottom:1px solid #ccc;">
-                  <td><i>No se ha cumplido con el mínimo requerido de apuestas en los turnos: {{$rel->turnos_no_cumplen}}</i></td>
+                  <td><i>No se ha cumplido con el mínimo requerido de apuestas en los turnos: {{$rel->informe->turnos_sin_minimo}}</i></td>
                 </tr>
                 @else
                 <tr style="border-bottom:1px solid #ccc;">
@@ -99,7 +104,7 @@ footer
                 </tr>
                 @endif
                 <tr style="border-bottom:1px solid #ccc;">
-                  @if($rel->relevamientos_incorrectos == '')
+                  @if($rel->relevamientos_incorrectos == 'true')
                   <td><i>Existe <b>diferencias</b> entre los datos cargados en los Relevamientos de Valores de Apuestas y los datos importados para el día de la fecha</i></td>
                   @else
                   <td> <i>Los datos de Relevamientos de Valores de Apuestas <b>coinciden</b> con los datos importados para el día de la fecha</i> </td>
@@ -109,35 +114,35 @@ footer
             </table>
             <br>
             <br>
+      @if($rel->informe->mesas_con_diferencia != null)
+        <h5 style="font-family:Roboto-Regular !important; font-size:15px;text-align:center !important">TABLA DE DIFERENCIAS CIERRES Y APERTURAS</h5>
 
-      <h5 style="font-family:Roboto-Regular !important; font-size:15px;text-align:center !important">TABLA DE DIFERENCIAS CIERRES Y APERTURAS</h5>
-      @if($rel->mesas_con_diferencia != null)
-      <table style="border-collapse: collapse;">
-        <thead>
-          <tr align="center">
-            <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">Mesa</th>
-            <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">Diferencias</th>
-            <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">Observaciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($rel->mesas_con_diferencia as $diff)
-            <tr>
-              <th class="col-xl-2 " style=" font-size:12px; border-color: gray;text-align:center !important;">
-                {{$diff['mesa']}}
-              </th>
-              <th class="col-xl-3 " style="font-size:12px; border-color: gray;text-align:center !important;">
-                {{$diff['diferencia']}}
-              </th>
-              <th class="col-xl-2 " style="font-size:12px; border-color: gray;text-align:center !important;">
-                {{$diff['observacion']}}
-              </th>
+        <table style="border-collapse: collapse;">
+          <thead>
+            <tr align="center">
+              <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">Mesa</th>
+              <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">Diferencias</th>
+              <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">Observaciones</th>
             </tr>
-          @endforeach
-        </tbody>
-      </table>
-      <br>
-      <br>
+          </thead>
+          <tbody>
+            @foreach($rel->informe->mesas_con_diferencia as $diff)
+              <tr>
+                <th class="col-xl-2 " style=" font-size:12px; border-color: gray;text-align:center !important;">
+                  {{$diff['mesa']}}
+                </th>
+                <th class="col-xl-3 " style="font-size:12px; border-color: gray;text-align:center !important;">
+                  {{$diff['diferencia']}}
+                </th>
+                <th class="col-xl-2 " style="font-size:12px; border-color: gray;text-align:center !important;">
+                  {{$diff['observacion']}}
+                </th>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+        <br>
+        <br>
       @endif
   </body>
 </html>

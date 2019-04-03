@@ -696,6 +696,11 @@ Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filt
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
 Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
 
+Route::get('informeDiario/getDatos/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosAModificar');
+Route::get('informeDiario/getDatosImportacion/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosDetalle');
+Route::post('informeDiario/almacenarDatos','Mesas\InformesMesas\ModificarInformeDiarioController@almacenarDatos');
+
+
 
 Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
   Route::get('/canon','Mesas\Canon\IndexController@index');
