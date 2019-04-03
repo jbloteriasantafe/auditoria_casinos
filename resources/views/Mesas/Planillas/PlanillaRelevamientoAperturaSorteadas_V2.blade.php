@@ -61,15 +61,17 @@ footer
                       <table style="border-collapse: collapse;">
                         <tbody>
                           <tr>
-                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="2">MESAS</th>
+                            <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
                           </tr>
                           <tr>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
+                            <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">SECTOR</th>
                             <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
                           </tr>
                           @foreach($lista_mesas as $mesa)
                           <tr>
                             <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['codigo_mesa']}}</td>
+                            <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['sector']}}</td>
                             <td class=" tablaInicio" style="background-color: white; border-color: gray;"></td>
                           </tr>
                           @endforeach

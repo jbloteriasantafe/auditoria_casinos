@@ -26,6 +26,7 @@ use App\Mesas\Cierre;
 use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
 
+use App\Http\Controllers\UsuarioController;
 //validacion de cierres
 class VCierreController extends Controller
 {
@@ -52,11 +53,20 @@ class VCierreController extends Controller
   }
 
   //en esta
-  public function validarCierre($id_cierre){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if($user->usuarioTieneCasino($request->id_casino)){
-      $cierre = Cierre::find($id_cierre);
+  public function validarCierre(Request $request){
+    $validator=Validator::make($request->all(), [
+      'id_cierre' => 'exists:cierre_mesa,id_cierre_mesa',
+      'observacion' => 'nullable|max:200',
+
+     ],array(),self::$atributos)->after(function ($validator){})->validate();
+
+       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+       $cierre = Cierre::find($request->id_cierre);
+    if($user->usuarioTieneCasino($cierre->id_casino)){
+
       $cierre->estado_cierre()->associate(3);//VISADO
+      $cierre->observacion = $request->observacion;
+      $cierre->save();
       return response()->json(['ok' => true], 200);
     }else{
       $val = new Validator;

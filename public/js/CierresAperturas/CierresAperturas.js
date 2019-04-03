@@ -1771,7 +1771,7 @@ $(document).on('change', '#fechaCierreVal', function(e) {
 //botón validar dentro del modal
 $(document).on('click', '#validar', function(e) {
   e.preventDefault();
-
+  $('#mensajeExito').hide();
   var id_apertura = $(this).val();
 
     var formData= {

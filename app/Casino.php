@@ -10,7 +10,7 @@ class Casino extends Model
   protected $connection = 'mysql';
   protected $table = 'casino';
   protected $primaryKey = 'id_casino';
-  protected $visible = array('id_casino','nombre','codigo');
+  protected $visible = array('id_casino','nombre','codigo','fecha_inicio','porcentaje_sorteo_mesas');
   public $timestamps = false;
 
   public function turnos(){
@@ -61,8 +61,20 @@ class Casino extends Model
   }
 
   public function mesas(){
-    return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
-  }
+  return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
+}
+
+public function meses(){
+  return $this->hasMany('App\MesCasino','id_casino','id_casino');
+}
+
+public function detalles_informe_final_mesas(){
+  return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
+}
+
+public function fichas(){
+  return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
+}
 
   public static function boot(){
         parent::boot();

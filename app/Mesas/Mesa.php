@@ -13,28 +13,45 @@ class Mesa extends Model
   protected $primaryKey = 'id_mesa_de_panio';
   protected $visible = array('id_mesa_de_panio','nro_mesa','nombre','descripcion',
                              'id_juego_mesa','id_casino','id_moneda','id_sector_mesas',
-                             'multimoneda','codigo_mesa','nro_admin');
+                             'multimoneda','codigo_mesa','nro_admin','codigo_sector','nombre_sector');
 
 
   protected $fillable = ['nro_mesa','nombre','descripcion','nro_admin',
                              'id_juego_mesa','id_casino','id_moneda','id_sector_mesas','multimoneda'];
 
 
-  protected $appends = array('codigo_mesa');
+  protected $appends = array('codigo_mesa','codigo_sector','nombre_sector');
 
 
   public function getCodigoMesaAttribute(){
       if(isset($this->juego)){
         $j =$this->juego;
-        if($this->nro_mesa < 10){
-        return $j->siglas.'-'.'0'.$this->nro_mesa;
+        if($this->nro_admin < 10){
+        return $j->siglas.'-'.'0'.$this->nro_admin;
       }else {
-        return $j->siglas.'-'.$this->nro_mesa;
+        return $j->siglas.'-'.$this->nro_admin;
       }
       }else{
-        return $this->nro_mesa;
+        return $this->nro_admin;
       }
     }
+    public function getCodigoSectorAttribute(){
+          if(isset($this->sector)){
+            $j =$this->sector;
+            return $j->descripcion.'-'.$this->codigo_mesa;
+          }else{
+            return $this->codigo_mesa;
+          }
+        }
+
+        public function getNombreSectorAttribute(){
+     if(isset($this->sector)){
+       $j =$this->sector;
+       return $j->descripcion;
+     }else{
+       return 's/s';
+     }
+   }
   public function sector(){
     return $this->belongsTo('App\Mesas\SectorMesas','id_sector_mesas','id_sector_mesas');
   }

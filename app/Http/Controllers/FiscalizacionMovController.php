@@ -14,6 +14,7 @@ use App\LogMovimiento;
 use App\Nota;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Controllers\UsuarioController;
 use Validator;
 
 class FiscalizacionMovController extends Controller
