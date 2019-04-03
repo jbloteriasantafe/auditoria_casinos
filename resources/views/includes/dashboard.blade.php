@@ -713,7 +713,7 @@ $cas = $usuario['usuario']->casinos;
                             <div id="barraCanon" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;">
 
                                 <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('informes','iconoCanon')
+                                  @svg('bolsa_pesos','iconoCanon')
                                 </span>
                                 <span>Canon</span>
 
