@@ -86,27 +86,27 @@
         <tbody>
           @foreach($moneda['detalles'] as $d)
           <tr>
-            <td style="text-align:center !important">{{$d->fecha_dia}}</td>
-            <td style="text-align:center !important">{{$d->saldo_fichas_dia}}</td>
-            <td style="text-align:center !important">{{$d->total_diario}}</td> <!--  drop,efectivo,platita -->
-            <td style="text-align:center !important">{{$d->utilidad}}</td>
-            <td style="text-align:center !important">{{$d->hold}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->fecha_dia}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->saldo_fichas_dia}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->total_diario}}</td> <!--  drop,efectivo,platita -->
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->utilidad}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->hold}}</td>
             @if($moneda['moneda'] != 'ARS')
-            <th style="text-align:center !important;">{{$d->cotizacion}}</th>
-            <th style="text-align:center !important;">{{$d->conversion}}</th>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->cotizacion}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->conversion}}</td>
             @endif
           </tr>
           @endforeach
           <!-- fila totalizadora -->
           <tr>
-            <td style="text-align:center !important">{{$moneda['totales_moneda']->fecha_dia}}</td>
-            <td style="text-align:center !important">{{$moneda['totales_moneda']->saldo_fichas_dia}}</td>
-            <td style="text-align:center !important">{{$moneda['totales_moneda']->total_diario}}</td> <!--  drop,efectivo,platita -->
-            <td style="text-align:center !important">{{$moneda['totales_moneda']->utilidad}}</td>
-            <td style="text-align:center !important">{{$moneda['totales_moneda']->hold}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->fecha_dia}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->saldo_fichas_dia}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->total_diario}}</td> <!--  drop,efectivo,platita -->
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->utilidad}}</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->hold}}</td>
             @if($moneda['moneda'] != 'ARS')
-            <th style="text-align:center !important;">--</th>
-            <th style="text-align:center !important;">$moneda['totales_moneda']->conversion_total</th>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">--</td>
+            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">$moneda['totales_moneda']->conversion_total</td>
             @endif
           </tr>
         </tbody>
@@ -132,9 +132,9 @@
         <tbody>
           @foreach($moneda['juegos'] as $j)
             <tr>
-              <td style="text-align:center !important">{{$j['nombre_juego']}}</td>
-              <td style="text-align:center !important">{{$j['total']}}</td>
-              <td style="text-align:center !important">{{$j['porcentaje']}} %</td>
+              <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$j['nombre_juego']}}</td>
+              <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$j['total']}}</td>
+              <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$j['porcentaje']}} %</td>
             </tr>
           @endforeach
         </tbody>
