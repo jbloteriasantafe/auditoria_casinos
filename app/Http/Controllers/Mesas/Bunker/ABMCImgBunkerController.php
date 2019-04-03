@@ -101,7 +101,7 @@ class ABMCImgBunkerController extends Controller
     //dd($start);
     $fechas_collect = collect();
     for ($i=0; $i <3 ; $i++) {
-      int $j = 0;
+       $j = 0;
       do {
         $j++;
         $random = rand($start->format('j'),$end->format('j'));

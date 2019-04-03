@@ -56,7 +56,7 @@ class IndexController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['tiene_permiso:ver_seccion_canon']);
+      $this->middleware(['tiene_permiso:m_ver_seccion_canon']);
   }
 
   public function index(){
