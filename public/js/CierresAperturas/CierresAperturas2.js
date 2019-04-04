@@ -1,166 +1,113 @@
 $(document).ready(function() {
-  $('#barraMesas').attr('aria-expanded','true');
-  $('#mesasPanio').removeClass();
-  $('#mesasPanio').addClass('subMenu1 collapse in');
-  $('.tituloSeccionPantalla').text('Gestionar Cierres y Aperturas');
-  $('#opcAperturas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#opcAperturas').addClass('opcionesSeleccionado');
-    $('[data-toggle="popover"]').popover();
-    $(function () {
-  $('[data-toggle="popover"]').popover()
-})
+    $('#barraMesas').attr('aria-expanded','true');
+    $('#mesasPanio').removeClass();
+    $('#mesasPanio').addClass('subMenu1 collapse in');
+    $('.tituloSeccionPantalla').text('Gestionar Cierres y Aperturas');
+    $('#opcAperturas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+    $('#opcAperturas').addClass('opcionesSeleccionado');
 
-    $('.tituloSeccionPantalla').hide();
-    //$('.tituloSeccionPantalla').text('Gestionar Juegos');
-    var fila= $('#filaFichasClon').clone();
-
-    limpiarFiltrosApertura();
-    limpiarFiltrosCierre();
-    $('#cierreApertura').show();
-    $('#cierreApertura').css('display','inline-block');
-
+    $('#tipoArchivo').val('1');
+    $('#selectCas').val('0');
     $('#casinoApertura').val('0');
+    $('#selectJuego').val('0');
+    $('#filtroMesa').val('');
+    $('#B_fecha_filtro').val('');
     $('#B_fecha_cie').val('');
     $('#B_fecha_apert').val('');
 
     $('#mensajeExito').hide();
     $('#mensajeError').hide();
 
+    $("#tablaCyA").tablesorter({
+        headers: {
+          3: {sorter:false}
+        }
 
-    $(function(){
-      $('#dtpFechaApert').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalCargaApertura'),
-          });
     });
 
-    $(function(){
-      $('#dtpfechaCierreModif').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalModificarCierre'),
-          });
-    });
 
-    $(function(){
-        $('#dtpfechaCierre').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalCargaCierre'),
-          });
+  $(function(){
+    $('#dtpFechaApert').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'yyyy-mm-dd',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
+        container:$('#modalCargaApertura'),
       });
-    $(function(){
-        $('#dtpFechaCierreFiltro').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-          });
-        });
-    $(function(){
-        $('#dtpFecha').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-        });
+  });
+
+  $(function(){
+    $('#dtpfechaCierre').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'yyyy-mm-dd',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
+        container:$('#modalCargaCierre'),
+      });
+  });
+  $(function(){
+    $('#dtpFecha').datetimepicker({
+        language:  'es',
+        todayBtn:  1,
+        autoclose: 1,
+        todayHighlight: 1,
+        format: 'yyyy-mm-dd',
+        pickerPosition: "bottom-left",
+        startView: 4,
+        minView: 2,
       });
 
+        $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
+  });
 
-    //pestañas
-    $(".tab_content").hide(); //Hide all content
-  	$("ul.cierreApertura li:first").addClass("active").show(); //Activate first tab
-  	$(".tab_content:first").show(); //Show first tab content
+  $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
+  $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
 
-    $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
-    $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
-    $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
 
 }); //fin document ready
 
+//BUSCAR BUSCAR BUSCA buscar
 
-//PESTAÑAS
-$("ul.cierreApertura li").click(function() {
+$('#btn-buscarCyA').click(function(e,pagina,page_size,columna,orden){
 
-    $("ul.cierreApertura li").removeClass("active"); //Remove any "active" class
-    $(this).addClass("active"); //Add "active" class to selected tab
-    $(".tab_content").hide(); //Hide all tab content
-
-    var activeTab = $(this).find("a").attr("href"); //Find the href attribute value to
-                //identify the active tab + content
-                console.log(activeTab);
-    if(activeTab == '#pant_cierres'){
-      limpiarFiltrosCierre();
-      $('#btn-buscar-cierre').trigger('click',[1,10,'cierre_mesa.fecha','desc']);
-    }
-    if(activeTab == '#pant_aperturas'){
-      limpiarFiltrosApertura();
-      $('#btn-buscar-cierre').trigger('click',[1,10,'cierre_mesa.fecha','desc']);
-    }
-    $(activeTab).fadeIn(); //Fade in the active ID content
-    return false;
-});
-
-//BUSCAR cierres
-$('#btn-buscar-cierre').on('click', function(e,pagina,page_size,columna,orden){
   e.preventDefault();
-  var mesa=$('#filtroMesaCierre').val();
 
-  if(mesa.length > 11){
-    mostrarErrorValidacion($('#filtroMesaCierre'), 'La cantidad máxima permitida de Carateres es de 11');
-  }
-  else{
-    ocultarErrorValidacion($('#filtroMesaCierre'));
-    $('#cuerpoTablaCierre tr').remove();
 
+  $('#cuerpoTablaCyA tr').remove();
+
+  var fila = $(document.createElement('tr'));
+
+
+    if($('#tipoArchivo').val()==2){ //elige ver CIERRES
       //Fix error cuando librería saca los selectores
-      if(isNaN($('#herramientasPaginacion2').getPageSize())){
+      if(isNaN($('#herramientasPaginacion').getPageSize())){
         var size = 10; // por defecto
       }else {
-        var size = $('#herramientasPaginacion2').getPageSize();
+        var size = $('#herramientasPaginacion').getPageSize();
       }
 
       var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion2').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosCierres .activa').attr('cierre'),orden: $('#tablaResultadosCierres .activa').attr('estado')} ;
+      // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('cierre'),orden: $('#tablaResultados .activa').attr('estado')} ;
 
-      if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-        var sort_by =  {columna: 'cierre_mesa.fecha',orden: 'desc'} ;
-
-        //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+      if(sort_by == null){ // limpio las columnas
+        $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
       }
+      $('#tablaInicial').text('CIERRES');
           var formData= {
-            fecha: $('#B_fecha_filtro_cierre').val(),
-            nro_mesa: $('#filtroMesaCierre').val(),
-            id_juego:$('#selectJuegoCierre').val(),
-            id_casino: $('#selectCasCierre').val(),
+            fecha: $('#B_fecha_filtro').val(),
+            nro_mesa: $('#filtroMesa').val(),
+            id_juego:$('#selectJuego').val(),
+            id_casino: $('#selectCas').val(),
             page: page_number,
             sort_by: sort_by,
             page_size: page_size,
@@ -179,110 +126,134 @@ $('#btn-buscar-cierre').on('click', function(e,pagina,page_size,columna,orden){
               dataType: 'json',
 
               success: function (data){
-                $('#herramientasPaginacion2').generarTitulo(page_number,page_size,data.cierre.total,clickIndiceCierres);
-                $('#tablaResultadosCierres tbody tr').remove();
-
+                $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.cierre.total,clickIndiceMov);
+                $('#tablaResultados tbody tr').remove();
+                $('#tablaResultados').find('#estado_ocultar').hide();
                 for (var i = 0; i < data.cierre.data.length; i++) {
 
                     var fila=  generarFilaCierres(data.cierre.data[i]);
-                    $('#cuerpoTablaCierre').append(fila);
-                }
-                $('#herramientasPaginacion2').generarIndices(page_number,page_size,data.cierre.total,clickIndiceCierres);
-              },
-              error: function(data){
-              },
-          })
-        }
-});
-
-$('#btn-buscarCyA').on('click', function(e,pagina,page_size,columna,orden){
-
-  e.preventDefault();
-  var nro=$('#filtroMesa').val();
-
-  if(nro.length > 11){
-    mostrarErrorValidacion($('#filtroMesa'), 'La cantidad máxima permitida de Carateres es de 11');
-  }
-  else{
-    ocultarErrorValidacion($('#filtroMesa'));
-
-    $('#cuerpoTablaCyA tr').remove();
-
-        if(isNaN($('#herramientasPaginacion').getPageSize())){
-          var size = 10; // por defecto
-        }else {
-          var size = $('#herramientasPaginacion').getPageSize();
-        }
-
-        var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-        // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-        var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-        var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('apertura'),orden: $('#tablaResultados .activa').attr('estado')} ;
-
-        if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-          var sort_by =  {columna: 'apertura_mesa.fecha',orden: 'desc'} ;
-
-          //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-        }
-
-        $('#tablaInicial').text('APERTURAS');
-
-          var formData = {
-            fecha: $('#B_fecha_filtro').val(),
-            nro_mesa: $('#filtroMesa').val(),
-            id_juego:$('#selectJuego').val(),
-            id_casino: $('#selectCas').val(),
-            page: page_number,
-            sort_by: sort_by,
-            page_size: page_size,
-          }
-
-          $.ajaxSetup({
-              headers: {
-                  'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-              }
-          });
-
-          $.ajax({
-              type: 'POST',
-              url: 'aperturas/filtrosAperturas',
-              data: formData,
-              dataType: 'json',
-
-              success: function (data){
-                $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.apertura.total,clickIndice);
-
-                $('#tablaResultados tbody tr').remove();
-
-                for (var i = 0; i < data.apertura.data.length; i++) {
-                    var fila=generarFilaAperturas(data.apertura.data[i]);
                     $('#cuerpoTablaCyA').append(fila);
                 }
-
-                $('#herramientasPaginacion').generarIndices(page_number,page_size,data.apertura.total,clickIndice);
+                $('#herramientasPaginacion').generarIndices(page_number,page_size,data.cierre.total,clickIndiceMov);
               },
               error: function(data){
               },
           })
+        }
+  else
+  {
+    //Fix error cuando librería saca los selectores
+    if(isNaN($('#herramientasPaginacion').getPageSize())){
+      var size = 10; // por defecto
+    }
+    else {
+      var size = $('#herramientasPaginacion').getPageSize();
+    }
+
+    var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('apertura'),orden: $('#tablaResultados .activa').attr('estado')} ;
+
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    }
+
+      $('#tablaInicial').text('APERTURAS');
+
+        var formData = {
+          fecha: $('#B_fecha_filtro').val(),
+          nro_mesa: $('#filtroMesa').val(),
+          id_juego:$('#selectJuego').val(),
+          id_casino: $('#selectCas').val(),
+          page: page_number,
+          sort_by: sort_by,
+          page_size: page_size,
+        }
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+            }
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: 'aperturas/filtrosAperturas',
+            data: formData,
+            dataType: 'json',
+
+            success: function (data){
+              $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.apertura.total,clickIndiceMov);
+
+              $('#tablaResultados tbody tr').remove();
+
+              $('#tablaResultados').find('#estado_ocultar').show();
+
+              for (var i = 0; i < data.apertura.data.length; i++) {
+                  var fila=generarFilaAperturas(data.apertura.data[i]);
+                  $('#cuerpoTablaCyA').append(fila);
+              }
+
+              $('#herramientasPaginacion').generarIndices(page_number,page_size,data.apertura.total,clickIndiceMov);
+
+            },
+            error: function(data){
+            },
+        })
       }
 });
 
-//detectar si se cierra un modal de carga, presiona buscar
+//APERTURAS APERTURAS APERTURAS APERTURAS Aperturas
+
 $("#modalCargaCierre").on('hidden.bs.modal', function () {
-    $('#btn-buscar-cierre').trigger('click');
+    $('#btn-buscarCyA').trigger('click');
   });
 
 $("#modalCargaApertura").on('hidden.bs.modal', function () {
-  $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
+    $('#btn-buscarCyA').trigger('click');
   });
 
-//APERTURAS APERTURAS APERTURAS APERTURAS Aperturas
+$(document).on('click','#tablaResultados thead tr th',function(e){
+
+    $('#tablaResultados th').removeClass('activa');
+
+    if($(e.currentTarget).children('i').hasClass('fa-sort')){
+      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
+    }
+    else{
+
+      if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
+        $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
+      }
+      else{
+          $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
+      }
+    }
+    $('#tablaResultados th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
+    clickIndiceMov(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+  });
+
+
+function clickIndiceMov(e,pageNumber,tam){
+
+    if(e != null){
+      e.preventDefault();
+    }
+
+    var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+    var columna = $('#tablaResultados .activa').attr('value');
+    var orden = $('#tablaResultados .activa').attr('estado');
+    $('#btn-buscarCyA').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
+
 $('#btn-generar-rel').on('click', function(e){
 
   e.preventDefault();
 
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   var formData = {
     // id_ape: 1,
@@ -297,16 +268,10 @@ $('#btn-generar-rel').on('click', function(e){
       dataType: 'json',
 
        beforeSend: function(data){
-         $('#modalRelevamiento').find('.modal-body').html('<div class="loading"><img src="/img/ajax-loader(1).gif" alt="loading" /><br>Un momento, por favor...</div>').css('text-align','center');
-         $('#modalRelevamiento').modal('show');
-         //$('#modalRelevamiento').find('.modal-body').children('#floatingCirclesG').show();
 
-         //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
-      //   if ($('#modalRelevamiento #casino option:selected').val() != "") {
-      //       $('#modalRelevamiento').find('.modal-footer').children().hide();
-      //       $('#modalRelevamiento').find('.modal-body').children().hide();
-      //       $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
-      //   }
+         $('#modalRelevamiento').modal('show');
+         $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+
       },
       success: function (data) {
 
@@ -326,28 +291,17 @@ $('#btn-generar-rel').on('click', function(e){
           console.log('7777',iframe);
       },
       error: function (data) {
-          var apertura = $.parseJSON(data.responseText);
-          console.log(apertura);
+
          $('#modalRelevamiento').modal('hide');
-           $.each(apertura, function (key, val) {
-             $('#modalErrorRelevamiento').modal('show');
-             $('#chinwenwencha').append($('<h6>').addClass('list-group-item')
-                                                             .css('font-size','14px')
-                                                             .text(val));
-           });
 
-
-      } //error
-  }); //$.ajax
+      }
+  });
 
 });
 
 $('#btn-cargar-apertura').on('click', function(e){
-
+  $('#mensajeExitoCargaAp').hide();
   e.preventDefault();
-
-  $('#mensajeExito').hide();
-
   limpiarCargaApertura();
   $('#tablaMesasApert tbody tr').remove();
 
@@ -359,10 +313,10 @@ $('#btn-cargar-apertura').on('click', function(e){
 
   $('#mensajeErrorCargaAp').hide();
   $('#casinoApertura').val("0");
-  $('#mensajeExitoCargaAp').hide();
-  $('.detallesCargaAp').hide();
 
+  $('.detallesCargaAp').hide();
   $('#btn-finalizar-apertura').hide();
+
   $('#modalCargaApertura').modal('show');
 
 })
@@ -375,7 +329,7 @@ $(document).on('change','#casinoApertura',function(){
   $('#columnaDetalle').hide();
   var fecha=$('#B_fecha_apert').val();
   var id_casino=$('#casinoApertura').val();
-  $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+  $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino,'mesas','id_mesa_de_panio','nro_mesa',1,true);
   $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 });
 
@@ -385,35 +339,32 @@ $('#confirmar').on('click',function(e){
   e.preventDefault();
 
     $('#btn-guardar-apertura').hide();
-    if($('#casinoApertura').val() != 0 && $('#casinoApertura').val() != 4 && $('#B_fecha_apert').val().length != 0){
+    if($('#casinoApertura').val() != 0 && $('#casinoApertura').val() != 4 && $('#B_fecha_apert').val().length !=0){
 
       $('.detallesCargaAp').show();
 
       var fecha = $('#B_fecha_apert').val();
       var id_casino=$('#casinoApertura').val();
 
-      $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+      $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino,'mesas','id_mesa_de_panio','nro_mesa',1,true);
 
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
+
       $.get('usuarios/quienSoy',function(data){
-        console.log('quiensoy',data);
-        $('#cargador').val(data.nombre);
-        $('#cargador').attr('data-cargador',data.id_usuario);
+        $('#cargador').val(data.usuario.nombre);
+        $('#cargador').attr('data-cargador',data.usuario.id_usuario);
       })
-    }
-    else{
-      if($('#casinoCierre').val() == 0 ){
-        mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
       }
-      console.log('ppp',$('#B_fecha_apert').val().length);
-
-      if($('#B_fecha_apert').val().length == 0  ){
-        mostrarErrorValidacion($('#B_fecha_apert'),'Campo Obligatorio',false);
+      else{
+        if($('#casinoApertura').val() == 0 ){
+          mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
+        }
+        if($('#B_fecha_apert').val().length == 0  ){
+          mostrarErrorValidacion($('#B_fecha_apert'),'Campo Obligatorio',false);
+        }
       }
-    }
-
 })
 
 $(document).on('change','.inputApe',function(){
@@ -480,17 +431,17 @@ $(document).on('change','.inputApe',function(){
     }
 });
 
+
 //desvincular una apertura y un cierre. Cuando se valido mal la apertura
 $(document).on('click', '.desvincular', function(e){
   e.preventDefault();
-  $('#mensajeExito').hide();
-  $('#mensajeError').hide();
+
   $('#modalDesvinculacion').modal('show');
   $('#btn-desvincular').val($(this).val());
 
 });
 
-$(document).on('click', '#btn-desvincular', function(e){
+ $(document).on('click', '#btn-desvincular', function(e){
 
   var id=$(this).val();
 
@@ -502,13 +453,10 @@ $(document).on('click', '#btn-desvincular', function(e){
       $('#mensajeExito').show();
       $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
     }
-    else{
-      $('#modalDesvinculacion').modal('hide');
-      $('#mensajeError p').text('No es posible realizar esta acción, ya ha cerrado el periodo de producción correspondiente.');
-      $('#mensajeError').show();
-    }
   })
 })
+
+
 
 $(document).on('click', '.btn_ver_mesa', function(e){
   e.preventDefault();
@@ -516,12 +464,12 @@ $(document).on('click', '.btn_ver_mesa', function(e){
   $('#mensajeExitoCargaAp').hide();
   $('#mensajeErrorCargaAp').hide();
 
-  limpiarCargaApertura();
+  //setea moneda en pesos
   $("input[name='monedaApertura'][value='1']").prop('checked', true);
+  limpiarCargaApertura();
 
   $('#bodyMesas tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
-
 
   if($(this).attr('data-cargado') == true){
 
@@ -532,7 +480,6 @@ $(document).on('click', '.btn_ver_mesa', function(e){
     $('#totalApertura').val('');
     $('#btn-guardar-apertura').show();
     $('#btn-guardar-apertura').prop('disabled',false);
-
     $('#columnaDetalle').show();
     var id_mesa=$(this).attr('data-id');
     $('#id_mesa_ap').val(id_mesa);
@@ -549,7 +496,7 @@ $(document).on('click', '.btn_ver_mesa', function(e){
         fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha');
         fila.css('display', 'block');
         $('#tablaCargaApertura #bodyCApertura').append(fila);
-       }
+      }
     })
   }
 })
@@ -562,8 +509,11 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
 
   limpiarCargaApertura();
   limpiarCargaCierre();
+
   $('#columnaDetalle').hide();
   $('#columnaDetalleCie').hide();
+
+  var tbody = $("#listaMesasCierres tbody");
 
   //si queda vacia la tabla, la oculta.
   if (tbody.children().length == 0) {
@@ -571,82 +521,76 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
     console.log('andaaa');
     $('.listMes').hide();
   }
-
 });
+
 
 //dentro del modal de carga apertura, presiona el botón guardar:
 $('#btn-guardar-apertura').on('click', function(e){
 
   e.preventDefault();
+
   $(this).prop('disabled','true');
 
   $('#mensajeError').hide();
   $('#mensajeExito').hide();
-
   $('#recalcularApert').trigger('click');
+
 
     var id_mesa =$('#modalCargaApertura #id_mesa_ap').val();
     var fichas=[];
     var moneda= $('input[name=monedaApertura]:checked').val();
-
     var f= $('#bodyCApertura > tr');
     $.each(f, function(index, value){
-          var valor={
-            id_ficha: $(this).find('.fichaVal').attr('id'),
-            cantidad_ficha: $(this).find('.inputApe').val()
+
+      var valor={
+        id_ficha: $(this).find('.fichaVal').attr('id'),
+        cantidad_ficha: $(this).find('.inputApe').val()
+      }
+      if(valor.monto_ficha != "" ){
+        fichas.push(valor);}
+
+    })
+
+      var formData= {
+        id_cargador: $('#cargador').attr('data-cargador'),
+        id_casino: $('#casinoApertura').val(),
+        hora: $('#horarioAp').val(),
+        fecha: $('#B_fecha_apert').val(),
+        id_fiscalizador:$('#fiscalizApertura').obtenerElementoSeleccionado(),
+        id_mesa_de_panio:id_mesa,
+        total_pesos_fichas_a: $('#totalApertura').val(),
+        fichas: fichas,
+        id_moneda: moneda,
+
+      }
+
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
           }
-          if(valor.cantidad_ficha != "" && valor.cantidad_ficha != "0" ){
-            fichas.push(valor);
-          }else{
-            valor={
-              id_ficha: $(this).find('.fichaVal').attr('id'),
-              cantidad_ficha: 0
-            }
-              fichas.push(valor);
-          }
+      });
 
-          })
+      $.ajax({
+          type: 'POST',
+          url: 'aperturas/guardarApertura',
+          data: formData,
+          dataType: 'json',
 
-    var formData= {
-      id_cargador: $('#cargador').attr('data-cargador'),
-      id_casino: $('#casinoApertura').val(),
-      hora: $('#horarioAp').val(),
-      fecha: $('#B_fecha_apert').val(),
-      id_fiscalizador:$('#fiscalizApertura').obtenerElementoSeleccionado(),
-      id_mesa_de_panio:id_mesa,
-      total_pesos_fichas_a: $('#totalApertura').val(),
-      fichas: fichas,
-      id_moneda: moneda,
+          success: function (data){
+            $('#columnaDetalle').hide();
+            $('#btn-guardar-apertura').hide();
+            $('#bodyMesas').find('#' + id_mesa).attr('data-cargado',true);
+            $('#bodyMesas').find('#' + id_mesa).find('.btn_borrar_mesa').parent().remove();
+            $('#bodyMesas').find('#' + id_mesa).find('.btn_ver_mesa').prop('disabled', true);
+            $('#bodyMesas').find('#' + id_mesa).append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50')));
+            $('#mensajeExitoCargaAp').show();
+            $('#btn-guardar-apertura').hide();
+            $('#btn-finalizar-apertura').show();
+          },
 
-    }
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    $.ajax({
-        type: 'POST',
-        url: 'aperturas/guardarApertura',
-        data: formData,
-        dataType: 'json',
-
-        success: function (data){
-          $('#columnaDetalle').hide();
-          $('#btn-guardar-apertura').hide();
-          $('#bodyMesas').find('#' + id_mesa).attr('data-cargado',true);
-          $('#bodyMesas').find('#' + id_mesa).find('.btn_borrar_mesa').parent().remove();
-          $('#bodyMesas').find('#' + id_mesa).find('.btn_ver_mesa').prop('disabled', true);
-          $('#bodyMesas').find('#' + id_mesa).append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50')));
-          $('#mensajeExitoCargaAp').show();
-          $('#btn-guardar-apertura').hide();
-          $('#btn-finalizar-apertura').show();
-
-        },
         error: function (reject) {
               if( reject.status === 422 ) {
-                  var errors = $.parseJSON(reject.responseText).errors;
+                  var errors = $.parseJSON(reject.responseText);
                   $.each(errors, function (key, val) {
                     if(key == 'fecha'){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
@@ -681,6 +625,8 @@ $('#btn-guardar-apertura').on('click', function(e){
 
 });
 
+
+//btn finalizar dentro del modal carga apertura
 $('#btn-finalizar-apertura').on('click', function(){
 
     $('#modalCargaApertura').modal('hide');
@@ -689,13 +635,13 @@ $('#btn-finalizar-apertura').on('click', function(){
     $('#mensajeExito').show();
 })
 
+
 //CIERRES CIERRES CIERRES CIERRES Cierres
 
 $('#btn-cargar-cierre').on('click', function(e){
 
   e.preventDefault();
 
-  $('#mensajeExito').hide();
   limpiarCargaCierre();
   ocultarErrorValidacion($('#horario_ini_c'));
   ocultarErrorValidacion($('#juegoCierre'));
@@ -725,7 +671,7 @@ $(document).on('change','#casinoCierre',function(){
 
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
   $('#fiscalizadorCierre').val('');
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -744,6 +690,8 @@ $('#confirmarCierre').on('click',function(e){
       $('.desplegable').show(); //agregar mesa + fiscalizador
       var id_casino=$('#casinoCierre').val();
 
+      // $('#fiscalizadorCierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      // $('#fiscalizadorCierre').setearElementoSeleccionado(0,"");
 
       $('.listMes').hide();
       $('#listaMesasCierres tbody tr').remove();
@@ -751,9 +699,8 @@ $('#confirmarCierre').on('click',function(e){
       $('#mensajeExitoCargaCie').hide();
 
       $.get('usuarios/quienSoy',function(data){
-        console.log('quiensoy',data);
-        $('#fiscalizadorCierre').val(data.nombre);
-        $('#fiscalizadorCierre').attr('data-cargador',data.id_usuario);
+        $('#fiscalizadorCierre').val(data.usuario.nombre);
+        $('#fiscalizadorCierre').attr('data-cargador',data.usuario.id_usuario);
       })
     }
   else{
@@ -775,10 +722,11 @@ $(document).on('click', '.cargarDatos', function(e){
   $('#mensajeExitoCargaAp').hide();
   $('#mensajeErrorCargaAp').hide();
   $('#mensajeExitoCargaCie').hide();
-
   limpiarCargaCierre();
+
+
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
   $('#btn-guardar-cierre').show();
   $("input[name='moneda'][value='1']").prop('checked', true);
@@ -825,6 +773,7 @@ $(document).on('click', '.cargarDatos', function(e){
   })
 
 });
+
 
 $(document).on('change','.inputCie',function(){
 
@@ -886,6 +835,7 @@ $(document).on('change','.inputCie',function(){
 })
 
 
+
 //dentro del modal de carga de cierre, presiona el botón guardar
 $('#btn-guardar-cierre').on('click', function(e){
 
@@ -902,7 +852,6 @@ $('#btn-guardar-cierre').on('click', function(e){
     var moneda= $('input[name=moneda]:checked').val();
     var f= $('#bodyFichasCierre > tr');
     $.each(f, function(index, value){
-
       var valor={
         id_ficha: $(this).find('.fichaValCC').attr('id'),
         monto_ficha: $(this).find('.inputCie').attr('data-ingresado')
@@ -964,7 +913,7 @@ $('#btn-guardar-cierre').on('click', function(e){
           error: function (reject) {
               $('#mensajeError h3').text('ERROR');
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
 
                       if(key == 'fecha'){
@@ -992,12 +941,11 @@ $('#btn-guardar-cierre').on('click', function(e){
                       }
                       if(key != 'id_moneda' && key != 'id_fiscalizador' &&
                          key != 'total_pesos_fichas_c' && key != 'fichas' &&
-                         key != 'id_mesa_de_panio' && key != 'fecha'
+                         key != 'hora_inicio' && key != 'hora_fin' &&
+                         key != 'id_juego_mesa' && key != 'id_mesa_de_panio' && key != 'fecha'
                         ){
                           var splitt = key.split('.');
                           mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                          $('#mensajeFichasError2').show();
-
                       }
                     });
                       $('#btn-guardar-cierre').prop('disabled',false);
@@ -1010,6 +958,7 @@ $('#btn-guardar-cierre').on('click', function(e){
 
 });
 
+//btn finalizar dentro del modal de carga de cierre
 $('#btn-finalizar-cierre').on('click', function(){
 
   $('#modalCargaCierre').modal('hide');
@@ -1017,11 +966,17 @@ $('#btn-finalizar-cierre').on('click', function(){
   $('#mensajeExito p').text('Los Cierres cargados han sido guardados correctamente.');
   $('#mensajeExito').show();
 
-});
+})
 
 $(document).on('click', '.infoCyA', function(e) {
 
   e.preventDefault();
+
+  //veo el data-tipo para ver si se trata de una apertura o de un cierres
+  //y hago el get que corresponda
+  var tipo=$(this).attr('data-tipo');
+
+  if(tipo=='apertura'){
 
     $('#bodyFichasDetApert tr').remove();
     var id_apertura=$(this).val();
@@ -1061,16 +1016,15 @@ $(document).on('click', '.infoCyA', function(e) {
                 .append($('<h8>')
                 .text(0)));
                 }
-            fila.css('cssText','padding:2px !important');
+
+
         $('#bodyFichasDetApert').append(fila);
       }
+
     })
+  }
 
-});
-
-$(document).on('click', '.infoCierre', function(e) {
-
-  e.preventDefault();
+  if(tipo=='cierre'){
 
     //limpiar porquerias
     $('#datosCierreFichas tr').remove();
@@ -1092,6 +1046,7 @@ $(document).on('click', '.infoCierre', function(e) {
       }
       else{
         $('.hora_cierre_det').text(' - ');
+
       }
       if(data.cierre.hora_inicio != null){
         $('.inicio_cierre_det').text(data.cierre.hora_inicio_format);
@@ -1121,7 +1076,7 @@ $(document).on('click', '.infoCierre', function(e) {
               .text(0)));
             }
 
-        $('#fichasdetallesC').append(fila);
+        $('#datosCierreFichas').append(fila);
       }
 
       $('#total_detalle').val(data.cierre.total_pesos_fichas_c);
@@ -1165,134 +1120,19 @@ $(document).on('click', '.infoCierre', function(e) {
         $('#datosApertCierre').text('AÚN NO SE HA VINCULADO NINGUNA APERTURA');
       }
     })
-
+  }
 });
-
-$(document).on('click', '.validarCierre', function(e) {
-
-  e.preventDefault();
-
-    //limpiar porquerias
-    $('#datosCierreFichasValidar tr').remove();
-
-    var id_cierre= $(this).val();
-    $('#validarCierre').val(id_cierre);
-    $('#obsValidacionCierre').text('');
-
-    $.get('cierres/obtenerCierres/' + id_cierre, function(data){
-
-      $('#modalValidarCierre').modal('show');
-
-      $('.mesa_validar_c').text('MESA: ' + data.mesa.nombre + ' - ' + data.moneda.descripcion);
-      $('.juego_validar_c').text('NOMBRE DE JUEGO: '+ data.nombre_juego);
-      $('.cargador_validar_c').text('FISCALIZADOR DE CARGA: '+ data.cargador.nombre);
-      $('.fecha_validar_c').text('FECHA:' + data.cierre.fecha);
-
-
-      if(data.cierre.hora_fin_format != null){
-        $('.hora_cierre_validar_c').text('HORA DE CIERRE: ' + data.cierre.hora_fin_format);
-      }
-      else{
-        $('.hora_cierre_validar_c').text('HORA DE CIERRE: - ');
-      }
-      if(data.cierre.hora_inicio_format != null){
-        $('.inicio_validar_c').text('HORA DE INICIO: ' + data.cierre.hora_inicio_format);
-      }
-      else{
-        $('.inicio_validar_c').text('HORA DE INICIO: - ');
-
-      }
-
-      //creo la tabla de fichas de cierres
-      for (var i = 0; i < data.detallesC.length; i++) {
-        var fila = $(document.createElement('tr'));
-
-            fila.append($('<td>')
-                .addClass('col-xs-6')
-                .append($('<h8>')
-                .text(data.detallesC[i].valor_ficha)))
-            if(data.detallesC[i].monto_ficha != null){
-                fila.append($('<td>')
-                .addClass('col-xs-6')
-                .append($('<h8>')
-                .text(data.detallesC[i].monto_ficha)));}
-            else{
-              fila.append($('<td>')
-              .addClass('col-xs-6')
-              .append($('<h8>')
-              .text(0)));
-            }
-
-        $('#fichasdetallesCValidar').append(fila);
-      }
-
-      $('#total_validar_c').val(data.cierre.total_pesos_fichas_c);
-      if(data.cierre.total_anticipos_c != null){
-        $('#anticipos_detalle').val(data.cierre.total_anticipos_c);
-      }
-      else{
-        $('#anticipos_validar_c').val(' - ');
-      }
-
-
-    })
-
-});
-
-$('#validarCierre').on('click',function(e){
-  e.preventDefault();
-
-  var id = $(this).val();
-
-    var formData= {
-      id_cierre:id,
-      observaciones: $('#obsValidacionCierre').val(),
-    }
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    $.ajax({
-        type: 'POST',
-        url: 'cierres/validar',
-        data: formData,
-        dataType: 'json',
-
-        success: function (data){
-
-          $('#modalValidarCierre').modal('hide');
-          $('#mensajeExito h3').text('ÉXITO');
-          $('#mensajeExito p').text('Cierre Validado correctamente. ');
-          $('#mensajeExito').show();
-          $('#btn-buscar-cierre').trigger('click',[1,10,'cierre_mesa.fecha','desc']);
-        },
-        error: function(data){
-          console.log('error');
-          //  var response = data.responseJSON.errors;
-          //
-          //  if(typeof response.id_cierre !== 'undefined'){
-          //    $('#mensajeErrorValApertura').show();
-          //  }
-          // // if(typeof response.hora_fin !== 'undefined'){
-          // //   mostrarErrorValidacion($('#hs_cierre_cierre'),response.hora_fin[0],false);
-          // // }
-        },
-    })
-
-})
-
 
 $(document).on('click', '.modificarCyA', function(e) {
 
   e.preventDefault();
-
-
+  //verifico que tipo de archivo es: cierre o aperturas
+  //en base a eso hago diferentes gets y uso diferentes modales.
+  var tipo= $(this).attr('data-tipo');
   $('#modificar_apertura').hide();
 
   //APERTURA
+  if(tipo =='apertura'){
 
     ocultarErrorValidacion($('#hs_apertura'));
     ocultarErrorValidacion($('#car_apertura'));
@@ -1308,18 +1148,16 @@ $(document).on('click', '.modificarCyA', function(e) {
     $.get('aperturas/obtenerAperturas/' + id_apertura, function(data){
 
       var id_casino = data.casino.id_casino;
-      $('.f_apertura').text(data.apertura.fecha);
+      $('.f_apertura').val(data.apertura.fecha);
       $('#fis_apertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_apertura').setearElementoSeleccionado(data.fiscalizador.id_usuario, data.fiscalizador.nombre);
-      $('.car_apertura').text(data.cargador.nombre);
-      $('.cas_apertura').text( data.casino.nombre);
+      $('.car_apertura').val(data.cargador.nombre);
+      $('.cas_apertura').val( data.casino.nombre);
+      $('#hs_apertura').val(data.apertura.hora_format);
+      $('.j_apertura').val(data.juego.nombre_juego);
+      $('.nro_apertura').val(data.mesa.nro_mesa);
       $("input[name='monedaModApe'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
-
-      //$('.mon_apertura').val(data.moneda.descripcion);
-      $('#hs_apertura').val(data.apertura.hora_format);
-      //$('.j_apertura').val();
-      $('.nro_apertura').text(data.mesa.nro_mesa + '-' + data.juego.nombre_juego);
 
       for (var i = 0; i < data.detalles.length; i++) {
         var fila = $(document.createElement('tr'));
@@ -1340,20 +1178,23 @@ $(document).on('click', '.modificarCyA', function(e) {
             else{
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(0).css('text-align','center')
+                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','center')
                   .attr('data-valor',data.detalles[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
+
         $('#modificarFichasAp').append(fila);
       }
-
       var total = 0;
 
-      $('#modificarFichasAp tr').each(function(){
+      $.each($('#modificarFichasAp tr'), function(index, value){
+
         var valor = $(this).find('.modApertura').attr('data-valor');
         var ingresado = $(this).find('.modApertura').attr('data-ingresado');
 
         total += Number(valor * ingresado);
+
+        console.log('si', total);
 
         $('#totalModifApe').val(total);
       })
@@ -1362,23 +1203,17 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('#modalModificarApertura').modal('show');
 
     })
+  }
 
-});
-
-$(document).on('click', '.modificarCierre', function(e) {
-
-  e.preventDefault();
   //CIERRE
-
-    $.get('usuarios/quienSoy',function(usuario){
-    });
+  if(tipo=='cierre'){
 
     ocultarErrorValidacion($('#hs_cierre_cierre'));
     ocultarErrorValidacion($('#hs_inicio_cierre'));
     ocultarErrorValidacion($('#totalAnticipoModif'));
     ocultarErrorValidacion($('#fis_cierre'));
-    $('#errorModificarCierre').hide();
     $('#errorModificarCierre2').hide();
+    $('#errorModificarCierre').hide();
 
     $('#modificarFichasCie tr').remove();
     var id_cierre= $(this).val();
@@ -1388,16 +1223,17 @@ $(document).on('click', '.modificarCierre', function(e) {
     $.get('cierres/obtenerCierres/' + id_cierre, function(data){
 
       var id_casino = data.casino.id_casino;
+
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
+      $('.f_cierre').val(data.cierre.fecha);
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id, data.cargador.nombre);
-      $('.cas_cierre').text( data.casino.nombre);
+      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
+      $('.cas_cierre').val( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin_format);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio_format);
-      $('.j_cierre').text(data.nombre_juego);
-      $('#f_cierre').text(data.cierre.fecha);
-      $('.nro_cierre').text(data.mesa.nro_mesa);
+      $('.j_cierre').val(data.nombre_juego);
+      $('.nro_cierre').val(data.mesa.nro_mesa);
       $('#totalAnticipoModif').val(data.cierre.total_anticipos_c);
       $('#totalModifCie').val(data.cierre.total_pesos_fichas_c);
 
@@ -1420,26 +1256,29 @@ $(document).on('click', '.modificarCierre', function(e) {
             else{
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(0).css('text-align','center')
+                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','center')
                   .attr('data-valor',data.detallesC[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
+
         $('#modificarFichasCie').append(fila);
       }
-
       var total = 0;
-
       $('#modificarFichasCie tr').each(function(){
 
         var ingresado = $(this).find('.modCierre').attr('data-ingresado');
+
         total += Number(ingresado);
 
+
         $('#totalModifCie').val(total);
-        $('#totalModifCie').attr('total',total);
       })
 
       $('#modalModificarCierre').modal('show');
+
       })
+
+  }
 });
 
 //detecta modificaciones en los inputs de modificacion de apertura
@@ -1503,6 +1342,7 @@ $(document).on('change','.modApertura',function(){
     }
 })
 
+
 //Guardar El modificar apertura
 $('#modificar_apertura').on('click', function(e){
   e.preventDefault();
@@ -1511,8 +1351,9 @@ $('#modificar_apertura').on('click', function(e){
   $('#mensajeExito').hide();
 
     var fichas=[];
-    var moneda= $('input[name=monedaModApe]:checked').val();
     var f= $('#modificarFichasAp > tr');
+    var moneda= $('input[name=monedaModApe]:checked').val();
+
 
     $.each(f, function(index, value){
 
@@ -1538,7 +1379,8 @@ $('#modificar_apertura').on('click', function(e){
         id_fiscalizador:$('#fis_apertura').obtenerElementoSeleccionado(),
         total_pesos_fichas_a: $('#totalModifApe').val(),
         fichas: fichas,
-        id_moneda:moneda,
+        id_moneda: moneda,
+
       }
 
       $.ajaxSetup({
@@ -1559,10 +1401,9 @@ $('#modificar_apertura').on('click', function(e){
              $('#mensajeExito h3').text('ÉXITO');
              $('#mensajeExito p').text('Apertura guardada correctamente');
              $('#mensajeExito').show();
-          },
-          error: function (reject) {
+          },error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificar2').show();
@@ -1593,7 +1434,6 @@ $('#modificar_apertura').on('click', function(e){
                 }
             }
       })
-
 });
 
 //MODIFICAR CIERRE
@@ -1652,7 +1492,9 @@ $(document).on('change','.modCierre',function(){
 
           $('#totalModifCie').val(subtotal);
           $(this).attr('data-ingresado',cantidad);
+
     }
+
   }
 
 })
@@ -1682,7 +1524,7 @@ $('#modificar_cierre').on('click', function(e){
           id_ficha: $(this).find('.fichaVal').attr('id'),
           monto_ficha: 0
         }
-          fichas.push(valor);
+        fichas.push(valor);
       }
 
     })
@@ -1695,7 +1537,6 @@ $('#modificar_cierre').on('click', function(e){
         total_pesos_fichas_a: $('#totalModifCie').val(),
         total_anticipos_c: $('#totalAnticipoModif').val(),
         fichas: fichas,
-        //fecha:$('#f_cierre').val(),
         id_moneda: moneda,
 
       }
@@ -1719,15 +1560,17 @@ $('#modificar_cierre').on('click', function(e){
              $('#mensajeExito p').text('Cierre guardado correctamente');
              $('#mensajeExito').show();
           },
+
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
+                    console.log(errors);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificarCierre2').show();
                       }
                       if(key == 'id_fiscalizador'){
-                        mostrarErrorValidacion($('#fis_cierre'),response.id_fiscalizador[0],false);
+                        mostrarErrorValidacion($('#fis_cierre'),val[0],false);
                       }
                       if(key == 'total_pesos_fichas_c'){
                         $('#errorModificarCierre').show();
@@ -1746,9 +1589,8 @@ $('#modificar_cierre').on('click', function(e){
                          key != 'hora_inicio' && key != 'hora_fin'
                         ){
                           var splitt = key.split('.');
-                          mostrarErrorValidacion( $('.modCierre .' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                          mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                           $('#errorModificarCierre').show();
-
                       }
                     });
                 }else{
@@ -1771,11 +1613,11 @@ $(document).on('click', '.validarCyA', function(e) {
 
   var id_apertura=$(this).val();
   $('#validar').val(id_apertura);
+  $('#div_cierre').hide();
   $('#validar-diferencia').val(id_apertura);
   $('#validar').hide();
   $('#validar-diferencia').hide();
 
-  $('#div_cierre').hide();
 
   $.get('aperturas/obtenerApValidar/' + id_apertura , function(data){
 
@@ -1785,8 +1627,8 @@ $(document).on('click', '.validarCyA', function(e) {
     $('.cas_validar').text('CASINO: ' + data.casino.nombre);
 
     $('.hs_validar_aper').text('HORA APERTURA: ' + data.apertura.hora_format);
-    $('.fis_validar_aper').text('FISCALIZADOR DE TOMA: '+ data.fiscalizador.nombre);
-    $('.car_validar_aper').text('FISCALIZADOR DE CARGA: '+ data.cargador.nombre);
+    $('.fis_validar_aper').text('FISCALIZADOR DE TOMA: '+ data.fiscalizador.name);
+    $('.car_validar_aper').text('FISCALIZADOR DE CARGA: '+ data.cargador.user_name);
     $('.tipo_validar_aper').text('TIPO MESA: ' + data.tipo_mesa.descripcion);
     $('.mon_validar_aper').text('MONEDA: ' +  data.moneda.descripcion);
     $('.mon_validar_aper').val(data.moneda.id_moneda);
@@ -1797,10 +1639,11 @@ $(document).on('click', '.validarCyA', function(e) {
       $('#fechaCierreVal')
       .append($('<option>')
               .val(data.fechas_cierres[i].id_cierre_mesa)
-              .text(data.fechas_cierres[i].fecha + ' -- '+ data.fechas_cierres[i].hora_inicio_format
-                    +' a '+ data.fechas_cierres[i].hora_fin_format
+              .text(data.fechas_cierres[i].fecha + ' -- '+data.fechas_cierres[i].hora_inicio
+                    +' a '+ data.fechas_cierres[i].hora_fin
                     +' -- '+data.fechas_cierres[i].siglas
-                  ))
+                  )
+              )
     }
 
   })
@@ -1867,6 +1710,8 @@ $(document).on('click','.comparar',function(){
           var t=$('#tablaValidar tbody > tr');
           $.each(t, function(index, value){
             if($(this).attr('id') == data.detalles_cierre[i].id_ficha){
+              // var cant=Number(data.detalles_cierre[i].monto_ficha / $(this).find('.valor_validar'));
+              // console.log('cant',cant);
               $(this).find('.cant_cierre_validar').addClass('cierre').text(data.detalles_cierre[i].cantidad_ficha);
 
             }
@@ -1884,6 +1729,7 @@ $(document).on('click','.comparar',function(){
           })
         }
 
+
             //agrego icono comparando valores
 
             var t=$('#tablaValidar tbody > tr');
@@ -1900,7 +1746,6 @@ $(document).on('click','.comparar',function(){
                   $(this).find('.diferencias_validar').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F'))
                 }
             })
-
   })
 }
 });
@@ -1914,7 +1759,6 @@ $(document).on('change', '#fechaCierreVal', function(e) {
   if(t==0){
     $('#validar').hide();
     $('#validar-diferencia').hide();
-
   }
 
   $('#tablaValidar tbody tr').remove();
@@ -1928,14 +1772,13 @@ $(document).on('change', '#fechaCierreVal', function(e) {
 $(document).on('click', '#validar', function(e) {
   e.preventDefault();
   $('#mensajeExito').hide();
-
   var id_apertura = $(this).val();
 
     var formData= {
       id_cierre:$('#fechaCierreVal').val(),
       id_apertura:id_apertura,
-      diferencia:0,
       observaciones: $('#obsValidacion').val(),
+      diferencia:0
     }
 
     $.ajaxSetup({
@@ -1956,7 +1799,7 @@ $(document).on('click', '#validar', function(e) {
           $('#mensajeExito h3').text('ÉXITO');
           $('#mensajeExito p').text('Apertura Validada correctamente. ');
           $('#mensajeExito').show();
-          $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
+          $('#btn-buscarCyA').trigger('click');
         },
         error: function(data){
 
@@ -1973,7 +1816,6 @@ $(document).on('click', '#validar', function(e) {
 
 });
 
-//botón validar dentro del modal
 $(document).on('click', '#validar-diferencia', function(e) {
   e.preventDefault();
   $('#mensajeExito').hide();
@@ -2022,56 +1864,31 @@ $(document).on('click', '#validar-diferencia', function(e) {
 
 });
 
+
 //si es superusuario puede eliminarCyA
 $(document).on('click','.eliminarCyA',function(e){
 
-  $('#modalAlertaBaja #btn-baja').attr('data-tipo','apertura');
-  $('#modalAlertaBaja #btn-baja').val($(this).val());
+  var tipo = $(this).attr('data-tipo');
+   var id=$(this).val();
 
-  $('#msjAlertaBaja').text('¿ESTA SEGURO QUE DESEA ELIMINAR ESTA APERTURA?')
-  $('#modalAlertaBaja').modal('show');
+  $('#cuerpoTablaCyA').find('#' + id).remove();
 
-});
-
-$('#btn-baja').on('click',function(){
-  var id=$(this).val();
-
-  if($(this).attr('data-tipo') == 'apertura'){
-    $('#cuerpoTablaCyA').find('#' + id).remove();
-
-       $.get('aperturas/bajaApertura/' + id, function(data){
-         $('#mensajeExito h3').text('ÉXITO');
-         $('#mensajeExito p').text(' ');
-         $('#mensajeExito').show();
-       });
-
-       $('#modalAlertaBaja').modal('hide');
+  if(tipo=='apertura'){
+     $.get('aperturas/bajaApertura/' + id, function(data){
+       $('#mensajeExito h3').text('ÉXITO');
+       $('#mensajeExito p').text(' ');
+       $('#mensajeExito').show();
+     })
   }
-  if($(this).attr('data-tipo') == 'cierre'){
-    $('#cuerpoTablaCierre').find('#' + id).remove();
 
-    $.get('cierres/bajaCierre/' + id, function(data){
+  if(tipo=='cierre'){
+       $.get('cierres/bajaCierre/' + id, function(data){
          $('#mensajeExito h3').text('ÉXITO');
          $('#mensajeExito p').text(' ');
           $('#mensajeExito').show();
-      })
-      $('#modalAlertaBaja').modal('hide');
-
-  }
-
-})
-
-//si es superusuario puede eliminarCyA
-$(document).on('click','.eliminarCierre',function(e){
-
-  $('#modalAlertaBaja #btn-baja').attr('data-tipo','cierre');
-  $('#modalAlertaBaja #btn-baja').val($(this).val());
-
-  $('#msjAlertaBaja').text('¿ESTA SEGURO QUE DESEA ELIMINAR ESTE CIERRE?')
-  $('#modalAlertaBaja').modal('show');
-
+       })
+}
 });
-
 
 //dentro del modal de cargar cierres, para agregar la mesa al listado
 function clickAgregarMesaCierre(e) {
@@ -2109,6 +1926,7 @@ function clickAgregarMesaCierre(e) {
     });
 
 }
+
 
 //dentro del modal de cargar aperturas, para agregar la mesa al listado
 function clickAgregarMesa(e) {
@@ -2148,81 +1966,21 @@ function clickAgregarMesa(e) {
 
 }
 
-/*****************PAGINACION******************/
-function clickIndice(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('apertura');
-
-
-  var orden = $('#tablaResultados .activa').attr('estado');
-  $('#btn-buscarCyA').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
-$(document).on('click','#tablaResultados thead tr th',function(e){
-  $('#tablaResultados th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
-      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-
-function clickIndiceCierres(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion2').getPageSize();
-  var columna = $('#tablaResultadosCierres .activa').attr('cierre');
-
-
-  var orden = $('#tablaResultadosCierres .activa').attr('estado');
-  $('#btn-buscar-cierre').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
-$(document).on('click','#tablaResultadosCierres thead tr th',function(e){
-  $('#tablaResultadosCierres th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
-      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultadosCierres th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndiceCierres(e,$('#herramientasPaginacion2').getCurrentPage(),$('#herramientasPaginacion2').getPageSize());
-});
-
 //fc que generan la fila del listado principal:
 function generarFilaAperturas(data){
+    if(data.hora != null){
+      var piecesi = data.hora.split(':')
+      var houri, minutei;
 
-  if(data.hora != null){
-    var piecesi = data.hora.split(':')
-    var houri, minutei;
-
-    if(piecesi.length === 3) {
-      houri = piecesi[0];
-      minutei = piecesi[1];
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
+      }
+    }else{
+      houri = '-';
+      minutei = '-';
     }
-  }else{
-    houri = '-';
-    minutei = '-';
-  }
+
     var fila = $('#moldeFilaCyA').clone();
     fila.removeAttr('id');
     fila.attr('id', data.id_apertura_mesa);
@@ -2245,12 +2003,12 @@ function generarFilaAperturas(data){
     }
     fila.find('.L_estado').show();
 
-    fila.find('.infoCyA').val(data.id_apertura_mesa);
-    fila.find('.modificarCyA').val(data.id_apertura_mesa);
-    fila.find('.validarCyA').val(data.id_apertura_mesa);
-    fila.find('.desvincular').val(data.id_apertura_mesa);
-    fila.find('.eliminarCyA').val(data.id_apertura_mesa);
-    
+    fila.find('.infoCyA').attr('data-tipo','apertura').val(data.id_apertura_mesa);
+    fila.find('.modificarCyA').attr('data-tipo','apertura').val(data.id_apertura_mesa);
+    fila.find('.validarCyA').attr('data-tipo','apertura').val(data.id_apertura_mesa);
+    fila.find('.desvincular').attr('data-tipo','apertura').val(data.id_apertura_mesa);
+    fila.find('.eliminarCyA').attr('data-tipo','apertura').val(data.id_apertura_mesa);
+
     if(data.id_estado_cierre == 3 || data.id_estado_cierre == 2){
       fila.find('.validarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.eliminarCyA').val(data.id_apertura_mesa).hide();
@@ -2271,56 +2029,61 @@ function generarFilaAperturas(data){
 
 }
 
+
 function generarFilaCierres(data){
 
-      if(data.hora_inicio != null){
-        var piecesi = data.hora_inicio.split(':')
-        var houri, minutei;
+  if(data.hora_inicio != null){
+      var piecesi = data.hora_inicio.split(':')
+      var houri, minutei;
 
-        if(piecesi.length === 3) {
-          houri = piecesi[0];
-          minutei = piecesi[1];
-        }
-      }else{
-        var houri, minutei;
-        houri = '-';
-        minutei = '-';
-
+      if(piecesi.length === 3) {
+        houri = piecesi[0];
+        minutei = piecesi[1];
       }
-      if (data.hora_fin != null) {
-        var piecesf= data.hora_fin.split(':')
-        var hourf, minutef;
+    }else{
+      var houri, minutei;
+      houri = '-';
+      minutei = '-';
 
-        if(piecesf.length === 3) {
-          hourf = piecesf[0];
-          minutef = piecesf[1];
-        }
+    }
+    if (data.hora_fin != null) {
+      var piecesf= data.hora_fin.split(':')
+      var hourf, minutef;
 
-      } else {
-        var hourf, minutef;
-          hourf = '-';
-          minutef = '-';
+      if(piecesf.length === 3) {
+        hourf = piecesf[0];
+        minutef = piecesf[1];
       }
 
-      var fila = $('#moldeFilaCierre').clone();
-      fila.removeAttr('id');
-      fila.attr('id', data.id_cierre_mesa);
+    } else {
+      var hourf, minutef;
+        hourf = '-';
+        minutef = '-';
+    }
 
-      fila.find('.cierre_fecha').text(data.fecha);
-      fila.find('.cierre_juego').text(data.nombre_juego);
-      fila.find('.cierre_mesa').text(data.nro_mesa);
-      fila.find('.cierre_hora').text( houri +':'+minutei + '-'+ hourf +':'+minutef);
-      fila.find('.cierre_moneda').text(data.siglas_moneda);
-      fila.find('.cierre_casino').text(data.nombre);
+    var fila = $('#moldeFilaCyA').clone();
+    fila.removeAttr('id');
+    fila.attr('id', data.id_cierre_mesa);
 
+    fila.find('.L_fecha').text(data.fecha);
+    fila.find('.L_juego').text(data.nombre_juego);
+    fila.find('.L_mesa').text(data.nro_mesa);
+    fila.find('.L_hora').text( houri +':'+minutei + '-'+ hourf +':'+minutef);
+    fila.find('.L_moneda').text(data.siglas_moneda);
+    fila.find('.L_casino').text(data.nombre);
+
+    fila.find('.L_estado').hide();
+
+
+
+    //attr=data-tipo sirve para luego determinar qué get o post realizar
     //cuando se presionan, ya que se usa un mismo molde
 
-    fila.find('.infoCierre').val(data.id_cierre_mesa);
-    fila.find('.modificarCierre').val(data.id_cierre_mesa);
-    fila.find('.validarCierre').val(data.id_cierre_mesa);
+    fila.find('.infoCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
+    fila.find('.modificarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
 
-
-    fila.find('.eliminarCierre').val(data.id_cierre_mesa);
+    fila.find('.validarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa).hide();
+    fila.find('.eliminarCyA').attr('data-tipo', 'cierre').val(data.id_cierre_mesa);
     fila.css('display', '');
 
     switch (data.id_estado_cierre) {
@@ -2351,11 +2114,9 @@ function generarFilaCierres(data){
       default:
 
     }
-
   return fila;
 
 }
-
 function limpiarCargaCierre(){
 
   $('#juegoCierre').setearElementoSeleccionado('0',"");
@@ -2370,19 +2131,19 @@ function limpiarCargaCierre(){
 
 function limpiarCargaApertura(){
 
-  $('#id_mesa_ap').val('');
+  $('#id_mesa_ap').setearElementoSeleccionado('0',"");
   $('#totalApertura').val('');
   $('#horarioAp').val('');
   $('#fiscalizApertura').setearElementoSeleccionado(0,"");
   $('#cargador').val('');
   $('#tablaCargaApertura tbody tr').remove();
+  $('#mensajeExitoCargaAp').hide();
 
 }
 
 function limpiarModalValidar(){
   //$('#validarFichas tr').not('moldeValidar').remove();
   $('.nro_validar').text(' ');
-  $('#fechaCierreVal option').not('.defecto').remove();
   $('.j_validar_aper').text(' ');
   $('.j_validar').text(' ');
   $('.cas_validar').text(' ');
@@ -2397,38 +2158,21 @@ function limpiarModalValidar(){
   $('#total_cierre_validar').val('');
   $('#total_aper_validar').val('');
   $('#anticipos_validar').val('');
-
-    $('#tablaValidar tbody tr').remove();
+  $('#fechaCierreVal option').not('.defecto').remove();
+  $('#tablaValidar tbody tr').remove();
 
 }
 
 function Numeros(string){//Solo numeros
     var out = '';
-    var filtro = '1234567890,.';//Caracteres validos
+    var filtro = '1234567890.,';//Caracteres validos
 
     //Recorrer el texto y verificar si el caracter se encuentra en la lista de validos
     for (var i=0; i<string.length; i++)
-       if (filtro.indexOf(string.charAt(i)) != -1 )
+       if (filtro.indexOf(string.charAt(i)) != -1)
              //Se añaden a la salida los caracteres validos
 	     out += string.charAt(i);
 
     //Retornar valor filtrado
     return out;
-}
-
-function limpiarFiltrosApertura(){
-  $('#selectCas').val('0');
-  $('#selectJuego').val('0');
-  $('#filtroMesa').val('');
-  $('#B_fecha_filtro').val('');
-
-}
-
-function limpiarFiltrosCierre(){
-  $('#selectJuegoCierre').val('0');
-  $('#filtroMesaCierre').val('');
-  $('#B_fecha_filtro_cierre').val('');
-  $('#selectCasCierre').val('0');
-
-
 }
