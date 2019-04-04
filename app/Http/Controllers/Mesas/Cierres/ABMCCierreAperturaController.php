@@ -33,6 +33,7 @@ use App\MesCasino;
 use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
 
+use Carbon\Carbon;
 //validacion de cierres
 class ABMCCierreAperturaController extends Controller
 {
