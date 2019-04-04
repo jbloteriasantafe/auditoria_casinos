@@ -85,7 +85,10 @@ $cas = $usuario['usuario']->casinos;
                 <li id="b_juego" ><a href="#pant_juegos"  style="font-family:Roboto-condensed;font-size:20px; ">Juegos</a></li>
                 <li id="b_sector"><a href="#pant_sectores"  style="font-family:Roboto-condensed;font-size:20px;">Sectores</a></li>
               </ul>
-
+              <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" style=" width:60%;" hidden="true">
+                <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
+                <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
+             </ul>
               <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:60%;" hidden="true">
                 <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
                 <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>

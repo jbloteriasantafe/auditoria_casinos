@@ -116,7 +116,7 @@ class BCCierreController extends Controller
                           ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','F.id_ficha')
                           ->where('ficha_tiene_casino.id_casino','=',$cierre->id_casino)
                           ->whereNull('ficha_tiene_casino.deleted_at')
-                          ->where('ficha_tiene_casino.created_at','<=',$fecha_cierre)
+                          ->where('ficha_tiene_casino.created_at','<=',$cierre->fecha)
                           ->where('F.id_moneda','=',$moneda->id_moneda)
                           ->whereNull('F.deleted_at')
                           ->orderBy('F.valor_ficha','desc')
