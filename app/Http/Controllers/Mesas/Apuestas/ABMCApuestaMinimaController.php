@@ -92,7 +92,6 @@ class ABMCApuestaMinimaController extends Controller
       $nuevo = new ApuestaMinimaJuego;
       $nuevo->moneda()->associate($id_moneda);
       $nuevo->casino()->associate($id_casino);
-      $nuevo->save();
       $rta = [
                'apuesta' => 0,
                'cant_mesas' => 0,
