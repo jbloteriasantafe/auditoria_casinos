@@ -78,6 +78,9 @@ class Cierre extends Model
     return $this->belongsTo('App\Usuario','id_fiscalizador','id_usuario');
   }
 
+  public function estado_cierre(){
+    return $this->belongsTo('App\Mesas\EstadoCierre','id_estado_cierre','id_estado_cierre');
+  }
 
   public function detalles(){
     return $this->hasMany('App\Mesas\DetalleCierre','id_cierre_mesa','id_cierre_mesa');
