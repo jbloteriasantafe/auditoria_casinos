@@ -429,9 +429,9 @@ $('#btn-generar').on('click', function(e){
 
       },
       error: function (data) {
-        console.log('error',data);
+        $('#modalRelevamiento').modal('hide');
 
-         $('#modalRelevamiento').modal('hide');
+        $('#modalErrorRelevamientoA').modal('show');
 
       }
   });

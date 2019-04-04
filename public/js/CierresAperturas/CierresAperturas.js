@@ -326,15 +326,9 @@ $('#btn-generar-rel').on('click', function(e){
           console.log('7777',iframe);
       },
       error: function (data) {
-          var apertura = $.parseJSON(data.responseText);
-          console.log(apertura);
-         $('#modalRelevamiento').modal('hide');
-           $.each(apertura, function (key, val) {
-             $('#modalErrorRelevamiento').modal('show');
-             $('#chinwenwencha').append($('<h6>').addClass('list-group-item')
-                                                             .css('font-size','14px')
-                                                             .text(val));
-           });
+        $('#modalRelevamiento').modal('hide');
+
+        $('#modalErrorRelevamiento').modal('show');
 
 
       } //error
@@ -2250,7 +2244,7 @@ function generarFilaAperturas(data){
     fila.find('.validarCyA').val(data.id_apertura_mesa);
     fila.find('.desvincular').val(data.id_apertura_mesa);
     fila.find('.eliminarCyA').val(data.id_apertura_mesa);
-    
+
     if(data.id_estado_cierre == 3 || data.id_estado_cierre == 2){
       fila.find('.validarCyA').val(data.id_apertura_mesa).hide();
       fila.find('.eliminarCyA').val(data.id_apertura_mesa).hide();
