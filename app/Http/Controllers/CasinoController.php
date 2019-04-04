@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Validator;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Mesas\Turnos\TurnosController;
 class CasinoController extends Controller
 {
   private static $instance;
