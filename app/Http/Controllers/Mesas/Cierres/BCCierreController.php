@@ -202,7 +202,7 @@ class BCCierreController extends Controller
                                             'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
                                             'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa',
-                                            'cierre_apertura.id_cierre_mesa as cierre_validado'
+                                            'cierre_mesa.id_estado_cierre'
                                           )
                                   ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
                                   ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
@@ -223,7 +223,7 @@ class BCCierreController extends Controller
                                             'cierre_mesa.hora_fin','cierre_mesa.fecha',
                                             'casino.nombre','juego_mesa.siglas as nombre_juego',
                                             'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa',
-                                            'cierre_apertura.id_cierre_mesa as cierre_validado'
+                                            'cierre_mesa.id_estado_cierre'
                                           )
                                   ->join('mesa_de_panio','cierre_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
                                   ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
