@@ -1778,6 +1778,7 @@ $(document).on('click', '#validar', function(e) {
       id_cierre:$('#fechaCierreVal').val(),
       id_apertura:id_apertura,
       observaciones: $('#obsValidacion').val(),
+      diferencia:0
     }
 
     $.ajaxSetup({
