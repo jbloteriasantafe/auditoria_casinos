@@ -29,6 +29,7 @@ use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 use App\MesCasino;
+use App\Mesas\DetalleInformeFinalMesas;
 
 use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
