@@ -15,7 +15,9 @@ class Cierre extends Model
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
                               'id_mesa_de_panio','id_estado_cierre','id_moneda',
-                              'hora_inicio_format','hora_fin_format','total_pesos','total_cantidad_fichas'
+                              'hora_inicio_format','hora_fin_format',
+                              'total_pesos','total_cantidad_fichas', 'observacion',
+                              'id_estado_cierre'
                             );
   public $timestamps = false;
 

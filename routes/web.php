@@ -661,7 +661,7 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 
 
-  Route::get('apuestas/obtenerRequerimientos','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
+  Route::get('apuestas/obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
 
 //informes fiscalizadores

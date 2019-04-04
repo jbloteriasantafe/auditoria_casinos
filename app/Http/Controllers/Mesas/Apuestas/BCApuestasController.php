@@ -23,6 +23,7 @@ use App\SecRecientes;
 use App\Http\Controllers\Mesas\Apuestas\GenerarPlanillasController;
 use App\Http\Controllers\UsuarioController;
 use App\Mesas\Mesa;
+use App\Mesas\Moneda;
 use App\Mesas\EstadoMesa;
 use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
@@ -68,8 +69,10 @@ class BCApuestasController extends Controller
       $cas[] = $casino;
     }
     $turnos = Turno::whereIn('id_casino',$casinos)->get();
+    $monedas = Moneda::all();
     return view('Apuestas.apuestas',['casinos' => $cas,
                                       'turnos' => $turnos,
+                                      'monedas' => $monedas,
                                     ]);
   }
 

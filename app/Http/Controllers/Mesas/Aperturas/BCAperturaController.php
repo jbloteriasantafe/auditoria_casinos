@@ -225,18 +225,14 @@ class BCAperturaController extends Controller
                         ->get();
 
                         //fechas de los cierres que puede hacer join
-        $cierres = DB::table('cierre_mesa')
-                          ->select('cierre_mesa.id_cierre_mesa','cierre_mesa.fecha','moneda.siglas','cierre_mesa.hora_inicio','cierre_mesa.hora_fin')
-                          ->join('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa','left outer')
-                          ->join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
-                          ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
-                          ->where('cierre_mesa.fecha','<',$apertura->fecha)
-                          ->where('cierre_mesa.id_estado_cierre','<',4)
-                          ->whereNull('cierre_apertura.id_cierre_apertura')
-                          ->whereNull('cierre_mesa.deleted_at')
-                          ->orderBy('fecha' , 'DESC')
-                          ->take(15)
-                          ->get();
+                        $cierres = Cierre::join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
+                                            ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
+                                            ->where('cierre_mesa.fecha','<',$apertura->fecha)
+                                            ->where('cierre_mesa.id_estado_cierre','<',4)
+                                            ->whereNull('cierre_mesa.deleted_at')
+                                            ->orderBy('fecha' , 'DESC')
+                                            ->take(15)
+                                            ->get();
 
 
       return response()->json(['apertura' => $apertura,
@@ -333,7 +329,6 @@ class BCAperturaController extends Controller
                         ->whereDay('apertura_mesa.fecha','=', $fecha[2])
                         ->whereNull('apertura_mesa.deleted_at')
                         ->orderBy('apertura_mesa.fecha','desc')
-                        ->take(31)
                         ->when($sort_by,function($query) use ($sort_by){
                                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                     })

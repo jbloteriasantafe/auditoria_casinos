@@ -583,81 +583,94 @@ $cas = $usuario['usuario']->casinos;
 
 <!-- modal para modificar el minimo solicitado -->
 <div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width: 80%" >
+  <div class="modal-dialog modal-lg" style="width: 60%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#1DE9B6;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| REQUERIMIENTO VALOR MÍNIMO DE APUESTAS </h3>
+        <h3 class="modal-title">| REQUERIMIENTOS VALOR MÍNIMO DE APUESTAS </h3>
       </div>
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
-          <div class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="req">REQUERIMIENTOS ACTUALES</h6>
-            <br>
+          <div class="row" style="text-align:center !important;border-bottom:1px solid #ccc; padding-bottom:10px" >
             <div class="row">
-              <div class="col-xs-6">
-                <h6 style="font-size:16px; text-align:center !important">PESOS</h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimo">Juego: </h6>
-                <br>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimo">Apuesta Mínima: </h6>
-                <br>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimo">Cantidad de mesas abiertas: </h6>
-                <br>
-              </div>
-              <div class="col-xs-6" style="border-left:1px solid #ccc">
-                <h6 style="font-size:16px;text-align:center !important">DÓLARES</h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="juegoMinimoDol">Juego: </h6>
-                <br>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="apuestaMinimoDol">Apuesta Mínima: </h6>
-                <br>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc" id="cantMinimoDol">Cantidad de mesas abiertas: </h6>
-                <br>
+            <div class="col-xs-6">
+              <span display="inline-block" class="col-xs-4">
+                <h6>CASINO:</h6>
+              </span>
+              <span display="inline" style="padding-left:-35px;text-align:left !important">
+                <div class="col-xs-8">
+                <select class="form-control" style="float:right !important" name="casinoSelMin" id="selectCasinoMin">
+                  @foreach ($casinos as $cas)
+                  <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                  @endforeach
+                </select>
               </div>
             </div>
-
+            <div class="col-xs-6">
+              <span display="inline-block" class="col-xs-4">
+                <h6>MONEDA:</h6>
+              </span>
+              <span display="inline" style="padding-left:-35px;text-align:left !important">
+                <div class="col-xs-8">
+                  <select class="form-control" style="float:right !important" name="monedaSelMin" id="selectMonedaMin">
+                    @foreach ($monedas as $m)
+                    <option value="{{$m->id_moneda}}">{{$m->siglas}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                </span>
+            </div>
 
           </div>
-          <div class="row">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important; font-weight:bold">MODIFICACIONES:</h6>
+          </div>
+          <br>
+          <div id="valoresApMinima" class="row" style="border-bottom:2px solid #ccc;">
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="req">MODIFICACIONES:</h6>
             <br>
             <div class="row">
-              <div class="col-xs-6" style="border-right:1px solid #ccc">
-                <h6 style="font-size:16px; text-align:center !important;border-bottom:1px solid #ccc">PESOS</h6>
-                <br>
-                <div class="col-xs-3">
-                  <h6 style="font-size:16px">Juego:</h6>
-                  <input type="text" class="form-control" id="juegoNuevo" name="" value="">
+              <div class="col-xs-12">
+                <div class="row">
+                  <div class="col-xs-4" display="inline">
+                    <h6 style="font-size:16px">Juego:</h6>
+                  </div>
+                  <div class="col-xs-8" display="inline">
+                    <select class="form-control" style="float:right !important" name="selectJuegoNuevo" id="selectJuegoNuevo">
+
+                    </select>
+                  </div>
                 </div>
-                <div class="col-xs-4">
-                  <h6 style="font-size:16px">Apuesta Min.:</h6>
-                  <input type="text" class="form-control" id="apuestaNueva" name="" value="">
+                <div class="row">
+                  <div class="col-xs-4" display="inline">
+                    <h6 style="font-size:16px">Apuesta Mínima:</h6>
+                  </div>
+                  <div class="col-xs-8" display="inline">
+                    <input type="text" class="form-control" id="apuestaNueva" name="" value="">
+                  </div>
                 </div>
-                <div class="col-xs-5">
-                  <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
+                <div class="row">
+                  <div class="col-xs-4" display="inline">
+                   <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
+                  </div>
+                  <div class="col-xs-8" display="inline" style="text-align:left">
                   <input type="text" class="form-control" id="cantidadNueva" name="" value="">
                 </div>
-              </div>
-              <div class="col-xs-6">
-                <h6 style="font-size:16px;text-align:center !important;border-bottom:1px solid #ccc">DÓLARES</h6>
-                <br>
-                <div class="col-xs-3">
-                  <h6 style="font-size:16px">Juego:</h6>
-                  <input type="text" class="form-control" id="juegoNuevoDol" name="" value="">
-                </div>
-                <div class="col-xs-4">
-                  <h6 style="font-size:16px">Apuesta Min.:</h6>
-                  <input type="text" class="form-control" id="apuestaNuevaDol" name="" value="">
-                </div>
-                <div class="col-xs-5">
-                  <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
-                  <input type="text" class="form-control" id="cantidadNuevaDol" name="" value="">
                 </div>
               </div>
-              </div>
+            </div>
+          </div>
+          <div class="row" id="erroresRequerimientos" style="border-bottom:2px solid #ccc;" hidden>
+            <div class="col-lg-12">
+              <br>
+              <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+              <br>
+            </div>
+            <div class="col-lg-12" id="erroresRequerimientos-div">
+              <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No hay mesas con los datos seleccionados.</span>
             </div>
           </div>
         </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="btn-guardar-minimo" value="nuevo" hidden="true">MODIFICAR</button>
         </div>
