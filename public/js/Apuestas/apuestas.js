@@ -102,7 +102,7 @@ function cargarDatosMin(data){
     if(data.rta.id_juego == 0){
       $('#selectJuegoNuevo').append($('<option>').val(0).text('Todos los Juegos').append($('</option>')));
     }
-    console.log(data.juegos);
+    console.log('4444',data.juegos);
     for (var i = 0; i < data.juegos.length; i++) {
       if(data.rta.id_juego != 0 && data.rta.id_juego != data.juegos[i].id_juego_mesa){
         $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
@@ -855,8 +855,7 @@ $('#btn-minimo').on('click',function(e){
 
 function limpiarModificarMin(){
 
-  $('#juegoNuevo').setearElementoSeleccionado(0,'');
-
+  $('#selectJuegoNuevo option').remove();
   $('#cantidadNueva').val('');
   $('#apuestaNueva').val('');
 
