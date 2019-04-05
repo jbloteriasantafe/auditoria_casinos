@@ -719,7 +719,7 @@ $(document).on('change','#casinoCierre',function(){
 
   var id_casino=$('#casinoCierre').val();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
   $('#fiscalizadorCierre').val('');
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -747,7 +747,7 @@ $('#confirmarCierre').on('click',function(e){
       $.get('usuarios/quienSoy',function(data){
         console.log('quiensoy',data);
         $('#fiscalizadorCierre').val(data.nombre);
-        $('#fiscalizadorCierre').attr('data-cargador',data.id_usuario);
+        $('#fiscalizadorCierre').attr('data-cargador',data.usuario.id_usuario);
       })
     }
   else{
@@ -772,7 +772,7 @@ $(document).on('click', '.cargarDatos', function(e){
 
   limpiarCargaCierre();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
   $('#btn-guardar-cierre').show();
   $("input[name='moneda'][value='1']").prop('checked', true);
