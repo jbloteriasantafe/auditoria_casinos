@@ -1385,7 +1385,7 @@ $(document).on('click', '.modificarCierre', function(e) {
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
 
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id, data.cargador.nombre);
+      $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
       $('.cas_cierre').text( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin_format);
       $('#hs_inicio_cierre').val(data.cierre.hora_inicio_format);
