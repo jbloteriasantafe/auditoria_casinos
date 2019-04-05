@@ -746,7 +746,7 @@ $('#confirmarCierre').on('click',function(e){
 
       $.get('usuarios/quienSoy',function(data){
         console.log('quiensoy',data);
-        $('#fiscalizadorCierre').val(data.nombre);
+        $('#fiscalizadorCierre').val(data.usuario.nombre);
         $('#fiscalizadorCierre').attr('data-cargador',data.usuario.id_usuario);
       })
     }
