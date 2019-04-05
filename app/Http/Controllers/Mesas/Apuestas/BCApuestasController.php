@@ -32,6 +32,7 @@ use App\Mesas\RelevamientoApuestas;
 use App\Mesas\DetalleRelevamientoApuestas;
 use Carbon\Carbon;
 
+use App\Mesas\ComandoEnEspera;
 class BCApuestasController extends Controller
 {
   private static $atributos = [
@@ -265,7 +266,19 @@ class BCApuestasController extends Controller
     //if(file_exists( public_path().'\\Mesas\\'.$nombreZip)){ //C:\xampp\htdocs\agosto\prueba2\blog\
       return ['url_zip' => 'apuestas/descargarZipApuestas/'.$nombreZip];
     }else{
-      return 0;
+      $enEspera = DB::table('comando_a_ejecutar')
+          ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
+                  ['nombre_comando','=','RelevamientoApuestas:generar']
+                  ])
+          ->get()->count();
+      if($enEspera == 0){
+        $agrega_comando = new ComandoEnEspera;
+        $agrega_comando->nombre_comando = 'RelevamientoApuestas:generar';
+        $agrega_comando->fecha_a_ejecutar = Carbon::now()->addMinutes(30)->format('Y:m:d H:i:s');
+        $agrega_comando->save();
+      }
+
+      return response()->json(['apuesta' => 'Por favor reintente en 15 minutos...'], 404);
     }
   }
 
