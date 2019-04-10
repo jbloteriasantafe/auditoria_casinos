@@ -708,6 +708,7 @@ $('#btn-guardar').click(function (e) {
 
 
     var notas = obtenerNotasNuevas();
+    console.log('notas',notas);
     var notas_asociadas = obtenerNotasMov();
     var tablaNotas=[];
     var tabla= $('#tablaNotasCreadas tbody > tr');
@@ -1178,7 +1179,7 @@ function limpiarModal(){
   $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
   //limipar tabla de resoluciones
   $('#tablaResolucion tbody').empty();
-  
+
   limpiarAlertas();
 }
 
