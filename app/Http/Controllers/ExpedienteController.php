@@ -73,6 +73,7 @@ class ExpedienteController extends Controller
                 ->where('expediente.id_expediente','=',$id)
                 ->where('nota.es_disposicion',0)
                 ->orderBy('nota.fecha','DESC')
+
                 ->get();
 
     $notas = DB::table('expediente')
@@ -81,6 +82,7 @@ class ExpedienteController extends Controller
                 ->where('expediente.id_expediente','=',$id)
                 ->whereNull('nota.id_log_movimiento')
                 ->where('nota.es_disposicion','=',0)
+                ->distinct('nota.id_nota')
                 ->orderBy('nota.fecha','DESC')
                 ->get();
 
@@ -183,7 +185,7 @@ class ExpedienteController extends Controller
       foreach($request->resolucion as $res){
         ResolucionController::getInstancia()->guardarResolucion($res->resolucion,$expediente->id_expediente);
       }
-     
+
     }
     if(!empty($request->disposiciones)){
       foreach ($request->disposiciones as $disp){
@@ -376,9 +378,9 @@ class ExpedienteController extends Controller
     //   ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
     // }
 
-    
+
     ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
-      
+
 
 
     $expediente = Expediente::find($request->id_expediente);
