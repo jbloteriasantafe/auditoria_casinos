@@ -81,8 +81,8 @@ class ExpedienteController extends Controller
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
                 ->where('expediente.id_expediente','=',$id)
                 ->whereNull('nota.id_log_movimiento')
+                ->whereNull('nota.id_tipo_movimiento')
                 ->where('nota.es_disposicion','=',0)
-                ->distinct('nota.id_nota')
                 ->orderBy('nota.fecha','DESC')
                 ->get();
 
@@ -317,6 +317,7 @@ class ExpedienteController extends Controller
       Nota::whereNotIn('id_nota',$listita)
             ->where('id_expediente',$expediente->id_expediente)
             ->whereNull('id_log_movimiento')
+            ->whereNull('movimiento')
             ->delete();
     }
 
@@ -329,6 +330,7 @@ class ExpedienteController extends Controller
         }
       }
     }
+
 
     //notas para asociar
     if(!empty($request->notas_asociadas)){
