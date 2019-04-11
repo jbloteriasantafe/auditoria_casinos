@@ -545,7 +545,6 @@ $('#btn-guardar').on('click',function(e){
                     console.log('ee',errors);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
-
                         $('#mensajeErrorCarga').show();
                       }
                       if(key == 'hora'){

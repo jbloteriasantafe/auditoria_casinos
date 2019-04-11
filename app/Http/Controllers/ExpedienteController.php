@@ -317,7 +317,7 @@ class ExpedienteController extends Controller
       Nota::whereNotIn('id_nota',$listita)
             ->where('id_expediente',$expediente->id_expediente)
             ->whereNull('id_log_movimiento')
-            ->whereNull('movimiento')
+
             ->delete();
     }
 
