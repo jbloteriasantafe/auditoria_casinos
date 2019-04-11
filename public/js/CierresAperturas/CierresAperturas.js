@@ -343,6 +343,7 @@ $('#btn-cargar-apertura').on('click', function(e){
   $('#mensajeExito').hide();
 
   limpiarCargaApertura();
+    $('#cargador').val('');
   $('#tablaMesasApert tbody tr').remove();
 
   $('#B_fecha_apert').val("").prop('disabled',false);
@@ -364,6 +365,7 @@ $('#btn-cargar-apertura').on('click', function(e){
 $(document).on('change','#casinoApertura',function(){
 
   limpiarCargaApertura();
+  $('#cargador').val('');
   $('#tablaMesasApert tbody tr').remove();
 
   $('#columnaDetalle').hide();
@@ -379,7 +381,7 @@ $('#confirmar').on('click',function(e){
   e.preventDefault();
 
     $('#btn-guardar-apertura').hide();
-    if($('#casinoApertura').val() != 0 && $('#casinoApertura').val() != 4 && $('#B_fecha_apert').val().length != 0){
+    if($('#casinoApertura').val() != 0 && $('#B_fecha_apert').val().length != 0){
 
       $('.detallesCargaAp').show();
 
@@ -393,8 +395,8 @@ $('#confirmar').on('click',function(e){
 
       $.get('usuarios/quienSoy',function(data){
         console.log('quiensoy',data);
-        $('#cargador').val(data.nombre);
-        $('#cargador').attr('data-cargador',data.id_usuario);
+        $('#cargador').val(data.usuario.nombre);
+        $('#cargador').attr('data-cargador',data.usuario.id_usuario);
       })
     }
     else{
@@ -2368,7 +2370,6 @@ function limpiarCargaApertura(){
   $('#totalApertura').val('');
   $('#horarioAp').val('');
   $('#fiscalizApertura').setearElementoSeleccionado(0,"");
-  $('#cargador').val('');
   $('#tablaCargaApertura tbody tr').remove();
 
 }
