@@ -642,7 +642,7 @@ $('#btn-guardar-apertura').on('click', function(e){
         },
         error: function (reject) {
               if( reject.status === 422 ) {
-                  var errors = $.parseJSON(reject.responseText).errors;
+                  var errors = $.parseJSON(reject.responseText);
                   $.each(errors, function (key, val) {
                     if(key == 'fecha'){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
@@ -960,7 +960,7 @@ $('#btn-guardar-cierre').on('click', function(e){
           error: function (reject) {
               $('#mensajeError h3').text('ERROR');
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
 
                       if(key == 'fecha'){
@@ -1558,7 +1558,7 @@ $('#modificar_apertura').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificar2').show();
@@ -1717,7 +1717,7 @@ $('#modificar_cierre').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificarCierre2').show();
@@ -1956,7 +1956,7 @@ $(document).on('click', '#validar', function(e) {
         },
         error: function(data){
 
-           var response = data.responseJSON.errors;
+           var response = data.responseJSON;
 
            if(typeof response.id_cierre !== 'undefined'){
              $('#mensajeErrorValApertura').show();
@@ -2005,7 +2005,7 @@ $(document).on('click', '#validar-diferencia', function(e) {
         },
         error: function(data){
 
-           var response = data.responseJSON.errors;
+           var response = data.responseJSON;
 
            if(typeof response.id_cierre !== 'undefined'){
              $('#mensajeErrorValApertura').show();
