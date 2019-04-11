@@ -81,25 +81,25 @@ $cas = $usuario['usuario']->casinos;
                  @show
               <h2 class="tituloSeccionPantalla"></h2>
 
-              <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" style=" width:80%;" hidden="true">
+              <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" style=" width:70%;" hidden="true">
                 <li id="b_juego" ><a href="#pant_juegos"  style="font-family:Roboto-condensed;font-size:20px; ">Juegos</a></li>
                 <li id="b_sector"><a href="#pant_sectores"  style="font-family:Roboto-condensed;font-size:20px;">Sectores</a></li>
               </ul>
-              <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" style=" width:80%;" hidden="true">
+              <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" style=" width:70%;" hidden="true">
                 <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
                 <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
              </ul>
-              <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:80%;" hidden="true">
+              <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:70%;" hidden="true">
                 <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
                 <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
               </ul>
 
-              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:80%;" hidden="true">
+              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
                 <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Detalles Canon y Pagos</a></li>
                 <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Actualización Valores</a></li>
               </ul>
 
-             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:80%;" hidden="true">
+             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:70%;" hidden="true">
                <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
                <li id="imp_mensual"><a href="#pest_mensual"  style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
             </ul>

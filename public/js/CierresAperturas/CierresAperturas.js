@@ -400,7 +400,7 @@ $('#confirmar').on('click',function(e){
       })
     }
     else{
-      if($('#casinoCierre').val() == 0 ){
+      if($('#casinoApertura').val() == 0 ){
         mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
       }
       console.log('ppp',$('#B_fecha_apert').val().length);
@@ -648,10 +648,10 @@ $('#btn-guardar-apertura').on('click', function(e){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
                     }
                     if(key == 'hora'){
-                      mostrarErrorValidacion($('#horarioAp'),val[0],false);
+                      mostrarErrorValidacion($('#horarioAp'),'Campo Obligatorio',false);
                     }
                     if(key == 'id_fiscalizador'){
-                      mostrarErrorValidacion($('#fiscalizApertura'),val[0],false);
+                      mostrarErrorValidacion($('#fiscalizApertura'),'Campo Obligatorio',false);
                     }
                     if(key== 'total_pesos_fichas_a'){
                       $('#mensajeErrorCargaAp').show();
