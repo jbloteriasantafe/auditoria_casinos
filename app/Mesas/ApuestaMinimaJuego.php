@@ -10,8 +10,8 @@ class ApuestaMinimaJuego extends Model
   use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'apuesta_minima_juego';
-  protected $primaryKey = 'id_apuesta_minima';
-  protected $visible = array('id_apuesta_minima','descripcion','id_juego_mesa',
+  protected $primaryKey = 'id_apuesta_minima_juego';
+  protected $visible = array('id_apuesta_minima_juego','descripcion','id_juego_mesa',
                               'cantidad_requerida','apuesta_minima','id_moneda'
                               );
   public $timestamps = false;

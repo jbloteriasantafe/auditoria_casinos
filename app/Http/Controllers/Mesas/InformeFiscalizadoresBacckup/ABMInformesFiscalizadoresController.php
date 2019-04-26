@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Usuario;
 use App\Casino;
 use App\SecRecientes;
-use App\Http\Controllers\RolesPermissions\RoleFinderController;
+use App\Http\Controllers\UsuarioController;
+
 use App\Mesas\ApuestaMinimaJuego;
 use App\Mesas\Mesa;
 
@@ -39,7 +40,7 @@ class ABMInformesFiscalizadoresController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_ver_seccion_informe_fiscalizadores']);
+      $this->middleware(['tiene_permiso:m_ver_seccion_informe_fiscalizadores']);
   }
 
   public function crearInforme($casino, $fecha){
@@ -58,11 +59,10 @@ class ABMInformesFiscalizadoresController extends Controller
       $informe->cumplio_minimo = 0;
       $informe->cantidad_abiertas_con_minimo = 0;
       $informe->cant_mesas_abiertas = 0;
-      $informe->aperturas_sorteadas = 0;
-      $informe->mesas_con_diferencia = '{}';
+      $informe->mesas_con_diferencias = '{}';
       $informe->mesas_importadas_abiertas = '{}';
       $informe->mesas_relevadas_abiertas = '{}';
-      //$informe->apuesta_minima()->associate($minima->id_apuesta_minima_juego);
+      $informe->apuesta_minima()->associate($minima->id_apuesta_minima);
       $informe->casino()->associate($casino->id_casino);
       $informe->save();
       //dd($informe);

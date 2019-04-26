@@ -53,13 +53,39 @@ footer
               <div class="camposTab titulo" style="right:-25px;">FECHA INFORME</div>
               <div class="camposInfo" style="right:0px;"></span>{{$rel->informe->fecha}}</div>
 
+              @if(count($rel->minimos) > 0)
+              <h4>VALORES MÍNIMOS REQUERIDOS PARA {{strtoupper($rel->informe->casino->nombre)}}</h4>
+              <table style="border-collapse: collapse;" >
+                <thead>
+                  <tr align="center" >
+                    <th class="tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">MONEDA</th>
+                    <th class="tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">JUEGO</th>
+                    <th class="tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">VALOR MÍNIMO</th>
+                    <th class="tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">CANT. MÍN. REQ.</th>
+                    <th class="tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">CANT. CUMPLIERON</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($rel->minimos as $min)
+                    <tr>
+                      <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$min->moneda}}</td>
+                      <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$min->nombre_juego}}</td>
+                      <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$min->valor_minimo}}</td>
+                      <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$min->cantidad}} </td>
+                      <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$min->cantidad_cumplieron}} </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+              <br>
+              <br>
+            @endif
             <table class="tablaInicio"  style="border-collapse: collapse;">
               <thead>
                 <th style="font-size:15px; text-align:center !important">
-                  DATOS - {{$rel->informe->fecha}}
+                   {{$rel->informe->fecha}} - {{strtoupper($rel->informe->casino->nombre)}}
                 </th>
               </thead>
-
               <tbody>
                 <tr style="border-bottom:1px solid #ccc; font-size:15px;">
                   
@@ -77,6 +103,9 @@ footer
                   <td><i>Cantidad de Aperturas sin validar: {{$rel->informe->ap_sin_validar}}</i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
+                  <td><i>Porcentaje de Aperturas relevadas sobre sorteadas: {{$rel->informe->aperturas_sorteadas}}</i></td>
+                </tr>
+                <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Mesas Abiertas: {{$rel->informe->cant_mesas_abiertas}}</i></td>
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
@@ -91,9 +120,7 @@ footer
                     @endif
                   </i></td>
                 </tr>
-                <tr style="border-bottom:1px solid #ccc">
-                  <td><i>Cantidad de Mesas con el Valor Mínimo: {{$rel->informe->cantidad_abiertas_con_minimo}}</i></td>
-                </tr>
+
                 @if($rel->informe->cumplio_minimo != '1')
                 <tr style="border-bottom:1px solid #ccc;">
                   <td><i>No se ha cumplido con el mínimo requerido de apuestas en los turnos: {{$rel->informe->turnos_sin_minimo}}</i></td>
@@ -105,7 +132,7 @@ footer
                 @endif
                 <tr style="border-bottom:1px solid #ccc;">
                   @if($rel->relevamientos_incorrectos == 'true')
-                  <td><i>Existe <b>diferencias</b> entre los datos cargados en los Relevamientos de Valores de Apuestas y los datos importados para el día de la fecha</i></td>
+                  <td><i>Existen <b>diferencias</b> entre los datos cargados en los Relevamientos de Valores de Apuestas y los datos importados para el día de la fecha</i></td>
                   @else
                   <td> <i>Los datos de Relevamientos de Valores de Apuestas <b>coinciden</b> con los datos importados para el día de la fecha</i> </td>
                   @endif
@@ -114,7 +141,7 @@ footer
             </table>
             <br>
             <br>
-      @if($rel->informe->mesas_con_diferencia != null)
+      @if($rel->informe->mesas_con_diferencia != 'null' && $rel->informe->mesas_con_diferencia != '{}')
         <h5 style="font-family:Roboto-Regular !important; font-size:15px;text-align:center !important">TABLA DE DIFERENCIAS CIERRES Y APERTURAS</h5>
 
         <table style="border-collapse: collapse;">
@@ -126,7 +153,8 @@ footer
             </tr>
           </thead>
           <tbody>
-            @foreach($rel->informe->mesas_con_diferencia as $diff)
+            <?php $mesas_con_dif = json_decode($rel->informe->mesas_con_diferencia,true); ?>
+            @foreach($mesas_con_dif as $diff)
               <tr>
                 <th class="col-xl-2 " style=" font-size:12px; border-color: gray;text-align:center !important;">
                   {{$diff['mesa']}}
