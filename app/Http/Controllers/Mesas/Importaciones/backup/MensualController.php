@@ -23,7 +23,6 @@ use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\Http\Controllers\UsuarioController;
 
 use App\Mesas\Mesa;
 use App\Mesas\Moneda;
@@ -33,7 +32,8 @@ use App\Mesas\TipoMesa;
 
 use App\Mesas\ImportacionMensualMesas;
 use App\Mesas\DetalleImportacionMensualMesas;
-use App\Mesas\ImportacionDiariaMesas;
+
+use App\Http\Controllers\UsuarioController;
 
 class MensualController extends Controller
 {
@@ -59,11 +59,11 @@ class MensualController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','permission:Alta y Consulta de Importaciones']);//rol a definir por gusti-> en ppio AUDITOR
+      $this->middleware(['tiene_permiso:m_importar']);//rol a definir por gusti-> en ppio AUDITOR
   }
 
   public function buscarTodo(){
-    $casinos = Auth::user()->casinos;
+    $casinos = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos;
     $monedas = Moneda::all();
 
     return view('Importaciones.importacionMensual',  [
@@ -89,9 +89,7 @@ class MensualController extends Controller
    $validator =  Validator::make($request->all(),[
      'id_casino' => 'required|exists:casino,id_casino',
      'id_moneda' => 'required|exists:moneda,id_moneda',
-     'fecha' => 'required',
-     'name' => 'required|unique:importacion_mensual_mesas,nombre_csv',
-
+     'fecha' => 'required'
    ], array(), self::$atributos)->after(function($validator) use ($importacion){
      //dd($importacion);
                  if($validator->getData()['id_casino'] != 0 &&
@@ -159,8 +157,6 @@ class MensualController extends Controller
                                // $importacion->id_casino,
                                // $importacion->id_moneda]);
       $pdo->exec($crea_detalles);
-      $importacion->nombre_csv = $request['name'];
-      $importacion->save();
    }catch(Exception $e){
      dd($e);
    }
@@ -298,39 +294,8 @@ class MensualController extends Controller
    }
    return [$validator,$importacion];
  }
-  public function copiarRosario()
-  {
-    $imps = ImportacionMensualMesas::where('id_casino','=',2)->get();
-
-    foreach ($imps as $imp) {
-      $newimp = new ImportacionMensualMesas;
-      $newimp->fecha_mes = $imp->fecha_mes;
-      $newimp->nombre_csv = $imp->nombre_csv;
-      $newimp->id_casino = 3;
-      $newimp->id_moneda = 2;
-      $newimp->total_drop_mensual = $imp->total_drop_mensual;
-      $newimp->cotizacion_dolar = $imp->cotizacion_dolar;
-      $newimp->cotizacion_euro = $imp->cotizacion_euro;
-      $newimp->diferencias = $imp->diferencias;
-      $newimp->validado = $imp->validado;
-      $newimp->observacion = $imp->observacion;
-      $newimp->utilidad_calculada = $imp->utilidad_calculada;
-      $newimp->retiros_mes = $imp->retiros_mes;
-      $newimp->reposiciones_mes = $imp->reposiciones_mes;
-      $newimp->saldo_fichas_mes = $imp->saldo_fichas_mes;
-      $newimp->save();
-
-    }
-  }
 
  public function filtros(Request $request){
-   // $all = ImportacionMensualMesas::all();
-   // foreach ($all as $i) {
-   //   $this->actualizarTotales($i->id_importacion_mensual_mesas);
-   //   }
-
-   //$this->copiarRosario();
-
    $reglas=array();
 
    if($request->id_moneda !=0 && !empty($request->id_moneda)){
@@ -338,7 +303,7 @@ class MensualController extends Controller
    }
 
    if($request->casino==0 || empty($request->casino)){
-     $usuario = Auth::user();
+     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
      $casinos = array();
      foreach($usuario->casinos as $casino){
        $casinos[]=$casino->id_casino;
@@ -367,63 +332,6 @@ class MensualController extends Controller
                        ->paginate($request->page_size);
    }else{
      $fecha=explode("-", $request['fecha']);
-     switch ($fecha[1]) {
-       case 'Enero':
-         $fecha[1]='01';
-         break;
-        //
-        case 'Febrero':
-          $fecha[1]='02';
-          break;
-        //
-        case 'Marzo':
-          $fecha[1]='03';
-          break;
-        //
-        case 'Abril':
-          $fecha[1]='04';
-          break;
-        //
-        case 'Mayo':
-          $fecha[1]='05';
-          break;
-        //
-        case 'Junio':
-          $fecha[1]='06';
-          break;
-        //
-        case 'Julio':
-          $fecha[1]='07';
-          break;
-        //
-        case 'Agosto':
-          $fecha[1]='08';
-          break;
-        //
-        case 'Septiembre':
-          $fecha[1]='09';
-          break;
-        //
-        case 'Setiembre':
-          $fecha[1]='09';
-          break;
-        //
-        case 'Octubre':
-          $fecha[1]='10';
-          break;
-        //
-        case 'Noviembre':
-          $fecha[1]='11';
-          break;
-        //
-        case 'Diciembre':
-          $fecha[1]='12';
-          break;
-        //
-       default:
-         // code...
-         break;
-     }
      $resultados = DB::table('importacion_mensual_mesas')
                        ->join('moneda','moneda.id_moneda','=','importacion_mensual_mesas.id_moneda')
                        ->join('casino','casino.id_casino','=','importacion_mensual_mesas.id_casino')
@@ -480,49 +388,23 @@ class MensualController extends Controller
     $reposiciones_mes = 0;
     $saldo_fichas_mes = 0;
     $total_utilidad_mensual = 0;
-    //detalles de la imp mensual
     foreach ($imp->detalles as $detalle) {
-      $detalle = $this->actualizarDetalle($detalle,$imp);
-      $total_mensual += $detalle->total_diario;
-      $diferencias += $detalle->diferencias;
-      $utilidad_calculada += $detalle->utilidad_calculada_dia;
-      $retiros_mes += $detalle->retiros_dia;
-      $reposiciones_mes += $detalle->reposiciones_dia;
-      $saldo_fichas_mes += $detalle->saldo_fichas_dia;
-      $total_utilidad_mensual += $detalle->utilidad;
+      $total_mensual += $imp->total_diario;
+      $diferencias += $imp->diferencias;
+      $utilidad_calculada += $imp->utilidad_calculada_dia;
+      $retiros_mes += $imp->retiros_dia;
+      $reposiciones_mes += $imp->reposiciones_dia;
+      $saldo_fichas_mes += $imp->saldo_fichas_dia;
+      $total_utilidad_mensual += $imp->total_diario;
     }
-    $imp->total_drop_mensual = $total_mensual;
-    $imp->diferencias = $diferencias;
-    $imp->saldo_fichas_mes = $saldo_fichas_mes;
-    $imp->utilidad_calculada = $utilidad_calculada;
-    $imp->retiros_mes = $retiros_mes;
-    $imp->reposiciones_mes = $reposiciones_mes;
-    $imp->total_utilidad_mensual = $total_utilidad_mensual;
+    $imp->total_mensual;
+    $imp->diferencias;
+    $imp->saldo_fichas_mes;
+    $imp->utilidad_calculada;
+    $imp->retiros_mes;
+    $imp->reposiciones_mes;
     $imp->save();
   }
-
-  private function actualizarDetalle($detalleM, $importacionM){
-    //buscar importacion diaria
-    //sacarle los totales y guradarlos en el detalle de imp mensual
-    $importacionDiaria = ImportacionDiariaMesas::where('fecha','like','%'.$detalleM->fecha_dia)
-                                                ->where('id_casino','=', $importacionM->id_casino)
-                                                ->where('id_moneda','=',$importacionM->id_moneda)
-                                                ->get()->first();
-    //dd($importacionDiaria,$detalleM, $importacionM);
-    if(isset($importacionDiaria)){
-      $detalleM->total_diario = $importacionDiaria->total_diario;
-      $detalleM->utilidad = $importacionDiaria->utilidad_diaria_total;
-      $detalleM->cotizacion = $importacionDiaria->cotizacion;
-      $detalleM->retiros_dia = $importacionDiaria->total_diario_retiros;
-      $detalleM->reposiciones_dia = $importacionDiaria->total_diario_reposiciones;
-      $detalleM->utilidad_calculada_dia = $importacionDiaria->utilidad_diaria_calculada;
-      $detalleM->saldo_fichas_dia = $importacionDiaria->saldo_diario_fichas;
-      $detalleM->diferencias = $importacionDiaria->diferencias;
-      $detalleM->save();
-    }
-    return $detalleM;
-  }
-
   public function calcularDiffIMM(){
     $date = new DateTime(); //date & time of right now. (Like time())
     $date->sub(new DateInterval('P2M'));
@@ -537,19 +419,15 @@ class MensualController extends Controller
                       ->get();
     //por cada importacion mensual
     foreach ($datos as $importacion) {
-       $imp = ImportacionMensualMesas::find($importacion->id_importacion_mensual_mesas);
-       $fecha_mes_imp = explode('-',$imp->fecha_mes);
-       //obtengo sus detalles mensuales y los mando a controlar con los importados diarios
-       foreach ($imp->detalles as $detalleMensual){
-         $impdfecha = ImportacionDiariaMesas::where([
+       $imp = ImportacionDiariaMesas::find($importacion->id_importacion_mensual_mesas);
+       //obtengo us detalles y los mando a controlar
+       foreach ($imp->detalles as $detalle){
+         $impdfecha = ImportacionDiariaMesas::where([['fecha','=',$detalle->fecha_dia],
                                                   ['id_casino','=',$detalle->id_casino],
                                                   ['id_moneda','=',$detalle->id_moneda]
                                                   ])
-                                                  ->whereDay('fecha','=',$detalle->fecha_dia)
-                                                  ->whereYear('fecha','=',$fecha_mes_imp[0])
-                                                  ->whereMonth('fecha','=',$fecha_mes_imp[1])
                                                   ->get()->first();
-          $this->calcularDifImpD($detalleMensual,$impdfecha);
+          $this->calcularDifImpD($detalle,$impdfecha);
        }
 
 
