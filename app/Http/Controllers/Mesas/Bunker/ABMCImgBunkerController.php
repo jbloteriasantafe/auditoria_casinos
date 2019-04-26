@@ -28,6 +28,7 @@ use App\Mesas\ImagenesBunker;
 use App\Mesas\DetalleImgBunker;
 use App\Mesas\Cierre;
 use App\Mesas\DetalleImportacionDiariaMesas;
+use App\Http\Controllers\UsuarioController;
 
 //validacion de cierres
 class ABMCImgBunkerController extends Controller
