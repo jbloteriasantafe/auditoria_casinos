@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\UsuarioController;
 
 use App\Usuario;
 use App\Casino;
 use Carbon\Carbon;//America/Argentina/Buenos_Aires tz
 use App\SecRecientes;
-use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -52,7 +52,7 @@ class ABMCImgBunkerController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_abmc_img_bunker']);
+      $this->middleware(['tiene_permiso:m_abmc_img_bunker']);
   }
 
   public function index(){
@@ -60,7 +60,7 @@ class ABMCImgBunkerController extends Controller
   }
 
   public function altaImgsBunker(Request $request){
-    $fecha = Carbon::now()->subMonths(1)->format("Y-m-d");//fecha de hoy, mes anterior
+    $fecha = Carbon::now()->subMonths(1)->format("Y-m-d");
     $ff = explode('-',$fecha);
     $casinos = Casino::all();
 
@@ -70,30 +70,18 @@ class ABMCImgBunkerController extends Controller
       $noEsta = ImagenesBunker::where('mes_anio','=',$ff[0].'-'.$ff[1])
                                 ->where('id_casino','=',$casino->id_casino)
                                 ->get();
-        $ff2 = explode('-',$casino->fecha_inicio);
-    if(count($noEsta) == 0 ){
 
-       if(count($casino->mesas) > 0 && (($ff2[0] < $ff[0]) || ($ff2[1] > $ff[1] && $ff2[0] ==$ff[0]))){
+       if(count($casino->mesas) > 0 && count($noEsta) == 0){
         $bunker = new ImagenesBunker;
         $bunker->mes_anio = $ff[0].'-'.$ff[1];
         $bunker->casino()->associate($casino->id_casino);
         $bunker->save();
         $this->sortearFechasYMesas($casino,$bunker);
-        if(count($bunker->detalles->all()) != 0) {
-          $sorteados[] = ['bunker'=>$bunker,'casino'=>$bunker->casino->nombre];
-        }
-        else {
-          $bunker->delete();
-        }
+        $sorteados[] = ['bunker'=>$bunker,'casino'=>$bunker->casino->nombre];
       }
-      else {
-        $sorteados[] = ['bunker'=>'','casino'=>$casino->nombre];
-      }
-
-      }
-      else{
-          return response()->json([ 'ERROR' => 'EL SORTEO YA FUE CREADO.'], 401);
-      }
+    }
+    if(empty($sorteados)){
+      return response()->json([ 'ERROR' => 'EL SORTEO YA FUE CREADO.'], 401);
     }
     return ['sorteo' => $sorteados];
   }
@@ -125,26 +113,25 @@ class ABMCImgBunkerController extends Controller
                               ->inRandomOrder()
                               ->take($cantidad)
                               ->get();
-
-          if(count($cierres) == 0){ $cierres = null;}
         }else{
           $cierres = null;
         }
-      } while(($fechas_collect->contains(['dia' => $random]) || $cierres == null) && $j<= $end->format('j'));
+      } while($fechas_collect->contains(['dia' => $random]) && $cierres != null && $j<= $end->format('j'));
+
 
 
       if(count($cierres) != 0){
         $fechas_collect->push($random);
+      }
 
-        foreach ($cierres as $cierre) {
-          $detalle = new DetalleImgBunker;
-          $detalle->mesa()->associate($cierre->id_mesa_de_panio);
-          $detalle->imagen_bunker()->associate($bunker->id_imagenes_bunker);
-          $detalle->fecha = $cierre->fecha;
-          $detalle->codigo_mesa = $cierre->mesa->codigo_mesa;
-          $detalle->save();
-          $mesas = $mesas.$detalle->codigo_mesa.';';
-        }
+      foreach ($cierres as $cierre) {
+        $detalle = new DetalleImgBunker;
+        $detalle->mesa()->associate($cierre->id_mesa_de_panio);
+        $detalle->imagen_bunker()->associate($bunker->id_imagenes_bunker);
+        $detalle->fecha = $cierre->fecha;
+        $detalle->codigo_mesa = $cierre->mesa->codigo_mesa;
+        $detalle->save();
+        $mesas = $mesas.$detalle->codigo_mesa.';';
       }
     }
     $fechas = $fechas_collect->sortBy('dia')->values();
@@ -166,6 +153,7 @@ class ABMCImgBunkerController extends Controller
               ->where('img.id_imagenes_bunker','=',$id)
               ->distinct('img.nombre_cd')
               ->get();
+
     return ['bunker' => $bunker,
             'detalles' => $bunker->detalles()->orderBy('fecha','asc')->orderBy('codigo_mesa','asc')->get(),
             'cds' => $cds
@@ -190,13 +178,11 @@ class ABMCImgBunkerController extends Controller
     ], array(), self::$atributos)->after(function($validator){
       //falta agregar validaciones de minutos cuando el drop es != coso
       if(!empty($validator->getData()['detalles'])){
-        $i=0;
         foreach ($validator->getData()['detalles'] as $detalle) {
           if(!empty($detalle['drop_visto']) && empty($detalle['minutos_video'])){
-            $validator->errors()->add('detalles.'.$i.'.minutos_video','Campo requerido.'
+            $validator->errors()->add('drop_visto','Campo requerido.'
                                       );
           }
-          $i++;
         }
       }
      })->validate();
@@ -223,11 +209,10 @@ class ABMCImgBunkerController extends Controller
        $detalle->diferencias = $datos['diferencias'];
        $detalle->save();
      }
-     if($bunker->detalles()->whereNotNull('drop_visto')->where('drop_visto','<>',0)->get()->count()
-        == $bunker->detalles()->count()){
-       $bunker->estado()->associate(3);
-     }else{
+     if($bunker->detalles()->whereNull('drop_visto')->orWhere('drop_visto','=',0)->get()->count() != $bunker->detalles()->count()){
        $bunker->estado()->associate(2);
+     }else{
+       $bunker->estado()->associate(3);
      }
      $bunker->save();
      //rfg
@@ -267,7 +252,7 @@ class ABMCImgBunkerController extends Controller
                 ->where($filtros)
                 ->whereIn('img.id_casino',$cas)
                 ->distinct('img.id_imagenes_bunker')
-                ->whereNull('img.deleted_at')
+                //->whereNull('imagenes_bunker.deleted_at')
                 ->when($sort_by,function($query) use ($sort_by){
                                 return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                             })
@@ -282,7 +267,6 @@ class ABMCImgBunkerController extends Controller
                         ->where($filtros)
                         ->whereIn('img.id_casino',$cas)
                         ->where('img.mes_anio' , '=', $request->mes)
-                        ->whereNull('img.deleted_at')
                         ->distinct('img.id_imagenes_bunker')
                         ->when($sort_by,function($query) use ($sort_by){
                                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
