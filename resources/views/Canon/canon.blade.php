@@ -215,7 +215,7 @@
             <br>
             <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
             <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Aún no hay Informes generados para las fechas y el casino ingresados.</span>
+            <span class="msjtext" style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Aún no hay Informes generados para las fechas y el casino ingresados.</span>
           </div> <!-- mensaje -->
         </div>
 
@@ -223,7 +223,7 @@
           <div class="row">
             <table class="col-xs-12 table table-bordered" id="anio1" style="padding:0px !important">
               <thead>
-                  <th class="casinoInformeFinal" colspan="8"> <h6 style="font-weight:bold;text-align:center !important;font-size:17px !important">CASINO 2017/2018</h6> </th>
+                  <th class="casinoInformeFinal" colspan="8"> <h6 style="font-weight:bold;text-align:center !important;font-size:17px !important;color:#000">CASINO 2017/2018</h6> </th>
               </thead>
               <tbody width="auto">
                   <tr style="" class="default1">
@@ -259,7 +259,7 @@
           <div class="row">
             <table class="col-xs-12 table table-bordered" id="anio2" style="padding:0px !important">
               <thead style="border-color:#aaa !important">
-                <th class=" casinoInformeFinal2" colspan="8"> <h6 style="font-weith:bold;text-align:center;font-size:17px !important">CASINO DÓLARES</h6> </th>
+                <th class=" casinoInformeFinal2" colspan="8"> <h6 style="font-weith:bold;text-align:center;font-size:17px !important;color:#000">CASINO DÓLARES</h6> </th>
               </thead>
               <tbody width="auto">
                 <tr style="text-align:center !important" class="default2">
@@ -295,11 +295,10 @@
             </table>
           </div>
         </div>
-</div>
-</div>
-</div>
-
+      </div>
+    </div>
   </div>
+</div>
 
 
   <div class="row datosActualizacion" hidden="true">
@@ -320,18 +319,17 @@
           <div class="row ">
             <table class="table table-bordered" id="tablaActualizacion" style="border:1px solid #aaa !important">
               <thead style="background-color:#E0E0E0;font-weight:bold;font-size:16px !important;">
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Moneda</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Valores 2017/2018</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Montos 2016/2017</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Montos 2017/2018</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">% de Variación</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Valor Base</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Valor Base 2018/2019</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;"><h6 style="color:white !important;text-align:center !important;">Valores 2018/2019</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Moneda</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valores 2017/2018</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Montos 2016/2017</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Montos 2017/2018</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">% de Variación</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valor Base</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valor Base 2018/2019</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valores 2018/2019</h6></th>
               </thead>
               <tbody>
 
-                </tr>
               </tbody>
             </table>
           </div>
@@ -339,14 +337,14 @@
             <table class="table" >
               <tbody >
                 <tr class"filaClone" id="clonarTA" style="display:none">
-                  <td class="col-xs-1 monedaActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-1 valoresActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-2 pagos1Actualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-2 pagos2Actualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-2 variacionActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-1 vBaseActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-2 vBaseNuevoActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="col-xs-2 vFinalesActualizacion" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="col-xs-1 monedaActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-1 valoresActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-2 pagos1Actualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-2 pagos2Actualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-2 variacionActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-1 vBaseActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-2 vBaseNuevoActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
+                  <td class="col-xs-2 vFinalesActualizacion" style="border-right: 1px solid #000 !important;border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; padding:1px !important;text-align:center !important; font-size:14px !important"></td>
                 </tr>
               </tbody>
             </table>
@@ -476,7 +474,7 @@
               <br>
                 <div class="row">
                   <h6 style="font-size:16px !important;">OBSERVACIONES</h6>
-                  <textarea name="name" rows="4"  class="form-control" cols="auto" id=obsPago""></textarea>
+                  <textarea name="name" rows="4"  class="form-control" cols="auto" id="obsPago"></textarea>
                 </div>
             </div>
         </div>

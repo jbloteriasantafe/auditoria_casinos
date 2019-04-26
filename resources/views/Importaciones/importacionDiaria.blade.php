@@ -279,11 +279,11 @@
                     <table id="tablaResultadosMes" class="table table-fixed tablesorter">
                       <thead>
                         <tr align="center" >
-                          <th class="col-xs-2 activa" estado="desc" value="fecha_mes" style="font-size:14px;">FECHA<i class="fas fa-sort"></i></th>
+                          <th class="col-xs-3 activa" estado="desc" value="fecha_mes" style="font-size:14px;">FECHA<i class="fas fa-sort"></i></th>
                           <th class="col-xs-2 activa" estado="desc" value="nombre" style="font-size:14px;">CASINO<i class="fas fa-sort"></i></th>
                           <th class="col-xs-2 activa" estado="desc" value="descripcion" style="font-size:14px; text-align:center !important;">MONEDA<i class="fas fa-sort"></i></th>
                           <th class="col-xs-3" style="font-size:14px; text-align:center !important;">DIFERENCIAS</th>
-                          <th class="col-xs-3"  style="font-size:14px;text-align:center !important;">ACCIÓN</th>
+                          <th class="col-xs-2"  style="font-size:14px;text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
                       <tbody  id='cuerpoTablaImpM' >
@@ -292,7 +292,7 @@
                     </table>
                     <table>
                         <tr id="moldeFilaImpM" class="filaClone" style="display:none">
-                          <td class="col-xs-2 m_fecha"></td>
+                          <td class="col-xs-3 m_fecha"></td>
                           <td class="col-xs-2 m_casino"></td>
                           <td class="col-xs-2 m_moneda" style="text-align:center !important;"></td>
                           <td class="col-xs-3 m_dif" style="text-align:center !important;"></td>
@@ -666,7 +666,7 @@
           <div class="col-xs-12">
               <table  style="border-collapse: collapse; table-layout:auto" align="center" class="table table-bordered" >
                 <thead>
-                  <tr class="col-xl-12" >
+                  <tr>
                     <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
                       <h5  style="font-size: 15px; color:#000;text-align:center !important;">JUEGO</h5>
                     </th>
