@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
 
-use App\Usuario;
+use App\User;
 use App\Casino;
 use App\MesCasino;
 use Carbon\Carbon;
@@ -56,11 +56,11 @@ class IndexController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_ver_seccion_canon']);
+      $this->middleware(['tiene_permiso:m_ver_seccion_canon']);
   }
 
   public function index(){
-    $user =UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    return view ('Canon.canon',['casinos'=>$user->casinos]);
+
+    return view ('Canon.canon',['casinos'=> UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos]);
   }
 }

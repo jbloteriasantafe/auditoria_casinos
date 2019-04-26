@@ -22,6 +22,7 @@ use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Http\Controllers\UsuarioController;
 
 use App\Mesas\Mesa;
 use App\Mesas\Moneda;
@@ -58,7 +59,7 @@ class APagosController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_a_pagos']);
+      $this->middleware(['tiene_permiso:m_a_pagos']);
   }
 
   //crear,  pago->recibe cotizaciones, impuestos, fecha_pago, mes_pago y total_pago_pesos
@@ -74,7 +75,6 @@ class APagosController extends Controller
       'mes' =>  ['required','exists:mes_casino,id_mes_casino'],
       'total_pago_pesos' =>  ['required',
                           'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'anio_cuota' => 'required|date_format:Y'
     ], array(), self::$atributos)->after(function($validator){
       //validar que el canon este creado, validar que la cuota no esté paga.
       if(!empty($validator->getData()['mes']) && !empty($validator->getData()['total_pago_pesos'])){
@@ -355,43 +355,22 @@ class APagosController extends Controller
     $pago->save();
 
     return response()->json([], 200);
+
   }
 
 
   private function validarFecha($validator){
-    $mesCuota = MesCasino::find($validator->getData()['mes']);
-    $casino = $mesCuota->casino;
-    if($mesCuota->nro_mes >= 1 && $mesCuota->nro_mes <=9){
-      $nro_mes_c = '0'+$mesCuota->nro_mes;
-    }else {
-      $nro_mes_c = $mesCuota->nro_mes;
+    $mes = MesCasino::find($validator->getData()['mes']);
+    $mes_hoy = date('m');
+    if($mes->nro_mes < $mes_hoy && $mes_hoy != '01' ){
+      $anioCuota = date('Y');
+    }else{
+      $anioCuota = date('Y')-1;
     }
 
-    $anio_mes_hoy = date('Y-m');
-    $anio_mes_fecha_pago =  Carbon::parse($validator->getData()['fecha_pago'])->format('Y-m');
-    $anio_mes_cuota = $validator->getData()['anio_cuota']+ $nro_mes_c;
-    $anio_mes_creacion_cas = Carbon::parse($casino->fecha_creacion)->format('Y-m');
-    //  dd($anio_mes_fecha_pago,$anio_mes_cuota);
-    if($anio_mes_hoy < $anio_mes_fecha_pago || $anio_mes_hoy < $anio_mes_cuota){
-      //el msja va para anio
-      if( $validator->getData()['anio_cuota'] > date('Y')){
-        $validator->errors()->add('anio_cuota','El año a pagar no debe superar al actual.'
-                                 );
-      }
-      //dd($nro_mes_c);
-      if($nro_mes_c > date('m')){
-        $validator->errors()->add('mes','El mes a pagar no debe superar al actual.'
-                                 );
-      }
-
-    }
-    if($anio_mes_cuota < $anio_mes_creacion_cas){
-      $validator->errors()->add('fecha_pago','La fecha de creación del casino es menor a la que desea pagar.'
-                               );
-    }
-
-    if($anio_mes_fecha_pago < $anio_mes_cuota){
-      $validator->errors()->add('fecha_pago','La fecha de pago es incorrecta.'
+    $anio_pago = Carbon::parse($validator->getData()['fecha_pago'])->format('Y');
+    if($anio_pago != $anioCuota){
+      $validator->errors()->add('fecha_pago','No es posible registrar el pago en esta fecha.'
                                );
     }
     return $validator;

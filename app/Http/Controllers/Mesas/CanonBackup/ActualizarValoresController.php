@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\UsuarioController;
 
 use App\Usuario;
 use App\Casino;
@@ -55,7 +56,7 @@ class ActualizarValoresController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_actualizar_canon']);
+      $this->middleware(['tiene_permiso:m_actualizar_canon']);
   }
 
   public function verRequisitos($id_casino){
@@ -183,7 +184,6 @@ class ActualizarValoresController extends Controller
     $nuevo_canon->save();
     return $nuevo_canon;
   }
-
   public function crearCanon($informeNuevo){
 
     $nuevo_canon = new Canon;
@@ -210,7 +210,7 @@ class ActualizarValoresController extends Controller
                                   ->first();
                                   //dd($yaEstaCreado,$id_casino,date('Y'),date('Y')+1);
     $ok = $this->verRequisitos($id_casino)['ok'];
-    if($yaEstaCreado == null && $ok != 0){
+    if($yaEstaCreado == null){
       $informe = InformeFinalMesas::where('id_casino','=',$id_casino)
                                     ->where('anio_final','=',$anio_final)
                                     ->first();
@@ -273,7 +273,6 @@ class ActualizarValoresController extends Controller
 
     }
     else {
-      // dd('holis');
       $canon = Canon::where('periodo_anio_fin','=',$yaEstaCreado->anio_final)
                       ->where('periodo_anio_inicio','=',$yaEstaCreado->anio_inicio)
                       ->where('id_casino','=',$id_casino)

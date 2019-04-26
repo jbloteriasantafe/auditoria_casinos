@@ -21,8 +21,8 @@ use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\Http\Controllers\UsuarioController;
 
+use App\Http\Controllers\UsuarioController;
 use App\Mesas\Mesa;
 use App\Mesas\Moneda;
 use App\Mesas\ImagenesBunker;
@@ -53,7 +53,7 @@ class ABMCCanonController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_abmc_canon']);
+      $this->middleware(['tiene_permiso:m_abmc_canon']);
   }
 
   //un buscar

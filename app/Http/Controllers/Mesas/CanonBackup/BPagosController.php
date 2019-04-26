@@ -46,7 +46,7 @@ class BPagosController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_b_pagos']);
+      $this->middleware(['tiene_permiso:m_b_pagos']);
   }
 
   public function filtros(Request $request){
@@ -70,13 +70,12 @@ class BPagosController extends Controller
     }else{
         $sort_by = ['columna' => 'DIFM.fecha_cobro','orden','desc'];
     }
-    //dd($filtros);
+
     if(empty($request->fecha)){
       $resultados = DB::table('detalle_informe_final_mesas as DIFM')
                         ->join('casino','casino.id_casino','=','DIFM.id_casino')
                         ->join('mes_casino','mes_casino.id_mes_casino','=','DIFM.id_mes_casino')
                         ->where($filtros)
-                        ->whereIn('DIFM.id_casino',$cas)
                         ->when($sort_by,function($query) use ($sort_by){
                                         return $query->orderBy($sort_by['columna'],
                                         $sort_by['orden']);
@@ -90,7 +89,6 @@ class BPagosController extends Controller
                         ->where($filtros)
                         ->whereYear('DIFM.fecha_cobro', '=', $fecha[0])
                         ->whereMonth('DIFM.fecha_cobro','=', $fecha[1])
-                        ->whereIn('DIFM.id_casino',$cas)
                         ->when($sort_by,function($query) use ($sort_by){
                                         return $query->orderBy($sort_by['columna'],
                                         $sort_by['orden']);
@@ -111,7 +109,7 @@ class BPagosController extends Controller
     $ultimo_informe = InformeFinalMesas::where('id_casino','=',$request->id_casino)
                                     ->where('anio_inicio','=',date('Y')-1)
                                     ->first();
-    $iii= $request->anio_inicio;
+                                    $iii= $request->anio_inicio;
     if($iii+1 == $request->anio_final && $request->anio_inicio != date('Y')-1){ //(a)
       //busco 1 solo informe_final_mesas
     //  dd('uyi');
@@ -128,9 +126,7 @@ class BPagosController extends Controller
               ], 200);
       }
     }else{
-
-      if($request->anio_inicio++ != $request->anio_final && $request->anio_inicio != date('Y')-1){//(c)
-        //dd('fdh');
+      if($request->anio_inicio++ == $request->anio_final && $request->anio_inicio != date('Y')-1){//(c)
         //busco dos y creo un nuevo informe_final_mesas
         $primero = InformeFinalMesas::where('id_casino','=',$request->id_casino)
                                         ->where('anio_inicio','=',$request->anio_inicio)
@@ -151,7 +147,6 @@ class BPagosController extends Controller
             return response()->json(['error' => 'INFORME NO ENCONTRADO'], 404);
         }
       }else{ //(b)
-
         if($ultimo_informe != null){
           return response()->json(['ultimo_informe'=>$ultimo_informe,
                   'informe' => $ultimo_informe,
@@ -181,7 +176,7 @@ class BPagosController extends Controller
     $detalles = array();
 
     foreach ($segundo->detalles as $dd) {
-      $d = $this->buscarParaElMismoMes($dd->id_mes_casino ,$primero);
+      $d = $this->buscarParaElMismoMes($d->id_mes_casino ,$primero);
       $newdet = new DetalleInformeFinalMesas;
       $newdet->total_pagado = 0;
       $newdet->impuestos = 0;
