@@ -5,10 +5,8 @@ $(document).ready(function() {
   $('#barraImportaciones').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#barraImportaciones').addClass('opcionesSeleccionado');
 
-    $('#filtroCas').val('0');
-    $('#B_fecha_filtro').val('');
-    $('#filtroMon').val('0');
-
+  limpiarFiltrosDiaria();
+  limpiarFiltrosMensual();
     $('#mensajeExito').hide();
     $('#mensajeError').hide();
 
@@ -60,9 +58,13 @@ $("ul.pestImportaciones li").click(function() {
 
     var activeTab = $(this).find("a").attr("href"); //Find the href attribute value to
                 //identify the active tab + content
-                console.log(activeTab);
     if(activeTab == '#pest_mensual'){
-      $('#buscar-impMensuales').trigger('click',[1,5,'fecha_mes','desc']);
+      limpiarFiltrosMensual();
+      $('#buscar-impMensuales').trigger('click',[1,10,'fecha_mes','desc']);
+    }
+    if(activeTab == '#pest_diaria'){
+      limpiarFiltrosDiaria();
+      $('#buscar-importacionesDiarias').trigger('click',[1,10,'fecha','desc']);
     }
     $(activeTab).fadeIn(); //Fade in the active ID content
     return false;
@@ -187,7 +189,7 @@ $('#btn-guardarDiario').on('click', function(e){
           error: function (data) {
             ///debería mostrar el mensaje y nada más.
             console.log('error',data);
-            var response = data.responseJSON;
+            var response = data.responseJSON.errors;
 
             $('#modalImportacionDiaria').find('.modal-footer').children().show();
             $('#frmImportacion').show();
@@ -214,11 +216,20 @@ $('#btn-guardarDiario').on('click', function(e){
 
                     }
                }
+               if(typeof response.name !== 'undefined'){
+
+                  if(response.error.length > 0){
+
+                        $('#mensajeErrorJuegos #span').text(response.error[0]);
+
+                        $('#mensajeErrorJuegos').show();
+
+                    }
+               }
 
           }
       });
   });
-
 
 $('#modalImportacionDiaria #archivo').on('fileerror', function(event, data, msg) {
      //$('#modalImportacionDiaria #rowMoneda').hide();
@@ -257,10 +268,12 @@ $('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orde
     var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
     // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosDiarios .activa').attr('value'),orden: $('#tablaResultadosDiarios .activa').attr('estado')} ;
 
-    if(sort_by == null){ // limpio las columnas
-      $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+      var sort_by =  {columna: 'fecha',orden: 'desc'} ;
+
+      //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
     }
 
     var formData= {
@@ -285,7 +298,7 @@ $('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orde
         dataType: 'json',
 
         success: function (data){
-          $('#tablaResultados tbody tr').remove();
+          $('#tablaResultadosDiarios tbody tr').remove();
 
           $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.importaciones.total,clickIndice);
 
@@ -306,9 +319,9 @@ $('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orde
 });
 
 //PAGINACION
-$(document).on('click','#tablaResultados thead tr th[value]',function(e){
+$(document).on('click','#tablaResultadosDiarios thead tr th[value]',function(e){
 
-  $('#tablaResultados th').removeClass('activa');
+  $('#tablaResultadosDiarios th').removeClass('activa');
 
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     console.log('1');
@@ -323,7 +336,7 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
         $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
+  $('#tablaResultadosDiarios th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
@@ -335,8 +348,8 @@ function clickIndice(e,pageNumber,tam){
   }
 
   var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('value');
-  var orden = $('#tablaResultados .activa').attr('estado');
+  var columna = $('#tablaResultadosDiarios .activa').attr('value');
+  var orden = $('#tablaResultadosDiarios .activa').attr('estado');
   $('#buscar-importacionesDiarias').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
@@ -371,6 +384,7 @@ $(document).on('click', '.obsImpD', function(e) {
             var fila=  generarFilaVerImpValidar(data.detalles[i]);
             $('#datosImpDiarios').append(fila);
         }
+
   });
 
 });
@@ -465,13 +479,13 @@ $('#guardar-observacion').on('click', function(e){
 
 })
 
-
 //ver datos de importaciones guardados
  $(document).on('click','.infoImpD',function(e){
 
     var id=$(this).val();
+    $('#selectMesaInfo').val('1').prop('selected',true);
     var tipo=$('#selectMesaInfo').val();
-
+    console.log('tipo',tipo);
     $.get('importacionDiaria/verImportacion/' + id + '/' + 'RULETA', function(data){
 
         $('#datosInfoDiarios  tr').remove();
@@ -487,6 +501,9 @@ $('#guardar-observacion').on('click', function(e){
             var fila=  generarFilaVerImp(data.detalles[i]);
             $('#datosInfoDiarios').append(fila);
       }
+      var totales= generarFilaTotalesDia(data.importacion);
+      $('#datosInfoDiarios').append(totales);
+
 
       $('#modalInfoImportacion').modal('show');
 
@@ -510,6 +527,8 @@ $('#guardar-observacion').on('click', function(e){
                  var fila=  generarFilaVerImp(data.detalles[i]);
                  $('#datosInfoDiarios').append(fila);
              }
+             var totales= generarFilaTotalesDia(data.importacion);
+             $('#datosInfoDiarios').append(totales);
        });
      }
 
@@ -525,6 +544,8 @@ $('#guardar-observacion').on('click', function(e){
                  var fila=  generarFilaVerImp(data.detalles[i]);
                  $('#datosInfoDiarios').append(fila);
              }
+             var totales= generarFilaTotalesDia(data.importacion);
+             $('#datosInfoDiarios').append(totales);
        });
      }
 
@@ -540,6 +561,8 @@ $('#guardar-observacion').on('click', function(e){
                  var fila=  generarFilaVerImp(data.detalles[i]);
                  $('#datosInfoDiarios').append(fila);
              }
+             var totales= generarFilaTotalesDia(data.importacion);
+             $('#datosInfoDiarios').append(totales);
        });
      }
  });
@@ -547,10 +570,17 @@ $('#guardar-observacion').on('click', function(e){
  $(document).on('click','.eliminarDia',function(e){
 
     var id=$(this).val();
+    $('#btn-eliminar').val(id);
+    $('#modalAlertaEliminar').modal('show');
 
-    $.get('importacionDiaria/eliminarImportacion/' + id , function(data){
+});
+
+$('#btn-eliminar').on('click', function(){
+
+    $.get('importacionDiaria/eliminarImportacion/' + $(this).val() , function(data){
 
       if(data==1){
+        $('#modalAlertaEliminar').modal('hide');
         $('#mensajeExito h3').text('ARCHIVO ELIMINADO');
         $('#mensajeExito p').text(' ');
         $('#mensajeExito').show();
@@ -559,7 +589,6 @@ $('#guardar-observacion').on('click', function(e){
       }
     })
 });
-
 
 //evento de seleccionar el archivo a importar
  function handleFileSelect(evt) {
@@ -599,14 +628,14 @@ $('#guardar-observacion').on('click', function(e){
        fila.find('.d_casino').text(data.nombre);
        fila.find('.d_moneda').text(data.descripcion);
        if(data.diferencias == 0){
-         fila.find('.d_dif').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
+         fila.find('.d_dif').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50').css('text-align','center'));
 
 
        }else{
          fila.find('.d_dif').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('text-align','center'));
 
        }
-       if(data.validado==1){
+       if(data.validado==1 || data.validado==2){
          fila.find('.d_accion').find('.infoImpD').val(data.id_importacion_diaria_mesas).show();
          fila.find('.d_accion').find('.obsImpD').hide();
          fila.find('.d_accion').find('.eliminarDia').hide();
@@ -667,16 +696,31 @@ $('#guardar-observacion').on('click', function(e){
        fila.find('.info_utilidad').text(data.utilidad);
        fila.find('.info_hold').text(data.hold);
 
-       // if(data.diferencia == 0){
-       //   fila.find('.d_accion').find('.imprimirImpD').hide();
-       //   fila.find('.d_accion').find('.infoImpD').show();
-
        fila.css('display', '');
        $('#mostrarTablaver').css('display','block');
 
      return fila;
 
  }
+
+ function generarFilaTotalesDia(data){
+
+     var fila = $('#moldeInfoDiarios').clone();
+       fila.removeAttr('id');
+       fila.find('.info_juego').text('TOTALES').css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.find('.info_drop').text(data.total_diario).css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.find('.info_utilidad').text(data.utilidad_diaria_total).css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.find('.info_reposiciones').text(data.total_diario_reposiciones).css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.find('.info_retiros').text(data.total_diario_retiros).css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.find('.info_hold').text('-').css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+       fila.css('cssText','background-color:#aaa; color:black;');
+       fila.css('display', '');
+       $('#mostrarTablaver').css('display','block');
+
+     return fila;
+ };
+
+
  function generarFilaVerImpValidar(data){
 
      var fila = $('#moldeImpDiarios').clone();
@@ -701,3 +745,18 @@ $('#guardar-observacion').on('click', function(e){
      return fila;
 
  }
+
+ function limpiarFiltrosDiaria(){
+
+   $('#filtroCas').val('0');
+   $('#B_fecha_filtro').val('');
+   $('#filtroMon').val('0');
+ }
+
+
+  function limpiarFiltrosMensual(){
+
+    $('#filtroCasino').val('0');
+    $('#filtroFecha').val('');
+    $('#filtroMoneda').val('0');
+  }

@@ -34,6 +34,21 @@ $(document).ready(function() {
         minView: 2
       });
     });
+      $(function(){
+        $('#dtpFecha').datetimepicker({
+          language:  'es',
+          todayBtn:  1,
+          autoclose: 1,
+          todayHighlight: 1,
+          format: 'yyyy',
+          pickerPosition: "bottom-left",
+          startView: 4,
+          viewSelect:'decade',
+          minView: 4,
+          maxView:4,
+          ignoreReadonly: true,
+      });
+    });
     $(function(){
       $('#dtpFechaPagoModif').datetimepicker({
         language:  'es',
@@ -80,13 +95,14 @@ $("ul.pestCanon li").click(function() {
       $('#añoInicioAct2').prop('disabled',true);
       $('#selectActualizacion').val(0);
       $('#añoInicioAct1 option').remove();
-      $('#añoInicioAct1 option').remove();
+      $('#añoInicioAct2 option').remove();
       $('#mensajeError').hide();
       $('.desplegarActualizar').hide();
       $('.datosReg').hide();
       $('.datosActualizacion').hide();
       $('#collapseFiltros3').trigger('click');
       $('#actualizarCanon').hide();
+      $('#mensajeErrorInforme').hide();
       ocultarErrorValidacion($('#añoInicioAct2'));
 
     }
@@ -125,9 +141,7 @@ $(document).on('change','#selectActualizacion', function(e){
         $('#mensajeErrorInforme').find('.msjtext').text('No hay años para filtrar, puede que no se hayan cargado pagos de Canon, durante un año completo.');
         $('#mensajeErrorInforme').show();
       }
-
     })
-
   }else{
     $('#añoInicioAct1 option').remove();
     $('#añoInicioAct2 option').remove();
@@ -229,6 +243,8 @@ $('#buscarActualizar').on('click',function(e){
 //DESEA ACTUALIZAR EL CANON-BTN GRANDE
 $('#actualizarCanon').on('click',function(e){
   e.preventDefault();
+
+  $('#aceptarActualizacion').val($(this).val());
   $('#modalAlertaActualizacion').modal('show');
 
 })
@@ -240,9 +256,32 @@ $('#aceptarActualizacion').on('click',function(e){
 
   $('.datosActualizacion').show();
   var id=$(this).val();
+  var anio=$('#añoInicioAct2').val();
 
-  $.get('canon/generarTablaActualizacion1/' + id  + '/' + '2016', function(data){
+  $.get('canon/generarTablaActualizacion1/' + id  + '/' + anio, function(data){
     if(data!=null){
+      var t1 = 'Valores '+data.informeAnterior.anio_inicio+'/'+
+              data.informeAnterior.anio_final;
+      $('#t_valor_ant').text(t1);
+      var t2 = 'Montos '+(data.informeAnterior.anio_inicio-1)+'/'+
+              (data.informeAnterior.anio_final-1);
+      $('#t_monto_ant').text(t2);
+
+      var t3 = 'Montos '+data.informeAnterior.anio_inicio+'/'+
+              data.informeAnterior.anio_final;
+      $('#t_monto_act').text(t3);
+
+      var t4 = 'Valores Base '+data.informeAnterior.anio_inicio+'/'+
+              data.informeAnterior.anio_final;
+      $('#t4_valor_base_ant').text(t4);
+
+      var t5 = 'Valores Base '+data.informeNuevo.anio_inicio+'/'+
+              data.informeNuevo.anio_final;
+      $('#t_valor_base_act').text(t5);
+
+      var t6 = 'Valores '+data.informeNuevo.anio_inicio+'/'+
+              data.informeNuevo.anio_final;
+      $('#t_valor_base_nuevo').text(t6);
       var euro= cargarTablaActualizacion(data,1);
       var dolar= cargarTablaActualizacion(data,2);
 
@@ -420,12 +459,13 @@ $('#guardarModificacion').on('click',function(e){
       error: function (data) {
         var response = data.responseJSON.errors;
 
-        if(typeof response.valor_base_euro !== 'undefined'){
-          mostrarErrorValidacion($('#baseNuevoDolar'), response.valor_base_euro[0]);
-        }
-        if(typeof response.valor_base_dolar !== 'undefined'){
-          mostrarErrorValidacion($('#baseNuevoEuro'), response.valor_base_dolar[0]);
-        }
+          if(typeof response.valor_base_euro !== 'undefined'){
+            mostrarErrorValidacion($('#baseNuevoDolar'), response.valor_base_euro[0]);
+          }
+          if(typeof response.valor_base_dolar !== 'undefined'){
+            mostrarErrorValidacion($('#baseNuevoEuro'), response.valor_base_dolar[0]);
+          }
+
       }
     })
 })
@@ -433,11 +473,15 @@ $('#guardarModificacion').on('click',function(e){
 //btn REGISTRAR PAGO (CARGA LOS CASINOS)
 $('#pagoCanon').on('click',function(e){
   e.preventDefault();
+
   limpiar();
+  $('#fechaPagoFil').val('');
+  ocultarErrorValidacion($('#fechaPagoFil'));
   $('#selectCasinoPago option').not('.default1').remove();
   $('.cargarPago').prop('disabled',true);
 
   $('#selectCasinoPago').prop('disabled',false);
+
 
   $.get('casinos/getCasinos',function(data){
     for (var i = 0; i < data.length; i++) {
@@ -466,7 +510,6 @@ $(document).on('click','.cargarPago', function(e){
   e.preventDefault();
 
   var id=$('#selectCasinoPago').val();
-  //$('#selectCasinoPago').prop('disabled',true);
 
   $.get('casinos/getMeses/' + id, function(data){
 
@@ -474,6 +517,7 @@ $(document).on('click','.cargarPago', function(e){
         $('#selectMesPago').append($('<option>').val(data.meses[i].id_mes_casino).text(data.meses[i].nombre_mes).append($('</option>')))
       }
   })
+
   $('.desplegarPago').show();
   $('#guardarPago').show();
 
@@ -495,6 +539,7 @@ $('#guardarPago').on('click',function(e){
     fecha_pago: $('#fechaPago').val(),
     total_pago_pesos:$('#montoPago').val(),
     mes:$('#selectMesPago').val(),
+    anio_cuota:$('#fechaPagoFil').val(),
   }
 
   $.ajaxSetup({
@@ -510,7 +555,7 @@ $('#guardarPago').on('click',function(e){
       dataType: 'json',
 
       success: function (data){
-
+          $('#mensajeImportacionError').hide();
           $('#modalRegistrarPago').modal('hide');
           $('#mensajeExito h3').text('EXITO!');
           $('#mensajeExito p').text('Los datos del Pago han sido guardados.');
@@ -537,8 +582,15 @@ $('#guardarPago').on('click',function(e){
           if(typeof response.total_pago_pesos !== 'undefined'){
             mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
           }
+          if(typeof response.anio_cuota !== 'undefined'){
+            mostrarErrorValidacion($('#dtpFecha'), response.anio_cuota[0]);
+          }
           if(typeof response.mes !== 'undefined'){
             mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
+          }
+          if(typeof response.importaciones !== 'undefined'){
+            $('#help').hide();
+            $('#mensajeImportacionError').show();
           }
       }
     })
@@ -646,6 +698,10 @@ function cargarModal(data){
 }
 
 function limpiar(){
+
+  $('#mensajeImportacionError').hide();
+  $('#help').show();
+
   $('.desplegarPago').hide();
   $('#fechaPago').val('');
   $('#montoPago').val('');
@@ -653,6 +709,7 @@ function limpiar(){
   $('#cotDolarPago').val('');
   $('#impuestosPago').val('');
   $('#obsPago').val('');
+  $('#fechaPagoFil').val('');
   $('#selectMesPago option').remove();
 //  $('#selectCasinoPago option').not('.default1').remove();
   ocultarErrorValidacion($('#fechaPago'));
@@ -661,6 +718,7 @@ function limpiar(){
   ocultarErrorValidacion($('#cotDolarPago'));
   ocultarErrorValidacion($('#impuestosPago'));
   ocultarErrorValidacion($('#selectMesPago'));
+  ocultarErrorValidacion($('#fechaPagoFil'));
 
 }
 
@@ -759,7 +817,7 @@ function cargarTablaActualizacion(data,t){
       fila.find('.valoresActualizacion').text('$' + data.informeAnterior.base_cobrado_dolar);
       fila.find('.pagos1Actualizacion').text('$' + data.informeAnterior.monto_anterior_dolar);
       fila.find('.pagos2Actualizacion').text('$' + data.informeAnterior.monto_actual_dolar);
-      fila.find('.variacionActualizacion').text('$' + data.informeAnterior.variacion_total_dolar);
+      fila.find('.variacionActualizacion').text('%' + data.informeAnterior.variacion_total_dolar);
       fila.find('.vBaseActualizacion').text('$' + data.informeNuevo.base_anterior_dolar);
       fila.find('.vBaseNuevoActualizacion').text('$' + data.informeNuevo.base_actual_dolar);
       fila.find('.vFinalesActualizacion').text('$' + data.informeNuevo.base_cobrado_dolar);
@@ -771,7 +829,7 @@ function cargarTablaActualizacion(data,t){
       fila.find('.valoresActualizacion').text('$' + data.informeAnterior.base_cobrado_euro);
       fila.find('.pagos1Actualizacion').text('$' + data.informeAnterior.monto_anterior_euro);
       fila.find('.pagos2Actualizacion').text('$' + data.informeAnterior.monto_actual_euro);
-      fila.find('.variacionActualizacion').text('$' + data.informeAnterior.variacion_total_euro);
+      fila.find('.variacionActualizacion').text('%' + data.informeAnterior.variacion_total_euro);
       fila.find('.vBaseActualizacion').text('$' + data.informeNuevo.base_anterior_euro);
       fila.find('.vBaseNuevoActualizacion').text('$' + data.informeNuevo.base_actual_euro);
       fila.find('.vFinalesActualizacion').text('$' + data.informeNuevo.base_cobrado_euro);

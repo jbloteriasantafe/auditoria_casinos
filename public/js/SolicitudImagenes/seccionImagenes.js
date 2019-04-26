@@ -25,7 +25,7 @@ $(document).ready(function() {
 
         });
   });
-$('#btn-buscar-imagenes').trigger('click',[1,10,'img.created_at','desc']);
+  $('#btn-buscar-imagenes').trigger('click',[1,10,'img.created_at','desc']);
 
 });
 
@@ -107,59 +107,6 @@ $('#btn-buscar-imagenes').click(function(e,pagina,page_size,columna,orden){
  }//fin else
 });
 
-function formatear(f){
-  if(f != ''){
-    var t=f.split('-');
-    console.log(f);
-    console.log('t',t);
-    switch (t[1]) {
-      case 'Enero':
-          t.push('01');
-        break;
-      case 'Febrero':
-          t.push('02');
-          break;
-      case 'Marzo':
-          t.push('03');
-        break;
-      case 'Abril':
-          t.push('04');
-        break;
-      case 'Mayo':
-          t.push('05');
-        break;
-      case 'Junio':
-          t.push('06');
-        break;
-      case 'Julio':
-          t.push('07');
-        break;
-      case 'Agosto':
-          t.push('08');
-        break;
-      case 'Septiembre':
-          t.push('09');
-        break;
-      case 'Octubre':
-          t.push('10');
-        break;
-      case 'Noviembre':
-          t.push('11');
-        break;
-      case 'Diciembre':
-          t.push('12');
-        break;
-      default:
-        return 0;
-  }
-
-  return t;
-}else{
-  return f;
-}
-
-}
-
 $('#btn-sortear-fechas').on('click',function(e){
 
   e.preventDefault();
@@ -192,22 +139,28 @@ $('#btn-sortear-fechas').on('click',function(e){
          for (var i = 0; i < data.sorteo.length; i++) {
           var nuevo=$('#modalSorteo').find('#datosPorCasinos').clone();
           nuevo.removeAttr('id');
-          nuevo.find('.casinoNombre').text(data.sorteo[i].casino);
-          nuevo.find('.fechasVer').text('FECHAS: ' + data.sorteo[i].bunker.fechas);
-          nuevo.find('.mesAnio').text('DEL MES: ' + data.sorteo[i].bunker.mes_anio);
+          if(data.sorteo[i].bunker != ''){
+            nuevo.find('.casinoNombre').text(data.sorteo[i].casino);
+            nuevo.find('.fechasVer').text('FECHAS: ' + data.sorteo[i].bunker.fechas);
+            nuevo.find('.mesAnio').text('DEL MES: ' + data.sorteo[i].bunker.mes_anio);
 
-          var m=data.sorteo[i].bunker.mesas;
-          var mesas=m.split(';');
-          var arrayMesas='';
+            var m=data.sorteo[i].bunker.mesas;
+            var mesas=m.split(';');
+            var arrayMesas='';
 
-          for (var j = 0; j < mesas.length; j++) {
-            if (j== (mesas.length - 1)) {
-              arrayMesas= arrayMesas + mesas[j];
-            }else{
-            arrayMesas= arrayMesas + mesas[j] + ' - ';}
+            for (var j = 0; j < mesas.length; j++) {
+              if (j== (mesas.length - 1)) {
+                arrayMesas= arrayMesas + mesas[j];
+              }else{
+              arrayMesas= arrayMesas + mesas[j] + ' - ';}
 
+            }
+            nuevo.find('.mesasVer').text('MESAS: ' + arrayMesas);
           }
-          nuevo.find('.mesasVer').text('MESAS: ' + arrayMesas);
+          else{
+            nuevo.find('.casinoNombre').text(data.sorteo[i].casino);
+            nuevo.find('.fechasVer').text('No es posible generar el sorteo para el mes anterior. Puede que este casino no tenga cierres cargados o mesas asociadas.');
+          }
 
           nuevo.css('display','');
           $('#modalSorteo').find('.detallesFechas').append(nuevo);
@@ -260,9 +213,11 @@ $(document).on('change','.nombreCd',function(){
 
   var f=$('#tablaDatosCds tbody > tr');
   var i=$('.cant_cds').val();
+  var valor=$(this).val();
+
+  $(this).parent().parent().find('.btn-borrar-cd').attr('data-id',valor);
 
   $.each(f, function(index, value){
-
     if($(this).find('.nombreCd').val() != ''){
        i=i - 1;
     }
@@ -302,6 +257,8 @@ function compararId(){
 
 $(document).on('change','.cant_cds',function(){
 
+    ocultarErrorValidacion($('.cant_cds'));
+
     $('#tablaDatosCds tbody tr').remove();
     $('.idCd option').remove();
     $('.continuarCarga').hide();
@@ -309,15 +266,14 @@ $(document).on('change','.cant_cds',function(){
 
     $('#desplazarTMEsas').hide();
     $('.verObs').hide();
+
     $('#tablaMesasSorteadas tbody tr').remove();
     $('#tablaMesasSorteadas2 tbody tr').remove();
     $('#tablaMesasSorteadas3 tbody tr').remove();
 
-
 });
 
 $(document).on('change','.dropMesa',function(){
-
 
   var drop= Numeros($(this).val());
   var hayImp=0;
@@ -354,7 +310,7 @@ $(document).on('change','.dropMesa',function(){
       }
     }
 
-  if(drop != ''){
+  if(drop != '' && drop < 1000000000){
 
       $.get('solicitudImagenes/hayCoincidencia/' + drop + '/' + id_detalle_img_bunker, function(data){
 
@@ -366,7 +322,8 @@ $(document).on('change','.dropMesa',function(){
             if(data.diferencia == 0){
 
                 $.each(f, function(index, value){
-                    if($(this).val() == id_detalle_img_bunker){
+                    if($(this).attr('id') == id_detalle_img_bunker){
+                      $(this).find('.coincide i').remove();
                       $(this).find('.coincide').append($('<i>').addClass('fa fa-fw fa-check').css('cssText','text-align:center !important;color:#4CAF50'));
                       $(this).find('.diferencias').val(data.diferencia).prop('disabled',true);
 
@@ -380,6 +337,7 @@ $(document).on('change','.dropMesa',function(){
                   if($(this).attr('id') == id_detalle_img_bunker){
 
                     if(hayImp==0){
+                      $(this).find('.coincide i').remove();
                       $(this).find('.coincide').append($('<i>').addClass('fas fa-fw fa-times').css('cssText','text-align:center !important;color:#EF5350'));
                       $(this).find('.diferencias').val(data.diferencia).prop('disabled',true);
                     }
@@ -395,6 +353,10 @@ $(document).on('change','.dropMesa',function(){
         })
     }
     else{
+      if(drop > 1000000000){
+        mostrarErrorValidacion($(this),'Valor superior al máximo',false);
+      }
+
       $.each(f, function(index, value){
 
           if($(this).attr('id') == id_detalle_img_bunker){
@@ -409,17 +371,23 @@ $(document).on('change','.dropMesa',function(){
 
 $(document).on('click', '.okCDs',function(e){
 
-    $('#tablaDatosCds tbody > tr').remove();
+
 
     //$('.continuarCarga').prop('disabled',true);
 
     var cantidad= $('#modalCargarDatos .cant_cds').val();
-
-    for (var i = 0; i < cantidad; i++) {
-      var fila=generarFilaCd(0,0);
-      $('#tablaDatosCds').append(fila);
+    if(cantidad > 10){
+      mostrarErrorValidacion($('.cant_cds'),'Ingrese un número menor a 10.',false);
     }
-    $('#tablaDatosCds').show();
+    else {
+      $('#tablaDatosCds tbody > tr').remove();
+      for (var i = 0; i < cantidad; i++) {
+        var fila=generarFilaCd(0,0);
+        $('#tablaDatosCds').append(fila);
+      }
+      $('#tablaDatosCds').show();
+
+    }
 
 })
 
@@ -429,6 +397,7 @@ $(document).on('click', '.continuarCarga',function(e){
 
   $('#desplazarTMEsas').show();
   $('.verObs').show();
+
   $('#errorCdId').hide();
   $('.continuarCarga').prop('disabled',true);
 
@@ -857,7 +826,7 @@ $(document).on('click','.modificarSorteo', function(e){
   })
   $('#tablaMesasSorteadasMod').show();
   $('#btn-guardar-modificar').show();
-
+  $('#mensajeDatosCds').hide();
   $('#modalModificarDatos').modal('show');
 })
 
@@ -872,16 +841,58 @@ $(document).on('click', '.agregarCd',function(e){
 $(document).on('click','.btn-borrar-cd', function(e){
 
   var id=$(this).attr('data-id');
-
+  var cant=0;
+  console.log('dd',id);
   if(id!=undefined){
-    var f=$('#tablaDatosCdsMod tbody > tr');
-      $.each(f, function(index, value){
-        if(($(this).find('.btn-borrar-cd').attr('data-id'))==id){
-          $(this).remove();
-          eliminarSelect(id);
+    if($(this).val() == 'carga'){
+
+      var p=$('.cant_cds').val();
+      $('.cant_cds').val(p-1);
+
+      var f=$('#tablaDatosCds tbody > tr');
+        $.each(f, function(index, value){
+          console.log('entro',$(this).find('.btn-borrar-cd').attr('data-id'));
+          if(($(this).find('.btn-borrar-cd').attr('data-id'))==id){
+            $(this).remove();
+            eliminarSelectCarga(id);
+          }
+        });
+        var m=$('#tablaDatosCds tbody > tr');
+        $.each(m, function(index, value){
+            if($(this).find('.nombreCd').val() != undefined){
+            cant=cant+1;
+          }
+        });
+        console.log('cant',cant);
+        if(cant == 0){
+          $('.continuarCarga').hide();
+          //$('.continuarCarga').prop('readonly',false);
+
+          $('#desplazarTMEsas').hide();
+          $('.verObs').hide();
+          $('#btn-guardar').hide();
+
+          $('#tablaMesasSorteadas tbody tr').remove();
+          $('#tablaMesasSorteadas2 tbody tr').remove();
+          $('#tablaMesasSorteadas3 tbody tr').remove();
         }
-      });
-  }else{
+
+
+    }else{
+      console.log('no entro', $(this).val());
+
+      var f=$('#tablaDatosCdsMod tbody > tr');
+        $.each(f, function(index, value){
+
+          if(($(this).find('.btn-borrar-cd').attr('data-id'))==id){
+            $(this).remove();
+            eliminarSelect(id);
+          }
+        });
+    }
+
+  }
+  else{
     $(this).parent().parent().remove();
   }
 });
@@ -992,6 +1003,7 @@ $('#btn-guardar-modificar').on('click',function(e){
       dataType: 'json',
 
       success: function (data){
+          $('#mensajeDatosCds').hide();
 
           $('#modalModificarDatos').modal('hide');
           $('#mensajeExito h3').text('EXITO!');
@@ -1002,7 +1014,10 @@ $('#btn-guardar-modificar').on('click',function(e){
       },
 
       error: function (data) {
-        console.log('error',data);
+        var response = data.responseJSON.errors;
+
+          if(typeof response.datoscd !== 'undefined'){
+            $('#mensajeDatosCds').show();          }
 
         }
    })
@@ -1020,8 +1035,8 @@ $(document).on('click','.verSorteo', function(e){
 
   $.get('solicitudImagenes/obtenerMesas/' + id, function(data){
 
-    $('.fechaSorteadaVer').val(data.bunker.mes_anio);
-    $('.casinoVer').val(data.bunker.nombre);
+    $('#fechaSorteadaVer').text(data.bunker.mes_anio);
+    $('#casinoVer').text(data.bunker.nombre);
 
     var f = data.bunker.fechas;
     var y =data.bunker.mes_anio;
@@ -1109,23 +1124,52 @@ function eliminarSelect(id){
             });
           });
 }
+function eliminarSelectCarga(id){
 
+  var f=$('#tablaMesasSorteadas tbody > tr');
+  var f2=$('#tablaMesasSorteadas2 tbody > tr');
+  var f3=$('#tablaMesasSorteadas3 tbody > tr');
+
+    $.each(f, function(index, value){
+        $(this).find('.idCd option').each(function(){
+          if($(this).val()==id){
+            $(this).remove();
+          }
+        });
+      });
+      //borro en la tabla2
+      $.each(f2, function(index, value){
+          $(this).find('.idCd option').each(function(){
+            if($(this).val()==id){
+              $(this).remove();
+            }
+          });
+        });
+        //borro en la tabla 3
+        $.each(f3, function(index, value){
+            $(this).find('.idCd option').each(function(){
+              if($(this).val()==id){
+                $(this).remove();
+              }
+            });
+          });
+}
 function generarFilaCd(data,m){
   var fila = $(document.createElement('tr'));
   if(data==0){
 
     fila.append($('<td>').addClass('col-xs-2').append($('<h6>').text('IDENTIFICACIÓN').css('cssText','font-size:14px')))
-        .append($('<td>').addClass('col-xs-3').append($('<input>').addClass(' nombreCd').addClass('form-control').css('text-align','center')))
+        .append($('<td>').addClass('col-xs-3').append($('<input>').addClass('nombreCd').addClass('form-control').css('text-align','center')))
         .append($('<td>').addClass('col-xs-2').append($('<h6>').text('DURACIÓN').css('cssText','font-size:14px')))
         .append($('<td>').addClass('col-xs-3').append($('<input>').addClass('duracion_cd duracionCd').attr('type','time').addClass('form-control')));
         if(m==0){
-          fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd')
-              .append($('<i>').addClass('fa fa-fw fa-trash').val('carga'))))
+          fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd').val('carga')
+              .append($('<i>').addClass('fa fa-fw fa-trash'))))
         }
         else{//modificar
           fila.find('.nombreCd').attr('id','identCd').attr('data-agregado',0);
-          fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd')
-              .append($('<i>').addClass('fa fa-fw fa-trash').val('modificar'))))
+          fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd').val('modificar')
+              .append($('<i>').addClass('fa fa-fw fa-trash'))))
         }
   }
   else{
@@ -1147,12 +1191,12 @@ function generarFilaCd(data,m){
         .append($('<td>').addClass('col-xs-3').append($('<input>').addClass('duracionCd').val(hh + ':' + mm).attr('type','time').addClass('form-control').prop('readonly',true)))
         if(m==0){
           fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd')
-              .attr('data-id',data[0]).append($('<i>').addClass('fa fa-fw fa-trash').val('carga'))))
+              .attr('data-id',data.nombre_cd).append($('<i>').addClass('fa fa-fw fa-trash').val('carga'))))
         }
         else{
 
           fila.append($('<td>').addClass('col-xs-2').append($('<button>').addClass('btn btn-warning btn-borrar-cd')
-              .attr('data-id',data[0]).append($('<i>').addClass('fa fa-fw fa-trash').val('modificar'))))
+              .attr('data-id',data.nombre_cd).append($('<i>').addClass('fa fa-fw fa-trash').val('modificar'))))
         }
   }
 return fila;
@@ -1391,4 +1435,58 @@ function clickIndice(e,pageNumber,tam){
   var columna = $('#tablaSorteos .activa').attr('value');
   var orden = $('#tablaSorteos .activa').attr('estado');
   $('#btn-buscar-imagenes').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
+
+function formatear(f){
+  if(f != ''){
+    var t=f.split('-');
+    console.log(f);
+    console.log('t',t);
+    switch (t[1]) {
+      case 'Enero':
+          t.push('01');
+        break;
+      case 'Febrero':
+          t.push('02');
+          break;
+      case 'Marzo':
+          t.push('03');
+        break;
+      case 'Abril':
+          t.push('04');
+        break;
+      case 'Mayo':
+          t.push('05');
+        break;
+      case 'Junio':
+          t.push('06');
+        break;
+      case 'Julio':
+          t.push('07');
+        break;
+      case 'Agosto':
+          t.push('08');
+        break;
+      case 'Septiembre':
+          t.push('09');
+        break;
+      case 'Octubre':
+          t.push('10');
+        break;
+      case 'Noviembre':
+          t.push('11');
+        break;
+      case 'Diciembre':
+          t.push('12');
+        break;
+      default:
+        return 0;
+  }
+    return t;
+  }
+    else{
+      return f;
+  }
+
 }

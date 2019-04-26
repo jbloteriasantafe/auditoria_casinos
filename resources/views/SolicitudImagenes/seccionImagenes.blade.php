@@ -36,8 +36,6 @@
     </div>
   </div>
 
-
-
 <div class="col-md-9">
   <div class="row">
     <div class="col-md-12">
@@ -148,7 +146,7 @@
 <div class="modal fade" id="modalCargarDatos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70%;">
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#1DE9B6;">
+      <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
         <h3 class="modal-title">| CARGA DATOS</h3>
       </div>
@@ -187,7 +185,7 @@
             </div>
 
             <div class="col-xs-8" style="text-align:right !important" >
-              <h5 style="text-align:center !important">DATOS CDS:</h5>
+              <h5 style="text-align:center !important;font-size:14px !important">DATOS CDS:</h5>
             <table class="table table-sorter" id="tablaDatosCds" hidden="true" style="text-align:right !important">
               <tbody>
               </tbody>
@@ -201,7 +199,6 @@
       </div>
       <br>
       <div class="row" style="border-bottom: 1px solid #ccc;" id="desplazarTMEsas" hidden="true">
-        <br>
         <br>
             <h6  style="font-size:16px; text-align:center !important;font-weight: bold;">DATOS DE LAS IMÁGENES</h6>
             <br>
@@ -264,9 +261,8 @@
           </div>
           <br>
           <div class="row verObs" hidden="true">
-            <br>
-            <h6 style="font-size:16px;margin-left:15px !important" >OBSERVACIONES: </h6>
-            <textarea name="name" id="obsSorteo" style="width:70% !important;height:auto !important; margin-left:15px" readonly="true" class="estilotextarea4"></textarea>
+            <h6 style="font-size:16px;margin-left:15px !important">OBSERVACIONES: </h6>
+            <textarea name="name" id="obsSorteo" style="width:70% !important;height:auto !important; margin-left:15px" class="estilotextarea4"></textarea>
           </div>
           <br>
         </div>
@@ -300,14 +296,15 @@
             </div>
             <br>
             <div class="row" >
-            <div class="col-xs-6" >
-              <h6 style="font-size:17px !important; text-align:center">MES Y AÑO:</h6>
-              <input type="text" readonly="true" value="" class="form-control fechaSorteadaVer">
-            </div>
-            <div class="col-xs-6">
-              <h6 style="font-size:17px !important; text-align:center">CASINO:</h6>
-              <input type="text" readonly="true" value="" class="form-control casinoVer">
-            </div>
+              <div class="col-xs-6" >
+                <h6 class="list-group-item"  style="font-size:16px !important; text-align:center !important; background-color:#aaa; color:white;">MES Y AÑO</h6>
+                <h6 class="list-group-item" style="text-align:center !important; margin-top:0px !important; font-size:16px !important" id="fechaSorteadaVer" readonly="true"></h6>
+              </div>
+              <div class="col-xs-6" >
+                <h6 class="list-group-item"  style="font-size:16px !important; text-align:center !important; background-color:#aaa; color:white;">CASINO</h6>
+                <h6 class="list-group-item" style="text-align:center !important; margin-top:0px !important; font-size:16px !important" id="casinoVer" readonly="true"></h6>
+              </div>
+
           </div>
         </div>
         <br>
@@ -368,7 +365,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
         </div>
       </div>
     </div>
@@ -475,11 +472,18 @@
             <textarea name="name" id="obsSorteoMod" style="width:70% !important;height:auto !important; margin-left:15px" readonly="true" class="estilotextarea4"></textarea>
           </div>
         </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-warningModificar" id="btn-guardar-modificar" data-mod="1" value="nuevo" hidden="true">GUARDAR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           <input type="text" id="arrayCds" name="" value="" hidden="true">
         </div>
+        <div id="mensajeDatosCds" hidden>
+          <br>
+          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+          <br>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">DEBEN CARGARSE DATOS DE LOS CDS RECIBIDOS.</span>
+        </div> <!-- mensaje -->
       </div>
     </div>
   </div>
@@ -495,7 +499,7 @@
       </div>
       <div  id="colapsadoNuevo" class="collapse in">
         <div class="modal-body modalCuerpo" >
-          <div class="loading" style="animation-delay:3s">
+          <div class="loading" style="animation-delay:3s;text-align:center !important" >
             <img src="/img/ajax-loader(1).gif" alt="loading" />
             <br><i>Un momento, por favor...</i>
           </div>

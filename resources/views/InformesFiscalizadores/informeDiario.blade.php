@@ -16,7 +16,6 @@
 @section('contenidoVista')
 
 
-<div class="col-xl-9">
   <!-- FILTROS -->
   <div class="row">
     <div class="col-md-12">
@@ -32,7 +31,7 @@
                 <h5>Fecha</h5>
                 <div class="form-group">
                   <div class='input-group date' id='dtpFechaInf' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                    <input type='text' class="form-control" id="fechaInformeDiario" value=""/>
+                    <input type='text' class="form-control" id="fechaInformeDiario" value="" placeholder="aaaa-mm-dd"/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                   </div>
@@ -71,7 +70,7 @@
                 <thead>
                   <tr align="center" >
                     <th value="fecha" class="col-xs-4 activa" estado="desc" style="font-size:14px;text-align:center !important">FECHA DE PRODUCCIÓN<i class="fas fa-sort"></th>
-                    <th value="nombre" class="col-xs-4" estado="" style="font-size:14px;text-align:center !important">CASINO<i class="fas fa-sort"></th>
+                    <th value="nombre" class="col-xs-4" estado="desc" style="font-size:14px;text-align:center !important">CASINO<i class="fas fa-sort"></th>
                     <th class="col-xs-4"  style="font-size:14px;align:center !important;">ACCIÓN</th>
                   </tr>
                 </thead>
@@ -84,9 +83,9 @@
 
               <table class="table table-sorter">
                 <tr id="moldeInfoDia" class="filaClone" style="display:none">
-                  <td class="col-md-4 d_fecha"></td>
-                  <td class="col-md-4 d_casino"></td>
-                  <td class="col-md-4 d_accion" style="text-align:center !important;">
+                  <td class="col-xs-4 d_fecha"></td>
+                  <td class="col-xs-4 d_casino"></td>
+                  <td class="col-xs-4 d_accion" style="text-align:center !important;">
                     <button type="button" class="btn btn-info imprimirDiario" value="">
                       <i class="fa fa-fw fa-print"></i>
                     </button>
@@ -101,13 +100,12 @@
       </div>
     </div> <!-- .row / TABLA -->
 
-</div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
 
 <!-- MODAL VER INFORME DIARIO -->
 <div class="modal fade" id="modalVerDiario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" style="width:70%">
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#4FC3F7;">
+      <div class="modal-header" style="background-color:#0D47A1;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| INFORME DIARIO </h3>

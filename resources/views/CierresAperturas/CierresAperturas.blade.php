@@ -427,20 +427,18 @@ $cas = $usuario['usuario']->casinos;
 <div class="modal fade" id="modalErrorRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content" style="border-radius:5px !important">
-           <div class="modal-header" style="background-color:#0D47A1;">
+           <div class="modal-header" style="font-family: Roboto-Black; background-color:#0D47A1">
              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-             <h3 class="modal-title">| ALERTA</h3>
+             <h3 class="modal-title">| AVISO</h3>
             </div>
-
-            <div  id="colapsadoNuevo" class="collapse in">
-              <div class="modal-body modalCuerpo">
-                <div class="col-xs-12" id="chinwenwencha">
-
-                </div>
+            <div class="modal-body">
+              <div class="row">
+                <h6 style="text-align:center !important">'Por favor reintente en 15 minutos...'</h6>
+                <h6 style="text-align:center !important">GRACIAS</h6>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+              <button type="button" class="btn btn-default" data-dismiss="modal">ACEPTAR</button>
             </div>
           </div>
         </div>
@@ -474,7 +472,7 @@ $cas = $usuario['usuario']->casinos;
 <div class="modal fade" id="modalCargaCierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" >
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#1DE9B6;">
+      <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| CARGA CIERRE </h3>
@@ -503,17 +501,14 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <br>
             <br>
-
             <div class="col-xs-4">
               <button type="button" id="confirmarCierre" class="btn btn-infoBuscar" style="font-family:Roboto-Condensed;font-weight: bold;font-size: 15px;">SIGUIENTE</button>
             </div>
             <br>
             <br>
           </div>
-
           <br>
           <br>
-
           <div class="row desplegable" hidden>
             <br>
           <div class="row">
@@ -609,8 +604,8 @@ $cas = $usuario['usuario']->casinos;
                           <table>
                             <tbody>
                               <tr id="clonCierre" style="display:none">
-                                <td><input type="text" value="" readonly="true" class="col-xs-6 form-control fichaValCC"></td>
-                                <td><input type="text" class="col-xs-6 form-control inputCie" id="input" val=""></td>
+                                <td><input type="text" value="" style="text-align:right" readonly="true" class="col-xs-6 form-control fichaValCC"></td>
+                                <td><input type="text" style="text-align:right" class="col-xs-6 form-control inputCie" id="input" val=""></td>
                               </tr>
                             </tbody>
                           </table>
@@ -805,9 +800,6 @@ $cas = $usuario['usuario']->casinos;
           <div class="row" style="border-bottom:1px solid #ccc; text-align:center;">
             <br>
               <h3 align="center" style="position:relative;top:-2px;display:inline;border-bottom:1px solid #ccc;" align="center">DATOS APERTURA</h3> <i class="fas fa-clipboard-check" style="font-size:30px;"></i>
-              <br>
-              <h3 align="center" style="padding-bottom:20px; position:relative;top:-2px;display:inline" id="datosApertCierre">DATOS GENERALES</h3><i class="fas fa-info-circle" style="font-size:30px;"></i>
-
               <br>
           </div>
           <br>
@@ -1016,8 +1008,8 @@ $cas = $usuario['usuario']->casinos;
             <div class="row">
               <div class="col-xs-6">
                 <h6 style="text-align:center !important">FICHAS: </h6>
-                <table align="center" class="table">
-                  <thead>
+                <table style="margin-left:2px" align="center" class="table table-bordered">
+                    <thead>
                     <tr>
                       <th class="col-xs-3" style="border-bottom:1px solid #ccc;border-right:1px solid #ccc"><h5 align="center">Valor</h5></th>
                       <th class="col-xs-3" style="border-bottom:1px solid #ccc;"><h5 align="center">Monto</h5></th>
@@ -1042,7 +1034,7 @@ $cas = $usuario['usuario']->casinos;
             </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="modificar_cierre" value="nuevo" hidden="true">GUARDAR CAMBIOS</button>
+          <button type="button" class="btn btn-successAceptar" id="modificar_cierre" value="nuevo" hidden="true">GUARDAR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           <input id="id_cierre" type="text" name="" value="" hidden="true">
         </div>
@@ -1066,7 +1058,7 @@ $cas = $usuario['usuario']->casinos;
 <div class="modal fade" id="modalCargaApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#1DE9B6;">
+      <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true"
                 data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -1114,13 +1106,12 @@ $cas = $usuario['usuario']->casinos;
                             </span>
                           </div>
                         </div>
+                        <span class="help-block" style="color: #0D47A1 !important;margin-top:-5px !important; font-size:12px !important;padding-left:5px !important"><i>*Presione '+' para agregar la Mesa.</i></span>
                       </div>
-
                       <div class="col-md-6">
                         <h6>Fiscalizador de Carga</h6>
                         <input type="text" id="cargador" class="form-control" value="" data-cargador="" readonly="true">
                       </div>
-
                     </div>
                     <div class="row" >
                       <div class="col-xs-4">
@@ -1186,15 +1177,15 @@ $cas = $usuario['usuario']->casinos;
                                     <table>
                                       <tbody>
                                         <tr id="filaFichasClon" style="display:none">
-                                          <td><input type="text" value="" readonly="true" class="col-xs-6 form-control fichaVal"></td>
-                                          <td><input type="text" class="col-xs-6 form-control inputApe" id="input" val="" pattern="[[^0-9]*"></td>
+                                          <td><input type="text" value="" style="text-align:right" readonly="true" class="col-xs-6 form-control fichaVal"></td>
+                                          <td><input type="text" style="text-align:right" class="col-xs-6 form-control inputApe" id="input" val="" pattern="[[^0-9]*"></td>
                                         </tr>
                                       </tbody>
                                     </table>
+
                                     </div>
 
-
-                                <div class="col-xs-4" >
+                                <div class="col-xs-4">
                                   <br>
                                   <h6 align="center">TOTAL:</h6><input id="totalApertura" type="text" class="form-control" value="" style="display:inline-block !important;" readonly>
                                   <button id="recalcularApert" type="button" name="button"><i class="fas fa-redo-alt"></i></button>
@@ -1218,7 +1209,13 @@ $cas = $usuario['usuario']->casinos;
                           <br>
                           <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
                           <br>
-                          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No existen mesas para los datos seleccionados.</span>
+                          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique los datos ingresados.</span>
+                        </div> <!-- mensaje -->
+                        <div id="mensajeErrorCargaApFichas" hidden>
+                          <br>
+                          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+                          <br>
+                          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique que los datos ingresados para cada ficha sean correctos.</span>
                         </div> <!-- mensaje -->
                       </div>
                     </div>
@@ -1327,7 +1324,7 @@ $cas = $usuario['usuario']->casinos;
                     </tr>
                   </thead>
 
-                  <tbody id="bodyFichasDetApert" align="center">
+                  <tbody id="bodyFichasDetApert" align="right">
                   </tbody>
                 </table>
               </div>
@@ -1366,7 +1363,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
           <div  id="colapsado" class="collapse in">
             <br>
-            <div class="row">
+            <div class="row" >
               <div class="col-xs-3">
                 <h5 class="list-group-item"  style="font-size:14px !important; text-align:center !important; background-color:#aaa; color:white !important;">FECHA</h5>
                 <h5 class="list-group-item f_apertura" style="text-align:center !important; margin-top:0px !important;color:black !important; font-size:14px !important"></h5>
@@ -1388,8 +1385,8 @@ $cas = $usuario['usuario']->casinos;
                 <br>
               </div>
             </div>
-            <div class="row">
-              <div class="col-xs-4">
+            <div class="row" >
+              <div class="col-xs-4" style="margin-left:2px">
                 <h5 class="list-group-item"  style="font-size:14px !important; text-align:center !important; background-color:#aaa; color:white !important;">HS DE APERTURA</h5>
                 <input class="list-group-item form-control" style="height:40px !important; text-align:center !important" id="hs_apertura" type="time"></input>                <br>
               </div>
@@ -1398,7 +1395,7 @@ $cas = $usuario['usuario']->casinos;
                 <input class="list-group-item cas_cierre form-control" style="height:40px !important" id="fis_apertura" type="text" value=""  size="100" autocomplete="off"></input>
                 <br>
               </div>
-              <div class="col-xs-4" style="float:left !important">
+              <div class="col-xs-3" style="float:left !important">
                 <br>
                 <h5  class="mon_apertura linea" style="font-size:14px !important;">Moneda: </h5>
                 <br>
@@ -1410,15 +1407,15 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <br>
             <br>
-            <div class="row">
+            <div class="row" align="center" >
               <div class="col-xs-6">
 
                 <h6>FICHAS: </h6>
-                <table align="center" class="table">
+                <table style="margin-left:2px" align="center" class="table table-bordered">
                   <thead>
                     <tr>
-                      <th class="col-md-3" style="border-bottom:1px solid #ccc;border-right:1px solid #ccc"><h5 align="center">Valor</h5></th>
-                      <th class="col-md-3" style="border-bottom:1px solid #ccc;"><h5 align="center">Cantidad</h5></th>
+                      <th class="col-xs-3" style="border-bottom:1px solid #ccc;border-right:1px solid #ccc"><h5 align="center">Valor</h5></th>
+                      <th class="col-xs-3" style="border-bottom:1px solid #ccc;"><h5 align="center">Cantidad</h5></th>
                     </tr>
                   </thead>
                   <tbody id="modificarFichasAp">
@@ -1426,17 +1423,16 @@ $cas = $usuario['usuario']->casinos;
                 </table>
               </div>
               <br>
-              <div class="col-md-6" align="center">
+              <div class="col-xs-6" align="center">
                 <div class="row">
                   <h6><b>TOTAL: </b></h6>
-                  <input id="totalModifApe" type="text" value="" readonly="true">
+                  <input id="totalModifApe" type="text" class="form-control" style="width:auto !important" value="" readonly="true">
                 </div>
               </div>
-
             </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="modificar_apertura" value="nuevo" hidden="true">GUARDAR CAMBIOS</button>
+          <button type="button" class="btn btn-successAceptar" id="modificar_apertura" value="nuevo" hidden="true">GUARDAR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           <input id="id_apertura" type="text" name="" value="" hidden="true">
         </div>
@@ -1568,10 +1564,10 @@ $cas = $usuario['usuario']->casinos;
               <table class="table" style="padding:0px !important">
                 <tbody >
                   <tr class"filaClone" id="clonarTFichasV" style="display:none; padding:0px !important;">
-                    <td class="valor_validar" style="padding:1px !important;text-align:center !important;"></td>
-                    <td class="cant_cierre_validar" style="padding:1px !important;text-align:center !important;font-weight: bold"></td>
-                    <td class="cant_apertura_validar" style="padding:1px !important;text-align:center !important;"></td>
-                    <td class="diferencias_validar" style="padding:1px !important;text-align:center !important; "></td>
+                    <td class="valor_validar" style="padding:1px !important;text-align:right !important;"></td>
+                    <td class="cant_cierre_validar" style="padding:1px !important;text-align:right !important;font-weight: bold"></td>
+                    <td class="cant_apertura_validar" style="padding:1px !important;text-align:right !important;"></td>
+                    <td class="diferencias_validar" style="padding:1px !important;text-align:right !important; "></td>
                   </tr>
                 </tbody>
               </table>
@@ -1647,25 +1643,6 @@ $cas = $usuario['usuario']->casinos;
   </div>
 </div>
 
-<div class="modal fade" id="modalErrorRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-         <div class="modal-content" style="border-radius:5px !important">
-           <div class="modal-header" style="font-family: Roboto-Black; background-color:#0D47A1">
-             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-             <h3 class="modal-title">| AVISO</h3>
-            </div>
-            <div class="modal-body">
-              <div class="row">
-                <h6 style="text-align:center !important">'Por favor reintente en 15 minutos...'</h6>
-                <h6 style="text-align:center !important">GRACIAS</h6>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-            </div>
-          </div>
-        </div>
-</div>
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 

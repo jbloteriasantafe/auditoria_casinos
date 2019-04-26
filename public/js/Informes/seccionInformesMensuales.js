@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-  $('#barraInformes').attr('aria-expanded','true');
+  $('#barraInformesMesas').attr('aria-expanded','true');
   $('#informes').removeClass();
   $('#informes').addClass('subMenu1 collapse in');
   $('#opcInfoMensual').attr('style','border-left: 6px solid #185891; background-color: #131836;');
@@ -148,8 +148,10 @@ $('#buscar-informes-mensuales').on('click',function(e,pagina,page_size,columna,o
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaInformesMensuales .activa').attr('value'),orden: $('#tablaInformesMensuales .activa').attr('estado')} ;
 
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaInformesMensuales th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+  if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+    var sort_by =  {columna: 'fecha_mes',orden: 'desc'} ;
+
+    //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
       var formData= {

@@ -1,3 +1,6 @@
+var dataFichas;
+var dataFichas2;
+
 $(document).ready(function() {
   $('#barraMesas').attr('aria-expanded','true');
   $('#mesasPanio').removeClass();
@@ -273,7 +276,7 @@ $("#modalCargaCierre").on('hidden.bs.modal', function () {
   });
 
 $("#modalCargaApertura").on('hidden.bs.modal', function () {
-  $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
+  $('#btn-buscarCyA').trigger('click');
   });
 
 //APERTURAS APERTURAS APERTURAS APERTURAS Aperturas
@@ -323,7 +326,6 @@ $('#btn-generar-rel').on('click', function(e){
           }
 
           iframe.src = data.url_zip;
-          console.log('7777',iframe);
       },
       error: function (data) {
         $('#modalRelevamiento').modal('hide');
@@ -342,8 +344,8 @@ $('#btn-cargar-apertura').on('click', function(e){
 
   $('#mensajeExito').hide();
 
-  limpiarCargaApertura();
-    $('#cargador').val('');
+  $('#id_mesa_ap').val('');
+  $('#cargador').val('');
   $('#tablaMesasApert tbody tr').remove();
 
   $('#B_fecha_apert').val("").prop('disabled',false);
@@ -355,6 +357,7 @@ $('#btn-cargar-apertura').on('click', function(e){
   $('#mensajeErrorCargaAp').hide();
   $('#casinoApertura').val("0");
   $('#mensajeExitoCargaAp').hide();
+  $('#mensajeErrorCargaApFichas').hide();
   $('.detallesCargaAp').hide();
 
   $('#btn-finalizar-apertura').hide();
@@ -365,6 +368,7 @@ $('#btn-cargar-apertura').on('click', function(e){
 $(document).on('change','#casinoApertura',function(){
 
   limpiarCargaApertura();
+  $('#id_mesa_ap').val('');
   $('#cargador').val('');
   $('#tablaMesasApert tbody tr').remove();
 
@@ -394,7 +398,6 @@ $('#confirmar').on('click',function(e){
       $('#B_fecha_apert').prop('disabled', true);
 
       $.get('usuarios/quienSoy',function(data){
-        console.log('quiensoy',data);
         $('#cargador').val(data.usuario.nombre);
         $('#cargador').attr('data-cargador',data.usuario.id_usuario);
       })
@@ -403,7 +406,6 @@ $('#confirmar').on('click',function(e){
       if($('#casinoApertura').val() == 0 ){
         mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
       }
-      console.log('ppp',$('#B_fecha_apert').val().length);
 
       if($('#B_fecha_apert').val().length == 0  ){
         mostrarErrorValidacion($('#B_fecha_apert'),'Campo Obligatorio',false);
@@ -513,7 +515,6 @@ $(document).on('click', '.btn_ver_mesa', function(e){
   $('#mensajeErrorCargaAp').hide();
 
   limpiarCargaApertura();
-  $("input[name='monedaApertura'][value='1']").prop('checked', true);
 
   $('#bodyMesas tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
@@ -534,20 +535,86 @@ $(document).on('click', '.btn_ver_mesa', function(e){
     $('#id_mesa_ap').val(id_mesa);
 
     $.get('mesas/detalleMesa/' + id_mesa, function(data){
+      dataFichas=data;
 
-      for (var i = 0; i < data.fichas.length; i++) {
+      //deshabilito monedas
+      if(data.fichas_dolares == null){
+          $("input[name='monedaApertura'][value='2']").prop('disabled',true);
+      }else {
+        $("input[name='monedaApertura'][value='2']").prop('disabled',false);
+      }
+      if(data.fichas_pesos == null){
+          $("input[name='monedaApertura'][value='1']").prop('disabled',true);
+      }else {
+        $("input[name='monedaApertura'][value='1']").prop('disabled',false);
+      }
+      if(data.fichas_pesos != null){
+          $("input[name='monedaApertura'][value='1']").prop('checked', true);
+        for (var i = 0; i < data.fichas_pesos.length; i++) {
 
-        var fila= $('#filaFichasClon').clone();
-        fila.removeAttr('id');
-        fila.attr('id', data.fichas[i].id_ficha);
-        fila.find('.fichaVal').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
-        fila.find('.inputApe').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
-        fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha');
-        fila.css('display', 'block');
-        $('#tablaCargaApertura #bodyCApertura').append(fila);
-       }
+          var fila= $('#filaFichasClon').clone();
+          fila.removeAttr('id');
+          fila.attr('id', data.fichas_pesos[i].id_ficha);
+          fila.find('.fichaVal').val(data.fichas_pesos[i].valor_ficha).attr('id',data.fichas_pesos[i].id_ficha).css('text-align','right');
+          fila.find('.inputApe').attr('data-valor',data.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+          fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+          fila.css('display', 'block');
+          $('#tablaCargaApertura #bodyCApertura').append(fila);
+         }
+     }
+     else{
+       for (var i = 0; i < data.fichas_dolares.length; i++) {
+         $("input[name='monedaApertura'][value='2']").prop('checked', true);
+         var fila= $('#filaFichasClon').clone();
+         fila.removeAttr('id');
+         fila.attr('id', data.fichas_dolares[i].id_ficha);
+         fila.find('.fichaVal').val(data.fichas_dolares[i].valor_ficha).attr('id',data.fichas_dolares[i].id_ficha).css('text-align','right');
+         fila.find('.inputApe').attr('data-valor',data.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+         fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+         fila.css('display', 'block');
+         $('#tablaCargaApertura #bodyCApertura').append(fila);
+        }
+     }
     })
   }
+})
+
+$(document).on('change','input[name=monedaApertura]', function(){
+    $('#tablaCargaApertura tbody tr').remove();
+
+    var mon=$('input[name=monedaApertura]:checked').val();
+
+    if(mon==1){
+      for (var i = 0; i < dataFichas.fichas_pesos.length; i++) {
+
+          var fila= $('#filaFichasClon').clone();
+          fila.removeAttr('id');
+          fila.attr('id', dataFichas.fichas_pesos[i].id_ficha);
+          fila.find('.fichaVal').val(dataFichas.fichas_pesos[i].valor_ficha).attr('id',dataFichas.fichas_pesos[i].id_ficha).css('text-align','right');
+          fila.find('.inputApe').attr('data-valor',dataFichas.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+          fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+          fila.css('display', 'block');
+          $('#tablaCargaApertura #bodyCApertura').append(fila);
+      }
+    }
+    else{
+      if(dataFichas.fichas_dolares != null){
+
+        for (var i = 0; i < dataFichas.fichas_dolares.length; i++) {
+
+          var fila= $('#filaFichasClon').clone();
+          fila.removeAttr('id');
+          fila.attr('id', dataFichas.fichas_dolares[i].id_ficha);
+          fila.find('.fichaVal').val(dataFichas.fichas_dolares[i].valor_ficha).attr('id',dataFichas.fichas_dolares[i].id_ficha).css('text-align','right');
+          fila.find('.inputApe').attr('data-valor',dataFichas.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+          fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+          fila.css('display', 'block');
+          $('#tablaCargaApertura #bodyCApertura').append(fila);
+        }
+      }else{
+
+      }
+    }
 })
 
 //presiona el tachito dentro del listado de mesas, la borra de la lista
@@ -558,15 +625,15 @@ $(document).on('click', '.btn_borrar_mesa', function(e){
 
   limpiarCargaApertura();
   limpiarCargaCierre();
+  $('#id_mesa_ap').val('');
   $('#columnaDetalle').hide();
   $('#columnaDetalleCie').hide();
 
-  //si queda vacia la tabla, la oculta.
-  if (tbody.children().length == 0) {
 
-    console.log('andaaa');
-    $('.listMes').hide();
-  }
+    //si queda vacia la tabla, la oculta.
+    if ($('#listaMesasCierres tbody').children().length == 0) {
+      $('.listMes').hide();
+    }
 
 });
 
@@ -630,28 +697,37 @@ $('#btn-guardar-apertura').on('click', function(e){
 
         success: function (data){
           $('#columnaDetalle').hide();
+          $('#mensajeErrorCargaAp').hide();
+          $('#mensajeErrorCargaApFichas').hide();
+
           $('#btn-guardar-apertura').hide();
           $('#bodyMesas').find('#' + id_mesa).attr('data-cargado',true);
           $('#bodyMesas').find('#' + id_mesa).find('.btn_borrar_mesa').parent().remove();
           $('#bodyMesas').find('#' + id_mesa).find('.btn_ver_mesa').prop('disabled', true);
           $('#bodyMesas').find('#' + id_mesa).append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50')));
           $('#mensajeExitoCargaAp').show();
+
           $('#btn-guardar-apertura').hide();
           $('#btn-finalizar-apertura').show();
 
         },
         error: function (reject) {
+          $('#btn-guardar-apertura').show();
+
               if( reject.status === 422 ) {
-                  var errors = $.parseJSON(reject.responseText);
+                  var errors = $.parseJSON(reject.responseText).errors;
                   $.each(errors, function (key, val) {
                     if(key == 'fecha'){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
+                      $('#modalCargaApertura').animate({scrollTop:$('#B_fecha_apert').offset().top},"slow");
                     }
                     if(key == 'hora'){
-                      mostrarErrorValidacion($('#horarioAp'),'Campo Obligatorio',false);
+                      mostrarErrorValidacion($('#horarioAp'),val[0],false);
+                      $('#modalCargaApertura').animate({scrollTop:$('#horarioAp').offset().top},"slow");
                     }
                     if(key == 'id_fiscalizador'){
-                      mostrarErrorValidacion($('#fiscalizApertura'),'Campo Obligatorio',false);
+                      mostrarErrorValidacion($('#fiscalizApertura'),val[0],false);
+                      $('#modalCargaApertura').animate({scrollTop:$('#fiscalizApertura').offset().top},"slow");
                     }
                     if(key== 'total_pesos_fichas_a'){
                       $('#mensajeErrorCargaAp').show();
@@ -667,6 +743,7 @@ $('#btn-guardar-apertura').on('click', function(e){
                       ){
                         var splitt = key.split('.');
                         mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                        $('#mensajeErrorCargaApFichas').show();
                     }
                   });
               }else{
@@ -774,16 +851,11 @@ $(document).on('click', '.cargarDatos', function(e){
 
   limpiarCargaCierre();
   $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
   $('#btn-guardar-cierre').show();
-  $("input[name='moneda'][value='1']").prop('checked', true);
 
   $('#modalCargaCierre #id_mesa_panio').val($(this).attr('data-id'));
-
-
-  //$('#hor_cierre').datepicker('1-2-3');
-  //$('#horario_ini_c').datepicker('1-2-3');
 
   $('#listaMesasCierres tbody tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
@@ -805,22 +877,90 @@ $(document).on('click', '.cargarDatos', function(e){
   $.get('mesas/detalleMesa/' + id_mesa, function(data){
 
     //$('#moneda').val(data.moneda.descripcion);
-    for (var i = 0; i < data.fichas.length; i++) {
+      dataFichas2=data;
 
+      //deshabilito monedas
+      if(data.fichas_dolares == null){
+          $("input[name='moneda'][value='2']").prop('disabled',true);
+      }else {
+        $("input[name='moneda'][value='2']").prop('disabled',false);
+      }
+      if(data.fichas_pesos == null){
+          $("input[name='moneda'][value='1']").prop('disabled',true);
+      }else {
+        $("input[name='moneda'][value='1']").prop('disabled',false);
+      }
+      if(data.fichas_pesos != null){
+        $("input[name='moneda'][value='1']").prop('checked', true);
 
-      var fila= $('#clonCierre').clone();
-      fila.removeAttr('id');
-      fila.attr('id', data.fichas[i].id_ficha);
-      fila.find('.fichaValCC').val(data.fichas[i].valor_ficha).attr('id',data.fichas[i].id_ficha);
-      fila.find('.inputCie').attr('data-valor',data.fichas[i].valor_ficha).attr('data-ingresado', 0);
-      fila.find('.inputCie').addClass('fichas'+i+'monto_ficha');
-      fila.css('display', 'block');
-      $('#bodyFichasCierre').append(fila);
+        for (var i = 0; i < data.fichas_pesos.length; i++) {
+
+          var fila= $('#clonCierre').clone();
+          fila.removeAttr('id');
+          fila.attr('id', data.fichas_pesos[i].id_ficha);
+          fila.find('.fichaValCC').val(data.fichas_pesos[i].valor_ficha).attr('id',data.fichas_pesos[i].id_ficha).css('text-align','right');
+          fila.find('.inputCie').attr('data-valor',data.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+          fila.find('.inputCie').addClass('fichas'+i+'monto_ficha').css('text-align','right');
+          fila.css('display', 'block');
+          $('#bodyFichasCierre').append(fila);
+       }
+     }else{
+       $("input[name='moneda'][value='2']").prop('checked', true);
+
+       for (var i = 0; i < data.fichas_dolares.length; i++) {
+
+         var fila= $('#clonCierre').clone();
+         fila.removeAttr('id');
+         fila.attr('id', data.fichas_dolares[i].id_ficha);
+         fila.find('.fichaValCC').val(data.fichas_dolares[i].valor_ficha).attr('id',data.fichas_dolares[i].id_ficha).css('text-align','right');
+         fila.find('.inputCie').attr('data-valor',data.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+         fila.find('.inputCie').addClass('fichas'+i+'monto_ficha').css('text-align','right');
+         fila.css('display', 'block');
+         $('#bodyFichasCierre').append(fila);
+      }
      }
-
   })
 
 });
+
+$(document).on('change','input[name=moneda]', function(){
+    $('#bodyFichasCierre tr').remove();
+
+    var mon=$('input[name=moneda]:checked').val();
+
+    if(mon==1){
+      for (var i = 0; i < dataFichas.fichas_pesos.length; i++) {
+
+        var fila= $('#clonCierre').clone();
+        fila.removeAttr('id');
+        fila.attr('id', data.fichas_pesos[i].id_ficha);
+        fila.find('.fichaValCC').val(data.fichas_pesos[i].valor_ficha).attr('id',data.fichas_pesos[i].id_ficha).css('text-align','right');
+        fila.find('.inputCie').attr('data-valor',data.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+        fila.find('.inputCie').addClass('fichas'+i+'monto_ficha').css('text-align','right');
+        fila.css('display', 'block');
+        $('#bodyFichasCierre').append(fila);
+      }
+    }
+    else{
+      if(dataFichas.fichas_dolares != null){
+
+        for (var i = 0; i < dataFichas.fichas_dolares.length; i++) {
+
+          var fila= $('#clonCierre').clone();
+          fila.removeAttr('id');
+          fila.attr('id', data.fichas_dolares[i].id_ficha);
+          fila.find('.fichaValCC').val(data.fichas_dolares[i].valor_ficha).attr('id',data.fichas_dolares[i].id_ficha).css('text-align','right');
+          fila.find('.inputCie').attr('data-valor',data.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+          fila.find('.inputCie').addClass('fichas'+i+'monto_ficha').css('text-align','right');
+          fila.css('display', 'block');
+          $('#bodyFichasCierre').append(fila);
+        }
+      }else{
+
+      }
+    }
+})
+
 
 $(document).on('change','.inputCie',function(){
 
@@ -960,12 +1100,12 @@ $('#btn-guardar-cierre').on('click', function(e){
           error: function (reject) {
               $('#mensajeError h3').text('ERROR');
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = $.parseJSON(reject.responseText).errors;
                     $.each(errors, function (key, val) {
 
                       if(key == 'fecha'){
                         mostrarErrorValidacion($('#B_fecha_cie'),val[0],false);
-
+                        $('#modalCargaCierre').animate({scrollTop:$('#B_fecha_cie').offset().top},"slow");
                       }
                       if(key == 'id_moneda'){
                         $('#mensajeErrorMoneda').show();
@@ -979,9 +1119,13 @@ $('#btn-guardar-cierre').on('click', function(e){
                       }
                       if(key == 'hora_inicio'){
                         mostrarErrorValidacion($('#horario_ini_c'),val[0],false);
+                        $('#modalCargaCierre').animate({scrollTop:$('#horario_ini_c').offset().top},"slow");
+
                       }
                       if(key == 'hora_fin'){
                         mostrarErrorValidacion($('#horarioCie'),val[0],false);
+                        $('#modalCargaCierre').animate({scrollTop:$('#horarioCie').offset().top},"slow");
+
                       }
                       if(key == 'fichas'){
                         $('#mensajeFichasError2').show();
@@ -1023,7 +1167,6 @@ $(document).on('click', '.infoCyA', function(e) {
     var id_apertura=$(this).val();
 
     $.get('aperturas/obtenerAperturas/' + id_apertura, function(data){
-      console.log('pp',data.detalles);
       $('#modalDetalleApertura').modal('show');
 
       $('.mesa_det_apertura').text(data.mesa.nombre + ' - ' + data.moneda.descripcion);
@@ -1044,13 +1187,13 @@ $(document).on('click', '.infoCyA', function(e) {
             fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detalles[i].valor_ficha)))
+                .text(data.detalles[i].valor_ficha).css('cssText','text-align:right !important')))
 
               if(data.detalles[i].cantidad_ficha != null){
                 fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detalles[i].cantidad_ficha)));}
+                .text(data.detalles[i].cantidad_ficha).css('cssText','text-align:right !important')));}
               else{
                 fila.append($('<td>')
                 .addClass('col-xs-6')
@@ -1104,17 +1247,17 @@ $(document).on('click', '.infoCierre', function(e) {
             fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detallesC[i].valor_ficha)))
+                .text(data.detallesC[i].valor_ficha).css('cssText','text-align:right !important')))
             if(data.detallesC[i].monto_ficha != null){
                 fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detallesC[i].monto_ficha)));}
+                .text(data.detallesC[i].monto_ficha).css('cssText','text-align:right !important')));}
             else{
               fila.append($('<td>')
               .addClass('col-xs-6')
               .append($('<h8>')
-              .text(0)));
+              .text(0).css('cssText','text-align:right !important')));
             }
 
         $('#fichasdetallesC').append(fila);
@@ -1138,17 +1281,17 @@ $(document).on('click', '.infoCierre', function(e) {
              fila2.append($('<td>')
                  .addClass('col-xs-6')
                  .append($('<h8>')
-                 .text(data.detalleAP[i].valor_ficha).css('align','center')))
+                 .text(data.detalleAP[i].valor_ficha).css('align','right')))
                  if(data.detalleAP[i].monto_ficha != null){
                  fila2.append($('<td>')
                  .addClass('col-xs-6')
                  .append($('<h8>')
-                 .text(data.detalleAP[i].monto_ficha).css('align','center')));}
+                 .text(data.detalleAP[i].monto_ficha).css('align','right')));}
                  else{
                    fila2.append($('<td>')
                    .addClass('col-xs-6')
                    .append($('<h8>')
-                   .text('0').css('align','center')));
+                   .text('0').css('align','right')));
                  }
 
          $('#datosCierreFichasApertura').append(fila2);
@@ -1206,12 +1349,12 @@ $(document).on('click', '.validarCierre', function(e) {
             fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detallesC[i].valor_ficha)))
+                .text(data.detallesC[i].valor_ficha).css('text-align','right')))
             if(data.detallesC[i].monto_ficha != null){
                 fila.append($('<td>')
                 .addClass('col-xs-6')
                 .append($('<h8>')
-                .text(data.detallesC[i].monto_ficha)));}
+                .text(data.detallesC[i].monto_ficha).css('text-align','right')));}
             else{
               fila.append($('<td>')
               .addClass('col-xs-6')
@@ -1237,6 +1380,7 @@ $(document).on('click', '.validarCierre', function(e) {
 
 $('#validarCierre').on('click',function(e){
   e.preventDefault();
+  $('#mensajeExito').hide();
 
   var id = $(this).val();
 
@@ -1285,17 +1429,13 @@ $(document).on('click', '.modificarCyA', function(e) {
 
   e.preventDefault();
 
-
   $('#modificar_apertura').hide();
-
-  //APERTURA
 
     ocultarErrorValidacion($('#hs_apertura'));
     ocultarErrorValidacion($('#car_apertura'));
     ocultarErrorValidacion($('#fis_apertura'));
     $('#modificarFichasAp tr').remove();
     $('#errorModificar2').hide();
-
 
     var id_apertura=$(this).val();
     //guardo el id para hacer el guardar despues
@@ -1310,7 +1450,7 @@ $(document).on('click', '.modificarCyA', function(e) {
       $('.car_apertura').text(data.cargador.nombre);
       $('.cas_apertura').text( data.casino.nombre);
       $("input[name='monedaModApe'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
-
+      $("input[name='monedaModApe']").prop('disabled', true);
 
       //$('.mon_apertura').val(data.moneda.descripcion);
       $('#hs_apertura').val(data.apertura.hora_format);
@@ -1324,19 +1464,19 @@ $(document).on('click', '.modificarCyA', function(e) {
             .append($('<td>')
             .addClass('col-md-3').addClass('fichaVal').attr('id',data.detalles[i].id_ficha)
             .append($('<input>').prop('readonly','true')
-            .val(data.detalles[i].valor_ficha).css('text-align','center')))
+            .val(data.detalles[i].valor_ficha).css('text-align','right')))
 
             if(data.detalles[i].cantidad_ficha != null){
 
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','center')
+                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(data.detalles[i].cantidad_ficha).css('text-align','right')
                   .attr('data-valor',data.detalles[i].valor_ficha).attr('data-ingresado', data.detalles[i].cantidad_ficha)))
             }
             else{
               fila.append($('<td>')
                   .addClass('col-md-3')
-                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(0).css('text-align','center')
+                  .append($('<input>').addClass('modApertura'+' fichas'+i+'cantidad_ficha').attr('id', 'input').val(0).css('text-align','right')
                   .attr('data-valor',data.detalles[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
@@ -1385,6 +1525,7 @@ $(document).on('click', '.modificarCierre', function(e) {
 
       var id_casino = data.casino.id_casino;
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
+      $("input[name='monedaModCie']").prop('disabled', true);
 
       $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
@@ -1401,27 +1542,28 @@ $(document).on('click', '.modificarCierre', function(e) {
         var fila = $(document.createElement('tr'));
 
         fila.attr('id', data.detallesC[i].id_ficha)
-            .append($('<td>')
-            .addClass('col-md-3').addClass('fichaVal').attr('id',data.detallesC[i].id_ficha)
-            .append($('<input>').prop('readonly','true')
-            .val(data.detallesC[i].valor_ficha).css('text-align','center')))
+            .append($('<td>').css('cssText','padding:0px !important')
+            .addClass('col-xs-3').addClass('fichaVal').attr('id',data.detallesC[i].id_ficha)
+            .append($('<input>').addClass('form-control').prop('readonly','true')
+            .val(data.detallesC[i].valor_ficha).css('text-align','right')))
 
             if(data.detallesC[i].monto_ficha != null){
 
-              fila.append($('<td>')
-                  .addClass('col-md-3')
-                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','center')
+              fila.append($('<td>').css('cssText','padding:0px !important')
+                  .addClass('col-xs-3')
+                  .append($('<input>').addClass('form-control').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(data.detallesC[i].monto_ficha).css('text-align','right')
                   .attr('data-valor',data.detallesC[i].valor_ficha).attr('data-ingresado', data.detallesC[i].monto_ficha)))
             }
             else{
-              fila.append($('<td>')
-                  .addClass('col-md-3')
-                  .append($('<input>').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(0).css('text-align','center')
+              fila.append($('<td>').css('cssText','padding:0px !important')
+                  .addClass('col-xs-3')
+                  .append($('<input>').addClass('form-control').addClass('modCierre'+' fichas'+i+'monto_ficha').attr('id', 'input').val(0).css('text-align','right')
                   .attr('data-valor',data.detallesC[i].valor_ficha).attr('data-ingresado', 0)))
             }
 
         $('#modificarFichasCie').append(fila);
       }
+
 
       var total = 0;
 
@@ -1551,26 +1693,32 @@ $('#modificar_apertura').on('click', function(e){
 
           success: function (data){
 
-            $('#modalModificarApertura').modal('hide');
-             $('#mensajeExito h3').text('ÉXITO');
-             $('#mensajeExito p').text('Apertura guardada correctamente');
-             $('#mensajeExito').show();
+              $('#modalModificarApertura').modal('hide');
+              $('#errorModificar').hide();
+              $('#errorModificar2').hide();
+              $('#mensajeExito h3').text('ÉXITO');
+              $('#mensajeExito p').text('Apertura guardada correctamente');
+              $('#mensajeExito').show();
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = $.parseJSON(reject.responseText).errors;
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificar2').show();
                       }
                       if(key == 'id_fiscalizador'){
                         mostrarErrorValidacion($('#fis_apertura'),val[0],false);
+                        $('#modalModificarApertura').animate({scrollTop:$('#fis_apertura').offset().top},"slow");
+
                       }
                       if(key == 'total_pesos_fichas_a'){
                         $('#errorModificar').show();
                       }
                       if(key == 'hora'){
                         mostrarErrorValidacion($('#hs_apertura'),val[0],false);
+                        $('#modalModificarApertura').animate({scrollTop:$('#hs_apertura').offset().top},"slow");
+
                       }
 
                       if(key == 'fichas'){
@@ -1581,6 +1729,7 @@ $('#modificar_apertura').on('click', function(e){
                         ){
                           var splitt = key.split('.');
                           mostrarErrorValidacion( $('.' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                          $('#modalModificarApertura').animate({scrollTop:$('.' + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
                           $('#errorModificar').show();
                       }
                     });
@@ -1710,20 +1859,24 @@ $('#modificar_cierre').on('click', function(e){
 
           success: function (data){
 
-            $('#modalModificarCierre').modal('hide');
-             $('#mensajeExito h3').text('ÉXITO');
-             $('#mensajeExito p').text('Cierre guardado correctamente');
-             $('#mensajeExito').show();
+                $('#modalModificarCierre').modal('hide');
+                $('#errorModificarCierre2').hide();
+                $('#errorModificarCierre').hide();
+                $('#mensajeExito h3').text('ÉXITO');
+                $('#mensajeExito p').text('Cierre guardado correctamente');
+                $('#mensajeExito').show();
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = $.parseJSON(reject.responseText).errors;
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificarCierre2').show();
                       }
                       if(key == 'id_fiscalizador'){
                         mostrarErrorValidacion($('#fis_cierre'),response.id_fiscalizador[0],false);
+                        $('#modalModificarCierre').animate({scrollTop:$('#fis_cierre').offset().top},"slow");
+
                       }
                       if(key == 'total_pesos_fichas_c'){
                         $('#errorModificarCierre').show();
@@ -1743,6 +1896,8 @@ $('#modificar_cierre').on('click', function(e){
                         ){
                           var splitt = key.split('.');
                           mostrarErrorValidacion( $('.modCierre .' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                          $('#modalModificarCierre').animate({scrollTop:$('.modCierre .' + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
+
                           $('#errorModificarCierre').show();
 
                       }
@@ -2327,10 +2482,10 @@ function generarFilaCierres(data){
         fila.find('.validarCierre').show();
         break;
       case 2://p/aperturas
-        fila.find('.infoCierre').hide();
-        fila.find('.eliminarCierre').show();
-        fila.find('.modificarCierre').show();
-        fila.find('.validarCierre').show();
+        fila.find('.infoCierre').show();
+        fila.find('.eliminarCierre').hide();
+        fila.find('.modificarCierre').hide();
+        fila.find('.validarCierre').hide();
         break;
       case 3://validado desde la pestaña cierres
         fila.find('.infoCierre').show();
@@ -2345,6 +2500,7 @@ function generarFilaCierres(data){
         fila.find('.validarCierre').hide();
         break;
       default:
+
 
     }
 
@@ -2366,7 +2522,6 @@ function limpiarCargaCierre(){
 
 function limpiarCargaApertura(){
 
-  $('#id_mesa_ap').val('');
   $('#totalApertura').val('');
   $('#horarioAp').val('');
   $('#fiscalizApertura').setearElementoSeleccionado(0,"");

@@ -76,7 +76,7 @@
               <h5>Fecha de Pago</h5>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaFiltro' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" id="B_fecha_filtro" value=""/>
+                  <input type='text' class="form-control" id="B_fecha_filtro" value="" placeholder="aaaa-mm-dd"/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
@@ -185,19 +185,18 @@
           </div>
           <div class="col-xs-3">
             <h5>AÑO INICIO</h5>
-            <select class="form-control" name="" id="añoInicioAct1" >
+            <select class="form-control" name="" id="añoInicioAct1">
             </select>
           </div>
           <div class="col-xs-3">
             <h5>AÑO FINAL</h5>
-            <select class="form-control" name="" id="añoInicioAct2" >
+            <select class="form-control" name="" id="añoInicioAct2">
             </select>
           </div>
           <div class="col-xs-3">
             <button type="button" class="btn btn-infoBuscar" style="margin-top:30px !important;" id="buscarActualizar" name="button">BUSCAR</button>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -223,18 +222,18 @@
           <div class="row">
             <table class="col-xs-12 table table-bordered" id="anio1" style="padding:0px !important">
               <thead>
-                  <th class="casinoInformeFinal" colspan="8"> <h6 style="font-weight:bold;text-align:center !important;font-size:17px !important;color:#000">CASINO 2017/2018</h6> </th>
+                  <th class="casinoInformeFinal" colspan="8"> <h6 style="font-weight:bold;text-align:center !important;font-size:17px !important;color:#000;">CASINO 2017/2018</h6> </th>
               </thead>
               <tbody width="auto">
                   <tr style="" class="default1">
-                    <td  style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;">Meses</td>
-                    <td class="rdo1" style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
-                    <td class="rdo2" style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
-                    <td class="cotizacion1" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
-                    <td class="cotizacion2" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
-                    <td class="valor1" style="font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
-                    <td class="valor2" style="font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
-                    <td style="font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Variación Euro en %</td>
+                    <td  style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;">Meses</td>
+                    <td class="rdo1" style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
+                    <td class="rdo2" style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
+                    <td class="cotizacion1" style="text-align:center !important;font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
+                    <td class="cotizacion2" style="text-align:center !important;font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
+                    <td class="valor1" style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
+                    <td class="valor2" style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
+                    <td style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Variación Euro en %</td>
               </tbody>
             </table>
           </div>
@@ -250,7 +249,6 @@
                   <td class="euroT1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
                   <td class="euro2T1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
                   <td class="variacionET1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-
                 </tr>
               </tbody>
             </table>
@@ -319,14 +317,46 @@
           <div class="row ">
             <table class="table table-bordered" id="tablaActualizacion" style="border:1px solid #aaa !important">
               <thead style="background-color:#E0E0E0;font-weight:bold;font-size:16px !important;">
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Moneda</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valores 2017/2018</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Montos 2016/2017</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Montos 2017/2018</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">% de Variación</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valor Base</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valor Base 2018/2019</h6></th>
-                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;"><h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">Valores 2018/2019</h6></th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Moneda
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t_valor_ant" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Valores 2017/2018
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t_monto_ant" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Montos 2016/2017
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t_monto_act" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Montos 2017/2018
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    % de Variación
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t4_valor_base_ant" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Valor Base
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t_valor_base_act" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Valor Base 2018/2019
+                  </h6>
+                </th>
+                <th style="background-color: #aaa;border-right: 1px solid #000 !important;border-left: 1px solid #000 !important;border-bottom: 1px solid #000 !important;border-top: 1px solid #000 !important;">
+                  <h6 id="t_valor_base_nuevo" style="color:white !important;text-align:center !important;font-size:16px !important;font-weight:bold">
+                    Valores 2018/2019
+                  </h6>
+                </th>
               </thead>
               <tbody>
 
@@ -359,7 +389,7 @@
 <div class="modal fade" id="modalVerYModificar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 80%" >
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#4FC3F7;">
+      <div class="modal-header" style="background-color:#0D47A1;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| DATOS DEL CANON </h3>
@@ -413,7 +443,7 @@
 <div class="modal fade" id="modalRegistrarPago" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70% !important" >
     <div class="modal-content">
-      <div class="modal-header" style="background-color:#1DE9B6;">
+      <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| CARGA DE PAGO </h3>
@@ -435,7 +465,7 @@
             <br>
             <div class="row desplegarPago" hidden="true" >
               <div class="row">
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">FECHA</h6>
                   <div class="form-group">
                     <div class='input-group date' id='dtpFechaPago' data-link-field="fecha_pago" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
@@ -445,13 +475,23 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">MES DE PAGO</h6>
                   <select class="form-control" name="" id="selectMesPago">
 
                   </select>
                 </div>
-                <div class="col-xs-4">
+                  <div class="col-xs-3">
+                    <h5>Año</h5>
+                    <div class="form-group">
+                      <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
+                        <input type='text' class="form-control" id="fechaPagoFil" placeholder="aaaa" value=""/>
+                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">COTIZACIÓN EURO</h6>
                   <input type="text" name="" value="" id="cotEuroPago" class="form-control">
                 </div>
@@ -478,12 +518,18 @@
                 </div>
             </div>
         </div>
-        <span class="help-block" style="margin-top:50px !important;color: #0D47A1 !important;float:left; font-size:12px !important;padding-left:5px !important"><i>*Asegúrese de que se encuentre Importado el informe del mes que desea registrar como pago.</i></span>
+        <span id="help" class="help-block" style="margin-top:50px !important;color: #0D47A1 !important;float:left; font-size:12px !important;padding-left:5px !important"><i>*Asegúrese de que se encuentre Importado el informe del mes que desea registrar como pago.</i></span>
 
       </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="guardarPago" value="nuevo" hidden="true">GUARDAR</button>
         </div>
+        <div id="mensajeImportacionError" hidden>
+          <br>
+          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
+          <br>
+          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique la Importación del mes que desea registrar como pago, esté cargada en el sistema.</span>
+        </div> <!-- mensaje -->
       </div>
     </div>
   </div>
