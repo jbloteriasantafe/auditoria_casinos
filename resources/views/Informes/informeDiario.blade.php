@@ -92,16 +92,16 @@ footer
         <tr>
           <td class="tablaCampos" style=" font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->nro_mesa}}</td>
           <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->nombre_juego}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->saldo_fichas}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->droop}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->retiros}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->reposiciones}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->utilidad}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right; !important;">{{$mesa->saldo_fichas}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->droop}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->retiros}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->reposiciones}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->utilidad}}</td>
           @if($diaria['importacion']->moneda->siglas != 'ARS')
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->cotizacion}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->conversion}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->cotizacion}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->conversion}}</td>
           @endif
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->diferencia_cierre}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:right !important;">{{$mesa->diferencia_cierre}}</td>
           <td class="tablaCampos" style="font-size:12px; border-color: gray;text-align:center !important;">{{$mesa->hold}}</td>
         </tr>
         @endforeach
@@ -109,16 +109,16 @@ footer
         <tr>
           <th style=" font-size:12px; border-color: gray;text-align:center !important;">TOTALES</th>
           <th style="font-size:12px; border-color: gray;text-align:center !important;">--</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->saldo_diario_fichas}}</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->total_diario}}</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->utilidad_diaria_total}}</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->total_diario_retiros}}</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->total_diario_reposiciones}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->saldo_diario_fichas}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->total_diario}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->utilidad_diaria_total}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->total_diario_retiros}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->total_diario_reposiciones}}</th>
           @if($diaria['importacion']->moneda->siglas != 'ARS')
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->cotizacion}}</th>
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->conversion_total}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->cotizacion}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->conversion_total}}</th>
           @endif
-          <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->diferencias}}</th>
+          <th style="font-size:12px; border-color: gray;text-align:right !important;">{{$diaria['importacion']->diferencias}}</th>
           <th style="font-size:12px; border-color: gray;text-align:center !important;">{{$diaria['importacion']->hold_diario}}</th>
         </tr>
       </tbody>

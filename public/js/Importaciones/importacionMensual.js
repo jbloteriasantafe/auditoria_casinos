@@ -1,42 +1,36 @@
 $(document).ready(function() {
-
-    // $('#barraImportacionesMesas').attr('aria-expanded','true');
-    // $('#importacionesMesas').removeClass();
-    // $('#importacionesMesas').addClass('subMenu1 collapse in');
-    //
-    // $('.tituloSeccionPantalla').text('Importaciones Mensuales');
-    // $('#opcImportacionMensual').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-    // $('#opcImportacionMensual').addClass('opcionesSeleccionado');
-
     $('#filtroCasino').val('0');
     $('#filtroFecha').val('');
     $('#filtroMoneda').val('0');
 
     $('#mensajeExito').hide();
-    $('#mensajeError').hide();
+    $('#mensajeErrorMes').hide();
 
     $(function(){
-        $('#dtpFecha').datetimepicker({
+        $('#dtpFechaFiltro').datetimepicker({
           language:  'es',
           todayBtn:  1,
           autoclose: 1,
           todayHighlight: 1,
-          format: 'yyyy-mm-dd',
+          format: 'yyyy-MM',
           pickerPosition: "bottom-left",
-          startView: 4,
-          minView: 2
+          startView: 3,
+          minView: 3,
+          ignoreReadonly: true,
+
         });
     });
     $(function(){
-        $('#dtpFechaImp').datetimepicker({
+        $('#dtpFechaImpMes').datetimepicker({
           language:  'es',
           todayBtn:  1,
           autoclose: 1,
           todayHighlight: 1,
-          format: 'yyyy-mm',
+          format: 'yyyy-MM',
           pickerPosition: "bottom-left",
-          startView: 4,
-          minView: 2,
+          startView: 3,
+          minView: 3,
+          ignoreReadonly: true,
           container: $('#modalImportacionMensual')
         });
     });
@@ -62,8 +56,10 @@ $('#buscar-impMensuales').click(function(e,pagina,page_size,columna,orden){
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacionMensual').getCurrentPage();
     var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosMes .activa').attr('value'),orden: $('#tablaResultadosMes .activa').attr('estado')} ;
 
-    if(sort_by == null){ // limpio las columnas
-      $('#tablaResultadosMes th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+      var sort_by =  {columna: 'fecha_mes',orden: 'desc'} ;
+
+      //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
     }
 
     var formData= {
@@ -90,7 +86,7 @@ $('#buscar-impMensuales').click(function(e,pagina,page_size,columna,orden){
         success: function (data){
           $('#tablaResultadosMes tbody tr').remove();
 
-          $('#herramientasPaginacionMensual').generarTitulo(page_number,page_size,data.importaciones.total,clickIndice);
+          $('#herramientasPaginacionMensual').generarTitulo(page_number,page_size,data.importaciones.total,clickIndiceMes);
 
 
           for (var i = 0; i < data.importaciones.data.length; i++) {
@@ -98,7 +94,7 @@ $('#buscar-impMensuales').click(function(e,pagina,page_size,columna,orden){
               var fila=  generarFilaTablaInicial(data.importaciones.data[i]);
               $('#cuerpoTablaImpM').append(fila);
           }
-          $('#herramientasPaginacionMensual').generarIndices(page_number,page_size,data.importaciones.total,clickIndice);
+          $('#herramientasPaginacionMensual').generarIndices(page_number,page_size,data.importaciones.total,clickIndiceMes);
 
 
         },
@@ -126,11 +122,11 @@ $(document).on('click','#tablaResultadosMes thead tr th[value]',function(e){
     }
   }
   $('#tablaResultadosMes th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacionMensual').getCurrentPage(),$('#herramientasPaginacionMensual').getPageSize());
+  clickIndiceMes(e,$('#herramientasPaginacionMensual').getCurrentPage(),$('#herramientasPaginacionMensual').getPageSize());
 });
 
 
-function clickIndice(e,pageNumber,tam){
+function clickIndiceMes(e,pageNumber,tam){
 
   if(e != null){
     e.preventDefault();
@@ -153,22 +149,24 @@ $('#btn-importar-mes').on('click', function(e){
 
     $('#mensajeErrorGral').hide();
 
-    ocultarErrorValidacion($('#B_fecha_imp'));
-    ocultarErrorValidacion($('#monedaSel'));
-    ocultarErrorValidacion($('#casinoSel'));
-    $('#B_fecha_imp').val("");
-    $('#casinoSel').val('0');
-    $('#monedaSel').val('0');
+    ocultarErrorValidacion($('#B_fecha_imp_mes'));
+    ocultarErrorValidacion($('#monedaSelMes'));
+    ocultarErrorValidacion($('#casinoSelMes'));
+    $('#B_fecha_imp_mes').val("");
+    $('#casinoSelMes').val('0');
+    $('#monedaSelMes').val('0');
     $('#modalImportacionMensual').find('.modal-footer').children().show();
     $('#modalImportacionMensual').find('.modal-body').children().show();
 
     //Mostrar: rowarchivoMes
-    $('#modalImportacionMensual #rowarchivo').show();
+    $('#modalImportacionMensual #rowarchivoMes').show();
     $('#modalImportacionMensual').modal('show');
+
+    $('#modalImportacionMensual #iconoCargaMes').hide();
 
     //Ocultar: rowFecha, mensajes, iconoCarga
     $('#modalImportacionMensual #rowFecha').hide();
-    $('#modalImportacionMensual #mensajeError').hide();
+    $('#modalImportacionMensual #mensajeErrorMes').hide();
     $('#modalImportacionMensual #mensajeInvalido').hide();
     $('#modalImportacionMensual #mensajeInformacion').hide();
 
@@ -176,13 +174,10 @@ $('#btn-importar-mes').on('click', function(e){
 
     $('#mensajeExito').hide();
 
-    //Ocultar botón SUBIR
-    $('#iconoCarga').hide();
     $('#btn-guardarMensual').hide();
 });
 
-$('#modalImportacionDiaria #archivoMes').on('fileerror', function(event, data, msg) {
-     //$('#modalImportacionDiaria #rowMoneda').hide();
+$('#modalImportacionMensual #archivoMes').on('fileerror', function(event, data, msg) {
      $('#modalImportacionMensual #mensajeInformacion').hide();
      $('#modalImportacionMensual #mensajeInvalido').show();
      $('#modalImportacionMensual #mensajeInvalido #span').text(msg);
@@ -214,24 +209,64 @@ $('#btn-guardarMensual').on('click', function(e){
       var url = 'importacionMensual/importar';
 
       //determina cuantos dias tiene el mes q se importa
-      var str = $('#B_fecha_imp').val();
+      var str = $('#B_fecha_imp_mes').val();
       var res = str.split("-");
+      var nroMes;
 
-      var d=  diasEnUnMes(res[1],res[0]);
+      switch (res[1]) {
+        case 'Enero':
+          nroMes='01';
+          break;
+        case 'Febrero':
+          nroMes='02';
+            break;
+        case 'Marzo':
+          nroMes='03';
+            break;
+        case 'Abril':
+          nroMes='04';
+            break;
+        case 'Mayo':
+          nroMes='05';
+            break;
+        case 'Junio':
+          nroMes='06';
+            break;
+        case 'Julio':
+          nroMes='07';
+            break;
+        case 'Agosto':
+          nroMes='08';
+            break;
+        case 'Septiembre':
+          nroMes='09';
+            break;
+        case 'Octubre':
+          nroMes='10';
+            break;
+        case 'Noviembre':
+          nroMes='11';
+            break;
+        default:
+          nroMes='12';
 
+        }
+        var fechaFin = res[0] + '-' + nroMes;
+        var d=  diasEnUnMes(res[0],nroMes);
+
+        console.log('d',d);
       var formData = new FormData;
 
       formData.append('name', $('#modalImportacionMensual #archivoMes')[0].files[0].name);
-      formData.append('fecha', $('#B_fecha_imp').val());
-      formData.append('id_moneda', $('#monedaSel').val());
-      formData.append('id_casino', $('#casinoSel').val());
+      formData.append('fecha',fechaFin );
+      formData.append('id_moneda', $('#monedaSelMes').val());
+      formData.append('id_casino', $('#casinoSelMes').val());
       formData.append('diasDelmes', d);
 
       //Si subió archivoMes lo guarda
       if($('#modalImportacionMensual #archivoMes').attr('data-borrado') == 'false' && $('#modalImportacionMensual #archivoMes')[0].files[0] != null){
         formData.append('archivo' , $('#modalImportacionMensual #archivoMes')[0].files[0]);
       }
-
 
       $.ajax({
           type: "POST",
@@ -246,7 +281,7 @@ $('#btn-guardarMensual').on('click', function(e){
             $('#modalImportacionMensual').find('.modal-body').children().hide();
             $('#mensajeErrorGral').hide();
 
-            $('#iconoCarga').show();
+            $('#iconoCargaMes').show();
           },
           complete: function(data){
             console.log('Terminó');
@@ -263,38 +298,31 @@ $('#btn-guardarMensual').on('click', function(e){
           },
           error: function (data) {
 
-            var response = data.responseJSON;
+            var response = data.responseJSON.errors;
 
             $('#modalImportacionMensual').find('.modal-footer').children().show();
-            $('#frmImportacion').show();
-            $('#rowArchivo').show();
+            $('#modalImportacionMensual #frmImportacion').show();
+            $('#rowArchivoMes').show();
 
-            $('#iconoCarga').hide();
-
-            console.log('error',response);
-
+            $('#iconoCargaMes').hide();
 
            if(typeof response.fecha !== 'undefined'){
-             mostrarErrorValidacion($('#B_fecha_imp'),response.fecha[0],false);}
+             mostrarErrorValidacion($('#B_fecha_imp_mes'),response.fecha[0],false);}
 
            if(typeof response.id_casino !== 'undefined'){
-             mostrarErrorValidacion($('#casinoSel'),response.id_casino[0],false);}
+             mostrarErrorValidacion($('#casinoSelMes'),response.id_casino[0],false);}
 
            if(typeof response.id_moneda !== 'undefined'){
-             mostrarErrorValidacion($('#monedaSel'),response.id_moneda[0],false);}
+             mostrarErrorValidacion($('#monedaSelMes'),response.id_moneda[0],false);}
 
-             if(typeof response.error !== 'undefined'){
-
+           if(typeof response.error !== 'undefined'){
                 if(response.error.length > 0){
+                  $('#mensajeErrorGral #span2').text(response.error[0]);
+                  $('#mensajeErrorGral').show();
+                }
 
-                      $('#mensajeErrorGral #span').text(response.error[0]);
-
-                      $('#mensajeErrorGral').show();
-
-                  }
               }
-
-          }
+           }
       });
   });
 
@@ -307,17 +335,18 @@ $(document).on('click','.infoImpM',function(e){
 
          $('#datosMensuales tr').remove();
 
-         $('#fechaImpM').val(data.importacion.mes).prop('readonly',true);
-         $('#casinoImpM').val(data.casino.nombre).prop('readonly',true);
-         $('#monedaImpM').val(data.moneda.descripcion).prop('readonly',true);
+         $('#fechaImpM').text(data.importacion.mes).prop('readonly',true);
+         $('#casinoImpM').text(data.casino.nombre).prop('readonly',true);
+         $('#monedaImpM').text(data.moneda.descripcion).prop('readonly',true);
          $('#observacionesImpM').val(data.importacion.observacion).prop('readonly',true);
 
          for (var i = 0; i < data.detalles.length; i++) {
 
              var fila=  generarFilaInfo(data.detalles[i]);
              $('#datosMensuales').append(fila);
-
        }
+       var totales= generarFilaTotales(data.importacion);
+       $('#datosMensuales').append(totales);
 
        $('#modalInfoMensual').modal('show');
 
@@ -465,14 +494,56 @@ function habilitarInputMensual(){
 
 function generarFilaTablaInicial(data){
   var fila = $('#moldeFilaImpM').clone();
+
     fila.removeAttr('id');
     fila.attr('id', data.id_importacion_mensual_mesas);
 
-    fila.find('.m_fecha').text(data.fecha_mes);
+    var mes=data.fecha_mes.split('-');
+    var nombreMes;
+
+    switch (mes[1]) {
+      case '01':
+        nombreMes='Enero';
+        break;
+      case '02':
+        nombreMes='Febrero';
+          break;
+      case '03':
+        nombreMes='Marzo';
+          break;
+      case '04':
+        nombreMes='Abril';
+          break;
+      case '05':
+        nombreMes='Mayo';
+          break;
+      case '06':
+        nombreMes='Junio';
+          break;
+      case '07':
+        nombreMes='Julio';
+          break;
+      case '08':
+        nombreMes='Agosto';
+          break;
+      case '09':
+        nombreMes='Septiembre';
+          break;
+      case '10':
+        nombreMes='Octubre';
+          break;
+      case '11':
+        nombreMes='Noviembre';
+          break;
+      default:
+        nombreMes='Diciembre';
+    }
+
+    fila.find('.m_fecha').text(nombreMes + ' ' + mes[0]);
     fila.find('.m_casino').text(data.nombre);
     fila.find('.m_moneda').text(data.descripcion);
     if(data.diferencias == 0){
-      fila.find('.m_dif').append($('<i>').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('text-align','center'));
+      fila.find('.m_dif').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50').css('text-align','center'));
 
 
     }else{
@@ -509,6 +580,8 @@ function generarFilaInfo(data){
       fila.find('.ver_fecha').text(data.fecha_dia);
       fila.find('.ver_drop').text(data.total_diario);
       fila.find('.ver_utilidad').text(data.utilidad);
+      fila.find('.ver_reposiciones').text(data.reposiciones_dia);
+      fila.find('.ver_retiros').text(data.retiros_dia);
       fila.find('.ver_hold').text(data.hold);
 
       // if(data.diferencia == 0){
@@ -520,6 +593,25 @@ function generarFilaInfo(data){
 
     return fila;
 
+};
+
+function generarFilaTotales(data){
+
+    var fila = $('#moldeInfoMensual').clone();
+      fila.removeAttr('id');
+      fila.attr('id', data.id_importacion_mensual_mesas);
+
+      fila.find('.ver_fecha').text('TOTALES').css('cssText','padding:5px !important;font-weight:bold;text-align:center');;
+      fila.find('.ver_drop').text(data.total_drop_mensual).css('cssText','padding:5px !important;font-weight:bold;text-align:center');;
+      fila.find('.ver_utilidad').text(data.total_utilidad_mensual).css('cssText','padding:5px !important;font-weight:bold;text-align:center');;
+      fila.find('.ver_reposiciones').text(data.reposiciones_mes).css('cssText','padding:5px !important;font-weight:bold;text-align:center');;
+      fila.find('.ver_retiros').text(data.retiros_mes).css('cssText','padding:5px !important;font-weight:bold;text-align:center');;
+      fila.find('.ver_hold').text('-').css('cssText','padding:5px !important;font-weight:bold;text-align:center');
+      fila.css('cssText','background-color:#aaa; color:black;');
+      fila.css('display', '');
+      $('#mostrarTablaVerMensual').css('display','block');
+
+    return fila;
 };
 
 function generarFilaValidar(data){
@@ -543,6 +635,6 @@ function generarFilaValidar(data){
 
 };
 
-function diasEnUnMes(mes, año) {
-	return new Date(año, mes, 0).getDate();
+function diasEnUnMes(anio, mes) {
+	return new Date(anio, mes, 0).getDate();
 }

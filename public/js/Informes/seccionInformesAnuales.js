@@ -1,34 +1,31 @@
 $(document).ready(function() {
 
-  $('#barraInformes').attr('aria-expanded','true');
+  $('#barraInformesMesas').attr('aria-expanded','true');
   $('#informes').removeClass();
   $('#informes').addClass('subMenu1 collapse in');
-  $('.tituloSeccionPantalla').text('Informes Anuales Mesas de Paño');
+  $('.tituloSeccionPantalla').text('Informes Anuales Contables');
   $('#opcInfoInteranuales').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcInfoInteranuales').addClass('opcionesSeleccionado');
 
-
-
   $(function(){
     $('#dtpFecha').datetimepicker({
-          language:  'es',
-          todayBtn:  1,
-          autoclose: 1,
-          todayHighlight: 1,
-          format: 'YYYY',
-          pickerPosition: "bottom-left",
-          startView: 4,
-          minView: 2
-        });
-      
+      language:  'es',
+      todayBtn:  1,
+      autoclose: 1,
+      todayHighlight: 1,
+      format: 'yyyy',
+      pickerPosition: "bottom-left",
+      startView: 4,
+      viewSelect:'decade',
+      minView: 4,
+      maxView:4,
+      ignoreReadonly: true,
   });
-
+});
   setearDatosIniciales();
-
 
   $('#mensajeErrorFiltros').hide();
   $('#buscar-informes-anuales').trigger('click');
-
 
 });
 
@@ -36,9 +33,8 @@ $(document).ready(function() {
 $('#buscar-informes-anuales').on('click', function(e){
 
   e.preventDefault();
-
+  $('#speedChart').hide();
   var f=$('#B_fecha_filtro').val();
-  console.log('es',f);
 
   if(f!= null){
     var fecha=f;
@@ -51,13 +47,13 @@ $('#buscar-informes-anuales').on('click', function(e){
   if(cas2==0){
     var c2='';
   }else{
-    c2=cas2;
+    var c2=cas2;
   }
   var mon2=$('#MonComparar').val();
   if(mon2==0){
     var m2='';
   }else{
-    m2=mon2;
+    var m2=mon2;
   }
 
   var formData= {
@@ -67,7 +63,7 @@ $('#buscar-informes-anuales').on('click', function(e){
     id_moneda: $('#MonInformeA').val(),
     id_moneda2: m2,
   }
-    console.log('mon',mon2);
+
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -81,30 +77,54 @@ $('#buscar-informes-anuales').on('click', function(e){
       dataType: 'json',
 
       success: function (data){
+
         $('#mensajeErrorFiltros').hide();
 
         $('#B_fecha_filtro').val(fecha);
+        // if(mon2 != 0){
+        //   if(data.casino2)
+        // }
 
-
-           if(cas2 != 0 ){
+           if((data.casino2.length > 0) && (data.casino1.length > 0)){
              grarGraficoCasinos(data.casino1,data.casino2);
              $('#speedChart').show();
            }
-           if(mon2 != 0){
-             grarGraficoMoneda(data.casino1,data.casino2);
+           if((data.casino2.length > 0) && data.casino1.length == 0){
+             grarGraficoCasino1(data.casino2);
              $('#speedChart').show();
            }
-           if(cas2 == 0 && mon2 == 0){
+           if((data.casino2.length == 0) && data.casino1.length > 0){
              grarGraficoCasino1(data.casino1);
              $('#speedChart').show();
            }
-
-
+           if(mon2 != 0 && (data.casino2.length > 0)){
+             grarGraficoMoneda(data.casino1,data.casino2);
+             $('#speedChart').show();
+           }
+           if(cas2 == 0 && mon2 == 0 && (data.casino1.length > 0)){
+             grarGraficoCasino1(data.casino1);
+             $('#speedChart').show();
+           }
       },
 
       error: function (data) {
-
-        $('#mensajeErrorFiltros').show();
+         var response = data.responseJSON.errors;
+        //
+           if(typeof response.id_moneda !== 'undefined'){
+             $('#mensajeF').text(response.id_moneda[0]);
+             $('#mensajeErrorFiltros').show();
+           }
+           if(typeof response.id_casino2 !== 'undefined'){
+             $('#mensajeF').text(response.id_casino2[0]);
+             $('#mensajeErrorFiltros').show();
+           }
+           if(typeof response.id_moneda2 !== 'undefined'){
+             $('#mensajeF').text(response.id_moneda2[0]);
+             $('#mensajeErrorFiltros').show();
+           }
+           else{
+             $('#mensajeErrorFiltros').show();
+           }
 
         }
 
@@ -125,6 +145,7 @@ $(document).on('change','#CasComparar',function(){
     $('#MonComparar').prop('disabled',false);
   }
 })
+
 
 $(document).on('change','#MonComparar',function(){
 
@@ -260,11 +281,14 @@ function grarGraficoCasinos(data1,data2){
       xAxis: {
           categories: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
       },
-      yAxis: {
+      yAxis: [{
           title: {
               text: '$'
+          },
+          labels: {
+                format: '{value}'
           }
-      },
+      }],
       plotOptions: {
           line: {
               dataLabels: {
@@ -407,9 +431,6 @@ function grarGraficoMoneda(data1,data2){
   });
 
 }
-
-
-
 
 function setearDatosIniciales(){
 

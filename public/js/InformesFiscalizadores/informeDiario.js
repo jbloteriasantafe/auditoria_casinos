@@ -1,11 +1,9 @@
 $(document).ready(function() {
+  $('#barraInfoFisca').attr('aria-expanded','true');
 
-    $('#barraMesas').attr('aria-expanded','true');
-    $('#mesasPanio').removeClass();
-    $('#mesasPanio').addClass('subMenu1 collapse in');
-    $('.tituloSeccionPantalla').text('Informes Diarios de Mesas de Paño');
-    $('#opcInformesFisca').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-    $('#opcInformesFisca').addClass('opcionesSeleccionado');
+  $('.tituloSeccionPantalla').text('Informes de Fiscalización');
+  $('#barraInfoFisca').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#barraInfoFisca').addClass('opcionesSeleccionado');
 
     $('#fechaInformeDiario').val('');
     $('#CasInformeDiario').val('0');
@@ -48,8 +46,10 @@ $('#buscar-informes-diarios').click(function(e,pagina,page_size,columna,orden){
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
     var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaInformesDiarios .activa').attr('value'),orden: $('#tablaInformesDiarios .activa').attr('estado')} ;
 
-    if(sort_by == null){ // limpio las columnas
-      $('#tablaInformesDiarios th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+      var sort_by =  {columna: 'fecha',orden: 'desc'} ;
+
+      //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
     }
 
         var formData= {
@@ -103,6 +103,13 @@ $(document).on('click','.imprimirDiario',function(){
 
 function generarFila(data){
 
+  // var fila = $('#moldeInfoDia').clone();
+  // fila.removeAttr('id');
+  // fila.attr('id',data.informe_fiscalizadores)
+  //
+  //  fila.find('.d_fecha').text(data.fecha);
+  //  fila.find('.d_casino').text(data.nombre);
+  //  fila.find('.imprimirDiario').val(data.informe_fiscalizadores);
   var fila = $(document.createElement('tr'));
 
   fila.attr('id',data.id_informe_fiscalizadores)
@@ -117,7 +124,7 @@ function generarFila(data){
 }
 
 
-$(document).on('click','#tablaResultadosApuestas thead tr th[value]',function(e){
+$(document).on('click','#tablaInformesDiarios thead tr th[value]',function(e){
 
   $('#tablaInformesDiarios th').removeClass('activa');
 
@@ -145,7 +152,7 @@ function clickIndice(e,pageNumber,tam){
   }
 
   var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultadosApuestas .activa').attr('value');
-  var orden = $('#tablaResultadosApuestas .activa').attr('estado');
-  $('#btn-buscar-apuestas').trigger('click',[pageNumber,tam,columna,orden]);
+  var columna = $('#tablaInformesDiarios .activa').attr('value');
+  var orden = $('#tablaInformesDiarios .activa').attr('estado');
+  $('#buscar-informes-diarios').trigger('click',[pageNumber,tam,columna,orden]);
 }
