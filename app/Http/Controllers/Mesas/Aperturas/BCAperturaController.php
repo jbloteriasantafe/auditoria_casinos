@@ -132,7 +132,28 @@ class BCAperturaController extends Controller
       }else{
         $cierre = null;
       }
-      $detalles = DB::table('ficha')
+      $first = DB::table('ficha')
+                            ->select('DA.id_detalle_apertura',
+                                      'ficha.id_ficha',
+                                     'DA.cantidad_ficha',
+                                      DB::raw(  'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha'),
+                                      'ficha.valor_ficha')
+                            ->leftJoin('detalle_apertura as DA',function ($join) use($id){
+                                  $join->on('DA.id_ficha','=','ficha.id_ficha')
+                                  ->where('DA.id_apertura_mesa','=',$id);
+                                })
+                            ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                            ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                            ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
+                            ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
+                            ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
+                            ->groupBy('DA.id_detalle_apertura',
+                                      'ficha.id_ficha',
+                                       'DA.cantidad_ficha',
+                                       'ficha.valor_ficha')
+                            ->orderBy('ficha.valor_ficha','desc');
+
+        $detalles = DB::table('ficha')
                             ->select('DA.id_detalle_apertura',
                                       'ficha.id_ficha',
                                      'DA.cantidad_ficha',
@@ -152,6 +173,8 @@ class BCAperturaController extends Controller
                                        'DA.cantidad_ficha',
                                        'ficha.valor_ficha')
                             ->orderBy('ficha.valor_ficha','desc')
+                            ->union($first)
+                            ->orderBy('valor_ficha','desc')
                             ->get();
       $mesa = Mesa::withTrashed()->find($apertura->id_mesa_de_panio);
       $juego = JuegoMesa::withTrashed()->find($mesa->id_juego_mesa);
@@ -197,8 +220,8 @@ class BCAperturaController extends Controller
                       ->get();
 
       return ['fichas' => $fichas,
-              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor'),
-              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor'),
+              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor')->values(),
+              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor')->values(),
               'cierre' => $cierre,
               'casino' => $cierre->casino,
               'cargador' => $cierre->fiscalizador,
@@ -211,9 +234,26 @@ class BCAperturaController extends Controller
   public function obtenerApParaValidar($id){
     $apertura = Apertura::find($id);
 
-    $moneda =$apertura->mesa->moneda;
+    $moneda =$apertura->moneda;
     if(!empty($apertura)){
 
+      $first = DB::table('ficha')
+                        ->select(
+                                  'detalle_apertura.id_detalle_apertura',
+                                  'detalle_apertura.cantidad_ficha',
+                                  DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
+                                  'ficha.valor_ficha',
+                                  'ficha.id_ficha'
+                                )
+                        ->leftJoin('detalle_apertura','ficha.id_ficha','=','detalle_apertura.id_ficha')
+                        ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                        ->where('detalle_apertura.id_apertura_mesa','=',$id)
+                        ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                        ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
+                        ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
+                        ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
+                        ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_apertura.cantidad_ficha','ficha.valor_ficha')
+                        ->orderBy('ficha.valor_ficha','desc');
       $detalles = DB::table('ficha')
                         ->select(
                                   'detalle_apertura.id_detalle_apertura',

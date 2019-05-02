@@ -17,7 +17,7 @@ class Cierre extends Model
                               'id_mesa_de_panio','id_estado_cierre','id_moneda',
                               'hora_inicio_format','hora_fin_format',
                               'total_pesos','total_cantidad_fichas', 'observacion',
-                              'id_estado_cierre'
+                              'id_estado_cierre','siglas'
                             );
   public $timestamps = false;
 
@@ -28,7 +28,11 @@ class Cierre extends Model
                               'id_estado_cierre','id_moneda'];
 
 
-  protected $appends = array('hora_inicio_format','hora_fin_format','total_cantidad_fichas','total_pesos');
+  protected $appends = array('hora_inicio_format','hora_fin_format','total_cantidad_fichas','total_pesos','siglas');
+
+  public function getSiglasAttribute(){
+    return $this->moneda->siglas;
+  }
 
   public function getTotalPesosAttribute(){
     return $this->total_pesos_fichas_c;

@@ -64,9 +64,46 @@ class BuscarMesasController extends Controller
     $monedas = Moneda::all();
     if($mesa->id_moneda != null){
       $moneda = $mesa->moneda;
-      $fichas = $moneda->fichas;
+      if($moneda->id_moneda == 1){
+      $fichasp = Ficha::select('valor_ficha','ficha.id_ficha')
+                      ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                      ->where('ficha_tiene_casino.id_casino','=',$casino->id_casino)
+                      ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                      ->whereNull('ficha_tiene_casino.deleted_at')
+                      ->orderBy('valor_ficha','DESC')
+                      ->get();
+
+      $fichasd = null;
+    }
+    else {
+      $fichasd = Ficha::select('valor_ficha','ficha.id_ficha')
+                      ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                      ->where('ficha_tiene_casino.id_casino','=',$casino->id_casino)
+                      ->where('ficha.id_moneda','=',$moneda->id_moneda)
+                      ->whereNull('ficha_tiene_casino.deleted_at')
+                      ->orderBy('valor_ficha','DESC')
+                      ->get();
+                      $fichasp = null;
+    }
     }else{
-      $fichas = Ficha::select('valor_ficha')->distinct('valor_ficha')->orderBy('valor_ficha','DESC')->get();
+      //es multimoneda
+      $fichasp = Ficha::select('valor_ficha','ficha.id_ficha','ficha.id_moneda')
+                      ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                      ->where('ficha_tiene_casino.id_casino','=',$casino->id_casino)
+                      ->where('ficha.id_moneda','=',1)
+                      ->whereNull('ficha_tiene_casino.deleted_at')
+                      //->distinct('valor_ficha')
+                      ->orderBy('valor_ficha','DESC')
+                      ->get();
+      //
+      $fichasd = Ficha::select('valor_ficha','ficha.id_ficha','ficha.id_moneda')
+                      ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                      ->where('ficha_tiene_casino.id_casino','=',$casino->id_casino)
+                      ->where('ficha.id_moneda','=',2)
+                      ->whereNull('ficha_tiene_casino.deleted_at')
+                      //->distinct('valor_ficha')
+                      ->orderBy('valor_ficha','DESC')
+                      ->get();
       $moneda = null;
     }
     return [
@@ -76,7 +113,8 @@ class BuscarMesasController extends Controller
             'tipo_mesa' => $tipo_mesa,
             'moneda' => $moneda,
             'casino' => $casino,
-            'fichas' => $fichas,
+            'fichas_pesos' => $fichasp,
+            'fichas_dolares' => $fichasd,
             'sectores' => $sectores,
             'juegos' => $juegos,
             'monedas' => $monedas,

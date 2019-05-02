@@ -538,45 +538,45 @@ $(document).on('click', '.btn_ver_mesa', function(e){
       dataFichas=data;
 
       //deshabilito monedas
-      if(data.fichas_dolares == null){
-          $("input[name='monedaApertura'][value='2']").prop('disabled',true);
-      }else {
-        $("input[name='monedaApertura'][value='2']").prop('disabled',false);
-      }
-      if(data.fichas_pesos == null){
-          $("input[name='monedaApertura'][value='1']").prop('disabled',true);
-      }else {
-        $("input[name='monedaApertura'][value='1']").prop('disabled',false);
-      }
-      if(data.fichas_pesos != null){
-          $("input[name='monedaApertura'][value='1']").prop('checked', true);
-        for (var i = 0; i < data.fichas_pesos.length; i++) {
+    if(data.fichas_dolares == null){
+        $("input[name='monedaApertura'][value='2']").prop('disabled',true);
+    }else {
+      $("input[name='monedaApertura'][value='2']").prop('disabled',false);
+    }
+    if(data.fichas_pesos == null){
+        $("input[name='monedaApertura'][value='1']").prop('disabled',true);
+    }else {
+      $("input[name='monedaApertura'][value='1']").prop('disabled',false);
+    }
+    if(data.fichas_pesos != null){
+        $("input[name='monedaApertura'][value='1']").prop('checked', true);
+      for (var i = 0; i < data.fichas_pesos.length; i++) {
 
-          var fila= $('#filaFichasClon').clone();
-          fila.removeAttr('id');
-          fila.attr('id', data.fichas_pesos[i].id_ficha);
-          fila.find('.fichaVal').val(data.fichas_pesos[i].valor_ficha).attr('id',data.fichas_pesos[i].id_ficha).css('text-align','right');
-          fila.find('.inputApe').attr('data-valor',data.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
-          fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
-          fila.css('display', 'block');
-          $('#tablaCargaApertura #bodyCApertura').append(fila);
-         }
-     }
-     else{
-       for (var i = 0; i < data.fichas_dolares.length; i++) {
-         $("input[name='monedaApertura'][value='2']").prop('checked', true);
-         var fila= $('#filaFichasClon').clone();
-         fila.removeAttr('id');
-         fila.attr('id', data.fichas_dolares[i].id_ficha);
-         fila.find('.fichaVal').val(data.fichas_dolares[i].valor_ficha).attr('id',data.fichas_dolares[i].id_ficha).css('text-align','right');
-         fila.find('.inputApe').attr('data-valor',data.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
-         fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
-         fila.css('display', 'block');
-         $('#tablaCargaApertura #bodyCApertura').append(fila);
-        }
-     }
-    })
-  }
+        var fila= $('#filaFichasClon').clone();
+        fila.removeAttr('id');
+        fila.attr('id', data.fichas_pesos[i].id_ficha);
+        fila.find('.fichaVal').val(data.fichas_pesos[i].valor_ficha).attr('id',data.fichas_pesos[i].id_ficha).css('text-align','right');
+        fila.find('.inputApe').attr('data-valor',data.fichas_pesos[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+        fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+        fila.css('display', 'block');
+        $('#tablaCargaApertura #bodyCApertura').append(fila);
+       }
+   }
+   else{
+     for (var i = 0; i < data.fichas_dolares.length; i++) {
+       $("input[name='monedaApertura'][value='2']").prop('checked', true);
+       var fila= $('#filaFichasClon').clone();
+       fila.removeAttr('id');
+       fila.attr('id', data.fichas_dolares[i].id_ficha);
+       fila.find('.fichaVal').val(data.fichas_dolares[i].valor_ficha).attr('id',data.fichas_dolares[i].id_ficha).css('text-align','right');
+       fila.find('.inputApe').attr('data-valor',data.fichas_dolares[i].valor_ficha).attr('data-ingresado', 0).css('text-align','right');
+       fila.find('.inputApe').addClass('fichas'+i+'cantidad_ficha').css('text-align','right');
+       fila.css('display', 'block');
+       $('#tablaCargaApertura #bodyCApertura').append(fila);
+      }
+   }
+  })
+}
 })
 
 $(document).on('change','input[name=monedaApertura]', function(){
@@ -615,7 +615,10 @@ $(document).on('change','input[name=monedaApertura]', function(){
 
       }
     }
+
 })
+
+
 
 //presiona el tachito dentro del listado de mesas, la borra de la lista
 $(document).on('click', '.btn_borrar_mesa', function(e){
@@ -923,6 +926,7 @@ $(document).on('click', '.cargarDatos', function(e){
 
 });
 
+
 $(document).on('change','input[name=moneda]', function(){
     $('#bodyFichasCierre tr').remove();
 
@@ -959,6 +963,8 @@ $(document).on('change','input[name=moneda]', function(){
 
       }
     }
+
+
 })
 
 
@@ -2017,6 +2023,7 @@ $(document).on('click','.comparar',function(){
 
           var t=$('#tablaValidar tbody > tr');
           $.each(t, function(index, value){
+              
             if($(this).attr('id') == data.detalles_cierre[i].id_ficha){
               $(this).find('.cant_cierre_validar').addClass('cierre').text(data.detalles_cierre[i].cantidad_ficha);
 
