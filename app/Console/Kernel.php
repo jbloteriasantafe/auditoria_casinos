@@ -4,9 +4,13 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\DB;
 
 use App\Console\Commands\CalcularDiferenciasIDM;
 use App\Console\Commands\SortearMesas;
+use App\Http\Controllers\Importaciones\Mesas\ImportadorController;
+use App\Http\Controllers\Aperturas\ABMCRelevamientosAperturaController;
+use App\Http\Controllers\Apuestas\GenerarPlanillasController;
 
 class Kernel extends ConsoleKernel
 {
@@ -61,7 +65,12 @@ class Kernel extends ConsoleKernel
                 case 'IDM:calcularDiff':
                   $impController->calcularDiffIDM();
                   break;
-              
+                  case 'RAM:sortear':
+                  $relevamientoController->sortearMesasCommand();
+                  break;
+                case 'RelevamientoApuestas:generar':
+                  $generarPlanillasController->generarRelevamientosApuestas();
+                  break;
                 default:
 
                   break;

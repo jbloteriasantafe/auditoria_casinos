@@ -13,7 +13,8 @@ class DetalleRelevamientoApuestas extends Model
   protected $visible = array('id_detalle_relevamiento_apuestas','id_tipo_mesa',
                               'nro_mesa','nombre_juego','posiciones',
                               'minimo','maximo','codigo_mesa','id_estado_mesa',
-                              'id_relevamiento_apuestas','id_mesa_de_panio'
+                              'id_relevamiento_apuestas','id_mesa_de_panio',
+                              'id_moneda','multimoneda','descripcion'
                             );
   public $timestamps = false;
 
@@ -24,6 +25,16 @@ class DetalleRelevamientoApuestas extends Model
                               'id_juego_mesa','id_relevamiento_apuestas','id_mesa_de_panio'];
 
 
+  protected $appends = array('descripcion');
+
+  public function getDescripcionAttribute(){
+    if(isset($this->moneda)){
+      return $this->moneda->descripcion;
+    }
+    else{
+      return null;
+    }
+  }
 
   public function relevamiento(){
     return $this->belongsTo('App\Mesas\RelevamientoApuestas','id_relevamiento_apuestas','id_relevamiento_apuestas');

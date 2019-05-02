@@ -157,52 +157,59 @@ class BCApuestasController extends Controller
     $relevamiento = DB::table('relevamiento_apuestas_mesas as RA')
                         ->select('DRA.nombre_juego','DRA.posiciones',
                         'DRA.id_detalle_relevamiento_apuestas',
-                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.id_estado_mesa')
+                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.id_estado_mesa',
+                        'DRA.id_moneda','DRA.multimoneda','moneda.descripcion')
                         ->join('detalle_relevamiento_apuestas as DRA',
                                'DRA.id_relevamiento_apuestas','=',
                                'RA.id_relevamiento_apuestas')
+                        ->leftJoin('moneda','DRA.id_moneda','=','moneda.id_moneda')
                         ->where('RA.id_relevamiento_apuestas','=',$id_relevamiento)
                         ->orderBy('DRA.nombre_juego','asc')
                         ->groupBy('DRA.nombre_juego',
                         'DRA.id_detalle_relevamiento_apuestas',
-                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.posiciones','DRA.id_estado_mesa'
+                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.posiciones',
+                        'DRA.id_estado_mesa','DRA.id_moneda','DRA.multimoneda',
+                        'moneda.descripcion'
                         )
                         ->orderBy('nro_mesa','asc')
                         ->get();
 
-    $mesasporjuego = array();
-    $mesas = array();
-    $nombre_juego_anterior = $relevamiento->first()->nombre_juego;
-    foreach ($relevamiento as $detalle) {
-      if($nombre_juego_anterior != $detalle->nombre_juego){
-          $mesasporjuego[] = [
-                                'juego' => $nombre_juego_anterior,
-                                'mesas' => $mesas,
-                              ];
-          $mesas = array();
+      $mesasporjuego = array();
+      $mesas = array();
+      $nombre_juego_anterior = $relevamiento->first()->nombre_juego;
+      foreach ($relevamiento as $detalle) {
+        if($nombre_juego_anterior != $detalle->nombre_juego){
+            $mesasporjuego[] = [
+                                  'juego' => $nombre_juego_anterior,
+                                  'mesas' => $mesas,
+                                ];
+            $mesas = array();
+        }
+        $mesas[] = [
+                      'codigo_mesa' => $detalle->codigo_mesa,
+                      'nro_mesa' => $detalle->nro_mesa,
+                      'posiciones' => $detalle->posiciones,
+                      'id_detalle' => $detalle->id_detalle_relevamiento_apuestas,
+                      'id_estado_mesa' => $detalle->id_estado_mesa,
+                      'id_moneda' => $detalle->id_moneda,
+                      'descripcion' => $detalle->descripcion,
+                      'multimoneda' => $detalle->multimoneda,
+                    ];
+
+
+        $nombre_juego_anterior = $detalle->nombre_juego;
       }
-      $mesas[] = [
-                    'codigo_mesa' => $detalle->codigo_mesa,
-                    'nro_mesa' => $detalle->nro_mesa,
-                    'posiciones' => $detalle->posiciones,
-                    'id_detalle' => $detalle->id_detalle_relevamiento_apuestas,
-                    'id_estado_mesa' => $detalle->id_estado_mesa,
-                  ];
-
-
-      $nombre_juego_anterior = $detalle->nombre_juego;
-    }
-    $mesasporjuego[] = [
-                          'juego' => $nombre_juego_anterior,
-                          'mesas' => $mesas,
-                        ];
-    $relevamieno = RelevamientoApuestas::find($id_relevamiento);
-    return ['mesasporjuego'=> $mesasporjuego,
-            'relevamiento' => $relevamieno,
-            'estados'=> $estados,
-            'fecha' => $relevamieno->fecha,
-            'turno' => $relevamieno->turno
-            ];
+      $mesasporjuego[] = [
+                            'juego' => $nombre_juego_anterior,
+                            'mesas' => $mesas,
+                          ];
+      $relevamieno = RelevamientoApuestas::find($id_relevamiento);
+      return ['mesasporjuego'=> $mesasporjuego,
+              'relevamiento' => $relevamieno,
+              'estados'=> $estados,
+              'fecha' => $relevamieno->fecha,
+              'turno' => $relevamieno->turno
+              ];
   }
 
   public function obtenerRelevamientoApuesta($id_relevamiento){

@@ -24,6 +24,8 @@ use Spatie\Permission\Models\Permission;
 use App\Http\Controllers\UsuarioController;
 use App\Mesas\JuegoMesa;
 use App\Mesas\ApuestaMinimaJuego;
+use App\Mesas\Moneda;
+
 use App\Http\Controllers\Mesas\Apuestas\ABMApuestasController;
 use App\Mesas\RelevamientoApuestas;
 use Dompdf\Dompdf;
@@ -139,6 +141,7 @@ class GenerarPlanillasController extends Controller
                 }
               }
               $dompdf = $this->generarPlanilla( $id_relevamiento,$turno, $fecha_backup, $casino);
+
               $output = $dompdf->output();
               $ruta = public_path()."/Mesas/RelevamientosApuestas/Valores_Minimos_Apuestas-fecha_".$fecha_backup.
                       '_Turno-Nro-'.$turno->nro_turno.'-Dias-'.$turno->nombre_dia_desde.'-a-'.$turno->nombre_dia_hasta.".pdf";
@@ -193,18 +196,20 @@ class GenerarPlanillasController extends Controller
       $rel = new \stdClass();
       //['paginas' => $pagina,'nro_paginas'=>$count_nro_pagina]
       $datos =$this->obtenerDatosRelevamiento($id_relevamiento);
+
       $rel->paginas = $datos['paginas'];
       $rel->nro_paginas = $datos['nro_paginas'];
       $rel->fecha = $relevamiento->created_at;
       $rel->fecha_backup = $fecha_backup;
       $rel->turno = $turno->nro_turno;
       $hora = explode(':',$relevamiento->hora_propuesta);
+
       $rel->hora_propuesta = $hora[0].':'.$hora[1];
 
       $rel->observaciones = '';
       $rel->fiscalizador = '';
       $rel->hora_ejecucion = '__:__';
-
+      //dd($datos['paginas'][1]);
       $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'landscape');
@@ -213,143 +218,154 @@ class GenerarPlanillasController extends Controller
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
       $dompdf->getCanvas()->page_text(20, 565, $casino->codigo."/".$rel->fecha."/T-".$turno->nro_turno, $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
       return $dompdf;
     }
 
-    public function obtenerDatosRelevamiento($id_relevamiento){
+    public function obtenerDatosRelevamiento($id_relevamiento)
+    {
+      $relevamiento = DB::table('relevamiento_apuestas_mesas as RA')
+                                    ->select('DRA.nombre_juego','DRA.posiciones',
+                                    'DRA.id_detalle_relevamiento_apuestas',
+                                    'DRA.codigo_mesa','DRA.nro_mesa','DRA.minimo',
+                                    'DRA.maximo','estado_mesa.siglas_mesa',
+                                    'DRA.id_moneda')
+                                    ->join('detalle_relevamiento_apuestas as DRA',
+                                           'DRA.id_relevamiento_apuestas','=',
+                                           'RA.id_relevamiento_apuestas')
+                                    ->leftJoin('estado_mesa','estado_mesa.id_estado_mesa','=','DRA.id_estado_mesa')
+                                    ->where('RA.id_relevamiento_apuestas','=',$id_relevamiento)
+                                    ->orderBy('DRA.nombre_juego','asc')
+                                    ->groupBy('DRA.nombre_juego',
+                                              'DRA.id_detalle_relevamiento_apuestas',
+                                              'DRA.codigo_mesa','DRA.nro_mesa',
+                                              'DRA.posiciones','DRA.minimo',
+                                              'DRA.maximo','estado_mesa.siglas_mesa',
+                                              'DRA.id_moneda'
+                                              )
+                                    ->orderBy('nro_mesa','asc')
+                                    ->get();
+                //dd($id_relevamiento);
+                $mesasporjuego = array();
+                $mesas = array();
+                $pagina = array();
+                $columna = array();
+                $izquierda = null;
+                $derecha = null;
+                $cantidadfilas = 18;
+                $aux = 0;
+                $aux2 = 0;
+                if(count($relevamiento)>0){
+                  $nombre_juego_anterior = $relevamiento->first()->nombre_juego;
+                  $count_nro_pagina = 1;
+                  foreach ($relevamiento as $detalle) {
+                    //chequeo si tengo  que crear otro conjunto
+                    if($nombre_juego_anterior != $detalle->nombre_juego || $aux == $cantidadfilas){
+                        $mesasporjuego[] = [
+                                              'juego' => $nombre_juego_anterior,
+                                              'mesas' => $mesas,
+                                              'filas' => count($mesas),
+                                            ];
+                        $mesas = array();
 
-          $relevamiento = DB::table('relevamiento_apuestas_mesas as RA')
-                              ->select('DRA.nombre_juego','DRA.posiciones',
-                              'DRA.id_detalle_relevamiento_apuestas',
-                              'DRA.codigo_mesa','DRA.nro_mesa','DRA.minimo',
-                              'DRA.maximo','estado_mesa.siglas_mesa')
-                              ->join('detalle_relevamiento_apuestas as DRA',
-                                     'DRA.id_relevamiento_apuestas','=',
-                                     'RA.id_relevamiento_apuestas')
-                              ->leftJoin('estado_mesa','estado_mesa.id_estado_mesa','=','DRA.id_estado_mesa')
-                              ->where('RA.id_relevamiento_apuestas','=',$id_relevamiento)
-                              ->orderBy('DRA.nombre_juego','asc')
-                              ->groupBy('DRA.nombre_juego',
-                                        'DRA.id_detalle_relevamiento_apuestas',
-                                        'DRA.codigo_mesa','DRA.nro_mesa',
-                                        'DRA.posiciones','DRA.minimo',
-                                        'DRA.maximo','estado_mesa.siglas_mesa'
-                                        )
-                              ->orderBy('nro_mesa','asc')
-                              ->get();
-          //dd($id_relevamiento);
-          $mesasporjuego = array();
-          $mesas = array();
-          $pagina = array();
-          $columna = array();
-          $izquierda = null;
-          $derecha = null;
-          $cantidadfilas = 18;
-          $aux = 0;
-          $aux2 = 0;
-          if(count($relevamiento)>0){
-            $nombre_juego_anterior = $relevamiento->first()->nombre_juego;
-            $count_nro_pagina = 1;
-            foreach ($relevamiento as $detalle) {
-              //chequeo si tengo  que crear otro conjunto
-              if($nombre_juego_anterior != $detalle->nombre_juego || $aux == $cantidadfilas){
+                    }
+
+                    //chequeo que la columna $izquierda este vacia y aux = $cantidadfilas
+
+                    if($izquierda == null && $aux == $cantidadfilas){
+                      $izquierda = $mesasporjuego;
+                      $mesasporjuego = array();
+                      $aux = 0;
+                    }
+                    if($izquierda != null && $derecha == null && $aux2 == (2 * $cantidadfilas)){
+                      $derecha = $mesasporjuego;
+                      $mesasporjuego = array();
+
+                      $pagina[] = [
+                                    'izquierda' => $izquierda,
+                                    'derecha' => $derecha,
+                                    'count_nro_pagina' => $count_nro_pagina,
+                                  ];
+                      $izquierda = null;
+                      $derecha = null;
+                      $count_nro_pagina++;
+                      $aux = 0;
+                      $aux2 = 0;
+                    }
+                    if($detalle->minimo == null){
+                      $minimo = '';
+                      $maximo = '';
+                      $estado = '';
+                    }else{
+                      $minimo = $detalle->minimo;
+                      $maximo = $detalle->maximo;
+                      $estado = $detalle->siglas_mesa;
+                    }
+
+                    if($detalle->id_moneda != null){
+                      $siglas = Moneda::find($detalle->id_moneda)->siglas;
+                    }
+                    else {
+                      $siglas = 'ARS__/USD__';
+                    }
+
+                    $mesas[] = [
+                                  'codigo_mesa' => $detalle->codigo_mesa,
+                                  'nro_mesa' => $detalle->nro_mesa,
+                                  'siglas' => $siglas,
+                                  'posiciones' => $detalle->posiciones,
+                                  'minimo' => $minimo,
+                                  'maximo' => $maximo,
+                                  'estado' => $estado
+                                ];
+
+                    $aux++;
+                    $aux2++;
+                    $nombre_juego_anterior = $detalle->nombre_juego;
+                  }
                   $mesasporjuego[] = [
                                         'juego' => $nombre_juego_anterior,
                                         'mesas' => $mesas,
                                         'filas' => count($mesas),
                                       ];
-                  $mesas = array();
-
-              }
-
-              //chequeo que la columna $izquierda este vacia y aux = $cantidadfilas
-
-              if($izquierda == null && $aux == $cantidadfilas){
-                $izquierda = $mesasporjuego;
-                $mesasporjuego = array();
-                $aux = 0;
-              }
-              if($izquierda != null && $derecha == null && $aux2 == (2 * $cantidadfilas)){
-                $derecha = $mesasporjuego;
-                $mesasporjuego = array();
-
-                $pagina[] = [
-                              'izquierda' => $izquierda,
-                              'derecha' => $derecha,
-                              'count_nro_pagina' => $count_nro_pagina,
-                            ];
-                $izquierda = null;
-                $derecha = null;
-                $count_nro_pagina++;
-                $aux = 0;
-                $aux2 = 0;
-              }
-              if($detalle->minimo == null){
-                $minimo = '';
-                $maximo = '';
-                $estado = '';
-              }else{
-                $minimo = $detalle->minimo;
-                $maximo = $detalle->maximo;
-                $estado = $detalle->siglas_mesa;
-              }
-
-              $mesas[] = [
-                            'codigo_mesa' => $detalle->codigo_mesa,
-                            'nro_mesa' => $detalle->nro_mesa,
-                            'posiciones' => $detalle->posiciones,
-                            'minimo' => $minimo,
-                            'maximo' => $maximo,
-                            'estado' => $estado
-                          ];
-
-              $aux++;
-              $aux2++;
-              $nombre_juego_anterior = $detalle->nombre_juego;
-            }
-            $mesasporjuego[] = [
-                                  'juego' => $nombre_juego_anterior,
-                                  'mesas' => $mesas,
-                                  'filas' => count($mesas),
+                  if($izquierda == null && $aux <= $cantidadfilas){
+                    $izquierda = $mesasporjuego;
+                    $mesasporjuego = array();
+                    $pagina[] = [
+                                  'izquierda' => $izquierda,
+                                  'derecha' => $derecha,
+                                  'count_nro_pagina' => $count_nro_pagina,
                                 ];
-            if($izquierda == null && $aux <= $cantidadfilas){
-              $izquierda = $mesasporjuego;
-              $mesasporjuego = array();
-              $pagina[] = [
-                            'izquierda' => $izquierda,
-                            'derecha' => $derecha,
-                            'count_nro_pagina' => $count_nro_pagina,
-                          ];
-            }
-            if($izquierda != null && $derecha == null && $aux2 > ($cantidadfilas)){
-              $derecha = $mesasporjuego;
-              $mesasporjuego = array();
+                  }
+                  if($izquierda != null && $derecha == null && $aux2 > ($cantidadfilas)){
+                    $derecha = $mesasporjuego;
+                    $mesasporjuego = array();
 
-              $pagina[] = [
-                            'izquierda' => $izquierda,
-                            'derecha' => $derecha,
-                            'count_nro_pagina' => $count_nro_pagina,
-                          ];
-              $izquierda = null;
-              $derecha = null;
-            }
-          }else{
-            $mesasporjuego[] = [
-                                  'juego' => '-',
-                                  'mesas' => array(),
-                                  'filas' => 0,
+                    $pagina[] = [
+                                  'izquierda' => $izquierda,
+                                  'derecha' => $derecha,
+                                  'count_nro_pagina' => $count_nro_pagina,
                                 ];
-            $pagina[] = [
-                          'izquierda' => $mesasporjuego,
-                          'derecha' => null,
-                          'count_nro_pagina' => 1,
-                        ];
-            $count_nro_pagina = 1;
-          }
+                    $izquierda = null;
+                    $derecha = null;
+                  }
+                }else{
+                  $mesasporjuego[] = [
+                                        'juego' => '-',
+                                        'mesas' => array(),
+                                        'filas' => 0,
+                                      ];
+                  $pagina[] = [
+                                'izquierda' => $mesasporjuego,
+                                'derecha' => null,
+                                'count_nro_pagina' => 1,
+                              ];
+                  $count_nro_pagina = 1;
+                }
 
 
 
-          return ['paginas' => $pagina,'nro_paginas'=>$count_nro_pagina];
+                return ['paginas' => $pagina,'nro_paginas'=>$count_nro_pagina];
     }
 
 

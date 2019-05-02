@@ -88,7 +88,7 @@ footer
               </thead>
               <tbody>
                 <tr style="border-bottom:1px solid #ccc; font-size:15px;">
-                  
+
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Cierres cargados: {{$rel->informe->cant_cierres}}</i></td>
@@ -142,7 +142,7 @@ footer
             <br>
             <br>
       @if($rel->informe->mesas_con_diferencia != 'null' && $rel->informe->mesas_con_diferencia != '{}')
-        <h5 style="font-family:Roboto-Regular !important; font-size:15px;text-align:center !important">TABLA DE DIFERENCIAS CIERRES Y APERTURAS</h5>
+        <h5 style="font-family:Roboto-Regular !important; font-size:15px;text-align:center !important">DIFERENCIAS CIERRES Y APERTURAS</h5>
 
         <table style="border-collapse: collapse;">
           <thead>

@@ -1,13 +1,16 @@
 $(document).ready(function() {
-  $('#barraApuestas').attr('aria-expanded','true');
 
-  $('.tituloSeccionPantalla').text('Relevamientos de Valores Mínimos de Apuestas');
-  $('#barraApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#barraApuestas').addClass('opcionesSeleccionado');
+    $('#barraMesas').attr('aria-expanded','true');
+    $('#mesasPanio').removeClass();
+    $('#mesasPanio').addClass('subMenu1 collapse in');
+    $('.tituloSeccionPantalla').text('Relevamientos de Valores Mínimos de Apuestas');
+    $('#opcApuestas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+    $('#opcApuestas').addClass('opcionesSeleccionado');
 
-  $('#filtroTurno').val('0');
-  $('#B_fecha_filtro').val('');
-  $('#filtroCasino').val('0');
+    $('#filtroTurno').val('0');
+    $('#B_fecha_filtro').val('');
+    $('#filtroCasino').val('0');
+
 
     $(function(){
       $('#dtpFecha').datetimepicker({
@@ -20,8 +23,6 @@ $(document).ready(function() {
             startView: 4,
             minView: 2
           });
-          $( "#dtpFecha" ).datetimepicker( "option", "dateFormat",'yyyy-mm-dd');
-
     });
     $(function(){
       $('#dtpFechaCarga').datetimepicker({
@@ -62,16 +63,79 @@ $(document).ready(function() {
             container:$('#modalCargaBackUp')
           });
     });
-
     $('#modalCarga #agregarFisca').click(clickAgregarFisca);
     $('#modalCargaBackUp #agregarFiscaBUp').click(clickAgregarFisca);
 
     $('#modalModificar #agregarFiscaMod').click(clickAgregarFiscaMod);
 
-
     $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
 
 });
+
+$(document).on('change','#selectCasinoMin', function(data){
+
+    var id=$(this).val();
+    var id_moneda = $('#selectMonedaMin').val();
+
+    $.get('apuestas/obtenerRequerimientos/' + id+'/'+id_moneda, function(data){
+        cargarDatosMin(data);
+        if(data.dolares==null){
+          $('#btn-guardar-minimo').attr('data-dolares','false');
+        }
+        else{
+          $('#btn-guardar-minimo').attr('data-dolares','true');
+        }
+    })
+})
+
+function cargarDatosMin(data){
+  //var casino=(data.rta.casino.nombre).toUpperCase();
+  if(data.errores == 'null'){
+
+    $('#erroresRequerimientos').hide();
+    $('#selectCasinoMin').val(data.rta.casino.id_casino);
+    $('#selectMonedaMin').val(data.rta.moneda.id_moneda);
+
+    $('#apuestaNueva').val(data.rta.apuesta);
+    $('#cantidadNueva').val(data.rta.cant_mesas);
+
+    if(data.rta.id_juego == 0){
+      $('#selectJuegoNuevo').append($('<option>').val(0).text('Todos los Juegos').append($('</option>')));
+    }
+    console.log('4444',data.juegos);
+    for (var i = 0; i < data.juegos.length; i++) {
+      if(data.rta.id_juego != 0 && data.rta.id_juego != data.juegos[i].id_juego_mesa){
+        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
+      }
+      if(data.rta.id_juego != 0 && data.rta.id_juego == data.juegos[i].id_juego_mesa){
+        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).prop('selected',true).text(data.juegos[i].nombre_juego).append($('</option>')));
+      }
+      if(data.rta.id_juego == 0){
+        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
+      }
+    }
+    $('#valoresApMinima').show();
+  }else{
+      $('#valoresApMinima').hide();
+      $('#erroresRequerimientos').show();
+  }
+}
+
+$(document).on('change','#selectMonedaMin', function(data){
+
+    var id=$(this).val();
+    var id_casino = $('#selectCasinoMin').val();
+    console.log('cami  ',id);
+    $.get('apuestas/obtenerRequerimientos/' + id_casino +'/'+id, function(data){
+        cargarDatosMin(data);
+        if(data.dolares==null){
+          $('#btn-guardar-minimo').attr('data-dolares','false');
+        }
+        else{
+          $('#btn-guardar-minimo').attr('data-dolares','true');
+        }
+    })
+})
 
 //btn BUSCAR APUESTAS, con paginación
 $('#btn-buscar-apuestas').click(function(e,pagina,page_size,columna,orden){
@@ -93,10 +157,8 @@ $('#btn-buscar-apuestas').click(function(e,pagina,page_size,columna,orden){
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
     var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosApuestas .activa').attr('value'),orden: $('#tablaResultadosApuestas .activa').attr('estado')} ;
 
-    if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-      var sort_by =  {columna: 'fecha',orden: 'desc'} ;
-
-      //$('#tablaInicial th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaResultadosApuestas th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
     }
 
         var formData= {
@@ -142,13 +204,13 @@ $('#btn-buscar-apuestas').click(function(e,pagina,page_size,columna,orden){
 
 $('#btn-backUp').on('click',function(e){
 
-   e.preventDefault();
+  e.preventDefault();
 
   $('#B_fecha_bup').val('').prop('readonly',false);
   $('#B_fecha_bupEj').val('').prop('readonly',false);
   $('#turnoRelevadoBUp').val('').prop('readonly',false);
   $('#turnoRelevadoBUp').generarDataList("turnos/buscarTurnos" ,'turnos','id_turno','nro_turno' ,1,true);
-  $('#turnoRelevadoBUp').setearElementoSeleccionado(0,'');
+  $('#turnoRelevadoBUp').setearElementoSeleccionado('',0);
 
   $('.desplegarCarga').hide();
   $('#mensajeErrorBuscarBUp').hide();
@@ -156,10 +218,10 @@ $('#btn-backUp').on('click',function(e){
 
   $('#btn-guardar-backUp').hide();
 
+
   $('#modalCargaBackUp').modal('show');
 
 })
-
 
 $('#buscarBackUp').on('click', function(e){
 
@@ -202,7 +264,6 @@ $('#buscarBackUp').on('click', function(e){
           $('#mensajeErrorCargaBUp').hide();
 
           $('.desplegarCarga').show();
-          $('#mensajeErrorBuscarBUp').hide();
           $('#btn-guardar-backUp').show();
 
         var id_relevamiento=data.relevamiento.id_relevamiento_apuestas;
@@ -218,6 +279,7 @@ $('#buscarBackUp').on('click', function(e){
 
              var fila= generarFilaCargaBUp(data.mesasporjuego[i].mesas[j],aux_nro_fila,data.estados);
 
+             fila.find('.juego_up').text(data.mesasporjuego[i].juego);
 
              $('#tablaCargaBUp tbody').append(fila);
              aux_nro_fila++;
@@ -257,42 +319,25 @@ $('#btn-guardar-backUp').on('click',function(e){
 
   var f= $('#tablaCargaBUp tbody > tr');
 
-  var fiscalizadores=[];
-  var fis= $('#fiscalizadoresPartBUp tbody > tr');
-
-  $.each(fis, function(index, value){
-    if($(this) != 'undefined'){
-        fiscalizadores.push($(this).attr('id'));
-    }
-  })
   //recorro tabla para enviar datos de relevamiento
   $.each(f, function(index, value){
 
     if($(this) != 'undefined'){
-      var min =$(this).find('.min_up').val();
-      var max = $(this).find('.max_up').val();
-      if($(this).find('.moneda_up').find('#monedacargaBUp').length > 0){
-        var mon=$(this).find('input[name=monedaApuestaBUp]:checked').val()
-      }
-      else{
-        var mon= $(this).attr('data-moneda');
-      }
       var d={
         id_detalle: $(this).attr('id'),
-        minimo: min,
-        maximo:max,
+        minimo: $(this).find('.min_up').val(),
+        maximo:$(this).find('.max_up').val(),
         id_estado_mesa:$(this).find('.estado_up').val(),
-        id_moneda: mon
       }
-
         detalles.push(d);
     }
       })
 
+
       var formData= {
         hora:$('#hora_ejec_BUp').val(),
         detalles:detalles,
-        fiscalizadores:fiscalizadores,
+        id_fiscalizador:$('#fiscalizadorBUp').obtenerElementoSeleccionado(),
         observaciones:$('#obsBUp').val(),
       }
 
@@ -309,30 +354,13 @@ $('#btn-guardar-backUp').on('click',function(e){
           dataType: 'json',
 
           success: function (data){
-            ocultarErrorValidacion($('#hora_ejec_BUp'));
-            ocultarErrorValidacion($('#fiscalizadorBUp'));
-            //data ==0 => se ha guardado correctamente pero no hay mesas abiertas
-            //data ==1 => se ha guardado correctamente
 
-            if(data==0){
-              deshabilitarBup();
-
-              $('#btn-guardar-backUp').hide();
-              $('#btn-salir-bup').show();
-              $('#alertaMesasCerradasBUP').show();
-              $('#modalCargaBackUp').animate({scrollTop:$('#alertaMesasCerradasBUP').offset().top},"slow");
-
-            }
-            else{
-              $('#modalCargaBackUp').modal('hide');
-              $('#mensajeExito h3').text('ÉXITO');
-              $('#mensajeExito p').text('Relevamiento GUARDADO. ');
-              $('#mensajeExito').show();
-              $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
-            }
-
+            $('#modalCargaBackUp').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('Relevamiento GUARDADO. ');
+            $('#mensajeExito').show();
+            $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
           },
-
           error: function (reject) {
                 if( reject.status === 422 ) {
                     var errors = $.parseJSON(reject.responseText);
@@ -342,20 +370,14 @@ $('#btn-guardar-backUp').on('click',function(e){
                         $('#mensajeErrorCargaBUp').show();
                       }
                       if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_BUp'),'Campo Obligatorio',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$('#hora_ejec_BUp').offset().top},"slow");
-
+                        mostrarErrorValidacion( $('#hora_ejec_BUp'),val[0],false);
                       }
-                      if(key != 'hora' && key != 'detalles' && key!= 'fiscalizadores'){
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores' ){
                           var splitt = key.split('.');
-                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),'Campo Obligatorio',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$("#" + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-
+                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
                       }
-                      if(key == 'fiscalizadores'){
-                        mostrarErrorValidacion( $('#fiscalizadorBUp'),'Debe cargar al menos uno.',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$('#fiscalizadorBUp').offset().top},"slow");
-
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCargaBUp').show();
                       }
 
                     });
@@ -365,78 +387,59 @@ $('#btn-guardar-backUp').on('click',function(e){
 
 });
 
-function deshabilitarBup(){
-  $('#hora_ejec_BUp').prop('disabled',true);
-  $('#fiscalizadorBUp').prop('disabled',true);
-  $('#obsBUp').prop('disabled',true);
-  $('#modalCargaBackUp #btn_borrar_fisca').prop('disabled',true);
-
-  var d= $('#tablaCargaBUp tbody > tr');
-
-  $.each(d, function(index, value){
-    $(this).find('.estado_up').prop('disabled',true);
-    $(this).find('.min_up').prop('disabled',true);
-    $(this).find('.max_up').prop('disabled',true);
-  });
-}
 
 //btn generar planillas
 $('#btn-generar').on('click', function(e){
 
   e.preventDefault();
 
-  $.get('apuestas/consultarMinimo',function(data){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
-    if(data.apuestas.length == 0){
-      $('#modalPreGenerar').modal('show');
-    }
-    else{
 
-      $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-      var formData = {
-      }
+  var formData = {
 
-      $.ajax({
-          type: "POST",
-          url: 'apuestas/generarRelevamientoApuestas',
-          data: formData,
-          dataType: 'json',
+  }
 
-           beforeSend: function(data){
-             $('#modalRelevamiento').find('.modal-body').html('<div class="loading"><img src="/img/ajax-loader(1).gif" alt="loading" /><br>Un momento, por favor...</div>').css('text-align','center');
-             $('#modalRelevamiento').modal('show');
+  $.ajax({
+      type: "POST",
+      url: 'apuestas/generarRelevamientoApuestas',
+      data: formData,
+      dataType: 'json',
 
-          },
-          success: function (data) {
+       beforeSend: function(data){
+         $('#modalRelevamiento').modal('show');
+         $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
 
-              // $('#btn-buscar').click();
-               $('#modalRelevamiento').modal('hide');
+      },
+      success: function (data) {
 
-              var iframe;
-              iframe = document.getElementById("download-container");
-              if (iframe === null){
-                  iframe = document.createElement('iframe');
-                  iframe.id = "download-container";
-                  iframe.style.visibility = 'hidden';
-                  document.body.appendChild(iframe);
-              }
+          // $('#btn-buscar').click();
+           $('#modalRelevamiento').modal('hide');
 
-              iframe.src = data.url_zip;
-
-          },
-          error: function (data) {
-            var ap = $.parseJSON(data.responseText);
-
-            $('#modalRelevamiento').modal('hide');
-
-            $('#modalErrorRelevamientoA').modal('show');
-
+          var iframe;
+          iframe = document.getElementById("download-container");
+          if (iframe === null){
+              iframe = document.createElement('iframe');
+              iframe.id = "download-container";
+              iframe.style.visibility = 'hidden';
+              document.body.appendChild(iframe);
           }
-      });
 
-    }
-  })
+          iframe.src = data.url_zip;
+
+      },
+      error: function (data) {
+        $('#modalRelevamiento').modal('hide');
+
+        $('#modalErrorRelevamientoA').modal('show');
+
+      }
+  });
+
+
+
 })
+
 
 $(document).on('click', '.cargarApuesta', function(e){
 
@@ -444,26 +447,14 @@ $(document).on('click', '.cargarApuesta', function(e){
 
     var id_relevamiento=$(this).val();
     limpiarCarga();
-    habilitar();
-
 
   $.get('apuestas/obtenerDatos/' + id_relevamiento, function(data){
+
       var id_casino=data.relevamiento.id_casino;
 
       $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
-
-      if(data.relevamiento.hora_propuesta != null){
-         var d = data.relevamiento.hora_propuesta.split(':')
-         var hh,mm;
-          if(d.length === 3) {
-           hs = d[0];  mm = d[1];
-          }
-        }
-        else{hs = '-'; mm = '-';
-             }
-      $('#hora_prop_carga').val(hs + ':' + mm).prop('readonly',true);
-
+      $('#hora_prop_carga').val(data.relevamiento.hora_propuesta).prop('readonly',true);
       $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
 
       var aux_nro_fila = 0;
@@ -473,15 +464,16 @@ $(document).on('click', '.cargarApuesta', function(e){
 
            var fila= generarFilaCarga(data.mesasporjuego[i].mesas[j],aux_nro_fila,data.estados);
 
+           fila.find('.juego_carga').text(data.mesasporjuego[i].juego);
+
            $('#tablaCarga tbody').append(fila);
            aux_nro_fila++;
          }
          $('#tablaCarga').css('display','');
-       }
- })
- $('#btn-salir').hide();
- $('#alertaMesasCerradas').hide();
 
+       }
+
+ })
   $('#modalCarga').modal('show');
 
 })
@@ -493,10 +485,13 @@ $('#btn-guardar').on('click',function(e){
 
   var detalles=[];
   var fiscalizadores=[];
+
   var d= $('#fiscalizadoresPart tbody > tr');
 
   $.each(d, function(index, value){
+
     if($(this) != 'undefined'){
+
         fiscalizadores.push($(this).attr('id'));
     }
       })
@@ -507,18 +502,11 @@ $('#btn-guardar').on('click',function(e){
   $.each(f, function(index, value){
 
     if($(this) != 'undefined'){
-      if($(this).find('.moneda_carga').find('#monedacarga').length > 0){
-        var mon=$(this).find('input[name=monedaApuesta]:checked').val()
-      }
-      else{
-        var mon= $(this).attr('data-moneda');
-      }
       var d={
         id_detalle: $(this).attr('id'),
         minimo: $(this).find('.min_carga').val(),
-        maximo: $(this).find('.max_carga').val(),
+        maximo:$(this).find('.max_carga').val(),
         id_estado_mesa:$(this).find('.estado_carga').val(),
-        id_moneda: mon
       }
         detalles.push(d);
     }
@@ -544,77 +532,37 @@ $('#btn-guardar').on('click',function(e){
           dataType: 'json',
 
           success: function (data){
-            ocultarErrorValidacion($('#hora_ejec_carga'));
-            ocultarErrorValidacion($('#fiscalizadorCarga'));
-            $('#mensajeErrorCargaApMesas').hide();
-            $('#mensajeErrorCarga').hide();
 
-
-            //data ==0 => se ha guardado correctamente pero no hay mesas abiertas
-            //data ==1 => se ha guardado correctamente
-
-            if(data==0){
-              $('#btn-guardar').hide();
-              $('#btn_borrar_fisca').prop('disabled',true);
-              $('#btn-salir').show();
-              $('#alertaMesasCerradas').show();
-              $('#modalAlta').animate({scrollTop:$('#alertaMesasCerradas').offset().top},"slow");
-              var d= $('#tablaCarga tbody > tr');
-
-              $.each(d, function(index, value){
-                $(this).find('.estado_carga').prop('disabled',true);
-                $(this).find('.min_carga').prop('disabled',true);
-                $(this).find('.max_carga').prop('disabled',true);
-              });
-
-              deshabilitar();
-            }
-            else{
-              $('#modalCarga').modal('hide');
-              $('#mensajeExito h3').text('ÉXITO');
-              $('#mensajeExito p').text('Relevamiento GUARDADO. ');
-              $('#mensajeExito').show();
-              $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
-            }
-
+            $('#modalCarga').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('Relevamiento GUARDADO. ');
+            $('#mensajeExito').show();
+            $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
                     var errors = $.parseJSON(reject.responseText);
+                    console.log('ee',errors);
                     $.each(errors, function (key, val) {
                       if(key == 'detalles'){
                         $('#mensajeErrorCarga').show();
                       }
                       if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_carga'),'Campo Obligatorio',false);
-                        $('#modalCarga').animate({scrollTop:$('#hora_ejec_carga').offset().top},"slow");
-
+                        mostrarErrorValidacion( $('#hora_ejec_carga'),val[0],false);
                       }
-                      if(key != 'hora' && key != 'fiscalizadores' && key != 'detalles'){
+                      if(key != 'hora' && key != 'detalles' && key != 'fiscalizadores'){
                           var splitt = key.split('.');
                         mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                        $('#modalCarga #tablaCarga').animate({scrollTop:$("#" + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-                        $('#mensajeErrorCargaApMesas').show();
                       }
-                      if( key=='fiscalizadores' ){
-                        mostrarErrorValidacion($('#fiscalizadorCarga'), 'Campo Obligatorio', false);
-                        $('#modalCarga').animate({scrollTop:$('#fiscalizadorCarga').offset().top},"slow");
-
-                      }
+                      if(key == 'fiscalizadores' ){
+                        $('#mensajeErrorCarga').show();
+                                        }
                     });
                 }
             }
       })
 
 })
-
-$('#btn-salir').on('click',function(){
-  $('#modalCarga').modal('hide');
-  $('#mensajeExito h3').text('ÉXITO');
-  $('#mensajeExito p').text('Relevamiento GUARDADO. ');
-  $('#mensajeExito').show();
-  $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
-});
 
 //modificar relevamiento cargado
 $(document).on('click', '.modificarApuesta', function(e){
@@ -630,7 +578,7 @@ $(document).on('click', '.modificarApuesta', function(e){
        var id_casino=data.relevamiento_apuestas.id_casino;
 
        $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
-
+       console.log('dataaaa',data);
        for (var i = 0; i < data.fiscalizadores.length; i++) {
          var fila= generarTablaFisca(data.fiscalizadores[i]);
          $('#fiscalizadoresPartModif tbody').append(fila);
@@ -666,11 +614,6 @@ $(document).on('click', '.modificarApuesta', function(e){
 
           aux_nro_fila++;
         }
-      for (var i = 0; i < data.detalles.length; i++) {
-        if(data.detalles[i].detalle.multimoneda == 1){
-          $('#tablaModificar').find('#' + data.detalles[i].detalle.id_detalle_relevamiento_apuestas).find("input[name='monedaApuestaMod'][value='"+data.detalles[i].detalle.id_moneda+"']").prop('checked',true);
-        }
-      }
   })
    $('#modalModificar').modal('show');
 
@@ -688,6 +631,7 @@ $('#btn-guardar-modif').on('click',function(e){
   $.each(d, function(index, value){
 
     if($(this) != 'undefined'){
+
         fiscalizadores.push($(this).attr('id'));
     }
       })
@@ -697,21 +641,16 @@ $('#btn-guardar-modif').on('click',function(e){
   $.each(f, function(index, value){
 
     if($(this) != 'undefined'){
-      if($(this).find('.moneda_mod').find('#monedamodificar').length > 0){
-        var mon=$(this).find('input[name=monedaApuestaMod]:checked').val()
-      }
-      else{
-        var mon= $(this).attr('data-moneda');
-      }
       var d={
         id_detalle: $(this).attr('id'),
         minimo: $(this).find('.min_mod').val(),
         maximo:$(this).find('.max_mod').val(),
         id_estado_mesa:$(this).find('.estado_mod').val(),
-        id_moneda: mon
       }
-        detalles.push(d);}
+        detalles.push(d);
+    }
       })
+
 
       var formData= {
         hora:$('#hora_ejec_mod').val(),
@@ -750,19 +689,13 @@ $('#btn-guardar-modif').on('click',function(e){
                       }
                       if(key == 'hora'){
                         mostrarErrorValidacion( $('#hora_ejec_mod'),val[0],false);
-                        $('#modalModificar').animate({scrollTop:$('#hora_ejec_mod').offset().top},"slow");
-
                       }
-                       if(key != 'hora' && key != 'detalles'){
-                           var splitt = key.split('.');
-                         mostrarErrorValidacion( $('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                         $('#modalModificar').animate({scrollTop:$('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-
-                       }
-                      if(key == 'fiscalizadores'){
-                        mostrarErrorValidacion( $('#fiscalizadorMod'),val[0],false);
-                        $('#modalModificar').animate({scrollTop:$('#fiscalizadorMod').offset().top},"slow");
-
+                      if(key != 'hora' && key != 'detalles'){
+                          var splitt = key.split('.');
+                        mostrarErrorValidacion( $('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
+                      }
+                      if(typeof errors.id_fiscalizador != 'undefined'){
+                        $('#mensajeErrorModificar').show();
                       }
                     });
                 }
@@ -771,37 +704,31 @@ $('#btn-guardar-modif').on('click',function(e){
 
 })
 
+
 //ELIMINNAR UN RELEVAMIENTO, SÓLO SI NO FUE VALIDADO
 $(document).on('click','.eliminarApuesta',function(e){
 
    var id=$(this).val();
-  $('#btn-eliminar-apuesta').val(id);
 
-  $('#modalAlertaEliminar').modal('show');
+
+ $.get('apuestas/baja/' + id, function(data){
+
+   $('#tablaResultadosApuestas tbody').find('#' + id).remove();
+
+       $('#mensajeExito h3').text('ÉXITO');
+       $('#mensajeExito p').text(' ');
+       $('#mensajeExito').show();
+     })
 
 });
-
-$('#btn-eliminar-apuesta').on('click', function(){
-  e.preventDefault();
-
-  var id=$(this).val();
-  $('#modalAlertaEliminar').modal('hide');
-
-  $.get('apuestas/baja/' + id, function(data){
-
-    $('#tablaResultadosApuestas tbody').find('#' + id).remove();
-
-        $('#mensajeExito h3').text('ÉXITO');
-        $('#mensajeExito p').text(' ');
-        $('#mensajeExito').show();
-      })
-})
 
 //validación
 $(document).on('click', '.validarApuesta', function(e){
 
   e.preventDefault();
+
   limpiarValidar();
+
   var id_relevamiento=$(this).val();
 
    $.get('apuestas/relevamientoCargado/' + id_relevamiento, function(data){
@@ -815,14 +742,21 @@ $(document).on('click', '.validarApuesta', function(e){
         $('#fiscalizadoresPartVal tbody').append(fila);
        }
 
-       $('#B_fecha_val').text(data.relevamiento_apuestas.fecha).prop('readonly',true);
-       $('#turnoRelevadoVal').text(data.turno.id_turno).prop('readonly', true);
+       $('#B_fecha_val').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
+       $('#turnoRelevadoVal').val(data.turno.id_turno).prop('readonly', true);
        $('#obsFiscalizador').val(data.relevamiento_apuestas.observaciones);
-       $('#obsFiscalizador').prop('disabled',true);
+       $('#obsFiscalizador').prop('readonly',true);
+       if (data.cumplio_minimo == 'true') {
+         $('.cumpleMin').text('CUMPLIÓ MÍNIMO REQUERIDO: ' + 'SI' );
+       }
+       if (data.cumplio_minimo == 'false') {
+         $('.cumpleMin').text('CUMPLIÓ MÍNIMO REQUERIDO: ' + 'NO' );
+       }
 
        if(data.relevamiento_apuestas.hora_ejecucion != null){
          var p = data.relevamiento_apuestas.hora_ejecucion.split(':')
          var d = data.relevamiento_apuestas.hora_propuesta.split(':')
+
          var hs, mm, hh,ii;
 
          if(p.length === 3) {
@@ -830,8 +764,8 @@ $(document).on('click', '.validarApuesta', function(e){
            mm = p[1];
          }
          if(d.length === 3) {
-           hh = d[0];
-           ii = d[1];
+           hh = p[0];
+           ii = p[1];
          }
        }else{
          hs = '-';
@@ -840,28 +774,33 @@ $(document).on('click', '.validarApuesta', function(e){
          ii = '-';
        }
 
-       $('#hora_ejec_val').text(hs + ':' + mm);
-       $('#hora_prop_val').text(hh + ':' + ii).prop('readonly',true);
+       $('#hora_ejec_val').val(hs + ':' + mm);
+       $('#hora_prop_val').val(hh + ':' + ii).prop('readonly',true);
 
         for (var i = 0; i < data.detalles.length; i++) {
+
             var fila= generarFilaValidar(data.detalles[i].detalle,data.estados);
+
             $('#tablaValidar tbody').append(fila);
+
         }
         for (var i = 0; i < data.abiertas_por_juego.length; i++) {
+
           var fila2= generarFilaValidar2(data.abiertas_por_juego[i]);
           $('#mesasPorJuego').append(fila2);
+
         }
 
         if(data.cumplio_minimo != 0){
-          $('#cumplio_min').append($('<tr>').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('padding-top','10px').css('margin-left','30px'))));
+            $('#cumplio_min').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('padding-top','10px').css('margin-left','30px')));
         }
         if(data.cumplio_minimo == 0){
-          $('#cumplio_min').append($('<tr>').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('padding-top','10px').css('margin-left','30px'))));
+          $('#cumplio_min').append($('<td>').append($('<i>').addClass('col-xs-3').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('padding-top','10px').css('margin-left','30px')));
         }
   })
-
   $('#modalValidar').modal('show');
 });
+
 
 //validar dentro del modal
 $('#btn-validar').on('click', function(e){
@@ -896,9 +835,11 @@ $('#btn-validar').on('click', function(e){
 
             }
       })
+
 })
 
 $('#btn-minimo').on('click',function(e){
+
   e.preventDefault();
 
       $('#modalPreGenerar').modal('hide');
@@ -909,42 +850,19 @@ $('#btn-minimo').on('click',function(e){
             cargarDatosMin(data);
       })
       $('#modalMinimo').modal('show');
-
-
 })
 
-$(document).on('change','#selectCasinoMin', function(data){
-    limpiarModificarMin();
-    var id=$(this).val();
-    var id_moneda = $('#selectMonedaMin').val();
+function limpiarModificarMin(){
 
-    $.get('apuestas/obtenerRequerimientos/' + id + '/' + id_moneda, function(data){
-        cargarDatosMin(data);
-        if(data.dolares==null){
-          $('#btn-guardar-minimo').attr('data-dolares','false');
-        }
-        else{
-          $('#btn-guardar-minimo').attr('data-dolares','true');
-        }
-    })
-})
+  $('#selectJuegoNuevo option').remove();
+  $('#cantidadNueva').val('');
+  $('#apuestaNueva').val('');
 
-$(document).on('change','#selectMonedaMin', function(data){
+  ocultarErrorValidacion($('#juegoNuevo'));
+  ocultarErrorValidacion($('#apuestaNueva'));
+  ocultarErrorValidacion($('#cantidadNueva'));
 
-    limpiarModificarMin();
-    var id=$(this).val();
-    var id_casino = $('#selectCasinoMin').val();
-
-    $.get('apuestas/obtenerRequerimientos/' + id_casino +'/'+id, function(data){
-        cargarDatosMin(data);
-        if(data.dolares==null){
-          $('#btn-guardar-minimo').attr('data-dolares','false');
-        }
-        else{
-          $('#btn-guardar-minimo').attr('data-dolares','true');
-        }
-    })
-})
+}
 
 $('#btn-guardar-minimo').on('click',function(e){
 
@@ -985,19 +903,19 @@ $('#btn-guardar-minimo').on('click',function(e){
         $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
       },
       error: function(data){
-        var errors = $.parseJSON(data.responseText);
+        var errors = $.parseJSON(data.responseText).errors;
 
         $.each(errors, function (key, val) {
+
           if( key == 'modificaciones.0.id_juego' ){
-              mostrarErrorValidacion($('#selectJuegoNuevo'),val[0],true);
+              mostrarErrorValidacion($('#selectJuegoNuevo'),'Campo Obligatorio',true);
             }
           if( key == 'modificaciones.0.apuesta' ){
-              mostrarErrorValidacion($('#apuestaNueva'),val[0],true);
+              mostrarErrorValidacion($('#apuestaNueva'),'Campo Obligatorio',true);
             }
           if( key =='modificaciones.0.cantidad' ){
-              mostrarErrorValidacion($('#cantidadNueva'),val[0],true);
+              mostrarErrorValidacion($('#cantidadNueva'),'Campo Obligatorio',true);
             }
-
         });
       }
     });
@@ -1017,6 +935,7 @@ $(document).on('click','.btn_borrar_fisca',function(){
   var tipo= $(this).attr('data-tipo');
   var id=$(this).attr('id');
 
+
   if(tipo=='modificar'){
     $('#fiscalizadoresPartModif tbody').find('#' + id).remove();
 
@@ -1024,126 +943,105 @@ $(document).on('click','.btn_borrar_fisca',function(){
   if(tipo=='cargar'){
     $('#fiscalizadoresPart tbody').find('#' + id).remove();
   }
+  if(tipo=='cargarBUp'){
+    $('#fiscalizadoresPartBUp tbody').find('#' + id).remove();
+
+  }
 })
 
+/*****************PAGINACION******************/
+$(document).on('click','#tablaResultadosApuestas thead tr th[value]',function(e){
 
-function cargarDatosMin(data){
-  //var casino=(data.rta.casino.nombre).toUpperCase();
-  if(data.errores == 'null'){
+  $('#tablaResultadosApuestas th').removeClass('activa');
 
-    $('#erroresRequerimientos').hide();
-    $('#selectCasinoMin').val(data.rta.casino.id_casino);
-    $('#selectMonedaMin').val(data.rta.moneda.id_moneda);
+  if($(e.currentTarget).children('i').hasClass('fa-sort')){
 
-    $('#apuestaNueva').val(data.rta.apuesta);
-    $('#cantidadNueva').val(data.rta.cant_mesas);
-
-    if(data.rta.id_juego == 0){//aun no se cargo el minimo
-      $('#selectJuegoNuevo').append($('<option>').val(0).text('Todos los Juegos').append($('</option>')));
-    }
-
-    for (var i = 0; i < data.juegos.length; i++) {
-      if(data.rta.id_juego != 0 && data.rta.id_juego != data.juegos[i].id_juego_mesa){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
-      if(data.rta.id_juego != 0 && data.rta.id_juego == data.juegos[i].id_juego_mesa){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).prop('selected',true).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
-      if(data.rta.id_juego == 0){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
-    }
-    $('#valoresApMinima').show();
-  }else{
-      $('#valoresApMinima').hide();
-      $('#erroresRequerimientos').show();
+    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
-}
+  else{
 
-function deshabilitar(){
-  var d= $('#tablaCarga tbody > tr');
+    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
+      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
+    }
+    else{
+        $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
+    }
+  }
+  $('#tablaResultadosApuestas th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
+  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+});
 
-  $.each(d, function(index, value){
-    $(this).find('.estado_carga').prop('disabled',true);
-    $(this).find('.min_carga').prop('disabled',true);
-    $(this).find('.max_carga').prop('disabled',true);
-  });
+function clickIndice(e,pageNumber,tam){
 
+  if(e != null){
+    e.preventDefault();
+  }
 
-  $('#hora_ejec_carga').prop('disabled',true);
-  $('#fiscalizadorCarga').prop('disabled',true);
-  $('#obsCarga').prop('disabled',true);
-}
-
-function habilitar(){
-  var f= $('#tablaCarga tbody > tr');
-
-  //recorro tabla para deshabilitar datos de relevamiento
-  $.each(f, function(index, value){
-    $(this).prop('disabled',false);
-  });
-
-  $('#hora_ejec_carga').prop('disabled',false);
-  $('#fiscalizadorCarga').prop('disabled',false);
-  $('#obsCarga').prop('disabled',false);
+  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  var columna = $('#tablaResultadosApuestas .activa').attr('value');
+  var orden = $('#tablaResultadosApuestas .activa').attr('estado');
+  $('#btn-buscar-apuestas').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
 function generarFila(data){
 
-  var fila=$('#moldeApuesta').clone();
+  var fila = $(document.createElement('tr'));
 
-  fila.removeAttr('id');
   fila.attr('id',data.id_relevamiento_apuestas)
-  fila.find('.L_fecha').text(data.fecha).css('text-align','center');
-  fila.find('.L_turno').text(data.nro_turno).css('text-align','center');
-  fila.find('.L_casino').text(data.nombre).css('text-align','center');
+      .append($('<td>').addClass('.L_fecha').addClass('col-xs-2').text(data.fecha).css('text-align','center'))
+      .append($('<td>').addClass('.L_turno').addClass('col-xs-2').text(data.nro_turno).css('text-align','center'))
+      .append($('<td>').addClass('.L_casino').addClass('col-xs-3').text(data.nombre).css('text-align','center'))
+      if(data.id_estado_relevamiento ==4){
+        fila.append($('<td>').append($('<i>').addClass('col-xs-2').addClass('fa fa-fw fa-check').css('color', '#4CAF50').css('padding-top','10px').css('margin-left','30px')));
+      }
+      else{
+        fila.append($('<td>').append($('<i>').addClass('col-xs-2').addClass('fas fa-fw fa-times').css('color', '#D32F2F').css('padding-top','10px').css('margin-left','30px')));
+      }
+      fila.append($('<td>').css('text-align','center').addClass('col-xs-3').append($('<button>').addClass('btn btn-successAceptar cargarApuesta').val(data.id_relevamiento_apuestas)
+                          .append($('<i>').addClass('fas fa-fw fa-upload').append($('</i>')
+                          .append($('</button>')))))
+                          .append($('<button>').addClass('btn btn-info imprimirApuesta').val(data.id_relevamiento_apuestas)
+                          .append($('<i>').addClass('fa fa-fw fa-print').append($('</i>')
+                          .append($('</button>')))))
+                          .append($('<button>').addClass('btn btn-warning modificarApuesta').val(data.id_relevamiento_apuestas)
+                          .append($('<i>').addClass('fas fa-fw fa-pencil-alt').append($('</i>')
+                          .append($('</button>')))))
+                          .append($('<button>').addClass('btn btn-success validarApuesta').val(data.id_relevamiento_apuestas)
+                          .append($('<i>').addClass('fa fa-fw fa-check').append($('</i>')
+                          .append($('</button>')))))
+                          .append($('<button>').addClass('btn btn-success eliminarApuesta').val(data.id_relevamiento_apuestas)
+                                  .append($('<i>').addClass('fa fa-fw fa-trash').append($('</i>')
+                                                                                        .append($('</button>'))
+                                                                                        )
+                                          )
+                                        )
+                    )
 
-    if(data.id_estado_relevamiento ==4){
-      fila.find('.L_estado').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50'));
-    }
-    else{
-      fila.find('.L_estado').append($('<i>').addClass('fas fa-fw fa-times').css('color', '#D32F2F'));
-    }
-    fila.find('.L_estado').css('cssText', 'text-align:center !important');
+        if(data.id_estado_relevamiento == 4){
+          fila.find('.cargarApuesta').hide();
+          fila.find('.imprimirApuesta').show();
+          fila.find('.eliminarApuesta').hide();
+          fila.find('.modificarApuesta').hide();
+          fila.find('.validarApuesta').hide();
 
-  fila.find('.cargarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.imprimirApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.eliminarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.modificarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.validarApuesta').val(data.id_relevamiento_apuestas);
+        }
+        else{
+          if(data.id_estado_relevamiento == 1){
+            fila.find('.cargarApuesta').show();
+            fila.find('.eliminarApuesta').show();
+            fila.find('.imprimirApuesta').hide();
+            fila.find('.modificarApuesta').hide();
+            fila.find('.validarApuesta').hide();
+            }
+            if(data.id_estado_relevamiento == 3){
+              fila.find('.cargarApuesta').hide();
+              fila.find('.eliminarApuesta').show();
+              fila.find('.imprimirApuesta').hide();
+              fila.find('.modificarApuesta').show();
+              fila.find('.validarApuesta').show();
+            }
+          }
 
-  switch (data.id_estado_relevamiento) {
-    case 4:
-      fila.find('.cargarApuesta').hide();
-      fila.find('.imprimirApuesta').show();
-      fila.find('.eliminarApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
-      break;
-    case 1:
-      fila.find('.cargarApuesta').show();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
-      break;
-    case 3:
-      fila.find('.cargarApuesta').hide();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
-      fila.find('.modificarApuesta').show();
-      fila.find('.validarApuesta').show();
-      break;
-    default:
-      fila.find('.cargarApuesta').show();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
-  }
-
-  fila.css('display','');
-  $('#verFilaAp').css('display','block');
 
   return fila;
 }
@@ -1154,19 +1052,10 @@ function generarFilaCarga(data,nro_row,e){
       fila.removeAttr('id');
       fila.attr('id',data.id_detalle);
 
-      fila.find('.mesa_carga').text(data.codigo_mesa);
+      fila.find('.nro_mesa').text(data.nro_mesa);
       fila.find('.pos_carga').text(data.posiciones);
       fila.find('.min_carga').attr('id','detalles'+nro_row+'minimo');
       fila.find('.max_carga').attr('id','detalles'+nro_row+'maximo');
-
-      if(data.multimoneda == 1){
-        fila.find('.moneda_carga').find('#monedacarga').prop('disabled',false);
-      }else{
-        fila.attr('data-moneda',data.id_moneda);
-          fila.find('#monedacarga').remove();
-          fila.find('.moneda_carga').text(data.descripcion)
-        }
-
 
       for (var i = 0; i < e.length; i++) {
         if(e[i].id_estado_mesa==2){
@@ -1189,26 +1078,26 @@ function generarFilaCarga(data,nro_row,e){
 
 function generarFilaValidar(data,e){
 
-  // var fila = $(document.createElement('tr'));
-  var fila = $('#moldeValidar').clone();
-  fila.removeAttr('id');
+    var fila = $('#moldeValidar').clone();
+    fila.removeAttr('id');
 
-   var id=data.id_estado_mesa -1;
+     var id=data.id_estado_mesa -1;
 
-   fila.find('.mesa_val').text(data.codigo_mesa).css('font-size', '14px');
-   fila.find('.pos_val').text(data.posiciones);
-   for (var i = 0; i < e.length; i++) {
-        fila.find('.estado_val').append($('<option>').val(e[i].id_estado_mesa).text(e[i].descripcion_mesa));
-   }
+     fila.find('.juego_val').text(data.nombre_juego);
+     fila.find('.nro_mesa_val').text(data.nro_mesa);
+     fila.find('.pos_val').text(data.posiciones);
+     for (var i = 0; i < e.length; i++) {
+          fila.find('.estado_val').append($('<option>').val(e[i].id_estado_mesa).text(e[i].descripcion_mesa));
+     }
 
-   fila.find('.estado_val').val(e[id].id_estado_mesa).prop('selected',true).prop('disabled',true);
-   fila.find('.min_val').val(data.minimo).css('text-align','center').prop('disabled',true);
-   fila.find('.max_val').val(data.maximo).css('text-align','center').prop('disabled',true);
-  fila.find('.moneda_val').text(data.descripcion);
+     fila.find('.estado_val').val(e[id].id_estado_mesa).prop('selected',true).prop('disabled',true);
+     fila.find('.min_val').val(data.minimo).css('text-align','center').prop('disabled',true);
+     fila.find('.max_val').val(data.maximo).css('text-align','center').prop('disabled',true);
 
-      fila.css('display','block');
-      $('#dd').css('display','block');
-      return fila;
+     fila.css('display','block');
+     $('#dd').css('display','block');
+     return fila;
+
 }
 
 function generarFilaCargaBUp(data,nro_row,e){
@@ -1218,7 +1107,7 @@ function generarFilaCargaBUp(data,nro_row,e){
     fila.removeAttr('id');
     fila.attr('id',data.id_detalle);
 
-    fila.find('.mesa_up').text(data.codigo_mesa).css('font-size', '14px');
+    fila.find('.nro_mesa_up').text(data.nro_mesa).css('font-size', '14px');
     fila.find('.pos_up').text(data.posiciones).css('font-size', '14px');
     fila.find('.min_up').attr('id','detalles'+nro_row+'minimo');
     fila.find('.max_up').attr('id','detalles'+nro_row+'maximo');
@@ -1228,19 +1117,16 @@ function generarFilaCargaBUp(data,nro_row,e){
       if(e[i].id_estado_mesa == 2){
         fila.find('.estado_up').append($('<option>').val(e[i].id_estado_mesa).text(e[i].siglas_mesa).append($('</option>')).prop('selected',true));
         fila.find('.estado_up').attr('id','detalles'+nro_row+'id_estado_mesa');
+
       }
       else{
-        fila.find('.estado_up').append($('<option>').val(e[i].id_estado_mesa).text(e[i].siglas_mesa).append($('</option>')));
-        fila.find('.estado_up').attr('id','detalles'+nro_row+'id_estado_mesa');
-      }
+
+      fila.find('.estado_up').append($('<option>').val(e[i].id_estado_mesa).text(e[i].siglas_mesa).append($('</option>')));
+      fila.find('.estado_up').attr('id','detalles'+nro_row+'id_estado_mesa');
     }
-    if(data.multimoneda == 1){
-      fila.find('.moneda_up').find('#monedacargaBUp').prop('disabled',false);
-    }else{
-      fila.attr('data-moneda',data.id_moneda);
-        fila.find('#monedacargaBUp').remove();
-        fila.find('.moneda_up').text(data.descripcion)
-      }
+    }
+
+  //  fila.find('.juego_up').text(data.nombre_juego).css('font-size', '14px');
 
     fila.css('display','block');
     $('#pp').css('display','block');
@@ -1254,24 +1140,17 @@ function generarFilaModificar(data,nro_row,e){
   fila.removeAttr('id');
   fila.attr('id',data.id_detalle_relevamiento_apuestas);
 
-  fila.find('.mesa_mod').text(data.codigo_mesa ).css('font-size', '14px');
+  fila.find('.nro_mesa_mod').text(data.nro_mesa).css('font-size', '14px');
   fila.find('.pos_mod').text(data.posiciones).css('font-size', '14px');
   fila.find('.min_mod').attr('id','detalles'+nro_row+'minimo');
   fila.find('.max_mod').attr('id','detalles'+nro_row+'maximo');
-
-  if(data.multimoneda == 1){
-    fila.find('.moneda_mod').find('#monedamodificar').prop('disabled',false);
-  }else{
-    fila.attr('data-moneda',data.id_moneda);
-      fila.find('#monedamodificar').remove();
-      fila.find('.moneda_mod').text(data.descripcion)
-    }
 
   for (var i = 0; i < e.length; i++) {
 
     fila.find('.estado_mod').append($('<option>').val(e[i].id_estado_mesa).text(e[i].siglas_mesa).append($('</option>')));
     fila.find('.estado_mod').attr('id','detalles'+nro_row+'id_estado_mesa');
   }
+  fila.find('.juego_mod').text(data.nombre_juego).css('font-size', '14px');
   fila.find('.min_mod').val(data.minimo).css('font-size', '14px');
   fila.find('.max_mod').val(data.maximo);
   fila.find('.estado_mod').val(data.id_estado_mesa ).prop('selected',true);
@@ -1285,8 +1164,8 @@ function generarFilaModificar(data,nro_row,e){
 function generarFilaValidar2(data){
   var fila = $(document.createElement('tr'));
 
-    fila.append($('<td>').addClass('col-xs-5').text(data.nombre_juego).css('text-align','center'))
-        .append($('<td>').addClass('col-xs-4').text(data.cantidad_abiertas).css('text-align','center'))
+    fila.append($('<td>').addClass('col-xs-6').text(data.nombre_juego))
+        .append($('<td>').addClass('col-xs-6').text(data.cantidad_abiertas));
 
   return fila;
 }
@@ -1294,7 +1173,6 @@ function generarFilaValidar2(data){
 function limpiarCarga(){
   $('#tablaCarga tbody tr').remove();
   $('#mensajeErrorCarga').hide();
-  $('#mensajeErrorCargaApMesas').hide();
   ocultarErrorValidacion($('#hora_ejec_carga'));
   ocultarErrorValidacion($('#fiscalizadorCarga'));
   $('#hora_ejec_carga').val('');
@@ -1303,6 +1181,8 @@ function limpiarCarga(){
   $('#fiscalizadorCarga').setearElementoSeleccionado(0,'');
   $('#obsCarga').val('');
   $('#fiscalizadoresPart tbody tr').remove();
+
+
 }
 
 function limpiarModificar(){
@@ -1315,6 +1195,7 @@ function limpiarModificar(){
   $('#obsModificacion').val('');
   $('#fiscalizadoresPartModif tbody tr').remove();
 
+
 }
 
 function limpiarValidar(){
@@ -1324,22 +1205,24 @@ function limpiarValidar(){
   $('#obsValidacion').val('');
   $('#obsFiscalizador').val('');
   $('#fiscalizadoresPartVal tbody tr').remove();
+  $('#cumplio_min tbody tr').remove();
   $('#mesasPorJuego tbody tr').remove();
-  $('#cumplio_min tbody > tr').remove();
 
 }
 
 function limpiarCargaBUp(){
+
   $('#tablaCargaBUp tbody tr').remove();
   $('#mensajeErrorCargaBUp').hide();
   ocultarErrorValidacion($('#hora_ejec_BUp'));
+  ocultarErrorValidacion($('#fiscalizadorBUp'));
   $('#hora_ejec_BUp').val('');
   $('#hora_prop_BUp').val('');
   $('#fiscalizadorBUp').setearElementoSeleccionado(0,'');
   $('#obsBUp').val('');
   $('#fiscalizadoresPartBUp tbody tr').remove();
-}
 
+}
 
 //dentro del modal de cargar relevamiento, para agregar la mesa al listado
 function clickAgregarFisca(e) {
@@ -1358,7 +1241,7 @@ function clickAgregarFisca(e) {
                .addClass('col-xs-2')
                .append($('<span>').text(' '))
                .append($('<button>')
-               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar').prop('disabled',false)
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
                .append($('<i>')
                .addClass('fas').addClass('fa-fw').addClass('fa-trash')
                  )))
@@ -1381,7 +1264,7 @@ function clickAgregarFisca(e) {
                .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
                .append($('<span>').text(' '))
                .append($('<button>')
-               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargar')
+               .addClass('btn_borrar_fisca').attr('id',data.usuario.id_usuario).attr('data-tipo','cargarBUp')
                .append($('<i>')
                .addClass('fas').addClass('fa-fw').addClass('fa-trash')
                  )))
@@ -1391,7 +1274,6 @@ function clickAgregarFisca(e) {
       });
   }
 }
-
 function clickAgregarFiscaMod(e) {
   var id = $('#fiscalizadorMod').obtenerElementoSeleccionado();
 
@@ -1413,7 +1295,10 @@ function clickAgregarFiscaMod(e) {
 
          $('#fiscalizadoresPartModif tbody').append(fila);
       $('#fiscalizadorMod').setearElementoSeleccionado(0 , "");
+
+
     });
+
 }
 
 //genera la fila dentro de la tabla participantes en el modificar
@@ -1432,6 +1317,7 @@ function generarTablaFisca(data){
           )))
 
     return fila;
+
 }
 
 function generarValidarFisca(data){
@@ -1440,43 +1326,8 @@ function generarValidarFisca(data){
         .append($('<td>').css('margin-top','0px').css('margin-bottom','0px')
         .text(data.nombre)
       )
+
+
     return fila;
-}
 
-function limpiarModificarMin(){
-  $('#selectJuegoNuevo option').remove();
-  $('#cantidadNueva').val('');
-  $('#apuestaNueva').val('');
-  ocultarErrorValidacion($('#juegoNuevo'));
-  ocultarErrorValidacion($('#apuestaNueva'));
-  ocultarErrorValidacion($('#cantidadNueva'));
-}
-
-/*****************PAGINACION******************/
-$(document).on('click','#tablaResultadosApuestas thead tr th[value]',function(e){
-
-  $('#tablaResultadosApuestas th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
-      $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-        $(e.currentTarget).children('i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultadosApuestas th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-function clickIndice(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultadosApuestas .activa').attr('value');
-  var orden = $('#tablaResultadosApuestas .activa').attr('estado');
-  $('#btn-buscar-apuestas').trigger('click',[pageNumber,tam,columna,orden]);
 }

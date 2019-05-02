@@ -23,6 +23,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\RelevamientoApuestas;
 use App\Mesas\DetalleRelevamientoApuestas;
+use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
 
 use DateTime;
 use Dompdf\Dompdf;
@@ -71,6 +72,11 @@ class BVApuestasController extends Controller
     $relevamiento->observaciones_validacion = $request['observaciones'];
     $relevamiento->controlador()->associate($user->id);
     $relevamiento->save();
+
+    $informeController = new GenerarInformesFiscalizadorController;
+    $informeController->agregarRelacionValoresApuestas($relevamiento);
+
+
 
     return response()->json(['exito' => 'Relevamiento validado!'], 200);
   }

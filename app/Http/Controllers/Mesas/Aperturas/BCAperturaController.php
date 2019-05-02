@@ -153,16 +153,17 @@ class BCAperturaController extends Controller
                                        'ficha.valor_ficha')
                             ->orderBy('ficha.valor_ficha','desc')
                             ->get();
-
+      $mesa = Mesa::withTrashed()->find($apertura->id_mesa_de_panio);
+      $juego = JuegoMesa::withTrashed()->find($mesa->id_juego_mesa);
       return response()->json(['apertura' => $apertura,
                               'cierre' => $cierre,
                               'detalles' => $detalles,
                               'estado' => $apertura->estado,
                               'fiscalizador' => $apertura->fiscalizador,
                               'cargador' => $apertura->cargador,
-                              'mesa' => $apertura->mesa,
-                              'tipo_mesa' => $apertura->tipo_mesa,
-                              'juego' => $apertura->mesa->juego,
+                              'mesa' => $mesa,
+                              'tipo_mesa' => $juego->tipo_mesa,
+                              'juego' => $juego,
                               'casino' => $apertura->casino,
                               'moneda' => $moneda,
                             ], 200);
@@ -179,12 +180,20 @@ class BCAperturaController extends Controller
       $apertura = Apertura::find($id_apertura);
       $cierre = Cierre::find($id_cierre);
 
+      $first = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+                      ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
+                      ->where('id_moneda','=',$id_moneda)
+                      ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
+                      ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
+                      ->orderBy('valor_ficha','desc');
+
       $fichas = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
                       ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
                       ->where('id_moneda','=',$id_moneda)
                       ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
                       ->orderBy('valor_ficha','desc')
-                      ->withTrashed()
+                      ->union($first)
+                      ->orderBy('valor_ficha','desc')
                       ->get();
 
       return ['fichas' => $fichas,

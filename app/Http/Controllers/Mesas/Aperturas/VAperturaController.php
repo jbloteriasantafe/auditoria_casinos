@@ -56,7 +56,7 @@ class VAperturaController extends Controller
   public function validarApertura(Request $request){
     $validator=  Validator::make($request->all(),[
       'id_cierre' => 'required|exists:cierre_mesa,id_cierre_mesa',
-      'observacion' => 'nullable',
+      'observaciones' => 'nullable',
       'diferencia' => 'required|boolean',
     ], array(), self::$atributos)->after(function($validator){  })->validate();
     if(isset($validator)){
@@ -71,7 +71,7 @@ class VAperturaController extends Controller
     }else{
       $apertura->estado_cierre()->associate(3);//VISADO
     }
-    $apertura->observacion= $request['observacion'];
+    $apertura->observacion= $request['observaciones'];
     $apertura->save();
     $cacontroller = new ABMCCierreAperturaController;
     $cacontroller->asociarAperturaACierre($apertura, $request['id_cierre']);

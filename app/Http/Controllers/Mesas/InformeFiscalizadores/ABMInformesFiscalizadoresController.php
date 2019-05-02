@@ -59,9 +59,9 @@ class ABMInformesFiscalizadoresController extends Controller
       $informe->cantidad_abiertas_con_minimo = 0;
       $informe->cant_mesas_abiertas = 0;
       $informe->aperturas_sorteadas = 0;
-      $informe->mesas_con_diferencia = '{}';
-      $informe->mesas_importadas_abiertas = '{}';
-      $informe->mesas_relevadas_abiertas = '{}';
+      $informe->mesas_con_diferencia = 'null';
+      $informe->mesas_importadas_abiertas = 'null';
+      $informe->mesas_relevadas_abiertas = 'null';
       //$informe->apuesta_minima()->associate($minima->id_apuesta_minima_juego);
       $informe->casino()->associate($casino->id_casino);
       $informe->save();

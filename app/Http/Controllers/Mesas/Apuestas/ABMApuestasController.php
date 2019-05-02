@@ -81,6 +81,8 @@ class ABMApuestasController extends Controller
       $detalle->nombre_juego = $mesa->juego->nombre_juego;
       $detalle->posiciones = $mesa->juego->posiciones;
       $detalle->estado()->associate(2);//cerrada
+      $detalle->id_moneda = $mesa->id_moneda;
+      $detalle->multimoneda = $mesa->multimoneda;
       $detalle->relevamiento()->associate($relevamiento->id_relevamiento_apuestas);
       $detalle->save();
     }
@@ -238,22 +240,36 @@ class ABMApuestasController extends Controller
       'detalles.*.minimo' => 'nullable|integer|min:0',
       'detalles.*.maximo' => 'nullable|integer|min:0',
       'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
+      'detalles.*.id_moneda' => 'nullable|exists:moneda,id_moneda',
     ], array(), self::$atributos)->after(function($validator){
       $i = 0;
+      $hubo_abiertas = 0;
       foreach ($validator->getData()['detalles'] as $fila) {
-        if($fila['id_estado_mesa'] == 1 &&
-          ((empty($fila['minimo']) || empty($fila['maximo'])) ||
-           ($fila['minimo']==0 || $fila['maximo']==0))
-          ){
-            $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
-            $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
+        if($fila['id_estado_mesa'] == 1){//si esta abierta
+          $hubo_abiertas++;
+          //si cargo los datos, los valido
+          if(empty($fila['minimo']) || empty($fila['maximo'])){
+              $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
+              $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
+            }else{
+              if($fila['minimo'] > $fila['maximo']){
+                $validator->errors()->add('detalles.'.$i.'.minimo', 'Es mayor que el máximo');
+              }
+              if($fila['maximo'] < $fila['minimo']){
+                $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
+              }
+              if(($fila['minimo']==0 )){
+                $validator->errors()->add('detalles.'.$i.'.minimo', 'No puede ser 0');
+              }
+              if($fila['maximo']==0){
+                $validator->errors()->add('detalles.'.$i.'.maximo', 'No puede ser 0');
+              }
+              if(empty($fila['id_moneda'])){
+                $validator->errors()->add('detalles.'.$i.'.id_moneda', 'Seleccione una');
+              }
+            }
           }
-          if($fila['minimo'] > $fila['maximo']){
-            $validator->errors()->add('detalles.'.$i.'.minimo', 'Es mayor que el máximo');
-          }
-          if($fila['maximo'] < $fila['minimo']){
-            $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
-          }
+
           $i++;
       }
     })->validate();
@@ -271,6 +287,7 @@ class ABMApuestasController extends Controller
         $detalle->minimo = $det['minimo'];
         $detalle->maximo = $det['maximo'];
         $detalle->estado()->associate($det['id_estado_mesa']);
+        $detalle->id_moneda = $det['id_moneda'];
         $detalle->save();
       }
       $relevamiento = $detalle->relevamiento;
