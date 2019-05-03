@@ -222,7 +222,7 @@ class GenerarInformesFiscalizadorController extends Controller
                                         ->get();
 
           $total = count($detalles_relevamiento);
-
+          
           $minap = MinApInforme::where('id_informe_fiscalizadores','=',$informe->id_informe_fiscalizadores)
                                 ->where('id_apuesta_minima_juego','=',$minimo->id_apuesta_minima_juego)
                                 ->get()->first();
