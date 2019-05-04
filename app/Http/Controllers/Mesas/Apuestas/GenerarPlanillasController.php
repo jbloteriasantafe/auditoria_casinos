@@ -90,6 +90,8 @@ class GenerarPlanillasController extends Controller
     // $numeroDia2 = $dia_carbon2->format('w');
     // dd($numeroDia,$numeroDia2,$dia_carbon2, $dia_carbon2->format('e'));
     //dd(public_path().'/Mesas/RelevamientosAperturas');
+    $permissions = intval( config('permissions.directory'), 8 );
+
     if(file_exists( public_path().'/Mesas/RelevamientosApuestas')){
       File::deleteDirectory(public_path().'/Mesas/RelevamientosApuestas');
       File::makeDirectory(public_path().'/Mesas/RelevamientosApuestas');

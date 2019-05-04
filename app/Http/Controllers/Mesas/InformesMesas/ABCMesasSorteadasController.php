@@ -45,47 +45,48 @@ class ABCMesasSorteadasController extends Controller
 
   //se usa en SorteoMesasController
   public function almacenarSorteadas($ruletasDados,$cartas,$id_casino,$fecha_backup){
-    $sorteadas = new MesasSorteadas;
-    $sorteadas->mesas = ['ruletasDados' => $ruletasDados->toArray(),
-                          'cartas' => $cartas->toArray(),
-                        ];
-    $sorteadas->casino()->associate($id_casino);
-    $sorteadas->fecha_backup = $fecha_backup;
-    $sorteadas->save();
+  $sorteadas = new MesasSorteadas;
+  $sorteadas->mesas = ['ruletas' => $ruletasDados->toArray(),
+                        'cartasDados' => $cartas->toArray(),
+                      ];
+  $sorteadas->casino()->associate($id_casino);
+  $sorteadas->fecha_backup = $fecha_backup;
+  $sorteadas->save();
+}
+
+
+/*
+* Verifica si hay mesas sorteadas para la fecha en el casino
+* Si, existen -> se elimina
+* se usa en ABMCRelevamientosAperturaController
+*/
+public function chequearSorteadas($fecha,$id_casino){
+  $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
+                                            ['id_casino','=',$id_casino]])
+                                      ->get();
+  foreach ($mesas_sorteadas as $m) {
+    $m->delete();
   }
 
+}
 
-  /*
-  * Verifica si hay mesas sorteadas para la fecha en el casino
-  * Si, existen -> se elimina
-  * deprecated-
-  */
-  public function chequearSorteadas($fecha,$id_casino){
-    $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
-                                              ['id_casino','=',$id_casino]])
-                                        ->get();
-    foreach ($mesas_sorteadas as $m) {
-      $m->delete();
-    }
+
+public function obtenerSorteo($id_casino,$fecha){
+
+  $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
+                                            ['id_casino','=',$id_casino]])
+                                      ->firstOrFail();
+  return $mesas_sorteadas;
+}
+
+public function eliminarSiguientes(){
+  try{
+    DB::table('mesas_sorteadas')
+              ->where('fecha_backup','>',Carbon::now()->format("Y-m-d"))
+              ->delete();
+  }catch(Exception $e){
+    throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
   }
 
-
-  public function obtenerSorteo($id_casino,$fecha){
-
-    $mesas_sorteadas = MesasSorteadas::where([['fecha_backup','=',$fecha],
-                                              ['id_casino','=',$id_casino]])
-                                        ->firstOrFail();
-    return $mesas_sorteadas;
-  }
-
-  public function eliminarSiguientes(){
-    try{
-      DB::table('mesas_sorteadas')
-                ->where('fecha_backup','>=',Carbon::now()->format("Y-m-d"))
-                ->delete();
-    }catch(Exception $e){
-      throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
-    }
-
-  }
+}
 }
