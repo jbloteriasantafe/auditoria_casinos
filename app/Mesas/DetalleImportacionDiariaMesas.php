@@ -28,13 +28,14 @@ class DetalleImportacionDiariaMesas extends Model
                              'utilidad_calculada',
                              'id_cierre_mesa',
                              'id_ultimo_cierre',
-                             'saldo_fichas',
+                             'saldo_fichas', //NO PUEDE SER NULL -> 0 POR DEFECTO
                              'cotizacion',
-                             'conversion'
+                             'conversion',
+                             'codigo_mesa'
                            );
 
                            //win es utilidad y drop es el total que tuvo la mesas
-  protected $appends = array('hold','conversion');
+  protected $appends = array('hold','conversion','codigo_mesa');
 
   public function getHoldAttribute(){
       if($this->droop != 0){
@@ -52,6 +53,11 @@ class DetalleImportacionDiariaMesas extends Model
         return '--';
       }
 
+  }
+
+  public function getCodigoMesaAttribute()
+  {
+    return $this->mesa->codigo_mesa;
   }
 
   public function moneda(){

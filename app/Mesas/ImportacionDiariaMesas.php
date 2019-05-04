@@ -11,6 +11,7 @@ class ImportacionDiariaMesas extends Model
   protected $primaryKey = 'id_importacion_diaria_mesas';
   protected $visible = array('id_importacion_diaria_mesas',
                              'fecha',
+                             'nombre_csv',
                              'id_casino',
                              'id_moneda',
                              'total_diario',
@@ -64,4 +65,12 @@ class ImportacionDiariaMesas extends Model
   public function getId(){
     return $this->id_importacion_diaria_mesas;
   }
+
+  public function detallesConDiferencias(){
+    return $this->detalles()->where('diferencia_cierre','<>',0)
+    ->get()
+    ->sortBy('codigo_mesa')
+    ->values();
+  }
+
 }

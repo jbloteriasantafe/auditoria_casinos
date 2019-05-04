@@ -59,11 +59,13 @@ class MensualController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['auth','permission:Alta y Consulta de Importaciones']);//rol a definir por gusti-> en ppio AUDITOR
+    $this->middleware(['tiene_permiso:m_importar']);//rol a definir por gusti-> en ppio AUDITOR
   }
 
   public function buscarTodo(){
-    $casinos = Auth::user()->casinos;
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+
+    $casinos = $usuario->casinos;
     $monedas = Moneda::all();
 
     return view('Importaciones.importacionMensual',  [
@@ -338,7 +340,7 @@ class MensualController extends Controller
    }
 
    if($request->casino==0 || empty($request->casino)){
-     $usuario = Auth::user();
+     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
      $casinos = array();
      foreach($usuario->casinos as $casino){
        $casinos[]=$casino->id_casino;

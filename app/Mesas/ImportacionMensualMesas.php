@@ -11,9 +11,10 @@ class ImportacionMensualMesas extends Model
   protected $primaryKey = 'id_importacion_mensual_mesas';
   protected $visible = array('id_importacion_mensual_mesas',
                              'fecha_mes',
+                             'nombre_csv',
                              'id_casino',
                              'id_moneda',
-                             'total_mensual',
+                             'total_drop_mensual',
                              'cotizacion_dolar',
                              'cotizacion_euro',
                              'diferencias',
@@ -27,9 +28,10 @@ class ImportacionMensualMesas extends Model
                              'total_utilidad_mensual',
                              'conversion_total',
                              'descripcion',
-                             'nombre'
+                             'nombre',
+                             'hold'
                            );
- protected $appends = array('mes','conversion_total','descripcion', 'nombre');
+ protected $appends = array('mes','conversion_total','descripcion', 'nombre','hold');
 
  public function getMesAttribute(){
 
@@ -40,6 +42,14 @@ class ImportacionMensualMesas extends Model
        $dateObj   = DateTime::createFromFormat('!m', $monthNum);
        $monthName = strftime('%B', $dateObj->getTimestamp());
        return strtoupper($monthName).' - '.$explode[0];
+     }else{
+       return '--';
+     }
+
+  }
+  public function getHoldAttribute(){
+     if($this->total_drop_mensual != 0){
+       return round(($this->total_utilidad_mensual * 100)/$this->total_drop_mensual,2);
      }else{
        return '--';
      }

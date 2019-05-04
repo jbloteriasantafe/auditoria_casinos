@@ -18,13 +18,6 @@ class DetalleRelevamientoApuestas extends Model
                             );
   public $timestamps = false;
 
-
-  protected $fillable = ['id_detalle_relevamiento_apuestas','id_tipo_mesa',
-                              'nro_mesa','nombre_juego', 'id_estado_mesa',
-                              'posiciones','minimo','maximo','codigo_mesa',
-                              'id_juego_mesa','id_relevamiento_apuestas','id_mesa_de_panio'];
-
-
   protected $appends = array('descripcion');
 
   public function getDescripcionAttribute(){
@@ -35,6 +28,14 @@ class DetalleRelevamientoApuestas extends Model
       return null;
     }
   }
+
+
+  protected $fillable = ['id_detalle_relevamiento_apuestas','id_tipo_mesa',
+                              'nro_mesa','nombre_juego', 'id_estado_mesa',
+                              'posiciones','minimo','maximo','codigo_mesa',
+                              'id_juego_mesa','id_relevamiento_apuestas','id_mesa_de_panio'];
+
+
 
   public function relevamiento(){
     return $this->belongsTo('App\Mesas\RelevamientoApuestas','id_relevamiento_apuestas','id_relevamiento_apuestas');
@@ -54,6 +55,10 @@ class DetalleRelevamientoApuestas extends Model
 
   public function juego(){
     return $this->belongsTo('App\Mesas\JuegoMesa','id_juego_mesa','id_juego_mesa');
+  }
+
+  public function moneda(){
+    return $this->belongsto('App\Mesas\Moneda','id_moneda','id_moneda');
   }
 
   public function getTableName(){

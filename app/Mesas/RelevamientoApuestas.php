@@ -32,13 +32,14 @@ class RelevamientoApuestas extends Model
   }
 
   public function fiscalizadores(){
-    return $this->belongsToMany('App\Usuario','fiscalizador_relevo_apuesta','id_relevamiento_apuestas_mesas','id_usuario');
+    return $this->belongsToMany('App\User','fiscalizador_relevo_apuesta','id_relevamiento_apuestas_mesas','id_usuario');
   }
+
   public function cargador(){
-    return $this->belongsTo('App\Usuario','id_cargador','id_usuario');
+    return $this->belongsTo('App\User','id_cargador','id');
   }
   public function controlador(){
-    return $this->belongsTo('App\Usuario','id_controlador','id_usuario');
+    return $this->belongsTo('App\User','id_controlador','id');
   }
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');

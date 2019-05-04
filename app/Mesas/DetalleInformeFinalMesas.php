@@ -31,13 +31,17 @@ class DetalleInformeFinalMesas extends Model
                               'cuota_euro_anterior',//*se calcula
                               'variacion_euro',//*se calcula
                               'variacion_dolar',//*se calcula
-                              'siglas_mes'
+                              'siglas_mes',
+                              'nro_cuota'
                            );
   protected $appends = array('cuota_euro_actual','cuota_dolar_actual',
                             'cuota_euro_anterior','cuota_dolar_anterior',
                             'variacion_euro','variacion_dolar',
-                            'siglas_mes'
+                            'siglas_mes','nro_cuota'
                           );
+  public function getNroCuotaAttribute(){
+    return $this->mes_casino->nro_cuota;
+  }
 
   public function getSiglasMesAttribute(){
     return $this->mes_casino->siglas;
@@ -54,14 +58,19 @@ class DetalleInformeFinalMesas extends Model
   }
 
   public function getCuotaEuroAnteriorAttribute(){
-    $div1 = $this->total_mes_anio_anterior/2;
-    $div2 = $div1/$this->cotizacion_euro_anterior;
-   return round($div2,2);
-  // return round(($this->total_mes_actual/2)/$this->cotizacion_euro_anterior,2);
+    if($this->total_mes_anio_anterior != null && $this->total_mes_anio_anterior != 0){
+      $div1 = $this->total_mes_anio_anterior/2;
+      $div2 = $div1/$this->cotizacion_euro_anterior;
+      return round($div2,2);
+    }
+   return 0;
   }
 
   public function getCuotaDolarAnteriorAttribute(){
-   return round(($this->total_mes_anio_anterior/2)/$this->cotizacion_dolar_anterior,2);
+    if($this->total_mes_anio_anterior != null && $this->total_mes_anio_anterior != 0){
+      return round(($this->total_mes_anio_anterior/2)/$this->cotizacion_dolar_anterior,2);
+    }
+    return 0;
   }
 
   public function getVariacionEuroAttribute(){
@@ -88,7 +97,7 @@ class DetalleInformeFinalMesas extends Model
     return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
   public function mes_casino(){
-    return $this->belongsTo('App\MesCasino','id_mes_casino','id_mes_casino');
+    return $this->belongsTo('App\MesCasino','id_mes_casino','id_mes_casino')->withTrashed();
   }
 
   public function getTableName(){

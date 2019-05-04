@@ -298,7 +298,7 @@ $('#btn-guardarMensual').on('click', function(e){
           },
           error: function (data) {
 
-            var response = data.responseJSON.errors;
+            var response = data.responseJSON;
 
             $('#modalImportacionMensual').find('.modal-footer').children().show();
             $('#modalImportacionMensual #frmImportacion').show();

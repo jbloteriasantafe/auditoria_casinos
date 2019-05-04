@@ -25,7 +25,7 @@ class InformeFiscalizadores extends Model
                               'cant_aperturas','cant_mesas_abiertas',
                               'cant_mesas_totales','cant_mesas_con_diferencia',
                               'cantidad_abiertas_con_minimo',
-                              //'id_apuesta_minima_juego',
+                              'id_apuesta_minima_juego',
                               'turnos_sin_minimo',
                               'mesas_relevadas_abiertas',
                               'mesas_importadas_abiertas',
@@ -47,6 +47,10 @@ class InformeFiscalizadores extends Model
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
+
+  public function apuesta_minima(){
+    return $this->belongsTo('App\Mesas\ApuestaMinimaJuego','id_apuesta_minima_juego','id_apuesta_minima_juego');
   }
 
   public function minimos(){

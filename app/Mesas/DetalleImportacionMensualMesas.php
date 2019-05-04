@@ -12,9 +12,8 @@ class DetalleImportacionMensualMesas extends Model
   protected $visible = array('id_detalle_importacion_mensual_mesas',
                              'id_importacion_mensual_mesas',
                              'fecha_dia',
-                             'total_diario',
+                             'total_diario',//este es el drop
                              'utilidad',
-                             'droop',
                              'hold',
                              'cotizacion',
                              'retiros_dia',
@@ -27,8 +26,19 @@ class DetalleImportacionMensualMesas extends Model
 
   protected $appends = array('hold','conversion');
 
+  protected $fillable = ['id_importacion_mensual_mesas',
+  'fecha_dia',
+  'total_diario',
+  'utilidad',
+  'cotizacion',
+  'retiros_dia',
+  'reposiciones_dia',
+  'utilidad_calculada',
+  'saldo_fichas_dia',
+  'diferencias'];
+
   public function getHoldAttribute(){
-       if($this->droop != 0){
+       if($this->total_diario != 0){
          return round(($this->utilidad * 100)/$this->total_diario,2);
        }else{
          return '--';
