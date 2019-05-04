@@ -34,7 +34,7 @@ use App\Mesas\DetalleInformeFinalMesas;
 use App\Mesas\ImportacionMensualMesas;
 use App\Mesas\DetalleImportacionMensualMesas;
 
-use App\Http\Controllers\Importaciones\Mesas\MensualController;
+use App\Http\Controllers\Mesas\Importaciones\Mesas\MensualController;
 
 
 class APagosController extends Controller

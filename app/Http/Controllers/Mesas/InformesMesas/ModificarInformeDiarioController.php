@@ -18,11 +18,12 @@ use Dompdf\Dompdf;
 use PDF;
 use View;
 
-use App\Usario;
+use App\Usuario;
 use App\Mesas\CSVImporter;
 use App\Casino;
 use App\Relevamiento;
 use App\SecRecientes;
+use App\Http\Controllers\RolesPermissions\RoleFinderController;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -172,10 +173,12 @@ class ModificarInformeDiarioController extends Controller
       if($fichaEnCierre->isEmpty()){
         //no estaba entonces la agrego
           if($ficha['monto'] != 0 && $ficha['monto'] != '0'){
+
             $campo = CampoModificado::create(['id_entidad' => $cierre->id_cierre_mesa,
                                              'nombre_entidad' => 'Cierre de Mesa',
                                              'nombre_del_campo' => 'monto ficha: '.$objFicha->valor_ficha,
                                              'valor_anterior' => '0',
+                                             'valor_nuevo' => $ficha['monto'],
                                              'id_entidad_extra' => $ficha['id'],
                                              'nombre_entidad_extra' => 'ficha',
                                              'accion' => 'nuevo',
@@ -200,6 +203,7 @@ class ModificarInformeDiarioController extends Controller
                                              'nombre_del_campo' => 'monto ficha: '.$objFicha->valor_ficha,
                                              'valor_anterior' => $detCierre->monto_ficha,
                                              'id_entidad_extra' => $ficha['id'],
+                                             'valor_nuevo' => $ficha['monto'],
                                              'nombre_entidad_extra' => 'ficha',
                                              'accion' => 'modificación',
                                              'id_importacion_diaria_mesas' => $datos['id_importacion_diaria_mesas']
@@ -216,6 +220,7 @@ class ModificarInformeDiarioController extends Controller
                                                'valor_anterior' => $detCierre->monto_ficha,
                                                'id_entidad_extra' => $detCierre->id_ficha,
                                                'nombre_entidad_extra' => 'ficha',
+                                               'valor_nuevo' => $ficha['monto'],
                                                'accion' => 'eliminación',
                                                'id_importacion_diaria_mesas' => $datos['id_importacion_diaria_mesas']
                                             ]);
@@ -235,6 +240,7 @@ class ModificarInformeDiarioController extends Controller
                                            'nombre_entidad' => 'Cierre de Mesa',
                                            'nombre_del_campo' => 'monto ficha: '.$det->ficha->valor_ficha,
                                            'valor_anterior' => $det->monto_ficha,
+                                           'valor_nuevo' => $ficha['monto'],
                                            'id_entidad_extra' => $det->id_ficha,
                                            'nombre_entidad_extra' => 'ficha',
                                            'accion' => 'eliminación',
@@ -273,6 +279,7 @@ class ModificarInformeDiarioController extends Controller
                                            'nombre_del_campo' => 'cotizacion',
                                            'valor_anterior' => $cot,
                                            'id_entidad_extra' => '',
+                                           'valor_nuevo' =>  $datos['cotizacion'],
                                            'nombre_entidad_extra' => '',
                                            'accion' => 'modificación',
                                            'id_importacion_diaria_mesas' => $detImportacion->id_importacion_diaria_mesas,
@@ -287,6 +294,7 @@ class ModificarInformeDiarioController extends Controller
                                          'nombre_entidad' => 'Detalle Importación',
                                          'nombre_del_campo' => 'utilidad',
                                          'valor_anterior' => $detImportacion->utilidad,
+                                         'valor_nuevo' =>  $datos['utilidad'],
                                          'id_entidad_extra' => 0,
                                          'nombre_entidad_extra' => '',
                                          'accion' => 'modificación',
@@ -302,6 +310,7 @@ class ModificarInformeDiarioController extends Controller
                                          'valor_anterior' => $detImportacion->droop,
                                          'id_entidad_extra' => 0,
                                          'nombre_entidad_extra' => '',
+                                         'valor_nuevo' =>  $datos['drop'],
                                          'accion' => 'modificación',
                                          'id_importacion_diaria_mesas' => $detImportacion->id_importacion_diaria_mesas,
                                       ]);
@@ -309,11 +318,15 @@ class ModificarInformeDiarioController extends Controller
       $detImportacion->droop = $datos['drop'];
     }
     if($detImportacion->reposiciones != $datos['fill']){
+      if($detImportacion->reposiciones == null){
+        $detImportacion->reposiciones =0;
+      }
       $campo = CampoModificado::create(['id_entidad' => $datos['id'],
                                          'nombre_entidad' => 'Detalle Importación',
                                          'nombre_del_campo' => 'reposiciones',
                                          'valor_anterior' => $detImportacion->reposiciones,
                                          'id_entidad_extra' => 0,
+                                         'valor_nuevo' =>  $datos['fill'],
                                          'nombre_entidad_extra' => '',
                                          'accion' => 'modificación',
                                          'id_importacion_diaria_mesas' => $detImportacion->id_importacion_diaria_mesas,
@@ -322,11 +335,15 @@ class ModificarInformeDiarioController extends Controller
       $detImportacion->reposiciones = $datos['fill'];
     }
     if($detImportacion->retiros != $datos['credit']){
+      if($detImportacion->retiros == null){
+        $detImportacion->retiros =0;
+      }
       $campo = CampoModificado::create(['id_entidad' => $datos['id'],
                                          'nombre_entidad' => 'Detalle Importación',
                                          'nombre_del_campo' => 'retiros',
                                          'valor_anterior' => $detImportacion->retiros,
                                          'id_entidad_extra' => 0,
+                                         'valor_nuevo' =>  $datos['credit'],
                                          'nombre_entidad_extra' => '',
                                          'accion' => 'modificación',
                                          'id_importacion_diaria_mesas' => $detImportacion->id_importacion_diaria_mesas,
@@ -335,6 +352,9 @@ class ModificarInformeDiarioController extends Controller
       $detImportacion->retiros = $datos['credit'];
     }
 
+    $detImportacion->utilidad_calculada = $detImportacion->saldo_fichas + $detImportacion->droop - $detImportacion->reposiciones + $detImportacion->retiros;
+    $detImportacion->diferencia_cierre = $detImportacion->utilidad - $detImportacion->utilidad_calculada;
+    //dd($detImportacion);
     $detImportacion->save();
 
     $this->actualizarTotales($detImportacion);
@@ -353,7 +373,7 @@ class ModificarInformeDiarioController extends Controller
                                       ->whereYear('fecha_mes','=',$ff[0])
                                       ->whereMonth('fecha_mes','=',$ff[1])
                                       ->get();
-    if(count($mensual)>0){
+    if(count($mensual->all())>0){
       $mensualController = new MensualController;
       $mensualController->actualizarTotales($mensual->first()->id_importacion_mensual_mesas);
     }
@@ -363,15 +383,42 @@ class ModificarInformeDiarioController extends Controller
 
   private function actualizarSaldoFichas($cierre){
     $detimpDiaria = DetalleImportacionDiariaMesas::where('id_cierre_mesa','=',$cierre->id_cierre_mesa)
-                                        ->get();
+                                        ->get()->first();
     if(count($detimpDiaria)>0){
       if($detimpDiaria->id_ultimo_cierre != null){
         $detimpDiaria->saldo_fichas = $cierre->total_pesos_fichas_c -
                        $detimpDiaria->cierre_anterior->total_pesos_fichas_c;
 
+
+        $detimpDiaria->diferencia_cierre = $detimpDiaria->utilidad - $detimpDiaria->utilidad_calculada;
         $impD = $detimpDiaria->importacion_diaria_mesas;
         $impD->validado = 2;//modificado
         $impD->save();
+
+
+        //formula = (Cx+1 - Cx ) +DROP -FILL+CREDIT = UTILIDAD CALCULADA
+        $detimpDiaria->utilidad_calculada = $detimpDiaria->saldo_fichas + $detimpDiaria->droop - $detimpDiaria->reposiciones + $detimpDiaria->retiros;
+
+        $detimpDiaria->save();
+        $this->actualizarTotales($detimpDiaria);
+      }
+    }
+    //si el cierre fue usado como ultimo cierre en otrs importacion tmb hy que actualizarTotales
+    $detimpDiaria = DetalleImportacionDiariaMesas::where('id_ultimo_cierre','=',$cierre->id_cierre_mesa)
+                                        ->get();
+    if(count($detimpDiaria)>0){
+      if($detimpDiaria->id_cierre_mesa != null){
+        $detimpDiaria->saldo_fichas = $cierre->total_pesos_fichas_c -
+                       $detimpDiaria->cierre_anterior->total_pesos_fichas_c;
+
+        $detimpDiaria->diferencia_cierre = $detimpDiaria->utilidad - $detimpDiaria->utilidad_calculada;
+        $impD = $detimpDiaria->importacion_diaria_mesas;
+        $impD->validado = 2;//modificado
+        $impD->save();
+
+        //formula = (Cx+1 - Cx ) +DROP -FILL+CREDIT = UTILIDAD CALCULADA
+        $detimpDiaria->utilidad_calculada = $detimpDiaria->saldo_fichas + $detimpDiaria->droop - $detimpDiaria->reposiciones + $detimpDiaria->retiros;
+
         $detimpDiaria->save();
         $this->actualizarTotales($detimpDiaria);
       }

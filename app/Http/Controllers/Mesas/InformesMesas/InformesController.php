@@ -34,8 +34,6 @@ use App\Mesas\TipoCierre;
 use App\Mesas\MesasSorteadas;
 use Carbon\Carbon;
 
-use App\Http\Controllers\UsuarioController;
-
 use Exception;
 
 //alta BAJA y consulta de mesas sorteadas
@@ -46,10 +44,10 @@ class InformesController extends Controller
    *
    * @return void
    */
-  public function __construct()
-  {
-      $this->middleware([ 'tiene_permiso:m_bc_diario_mensual']);
-  }
+   public function __construct()
+   {
+       $this->middleware([ 'tiene_permiso:m_bc_diario_mensual']);
+   }
 
   //se usa en SorteoMesasController
   public function mensualPorCasino(){
@@ -96,6 +94,7 @@ class InformesController extends Controller
                    ->join('casino','casino.id_casino','=','importacion_mensual_mesas.id_casino')
                    ->join('moneda','moneda.id_moneda','=','importacion_mensual_mesas.id_moneda')
                    ->where('importacion_mensual_mesas.validado','=',1)
+                   ->where('importacion_mensual_mesas.nombre_csv','not like','no matter.-')
                    ->orderBy('fecha_mes','desc')
                    ->take(12)
                    ->get();
@@ -108,7 +107,7 @@ class InformesController extends Controller
     $diarios = DB::table('importacion_diaria_mesas')
                   ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
                   ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                  ->where('importacion_diaria_mesas.validado','=',1)
+                  ->where('importacion_diaria_mesas.validado','>',0)
                   ->orderBy('fecha','desc')
                   ->take(31)
                   ->get();
@@ -159,11 +158,11 @@ class InformesController extends Controller
                      ->join('moneda','moneda.id_moneda','=','importacion_mensual_mesas.id_moneda')
                      ->where('importacion_mensual_mesas.validado','=',1)
                      ->where($reglas)
+                     ->where('importacion_mensual_mesas.nombre_csv','not like','no matter.-')
                      ->whereYear('fecha_mes','=',$fecha[0])
                      ->whereMonth('fecha_mes','=',$nro_mes)
                      ->whereIn('casino.id_casino',$casinos)
                      ->where('importacion_mensual_mesas.id_moneda','=',1)
-                     ->orderBy('fecha_mes','desc')
                      ->when($sort_by,function($query) use ($sort_by){
                                      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                  })
@@ -176,8 +175,8 @@ class InformesController extends Controller
                      ->where('importacion_mensual_mesas.validado','=',1)
                      ->where('importacion_mensual_mesas.id_moneda','=',1)
                      ->where($reglas)
+                     ->where('importacion_mensual_mesas.nombre_csv','not like','no matter.-')
                      ->whereIn('casino.id_casino',$casinos)
-                     ->orderBy('fecha_mes','desc')
                      ->when($sort_by,function($query) use ($sort_by){
                                      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                  })
@@ -215,14 +214,13 @@ class InformesController extends Controller
       $diarios = DB::table('importacion_diaria_mesas')
                     ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
                     ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                    ->where('importacion_diaria_mesas.validado','=',1)
+                    ->where('importacion_diaria_mesas.validado','>',0)
                     ->where($reglas)
                     ->whereYear('fecha','=',$fecha[0])
                     ->whereMonth('fecha','=',$fecha[1])
                     ->whereDay('fecha','=',$fecha[2])
                     ->whereIn('casino.id_casino',$casinos)
                     ->where('importacion_diaria_mesas.id_moneda','=',1)
-                    ->orderBy('fecha','desc')
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
@@ -232,15 +230,14 @@ class InformesController extends Controller
       $diarios = DB::table('importacion_diaria_mesas')
                     ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
                     ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                    ->where('importacion_diaria_mesas.validado','=',1)
+                    ->where('importacion_diaria_mesas.validado','>',0)
                     ->where($reglas)
                     ->whereIn('casino.id_casino',$casinos)
                     ->where('importacion_diaria_mesas.id_moneda','=',1)
-                    ->orderBy('fecha','desc')
                     ->when($sort_by,function($query) use ($sort_by){
                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                                 })
-                    ->paginate(5);
+                    ->paginate($request->page_size);
     }
 
    return ['diarios' => $diarios];

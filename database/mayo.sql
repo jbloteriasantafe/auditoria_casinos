@@ -70,6 +70,13 @@ ALTER TABLE `detalle_importacion_diaria_mesas`
   DROP `droop`,
   DROP `hold`;
 
+  ALTER TABLE `detalle_informe_final_mesas` DROP `mes_detalle` ;
+
+  ALTER TABLE `detalle_informe_final_mesas` CHANGE `cotizacion_euro_anterior` `cotizacion_euro_anterior` DOUBLE( 10, 4 ) NULL DEFAULT NULL ,
+CHANGE `cotizacion_euro_actual` `cotizacion_euro_actual` DOUBLE( 10, 4 ) NULL DEFAULT NULL ,
+CHANGE `cotizacion_dolar_actual` `cotizacion_dolar_actual` DOUBLE( 10, 4 ) NULL DEFAULT NULL ,
+CHANGE `cotizacion_dolar_anterior` `cotizacion_dolar_anterior` DOUBLE( 10, 4 ) NULL DEFAULT NULL ;
+
 
 
 
