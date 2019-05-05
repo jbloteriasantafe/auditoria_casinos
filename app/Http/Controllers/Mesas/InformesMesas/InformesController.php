@@ -35,6 +35,7 @@ use App\Mesas\MesasSorteadas;
 use Carbon\Carbon;
 
 use Exception;
+use App\Http\Controllers\UsuarioController;
 
 //alta BAJA y consulta de mesas sorteadas
 class InformesController extends Controller

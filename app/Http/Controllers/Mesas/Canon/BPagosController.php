@@ -75,6 +75,7 @@ class BPagosController extends Controller
       $resultados = DB::table('detalle_informe_final_mesas as DIFM')
                         ->join('casino','casino.id_casino','=','DIFM.id_casino')
                         ->join('mes_casino','mes_casino.id_mes_casino','=','DIFM.id_mes_casino')
+                        ->where('fecha_cobro','<>','0000-00-00')
                         ->where($filtros)
                         ->whereIn('DIFM.id_casino',$cas)
                         ->when($sort_by,function($query) use ($sort_by){
@@ -90,6 +91,7 @@ class BPagosController extends Controller
                         ->where($filtros)
                         ->whereYear('DIFM.fecha_cobro', '=', $fecha[0])
                         ->whereMonth('DIFM.fecha_cobro','=', $fecha[1])
+                        ->where('fecha_cobro','<>','0000-00-00')
                         ->whereIn('DIFM.id_casino',$cas)
                         ->when($sort_by,function($query) use ($sort_by){
                                         return $query->orderBy($sort_by['columna'],

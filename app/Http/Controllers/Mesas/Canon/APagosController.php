@@ -534,6 +534,8 @@ class APagosController extends Controller
         $importacionMensual->moneda()->associate($moneda->id_moneda);
         $importacionMensual->fecha_mes = $anioCuota.'-'.$mes->nro_mes.'-01';
         $importacionMensual->casino()->associate($casino->id_casino);
+        $importacionMensual->nombre_csv = 'auto_desde_diarias';
+        $importacionMensual->validado =1;
         $importacionMensual->save();
 
 
