@@ -121,19 +121,27 @@ class ABMCCanonController extends Controller
   //un crear, que se va a crear en blanco cuando crea el casino
 
   public function crear($id_casino){
+      $casino = Casino::find($id_casino);
+      $ff = date('m',strtotime($casino->fecha_inicio));
+      $meshoy = date('m');
+      //si el mes de pago es mayor o igual al mes de creacion del casino =>
+      //el año inicio del canon es el actual, sino es el anterior
+      //dd($ff,$meshoy);
+      if($ff >= $meshoy){
+        $periodo_anio_inicio = date('Y')-1;
+      }else{
+        $periodo_anio_inicio = date('Y');
+      }
+      $nuevo_canon = new Canon;
+      $nuevo_canon->id_casino= $id_casino;
+      $nuevo_canon->periodo_anio_inicio = $periodo_anio_inicio;
+      $nuevo_canon->periodo_anio_fin= ($periodo_anio_inicio+1);
+      $nuevo_canon->valor_base_dolar = 0;
+      $nuevo_canon->valor_base_euro = 0;
+      $nuevo_canon->valor_real_dolar = 0;
+      $nuevo_canon->valor_real_euro = 0;
 
-
-    $nuevo_canon = new Canon;
-    $nuevo_canon->id_casino= $id_casino;
-    $nuevo_canon->periodo_anio_inicio = date("Y");
-    $nuevo_canon->periodo_anio_fin= (date("Y")+1);
-    $nuevo_canon->valor_base_dolar = 0;
-    $nuevo_canon->valor_base_euro = 0;
-    $nuevo_canon->valor_real_dolar = 0;
-    $nuevo_canon->valor_real_euro = 0;
-    $nuevo_canon->save();
-
-    return $nuevo_canon;
+      return $nuevo_canon;
   }
 
 }

@@ -257,7 +257,9 @@ $('#aceptarActualizacion').on('click',function(e){
   $('.datosActualizacion').show();
   var id=$(this).val();
   var anio=$('#añoInicioAct2').val();
-
+  $("#tablaActualizacion tbody tr").each(function(){
+        $(this).remove();
+      });
   $.get('canon/generarTablaActualizacion1/' + id  + '/' + anio, function(data){
     if(data!=null){
       var t1 = 'Valores '+data.informeAnterior.anio_inicio+'/'+

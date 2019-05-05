@@ -96,11 +96,9 @@ class APagosController extends Controller
     $mesCasino = MesCasino::find($request->mes);
     $casino =$mesCasino->casino;
     $ff = explode('-',$request->fecha_pago);
-    if($ff[1] == '01'){
-      $anioCuota = $ff[0]-1;
-    }else{
-      $anioCuota = $ff[0];
-    }
+
+    $anioCuota = $request->anio_cuota;
+
     $canon = Canon::where('id_casino','=',$casino->id_casino)->first();
     $informe = $this->existeInformeFinalMesas($casino,$canon,
                                             $mesCasino,$request->fecha_pago);
@@ -362,15 +360,15 @@ class APagosController extends Controller
     $mesCuota = MesCasino::find($validator->getData()['mes']);
     $casino = $mesCuota->casino;
     if($mesCuota->nro_mes >= 1 && $mesCuota->nro_mes <=9){
-      $nro_mes_c = '0'+$mesCuota->nro_mes;
+      $nro_mes_c = '0'.$mesCuota->nro_mes;
     }else {
       $nro_mes_c = $mesCuota->nro_mes;
     }
 
     $anio_mes_hoy = date('Y-m');
     $anio_mes_fecha_pago =  Carbon::parse($validator->getData()['fecha_pago'])->format('Y-m');
-    $anio_mes_cuota = $validator->getData()['anio_cuota']+ $nro_mes_c;
-    $anio_mes_creacion_cas = Carbon::parse($casino->fecha_creacion)->format('Y-m');
+    $anio_mes_cuota = $validator->getData()['anio_cuota'].'-'. $nro_mes_c;
+    $anio_mes_creacion_cas = Carbon::parse($casino->fecha_inicio)->format('Y-m');
     //  dd($anio_mes_fecha_pago,$anio_mes_cuota);
     if($anio_mes_hoy < $anio_mes_fecha_pago || $anio_mes_hoy < $anio_mes_cuota){
       //el msja va para anio
@@ -385,11 +383,12 @@ class APagosController extends Controller
       }
 
     }
+    //dd($anio_mes_cuota , $anio_mes_creacion_cas);
+
     if($anio_mes_cuota < $anio_mes_creacion_cas){
       $validator->errors()->add('fecha_pago','La fecha de creación del casino es menor a la que desea pagar.'
                                );
     }
-
     if($anio_mes_fecha_pago < $anio_mes_cuota){
       $validator->errors()->add('fecha_pago','La fecha de pago es incorrecta.'
                                );
@@ -405,11 +404,11 @@ class APagosController extends Controller
     //si el mes de pago es mayor o igual al mes de creacion del casino =>
     //el año inicio del canon es el actual, sino es el anterior
     if($ff >= $mes->nro_mes){
-      $canon = Canon::where('periodo_anio_inicio','=',date('Y'))
+      $canon = Canon::where('periodo_anio_inicio','=',$validator->getData()['anio_cuota']-1)
                       ->where('id_casino','=',$mes->id_casino)
                       ->get()->first();
     }else{
-      $canon = Canon::where('periodo_anio_inicio','=',date('Y')-1)
+      $canon = Canon::where('periodo_anio_inicio','=',$validator->getData()['anio_cuota'])
                       ->where('id_casino','=',$mes->id_casino)
                       ->get()->first();
     }
@@ -444,11 +443,11 @@ class APagosController extends Controller
     //si el mes de pago es mayor o igual al mes de creacion del casino =>
     //el año inicio del canon es el actual, sino es el anterior
     if($ff >= $mes->nro_mes){
-      $canon = Canon::where('periodo_anio_inicio','=',date('Y'))
+      $canon = Canon::where('periodo_anio_inicio','=',$validator->getData()['anio_cuota']-1)
                       ->where('id_casino','=',$mes->id_casino)
                       ->get()->first();
     }else{
-      $canon = Canon::where('periodo_anio_inicio','=',date('Y')-1)
+      $canon = Canon::where('periodo_anio_inicio','=',$validator->getData()['anio_cuota'])
                       ->where('id_casino','=',$mes->id_casino)
                       ->get()->first();
     }
@@ -471,31 +470,45 @@ class APagosController extends Controller
   public function verificarImportacionMensual($validator, $mes){
     $mes = MesCasino::find($mes);
     $ff = explode('-',$validator->getData()['fecha_pago']);
-    if($ff[1] == '01'){
-      $anioCuota = $ff[0]-1;
-    }else{
-      $anioCuota = $ff[0];
-    }
+
+    $anioCuota = $validator->getData()['anio_cuota'];
     $dia = explode('-',$mes->casino->fecha_inicio);
-    if($mes->nro_mes == 1){
+    if($mes->nro_cuota == 1){
       $signo = '>=';
-    }else{
+      $impDiarias = ImportacionDiariaMesas::where('id_casino','=',$mes->id_casino)
+                                            ->whereMonth('fecha','=',$mes->nro_mes)
+                                            ->whereDay('fecha',$signo,$dia[2])
+                                            ->whereYear('fecha','=',$anioCuota)
+                                            ->where('id_moneda','=',1)
+                                            ->whereNull('deleted_at')
+                                            ->get();
+    }elseif ($mes->nro_cuota == 13) {
       $signo = '<=';
+      $impDiarias = ImportacionDiariaMesas::where('id_casino','=',$mes->id_casino)
+                                            ->whereMonth('fecha','=',$mes->nro_mes)
+                                            ->whereDay('fecha',$signo,$dia[2])
+                                            ->whereYear('fecha','=',$anioCuota)
+                                            ->where('id_moneda','=',1)
+                                            ->whereNull('deleted_at')
+                                            ->get();
+    }else {
+      //dd('ok');
+      $impDiarias = ImportacionDiariaMesas::where('id_casino','=',$mes->id_casino)
+                                            ->whereMonth('fecha','=',$mes->nro_mes)
+                                            ->whereYear('fecha','=',$anioCuota)
+                                            ->where('id_moneda','=',1)
+                                            ->whereNull('deleted_at')
+                                            ->get();
     }
-    $impDiarias = ImportacionDiariaMesas::where('id_casino','=',$mes->id_casino)
-                                          ->whereMonth('fecha','=',$mes->nro_mes)
-                                          ->whereDay('fecha',$signo,$dia[2])
-                                          ->whereYear('fecha','=',$anioCuota)
-                                          ->where('id_moneda','=',1)
-                                          ->get();
-    $diasCuota = $mes->dia_fin -$mes->dia_inicio +1;
+    $fecha = Carbon::createFromDate($anioCuota,$mes->nro_mes,'1');
+    $diasCuota = $fecha->daysInMonth;
 
     $mensuales = ImportacionMensualMesas::whereYear('fecha_mes','=',$anioCuota)
     ->whereMonth('fecha_mes','=',$mes->nro_mes)
     ->where('id_casino','=',$mes->id_casino)
     ->where('id_moneda','=',1)
     ->get();
-
+    //dd($impDiarias->count(),$diasCuota,count($mensuales));
     if($impDiarias->count() != $diasCuota && count($mensuales) == 0){
       $validator->errors()->add('importaciones','No se han realizado las importaciones correspondientes.'
                                );

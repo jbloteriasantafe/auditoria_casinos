@@ -195,7 +195,7 @@ class ActualizarValoresController extends Controller
     $nuevo_canon->valor_real_dolar = $informeNuevo->base_actual_dolar;
     $nuevo_canon->valor_real_euro = $informeNuevo->base_actual_euro;
     $nuevo_canon->save();
-    $nuevo_canon->delete();
+    //$nuevo_canon->delete();
     return $nuevo_canon;
   }
 
@@ -279,6 +279,9 @@ class ActualizarValoresController extends Controller
                       ->where('id_casino','=',$id_casino)
                       ->withTrashed()
                       ->get()->first();
+      if($canon == null){
+        $canon = $this->crearCanon($yaEstaCreado);
+      }
       $informeAnterior = InformeFinalMesas::where('anio_final','=',$anio_final)
                                   ->where('id_casino','=',$id_casino)
                                   ->get()->first();
