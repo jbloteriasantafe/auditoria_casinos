@@ -187,6 +187,13 @@ public function imprimirPlanilla($id_informe){
                             ->where('id_casino','=',$informe->id_casino)
                             ->get()->count();
 
+    $aperturas_totales = Apertura::where('fecha','=',$informe->fecha)
+                            ->where('id_casino','=',$informe->id_casino)
+                            ->get()->count();
+
+    $cierres_totales= Cierre::where('fecha','=',$informe->fecha)
+                             ->where('id_casino','=',$informe->id_casino)
+                             ->get()->count();
     $cierres = Cierre::where('fecha','=',$informe->fecha)
                              ->where('id_estado_cierre','=',1)
                              ->where('id_casino','=',$informe->id_casino)
@@ -198,6 +205,9 @@ public function imprimirPlanilla($id_informe){
     $informe->mesas_con_diferencia = $mesas_con_diferencia;
     $informe->ap_sin_validar =  $aperturas;
     $informe->cie_sin_validar = $cierres;
+
+    $informe->cant_aperturas = $aperturas_totales;
+    $informe->cant_cierres = $cierres_totales;
     //dd($informe);
     $informe->save();
 

@@ -113,15 +113,15 @@ footer
                 </tr>
                 <tr style="border-bottom:1px solid #ccc">
                   <td><i>Cantidad de Mesas con Diferencias:
-                    @if($rel->informe->cant_mesas_con_diferencias == 0)
+                    @if($rel->informe->cant_mesas_con_diferencia == 0)
                     0
                     @else
-                    {{$rel->informe->cant_mesas_con_diferencias}}
+                    {{$rel->informe->cant_mesas_con_diferencia}}
                     @endif
                   </i></td>
                 </tr>
 
-                @if($rel->informe->cumplio_minimo != '1')
+                @if($rel->informe->cumplio_minimo != '1' && $rel->informe->ruenos_sin_minimo != "")
                 <tr style="border-bottom:1px solid #ccc;">
                   <td><i>No se ha cumplido con el mínimo requerido de apuestas en los turnos: {{$rel->informe->turnos_sin_minimo}}</i></td>
                 </tr>
