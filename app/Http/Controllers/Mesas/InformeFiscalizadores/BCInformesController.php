@@ -218,7 +218,7 @@ public function imprimirPlanilla($id_informe){
   $rel->minimos = $informe->minimos()->get()->all();
 
 
-  return View::make('InformesFiscalizadores.informeDiarioFiscalizadores', compact('rel'));
+  $view = View::make('InformesFiscalizadores.informeDiarioFiscalizadores', compact('rel'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');
   $dompdf->loadHtml($view);
