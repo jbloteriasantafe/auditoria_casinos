@@ -315,15 +315,7 @@ $cas = $usuario['usuario']->casinos;
                       @endforeach
                     </select>
                   </div>
-                  <div class="col-xs-4">
-                    <h5>JUEGO</h5>
-                    <select class="form-control" name="" id="selectJuegoCierre">
-                      <option value="0" selected>- Seleccione un Juego -</option>
-                      @foreach ($juegos as $j)
-                      <option value="{{$j->id_juego_mesa}}">{{$j->nombre_juego}} - {{$j->casino->codigo}}</option>
-                      @endforeach
-                    </select>
-                  </div>
+                  
                   <br>
                   <div class="col-md-4" style="padding-top:50px;">
                     <button id="btn-buscar-cierre" class="btn btn-infoBuscar" type="button" name="button" style="margin-top:30px">

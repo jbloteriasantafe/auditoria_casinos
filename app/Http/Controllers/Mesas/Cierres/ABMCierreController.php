@@ -59,7 +59,7 @@ class ABMCierreController extends Controller
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
-      'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
+      //'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
