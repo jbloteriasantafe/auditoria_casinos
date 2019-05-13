@@ -70,10 +70,8 @@ class BCInformesController extends Controller
 
   public function filtros(Request $request)
 {
-  //$this->actualizarAll();
-  // $cierreap = CierreApertura::find(728);
-  // $controller = new GenerarInformesFiscalizadorController;
-  // $controller->iniciarInformeDiario($cierreap);
+  $this->actualizarAll();
+  dd('ok');
   $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $cas = array();
 
@@ -345,14 +343,14 @@ public function actualizarAll(){
       }
       //dd((($coinciden * 100)/$aperturas->count()),$coinciden);
       if($aperturas->count() != 0) {
-        //$informe->aperturas_sorteadas = round(($coinciden * 100)/$aperturas->count(),2);
+        $informe->aperturas_sorteadas = round(($coinciden * 100)/$aperturas->count(),2);
       }
       else {
-        //$informe->aperturas_sorteadas = 0;
+        $informe->aperturas_sorteadas = 0;
       }
       $informe->save();
       //dd($informe);
-      $sorteadas->delete();
+      //$sorteadas->delete();
     }
 
   }
