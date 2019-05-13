@@ -70,8 +70,8 @@ class BCInformesController extends Controller
 
   public function filtros(Request $request)
 {
-  $this->actualizarAll();
-  dd('ok');
+  // $this->actualizarAll();
+  // dd('ok');
   $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $cas = array();
 
