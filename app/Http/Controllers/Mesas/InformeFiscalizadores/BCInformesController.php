@@ -205,7 +205,7 @@ public function imprimirPlanilla($id_informe){
     $informe->mesas_con_diferencia = $mesas_con_diferencia;
     $informe->ap_sin_validar =  $aperturas;
     $informe->cie_sin_validar = $cierres;
-
+    $informe->cant_mesas_con_diferencia = count(json_decode($mesas_con_diferencia));
     $informe->cant_aperturas = $aperturas_totales;
     $informe->cant_cierres = $cierres_totales;
     //dd($informe);
