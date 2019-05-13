@@ -315,7 +315,7 @@ $cas = $usuario['usuario']->casinos;
                       @endforeach
                     </select>
                   </div>
-                  
+
                   <br>
                   <div class="col-md-4" style="padding-top:50px;">
                     <button id="btn-buscar-cierre" class="btn btn-infoBuscar" type="button" name="button" style="margin-top:30px">
@@ -567,14 +567,7 @@ $cas = $usuario['usuario']->casinos;
 
                           <br>
                         </div>
-                        <div class="col-md-4">
-                          <h6>JUEGO</h6>
-                          <div class="row">
-                            <div class="input-group lista-datos-group">
-                              <input id="juegoCierre" class="form-control" type="text" value="" size="100" autocomplete="off" >
-                            </div>
-                          </div>
-                        </div>
+                        
                       </div>
                     </div>
                     <br>
