@@ -659,6 +659,7 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::post('apuestas/obtenerRelevamientoBackUp', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
   Route::get('apuestas/imprimir/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanilla');
   Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
+  Route::get('apuestas/consultarMinimo','Mesas\Apuestas\ABMCApuestaMinimaController@consultarMinimo');
 
 
   Route::get('apuestas/obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
