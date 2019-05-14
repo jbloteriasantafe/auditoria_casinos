@@ -57,6 +57,17 @@ class ABMCApuestaMinimaController extends Controller
      return response()->json(['exito' => 'Monto de Apuesta Mínima creada.'], 200);
   }
 
+  public function consultarMinimo(){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $apuestas = ApuestaMinimaJuego::where('id_casino','=',$user->casinos()->first()->id_casino)
+                                    ->with('moneda','juego')
+                                    ->get()
+                                    ->toArray();
+
+    return ['apuestas' => $apuestas];
+
+  }
+
   public function obtenerApuestaMinima($id_casino,$id_moneda){
     $errores = 'null';
     $rta = null;
