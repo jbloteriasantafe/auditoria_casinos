@@ -77,7 +77,7 @@ class ABMCRelevamientosAperturaController extends Controller
   */
   public function generarRelevamiento(){
     $fecha_hoy = Carbon::now()->format("Y-m-d");
-    $user = Auth::user();
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = $user->casinos->first();
     $codigo_casino = $cas->codigo;
 
