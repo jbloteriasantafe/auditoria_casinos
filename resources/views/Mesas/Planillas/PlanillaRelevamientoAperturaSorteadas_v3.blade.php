@@ -47,7 +47,7 @@ footer
   <body>
 
         <div class="encabezadoImg">
-              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
