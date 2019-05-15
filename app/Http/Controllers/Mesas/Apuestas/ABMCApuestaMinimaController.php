@@ -36,7 +36,7 @@ class ABMCApuestaMinimaController extends Controller
    */
   public function __construct()
   {
-      $this->middleware(['tiene_permiso:m_abm_apuesta_minima|m_consultar_relevamientos_apuestas']);
+      $this->middleware(['tiene_permiso:m_abm_apuesta_minima','tiene_permiso:m_consultar_relevamientos_apuestas']);
   }
 
   public function guardar(Request $request){
