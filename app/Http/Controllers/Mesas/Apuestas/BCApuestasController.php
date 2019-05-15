@@ -30,6 +30,7 @@ use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\RelevamientoApuestas;
 use App\Mesas\DetalleRelevamientoApuestas;
+use App\Mesas\ApuestaMinimaJuego;
 use Carbon\Carbon;
 
 use App\Mesas\ComandoEnEspera;
@@ -351,6 +352,18 @@ class BCApuestasController extends Controller
                                            ->get();
                                           // dd($relevamiento);
      return $this->obtenerRelevamientoCarga($relevamiento->first()->id_relevamiento_apuestas);
+  }
+
+  //antes de imprimir la planilla se obliga a que el valor minimo de las apuestas exista.
+  public function consultarMinimo(){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $apuestas = ApuestaMinimaJuego::where('id_casino','=',$user->casinos()->first()->id_casino)
+                                    ->with('moneda','juego')
+                                    ->get()
+                                    ->toArray();
+
+    return ['apuestas' => $apuestas];
+
   }
 
   public function imprimirPlanilla($id_relevamiento){
