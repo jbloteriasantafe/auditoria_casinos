@@ -41,7 +41,7 @@ footer
 
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
+    <link href="public/css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
   </head>
   <body>
     @foreach($rel->paginas as $pagina)
@@ -49,7 +49,7 @@ footer
         <div style="page-break-after:always;"></div>
       @endif
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="1090">
+              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="1090">
               <h2><span>RMES03 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
         </div>
         <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
