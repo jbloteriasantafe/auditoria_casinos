@@ -41,16 +41,15 @@ footer
 
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
+    <link href="public/css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
   </head>
   <body>
     @foreach($rel->paginas as $pagina)
       @if($pagina['count_nro_pagina'] > 1)
-      <div style="page-break-after: always;"></div>
-      <div></div>
+        <div style="page-break-after:always;"></div>
       @endif
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="1090">
+              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="1090">
               <h2><span>RMES03 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
         </div>
         <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -73,13 +72,13 @@ footer
 
                 <tbody>
                   <tr >
-                    <th style="border-color: gray; font-size:11px !important;text-align:center !important;height: 30px !important" >JUEGO</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important"  >CÓDIGO</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >MONEDA</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >POS.</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >ESTADO (A/C/T)</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important">MÍNIMA</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >MÁXIMA</th>
+                    <th style="border-color: gray;text-align:center !important; font-size:11px !important;height: 30px !important">JUEGO</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">CÓDIGO</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MONEDA</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">POS.</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">ESTADO (A/C/T)</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÍNIMA</th>
+                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÁXIMA</th>
                   </tr>
 
                   @foreach($pagina['izquierda'] as $myji)
@@ -110,7 +109,7 @@ footer
                   <tr style="float:right; ">
                     <th style="border-color: gray; font-size:11px !important;text-align:center !important;height: 30px !important" >JUEGO</th>
                     <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important"  >CÓDIGO</th>
-                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >MONEDA</th>
+                    <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >NUM.</th>
                     <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >POS.</th>
                     <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important" >ESTADO (A/C/T)</th>
                     <th style="border-color: gray;font-size:11px !important;text-align:center !important;height: 30px !important">MÍNIMA</th>
@@ -126,7 +125,7 @@ footer
                       @foreach($myjd['mesas'] as $detalle)
                       <tr>
                         <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
+                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['nro_mesa']}}</td>
                         <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
                         <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
                         <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
