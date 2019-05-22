@@ -11,6 +11,7 @@ use App\Console\Commands\SortearMesas;
 use App\Http\Controllers\Importaciones\Mesas\ImportadorController;
 use App\Http\Controllers\Aperturas\ABMCRelevamientosAperturaController;
 use App\Http\Controllers\Apuestas\GenerarPlanillasController;
+use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
 {
@@ -58,7 +59,7 @@ class Kernel extends ConsoleKernel
      $schedule->call(function () {
 
          $comando = DB::table('comando_a_ejecutar')
-             ->where(['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')])
+             ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
              ->get();
             foreach ($comando as $c) {
               switch ($c->nombre_comando) {
@@ -76,7 +77,7 @@ class Kernel extends ConsoleKernel
                   break;
               }
             }
-     })->everyThirtyMinutes();
+     })->everyThirtyMinutes()->runInBackground();
 
 
     }
