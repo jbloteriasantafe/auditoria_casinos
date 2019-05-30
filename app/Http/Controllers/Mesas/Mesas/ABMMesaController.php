@@ -131,7 +131,7 @@ class ABMMesaController extends Controller
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
                               ['id_casino','=',$id_casino],
                               ['id_juego_mesa','=',$id_juego],
-                              ['nro_admin','=',$nro_admin_mesa],
+                              ['nro_admin','=',$validator->getData()['nro_admin']],
                             ])
                         ->get();
         if(count($mesas)> 0){
@@ -201,6 +201,8 @@ class ABMMesaController extends Controller
 
         $mesas = Mesa::where([['nro_mesa','=',$validator->getData()['nro_mesa']],
                               ['id_casino','=',$id_casino],
+                              ['id_juego_mesa','=',$id_juego],
+                              ['nro_admin','=',$validator->getData()['nro_admin']],
                               ['id_mesa_de_panio','!=',$id_mesa_de_panio]])
                         ->get();
         if(count($mesas)> 0){
