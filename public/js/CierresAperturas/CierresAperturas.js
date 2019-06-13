@@ -1106,7 +1106,7 @@ $('#btn-guardar-cierre').on('click', function(e){
           error: function (reject) {
               $('#mensajeError h3').text('ERROR');
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
 
                       if(key == 'fecha'){
@@ -2023,7 +2023,7 @@ $(document).on('click','.comparar',function(){
 
           var t=$('#tablaValidar tbody > tr');
           $.each(t, function(index, value){
-              
+
             if($(this).attr('id') == data.detalles_cierre[i].id_ficha){
               $(this).find('.cant_cierre_validar').addClass('cierre').text(data.detalles_cierre[i].cantidad_ficha);
 
