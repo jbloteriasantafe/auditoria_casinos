@@ -214,7 +214,7 @@ class ABMCierreController extends Controller
     if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
       foreach ($validator->getData()['fichas'] as $detalle) {
         $ficha = Ficha::find($detalle['id_ficha']);
-        $division = round(($detalle['monto_ficha'] / $ficha->valor_ficha), 2);
+        $division = floor(($detalle['monto_ficha'] / $ficha->valor_ficha));
 
         if($detalle['monto_ficha'] != 0 &&(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
           ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))){

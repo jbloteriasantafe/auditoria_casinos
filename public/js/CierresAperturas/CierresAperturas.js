@@ -718,7 +718,7 @@ $('#btn-guardar-apertura').on('click', function(e){
           $('#btn-guardar-apertura').show();
 
               if( reject.status === 422 ) {
-                  var errors = $.parseJSON(reject.responseText).errors;
+                  var errors = $.parseJSON(reject.responseText);
                   $.each(errors, function (key, val) {
                     if(key == 'fecha'){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
@@ -1708,7 +1708,7 @@ $('#modificar_apertura').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificar2').show();
@@ -1874,7 +1874,7 @@ $('#modificar_cierre').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText).errors;
+                    var errors = $.parseJSON(reject.responseText);
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificarCierre2').show();
