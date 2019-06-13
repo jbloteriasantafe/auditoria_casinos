@@ -217,7 +217,9 @@ class ABMCierreController extends Controller
         $division = floor(($detalle['monto_ficha'] / $ficha->valor_ficha));
 
         if($detalle['monto_ficha'] != 0 &&(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
-          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))){
+          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))
+          && ($ficha->valor_ficha == floor($ficha->valor_ficha))
+        ){
 
           $validator->errors()->add('fichas.'.$aux.'.monto_ficha','El monto no es múltiplo del valor.'
                                    );
