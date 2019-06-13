@@ -193,7 +193,7 @@ $cas = $usuario['usuario']->casinos;
                         </button>
                         @endif
                       @endif
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_aperturas'))
+                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
                         <button type="button" class="btn btn-success eliminarCyA" value="{{$a->id_apertura_mesa}}">
                           <i class="fa fa-fw fa-trash"></i>
                         </button>
@@ -232,7 +232,7 @@ $cas = $usuario['usuario']->casinos;
                       <i class="fa fa-fw fa-check"></i>
                     </button>
                     @endif
-                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_aperturas'))
+                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
                     <button type="button" class="btn btn-success eliminarCyA" value="" >
                       <i class="fa fa-fw fa-trash"></i>
                     </button>
@@ -377,7 +377,7 @@ $cas = $usuario['usuario']->casinos;
                         <i class="fa fa-fw fa-check"></i>
                       </button>
                       @endif
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_aperturas'))
+                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
                       <button type="button" class="btn btn-success eliminarCierre" value="" >
                         <i class="fa fa-fw fa-trash"></i>
                       </button>
@@ -567,7 +567,7 @@ $cas = $usuario['usuario']->casinos;
 
                           <br>
                         </div>
-                        
+
                       </div>
                     </div>
                     <br>
