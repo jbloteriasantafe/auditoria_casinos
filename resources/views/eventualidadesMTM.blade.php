@@ -77,7 +77,7 @@
                   <h5>Nro. de Isla</h5>
                   <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
                 </div>
-              </div> 
+              </div>
               </div> <!-- row / formulario -->
 
               <br>
@@ -619,17 +619,19 @@
                         </div>
                       </div> <!-- segundo row -->
                       <div class="row">
-                        <div class="col-lg-4">
-                          <h5>ISLA</h5>
-                          <input id="islaRelevadaVal" type="text" value="" class="form-control">
-                          <br>
-                        </div>
 
                         <div class="col-lg-4">
                           <h5>SECTOR</h5>
                           <input id="sectorRelevadoVal" type="text" value="" class="form-control">
                           <br>
                         </div> <!-- SECTOR -->
+
+                        <div class="col-lg-4">
+                          <h5>ISLA</h5>
+                          <input id="islaRelevadaVal" type="text" value="" class="form-control">
+                          <br>
+                        </div><!-- ISLA -->
+
                       </div>
                         <div class="row">
                           <table id="tablaValidarContadores" class="table">
@@ -730,7 +732,7 @@
                                         <h6>OBSERVACIONES:</h6>
                                       <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
                                     </div>
-                                    
+
                                     @if($esControlador == 1)
                                       <div class="col-lg-12">
                                         <h6>OBSERVACIONES ADMIN:</h6>
