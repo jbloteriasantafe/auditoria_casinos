@@ -76,7 +76,7 @@ class ProducidoController extends Controller
         $cerrado= ContadorController::getInstancia()->estaCerrado($fecha_inicio,$producido->id_casino,$producido->tipo_moneda);
         //validado en la fecha fin
         $fecha_fin=date('Y-m-d' , strtotime($producido->fecha . ' + 1 days'));
-        //valida que para esa fecha, todos los sectores del casino esten relevados y visados, sino no se puede 
+        //valida que para esa fecha, todos los sectores del casino esten relevados y visados, sino no se puede
         $validado=RelevamientoController::getInstancia()->estaValidado($fecha_fin,$producido->id_casino ,$producido->tipo_moneda);
         $producidosAValidar[] = ['producido' => $producido ,'descripcion' => $producido->casino->codigo  ,  'cerrado' => $cerrado  ,  'validado' => $validado];
       }
@@ -101,7 +101,7 @@ class ProducidoController extends Controller
 
     return view('seccionProducidos' , ['casinos' => $casinos , 'producidos' => $producidos, 'ultimos' => $producidosAValidar]);
   }
-  // buscarProducidos 
+  // buscarProducidos
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
@@ -246,7 +246,7 @@ class ProducidoController extends Controller
               //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
             ];
     }else{
-   
+
       foreach ($mtm_datos as $row) {
           $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
                                                   $row['id_detalle_producido'],
@@ -274,7 +274,7 @@ class ProducidoController extends Controller
     }
   }
 
-  // ajustarProducido 
+  // ajustarProducido
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
 
       $producido=Producido::find($id_producido);
@@ -290,11 +290,11 @@ class ProducidoController extends Controller
 
       $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
       $resultados=$pdo->query($query);
-      
+
       //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
       //
       $conDiferencia=array();
-      
+
       foreach ($resultados as $row) {
           $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
                                                   $row['id_detalle_producido'],
@@ -306,7 +306,7 @@ class ProducidoController extends Controller
                                                   $row['jackpot_fin'],$row['progresivo_fin'],
                                                   $row['valor_producido'],$row['denominacion'],$row['denominacion_carga_inicial'],$row['denominacion_carga_final']
                                                 );
-          
+
           if(!empty($diferencia))
           {
             $conDiferencia[]=$diferencia;
@@ -373,7 +373,7 @@ class ProducidoController extends Controller
   // calcularDiferencia calcula la diferencia que hay entre el producido calculado a partir de los contadores
   // y el producido importado
   // considera los casos donde no hay contadores importados, en ese caso los setea como 0
-  // tiene en cuenta la denominacion para la conversion a dinero, solo en caso del casino de rosario, porque los contadores 
+  // tiene en cuenta la denominacion para la conversion a dinero, solo en caso del casino de rosario, porque los contadores
   // se importan en creditos
   public function calcularDiferencia($casino,$id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion,$denominacion_carga_inicial, $denominacion_carga_final){
       $resultado=array();
@@ -383,16 +383,16 @@ class ProducidoController extends Controller
             //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
             if($id_detalle_contador_inicial!=null){
               $coinin_ini=$coinin_ini/$denominacion_carga_inicial;
-              $coinout_ini=$coinout_ini/$denominacion_carga_inicial;  
-              $jackpot_ini=$jackpot_ini/$denominacion_carga_inicial;  
+              $coinout_ini=$coinout_ini/$denominacion_carga_inicial;
+              $jackpot_ini=$jackpot_ini/$denominacion_carga_inicial;
               $progresivo_ini=$progresivo_ini/$denominacion_carga_inicial;
             }else{
               $coinin_ini=0;
-              $coinout_ini=0;  
-              $jackpot_ini=0;  
+              $coinout_ini=0;
+              $jackpot_ini=0;
               $progresivo_ini=0;
             }
-            
+
             if($id_detalle_contador_final!=null){
               $coinin_fin=$coinin_fin/$denominacion_carga_final ;
               $coinout_fin= $coinout_fin/$denominacion_carga_final ;
@@ -404,15 +404,15 @@ class ProducidoController extends Controller
               $jackpot_fin=0;
               $progresivo_fin=0;
             }
-            
-      
+
+
             $cantidad=0;
 
             $valor_inicio= $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata para santa fe y credito para rosario
             $valor_final= $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata para santa fe y credito para rosario
 
             $delta = $valor_final - $valor_inicio;//plata - plata para santa fe //credito- credito para rosario
-           
+
             if($casino!='3'){
               $diferencia = round($delta, 2) - $valor_producido; //plata - plata
             }else{
@@ -446,8 +446,8 @@ class ProducidoController extends Controller
                 $valor_cred = $valor_producido /$denominacion; //credito
 
               }
-              
-             
+
+
 
               $resultado = ['id_maquina' => $id_maquina,                                'nro_admin' => $nro_admin,
                             'id_detalle_producido' => $id_detalle_producido,            'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
@@ -466,7 +466,7 @@ class ProducidoController extends Controller
       return $resultado;
   }
 
-  // verAjusteAutomatico genera los ajustes automaticos 
+  // verAjusteAutomatico genera los ajustes automaticos
   // pueden ser calculados numericamente de forma automatica
   public function verAjusteAutomatico($arreglo_diferencia){
     $numero=$arreglo_diferencia['diferencia']/$arreglo_diferencia['denominacion'];
@@ -597,7 +597,7 @@ class ProducidoController extends Controller
               'producidos_ajustados.*.id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.id_detalle_contador_final' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-              'producidos_ajustados.*.prodObservaciones' => 'nullable|max:255',
+              'producidos_ajustados.*.prodObservaciones' => 'nullable',
               'estado' => 'required',//3 finalizado, 2 pausa
               //'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
       ], array(), self::$atributos)->after(function($validator){
@@ -612,7 +612,7 @@ class ProducidoController extends Controller
       $resultados=array();
       $errores=array();
       $estado = 0;
-      
+
       if($request->estado == 3){
         foreach ($request->producidos_ajustados as $detalle_ajustado){
           //consulto si tenia un ajuste guardado como temporal y lo elimino
@@ -674,7 +674,7 @@ class ProducidoController extends Controller
                   if($casino==3){
                   $detalle_final->denominacion_carga=$detalle_ajustado['denominacion'];
                   }
-                  
+
                   $detalle_final->save();
 
                   $detalle_producido->id_tipo_ajuste= $detalle_ajustado['id_tipo_ajuste'];
