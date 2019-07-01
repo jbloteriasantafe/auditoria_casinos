@@ -9,6 +9,7 @@ use App\GliSoft;
 use App\Archivo;
 use App\Casino;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 use Validator;
 
@@ -54,13 +55,14 @@ class GliSoftController extends Controller
   }
 
   public function leerArchivoGliSoft($id){
-    $data = DB::table('gli_soft')->select('archivo.archivo','archivo.nombre_archivo')
-                                ->join('archivo','archivo.id_archivo','=','gli_soft.id_archivo')
-                                ->where('gli_soft.id_gli_soft','=',$id)->first();
+    $archivo = GliSoft::find($id)->archivo;
 
+    //$archivo->cargarArchivoGuardado();
 
-    return Response::make(base64_decode($data->archivo), 200, [ 'Content-Type' => 'application/pdf',
-                                                      'Content-Disposition' => 'inline; filename="'. $data->nombre_archivo  . '"']);
+    return Response::make(base64_decode($archivo->archivo),
+    200,
+    [ 'Content-Type' => 'application/pdf',
+    'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"']);
   }
 
   //METODO QUE RESPONDEN A GUARDAR
@@ -83,10 +85,7 @@ class GliSoftController extends Controller
     if($request->file != null){
       $file=$request->file;
       $archivo=new Archivo;
-      $data=base64_encode(file_get_contents($file->getRealPath()));
-      $nombre_archivo=$file->getClientOriginalName();
-      $archivo->nombre_archivo=$nombre_archivo;
-      $archivo->archivo=$data;
+      $archivo->setearDatosArchivo($file);
       $archivo->save();
       $GLI->archivo()->associate($archivo->id_archivo);
     }
@@ -112,36 +111,28 @@ class GliSoftController extends Controller
       JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
     }
 
+    $nombre_archivo = null;
     //obtengo solo el nombre del archivo para devolverlo a la vista
     if(!empty($GLI->archivo)){
       $nombre_archivo = $GLI->archivo->nombre_archivo;
-    }
-    else{
-      $nombre_archivo = null;
     }
 
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
   }
 
   public function guardarGliSoft_gestionarMaquina($nro_certificado,$observaciones,$file){
-
         $GLI=new GliSoft;
         $GLI->nro_archivo =$nro_certificado;
         $GLI->observaciones=$observaciones;
 
         if($file != null){
           $archivo=new Archivo;
-          $data=base64_encode(file_get_contents($file->getRealPath()));
-          $nombre_archivo=$file->getClientOriginalName();
-          $archivo->nombre_archivo=$nombre_archivo;
-          $archivo->archivo=$data;
+          $archivo->setearDatosArchivo($file);
           $archivo->save();
           $GLI->archivo()->associate($archivo->id_archivo);
         }
 
         $GLI->save();
-
-
 
         return $GLI;
   }
@@ -232,9 +223,7 @@ class GliSoftController extends Controller
 
           $file=$request->file;
           $archivo=new Archivo;
-          $archivo->nombre_archivo=$file->getClientOriginalName();
-          $data=base64_encode(file_get_contents($file->getRealPath()));
-          $archivo->archivo=$data;
+          $archivo->setearDatosArchivo($file);
           $archivo->save();
           $GLI->archivo()->associate($archivo->id_archivo);
           $GLI->save();

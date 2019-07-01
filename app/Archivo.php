@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\ArchivoObserver;
+use Illuminate\Support\Facades\Storage;
 
 class Archivo extends Model
 {
@@ -40,6 +41,40 @@ class Archivo extends Model
 
   public function getId(){
     return $this->id_archivo;
+  }
+
+  public function setearDatosArchivo($file){
+    $this->archivo = base64_encode(file_get_contents($file->getRealPath()));
+    $this->nombre_archivo= date("Y-m-d_H-i-s_") . $file->getClientOriginalName();
+    return;
+  }
+
+  public function save(array $options = Array()){
+    $data = $this->archivo;
+    $this->archivo = null;
+    parent::save($options);
+    Storage::put($this->nombre_archivo,base64_decode($data));
+    $this->archivo = $data;
+  }
+
+  public function __construct(array $attributes = array())
+  {
+    $this->setRawAttributes($attributes, true);
+    parent::__construct($attributes);
+
+    //TODO:
+    //No funcionando, no se carga automaticamente.
+    $this->cargarArchivoGuardado();
+  }
+
+  public function cargarArchivoGuardado(){
+    //Si es nulo me fijo si el archivo existe, y lo cargo
+    if(is_null($this->archivo) &&
+      !is_null($this->nombre_archivo) &&
+      Storage::exists($this->nombre_archivo)){
+        $contenido = Storage::get($this->nombre_archivo);
+        $this->archivo = base64_encode($contenido);
+    }
   }
 
 }

@@ -100,10 +100,7 @@ class GliHardController extends Controller
       if($request->file != null){
             $archivo=new Archivo;
             $file=$request->file;
-            $nombre_archivo=$file->getClientOriginalName();
-            $data=base64_encode(file_get_contents($file->getRealPath()));
-            $archivo->nombre_archivo=$nombre_archivo;
-            $archivo->archivo=$data;
+            $archivo->setearDatosArchivo($file);
             $archivo->save();
             $GLI->archivo()->associate($archivo->id_archivo);
       }
@@ -157,9 +154,7 @@ class GliHardController extends Controller
 
           $file=$request->file;
           $archivo=new Archivo;
-          $archivo->nombre_archivo=$file->getClientOriginalName();
-          $data=base64_encode(file_get_contents($file->getRealPath()));
-          $archivo->archivo=$data;
+          $archivo->setearDatosArchivo($file);
           $archivo->save();
           $GLI->archivo()->associate($archivo->id_archivo);
           $GLI->save();
