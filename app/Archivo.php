@@ -57,14 +57,19 @@ class Archivo extends Model
     $this->archivo = $data;
   }
 
-  public function __construct(array $attributes = array())
-  {
-    $this->setRawAttributes($attributes, true);
-    parent::__construct($attributes);
+  public function getArchivoAttribute($archivo){
+    //Si es nulo y existe un archivo con el mismo nombre, lo retornamos
+    if(is_null($archivo) &&
+      !is_null($this->nombre_archivo) &&
+      Storage::exists($this->nombre_archivo)){
+        $contenido = Storage::get($this->nombre_archivo);
+        return base64_encode($contenido);
+    }
+    return $archivo;
+  }
 
-    //TODO:
-    //No funcionando, no se carga automaticamente.
-    $this->cargarArchivoGuardado();
+  public function setArchivoAttribute($archivo){
+    $this->attributes['archivo'] = $archivo;
   }
 
   public function cargarArchivoGuardado(){
