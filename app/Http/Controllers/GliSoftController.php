@@ -43,6 +43,7 @@ class GliSoftController extends Controller
 
     if(!empty($glisoft->archivo)){
       $nombre_archivo = $glisoft->archivo->nombre_archivo;
+      //TODO: ??
       $size=$glisoft->archivo->archivo;
     }else{
       $nombre_archivo = null;
@@ -282,12 +283,20 @@ class GliSoftController extends Controller
 
 
   public function eliminarGLI($id){
+
     $GLI=GliSoft::find($id);
     $juegos=$GLI->juegos;
     foreach($juegos as $juego){
       $juego->GliSoft()->dissociate();
+      for($juego->maquinas as $maquina){
+        //TODO: Que hacer con las maquinas que tienen seteado el id glisoft?
+      }
       $juego->save();
     }
+
+    DB::table('expediente_tiene_gli_sw')
+    ->where('expediente_tiene_gli_sw.id_gli_soft' , '=' , $id)
+    ->delete();
 
     $archivo=$GLI->archivo;
     $GLI->archivo()->dissociate();
