@@ -278,7 +278,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-footer">
             <button id="btn-guardar" type="button" value="add"></button>
             <input id="id_gli" type="" hidden value="" >
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            <button id="btn-cancelar" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           </div>
         </div> <!-- -->
         </div>

@@ -43,8 +43,8 @@ class GliSoftController extends Controller
 
     if(!empty($glisoft->archivo)){
       $nombre_archivo = $glisoft->archivo->nombre_archivo;
-      //TODO: ??
-      $size=$glisoft->archivo->archivo;
+      //Saca el tamaño approx de una string encodeada en base64
+      $size=(int) (strlen(rtrim($glisoft->archivo->archivo, '=')) * 3 / 4);
     }else{
       $nombre_archivo = null;
     }
@@ -52,7 +52,11 @@ class GliSoftController extends Controller
     foreach ($glisoft->juegos as $juego) {
       $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago];
     }
-    return ['glisoft' => $glisoft , 'expedientes' => $glisoft->expedientes, 'nombre_archivo' => $nombre_archivo , 'juegos' => $juegosYTPagos];
+    return ['glisoft' => $glisoft ,
+    'expedientes' => $glisoft->expedientes,
+    'nombre_archivo' => $nombre_archivo ,
+    'juegos' => $juegosYTPagos,
+    'size' => $size];
   }
 
   public function leerArchivoGliSoft($id){
@@ -283,14 +287,12 @@ class GliSoftController extends Controller
 
 
   public function eliminarGLI($id){
-
     $GLI=GliSoft::find($id);
     $juegos=$GLI->juegos;
+
+    //Retornar error si tiene un jueog asociado.
     foreach($juegos as $juego){
       $juego->GliSoft()->dissociate();
-      for($juego->maquinas as $maquina){
-        //TODO: Que hacer con las maquinas que tienen seteado el id glisoft?
-      }
       $juego->save();
     }
 

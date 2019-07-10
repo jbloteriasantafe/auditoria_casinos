@@ -55,7 +55,7 @@ function existeEnDataList(id){
   return bandera;
 }
 
-function agregarFilaJuego(juego, tablas) {
+function agregarFilaJuego(juego, tablas, permitir_eliminar = true) {
   var fila = $('<tr>').attr('id', juego.id_juego);
 
   var tablas_pago = '';
@@ -81,15 +81,19 @@ function agregarFilaJuego(juego, tablas) {
                        .text(juego.cod_juego)
   );
   }
-  
+
   fila.append($('<td>').addClass('col-xs-3')
                        .append(tablas_pago)
   );
+
+  var boton = $('<button>').addClass('btn btn-danger borrarJuego')
+                       .append($('<i>').addClass('fa fa-fw fa-trash'));
+
+
+  boton.prop('disabled',!permitir_eliminar);
+
   fila.append($('<td>').addClass('col-xs-3')
-                       .append($('<button>').addClass('btn btn-danger borrarJuego')
-                                            .append($('<i>').addClass('fa fa-fw fa-trash'))
-                              )
-  );
+                       .append(boton));
 
   $('#tablaJuegos tbody').append(fila);
 }
@@ -112,16 +116,20 @@ $('#btn-agregarExpediente').click(function(e){
     }
 });
 
-function agregarFilaExpediente(expediente) {
+function agregarFilaExpediente(expediente, permitir_eliminar = true) {
   var fila = $('<tr>').attr('id', expediente.id_expediente);
 
   fila.append($('<td>').addClass('col-xs-3')
                        .text(expediente.nro_exp_org + '-' + expediente.nro_exp_interno + '-' + expediente.nro_exp_control)
              );
+
+  var boton = $('<button>').addClass('btn btn-danger borrarExpediente')
+                       .append($('<i>').addClass('fa fa-fw fa-trash'));
+
+  boton.prop('disabled',!permitir_eliminar);
+
   fila.append($('<td>').addClass('col-xs-3')
-                       .append($('<button>').addClass('btn btn-danger borrarExpediente')
-                                            .append($('<i>').addClass('fa fa-fw fa-trash'))
-                              )
+                       .append(boton)
              );
 
   $('#tablaExpedientesSoft tbody').append(fila);
@@ -148,7 +156,7 @@ $(document).on('click','.detalle',function(){
     })
     $('#cuerpoTablaDePago tr').remove();
     $('#modalGLI').modal('show');
-    $('.btn-default').text('SALIR');
+    $('#btn-cancelar').text('SALIR');
 
     //limpia la tabla de juegos
     $('#tablaJuegos tbody').empty();
@@ -195,78 +203,24 @@ $(document).on('click','.detalle',function(){
             "http://" + window.location.host + "/glisofts/pdf/" + id,
           ],
           initialPreviewConfig: [
-            {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
+            {type:'pdf', caption: data.nombre_archivo, size: data.size, width: "120px", url: "{$url}", key: 1},
           ],
           allowedFileExtensions: ['pdf'],
         });
       }
 
-      //crear src y setearlo al input file.
-      // var objurl = window.URL.createObjectURL(new Blob([data.archivo.archivo]));
-      //  var objurl2 = window.URL.createObjectURL(data.archivo.archivo);
-      //codigo no funciona en IE
-      // var file = new File([new Blob([data.archivo.archivo])], "sistemaAuditoria.pdf", {type: "application/pdf"});
-      // var objurl = window.URL.createObjectURL(file);
-      // console.log(objurl);
-       //Cargar los juegos
-       for (var i = 0; i < data.juegos.length; i++) {
+      $('#tablaExpedientesSoft tbody').empty();
+      $('#tablaJuegos tbody').empty();
+
+      for (var i = 0; i < data.juegos.length; i++) {
         console.log(data.juegos[i]);
-        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
+        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago, false);
       }
-/* esto no estaba funcionando, al aprecer la idea era cargar lo juegos, pero ya habia funciones para realizar esa accion
-    $.each(data.juegos, function(index, juego){
-      $.get('juegos/obtenerTablasDePago/' + juego.id_juego , function(data_juego){
-        $('#listaJuegos')
-        .append($('<li>')
-        .attr("id", juego.id_juego)
-        .css('list-style' , 'none')
-        .append($('<div>')
-        .addClass('col-xs-4')
-        .append($('<p>')
-        .text(juego.nombre_juego)
-      )
-    )
-    .append($('<div>')
-    .addClass('col-xs-4')
-    .append($('<p>')
-    .text(juego.cod_identificacion)
-  )
-  )
-  .append($('<div>')
-  .addClass('col-xs-2')
-  .append($('<p>')
-  .text(juego.nro_niv_progresivos)
-  )
-  )
-  );
+      for (var i = 0; i < data.expedientes.length; i++) {
+        console.log(data.expedientes[i]);
+        agregarFilaExpediente(data.expedientes[i],false);
+      }
 
-  //renglon por tabla de pago
-  for (var i = 0; i < data_juego.tablasDePago.length; i++) {
-    $('#cuerpoTablaDePago')
-    .append($('<tr>')
-    .attr("data-juego", juego.id_juego)
-    .append($('<td>')
-    .addClass('col-xs-2')
-    .text(data_juego.tablasDePago[i].codigo)
-  )
-  .append($('<td>')
-  .addClass('col-xs-2')
-  .text(data_juego.tablasDePago[i].porc_devolucion_min)
-  )
-  .append($('<td>')
-  .addClass('col-xs-3')
-  .text(data_juego.tablasDePago[i].porc_devolucion_max)
-  )
-  .append($('<td>')
-  .addClass('col-xs-3')
-  .text(data_juego.tablasDePago[i].denominacion_base)
-  )
-  )
-  }
-
-  })
-  })
-  */
   })
 
   $('#inputExpediente').prop('readonly' , true);
@@ -698,13 +652,14 @@ $('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
 
         $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.resultados.total,clickIndice);
         $('#herramientasPaginacion').generarIndices(page_number,page_size,data.resultados.total,clickIndice);
-
         $('#tablaGliSofts tbody tr').remove();
 
         for (var i = 0; i < data.resultados.data.length; i++) {
           var filaCertificado = generarFilaTabla(data.resultados.data[i]);
           $('#cuerpoTabla').append(filaCertificado);
         }
+
+
       },
       error: function (data) {
         console.log('Error:', data);
