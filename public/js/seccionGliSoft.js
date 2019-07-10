@@ -599,7 +599,12 @@ function clickIndice(e,pageNumber,tam){
   $('#buscarCertificado').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-$('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
+$('#buscarCertificado').click(function(e,
+  pagina=1,
+  page_size=$('#herramientasPaginacion').getPageSize(),
+  columna=$('#tablaGliSofts .activa').attr('value'),
+  orden=$('#tablaGliSofts .activa').attr('estado')){
+
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')

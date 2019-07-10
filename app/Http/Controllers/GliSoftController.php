@@ -40,14 +40,15 @@ class GliSoftController extends Controller
 
   public function obtenerGliSoft($id){
     $glisoft = GliSoft::find($id);
+    $size = 0;
+    $nombre_archivo = null;
 
     if(!empty($glisoft->archivo)){
       $nombre_archivo = $glisoft->archivo->nombre_archivo;
       //Saca el tamaño approx de una string encodeada en base64
       $size=(int) (strlen(rtrim($glisoft->archivo->archivo, '=')) * 3 / 4);
-    }else{
-      $nombre_archivo = null;
     }
+    
     $juegosYTPagos = array();
     foreach ($glisoft->juegos as $juego) {
       $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago];
