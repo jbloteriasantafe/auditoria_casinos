@@ -15,6 +15,7 @@ use Validator;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Mesas\Turnos\TurnosController;
 use App\Http\Controllers\UsuarioController;
+use App\Usuario;
 
 class CasinoController extends Controller
 {
@@ -32,12 +33,15 @@ class CasinoController extends Controller
     return self::$instance;
   }
 
-
-  public function buscarTodo(){
-    $casinos = Casino::all();
-
-    UsuarioController::getInstancia()->agregarSeccionReciente('Casinos' , 'casinos');
-    return view('Casinos.casinos')->with('casinos',$casinos);
+  public function buscarTodo(Request $request){
+    if($request->session()->has("id_usuario")){
+      $id_usuario = $request->session()->get("id_usuario");
+      $usuario = Usuario::find($id_usuario);
+      if($usuario != null){
+        UsuarioController::getInstancia()->agregarSeccionReciente('Casinos' , 'casinos');
+        return view('Casinos.casinos')->with('casinos',$usuario->casinos()->get());
+      }
+    }
   }
 
   //se usa en canon mesas
