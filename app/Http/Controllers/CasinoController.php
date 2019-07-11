@@ -167,10 +167,7 @@ class CasinoController extends Controller
   }
 
   public function modificarCasino(Request $request){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
-      return ['error' => 'El usuario no tiene accesso a ese casino'];
-    }
+
 
     $validator=Validator::make($request->all(), [
       'codigo' => ['required','max:3', Rule::unique('casino')->ignore( $request->id_casino,'id_casino')],
@@ -197,6 +194,12 @@ class CasinoController extends Controller
         return ['errors' => $validator->messages()->toJson()];
       }
     }
+
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->usuarioTieneCasino($request->$id_casino)){
+      return ['error' => 'El usuario no tiene accesso a ese casino'];
+    }
+    
     $casino = Casino::find($request->id_casino);
     $casino->codigo = $request->codigo;
     $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;

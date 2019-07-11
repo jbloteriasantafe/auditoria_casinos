@@ -205,6 +205,7 @@ $('#btn-guardar').on('click',function(e){
 
       },
       error: function(data){
+        console.log(data);
         $('#btn-guardar').prop('disabled',false);
 
         var errors = $.parseJSON(data.responseText).errors;
@@ -609,6 +610,7 @@ $('#btn-modificarCas').on('click',function(e){
 
       },
       error: function(data){
+        console.log(data);
         $('#btn-modificarCas').prop('disabled',false);
 
         var errors = $.parseJSON(data.responseText).errors;
