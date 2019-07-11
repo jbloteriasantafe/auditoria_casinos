@@ -34,14 +34,13 @@ class CasinoController extends Controller
   }
 
   public function buscarTodo(Request $request){
-    if($request->session()->has("id_usuario")){
-      $id_usuario = $request->session()->get("id_usuario");
-      $usuario = Usuario::find($id_usuario);
-      if($usuario != null){
-        UsuarioController::getInstancia()->agregarSeccionReciente('Casinos' , 'casinos');
-        return view('Casinos.casinos')->with('casinos',$usuario->casinos()->get());
-      }
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null){
+      return ['error' => 'No se puede acceder a la seccion casinos, usuario inexistente'];
     }
+
+    UsuarioController::getInstancia()->agregarSeccionReciente('Casinos' , 'casinos');
+    return view('Casinos.casinos')->with('casinos',$usuario->casinos);
   }
 
   //se usa en canon mesas
@@ -53,20 +52,29 @@ class CasinoController extends Controller
     return $cas;
   }
 
-  public function obtenerCasino($id){
+  public function obtenerCasino(Request $request,$id){
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
+      return ['error' => 'El usuario no tiene accesso a ese casino'];
+    }
+
     $casino = Casino::find($id);
     $turnos = Turno::whereIn('id_casino',[$id])->get();
     $fichas_casino = $casino->fichas()->get()->toArray();
     $fichas = Ficha::groupBy('id_moneda','id_ficha','valor_ficha','created_at','deleted_at','updated_at')->orderBy('valor_ficha','desc')->get()->toArray();
     return ['casino' => $casino,
-            'turnos' => $turnos,
-            'fichas_casino' => $fichas_casino,
-            'fichas' => $fichas
-          ];
+    'turnos' => $turnos,
+    'fichas_casino' => $fichas_casino,
+    'fichas' => $fichas
+    ];
   }
 
   public function guardarCasino(Request $request){
-    //$validator = Validator::make($input, $rules, $messages)->after(function ($validator){})->validate();
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->es_superusuario){
+      return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
+    }
+
     $validator=Validator::make($request->all(), [
       'nombre' => 'required|unique:casino,nombre|max:45',
       'codigo' => 'required|unique:casino,codigo|max:3',
@@ -85,15 +93,14 @@ class CasinoController extends Controller
       'fichas_nuevas' => 'nullable',
       'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
-
     ],array(),self::$atributos)->after(function ($validator){
       if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
     })->validate();
     if(isset($validator)){
       if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+        return ['errors' => $validator->messages()->toJson()];
+      }
+    }
 
     $casino = new Casino;
     $casino->nombre = $request->nombre;
@@ -106,19 +113,18 @@ class CasinoController extends Controller
     foreach ($request['turnos'] as $tt) {
       $tcontroller->guardar($tt,$casino->id_casino);
     }
-
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $user->casinos()->attach($casino->id_casino);
-
     $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
     $this->crearFichas($request['fichas_nuevas'], $casino);
-
     return ['casino' => $casino];
   }
 
-
-
-  public function obtenerTurno($id){
+  public function obtenerTurno(Request $request,$id){
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
+      return ['error' => 'El usuario no tiene accesso a ese casino'];
+    }
 
     $dia_semana = date('w');
 
@@ -161,45 +167,50 @@ class CasinoController extends Controller
   }
 
   public function modificarCasino(Request $request){
-  $validator=Validator::make($request->all(), [
-    'codigo' => ['required','max:3', Rule::unique('casino')->ignore( $request->id_casino,'id_casino')],
-    'turnos' =>'required',
-    'turnos.*.nro' => 'required|integer',
-    'turnos.*.desde' => ['required','regex:/^[1-7]$/'],
-    'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
-    'turnos.*.entrada' => 'required|date_format:H:i',
-    'turnos.*.salida' => 'required|date_format:H:i',
-    'porcentaje_sorteo_mesas' => 'required|integer|max:100',
-    'fichas_pesos' => 'required',
-    'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
-    'fichas_dolares' => 'nullable',
-    'fichas_dolares.*.id_ficha' => 'required|exists:ficha,id_ficha',
-    'fichas_nuevas' => 'nullable',
-    'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-    'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
-  ],array(),self::$atributos)->after(function ($validator){
-    if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
-  })->validate();
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
+      return ['error' => 'El usuario no tiene accesso a ese casino'];
+    }
 
-  if(isset($validator)){
-    if ($validator->fails()){
+    $validator=Validator::make($request->all(), [
+      'codigo' => ['required','max:3', Rule::unique('casino')->ignore( $request->id_casino,'id_casino')],
+      'turnos' =>'required',
+      'turnos.*.nro' => 'required|integer',
+      'turnos.*.desde' => ['required','regex:/^[1-7]$/'],
+      'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
+      'turnos.*.entrada' => 'required|date_format:H:i',
+      'turnos.*.salida' => 'required|date_format:H:i',
+      'porcentaje_sorteo_mesas' => 'required|integer|max:100',
+      'fichas_pesos' => 'required',
+      'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
+      'fichas_dolares' => 'nullable',
+      'fichas_dolares.*.id_ficha' => 'required|exists:ficha,id_ficha',
+      'fichas_nuevas' => 'nullable',
+      'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
+    ],array(),self::$atributos)->after(function ($validator){
+      if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
+    })->validate();
+
+    if(isset($validator)){
+      if ($validator->fails()){
         return ['errors' => $validator->messages()->toJson()];
-        }
-   }
-  $casino = Casino::find($request->id_casino);
-  $casino->codigo = $request->codigo;
-  $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
-  $casino->save();
+      }
+    }
+    $casino = Casino::find($request->id_casino);
+    $casino->codigo = $request->codigo;
+    $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
+    $casino->save();
 
-  $this->asociarTurnos($request->turnos, $casino);
-
-
-  $this->crearFichas($request['fichas_nuevas'],$casino);
-  $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
+    $this->asociarTurnos($request->turnos, $casino);
 
 
-  return ['casino' => $casino];
-}
+    $this->crearFichas($request['fichas_nuevas'],$casino);
+    $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
+
+
+    return ['casino' => $casino];
+  }
 
 private function asociarTurnos($turnos, $casino){
   $turnos_anteriores = $casino->turnos;
@@ -223,16 +234,30 @@ private function asociarTurnos($turnos, $casino){
 
 
   public function eliminarCasino($id){
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->es_superusuario){
+      return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
+    }
+
     $casino = Casino::destroy($id);
     return ['casino' => $casino];
   }
 
   public function getAll(){
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->es_superusuario){
+      return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
+    }
     $todos=Casino::all();
     return $todos;
   }
 
-  public function meses($id_casino){
+  public function meses(Request $request,$id_casino){
+    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
+      return ['error' => 'El usuario no tiene accesso a ese casino'];
+    }
+
     $casino = Casino::find($id_casino);
     $meses = $casino->meses()->orderBy('nro_cuota','asc')->get();
     return ['casino' => $casino, 'meses' => $meses];
@@ -373,7 +398,7 @@ private function asociarTurnos($turnos, $casino){
     }
 
   }
-  public function getFichas(){
+  public function getFichas(Request $request){
     $fichas = Ficha::groupBy('id_moneda','id_ficha','valor_ficha','created_at','deleted_at','updated_at')->orderBy('valor_ficha','asc')->get()->toArray();
     return ['fichas' => $fichas];
   }

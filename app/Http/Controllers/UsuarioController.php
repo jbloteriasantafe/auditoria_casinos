@@ -588,5 +588,13 @@ class UsuarioController extends Controller
       return 0;
     }
   }
+  public function obtenerUsuario(Request $request){
+    if($request->session()->has("id_usuario")){
+      $id_usuario = $request->session()->get("id_usuario");
+      $usuario = Usuario::find($id_usuario);
+      return $usuario;
+    }
+    return null;
+  }
 
 }

@@ -60,16 +60,19 @@ Route::get('progresivos/buscarProgresivoLinkeadoPorNombre/{busqueda}','Progresiv
 /***********
 Casinos
 ***********/
-Route::get('casinos','CasinoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_casinos');
-Route::get('casinos/obtenerCasino/{id?}','CasinoController@obtenerCasino');
-Route::post('casinos/guardarCasino','CasinoController@guardarCasino');
-Route::get('/casinos/obtenerTurno/{id}','CasinoController@obtenerTurno');
-Route::post('casinos/modificarCasino','CasinoController@modificarCasino');
-Route::delete('casinos/eliminarCasino/{id}','CasinoController@eliminarCasino');
-Route::get('casinos/get', 'CasinoController@getAll');
-Route::get('casinos/getCasinos', 'CasinoController@getParaUsuario');
-Route::get('casinos/getMeses/{id_casino}', 'CasinoController@meses');
-Route::get('casinos/getFichas','CasinoController@getFichas');
+Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_casinos'], function () {
+  Route::get('/','CasinoController@buscarTodo');
+  Route::get('/obtenerCasino/{id?}','CasinoController@obtenerCasino');
+  Route::post('/guardarCasino','CasinoController@guardarCasino');
+  Route::get('/obtenerTurno/{id}','CasinoController@obtenerTurno');
+  Route::post('/modificarCasino','CasinoController@modificarCasino');
+  Route::delete('/eliminarCasino/{id}','CasinoController@eliminarCasino');
+  Route::get('/get', 'CasinoController@getAll');
+  Route::get('/getCasinos', 'CasinoController@getParaUsuario');
+  Route::get('/getMeses/{id_casino}', 'CasinoController@meses');
+  Route::get('/getFichas','CasinoController@getFichas');
+});
+
 
 
 /***********

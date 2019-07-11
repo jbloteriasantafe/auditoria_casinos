@@ -1,3 +1,6 @@
+ <?php
+use App\Http\Controllers\UsuarioController;
+?>
 @extends('includes.dashboard')
 
 @section('headerLogo')
@@ -18,6 +21,7 @@
 <div class="col-xl-3">
   <div class="row">
     <div class="col-md-12">
+      @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
       <a href="" id="btn-nuevo" dusk="btn-nuevo" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/casinos_white.png"><center>
@@ -32,6 +36,7 @@
               </div>
           </div>
         </a>
+        @endif
     </div>
   </div>
 </div>
