@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 use App\Console\Commands\CalcularDiferenciasIDM;
 use App\Console\Commands\SortearMesas;
-use App\Http\Controllers\Importaciones\Mesas\ImportadorController;
-use App\Http\Controllers\Aperturas\ABMCRelevamientosAperturaController;
-use App\Http\Controllers\Apuestas\GenerarPlanillasController;
+use App\Http\Controllers\Mesas\Importaciones\Mesas\ImportadorController;
+use App\Http\Controllers\Mesas\Aperturas\ABMCRelevamientosAperturaController;
+use App\Http\Controllers\Mesas\Apuestas\GenerarPlanillasController;
 use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
@@ -55,6 +55,10 @@ class Kernel extends ConsoleKernel
      $schedule->command('RelevamientoApuestas:generar')
              ->dailyAt('17:10')
              ->runInBackground();
+
+     $impController= new ImportadorController;
+     $relevamientoController = new ABMCRelevamientosAperturaController;
+     $generarPlanillasController = new GenerarPlanillasController;
 
      $schedule->call(function () {
 
