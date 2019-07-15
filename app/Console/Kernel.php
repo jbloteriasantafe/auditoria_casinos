@@ -83,7 +83,7 @@ class Kernel extends ConsoleKernel
                   break;
               }
             }
-     })->everyMinute()->runInBackground();
+     })->everyThirtyMinutes()->runInBackground();
 
 
     }
