@@ -60,7 +60,9 @@ class Kernel extends ConsoleKernel
      $relevamientoController = new ABMCRelevamientosAperturaController;
      $generarPlanillasController = new GenerarPlanillasController;
 
-     $schedule->call(function () {
+     $schedule->call(function () use ($impController,
+                                      $relevamientoController,
+                                      $generarPlanillasController){
 
          $comando = DB::table('comando_a_ejecutar')
              ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
@@ -81,7 +83,7 @@ class Kernel extends ConsoleKernel
                   break;
               }
             }
-     })->everyThirtyMinutes()->runInBackground();
+     })->everyMinute()->runInBackground();
 
 
     }
