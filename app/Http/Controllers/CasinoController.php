@@ -189,7 +189,6 @@ class CasinoController extends Controller
 
   $this->asociarTurnos($request->turnos, $casino);
 
-
   $this->crearFichas($request['fichas_nuevas'],$casino);
   $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
 
@@ -419,12 +418,14 @@ private function asociarTurnos($turnos, $casino){
   public function crearFichas($fichas_nuevas,$casino){
     if(!empty($fichas_nuevas)){
       foreach ($fichas_nuevas as $ficha) {
-
         $f = new Ficha;
         $f->valor_ficha = $ficha['valor_ficha'];
         $f->moneda()->associate($ficha['id_moneda']);
         $f->save();
-        FichaTieneCasino::create(['id_casino' => $id_casino, 'id_ficha' => $f->id_ficha]);
+        $ficha_tiene_casino = new FichaTieneCasino;
+        $ficha_tiene_casino->ficha()->associate($f->id_ficha);
+        $ficha_tiene_casino->casino()->associate($casino->id_casino);
+        $ficha_tiene_casino->save();
       }
     }
   }

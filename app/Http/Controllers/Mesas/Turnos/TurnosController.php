@@ -60,8 +60,7 @@ class TurnosController extends Controller
       $nuevoTurno->entrada = $turno['entrada'];
       $nuevoTurno->salida = $turno['salida'];
       $nuevoTurno->nro_turno = $turno['nro'];
-      $time = Carbon::createFromTimeString($turno['salida'], 'Europe/London');
-      $nuevoTurno->hora_propuesta = $time->subHour();
+      $nuevoTurno->hora_propuesta = $turno['salida'];
       $nuevoTurno->casino()->associate($casino);
       $nuevoTurno->save();
 
