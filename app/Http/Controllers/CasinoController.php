@@ -61,56 +61,7 @@ class CasinoController extends Controller
           ];
   }
 
-  public function guardarCasino(Request $request){
-    //$validator = Validator::make($input, $rules, $messages)->after(function ($validator){})->validate();
-    $validator=Validator::make($request->all(), [
-      'nombre' => 'required|unique:casino,nombre|max:45',
-      'codigo' => 'required|unique:casino,codigo|max:3',
-      'turnos' =>'required',
-      'turnos.*.nro' => 'required|integer',
-      'turnos.*.desde' => ['required','regex:/^[1-7]$/'],
-      'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
-      'turnos.*.entrada' => 'required|date_format:H:i',
-      'turnos.*.salida' => 'required|date_format:H:i',
-      'fecha_inicio' => 'required|date_format:Y-m-d',
-      'porcentaje_sorteo_mesas' => 'required|integer|max:100',
-      'fichas_pesos' => 'required',
-      'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas_dolares' => 'nullable',
-      'fichas_dolares.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas_nuevas' => 'nullable',
-      'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
 
-    ],array(),self::$atributos)->after(function ($validator){
-      if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
-    })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
-    $casino = new Casino;
-    $casino->nombre = $request->nombre;
-    $casino->codigo = $request->codigo;
-    $casino->fecha_inicio = $request->fecha_inicio;
-    $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
-    $casino->save();
-    $this->actualizarMeses($casino->id_casino);
-    $tcontroller = new TurnosController;
-    foreach ($request['turnos'] as $tt) {
-      $tcontroller->guardar($tt,$casino->id_casino);
-    }
-
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $user->casinos()->attach($casino->id_casino);
-
-    $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
-    $this->crearFichas($request['fichas_nuevas'], $casino);
-
-    return ['casino' => $casino];
-  }
 
 
 
@@ -156,6 +107,78 @@ class CasinoController extends Controller
             'CODIGO' => $codigo];
   }
 
+  public function guardarCasino(Request $request){
+    //$validator = Validator::make($input, $rules, $messages)->after(function ($validator){})->validate();
+    $validator=Validator::make($request->all(), [
+      'nombre' => 'required|unique:casino,nombre|max:45',
+      'codigo' => 'required|unique:casino,codigo|max:3',
+      'turnos' =>'required',
+      'turnos.*.nro' => 'required|integer',
+      'turnos.*.desde' => ['required','regex:/^[1-7]$/'],
+      'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
+      'turnos.*.entrada' => 'required|date_format:H:i',
+      'turnos.*.salida' => 'required|date_format:H:i',
+      'fecha_inicio' => 'required|date_format:Y-m-d',
+      'porcentaje_sorteo_mesas' => 'required|integer|max:100',
+      'fichas_pesos' => 'nullable',
+      'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
+      'fichas_dolares' => 'nullable',
+      'fichas_dolares.*.id_ficha' => 'required|exists:ficha,id_ficha',
+      'fichas_nuevas' => 'nullable',
+      'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
+
+    ],array(),self::$atributos)->after(function ($validator){
+      if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
+    })->validate();
+    if(isset($validator)){
+      if ($validator->fails()){
+          return ['errors' => $validator->messages()->toJson()];
+          }
+     }
+
+    $casino = new Casino;
+    $casino->nombre = $request->nombre;
+    $casino->codigo = $request->codigo;
+    $casino->fecha_inicio = $request->fecha_inicio;
+    $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
+    $casino->save();
+
+    $this->actualizarMeses($casino->id_casino);
+
+    $tcontroller = new TurnosController;
+    foreach ($request['turnos'] as $tt) {
+      $tcontroller->guardar($tt,$casino->id_casino);
+    }
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $user->casinos()->attach($casino->id_casino);
+
+
+    $fichas_nuevas = $this->crearFichas($request['fichas_nuevas']);
+
+
+
+    //TODO: Hardcodeado
+    if(!array_key_exists('fichas_pesos',$request)  && !isset($request['fichas_pesos']) ){
+      $request['fichas_pesos'] = array();
+    }
+    if(!array_key_exists('fichas_dolares',$request) && !isset($request['fichas_dolares']) ){
+      $request['fichas_dolares'] = array();
+    }
+
+    if(array_key_exists("1",$fichas_nuevas)){
+      $request['fichas_pesos'] = array_merge($fichas_nuevas["1"],$request['fichas_pesos']);
+    }
+    if(array_key_exists("2",$fichas_nuevas)){
+      $request['fichas_dolares'] = array_merge($fichas_nuevas["2"],$request['fichas_dolares']);
+    }
+
+    $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
+
+    return ['casino' => $casino];
+  }
+
   public function modificarCasino(Request $request){
   $validator=Validator::make($request->all(), [
     'codigo' => ['required','max:3', Rule::unique('casino')->ignore( $request->id_casino,'id_casino')],
@@ -190,14 +213,23 @@ class CasinoController extends Controller
 
   $this->asociarTurnos($request->turnos, $casino);
 
-  $fichas = $this->crearFichas($request['fichas_nuevas']);
+  $fichas_nuevas = $this->crearFichas($request['fichas_nuevas']);
+
 
   //TODO: Hardcodeado
-  if(array_key_exists("1",$fichas)){
-    $request['fichas_pesos'] = array_merge($fichas["1"],$request['fichas_pesos']);
+  if(!array_key_exists('fichas_pesos',$request) && !isset($request['fichas_pesos'])){
+    $request['fichas_pesos'] = array();
   }
-  if(array_key_exists("2",$fichas)){
-    $request['fichas_dolares'] = array_merge($fichas["2"],$request['fichas_dolares']);
+  if(!array_key_exists('fichas_dolares',$request) && !isset($request['fichas_dolares'])){
+    $request['fichas_dolares'] = array();
+  }
+
+  if(array_key_exists("1",$fichas_nuevas)){
+    $request['fichas_pesos'] = array_merge($fichas_nuevas["1"],$request['fichas_pesos']);
+  }
+
+  if(array_key_exists("2",$fichas_nuevas)){
+    $request['fichas_dolares'] = array_merge($fichas_nuevas["2"],$request['fichas_dolares']);
   }
 
   $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
@@ -410,11 +442,13 @@ private function asociarTurnos($turnos, $casino){
       }
     }else{
       //si no
-      foreach ($fichas_pesos as $ficha) {
-        $f = new FichaTieneCasino;
-        $f->ficha()->associate($ficha['id_ficha']);
-        $f->casino()->associate($id_casino);
-        $f->save();
+      if(!empty($fichas_pesos)){
+        foreach ($fichas_pesos as $ficha) {
+          $f = new FichaTieneCasino;
+          $f->ficha()->associate($ficha['id_ficha']);
+          $f->casino()->associate($id_casino);
+          $f->save();
+        }
       }
       if(!empty($fichas_dolares)){
         foreach ($fichas_dolares as $ficha) {
