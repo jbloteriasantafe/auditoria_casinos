@@ -392,7 +392,6 @@ $('#btn-preModificar').on('click',function(e){
             $('#p_dolares_modif').css('display',estilo_viejo);
           }
 
-
           var fk = data.fichas;
           Object.keys(fk).forEach(key => {
             let value = fk[key];
