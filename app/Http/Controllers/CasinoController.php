@@ -166,7 +166,7 @@ class CasinoController extends Controller
     'turnos.*.entrada' => 'required|date_format:H:i',
     'turnos.*.salida' => 'required|date_format:H:i',
     'porcentaje_sorteo_mesas' => 'required|integer|max:100',
-    'fichas_pesos' => 'required',
+    'fichas_pesos' => 'nullable',
     'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
     'fichas_dolares' => 'nullable',
     'fichas_dolares.*.id_ficha' => 'required|exists:ficha,id_ficha',
@@ -182,6 +182,7 @@ class CasinoController extends Controller
         return ['errors' => $validator->messages()->toJson()];
         }
    }
+
   $casino = Casino::find($request->id_casino);
   $casino->codigo = $request->codigo;
   $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
@@ -189,7 +190,16 @@ class CasinoController extends Controller
 
   $this->asociarTurnos($request->turnos, $casino);
 
-  $this->crearFichas($request['fichas_nuevas'],$casino);
+  $fichas = $this->crearFichas($request['fichas_nuevas']);
+
+  //TODO: Hardcodeado
+  if(array_key_exists("1",$fichas)){
+    $request['fichas_pesos'] = array_merge($fichas["1"],$request['fichas_pesos']);
+  }
+  if(array_key_exists("2",$fichas)){
+    $request['fichas_dolares'] = array_merge($fichas["2"],$request['fichas_dolares']);
+  }
+
   $this->asociarFichas($request['fichas_pesos'],$request['fichas_dolares'],$casino->id_casino);
 
 
@@ -380,9 +390,11 @@ private function asociarTurnos($turnos, $casino){
       $fichas_anteriores = $casino->fichas;
       $array_nuevas = array();
       //update or create
-      foreach ($fichas_pesos as $ficha) {
-        $array_nuevas[] = $ficha['id_ficha'];
-        FichaTieneCasino::updateOrCreate(['id_casino' => $id_casino, 'id_ficha' => $ficha['id_ficha']]);
+      if(!empty($fichas_pesos)){
+        foreach ($fichas_pesos as $ficha) {
+          $array_nuevas[] = $ficha['id_ficha'];
+          FichaTieneCasino::updateOrCreate(['id_casino' => $id_casino, 'id_ficha' => $ficha['id_ficha']]);
+        }
       }
       if(!empty($fichas_dolares)){
         foreach ($fichas_dolares as $ficha) {
@@ -415,19 +427,32 @@ private function asociarTurnos($turnos, $casino){
     }
 
   }
-  public function crearFichas($fichas_nuevas,$casino){
+  public function crearFichas($fichas_nuevas){
+    $fichas = array();
     if(!empty($fichas_nuevas)){
       foreach ($fichas_nuevas as $ficha) {
         $f = new Ficha;
-        $f->valor_ficha = $ficha['valor_ficha'];
-        $f->moneda()->associate($ficha['id_moneda']);
+        $valor = $ficha['valor_ficha'];
+        $id_moneda = $ficha['id_moneda'];
+        $f->valor_ficha = $valor;
+        $f->moneda()->associate($id_moneda);
         $f->save();
-        $ficha_tiene_casino = new FichaTieneCasino;
-        $ficha_tiene_casino->ficha()->associate($f->id_ficha);
-        $ficha_tiene_casino->casino()->associate($casino->id_casino);
-        $ficha_tiene_casino->save();
+
+        if(!array_key_exists($id_moneda,$fichas)){
+          $fichas[$id_moneda] = array();
+        }
+
+        $ficha_map = array(
+          "id_moneda" => $id_moneda,
+          "valor_ficha" => $valor,
+          "id_ficha" => $f->id_ficha
+        );
+
+        $fichas[$id_moneda][] = $ficha_map;
       }
     }
+
+    return $fichas;
   }
 
 }
