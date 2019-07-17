@@ -412,6 +412,17 @@ use App\Http\Controllers\UsuarioController;
 <script src="/js/locales/es.js" type="text/javascript"></script>
 <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
+<script>
+var override_mostrar_dolares = false;
+var estilo_viejo = $('#p_dolares_modif').css('display');
+
+@if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+override_mostrar_dolares = true;
+@endif
+
+</script>
 <script src="js/Casinos/casinos.js" charset="utf-8"></script>
+
+
 
 @endsection

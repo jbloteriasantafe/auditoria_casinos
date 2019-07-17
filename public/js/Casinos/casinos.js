@@ -339,12 +339,16 @@ $("ul.pestaniasTFM li").click(function() {
 });
 
 
+
+
 $(document).on('click','.modificarCasino',function(e){
   e.preventDefault();
 
   limpiarModificar();
   $('#btn-preModificar').val($(this).val());
   $('#btn-modificarCas').val($(this).val());
+
+
 
   $('#modalPreModificar').modal('show');
 });
@@ -377,6 +381,17 @@ $('#btn-preModificar').on('click',function(e){
           $('#finicioModif').val(data.casino.fecha_inicio);
           $('#finicioModif').prop('disabled',true);
           $('#porcentajeModif').val(data.casino.porcentaje_sorteo_mesas);
+
+          if($('#nombreModif').val() === "Melincué" || $('#nombreModif').val() === "Santa Fe"){
+            $('#p_dolares_modif').css('display','none');
+          }
+          else{
+            $('#p_dolares_modif').css('display',estilo_viejo);
+          }
+          if(override_mostrar_dolares){
+            $('#p_dolares_modif').css('display',estilo_viejo);
+          }
+
 
           var fk = data.fichas;
           Object.keys(fk).forEach(key => {
