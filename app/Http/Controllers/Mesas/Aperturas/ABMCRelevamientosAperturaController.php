@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use DateTime;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 
 use PDF;
 use View;
@@ -187,17 +188,10 @@ class ABMCRelevamientosAperturaController extends Controller
   *
   */
   public function crearPlanilla($cas,$fecha_backup){
-    //try{
-
-        $sorteoController = new SorteoMesasController;
-        $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
-    // }catch(Exeption $e){
-
-    //    throw $e;
-    // }
+    $sorteoController = new SorteoMesasController;
+    $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
 
     if($sorteo != null){
-      //try{
         $rel = new \stdClass();
         //mesas sorteadas
 
@@ -255,40 +249,25 @@ class ABMCRelevamientosAperturaController extends Controller
                       ->orderBy('valor_ficha','desc')
                       ->get();
         $rel->fichas = $fichas;
-        // $fichas = FichaTieneCasino::where('id_casino',$cas->id_casino)
-        //                                   ->get()
-        //                                   ->unique('valor_ficha')
-        //                                   ->sortByDesc('valor_ficha');
-        // $rel->fichas = $fichas->map(function ($fichas ) {
-        //     return $fichas->only(['valor_ficha']);
-        //   });
         $rel->cant_fichas = $rel->fichas->count();
-        //dd($rel->cant_fichas);
+
         if($rel->cant_fichas > 15){
           $rel->paginas = [1,2]; //->cantidad de mesas que se deben relevar obligatoriamente (de a pares)
         }else{
           $rel->paginas = [1,2,3,4];
         }
-        //if(!$rel->fichas)
-        // dd($rel);
-
         $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas_v3', compact('rel'));
-      //  dd($view);
-        $dompdf = new Dompdf();
+
+        $options = new Options();
+        $options->setIsRemoteEnabled(true);
+        $dompdf = new Dompdf($options);
         $dompdf->set_paper('A4', 'portrait');
         $dompdf->loadHtml($view);
         $dompdf->render();
         $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
         $dompdf->getCanvas()->page_text(20, 815, $cas->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
         $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-        return $dompdf;//->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
-      // }catch(Exeption $e){
-      //   if($e instanceof \App\Exceptions\PlanillaException){
-      //     throw $e;
-      //   }else{
-      //     throw $e;
-      //   }
-      // }
+        return $dompdf;
     }
   }
 
