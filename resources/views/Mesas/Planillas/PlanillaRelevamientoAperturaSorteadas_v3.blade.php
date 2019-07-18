@@ -42,11 +42,12 @@ footer
 
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
 
-    <link href="{{ asset('css/estiloPlanillaPortrait.css') }}" rel="stylesheet">
+    <link href="public/css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
+
         <div class="encabezadoImg">
-              <img src="{{ asset('img/logos/banner_loteria_landscape2_f.png') }}" width="900">
+              <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -98,7 +99,7 @@ footer
               <!-- segunda hoja -->
               <div style="page-break-after:always;"></div>
               <div class="encabezadoImg">
-                    <img src="{{ asset('img/logos/banner_loteria_landscape2_f.png') }}" width="900">
+                    <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
                     <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
               </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -155,7 +156,7 @@ footer
                     @foreach($rel->paginas as $p)
                     <div style="page-break-after:always;"></div>
                     <div class="encabezadoImg">
-                          <img src="{{ asset('img/logos/banner_loteria_landscape2_f.png') }}" width="900">
+                          <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
                           <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
                     </div>
                     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -206,7 +207,7 @@ footer
                     @if($rel->cant_fichas > 15)
                       <div style="page-break-after:always;"></div>
                       <div class="encabezadoImg">
-                            <img src="{{ asset('img/logos/banner_loteria_landscape2_f.png') }}" width="900">
+                            <img src="public/img/logos/banner_loteria_landscape2_f.png" width="900">
                             <h2><span>RMES02 | Control de apertura y cierre de MESAS DE PAÑO.</span></h2>
                       </div>
                       <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

@@ -29,7 +29,6 @@ use App\Mesas\Moneda;
 use App\Http\Controllers\Mesas\Apuestas\ABMApuestasController;
 use App\Mesas\RelevamientoApuestas;
 use Dompdf\Dompdf;
-use Dompdf\Options;
 
 use PDF;
 use Zipper;
@@ -214,9 +213,7 @@ class GenerarPlanillasController extends Controller
       $rel->hora_ejecucion = '__:__';
       //dd($datos['paginas'][1]);
       $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
-      $options = new Options();
-      $options->setIsRemoteEnabled(true);
-      $dompdf = new Dompdf($options);
+      $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'landscape');
       $dompdf->loadHtml($view);
       $dompdf->render();
