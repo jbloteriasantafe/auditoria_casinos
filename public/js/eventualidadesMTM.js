@@ -1119,10 +1119,10 @@ function generarFilaTabla(event,controlador,superusuario){
       fila.append(contenido);
 
     if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
-    if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();}
+    if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide();}
     if (controlador == 1 && estado==8 && !superusuario) {fila.find('.btn_validarEvmtm').hide()}
     if(controlador == 1 && estado == 6 && !superusuario){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
-    if(controlador==1 && estado==1 && !superusuario){fila.find('.btn_cargarEvmtm').hide(); fila.find('.btn_borrarEvmtm').hide();}
+    if(controlador==1 && estado==1 && !superusuario){fila.find('.btn_cargarEvmtm').hide();}
 
     return fila;
 };
