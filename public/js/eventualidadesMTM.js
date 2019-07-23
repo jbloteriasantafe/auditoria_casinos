@@ -1063,12 +1063,12 @@ function generarFilaTabla(event,controlador,superusuario){
       fila.append($('<td>')
       .addClass('col-xs-2')
       .text(casino)
-      )
-      .append($('<td>')
+      );
+      fila.append($('<td>')
       .addClass('col-xs-2')
       .text(islas)
-      )
-      .append($('<td>')
+      );
+      contenido = $('<td>')
       .addClass('col-xs-3')
       .append($('<span>').text(' '))
       .append($('<span>').text(' '))
@@ -1079,11 +1079,18 @@ function generarFilaTabla(event,controlador,superusuario){
       .append($('<span>').text('IMPRIMIR'))
       .addClass('btn').addClass('btn-info')
       .attr('value',event.id_log_movimiento)
-      )
+      );
 
-      .append($('<button>')
+      if(estado!=1){
+        dibujo = 'fa-upload';
+      }
+      else{
+        dibujo = "fa-pencil-alt";
+      }
+
+      contenido.append($('<button>')
       .addClass('btn_cargarEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass(dibujo)
       )
       .append($('<span>').text('CARGAR'))
       .addClass('btn').addClass('btn-success')
@@ -1099,7 +1106,6 @@ function generarFilaTabla(event,controlador,superusuario){
       .addClass('btn').addClass('btn-success')
       .attr('value',event.id_log_movimiento)
       )
-
       .append($('<span>').text(' '))
       .append($('<button>')
       .addClass('btn_borrarEvmtm')
@@ -1109,7 +1115,8 @@ function generarFilaTabla(event,controlador,superusuario){
       .addClass('btn').addClass('btn-danger')
       .attr('value',event.id_log_movimiento)
       )
-    );
+
+      fila.append(contenido);
 
     if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
     if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();}
