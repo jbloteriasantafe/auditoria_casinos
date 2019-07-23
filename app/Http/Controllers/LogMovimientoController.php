@@ -586,7 +586,7 @@ class LogMovimientoController extends Controller
             // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
             // MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
             MTMController::getInstancia()->modificarDevolucionJuego($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
-            
+
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
@@ -1439,7 +1439,7 @@ class LogMovimientoController extends Controller
     foreach ($log->relevamientos_movimientos as $rel) {
       $rel->log_movimiento()->dissociate();
       foreach($rel->toma_relevamiento_movimiento as $toma){
-        $toma->delete();  
+        $toma->delete();
       }
       RelevamientoMovimiento::destroy($rel->id_relev_mov);
     }
@@ -1631,10 +1631,11 @@ class LogMovimientoController extends Controller
       $tipos = TipoMovimiento::all();
       $casinos = $usuario->casinos;
       $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
-
+      $esSuperUsuario = $usuario->es_superusuario;
 
       return ['eventualidades'=>$resultados,
               'esControlador' =>$esControlador,/*$esControlador*/
+              'esSuperUsuario' => $esSuperUsuario,
               'tiposEventualidadesMTM'=> $tipos,
               'casinos' => $casinos];
 
@@ -1667,12 +1668,14 @@ class LogMovimientoController extends Controller
       $tipos = TipoMovimiento::whereNotIn('id_tipo_movimiento',[1,8,9])->get();//egreso , cambio_layout , denominacion , % devolucion , juego
       $casinos = $usuario->casinos;
       $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
+      $esSuperUsuario=$usuario->es_superusuario;
 
       UsuarioController::getInstancia()->agregarSeccionReciente('Intervenciones MTM' , 'eventualidadesMTM');
 
       return view('eventualidadesMTM',
                   ['eventualidades'=>$resultados,
                    'esControlador' => $esControlador/*$esControlador*/,
+                   'esSuperUsuario' => $esSuperUsuario,
                    'tiposEventualidadesMTM'=> $tipos,
                    'casinos' => $casinos]);
 
@@ -2044,7 +2047,7 @@ class LogMovimientoController extends Controller
                       ->join('sector','sector.id_sector','=','isla.id_sector')
                       ->where('sector.id_sector' , '=' , $id_sector)
                       ->get();
-      
+
       foreach($maquinas as  $m){
         $m->denominacion= $m->obtenerDenominacion();
         $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
@@ -2082,12 +2085,12 @@ class LogMovimientoController extends Controller
   public function obtenerMaquina($id_maquina){
     //dado un casino,devuelve sectores que concuerden con el nombre del sector
     $m = Maquina::Find($id_maquina);
-    
+
     $m->denominacion= $m->obtenerDenominacion();
     $m->porcentaje_devolucion= $m->obtenerPorcentajeDevolucion();
 
     $juego_activo= $m->juego_activo;
-    
+
 
     $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
 

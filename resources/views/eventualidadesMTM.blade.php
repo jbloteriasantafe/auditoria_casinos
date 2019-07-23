@@ -142,16 +142,16 @@
 
                       <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
 
-                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0)
+                      @if($eventualidad->id_estado_movimiento == 6 && ($esControlador == 0 || $esSuperUsuario))
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
-                      @if($eventualidad->id_estado_movimiento == 1  && $esControlador == 1)
+                      @if($eventualidad->id_estado_movimiento == 1  && ($esControlador == 1 || $esSuperUsuario))
                       <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-check"></i></button>
                       @endif
 
-                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1))
+                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1 || $esSuperUsuario)))
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
@@ -734,7 +734,7 @@
                                       <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
                                     </div>
 
-                                    @if($esControlador == 1)
+                                    @if($esControlador == 1 || $esSuperUsuario)
                                       <div class="col-lg-12">
                                         <h6>OBSERVACIONES ADMIN:</h6>
                                         <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
