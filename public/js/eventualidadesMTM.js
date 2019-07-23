@@ -469,8 +469,8 @@ function cargarDatos (data){
     $('#cant_lineasEv').val(data.toma.cant_creditos);
     $('#observacionesTomaEv').val(data.toma.observaciones);
     $('#macEv').val(data.toma.mac);
-    $('#sectorRelevadoEv').val(data.toma.nro_isla_relevada);
-    $('#islaRelevadaEv').val(data.toma.descripcion_sector_relevado);
+    $('#sectorRelevadoEv').val(data.toma.descripcion_sector_relevado);
+    $('#islaRelevadaEv').val(data.toma.nro_isla_relevada);
     }
 
     //$('#juegoEv').prop('disabled',true);

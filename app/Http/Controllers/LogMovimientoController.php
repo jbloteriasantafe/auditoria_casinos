@@ -1792,6 +1792,7 @@ class LogMovimientoController extends Controller
 
   public function cargarEventualidadMTM(Request $request){
     // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
+
     $validator =Validator::make($request->all(), [
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'id_cargador' => 'nullable|exists:usuario,id_usuario',
@@ -1874,6 +1875,8 @@ class LogMovimientoController extends Controller
         */
       })->validate();
 
+
+
      if(isset($validator))
       {
         if ($validator->fails())
@@ -1884,9 +1887,12 @@ class LogMovimientoController extends Controller
         }
      }
 
+
      $log = LogMovimiento::find($request['id_log_movimiento']);
      //$log->tipo_movimiento()->associate($request['tipo_movimiento']);
      $cant_rels =count($log->relevamientos_movimientos);
+
+
 
 
      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
@@ -1895,6 +1901,7 @@ class LogMovimientoController extends Controller
       $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento'],
       $request['sectorRelevadoEv'],$request['islaRelevadaEv']
       );
+
 
       $id_usuario = session('id_usuario');
 
