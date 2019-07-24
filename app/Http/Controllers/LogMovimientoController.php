@@ -1894,7 +1894,7 @@ class LogMovimientoController extends Controller
 
 
 
-
+     //dump($request);
      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
       $request['juego'] , $request['apuesta_max'], $request['cant_lineas'], $request['porcentaje_devolucion'], $request['denominacion'] ,
       $request['cant_creditos'], $request['fecha_sala'], $request['observaciones'],
@@ -1967,6 +1967,7 @@ class LogMovimientoController extends Controller
     $maquinas = array();
     foreach ($relevamientos as $rel) {
       $maquinas[] = ['id_relevamiento' => $rel->id_relev_mov,
+                      'estado' => $rel->estado_relevamiento,
                      'nro_admin' => $rel->maquina->nro_admin,
                      'id_maquina' => $rel->maquina->id_maquina
                    ];

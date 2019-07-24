@@ -279,6 +279,12 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
             var fila= $('<tr>');
             var maq= data.maquinas[i].nro_admin;
 
+            var dibujo = 'fa-upload';
+
+            if(data.maquinas[i].estado.id_estado_relevamiento != 1){
+              dibujo = 'fa-pencil-alt';
+            }
+
             fila.append($('<td>')
                 .addClass('col-xs-8')
                 .text(maq));
@@ -286,7 +292,7 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
                 .addClass('col-xs-4')
                 .append($('<button>')
                 .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass('fa-upload'))
+                .addClass('fa').addClass('fa-fw').addClass(dibujo))
                 .attr('type','button')
                 .addClass('btn btn-info detalleMTM')
                 .attr('id', data.maquinas[i].id_maquina)
@@ -368,10 +374,11 @@ $(document).on('click','.detalleMTM',function(){
 
 
   $('#modalCargarMaqEv #detallesMTM').show();
-
   var id_maq=$(this).attr('id');
   console.log('id_maquina', id_maq);
-  $('#modalCargarMaqEv').find('#id_maq').val(id_maq);
+
+  $('#modalCargarMaqEv #id_maq').val(id_maq);
+
 
   var id_rel=$(this).attr('data-relevamiento');
 
@@ -585,6 +592,29 @@ $(document).on('click','#guardarEv',function(){
       ocultarErrorValidacion($('#fechaEv'));
       ocultarErrorValidacion($('#macEv'));
 
+//      var maq=$('#modalCargarMaqEv').find('#id_maq').val();
+
+//      $('#modalCargarMaqEv').find('#id_maq').val();
+
+      var boton = $('#modalCargarMaqEv')
+      .find('.detalleMTM[id='+id_maq+']')[0];
+      $(boton).empty();
+      $(boton).append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
+
+      var cantbotones = $('#modalCargarMaqEv')
+      .find('.detalleMTM').size();
+
+      var cantlapices = $('#modalCargarMaqEv')
+      .find('.detalleMTM').find('.fa-pencil-alt').size();
+
+      //Actualizo el boton de la pantalla principal
+      //Todos fueron cargados.
+      if(cantbotones == cantlapices){
+        var btn_menu = $('.btn_cargarEvmtm[value='+id_log_movimiento+']');
+        btn_menu.empty();
+        btn_menu.append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
+      }
+
 
     },
 
@@ -719,6 +749,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
                   )
                   .attr('type','button')
                   .addClass('btn btn-info verMaquinaEv')
+                  .attr('data-numadmin',data.relevamientos[i].nro_admin)
                   .attr('data-maquina',data.relevamientos[i].id_maquina)
                   .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
                   .attr('data-estado', data.relevamientos[i].id_estado_relevamiento))
@@ -735,6 +766,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
                     )
                     .attr('type','button')
                     .addClass('btn btn-info verMaquinaEv')
+                    .attr('data-numadmin',data.relevamientos[i].nro_admin)
                     .attr('data-maquina',data.relevamientos[i].id_maquina)
                     .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
                     .attr('data-estado', data.relevamientos[i].id_estado_relevamiento)
@@ -769,6 +801,7 @@ $(document).on('click','.verMaquinaEv',function(){
   $('#enviarValidarEv').show();
   $('#errorValidacionEv').show();}
 
+  var numadmin = $(this).attr('data-numadmin');
   var id_maquina = $(this).attr('data-maquina');
   var tablaContadores = $('#tablaValidarContadores tbody');
   var id_relevamiento = $(this).attr('data-relevamiento');
@@ -776,6 +809,7 @@ $(document).on('click','.verMaquinaEv',function(){
 
   //guardo el id_maquina en el input maquina del modal
   $('#modalValidacionEventualidadMTM').find('#maquina').val(id_maquina);
+  $('#modalValidacionEventualidadMTM').find('#maquina').attr('numadmin',numadmin);
   $('#modalValidacionEventualidadMTM').find('#relevamiento').val(id_relevamiento);
   $('#mensajeExitoValidacion').hide();
   $('#sectorRelevadoVal').val('');
@@ -918,24 +952,27 @@ $(document).on('click', '#enviarValidarEv', function(){
           $('#errorValidarEv').hide();
 
 
-          $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
-
-              var maq=$(this).parent().find('.verMaquinaEv').attr('data-relevamiento');
+          $('#tablaMaquinasFiscalizacion tbody tr').each(function()
+          {
+              var maq=$('#modalValidacionEventualidadMTM').find('#maquina').val();
               console.log('44',maq);
-              if (maq == id){
-                var cambio = $(this).parent().find('.verMaquinaEv');
-                cambio.attr('data-estado',4);
+              var boton=$(this).find('.verMaquinaEv');
+              //Deberia ser siempre true.
+              if($(boton).attr('data-maquina') == maq)
+              {
+                $(boton).attr('data-estado',4);
                 $(this).append($('<td>')
-                    .addClass('col-xs-2')
-                    .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+                .addClass('col-xs-2')
+                .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
               }
-          });
+            });
+          };
         }
-      },
+      ,
       error: function (data) {
         console.log('Error:', data);
       }
-      });
+    });
       /*
     $.get('eventualidadesMTM/visar/' + id, function(data){
       if(data.id_estado_relevamiento == 4){
@@ -958,7 +995,7 @@ $(document).on('click', '#enviarValidarEv', function(){
         });
       }
 */
-    });
+});
 
 $('#modalValidacionEventualidadMTM').on('hidden.bs.modal', function() {
 
