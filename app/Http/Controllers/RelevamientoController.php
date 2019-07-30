@@ -493,7 +493,7 @@ class RelevamientoController extends Controller
       $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
       $detalle->producido_calculado_relevado = $det['producido_calculado_relevado'];
 
-      if($detalle->producido_importado != null){
+      if($detalle->producido_importado != null && $detalle->producido_calculado_relevado != null){
         $detalle->diferencia =
         $detalle->producido_calculado_relevado - $detalle->producido_importado;
       }
@@ -583,9 +583,14 @@ class RelevamientoController extends Controller
     foreach ($request['data'] as $dat) {
       $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
       //dd($dat['id_detalle_relevamiento']);
-      $dett->denominacion = $dat['denominacion'];
-      $dett->diferencia = $dat['diferencia'];
-      
+      if(isset($dat['denominacion'])){
+        $dett->denominacion = $dat['denominacion'];
+      }
+
+      if(isset($dat['diferencia'])){
+        $dett->diferencia = $dat['diferencia'];
+      }
+
       if(isset($dat['importado'])){
         $dett->producido_importado = $dat['importado'];
       }
@@ -788,9 +793,6 @@ class RelevamientoController extends Controller
                                                     ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
                                                     ['id_tipo_moneda','=',2]
                                                     ])->first();
-
-
-
 
       if($unRelevamiento->observacion_validacion != null){
         $observaciones[] = ['zona' => $unRelevamiento->sector->descripcion, 'observacion' =>  $unRelevamiento->observacion_validacion ];
@@ -1003,21 +1005,19 @@ class RelevamientoController extends Controller
 
     $relevamientos = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();
     if($relevamientos != null){
-      $fecha = $relevamiento->fecha;
-      $id_casino = $relevamiento->sector->casino->id_casino;
       foreach($relevamientos as $relevamiento){
         $relevamiento->backup = 1;
-
-        foreach($relevamiento->detalles as $detalle) {
-          $detalle->producido_importado = $this->calcularProducido($fecha,$id_casino,$detalle->id_maquina);
-          $detalle->save();
-        }
-
         $relevamiento->save();
       }
     }
 
     $rel_backup = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',1]])->whereDate('fecha_generacion','=',$request->fecha_generacion)->first();
+    $fecha = $rel_backup->fecha;
+    $id_casino = $rel_backup->sector->casino->id_casino;
+    foreach($rel_backup->detalles as $detalle){
+      $detalle->producido_importado = $this->calcularProducido($fecha,$id_casino,$detalle->id_maquina);
+      $detalle->save();
+    }
     $rel_backup->backup = 0;
     $rel_backup->save();
 
