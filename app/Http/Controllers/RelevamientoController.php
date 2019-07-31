@@ -837,8 +837,10 @@ class RelevamientoController extends Controller
           }
           $detalles[] = $det;
         }else{
-            //@ERROR @HACK por algun motivo, el producido no se esta seteando, p
-            //por eso lo recalculamos a pata...
+            //@HACK por algun motivo, el producido no se esta seteando, p
+            //por eso lo recalculamos a pata
+            //Ya en la BD hay muchas filas con el producido sin setear...
+            //Asi que ya lo calculamos en el momento.
             //$producido = $detalle->producido;
 
             $producido = $detalle_contador_horario->coinin
@@ -1494,6 +1496,8 @@ class RelevamientoController extends Controller
                                                   ['id_casino','=',$id_casino],
                                                   ['id_tipo_moneda','=',2]
                                                   ])->first();
+
+    $detalle_contador_horario = null;
 
     if($contador_horario_ARS != null){
         $detalle_contador_horario = DetalleContadorHorario::where([

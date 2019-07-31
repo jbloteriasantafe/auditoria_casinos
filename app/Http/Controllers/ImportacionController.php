@@ -376,14 +376,15 @@ class ImportacionController extends Controller
     }
 
 
+    $fecha = $ret['fecha'];
     //Actualizo los producidos de los relevamientos que ya estan en el sistema.
-    $relevamientos = Relevamiento::where([['fecha', $request->fecha],['backup',0]])->get();
-
+    $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
+  
     foreach($relevamientos as $rel){
       if($rel->sector->casino->id_casino == $request->id_casino){
         foreach($rel->detalles as $det){
           $det->producido_importado =
-          RelevamientoController::getInstancia()->calcularProducido($request->fecha,$request->id_casino,$det->id_maquina);
+          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_casino,$det->id_maquina);
           if($det->producido_calculado_relevado != null){
             $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
           }
