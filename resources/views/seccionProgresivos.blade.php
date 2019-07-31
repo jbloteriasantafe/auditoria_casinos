@@ -75,7 +75,7 @@
                   </div>
                 </div> <!-- / Tarjeta TABLA -->
 
-            <div class="col-lg-12 col-xl-3">
+            {{-- <div class="col-lg-12 col-xl-3">
              <div class="row">
               <div class="col-lg-12">
                <a href="" id="btn-nuevo" style="text-decoration: none;">
@@ -94,7 +94,51 @@
                </a>
               </div>
             </div>
-          </div>
+          </div> --}}
+
+          <div class="ol-lg-12 col-xl-3">
+            <div class="row">
+             <div class="col-lg-12">
+              <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
+               <div class="panel panel-default panelBotonNuevo">
+                   <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+                   <div class="backgroundNuevo"></div>
+                   <div class="row">
+                       <div class="col-xs-12">
+                         <center>
+                             <h5 class="txtLogo">+</h5>
+                             <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
+                         </center>
+                       </div>
+                   </div>
+               </div>
+              </a>
+             </div>
+           </div>
+         </div>
+
+         <div class="ol-lg-12 col-xl-3">
+          <div class="row">
+           <div class="col-lg-12">
+            <a href="" id="btn-nuevo-link" style="text-decoration: none;">
+             <div class="panel panel-default panelBotonNuevo">
+                 <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+                 <div class="backgroundNuevo"></div>
+                 <div class="row">
+                     <div class="col-xs-12">
+                       <center>
+                           <h5 class="txtLogo">+</h5>
+                           <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
+                       </center>
+                     </div>
+                 </div>
+             </div>
+            </a>
+           </div>
+         </div>
+       </div>
+
+
 
         </div>
             <!-- /.row -->
@@ -220,6 +264,215 @@
             </div>
           </div>
     </div>
+
+    <!-- Modal Progresivo Individual -->
+    
+    <div class="modal fade" id="modalProgInd" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+             <div class="modal-content">
+                <div class="modal-header" style="background: #5cb85c;">
+                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO INDIVIDUAL</h3>
+                </div>
+
+                <div  id="colapsado" class="collapse in">
+                  <div class="modal-body modal-Cuerpo">
+                      <div class="row">
+                        <div class="col-md-6 col-lg-6">
+                          <h5>Nombre Progresivo</h5>
+                          <input id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                          <br>
+                          <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
+                          <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
+                        </div>
+                        <div class="col-xs-6 col-md-6 col-lg-6">
+                          <h5>Valor Máximo</h5>
+                          <input id="maximo_ind" type="text" class="form-control" placeholder="Valor Máximo">
+                        </div>
+                      </div>
+                      <br>
+                      <div id="cuerpo_individual">
+                        <div class="row">
+                          <div class="col-xs-6 col-md-6 col-lg-6">
+                            
+
+                            <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
+                            <div class="row">
+                              <div class="input-group lista-datos-group">
+                                              <input id="inputIslaInd" class="form-control" type="text" value="" autocomplete="off" >
+                                              <span class="input-group-btn">
+                                                <button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>
+                                              </span>
+                              </div>
+
+                            </div>
+                            <br>
+                            <h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>
+                            <div class="row">
+                              <div class="input-group lista-datos-group">
+                                              <input id="inputMtmInd" class="form-control" type="text" value="" autocomplete="off" >
+                                              <span class="input-group-btn">
+                                                <button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>
+                                              </span>
+                              </div>
+                            </div>
+
+                          </div>
+
+                          <div id="" class="col-md-6 col-lg-6">
+                            <h5>Maquinas Seleccionadas:</h5>
+                            <ul class="listaMaquinas">
+                            </ul>
+                          </div>
+                        </div>
+                        <br>
+                        <div class="row" id="niveles_ind">
+                            <div class="col-lg-12">
+                                 <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
+                                <div class="columna" style="padding-top: 15px;">
+                                </div>
+                            </div>
+                        </div>
+
+                      </div>
+
+                  </div> <!-- /Fin panel minimizable -->
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-successAceptar" id="btn-guardar-ind" value="nuevo">ACEPTAR</button>
+                    <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+                    <input type="hidden" id="id_progresivo_ind" value="0">
+                  </div>
+
+                </div> <!-- Fin modal-header -->
+
+            </div>
+          </div>
+    </div>
+    <!-- Fin modal Progresivo Individual -->
+
+
+    <!-- Modal Progresivo Linkeado -->
+
+    <div class="modal fade" id="modalProgLink" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+             <div class="modal-content">
+                <div class="modal-header" style="background: #5cb85c;">
+                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO LINKEADO</h3>
+                </div>
+
+                <div  id="colapsado" class="collapse in">
+                  <div class="modal-body modal-Cuerpo">
+                      <div class="row">
+                        <div class="col-md-6 col-lg-6">
+                          <h5>Nombre Progresivo</h5>
+                          <input id="nombre_progresivo_link" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                          <br>
+                          <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
+                          <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
+                        </div>
+                        <div class="col-xs-6 col-md-6 col-lg-6">
+                          <h5>Valor Máximo</h5>
+                          <input id="maximo_link" type="text" class="form-control" placeholder="Valor Máximo">
+                        </div>
+                      </div>
+                      
+                      <div id="cuerpo_individual">
+                        
+                        
+                        <div class="row" id="niveles_link">
+                            <div class="col-lg-12">
+                              <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
+                              <div class="columna" style="padding-top: 15px;">
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;"></div>
+
+                        <div id="cuerpo_linkeado">
+                          <!-- comienzo seccdio invididual -->
+                          <div class="row">
+
+                              <div class="row">
+                                  <div class="col-xs-6 col-md-6 col-lg-6">
+                                    
+        
+                                    <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
+                                    <div class="row">
+                                      <div class="input-group lista-datos-group">
+                                                      <input id="inputIslaLink" class="form-control" type="text" value="" autocomplete="off" >
+                                                      <span class="input-group-btn">
+                                                        <button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>
+                                                      </span>
+                                      </div>
+        
+                                    </div>
+                                    <br>
+                                    <h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>
+                                    <div class="row">
+                                      <div class="input-group lista-datos-group">
+                                                      <input id="inputMtmLink" class="form-control" type="text" value="" autocomplete="off" >
+                                                      <span class="input-group-btn">
+                                                        <button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>
+                                                      </span>
+                                      </div>
+                                    </div>
+        
+                                  </div>
+        
+                                  <div id="" class="col-md-6 col-lg-6">
+                                    <h5>Maquinas Seleccionadas:</h5>
+                                    <ul class="listaMaquinas">
+                                    </ul>
+                                  </div>
+                                </div>
+
+                            <div class="col-lg-12">
+                               <button id="btn-agregarPozo-link" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Pozo</button>
+                            </div>
+                          </div>
+                          <br>
+  
+                         <div id="contenedorPozosLink" class="">
+  
+  
+                         </div>
+                          <!-- fin despaleable pozos-->
+                        </div>
+
+
+
+
+                      </div>
+
+
+
+
+                  </div> <!-- /Fin panel minimizable -->
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-successAceptar" id="btn-guardar-link" value="nuevo">ACEPTAR</button>
+                    <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+                    <input type="hidden" id="id_progresivo_link" value="0">
+                  </div>
+
+                </div> <!-- Fin modal-header -->
+
+            </div>
+          </div>
+    </div>
+
+
+
+
+    <!-- Fin Modal Progresivo Linkeado -->
+
+
+
 
     <!-- Modal Eliminar -->
     <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

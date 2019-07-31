@@ -113,7 +113,6 @@ class MTMController extends Controller
       }else{//si no tiene un gli asociado, devuelve id 0
           $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
       }
-      //TODO modificar la obtencion del pack con la tabla pivote
      //JUEGOS DE LA MAQUINA
      $juegos = $mtm->juegos;
      $array = array();

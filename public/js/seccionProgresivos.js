@@ -115,6 +115,157 @@ $('#btn-nuevo').click(function(e){
     $('#modalProgresivo').modal('show');
 });
 
+// Modal crear nuevo progresivo individual
+$('#btn-nuevo-ind').click(function(e){
+  e.preventDefault();
+  $('#modalProgInd').modal('show');
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+  $('#inputIslaInd').generarDataList("islas/buscarIslaPorCasinoYNro/" + 0,'islas','id_isla','nro_isla',2,true);
+  $('#inputMtmInd').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
+  $('#inputIslaInd').setearElementoSeleccionado(0,"");
+  $('#inputMtmInd').setearElementoSeleccionado(0,"");
+
+});
+
+
+// Modal crear nuevo progresivo linkeado
+$('#btn-nuevo-link').click(function(e){
+  e.preventDefault();
+  $('#modalProgLink').modal('show');
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+  $('#inputIslaLink').generarDataList("islas/buscarIslaPorCasinoYNro/" + 0,'islas','id_isla','nro_isla',2,true);
+  $('#inputMtmLink').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
+  $('#inputIslaLink').setearElementoSeleccionado(0,"");
+  $('#inputMtmLink').setearElementoSeleccionado(0,"");
+
+});
+
+// Modal aceptar nuevo progresivo linkeado
+
+$('#btn-guardar-link').on('click', function(e){
+    $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+  var niveles = [];
+  var pozos = [];
+
+  // Carga de niveles
+  $('#niveles_link').find(".columna").children().each(function(indexNivel){
+    var nivel = {
+      id_nivel: $(this).attr('data-id'),
+      nro_nivel : $(this).find(".nro_nivel").val(),
+      nombre_nivel: $(this).find('.nombre_nivel').val(),
+      //porc_oculto : $(this).find(".porc_oculto").val(), Se quita hasta formalizar su utilidad
+      porc_visible: $(this).find(".porc_visible").val(),
+      base: $(this).find(".base").val(),
+    }
+    niveles.push(nivel);
+
+  });
+
+  // carga de pozos
+  $('#contenedorPozosLink').children().each(function(indexPozo){
+    var maquinas= [];
+    $(this).find(".listaMaquinas").children().each(function(indexMaquina){
+      var maquina;
+      maquina = {
+          id_maquina : $(this).val(),
+      }
+      maquinas.push(maquina);
+    });
+
+    var pozo = {
+      maquinas: maquinas,
+    };
+    pozos.push(pozo);
+
+  });
+
+  var formData = {
+     id_progresivo : $('#id_progresivo_link').val(),
+     nombre:$('#nombre_progresivo_link').val() ,
+     tipo: "LINKEADO", //$('#selectTipoProgresivos').val(), se cambia el modal, solo puede ser link
+     pozos: pozos , //si es individual manda un solo pozo
+     maximo: $('#maximo_link').val(),
+     niveles: niveles,
+     //porc_recuperacion : $('#porcentaje_recuperacion').val(), se elimina este valor hasta formalizar utilidad
+  }
+
+  var state = $('#btn-guardar').val();
+  var type = "POST";
+  var url = ((state == "modificar") ? 'progresivos/modificarProgresivo':'progresivos/guardarProgresivo');
+  
+  $.ajax({
+      type: type,
+      url: url,
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+
+          $('.modal').modal('hide');
+
+          $('#mensajeExito').show();
+
+          var pageNumber = $('#herramientasPaginacion').getCurrentPage();
+          var tam = $('#herramientasPaginacion').getPageSize();
+          var columna = $('#tablaLayouts .activa').attr('value');
+          var orden = $('#tablaLayouts .activa').attr('estado');
+
+          $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+      },
+      error: function (data) {
+  //         //console.log('Error:', data);
+  //         var response = JSON.parse(data.responseText);
+  //
+  //         limpiarAlertas();
+  //
+  //         if(typeof response.nombre_progresivo !== 'undefined'){
+  //           $('#nombre_progresivo').addClass('alerta');
+  //           $('#alerta-nombre-progresivo').text(response.nombre_progresivo[0]);
+  //           $('#alerta-nombre-progresivo').show();
+  //         }
+  //
+  //         var i=0;
+  //         $('#columna .NivelProgresivo').each(function(){
+  //           var error=' ';
+  //           if(typeof response['niveles.'+ i +'.nro_nivel'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.nro_nivel']+'<br>';
+  //             $(this).find('#nro_nivel').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.nombre_nivel'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.nombre_nivel']+'<br>';
+  //             $(this).find('#nombre_nivel').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.porc_oculto'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.porc_oculto']+'<br>';
+  //             $(this).find('#porc_oculto').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.porc_visible'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.porc_visible']+'<br>';
+  //             $(this).find('#porc_visible').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.base'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.base']+'<br>';
+  //             $(this).find('#base').addClass('alerta');
+  //           }
+  //           if(typeof response['niveles.'+ i +'.maximo'] !== 'undefined'){
+  //             error+=response['niveles.'+ i +'.maximo']+'<br>';
+  //             $(this).find('#maximo').addClass('alerta');
+  //           }
+  //           if(error != ' '){
+  //           var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
+  //             $(this).append(alerta);
+  //           }
+  //           i++;
+  //         })
+
+      }
+  });
+  
+});
+
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
       limpiarModal();
@@ -263,16 +414,25 @@ $('#selectTipoProgresivos').on('change' , function(){
   }
 })
 
-$('#btn-agregarPozo').click(function(){
-  var nro_pozo = $('#contenedorPozos').children().length + 1 ;
-  var pozo = agregarPozo(nro_pozo);
-  var radio_button_group = clonarRadioButton(nro_pozo);
 
-  $('#contenedorPozos').append(pozo);
-  if($('#pozo_' + (nro_pozo - 1) + ' .columna').length){
-    $("#pozo_" + nro_pozo + " .columna").replaceWith($('#pozo_' + (nro_pozo - 1) + ' .columna').clone());
-  }
-  $('#pozo_' + nro_pozo + ' .contenedorBuscadores').prepend(radio_button_group);
+$('#btn-agregarPozo-link').click(function(){
+  // solo se agrega un pozo si existen maquinas a quien asignarselo
+  var listaMaquinas = $(this).parent().parent().find('.listaMaquinas').find('li').clone();
+  if (listaMaquinas.length >0){
+    var nro_pozo = $('#contenedorPozosLink').children().length + 1 ;
+    var pozo = agregarPozo(nro_pozo);
+    //var radio_button_group = clonarRadioButton(nro_pozo);
+
+    $('#contenedorPozosLink').append(pozo);
+    if($('#pozo_' + (nro_pozo - 1) + ' .columna').length){
+      $("#pozo_" + nro_pozo + " .columna").replaceWith($('#pozo_' + (nro_pozo - 1) + ' .columna').clone());
+    }
+    //$('#pozo_' + nro_pozo + ' .contenedorBuscadores').prepend(radio_button_group);
+
+    $('#pozo_'+nro_pozo).find('.listaMaquinas').html(listaMaquinas);
+    $(this).parent().parent().find('.listaMaquinas').empty();
+    }
+  
 })
 
 $(document).on('change' , '.radioGroup' , function(){
@@ -287,7 +447,7 @@ $(document).on('change' , '.radioGroup' , function(){
 function agregarPozo(nro_pozo){
   var retorno =  '<div class="row pozo" id="pozo_'+ nro_pozo +'" data-id="0">'
   +   '<div id="seccionAgregarProgresivo'+ nro_pozo +'" style="cursor:pointer;" class="cAgregarProgresivo" data-toggle="collapse" data-target="#collapseAgregarProgresivo'+nro_pozo+'">'
-  +       '<div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">'
+  +       '<div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;">'
   +           '<div class="col-xs-10">'
   +               '<h4>POZO: <i class="fa fa-fw fa-angle-down"></i></h4>'
   +           '</div>'
@@ -295,30 +455,6 @@ function agregarPozo(nro_pozo){
   +   '</div>'
   +   '<div id="collapseAgregarProgresivo'+nro_pozo+'" class="collapse" data-pozo="'+nro_pozo+'">'
   +     '<div class="row">'
-  +       '<div  class="col-xs-6 col-md-6 col-lg-6 contenedorBuscadores">'
-
-  +         '<h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>'
-  +         '<div class="row">'
-  +            '<div class="input-group lista-datos-group">'
-  +                '<input id="" class="form-control buscadorIsla" type="text" value="" autocomplete="off">'
-  +                '<span class="input-group-btn">'
-  +                  '<button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>'
-  +                '</span>'
-  +            '</div>'
-
-  +         '</div>'
-  +         '<br>'
-  +         '<h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>'
-  +         '<div class="row"> <!-- Fila de progresivos -->'
-
-  +            '<div class="input-group lista-datos-group">'
-  +                '<input id="" class="form-control buscadorMaquina" type="text" value="" autocomplete="off">'
-  +                '<span class="input-group-btn">'
-  +                  '<button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>'
-  +                '</span>'
-  +            '</div>'
-  +         '</div>'
-  +       '</div>'
   +       '<div id="" class="col-md-6 col-lg-6">'
   +         '<div class="row">'
   +           '<div class="col-md-7 col-lg-7">'
@@ -334,20 +470,7 @@ function agregarPozo(nro_pozo){
   +         '</ul>'
   +       '</div></div>'
   +        '<br>'
-  +       '<div class="row">'
-  +         '<div class="col-lg-12">'
-  +             '<h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>'
-  +             '<div class="columna">'
-  +             '</div>'
-  +         '</div>'
-  +     '</div>'
-  +     '<div class="row">'
-  +           '<div hidden="true" class="col-lg-3">'
-  +               '<button id="cancelarProgresivo" class="btn btn-danger " type="button" name="button">'
-  +                 '<i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS'
-  +               '</button>'
-  +           '</div>'
-  +     '</div>'
+
   +     '<br>'
   +     '<button  class="btn btn-danger borrarPozo" type="button" name="button" style="" data-pozo="'+ nro_pozo +'"> <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i>BORRAR POZO</button>'
   +     '</div><br>'
@@ -596,7 +719,7 @@ function agregarNivelProgresivo(nivel,editable,pozo){
       var id_nivel_progresivo = ((nivel != null) ? nivel.id_nivel: "");
       var nro_nivel = ((nivel != null) ? nivel.nro_nivel: null);
       var nombre_nivel = ((nivel != null) ? nivel.nombre_nivel: null);
-      var porc_oculto = ((nivel != null) ? nivel.porc_oculto: null);
+      //var porc_oculto = ((nivel != null) ? nivel.porc_oculto: null);
       var porc_visible = ((nivel != null) ? nivel.porc_visible: null);
       var base = ((nivel != null) ? nivel.base: null);
       var maximo = ((nivel != null) ? nivel.maximo: null);
@@ -606,7 +729,7 @@ function agregarNivelProgresivo(nivel,editable,pozo){
               .addClass('NivelProgresivo')
               .attr('data-id',id_nivel_progresivo)
               .append($('<div>')
-                    .addClass('col-xs-1 col-xs-offset-1')
+                    .addClass('col-xs-2 ')
                     .css('padding-right','0px')
                     .append($('<input>')
                         .attr('type','text')
@@ -616,7 +739,7 @@ function agregarNivelProgresivo(nivel,editable,pozo){
                     )
                 )
                 .append($('<div>')
-                    .addClass('col-xs-2')
+                    .addClass('col-xs-3')
                     .css('padding-right','0px')
                     .append($('<input>')
                         .attr('type','text')
@@ -626,7 +749,7 @@ function agregarNivelProgresivo(nivel,editable,pozo){
                     )
                 )
                 .append($('<div>')
-                    .addClass('col-xs-2')
+                    .addClass('col-xs-3')
                     .css('padding-right','0px')
                     .append($('<input>')
                           .attr('type','text')
@@ -636,30 +759,30 @@ function agregarNivelProgresivo(nivel,editable,pozo){
                     )
                 )
                 .append($('<div>')
-                    .addClass('col-xs-2')
+                    .addClass('col-xs-3')
                     .css('padding-right','0px')
                     .append($('<input>')
                         .attr('type','text')
-                        .attr('placeholder','% Visible')
+                        .attr('placeholder','% Aporte')
                         .addClass('form-control porc_visible')
                         .val(porc_visible)
                     )
                 )
-                .append($('<div>')
-                    .addClass('col-xs-2')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','% Oculto')
-                        .addClass('form-control porc_oculto')
-                        .val(porc_oculto)
-                    )
-                )
+                // .append($('<div>')
+                //     .addClass('col-xs-2')
+                //     .css('padding-right','0px')
+                //     .append($('<input>')
+                //         .attr('type','text')
+                //         .attr('placeholder','% Oculto')
+                //         .addClass('form-control porc_oculto')
+                //         .val(porc_oculto)
+                //     )
+                // )
 
              if(editable){
 
                     nivel.append($('<div>')
-                     .addClass('col-xs-2')
+                     .addClass('col-xs-1')
                      .append($('<button>')
                          .addClass('borrarNivelProgresivo')
                          .addClass('btn')

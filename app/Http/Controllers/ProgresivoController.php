@@ -92,6 +92,7 @@ class ProgresivoController extends Controller
   }
 
   public function obtenerProgresivo($id){
+    // TODO evaluar el caso que un progresivo no tiene nivieles, en ese caso falla 
     //funcion que obtiene progresivo con $id.
     $progresivo = Progresivo::find($id);
     $pozos = array();
@@ -171,6 +172,7 @@ class ProgresivoController extends Controller
             'pozo' => $pozo];
   }
 
+  /* Se comenta, cambió en la forma de tratar el progresivo
   public function guardarProgresivo(Request $request){
     Validator::make($request->all(), [
         'nombre' => 'required|max:45|unique:progresivo,nombre_progresivo',
@@ -259,6 +261,99 @@ class ProgresivoController extends Controller
 
     return ['progresivo' => $progresivo , 'tipo' => $progresivo->tipoProgresivo()];
   }
+*/
+
+public function guardarProgresivo(Request $request){
+  Validator::make($request->all(), [
+      'nombre' => 'required|max:45', 
+      'tipo' => 'required|in:LINKEADO,INDIVIDUAL',
+      'maximo' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'porc_recuperacion' => 'nullable',
+      'niveles' => 'required',
+      'pozos' => 'nullable',
+      'niveles.*.nro_nivel' => 'nullable|integer',
+      'niveles.*.nombre_nivel' => 'required|max:60',
+      'niveles.*.porc_oculto' => ['nullable','regex:/^\d\d?([,|.]\d\d?)?$/'],
+      'niveles.*.porc_visible' => ['required','regex:/^\d\d?([,|.]\d\d?)?$/'],
+      'niveles.*.base' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'niveles.*.maximo' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'pozos.*.maquinas.*.id_maquina' =>  'required',
+  ], array(), self::$atributos)->after(function ($validator){
+    // TODO evaluar el valor maximo si es por progresivo y / o por nivel
+  })->validate();
+
+  $casinos = Usuario::find(session('id_usuario'))->casinos;
+
+  $progresivo = new Progresivo;
+  $progresivo->nombre_progresivo = $request->nombre;
+  $progresivo->maximo = $request->maximo;
+  // la creacion es solo para un casino, de tener varios, solo se crea para el primero
+  // esta aclaracion solo impcata para el superusuario que es el unico con multiples casinos
+  $progresivo->id_casino=$casino[0]->id_casino;
+  //$progresivo->porc_recuperacion= $request->porc_recuperacion; dato que no se esta relevando
+
+  if($request->tipo == 'LINKEADO'){
+      $progresivo->linkeado=1;
+      
+  }else{//caso individual del progresivo
+      $progresivo->linkeado=0;
+  }
+
+  $progresivo->save();
+
+
+  if($progresivo->linkeado==1){//@param: pozos -> arreglo
+    $niveles_guardados = array(); //los niveles del primer pozo se toman como niveles por defecto, se guardan y luego se referencian los mismos
+    $bandera=false;
+    foreach ($request->pozos as $un_pozo) {
+      $pozo= new Pozo;
+      $pozo->save();
+      if(isset($un_pozo['maquinas'])){
+        foreach ($un_pozo['maquinas'] as $id_maquina) {
+          $maquina = Maquina::find($id_maquina['id_maquina']);
+          $maquina->pozo()->associate($pozo->id_pozo);
+          $maquina->save();
+        }
+      }
+
+      if(isset($un_pozo['niveles'])){
+        foreach ($un_pozo['niveles'] as $index=>$nivel){
+          if(!$bandera){
+            $nuevoNivel=NivelProgresivoController::getInstancia()->guardarNivelProgresivo($nivel,$progresivo->id_progresivo);
+
+            $pozo->niveles_progresivo()->syncWithoutDetaching([$nuevoNivel->id_nivel_progresivo => ['base' => $nivel['base']]]);
+            $niveles_guardados[$index] = $nuevoNivel;
+          }else{
+            $pozo->niveles_progresivo()->syncWithoutDetaching([$niveles_guardados[$index]->id_nivel_progresivo => ['base' => $nivel['base']]]);
+          }
+        }
+      }
+      $bandera=true;//si ya guarde los niveles "por defecto (los primeros)"
+    }
+
+  }else{ // individual
+    $pozo= new Pozo;
+    $maquinas = array();
+    $pozo->save();
+    if(isset($request->pozos['maquinas'])){
+      foreach ($request->pozos['maquinas'] as $id_maquina) {
+        $maquina = Maquina::find($id_maquina);
+        $maquina->pozo()->associate($pozo->id_pozo);
+        $maquina->save();
+      }
+    }
+    if(isset($request->pozos['niveles'])){
+      foreach ($request->pozos['niveles'] as $nivel){
+        $nuevoNivel=NivelProgresivoController::getInstancia()->guardarNivelProgresivo($nivel,$progresivo->id_progresivo);
+        $pozo->niveles_progresivo()->syncWithoutDetaching([$nuevoNivel->id_nivel_progresivo => ['base' => null]]);
+      }
+    }
+  }
+
+  $this->borrarPozosVacios();
+
+  return ['progresivo' => $progresivo , 'tipo' => $progresivo->tipoProgresivo()];
+}
 
   public function modificarProgresivo(Request $request){
     Validator::make($request->all(), [
@@ -338,6 +433,8 @@ class ProgresivoController extends Controller
           $maquina->pozo()->associate($pozo->id_pozo);
           $maquina->save();
         }
+      }else{
+        
       }
       if(!empty($request->pozos['niveles'])){
         foreach ($request->pozos['niveles'] as $index=>$nivel){

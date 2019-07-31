@@ -185,7 +185,7 @@ $('#btn-guardar').click(function(e){
 
     }
   }
-
+  console.log("DATOS DEL PROGRESIVO GLOBAL"+progresivo);
   if(typeof(progresivo) != 'undefined'){
     //DATOS DE SECCION PROGRESIVOS
     formData.append('progresivo[id_progresivo]' , progresivo['id_progresivo']);

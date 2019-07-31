@@ -10,7 +10,7 @@ class Progresivo extends Model
   protected $connection = 'mysql';
   protected $table = 'progresivo';
   protected $primaryKey = 'id_progresivo';
-  protected $visible = array('id_progresivo','nombre_progresivo','linkeado','individual','porc_recuperacion','maximo');
+  protected $visible = array('id_progresivo','nombre_progresivo','linkeado','porc_recuperacion','maximo');
   public $timestamps = false;
 
   public function niveles(){
@@ -26,7 +26,7 @@ class Progresivo extends Model
   }
 
   public function tipoProgresivo(){
-      if($this->linkeado == 1 && $this->individual == 0){
+      if($this->linkeado == 1){
         return 'LINKEADO';
       }else{
         return 'INDIVIDUAL';
