@@ -1736,7 +1736,11 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                   .val(data.detalles[i].detalle.id_maquina)
                                   .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'));
       if(estadoRelevamiento == 'Validar'){
-        if(data.detalles[i].tipo_causa_no_toma != null || data.detalles[i].detalle.producido_importado==null) {
+        var diff = data.detalles[i].detalle.diferencia;
+        if(data.detalles[i].tipo_causa_no_toma != null
+          || diff == null
+          || (diff != 0 && ( diff %1000000 != 0))  
+        ) {
 
           a_pedido_dos.show();
           a_pedido.show();
