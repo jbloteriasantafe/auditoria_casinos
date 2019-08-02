@@ -679,8 +679,11 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#cuerpo_linkeado').show();
     for (var i = 0; i < pozos.length; i++){
       var nro_pozo = i+1;
-      var pozo_html = agregarPozo(nro_pozo);
+      var pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo').val(nro_pozo);
       $('#contenedorPozos').append(pozo_html);
+
+      //var pozo_html = agregarPozo(nro_pozo);
+      //$('#contenedorPozos').append(pozo_html);
       /*$('#pozo_' + nro_pozo + ' .buscadorIsla')
       .generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",
                         'islas',
@@ -696,12 +699,13 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
       nro_admin',2,
       true);*/
 
-      $('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
-      $('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
+      //$('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
+      //$('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
 
+      /*
       for (var j = 0; j < pozos[i].niveles.length; j++) {
         agregarNivelPozo(pozos[i].niveles[j],true,i+1);
-      }
+      }*/
     }
 
     /*for (var i = 0; i < pozos.length; i++){

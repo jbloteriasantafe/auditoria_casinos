@@ -480,35 +480,42 @@
 
     <!-- Tabla del pozo de ejemplo -->
 
-    <div class="row" id="tablaPozoDiv" style="display: none;">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4>Pozo</h4>
-          </div>
-          <div class="panel-body">
-            <table class="table table-fixed tablesorter tablaPozo">
-              <thead>
-                <tr>
-                  <th class="col-xs-6" value="nivel_progresivo.id_nivel_progresivo" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
-                  <th class="col-xs-6">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody id="cuerpoTablaPozo" style="height: 350px;">
-                <td class="col-xs-6">NOMBRE EJEMPLO</td>
-                <td class="col-xs-6">
-                  <button>
-                    <i class="fa fa-fw fa-search-plus">
-                      <span>VER MAS</span>
-                    </i>
-                  </button>
-                </td>
-              </tbody>
-            </table>
+        <div class="row tablaPozoDiv ejemplo">
+          <div class="col-md-8">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4>Pozo</h4>
+              </div>
+              <div class="panel-body">
+                <table class="table tablesorter tablaPozo">
+                  <thead>
+                    <tr>
+                      <th class="col-xs-4" value="nivel_progresivo.id_nivel_progresivo" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
+                      <th class="col-xs-4">ACCIONES</th>
+                    </tr>
+                  </thead>
+                  <tbody class="cuerpoTablaPozo" style="height: 150px;">
+                    <td class="col-xs-4 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
+                    <td class="col-xs-4 cuerpoTablaPozoAcciones">
+                      <button>
+                        <i class="fa fa-fw fa-search-plus"></i>
+                      </button>
+                      <span> </span>
+                      <button>
+                        <i class="fa fa-fw fa-pencil-alt"></i>
+                      </button>
+                      <span> </span>
+                      <button>
+                        <i class="fa fa-fw fa-trash-alt"></i>
+                      </button>
+                    </td>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 
