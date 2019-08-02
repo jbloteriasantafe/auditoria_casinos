@@ -104,8 +104,14 @@ class ProgresivoController extends Controller
       }
 
       $maquinas = $progresivo->maquinas;
+
       if($maquinas != null){
-        $maquinas_arr = $maquinas->toArray();
+        foreach($maquinas as $maq){
+          $maq_arr = $maq->toArray();
+          $maq_arr["isla"] = $maq->isla->nro_isla;
+          $maq_arr["sector"] = $maq->isla->sector->descripcion;
+          $maquinas_arr[]=$maq_arr;
+        }
       }
 
     }

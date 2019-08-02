@@ -16,14 +16,14 @@ class NivelProgresivo extends Model
   'base',
   'porc_oculto',
   'porc_visible',
-  'maximo'.
+  'maximo',
   'id_pozo');
   public $timestamps = false;
 
   public function pozo(){
     return $this->belongsTo('App\Pozo','id_pozo','id_pozo');
   }
-  
+
   public static function boot(){
     parent::boot();
     NivelProgresivo::observe(new NivelProgresivoObserver());

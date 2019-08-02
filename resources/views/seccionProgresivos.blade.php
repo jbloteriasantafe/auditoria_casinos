@@ -84,7 +84,7 @@
       </div>
     </div> --}}
 
-    <div class="ol-lg-12 col-xl-3">
+    <div class="col-lg-12 col-xl-3">
       <div class="row">
         <div class="col-lg-12">
           <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
@@ -105,7 +105,7 @@
         </div>
       </div>
 
-      <div class="ol-lg-12 col-xl-3">
+      <div class="col-lg-12 col-xl-3">
         <div class="row">
           <div class="col-lg-12">
             <a href="" id="btn-nuevo-link" style="text-decoration: none;">
@@ -128,8 +128,6 @@
       </div>
             <!-- /.row -->
 
-
-
     <!-- Modal Progresivo -->
     <div class="modal fade" id="modalProgresivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
           <div class="modal-dialog modal-lg">
@@ -139,7 +137,6 @@
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO</h3>
                 </div>
-
                 <div  id="colapsado" class="collapse in">
                   <div class="modal-body modal-Cuerpo">
                       <div class="row">
@@ -151,79 +148,16 @@
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
                         </div>
                       </div>
-                      <div class="row">
-                        <div class="col-xs-6 col-md-6 col-lg-6">
-                          <h5>Porcentaje Recuperación</h5>
-                          <input id="porcentaje_recuperacion" type="text" class="form-control" placeholder="Porcentaje recuperación">
-                        </div>
-                        <div class="col-xs-6 col-md-6 col-lg-6">
-                          <h5>Valor Máximo</h5>
-                          <input id="maximo" type="text" class="form-control" placeholder="Valor Máximo">
-                        </div>
-
-                      </div>
-                      <br>
-                      <div hidden="true" id="cuerpo_individual">
-                        <div class="row">
-                          <div class="col-xs-6 col-md-6 col-lg-6">
-                            <div id="modelo_radio" class="row radioGroup">
-                              @foreach($casinos as $casino)
-                              <div class="col-xs-4">
-                                <input id="indiv_{{$casino->id_casino}}" type="radio" value="{{$casino->id_casino}}" name="casinos_individual">
-                                <label for="indiv_{{$casino->id_casino}}">{{$casino->nombre}}</label>
-                              </div>
-                              @endforeach
-                            </div>
-
-                            <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
-                            <div class="row">
-                              <div class="input-group lista-datos-group">
-                                              <input class="form-control buscadorIsla" type="text" value="" autocomplete="off" >
-                                              <span class="input-group-btn">
-                                                <button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>
-                                              </span>
-                              </div>
-
-                            </div>
-                            <br>
-                            <h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>
-                            <div class="row">
-                              <div class="input-group lista-datos-group">
-                                              <input class="form-control buscadorMaquina" type="text" value="" autocomplete="off" >
-                                              <span class="input-group-btn">
-                                                <button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>
-                                              </span>
-                              </div>
-                            </div>
-
-                          </div>
-
-                          <div id="" class="col-md-6 col-lg-6">
-                            <h5>Maquinas Seleccionadas:</h5>
-                            <ul class="listaMaquinas">
-                            </ul>
-                          </div>
-                        </div>
-                        <br>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                            </div>
-                        </div>
-
-                      </div>
-                      <div hidden="true" id="cuerpo_linkeado">
+                      <div id="cuerpo">
                         <!-- comienzo seccdio invididual -->
                         <div class="row">
                           <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
                         </div>
-
-                       <div id="contenedorPozos" class="">
-                       <div id="contenedorMaquinas" class="">
-
-                       </div>
+                       <h3>Pozos</h3>
+                       <div id="contenedorPozos" class="" style="overflow-y: auto;overflow-x: hidden;"></div>
+                       <h3>Maquinas</h3>
+                       <div id="contenedorMaquinas" class="" style=""></div>
                         <!-- fin despaleable pozos-->
-                      </div>
 
                   </div> <!-- /Fin panel minimizable -->
 
@@ -232,9 +166,7 @@
                     <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
                     <input type="hidden" id="id_progresivo" value="0">
                   </div>
-
                 </div> <!-- Fin modal-header -->
-
             </div>
           </div>
     </div>
@@ -411,7 +343,6 @@
                           </div>
                           <br>
 
-                         <div id="contenedorPozosLink" class="">
 
 
                          </div>
@@ -480,41 +411,90 @@
 
     <!-- Tabla del pozo de ejemplo -->
 
-        <div class="row tablaPozoDiv ejemplo">
-          <div class="col-md-8">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4>Pozo</h4>
-              </div>
-              <div class="panel-body">
-                <table class="table tablesorter tablaPozo">
-                  <thead>
-                    <tr>
-                      <th class="col-xs-4" value="nivel_progresivo.id_nivel_progresivo" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
-                      <th class="col-xs-4">ACCIONES</th>
-                    </tr>
-                  </thead>
-                  <tbody class="cuerpoTablaPozo" style="height: 150px;">
-                    <td class="col-xs-4 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
-                    <td class="col-xs-4 cuerpoTablaPozoAcciones">
-                      <button>
-                        <i class="fa fa-fw fa-search-plus"></i>
-                      </button>
-                      <span> </span>
-                      <button>
-                        <i class="fa fa-fw fa-pencil-alt"></i>
-                      </button>
-                      <span> </span>
-                      <button>
-                        <i class="fa fa-fw fa-trash-alt"></i>
-                      </button>
-                    </td>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+    <div class="row top-buffer tablaPozoDiv ejemplo" style="display: none">
+      <div class="col-md-12">
+        <div>
+          <h4 class="nombrePozo">Pozo</h4>
+          <div class="panel-body">
+            <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
+              <thead>
+                <tr>
+                  <th class="col-xs-1" value="nivel_progresivo.nro_nivel" estado="">#<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" value="nivel_progresivo.nombre_nivel" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="nivel_progresivo.base" estado="">Base<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="nivel_progresivo.porc_visible" estado="">% Visible<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="nivel_progresivo.porc_oculto" estado="">% Oculto<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-4">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody class="cuerpoTablaPozo">
+                <tr class="filaEjemplo" style="display: none;">
+                  <td class="col-xs-1 cuerpoTablaPozoNumero">999</td>
+                  <td class="col-xs-3 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
+                  <td class="col-xs-2 cuerpoTablaPozoBase">999999999</td>
+                  <td class="col-xs-2 cuerpoTablaPorcVisible">12.34</td>
+                  <td class="col-xs-2 cuerpoTablaPorcOculto">12.34</td>
+                  <td class="col-xs-4 cuerpoTablaPozoAcciones">
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-pencil-alt"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="row top-buffer tablaMaquinasDiv ejemplo">
+      <div class="col-md-10">
+        <div>
+          <div class="panel-body">
+            <table class="table table-condensed tablesorter tablaMaquinas">
+              <thead>
+                <tr>
+                  <th class="col-xs-1" value="maquina.nro_admin" estado="">#<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="maquina.sector" estado="">Sector<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-1" value="maquina.isla" estado="">Isla<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="maquina.marca_juego" estado="">Marca juego<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-4">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
+                <tr class="filaEjemplo">
+                  <td class="col-xs-1 cuerpoTablaNroAdmin">999</td>
+                  <td class="col-xs-2 cuerpoTablaSector">SECTOR999</td>
+                  <td class="col-xs-1 cuerpoTablaIsla">999</td>
+                  <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
+                  <td class="col-xs-4 cuerpoTablaAcciones">
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-pencil-alt"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info">
+                      <i class="fa fa-fw fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
     <meta name="_token" content="{!! csrf_token() !!}" />

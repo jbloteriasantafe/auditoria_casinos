@@ -261,7 +261,7 @@ $(document).on('click','.detalle',function(){
 
       $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data){
           console.log(data);
-          mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,true);
+          mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,false);
           habilitarControles(false);
           $('#modalProgresivo').modal('show');
       });
@@ -672,64 +672,53 @@ function clonarRadioButton(i){
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
-    $('#porcentaje_recuperacion').val(progresivo.porc_recuperacion);
-    $('#maximo').val(progresivo.maximo);
+    $('#contenedorPozos').empty();
+    $('#contenedorMaquinas').empty();
 
-    $('#cuerpo_individual').hide();
-    $('#cuerpo_linkeado').show();
     for (var i = 0; i < pozos.length; i++){
       var nro_pozo = i+1;
       var pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo').val(nro_pozo);
+      pozo_html.find('.nombrePozo').text(pozos[i].descripcion);
+      pozo_html.show();
       $('#contenedorPozos').append(pozo_html);
-
-      //var pozo_html = agregarPozo(nro_pozo);
-      //$('#contenedorPozos').append(pozo_html);
-      /*$('#pozo_' + nro_pozo + ' .buscadorIsla')
-      .generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",
-                        'islas',
-                        'id_isla',
-                        'nro_isla',
-                        2,
-                        true);
-                        */
-      /*$('#pozo_' + nro_pozo + ' .buscadorMaquina')
-      .generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,
-      'resultados',
-      'id_maquina',
-      nro_admin',2,
-      true);*/
-
-      //$('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
-      //$('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
-
-      /*
+      var fila_ejemplo = pozo_html.find('.filaEjemplo');
       for (var j = 0; j < pozos[i].niveles.length; j++) {
-        agregarNivelPozo(pozos[i].niveles[j],true,i+1);
-      }*/
-    }
+        for (var j = 0; j < pozos[i].niveles.length; j++) {
+          //base
+          //porc_oculto
+          //porc_visible
+          var fila = fila_ejemplo.clone().removeClass('filaEjemplo').show();
+          fila.find('.cuerpoTablaPozoNumero').text(pozos[i].niveles[j].nro_nivel);
+          fila.find('.cuerpoTablaPozoNombre').text(pozos[i].niveles[j].nombre_nivel);
+          fila.find('.cuerpoTablaPozoBase').text(pozos[i].niveles[j].base);
+          fila.find('.cuerpoTablaPorcVisible').text(pozos[i].niveles[j].porc_oculto);
+          fila.find('.cuerpoTablaPorcOculto').text(pozos[i].niveles[j].porc_visible);
 
-    /*for (var i = 0; i < pozos.length; i++){
-      var nro_pozo = i+1;
-      var pozo_html = agregarPozo(nro_pozo);
-      $('#contenedorPozos').append(pozo_html);
-      $('#pozo_' + nro_pozo + ' .buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",'islas','id_isla','nro_isla',2,true);
-      $('#pozo_' + nro_pozo + ' .buscadorMaquina').generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,'resultados','id_maquina','nro_admin',2,true);
-      $('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
-      $('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
+          if(!editable){
+            fila.find('.cuerpoTablaPozoAcciones').children().each(function (index,child){ $(child).attr('disabled',true);})
+          }
 
-      for (var j = 0; j < pozos[i].niveles.length; j++) {
-        agregarNivelProgresivo(pozos[i].niveles[j],true,i+1);
+          pozo_html.find('.cuerpoTablaPozo').append(fila);
+        }
       }
     }
 
+    var maq_html = $('.tablaMaquinasDiv.ejemplo').clone().removeClass('ejemplo');
+    $('#contenedorMaquinas').append(maq_html);
+    var fila_ejemplo = maq_html.find('.filaEjemplo').hide().clone().removeClass('filaEjemplo').show();
     for (var j = 0; j < maquinas.length; j++) {
-      agregarMaquina(
-        maquinas[j].id_maquina ,
-        maquinas[j].nro_admin ,
-        maquinas[j].marca ,
-        maquinas[j].modelo  ,
-        $('#pozo_' + nro_pozo + ' .listaMaquinas'));
-    }*/
+      var nro_maq = j+1;
+
+      var fila = fila_ejemplo.clone();
+      fila.find('.cuerpoTablaNroAdmin').text(maquinas[j].nro_admin);
+      fila.find('.cuerpoTablaSector').text(maquinas[j].sector);
+      fila.find('.cuerpoTablaIsla').text(maquinas[j].isla);
+      fila.find('.cuerpoTablaMarcaJuego').text(maquinas[j].marca_juego);
+      if(!editable){
+        fila.find('.cuerpoTablaAcciones').children().each(function (index,child){ $(child).attr('disabled',true);})
+      }
+      maq_html.find('.cuerpoTabla').append(fila);
+    }
 }
 
 function agregarNivelPozo(nivel,editable,pozo){
