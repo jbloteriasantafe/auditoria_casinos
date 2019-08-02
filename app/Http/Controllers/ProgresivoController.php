@@ -39,12 +39,12 @@ class ProgresivoController extends Controller
 
   public function buscarTodos(){
     $progresivos = Progresivo::all();
-    $tipo_progresivos = ['LINKEADO', 'INDIVIDUAL'];
     $casinos = Casino::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Progresivos' , 'progresivos');
 
-    return view('seccionProgresivos', ['progresivos' => $progresivos, 'tipo_progresivos' => $tipo_progresivos , 'casinos' => $casinos]);
+    return view('seccionProgresivos', ['progresivos' => $progresivos,'casinos' => $casinos]);
   }
+
 
   public function getAll(){
     $todos = Progresivo::all();
@@ -63,23 +63,13 @@ class ProgresivoController extends Controller
   public function buscarProgresivos(Request $request){
     $reglas = Array();
     if(!empty($request->nombre_progresivo))
-      $reglas[]=['nombre_progresivo', 'like', '%'.$request->nombre_progresivo.'%'];
-    if(!empty($request->id_tipo_progresivo)){
-      if($request->id_tipo_progresivo== "LINKEADO"){
-          $reglas[]=['progresivo.linkeado', '=' , 1];
-          $reglas[]=['progresivo.individual', '=' , 0];
-      }
-      if($request->id_tipo_progresivo == "INDIVIDUAL"){
-        $reglas[]=['individual', '=' , 1];
-        $reglas[]=['linkeado', '=' , 0];
-      }
-    }
+      $reglas[]=['nombre', 'like', '%'.$request->nombre_progresivo.'%'];
 
     $sort_by = $request->sort_by;
     $resultados=DB::table('progresivo')
     ->select('progresivo.*')
     ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                    return $query->orderBy($sort_by);
                 })
     ->where($reglas)->paginate($request->page_size);
 
@@ -92,66 +82,37 @@ class ProgresivoController extends Controller
   }
 
   public function obtenerProgresivo($id){
-    // TODO evaluar el caso que un progresivo no tiene nivieles, en ese caso falla 
-    //funcion que obtiene progresivo con $id.
+    //Retorno toda la informacion nesteada,
+    // nose si hay una forma mejor.
     $progresivo = Progresivo::find($id);
-    $pozos = array();
-    $maquinas = array();
-    if($progresivo->individual == 1){
+    $maquinas_arr = array();
+    $pozos_arr = array();
 
-      if(isset($progresivo->niveles[0]->pozos)){//Si tiene pozo
-        foreach ($progresivo->niveles[0]->pozos[0]->maquinas as $maquina) {
-          $maquinas [] = ['id_maquina' =>$maquina->id_maquina , 'nro_admin'=> $maquina->nro_admin , 'marca'=> $maquina->marca , 'modelo' =>$maquina->modelo];
+    if($progresivo != null){
+      $pozos = $progresivo->pozos;
+
+      if($pozos != null){
+        foreach($pozos as $pozo){
+          $pozo_arr = $pozo->toArray();
+          $niveles = array();
+          if($pozo->niveles != null){
+            $niveles = $pozo->niveles->toArray();
+          }
+          $pozo_arr['niveles']=$niveles;
+          $pozos_arr[]=$pozo_arr;
         }
-        $pozos[] = ['id_pozo' => $progresivo->niveles[0]->pozos[0] , 'maquinas' => $maquinas];
-      }
-      $niveles = array();
-      foreach ($progresivo->niveles as $nivel){
-        $nuevoNivel =new \stdClass();
-        $nuevoNivel->id_nivel = $nivel->id_nivel_progresivo;
-        $nuevoNivel->nombre_nivel = $nivel->nombre_nivel;
-        if(isset($nivel->pivot)){
-          $nuevoNivel->base = $nivel->pivot->base != null? $nivel->pivot->base:$nivel->base;//en caso de tener una base personalizada
-        }else {
-            $nuevoNivel->base = $nivel->base;
-        }
-        $nuevoNivel->nro_nivel = $nivel->nro_nivel;
-        $nuevoNivel->porc_visible = $nivel->porc_visible;
-        $nuevoNivel->porc_oculto = $nivel->porc_oculto;
-        $niveles[] =  $nuevoNivel;
       }
 
-      $retorno = ['progresivo' => $progresivo, 'pozos' => $pozos, 'niveles' => $niveles , 'individual' => $progresivo->individual];
+      $maquinas = $progresivo->maquinas;
+      if($maquinas != null){
+        $maquinas_arr = $maquinas->toArray();
+      }
 
-    }else { // en caso de ser linkeado, guardo niveles dentro de los pozos. VER QUE HACER CUANDO NO TIENE POZO
-      if(isset($progresivo->niveles[0])){
-       foreach ($progresivo->niveles[0]->pozos as $pozo){ //por cada pozo del progresivo
-         $niveles = array();
-         $maquinas =array();
-
-          foreach ($pozo->maquinas as $maquina) {
-            $maquinas [] = ['id_maquina' =>$maquina->id_maquina , 'nro_admin'=> $maquina->nro_admin , 'marca'=> $maquina->marca , 'modelo' =>$maquina->modelo];
-          }
-
-          foreach ($pozo->niveles_progresivo as $nivel) {
-            $nuevoNivel =new \stdClass();
-            $nuevoNivel->id_nivel = $nivel->id_nivel_progresivo;
-            $nuevoNivel->nombre_nivel = $nivel->nombre_nivel;
-            $nuevoNivel->base = $nivel->pivot->base != null ? $nivel->pivot->base : $nivel->base;
-            $nuevoNivel->nro_nivel = $nivel->nro_nivel;
-            $nuevoNivel->porc_visible = $nivel->porc_visible;
-            $nuevoNivel->porc_oculto = $nivel->porc_oculto;
-            $niveles[] =  $nuevoNivel;
-          }
-
-          $pozos[] = ['id_pozo' => $pozo->id_pozo , 'maquinas' => $maquinas , 'niveles' => $niveles];
-       }
-     }
-     $retorno = ['progresivo' => $progresivo, 'pozos' => $pozos, 'individual' => $progresivo->individual];
     }
 
-
-    return $retorno;
+    return ['progresivo' => $progresivo,
+           'pozos' => $pozos_arr,
+           'maquinas' => $maquinas_arr];
   }
 
   public function obtenerProgresivoPorIdMaquina($id_maquina){
@@ -265,7 +226,7 @@ class ProgresivoController extends Controller
 
 public function guardarProgresivo(Request $request){
   Validator::make($request->all(), [
-      'nombre' => 'required|max:45', 
+      'nombre' => 'required|max:45',
       'tipo' => 'required|in:LINKEADO,INDIVIDUAL',
       'maximo' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
       'porc_recuperacion' => 'nullable',
@@ -294,7 +255,7 @@ public function guardarProgresivo(Request $request){
 
   if($request->tipo == 'LINKEADO'){
       $progresivo->linkeado=1;
-      
+
   }else{//caso individual del progresivo
       $progresivo->linkeado=0;
   }
@@ -434,7 +395,7 @@ public function guardarProgresivo(Request $request){
           $maquina->save();
         }
       }else{
-        
+
       }
       if(!empty($request->pozos['niveles'])){
         foreach ($request->pozos['niveles'] as $index=>$nivel){

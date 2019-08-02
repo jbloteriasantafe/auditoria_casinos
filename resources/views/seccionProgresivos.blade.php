@@ -11,136 +11,121 @@
 
 @section('contenidoVista')
 
-                <div class="row">
-                  <div class="col-lg-12 col-xl-9">
-                    <div id="contenedorFiltros" class="row"> <!-- Tarjeta de FILTROS -->
-                      <div class="col-md-12">
-
-                      <div class="panel panel-default">
-                        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-                        </div>
-                        <div id="collapseFiltros" class="panel-collapse collapse">
-                          <div class="panel-body">
-                            <div class="row"> <!-- Primera fila -->
-                              <div class="col-lg-4">
-                                <h5>Nombre Progresivo</h5>
-                                <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
-                              </div>
-                              <div class="col-lg-4">
-                                <h5>Tipo Progresivo</h5>
-                                <select class="form-control" id="B_tipo_progresivo">
-                                  <option value="0">Todos los Tipos</option>
-                                  @foreach ($tipo_progresivos as $tipo_progresivo)
-                                  <option value="{{$tipo_progresivo}}">{{$tipo_progresivo}}</option>
-                                  @endforeach
-                                </select>
-                              </div>
-                              <div class="col-lg-4">
-                                <h5 style="color:#f5f5f5">Búsqueda</h5>
-                                <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                              </div>
-                            </div> <!-- / Primera fila -->
-                            <br>
-                          </div>
-                        </div>
-                      </div>
-                  </div>
-                </div> <!-- / Tarjeta FILTROS -->
-
-                <div class="row"> <!-- Tarjeta TABLA Progresivos -->
-                  <div class="col-md-12">
-                    <div class="panel panel-default">
-                      <div class="panel-heading">
-                        <h4>ÚLTIMOS PROGRESIVOS</h4>
-                      </div>
-                      <div class="panel-body">
-                        <table id="tablaResultados" class="table table-fixed tablesorter">
-                          <thead>
-                            <tr>
-                              <th class="col-xs-4" value="progresivo.nombre_progresivo" estado="">NOMBRE PROGRESIVO  <i class="fa fa-sort"></i></th>
-                              <th class="col-xs-4 activa" value="progresivo.individual" estado="desc">TIPO PROGRESIVO  <i class="fa fa-sort-desc"></i></th>
-                              <th class="col-xs-4">ACCIONES</th>
-                            </tr>
-                          </thead>
-                          <tbody id="cuerpoTabla" style="height: 350px;">
-
-                          </tbody>
-                        </table>
-                        <!--Comienzo indices paginacion-->
-                        <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div> <!-- / Tarjeta TABLA -->
-
-            {{-- <div class="col-lg-12 col-xl-3">
-             <div class="row">
-              <div class="col-lg-12">
-               <a href="" id="btn-nuevo" style="text-decoration: none;">
-                <div class="panel panel-default panelBotonNuevo">
-                    <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-                    <div class="backgroundNuevo"></div>
-                    <div class="row">
-                        <div class="col-xs-12">
-                          <center>
-                              <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">NUEVO PROGRESIVO</h4>
-                          </center>
-                        </div>
-                    </div>
+<div class="row">
+  <div class="col-lg-12 col-xl-9">
+    <div id="contenedorFiltros" class="row"> <!-- Tarjeta de FILTROS -->
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+          </div>
+          <div id="collapseFiltros" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div class="row"> <!-- Primera fila -->
+                <div class="col-lg-6">
+                  <h5>Nombre Progresivo</h5>
+                  <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
                 </div>
-               </a>
+                <div class="col-lg-6">
+                  <h5 style="color:#f5f5f5">Búsqueda</h5>
+                  <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                </div>
+              </div> <!-- / Primera fila -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- / Tarjeta FILTROS -->
+
+    <div class="row"> <!-- Tarjeta TABLA Progresivos -->
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>ÚLTIMOS PROGRESIVOS</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultados" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-6" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO  <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-6">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTabla" style="height: 350px;">
+
+              </tbody>
+            </table>
+            <!--Comienzo indices paginacion-->
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- / Tarjeta TABLA -->
+
+  {{-- <div class="col-lg-12 col-xl-3">
+    <div class="row">
+      <div class="col-lg-12">
+        <a href="" id="btn-nuevo" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+              <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                    <h5 class="txtLogo">+</h5>
+                    <h4 class="txtNuevo">NUEVO PROGRESIVO</h4>
+                  </center>
+                </div>
               </div>
             </div>
-          </div> --}}
-
-          <div class="ol-lg-12 col-xl-3">
-            <div class="row">
-             <div class="col-lg-12">
-              <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
-               <div class="panel panel-default panelBotonNuevo">
-                   <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-                   <div class="backgroundNuevo"></div>
-                   <div class="row">
-                       <div class="col-xs-12">
-                         <center>
-                             <h5 class="txtLogo">+</h5>
-                             <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
-                         </center>
-                       </div>
-                   </div>
-               </div>
-              </a>
-             </div>
-           </div>
-         </div>
-
-         <div class="ol-lg-12 col-xl-3">
-          <div class="row">
-           <div class="col-lg-12">
-            <a href="" id="btn-nuevo-link" style="text-decoration: none;">
-             <div class="panel panel-default panelBotonNuevo">
-                 <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-                 <div class="backgroundNuevo"></div>
-                 <div class="row">
-                     <div class="col-xs-12">
-                       <center>
-                           <h5 class="txtLogo">+</h5>
-                           <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
-                       </center>
-                     </div>
-                 </div>
-             </div>
-            </a>
-           </div>
-         </div>
-       </div>
-
-
-
+          </a>
         </div>
+      </div>
+    </div> --}}
+
+    <div class="ol-lg-12 col-xl-3">
+      <div class="row">
+        <div class="col-lg-12">
+          <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+                <div class="backgroundNuevo"></div>
+                <div class="row">
+                  <div class="col-xs-12">
+                    <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
+                    </center>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="ol-lg-12 col-xl-3">
+        <div class="row">
+          <div class="col-lg-12">
+            <a href="" id="btn-nuevo-link" style="text-decoration: none;">
+              <div class="panel panel-default panelBotonNuevo">
+                <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+                  <div class="backgroundNuevo"></div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <center>
+                        <h5 class="txtLogo">+</h5>
+                        <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
+                      </center>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
             <!-- /.row -->
 
 
@@ -164,15 +149,6 @@
                           <br>
                           <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
-                        </div>
-                        <div class="col-md-6 col-lg-6">
-                          <h5>Tipo Progresivo</h5>
-                          <select class="form-control" id="selectTipoProgresivos">
-                            <option value="0">-Seleccione un tipo-</option>
-                            @foreach ($tipo_progresivos as $tipo_progresivo)
-                            <option value="{{$tipo_progresivo}}">{{$tipo_progresivo}}</option>
-                            @endforeach
-                          </select>
                         </div>
                       </div>
                       <div class="row">
@@ -232,8 +208,6 @@
                         <div class="row">
                             <div class="col-lg-12">
                                 <h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                                <div class="columna">
-                                </div>
                             </div>
                         </div>
 
@@ -245,7 +219,7 @@
                         </div>
 
                        <div id="contenedorPozos" class="">
-
+                       <div id="contenedorMaquinas" class="">
 
                        </div>
                         <!-- fin despaleable pozos-->
@@ -266,7 +240,7 @@
     </div>
 
     <!-- Modal Progresivo Individual -->
-    
+
     <div class="modal fade" id="modalProgInd" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
@@ -295,7 +269,7 @@
                       <div id="cuerpo_individual">
                         <div class="row">
                           <div class="col-xs-6 col-md-6 col-lg-6">
-                            
+
 
                             <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
                             <div class="row">
@@ -379,10 +353,10 @@
                           <input id="maximo_link" type="text" class="form-control" placeholder="Valor Máximo">
                         </div>
                       </div>
-                      
+
                       <div id="cuerpo_individual">
-                        
-                        
+
+
                         <div class="row" id="niveles_link">
                             <div class="col-lg-12">
                               <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Nuevo Nivel de Progresivo</button>
@@ -399,8 +373,8 @@
 
                               <div class="row">
                                   <div class="col-xs-6 col-md-6 col-lg-6">
-                                    
-        
+
+
                                     <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
                                     <div class="row">
                                       <div class="input-group lista-datos-group">
@@ -409,7 +383,7 @@
                                                         <button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>
                                                       </span>
                                       </div>
-        
+
                                     </div>
                                     <br>
                                     <h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>
@@ -421,9 +395,9 @@
                                                       </span>
                                       </div>
                                     </div>
-        
+
                                   </div>
-        
+
                                   <div id="" class="col-md-6 col-lg-6">
                                     <h5>Maquinas Seleccionadas:</h5>
                                     <ul class="listaMaquinas">
@@ -436,10 +410,10 @@
                             </div>
                           </div>
                           <br>
-  
+
                          <div id="contenedorPozosLink" class="">
-  
-  
+
+
                          </div>
                           <!-- fin despaleable pozos-->
                         </div>
@@ -499,6 +473,41 @@
                 </div>
             </div>
           </div>
+    </div>
+
+
+    </div> <!-- / Tarjeta TABLA -->
+
+    <!-- Tabla del pozo de ejemplo -->
+
+    <div class="row" id="tablaPozoDiv" style="display: none;">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Pozo</h4>
+          </div>
+          <div class="panel-body">
+            <table class="table table-fixed tablesorter tablaPozo">
+              <thead>
+                <tr>
+                  <th class="col-xs-6" value="nivel_progresivo.id_nivel_progresivo" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-6">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTablaPozo" style="height: 350px;">
+                <td class="col-xs-6">NOMBRE EJEMPLO</td>
+                <td class="col-xs-6">
+                  <button>
+                    <i class="fa fa-fw fa-search-plus">
+                      <span>VER MAS</span>
+                    </i>
+                  </button>
+                </td>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />

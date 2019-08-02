@@ -17,12 +17,6 @@ $(document).ready(function(){
   limpiarModal();
 
   $('#btn-buscar').trigger('click');
-  //seteo buscadores para solo seccion individual
-  // $('#cuerpo_individual .buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",'islas','id_isla','nro_isla',2,true);
-  // $('#cuerpo_individual .buscadorMaquina').generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,'resultados','id_maquina','nro_admin',2,true);
-  // $('#cuerpo_individual .buscadorIsla').setearElementoSeleccionado(0,"");
-  // $('#cuerpo_individual .buscadorMaquina').setearElementoSeleccionado(0,"");
-
 });
 
 //Busqueda
@@ -45,16 +39,12 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
     // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
     var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
-    if(sort_by == null){ // limpio las columnas
-      $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-    }
 
     var formData = {
       nombre_progresivo: $('#B_nombre_progresivo').val(),
       id_tipo_progresivo: $('#B_tipo_progresivo').val(),
       page: page_number,
-      sort_by: sort_by,
+      sort_by: 'nombre',
       page_size: page_size,
     }
 
@@ -68,17 +58,10 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();
             for (var i = 0; i < resultados.data.length; i++){
-              if (resultados.data[i].individual==1) {
                 console.log(resultados.data[i]);
-                var filaProgresivo = generarFilaTabla(resultados.data[i] , "INDIVIDUAL");
+                var filaProgresivo = generarFilaTabla(resultados.data[i]);
                 $('#cuerpoTabla')
                     .append(filaProgresivo)
-              }
-              if(resultados.data[i].linkeado==1){
-                console.log(resultados.data[i]);
-                var filaProgresivo = generarFilaTabla(resultados.data[i] , "LINKEADO");
-                $('#cuerpoTabla').append(filaProgresivo)
-              }
             }
             $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
 
@@ -196,7 +179,7 @@ $('#btn-guardar-link').on('click', function(e){
   var state = $('#btn-guardar').val();
   var type = "POST";
   var url = ((state == "modificar") ? 'progresivos/modificarProgresivo':'progresivos/guardarProgresivo');
-  
+
   $.ajax({
       type: type,
       url: url,
@@ -263,7 +246,7 @@ $('#btn-guardar-link').on('click', function(e){
 
       }
   });
-  
+
 });
 
 //Mostrar modal con los datos del Log
@@ -278,7 +261,7 @@ $(document).on('click','.detalle',function(){
 
       $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data){
           console.log(data);
-          mostrarProgresivo(data.progresivo,data.individual,data.pozos,data.niveles,true);
+          mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,true);
           habilitarControles(false);
           $('#modalProgresivo').modal('show');
       });
@@ -299,7 +282,7 @@ $(document).on('click','.modificar',function(){
       var id_progresivo = $(this).val();
 
       $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data){
-          mostrarProgresivo(data.progresivo,data.individual,data.pozos , data.niveles,true);
+          mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,true);
           console.log('niveles' , data.niveles);
 
           // habilitarControles(true);
@@ -432,7 +415,7 @@ $('#btn-agregarPozo-link').click(function(){
     $('#pozo_'+nro_pozo).find('.listaMaquinas').html(listaMaquinas);
     $(this).parent().parent().find('.listaMaquinas').empty();
     }
-  
+
 })
 
 $(document).on('change' , '.radioGroup' , function(){
@@ -445,36 +428,56 @@ $(document).on('change' , '.radioGroup' , function(){
 })
 
 function agregarPozo(nro_pozo){
-  var retorno =  '<div class="row pozo" id="pozo_'+ nro_pozo +'" data-id="0">'
-  +   '<div id="seccionAgregarProgresivo'+ nro_pozo +'" style="cursor:pointer;" class="cAgregarProgresivo" data-toggle="collapse" data-target="#collapseAgregarProgresivo'+nro_pozo+'">'
-  +       '<div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;">'
-  +           '<div class="col-xs-10">'
-  +               '<h4>POZO: <i class="fa fa-fw fa-angle-down"></i></h4>'
-  +           '</div>'
-  +       '</div>'
-  +   '</div>'
-  +   '<div id="collapseAgregarProgresivo'+nro_pozo+'" class="collapse" data-pozo="'+nro_pozo+'">'
-  +     '<div class="row">'
-  +       '<div id="" class="col-md-6 col-lg-6">'
-  +         '<div class="row">'
-  +           '<div class="col-md-7 col-lg-7">'
-  +               '<h5>Maquinas Seleccionadas:</h5>'
-  +           '</div>'
-  +           '<div class="col-md-2 col-lg-2">'
-
-  +           '</div>'
-  +           '<div class="col-md-3 col-lg-3 errorVacio">'
-  +           '</div>'
-  +         '</div>'
-  +         '<ul class="listaMaquinas">'
-  +         '</ul>'
-  +       '</div></div>'
-  +        '<br>'
-
-  +     '<br>'
-  +     '<button  class="btn btn-danger borrarPozo" type="button" name="button" style="" data-pozo="'+ nro_pozo +'"> <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i>BORRAR POZO</button>'
-  +     '</div><br>'
-  +   '</div> </div>';
+  var retorno =
+'<div class="row pozo" id="pozo_'+ nro_pozo +'" data-id="0">'
++   '<div id="seccionAgregarNivelProgresivo'+ nro_pozo +'" style="cursor:pointer;" class="cAgregarProgresivo" data-toggle="collapse" data-target="#collapseAgregarProgresivo'+nro_pozo+'">'
++       '<div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;">'
++           '<div class="col-xs-10">'
++               '<h4>POZO: <i class="fa fa-fw fa-angle-down"></i></h4>'
++           '</div>'
++       '</div>'
++   '</div>'
++   '<div id="collapseAgregarNivelProgresivo'+nro_pozo+'" class="collapse" data-pozo="'+nro_pozo+'">'
++     '<div class="row">'
++       '<div id="" class="col-md-6 col-lg-6">'
++         '<div class="row">'
++           '<div class="col-md-7 col-lg-7">'
++               '<h5>Niveles:</h5>'
++           '</div>'
++           '<div class="col-md-2 col-lg-2">'
++           '</div>'
++           '<div class="col-md-3 col-lg-3 errorVacio">'
++           '</div>'
++         '</div>'
++         '<div class="row">'
++           '<div class="col-md-12">'
++             '<div class="panel panel-default">'
++                 '<div class="panel-heading">'
++                   '<h4>NIVELES</h4>'
++                 '</div>'
++                 '<div class="panel-body">'
++                  '<table id="tablaNiveles"'+nro_pozo+' class="table table-fixed tablesorter">'
++                    '<thead>'
++                       '<tr>'
++                           '<th class="col-xs-6" value="nivel.nombre" estado="">NOMBRE NIVEL  <i class="fa fa-sort"></i></th>'
++                            '<th class="col-xs-6">ACCIONES</th>'
++                         '</tr>'
++                      '</thead>'
++                      '<tbody id="cuerpoTablaNiveles'+nro_pozo+'" style="height: 350px;">'
++                      '</tbody>'
++                   '</table>'
++                 '</div>'
++             '</div>'
++           '</div>'
++         '</div>'
++     '</div>'
++   '</div>'
++'</div>'
++'<br>'
++'<br>'
++'<button  class="btn btn-danger borrarPozo" type="button" name="button" style="" data-pozo="'+ nro_pozo +'"> <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i>BORRAR POZO</button>'
++'</div><br>'
++'</div> </div>';
   return retorno;
 }
 
@@ -561,45 +564,41 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-function generarFilaTabla(progresivo,tipo_progresivo){
+function generarFilaTabla(progresivo){
     var fila = $(document.createElement('tr'));
     fila.attr('id','progresivo' + progresivo.id_progresivo)
-        .append($('<td>')
-            .addClass('col-xs-4')
-            .text(progresivo.nombre_progresivo)
-        )
-        .append($('<td>')
-            .addClass('col-xs-4')
-            .text(tipo_progresivo)
-        )
-        .append($('<td>')
-            .addClass('col-xs-4')
-            .append($('<button>')
-                .append($('<i>')
-                    .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-                )
-                .append($('<span>').text(' VER MÁS'))
-                .addClass('btn').addClass('btn-info').addClass('detalle')
-                .attr('value',progresivo.id_progresivo)
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>')
-                .append($('<i>')
-                    .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-                )
-                .append($('<span>').text(' MODIFICAR'))
-                .addClass('btn').addClass('btn-warning').addClass('modificar')
-                .attr('value',progresivo.id_progresivo)
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>')
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-                )
-                .append($('<span>').text(' ELIMINAR'))
-                .addClass('btn').addClass('btn-danger').addClass('eliminar')
-                .attr('value',progresivo.id_progresivo)
-            )
-        )
+    .append($('<td>')
+            .addClass('col-xs-6')
+            .text(progresivo.nombre)
+    )
+    .append($('<td>')
+          .addClass('col-xs-6')
+          .append($('<button>')
+              .append($('<i>')
+                  .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+              )
+              .append($('<span>').text(' VER MÁS'))
+              .addClass('btn').addClass('btn-info').addClass('detalle')
+              .attr('value',progresivo.id_progresivo)
+          )
+          .append($('<span>').text(' '))
+          .append($('<button>')
+              .append($('<i>')
+                  .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
+              )
+              .append($('<span>').text(' MODIFICAR'))
+              .addClass('btn').addClass('btn-warning').addClass('modificar')
+              .attr('value',progresivo.id_progresivo)
+          )
+          .append($('<span>').text(' '))
+          .append($('<button>')
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
+              )
+              .append($('<span>').text(' ELIMINAR'))
+              .addClass('btn').addClass('btn-danger').addClass('eliminar')
+              .attr('value',progresivo.id_progresivo)
+          )
+      )
       return fila;
 }
 
@@ -670,146 +669,126 @@ function clonarRadioButton(i){
   return div_radios_clonado;
 }
 
-function mostrarProgresivo(progresivo,individual,pozos,niveles,editable){
+function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#id_progresivo').val(progresivo.id_progresivo);
-    $('#nombre_progresivo').val(progresivo.nombre_progresivo);
+    $('#nombre_progresivo').val(progresivo.nombre);
     $('#porcentaje_recuperacion').val(progresivo.porc_recuperacion);
     $('#maximo').val(progresivo.maximo);
-    var tipo = individual == 1 ? 'INDIVIDUAL' : 'LINKEADO';
-    $('#selectTipoProgresivos').val(tipo);
 
-    if(tipo == 'INDIVIDUAL'){ // LOGICA INDIVIDUAL
-      $('#cuerpo_individual').show();
-      $('#cuerpo_linkeado').hide();
-      for (var i = 0; i < pozos.length; i++) { //SI ES INDIVIDUAL, EXISTE UN POZO POR MAQUINA
-        var listaMaquinas = $('#cuerpo_individual .listaMaquinas');
-        for (var j = 0; j < pozos[i].maquinas.length; j++) {
-          agregarMaquina(pozos[i].maquinas[j].id_maquina , pozos[i].maquinas[j].nro_admin , pozos[i].maquinas[j].marca ,pozos[i].maquinas[j].modelo , listaMaquinas);
-        }
-        if(i == 0){
-          for( var j =0 ; j < niveles.length ; j++){
-            agregarNivelProgresivo(niveles[j],true,0);
-          }
-        }
-      }
-    }else{ //LOGICA LINKEADO
-      $('#cuerpo_individual').hide();
-      $('#cuerpo_linkeado').show();
-      for (var i = 0; i < pozos.length; i++){
-        var nro_pozo = i+1;
-        var pozo_html = agregarPozo(nro_pozo);
-        $('#contenedorPozos').append(pozo_html);
-        $('#pozo_' + nro_pozo + ' .buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",'islas','id_isla','nro_isla',2,true);
-        $('#pozo_' + nro_pozo + ' .buscadorMaquina').generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,'resultados','id_maquina','nro_admin',2,true);
-        $('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
-        $('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
-        for (var j = 0; j < pozos[i].maquinas.length; j++) {
-          agregarMaquina(pozos[i].maquinas[j].id_maquina ,pozos[i].maquinas[j].nro_admin ,  pozos[i].maquinas[j].marca , pozos[i].maquinas[j].modelo  ,$('#pozo_' + nro_pozo + ' .listaMaquinas'));
-        }
+    $('#cuerpo_individual').hide();
+    $('#cuerpo_linkeado').show();
+    for (var i = 0; i < pozos.length; i++){
+      var nro_pozo = i+1;
+      var pozo_html = agregarPozo(nro_pozo);
+      $('#contenedorPozos').append(pozo_html);
+      /*$('#pozo_' + nro_pozo + ' .buscadorIsla')
+      .generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",
+                        'islas',
+                        'id_isla',
+                        'nro_isla',
+                        2,
+                        true);
+                        */
+      /*$('#pozo_' + nro_pozo + ' .buscadorMaquina')
+      .generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,
+      'resultados',
+      'id_maquina',
+      nro_admin',2,
+      true);*/
 
-        for (var j = 0; j < pozos[i].niveles.length; j++) {
-          agregarNivelProgresivo(pozos[i].niveles[j],true,i+1);
-        }
+      $('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
+      $('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
 
+      for (var j = 0; j < pozos[i].niveles.length; j++) {
+        agregarNivelPozo(pozos[i].niveles[j],true,i+1);
       }
     }
+
+    /*for (var i = 0; i < pozos.length; i++){
+      var nro_pozo = i+1;
+      var pozo_html = agregarPozo(nro_pozo);
+      $('#contenedorPozos').append(pozo_html);
+      $('#pozo_' + nro_pozo + ' .buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/0",'islas','id_isla','nro_isla',2,true);
+      $('#pozo_' + nro_pozo + ' .buscadorMaquina').generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/0" ,'resultados','id_maquina','nro_admin',2,true);
+      $('#pozo_' + nro_pozo + ' .buscadorIsla').setearElementoSeleccionado(0,"");
+      $('#pozo_' + nro_pozo + ' .buscadorMaquina').setearElementoSeleccionado(0,"");
+
+      for (var j = 0; j < pozos[i].niveles.length; j++) {
+        agregarNivelProgresivo(pozos[i].niveles[j],true,i+1);
+      }
+    }
+
+    for (var j = 0; j < maquinas.length; j++) {
+      agregarMaquina(
+        maquinas[j].id_maquina ,
+        maquinas[j].nro_admin ,
+        maquinas[j].marca ,
+        maquinas[j].modelo  ,
+        $('#pozo_' + nro_pozo + ' .listaMaquinas'));
+    }*/
 }
 
-function agregarNivelProgresivo(nivel,editable,pozo){
-      var id_nivel_progresivo = ((nivel != null) ? nivel.id_nivel: "");
-      var nro_nivel = ((nivel != null) ? nivel.nro_nivel: null);
-      var nombre_nivel = ((nivel != null) ? nivel.nombre_nivel: null);
-      //var porc_oculto = ((nivel != null) ? nivel.porc_oculto: null);
-      var porc_visible = ((nivel != null) ? nivel.porc_visible: null);
-      var base = ((nivel != null) ? nivel.base: null);
-      var maximo = ((nivel != null) ? nivel.maximo: null);
+function agregarNivelPozo(nivel,editable,pozo){
+  var id_nivel_progresivo = ((nivel != null) ? nivel.id_nivel_progresivo: "");
+  var nro_nivel = ((nivel != null) ? nivel.nro_nivel: null);
+  var nombre_nivel = ((nivel != null) ? nivel.nombre_nivel: null);
+  var porc_oculto = ((nivel != null) ? nivel.porc_oculto: null);
+  var porc_visible = ((nivel != null) ? nivel.porc_visible: null);
+  var base = ((nivel != null) ? nivel.base: null);
+  var maximo = ((nivel != null) ? nivel.maximo: null);
+  var fila = $(document.createElement('tr'));
+  fila.attr('id','nivel' + id_nivel_progresivo)
+  .append($('<td>')
+          .addClass('col-xs-4')
+          .text(nombre_nivel)
+  )
+  .append($('<td>')
+        .addClass('col-xs-4')
+        .append($('<button>')
+            .append($('<i>')
+                .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+            )
+            .append($('<span>').text(' VER MÁS'))
+            .addClass('btn').addClass('btn-info').addClass('detalle')
+            .attr('value',id_nivel_progresivo)
+        )
+        .append($('<span>').text(' '))
+        .append($('<button>')
+            .append($('<i>')
+                .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
+            )
+            .append($('<span>').text(' MODIFICAR'))
+            .addClass('btn').addClass('btn-warning').addClass('modificar')
+            .attr('value',id_nivel_progresivo)
+        )
+        .append($('<span>').text(' '))
+        .append($('<button>')
+            .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
+            )
+            .append($('<span>').text(' ELIMINAR'))
+            .addClass('btn').addClass('btn-danger').addClass('eliminar')
+            .attr('value',id_nivel_progresivo)
+        )
+    );
 
-      var nivel = $(document.createElement('div'));
-            nivel.addClass('row')
-              .addClass('NivelProgresivo')
-              .attr('data-id',id_nivel_progresivo)
-              .append($('<div>')
-                    .addClass('col-xs-2 ')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','Nro')
-                        .addClass('form-control nro_nivel')
-                        .val(nro_nivel)
-                    )
-                )
-                .append($('<div>')
-                    .addClass('col-xs-3')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','Nombre Nivel')
-                        .addClass('form-control nombre_nivel')
-                        .val(nombre_nivel)
-                    )
-                )
-                .append($('<div>')
-                    .addClass('col-xs-3')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                          .attr('type','text')
-                          .attr('placeholder','Base')
-                          .addClass('form-control base')
-                          .val(base)
-                    )
-                )
-                .append($('<div>')
-                    .addClass('col-xs-3')
-                    .css('padding-right','0px')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','% Aporte')
-                        .addClass('form-control porc_visible')
-                        .val(porc_visible)
-                    )
-                )
-                // .append($('<div>')
-                //     .addClass('col-xs-2')
-                //     .css('padding-right','0px')
-                //     .append($('<input>')
-                //         .attr('type','text')
-                //         .attr('placeholder','% Oculto')
-                //         .addClass('form-control porc_oculto')
-                //         .val(porc_oculto)
-                //     )
-                // )
+  $('#cuerpoTablaNiveles'+pozo).append(nivel);
 
-             if(editable){
+  console.log(pozo);
 
-                    nivel.append($('<div>')
-                     .addClass('col-xs-1')
-                     .append($('<button>')
-                         .addClass('borrarNivelProgresivo')
-                         .addClass('btn')
-                         .addClass('btn-danger')
-                         .addClass('borrarFila')
-                         .attr('type','button')
-                         .append($('<i>')
-                             .addClass('fa fa-fw fa-trash')
-                         )
-                     )
-                   )
-             }
-            console.log(pozo);
-            switch (pozo) {
-              case 0:
-              $('#cuerpo_individual .columna').append(nivel);
+  /*
+  switch (pozo) {
+    case 0:
+    $('#cuerpo_individual .columna').append(nivel);
 
-                break;
-              case -1:
-                $('.columna').append(nivel);
-                break;
-              default:
-              $('#pozo_' + pozo  + ' .columna').append(nivel);
-              break;
-            }
-
-
+    break;
+    case -1:
+    $('.columna').append(nivel);
+    break;
+    default:
+    $('#pozo_' + pozo  + ' .columna').append(nivel);
+    break;
+  }
+  */
 }
 
 function moverAPozo(id_maquina, listaMaquinas){

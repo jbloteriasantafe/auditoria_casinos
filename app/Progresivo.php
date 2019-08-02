@@ -10,27 +10,19 @@ class Progresivo extends Model
   protected $connection = 'mysql';
   protected $table = 'progresivo';
   protected $primaryKey = 'id_progresivo';
-  protected $visible = array('id_progresivo','nombre_progresivo','linkeado','porc_recuperacion','maximo');
+  protected $visible = array(
+    'id_progresivo',
+    'nombre',
+    'porc_recuperacion',);
   public $timestamps = false;
 
-  public function niveles(){
-    return $this->hasMany('App\NivelProgresivo','id_progresivo','id_progresivo');
+
+  public function pozos(){
+    return $this->hasMany('App\Pozo','id_progresivo','id_progresivo');
   }
 
-  public function juegos(){
-        return $this->hasMany('App\Juego','id_progresivo','id_progresivo');
-  }
-
-  public function pruebas_progresivo(){
-    return $this->hasMany('App\PruebaProgresivo','id_progresivo','id_progresivo');
-  }
-
-  public function tipoProgresivo(){
-      if($this->linkeado == 1){
-        return 'LINKEADO';
-      }else{
-        return 'INDIVIDUAL';
-      }
+  public function maquinas(){
+        return $this->belongsToMany('App\Maquina','maquina_tiene_progresivo','id_progresivo','id_maquina');
   }
 
   public static function boot(){
