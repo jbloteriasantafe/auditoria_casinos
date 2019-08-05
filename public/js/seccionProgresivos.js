@@ -669,29 +669,81 @@ function clonarRadioButton(i){
   return div_radios_clonado;
 }
 
+function crearBoton(icono){
+  let btn = $('<button></button>').addClass('btn').addClass('btn-info');
+  let i = $('<i></i>').addClass('fa').addClass('fa-fw').addClass(icono);
+  btn.append(i);
+  return btn;
+}
+
+function crearEditable(tipo,
+  defecto="",
+  min=0,
+  max=100,
+  step=0.001){
+  return $('<input></input>')
+  .addClass('editable')
+  .addClass('form-control')
+  .attr('type',tipo)
+  .attr('min',min)
+  .attr('max',max)
+  .attr('step',step)
+  .val(defecto);
+}
+
+
+function crearFilaEditableNivel(id_pozo,nro_nivel,tipo='modificar'){
+  let fila = $('.tablaPozoDiv.ejemplo').find('.filaEjemplo').clone();
+  fila.removeClass('.filaEjemplo');
+  fila.show();
+  fila.find('.cuerpoTablaPozoNumero').text(nro_nivel);
+  fila.find('.cuerpoTablaPozoNombre').empty().append(crearEditable("text"));
+  fila.find('.cuerpoTablaPozoBase').empty().append(crearEditable("number","0",0,null,"any"));
+  fila.find('.cuerpoTablaPozoMaximo').empty().append(crearEditable("number","0",0,null,"any"));
+  fila.find('.cuerpoTablaPorcVisible').empty().append(crearEditable("number","0"));
+  fila.find('.cuerpoTablaPorcOculto').empty().append(crearEditable("number","0"));
+  fila.find('.editar').remove();
+  fila.find('.cuerpoTablaPozoAcciones').prepend(crearBoton('fa-check').addClass(tipo));
+
+  fila.find('.'+tipo).on('click',function(){
+    let numero = fila.find('.cuerpoTablaPozoNumero').text();
+    let nombre = fila.find('.cuerpoTablaPozoNombre .editable').val();
+    let base = fila.find('.cuerpoTablaPozoBase .editable').val();
+    let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
+    let porc_visible = fila.find('.cuerpoTablaPorcVisible .editable').val();
+    let porc_oculto = fila.find('.cuerpoTablaPorcOculto .editable').val();
+    let valido =  numero != '';
+    valido = valido && (nombre != '');
+    valido = valido && (base >= 0);
+    valido = valido && (maximo >= 0);
+    valido = valido && (porc_visible >= 0) && (porc_visible <= 100);
+    valido = valido && (porc_oculto >= 0) && (porc_oculto <= 100);
+    if(valido) agregarOmodificarNivel(id_pozo,fila,tipo);
+  });
+
+  return fila;
+}
+
+function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
+  fila.find('.cuerpoTablaPozoNumero').text(nivel.nro_nivel);
+
+  if(!fila_es_editable){
+    fila.find('.cuerpoTablaPozoNombre').text(nivel.nombre_nivel);
+    fila.find('.cuerpoTablaPozoBase').text(nivel.base);
+    fila.find('.cuerpoTablaPozoMaximo').text(nivel.maximo);
+    fila.find('.cuerpoTablaPorcVisible').text(nivel.porc_visible);
+    fila.find('.cuerpoTablaPorcOculto').text(nivel.porc_oculto);
+  }
+  else{
+    fila.find('.cuerpoTablaPozoNombre .editable').val(nivel.nombre_nivel);
+    fila.find('.cuerpoTablaPozoBase .editable').val(nivel.base);
+    fila.find('.cuerpoTablaPozoMaximo .editable').val(nivel.maximo);
+    fila.find('.cuerpoTablaPorcVisible .editable').val(nivel.porc_visible);
+    fila.find('.cuerpoTablaPorcOculto .editable').val(nivel.porc_oculto);
+  }
+}
+
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
-    function crearEditable(tipo,
-      defecto="",
-      min=0,
-      max=100,
-      step=0.001){
-      return $('<input></input>')
-      .addClass('editable')
-      .addClass('form-control')
-      .attr('type',tipo)
-      .attr('min',min)
-      .attr('max',max)
-      .attr('step',step)
-      .val(defecto);
-    }
-
-    function crearBoton(icono){
-      let btn = $('<button></button>').addClass('btn').addClass('btn-info');
-      let i = $('<i></i>').addClass('fa').addClass('fa-fw').addClass(icono);
-      btn.append(i);
-      return btn;
-    }
-
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
     $('#contenedorPozos').empty();
@@ -709,37 +761,30 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
 
       for (var j = 0; j < pozos[i].niveles.length; j++) {
         let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo').show();
-        const nro_nivel = pozos[i].niveles[j].nro_nivel;
-        if(nro_nivel > nivel_maximo) nivel_maximo = nro_nivel;
-        fila.find('.cuerpoTablaPozoNumero').text(nro_nivel);
-        fila.find('.cuerpoTablaPozoNombre').text(pozos[i].niveles[j].nombre_nivel);
-        fila.find('.cuerpoTablaPozoBase').text(pozos[i].niveles[j].base);
-        fila.find('.cuerpoTablaPorcVisible').text(pozos[i].niveles[j].porc_oculto);
-        fila.find('.cuerpoTablaPorcOculto').text(pozos[i].niveles[j].porc_visible);
+
+        const nivel = pozos[i].niveles[j];
+
+        if(nivel.nro_nivel > nivel_maximo) nivel_maximo = nivel.nro_nivel;
+
+        setearValoresFilaNivel(fila,nivel);
 
         fila.find('.cuerpoTablaPozoAcciones').children().each(
           function (index,child){
             $(child).attr('disabled',!editable);
-          });
+        });
+
+        fila.find('.cuerpoTablaPozoAcciones .editar').on('click',function(){
+          let fila_editable = crearFilaEditableNivel(id_pozo,nivel.nro_nivel,'modificar');
+          setearValoresFilaNivel(fila_editable,nivel,true);
+          fila.replaceWith(fila_editable);
+        });
 
         pozo_html.find('.cuerpoTablaPozo').append(fila);
       }
 
       pozo_html.find('.agregar').attr('disabled',!editable);
       pozo_html.find('.agregar').on("click",function(){
-        let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo');
-        fila.show();
-        fila.find('.cuerpoTablaPozoNumero').text(nivel_maximo+1);
-        fila.find('.cuerpoTablaPozoNombre').empty().append(crearEditable("text"));
-        fila.find('.cuerpoTablaPozoBase').empty().append(crearEditable("number","0",0,null,"any"));
-        fila.find('.cuerpoTablaPozoMaximo').empty().append(crearEditable("number","0",0,null,"any"));
-        fila.find('.cuerpoTablaPorcVisible').empty().append(crearEditable("number","0"));
-        fila.find('.cuerpoTablaPorcOculto').empty().append(crearEditable("number","0"));
-        fila.find('.editar').remove();
-        fila.find('.cuerpoTablaPozoAcciones').prepend(crearBoton('fa-check').addClass('agregar'));
-        fila.find('.agregar').on('click',function(){
-          agregarNivel(id_pozo,fila);
-        });
+        let fila = crearFilaEditableNivel(id_pozo,nivel_maximo+1,'agregar');
         pozo_html.find('.cuerpoTablaPozo').append(fila);
         $(this).attr('disabled',true);
       });
@@ -765,16 +810,28 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
 
 }
 
-function agregarNivel(id_pozo,fila){
+function agregarOmodificarNivel(id_pozo,fila,tipo){
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
   })
 
+  let url = 'progresivos/';
+
+  if(tipo=='agregar'){
+    url = url + 'agregarNivel/';
+  }
+  else if(tipo=='modificar'){
+    url = url + 'modificarNivel/';
+  }
+  else {
+    return
+  }
+
   var formData = {
-     numero: fila.find('.cuerpoTablaPozoNumero').text(),
-     nombre: fila.find('.cuerpoTablaPozoNombre .editable').val(),
+     nro_nivel: fila.find('.cuerpoTablaPozoNumero').text(),
+     nombre_nivel: fila.find('.cuerpoTablaPozoNombre .editable').val(),
      base: fila.find('.cuerpoTablaPozoBase .editable').val(),
      maximo: fila.find('.cuerpoTablaPozoMaximo .editable').val(),
      porc_visible: fila.find('.cuerpoTablaPorcVisible .editable').val(),
@@ -784,14 +841,22 @@ function agregarNivel(id_pozo,fila){
   $.ajax({
       type: "POST",
       data: formData,
-      url: "progresivos/agregarNivel/" + id_pozo,
+      url: url + id_pozo,
       success: function (data) {
         console.log(data);
         fila.find('.editable').each(function(index,child){
           let val = $(child).val();
           $(child).removeClass('editable');
-          $(child).val(val);
+          $(child).replaceWith(val);
         });
+        fila.find('.'+tipo).replaceWith(crearBoton('fa-pencil-alt').addClass('editar'));
+
+        fila.find('.editar').on('click',function(){
+          let fila_editable = crearFilaEditableNivel(id_pozo,formData.nro_nivel,'modificar');
+          setearValoresFilaNivel(fila_editable,formData,true);
+          fila.replaceWith(fila_editable);
+        });
+
       },
       error: function (data) {
         console.log('Error: ', data);
