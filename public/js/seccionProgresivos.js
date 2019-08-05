@@ -519,7 +519,7 @@ $(document).on("click " , ".borrarPozo" , function() {
     var nro_pozo = $(this).attr('data-pozo');
     borrarPozo(nro_pozo);
 });
-
+/*
 function agregarMaquina(id_maquina, nro_admin,nombre,modelo, listaMaquinas){
     listaMaquinas.append($('<li>')
         //Se agrega el id del progresivo de la lista
@@ -553,7 +553,7 @@ function agregarMaquina(id_maquina, nro_admin,nombre,modelo, listaMaquinas){
         )
     );
 }
-
+*/
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
@@ -670,119 +670,135 @@ function clonarRadioButton(i){
 }
 
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
+    function crearEditable(tipo,
+      defecto="",
+      min=0,
+      max=100,
+      step=0.001){
+      return $('<input></input>')
+      .addClass('editable')
+      .addClass('form-control')
+      .attr('type',tipo)
+      .attr('min',min)
+      .attr('max',max)
+      .attr('step',step)
+      .val(defecto);
+    }
+
+    function crearBoton(icono){
+      let btn = $('<button></button>').addClass('btn').addClass('btn-info');
+      let i = $('<i></i>').addClass('fa').addClass('fa-fw').addClass(icono);
+      btn.append(i);
+      return btn;
+    }
+
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
     $('#contenedorPozos').empty();
     $('#contenedorMaquinas').empty();
 
     for (var i = 0; i < pozos.length; i++){
-      var nro_pozo = i+1;
-      var pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo').val(nro_pozo);
+      let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo').show();
+      let id_pozo = pozos[i].id_pozo;
       pozo_html.find('.nombrePozo').text(pozos[i].descripcion);
       pozo_html.show();
       $('#contenedorPozos').append(pozo_html);
-      var fila_ejemplo = pozo_html.find('.filaEjemplo');
+
+      let fila_ejemplo_pozo = pozo_html.find('.filaEjemplo');
+      let nivel_maximo = -9999;
+
       for (var j = 0; j < pozos[i].niveles.length; j++) {
-        for (var j = 0; j < pozos[i].niveles.length; j++) {
-          //base
-          //porc_oculto
-          //porc_visible
-          var fila = fila_ejemplo.clone().removeClass('filaEjemplo').show();
-          fila.find('.cuerpoTablaPozoNumero').text(pozos[i].niveles[j].nro_nivel);
-          fila.find('.cuerpoTablaPozoNombre').text(pozos[i].niveles[j].nombre_nivel);
-          fila.find('.cuerpoTablaPozoBase').text(pozos[i].niveles[j].base);
-          fila.find('.cuerpoTablaPorcVisible').text(pozos[i].niveles[j].porc_oculto);
-          fila.find('.cuerpoTablaPorcOculto').text(pozos[i].niveles[j].porc_visible);
+        let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo').show();
+        const nro_nivel = pozos[i].niveles[j].nro_nivel;
+        if(nro_nivel > nivel_maximo) nivel_maximo = nro_nivel;
+        fila.find('.cuerpoTablaPozoNumero').text(nro_nivel);
+        fila.find('.cuerpoTablaPozoNombre').text(pozos[i].niveles[j].nombre_nivel);
+        fila.find('.cuerpoTablaPozoBase').text(pozos[i].niveles[j].base);
+        fila.find('.cuerpoTablaPorcVisible').text(pozos[i].niveles[j].porc_oculto);
+        fila.find('.cuerpoTablaPorcOculto').text(pozos[i].niveles[j].porc_visible);
 
-          if(!editable){
-            fila.find('.cuerpoTablaPozoAcciones').children().each(function (index,child){ $(child).attr('disabled',true);})
-          }
+        fila.find('.cuerpoTablaPozoAcciones').children().each(
+          function (index,child){
+            $(child).attr('disabled',!editable);
+          });
 
-          pozo_html.find('.cuerpoTablaPozo').append(fila);
-        }
+        pozo_html.find('.cuerpoTablaPozo').append(fila);
       }
+
+      pozo_html.find('.agregar').attr('disabled',!editable);
+      pozo_html.find('.agregar').on("click",function(){
+        let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo');
+        fila.show();
+        fila.find('.cuerpoTablaPozoNumero').text(nivel_maximo+1);
+        fila.find('.cuerpoTablaPozoNombre').empty().append(crearEditable("text"));
+        fila.find('.cuerpoTablaPozoBase').empty().append(crearEditable("number","0",0,null,"any"));
+        fila.find('.cuerpoTablaPozoMaximo').empty().append(crearEditable("number","0",0,null,"any"));
+        fila.find('.cuerpoTablaPorcVisible').empty().append(crearEditable("number","0"));
+        fila.find('.cuerpoTablaPorcOculto').empty().append(crearEditable("number","0"));
+        fila.find('.editar').remove();
+        fila.find('.cuerpoTablaPozoAcciones').prepend(crearBoton('fa-check').addClass('agregar'));
+        fila.find('.agregar').on('click',function(){
+          agregarNivel(id_pozo,fila);
+        });
+        pozo_html.find('.cuerpoTablaPozo').append(fila);
+        $(this).attr('disabled',true);
+      });
     }
 
-    var maq_html = $('.tablaMaquinasDiv.ejemplo').clone().removeClass('ejemplo');
+    let maq_html = $('.tablaMaquinasDiv.ejemplo').clone().removeClass('ejemplo');
     $('#contenedorMaquinas').append(maq_html);
-    var fila_ejemplo = maq_html.find('.filaEjemplo').hide().clone().removeClass('filaEjemplo').show();
+    maq_html.show();
+    var fila_ejemplo_maq = maq_html.find('.filaEjemplo').hide().clone().removeClass('filaEjemplo').show();
     for (var j = 0; j < maquinas.length; j++) {
-      var nro_maq = j+1;
-
-      var fila = fila_ejemplo.clone();
+      let fila = fila_ejemplo_maq.clone();
       fila.find('.cuerpoTablaNroAdmin').text(maquinas[j].nro_admin);
       fila.find('.cuerpoTablaSector').text(maquinas[j].sector);
       fila.find('.cuerpoTablaIsla').text(maquinas[j].isla);
       fila.find('.cuerpoTablaMarcaJuego').text(maquinas[j].marca_juego);
-      if(!editable){
-        fila.find('.cuerpoTablaAcciones').children().each(function (index,child){ $(child).attr('disabled',true);})
-      }
+      fila.find('.cuerpoTablaAcciones').children().each(
+        function (index,child){
+          $(child).attr('disabled',!editable);
+      });
       maq_html.find('.cuerpoTabla').append(fila);
     }
+    maq_html.find('.agregar').attr('disabled',!editable);
+
 }
 
-function agregarNivelPozo(nivel,editable,pozo){
-  var id_nivel_progresivo = ((nivel != null) ? nivel.id_nivel_progresivo: "");
-  var nro_nivel = ((nivel != null) ? nivel.nro_nivel: null);
-  var nombre_nivel = ((nivel != null) ? nivel.nombre_nivel: null);
-  var porc_oculto = ((nivel != null) ? nivel.porc_oculto: null);
-  var porc_visible = ((nivel != null) ? nivel.porc_visible: null);
-  var base = ((nivel != null) ? nivel.base: null);
-  var maximo = ((nivel != null) ? nivel.maximo: null);
-  var fila = $(document.createElement('tr'));
-  fila.attr('id','nivel' + id_nivel_progresivo)
-  .append($('<td>')
-          .addClass('col-xs-4')
-          .text(nombre_nivel)
-  )
-  .append($('<td>')
-        .addClass('col-xs-4')
-        .append($('<button>')
-            .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-            )
-            .append($('<span>').text(' VER MÁS'))
-            .addClass('btn').addClass('btn-info').addClass('detalle')
-            .attr('value',id_nivel_progresivo)
-        )
-        .append($('<span>').text(' '))
-        .append($('<button>')
-            .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-            )
-            .append($('<span>').text(' MODIFICAR'))
-            .addClass('btn').addClass('btn-warning').addClass('modificar')
-            .attr('value',id_nivel_progresivo)
-        )
-        .append($('<span>').text(' '))
-        .append($('<button>')
-            .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-            )
-            .append($('<span>').text(' ELIMINAR'))
-            .addClass('btn').addClass('btn-danger').addClass('eliminar')
-            .attr('value',id_nivel_progresivo)
-        )
-    );
+function agregarNivel(id_pozo,fila){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  })
 
-  $('#cuerpoTablaNiveles'+pozo).append(nivel);
-
-  console.log(pozo);
-
-  /*
-  switch (pozo) {
-    case 0:
-    $('#cuerpo_individual .columna').append(nivel);
-
-    break;
-    case -1:
-    $('.columna').append(nivel);
-    break;
-    default:
-    $('#pozo_' + pozo  + ' .columna').append(nivel);
-    break;
+  var formData = {
+     numero: fila.find('.cuerpoTablaPozoNumero').text(),
+     nombre: fila.find('.cuerpoTablaPozoNombre .editable').val(),
+     base: fila.find('.cuerpoTablaPozoBase .editable').val(),
+     maximo: fila.find('.cuerpoTablaPozoMaximo .editable').val(),
+     porc_visible: fila.find('.cuerpoTablaPorcVisible .editable').val(),
+     porc_oculto: fila.find('.cuerpoTablaPorcOculto .editable').val()
   }
-  */
+
+  $.ajax({
+      type: "POST",
+      data: formData,
+      url: "progresivos/agregarNivel/" + id_pozo,
+      success: function (data) {
+        console.log(data);
+        fila.find('.editable').each(function(index,child){
+          let val = $(child).val();
+          $(child).removeClass('editable');
+          $(child).val(val);
+        });
+      },
+      error: function (data) {
+        console.log('Error: ', data);
+      }
+  });
 }
+
 
 function moverAPozo(id_maquina, listaMaquinas){
   var listas = $('#cuerpo_linkeado .listaMaquinas').not(listaMaquinas);
@@ -795,12 +811,6 @@ function moverAPozo(id_maquina, listaMaquinas){
   })
 }
 
-// $("#contenedorFiltros").on("keypress" , function(e){ // mandar con enter ?
-//   if(e.which == 13 ) {
-//     e.preventDefault();
-//     $('#btn-guardar').click();
-//   }
-// })
 
 /****************TODOS EVENTOS DE BUSCADORES*****************/
 

@@ -151,7 +151,7 @@
                       <div id="cuerpo">
                         <!-- comienzo seccdio invididual -->
                         <div class="row">
-                          <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
+                          <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> <b>Agregar</b></button></h5>
                         </div>
                        <h3>Pozos</h3>
                        <div id="contenedorPozos" class="" style="overflow-y: auto;overflow-x: hidden;"></div>
@@ -412,50 +412,54 @@
     <!-- Tabla del pozo de ejemplo -->
 
     <div class="row top-buffer tablaPozoDiv ejemplo" style="display: none">
-      <div class="col-md-12">
+      <div class="col-md-14">
         <div>
-          <h4 class="nombrePozo">Pozo</h4>
+          <b class="nombrePozo">Pozo</b>
           <div class="panel-body">
             <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
               <thead>
                 <tr>
                   <th class="col-xs-1" value="nivel_progresivo.nro_nivel" estado="">#<i class="fa fa-sort"></i></th>
-                  <th class="col-xs-3" value="nivel_progresivo.nombre_nivel" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="nivel_progresivo.nombre_nivel" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" value="nivel_progresivo.base" estado="">Base<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="nivel_progresivo.maximo" estado="">Máximo<i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" value="nivel_progresivo.porc_visible" estado="">% Visible<i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" value="nivel_progresivo.porc_oculto" estado="">% Oculto<i class="fa fa-sort"></i></th>
-                  <th class="col-xs-4">ACCIONES</th>
+                  <th class="col-xs-3">ACCIONES</th>
                 </tr>
               </thead>
               <tbody class="cuerpoTablaPozo">
                 <tr class="filaEjemplo" style="display: none;">
                   <td class="col-xs-1 cuerpoTablaPozoNumero">999</td>
-                  <td class="col-xs-3 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
+                  <td class="col-xs-2 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
                   <td class="col-xs-2 cuerpoTablaPozoBase">999999999</td>
-                  <td class="col-xs-2 cuerpoTablaPorcVisible">12.34</td>
-                  <td class="col-xs-2 cuerpoTablaPorcOculto">12.34</td>
-                  <td class="col-xs-4 cuerpoTablaPozoAcciones">
-                    <button class="btn btn-info">
-                      <i class="fa fa-fw fa-search-plus"></i>
-                    </button>
+                  <td class="col-xs-2 cuerpoTablaPozoMaximo">999999999</td>
+                  <td class="col-xs-1 cuerpoTablaPorcVisible">12.34</td>
+                  <td class="col-xs-1 cuerpoTablaPorcOculto">12.34</td>
+                  <td class="col-xs-3 cuerpoTablaPozoAcciones">
                     <span> </span>
-                    <button class="btn btn-info">
+                    <button class="btn btn-info editar">
                       <i class="fa fa-fw fa-pencil-alt"></i>
                     </button>
                     <span> </span>
-                    <button class="btn btn-info">
+                    <button class="btn btn-info borrar">
                       <i class="fa fa-fw fa-trash-alt"></i>
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
+            <button class="btn btn-info agregar">
+              <i class="fa fa-fw fa-plus"></i>
+              <b>Agregar nivel</b>
+            </button>
           </div>
         </div>
       </div>
+
     </div>
 
-    <div class="row top-buffer tablaMaquinasDiv ejemplo">
+    <div class="row top-buffer tablaMaquinasDiv ejemplo"  style="display: none">
       <div class="col-md-10">
         <div>
           <div class="panel-body">
@@ -477,20 +481,16 @@
                   <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
                   <td class="col-xs-4 cuerpoTablaAcciones">
                     <button class="btn btn-info">
-                      <i class="fa fa-fw fa-search-plus"></i>
-                    </button>
-                    <span> </span>
-                    <button class="btn btn-info">
-                      <i class="fa fa-fw fa-pencil-alt"></i>
-                    </button>
-                    <span> </span>
-                    <button class="btn btn-info">
-                      <i class="fa fa-fw fa-trash-alt"></i>
+                      <i class="fas fa-unlink"></i>
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
+            <button class="btn btn-info agregar">
+              <i class="fa fa-fw fa-plus"></i>
+              <b>Agregar maquina</b>
+            </button>
           </div>
         </div>
       </div>

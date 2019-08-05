@@ -121,6 +121,14 @@ class ProgresivoController extends Controller
            'maquinas' => $maquinas_arr];
   }
 
+  public function agregarNivel(Request $request,$id_pozo){
+    $pozo = Pozo::find($id_pozo);
+    if($pozo == null){
+      return ['errors' => ["No existe ese pozo"]];
+    }
+    return;
+  }
+
   public function obtenerProgresivoPorIdMaquina($id_maquina){
     $maquina= Maquina::find($id_maquina);
     $pozo = $maquina->pozo;

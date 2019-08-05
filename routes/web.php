@@ -51,6 +51,7 @@ Progresivos
 Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
 Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
 Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
+Route::post('progresivos/agregarNivel/{id_pozo}','ProgresivoController@agregarNivel');
 //Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
 //Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
 //Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');
