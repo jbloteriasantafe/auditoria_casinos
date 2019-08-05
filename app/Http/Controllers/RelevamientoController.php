@@ -848,7 +848,7 @@ class RelevamientoController extends Controller
             - $detalle_contador_horario->jackpot
             - $detalle_contador_horario->progresivo;//APLICO FORMULA
 
-            $diferencia = round($detalle->producido_calculado_relevado - $producido, 2);
+            $diferencia = round(abs($detalle->producido_calculado_relevado - $producido), 2);
 
             if($diferencia != 0){
 
@@ -869,7 +869,7 @@ class RelevamientoController extends Controller
                   $no_tomadas++;
               }else{
                 // se tomo, pero da diferencia, en este punto se evalua si es truncada
-                if($diferencia % 1000000 == 0){
+                if(fmod($diferencia,1000000) == 0){
                   $det->no_toma = 'TRUNCAMIENTO';
                   $truncadas++;
                 }else{
