@@ -53,6 +53,7 @@ Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresi
 Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
 Route::post('progresivos/agregarNivel/{id_pozo}','ProgresivoController@agregarNivel');
 Route::post('progresivos/modificarNivel/{id_pozo}','ProgresivoController@modificarNivel');
+Route::post('progresivos/crearPozo','ProgresivoController@crearPozo');
 //Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
 //Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
 //Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');

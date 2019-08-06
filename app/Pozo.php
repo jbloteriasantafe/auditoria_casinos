@@ -27,4 +27,10 @@ class Pozo extends Model
     Pozo::observe(new PozoObserver());
   }
 
+  public function getTableName(){
+    return $this->table;
+  }
+  public function getId(){
+    return $this->id_pozo;
+  }
 }

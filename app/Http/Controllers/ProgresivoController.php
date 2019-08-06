@@ -7,6 +7,7 @@ use App\Progresivo;
 use App\TipoProgresivo;
 use App\Juego;
 use App\Pozo;
+use App\NivelProgresivo;
 use App\Maquina;
 use App\Casino;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,7 @@ class ProgresivoController extends Controller
   }
 
   public function obtenerProgresivo($id){
+    //TODO: agregar columna id_casino a progresivos.
     //Retorno toda la informacion nesteada,
     // nose si hay una forma mejor.
     $progresivo = Progresivo::find($id);
@@ -122,19 +124,51 @@ class ProgresivoController extends Controller
   }
 
   public function agregarNivel(Request $request,$id_pozo){
+    //TODO: validate, ej id_pozo not null
+    $nivel = new NivelProgresivo;
     $pozo = Pozo::find($id_pozo);
-    if($pozo == null){
-      return ['errors' => ["No existe ese pozo"]];
+    if($pozo != null){
+        $nivel->nro_nivel = $request->nro_nivel;
+        $nivel->nombre_nivel = $request->nombre_nivel;
+        $nivel->base = $request->base;
+        $nivel->maximo = $request->maximo;
+        $nivel->porc_visible = $request->porc_visible;
+        $nivel->porc_oculto = $request->porc_oculto;
+        $nivel->id_pozo = $id_pozo;
+        $nivel->save();
+        return $nivel;
     }
-    return;
+    return response()->json(['error' => 'id_pozo']);
   }
 
   public function modificarNivel(Request $request,$id_pozo){
-    $pozo = Pozo::find($id_pozo);
-    if($pozo == null){
-      return ['errors' => ["No existe ese pozo"]];
+    //TODO: validate id_nivel_progresivo not null
+    $nivel = NivelProgresivo::find($request->id_nivel_progresivo);
+    if($nivel != null){
+      $nivel->nro_nivel = $request->nro_nivel;
+      $nivel->nombre_nivel = $request->nombre_nivel;
+      $nivel->base = $request->base;
+      $nivel->maximo = $request->maximo;
+      $nivel->porc_visible = $request->porc_visible;
+      $nivel->porc_oculto = $request->porc_oculto;
+      $nivel->save();
+      return $nivel;
     }
-    return;
+    return response()->json(['error' => 'id_nivel_progresivo']);
+  }
+
+  public function crearPozo(Request $request){
+    $progresivo = Progresivo::find($request->id_progresivo);
+    if($progresivo == null){
+      return response()->json(['error' => 'id_progresivo']);
+    }
+
+    $descripcion = 'Pozo';
+    $pozo = new Pozo;
+    $pozo->descripcion = $descripcion;
+    $pozo->id_progresivo = $progresivo->id_progresivo;
+    $pozo->save();
+    return $pozo;
   }
 
   public function obtenerProgresivoPorIdMaquina($id_maquina){

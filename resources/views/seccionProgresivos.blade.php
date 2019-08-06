@@ -154,9 +154,18 @@
                           <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> <b>Agregar</b></button></h5>
                         </div>
                        <h3>Pozos</h3>
-                       <div id="contenedorPozos" class="" style="overflow-y: auto;overflow-x: hidden;"></div>
+                       
+                       <div id="contenedorPozos" class="" style="overflow-y: auto;overflow-x: hidden;height: 350px;"></div>
+                       <div class="row">
+                         <h5>Enlazar maquina:  <button id='btn-agregarMaquina' class="btn btn-success">
+                           <i class="fa fa-fw fa-plus"></i>
+                           <b>Enlazar</b>
+                         </button></h5>
+                       </div>
                        <h3>Maquinas</h3>
-                       <div id="contenedorMaquinas" class="" style=""></div>
+                       <div id="contenedorMaquinas" class="" style="overflow-y: auto;overflow-x: hidden;height: 150px;"></div>
+
+
                         <!-- fin despaleable pozos-->
 
                   </div> <!-- /Fin panel minimizable -->
@@ -415,6 +424,9 @@
       <div class="col-md-14">
         <div>
           <b class="nombrePozo">Pozo</b>
+          <button class="btn btn-info editarPozo">
+            <i class="fa fa-fw fa-pencil-alt"></i>
+          </button>
           <div class="panel-body">
             <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
               <thead>
@@ -459,7 +471,7 @@
 
     </div>
 
-    <div class="row top-buffer tablaMaquinasDiv ejemplo"  style="display: none">
+    <div class="row top-buffer tablaMaquinasDiv ejemplo"  style="display: none;">
       <div class="col-md-10">
         <div>
           <div class="panel-body">
@@ -487,10 +499,6 @@
                 </tr>
               </tbody>
             </table>
-            <button class="btn btn-info agregar">
-              <i class="fa fa-fw fa-plus"></i>
-              <b>Agregar maquina</b>
-            </button>
           </div>
         </div>
       </div>
