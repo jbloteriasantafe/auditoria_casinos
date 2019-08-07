@@ -171,6 +171,17 @@ class ProgresivoController extends Controller
     return $pozo;
   }
 
+  public function modificarPozo(Request $request,$id_pozo){
+    //TODO: validate
+    $pozo = Pozo::find($id_pozo);
+    if($pozo == null){
+      return response()->json(['error' => 'id_pozo']);
+    }
+    $pozo->descripcion = $request->descripcion;
+    $pozo->save();
+    return $pozo;
+  }
+
   public function obtenerProgresivoPorIdMaquina($id_maquina){
     $maquina= Maquina::find($id_maquina);
     $pozo = $maquina->pozo;

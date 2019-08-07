@@ -768,7 +768,100 @@ function crearPozo(id_progresivo,callback = function(data){},callbackErr = funct
   });
 }
 
+function modificarPozo(id_pozo,descripcion,callback = function(data){},callbackErr = function(err){}){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  })
 
+  let url = 'progresivos/modificarPozo/'
+
+  let formData = {
+    id_pozo : id_pozo,
+    descripcion : descripcion
+  }
+
+  $.ajax({
+      type: "POST",
+      data: formData,
+      url: url + id_pozo,
+      success: callback,
+      error: callbackErr
+  });
+  
+}
+
+function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
+  let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo');
+  pozo_html.find('.nombrePozo').text(nombre);
+  pozo_html.show();
+  $('#contenedorPozos').append(pozo_html);
+  let fila_ejemplo_pozo = pozo_html.find('.filaEjemplo');
+  for (var j = 0; j < niveles.length; j++) {
+    let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo').show();
+
+    const nivel = niveles[j];
+
+    setearValoresFilaNivel(fila,nivel);
+
+    fila.find('.cuerpoTablaPozoAcciones').children().each(
+      function (index,child){
+        $(child).attr('disabled',!editable);
+    });
+
+    fila.find('.cuerpoTablaPozoAcciones .editar').on('click',function(){
+      let fila_editable = crearFilaEditableNivel(id_pozo,nivel.id_nivel_progresivo);
+      setearValoresFilaNivel(fila_editable,nivel,true);
+      fila.replaceWith(fila_editable);
+    });
+
+    pozo_html.find('.cuerpoTablaPozo').append(fila);
+  }
+
+  const editarPozoCallback = function(){
+    let text_viejo = pozo_html.find('.nombrePozo');
+    pozo_html.find('.nombrePozo').replaceWith(
+      crearEditable('text')
+      .addClass('nombrePozo')
+      .val(text_viejo.text())
+    );
+
+    let boton = crearBoton('fa-check').addClass('confirmarPozo');
+    pozo_html.find('.editarPozo').replaceWith(boton);
+
+    const confirmarPozoCallback = function(){
+      let valorModif = pozo_html.find('.nombrePozo').val();
+
+      modificarPozo(id_pozo,valorModif,
+        function(data){
+          let text = $('<b></b>').text(data.descripcion);
+          text.addClass('nombrePozo');
+          pozo_html.find('.nombrePozo').replaceWith(text);
+
+          let boton2 = crearBoton('fa-pencil-alt').addClass('editarPozo');
+          pozo_html.find('.confirmarPozo').replaceWith(boton2);
+          boton2.on('click',editarPozoCallback);
+        },
+        function(err){}
+    );
+
+    }
+
+    boton.on('click',confirmarPozoCallback);
+  };
+
+  pozo_html.find('.editarPozo').attr('disabled',!editable);
+  pozo_html.find('.editarPozo').on('click',editarPozoCallback);
+
+  pozo_html.find('.agregar').attr('disabled',!editable);
+  pozo_html.find('.agregar').on("click",function(){
+    let fila = crearFilaEditableNivel(id_pozo);
+    pozo_html.find('.cuerpoTablaPozo').append(fila);
+    $(this).attr('disabled',true);
+  });
+
+}
 
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#id_progresivo').val(progresivo.id_progresivo);
@@ -778,62 +871,15 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#btn-agregarMaquina').attr('disabled',!editable);
     $('#btn-agregarPozo').attr('disabled',!editable).off();
     $('#btn-agregarPozo').on('click',function(){
-        let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo');
-        pozo_html.find('.editarPozo').attr('disabled',!editable);
-        $('#contenedorPozos').append(pozo_html);
         crearPozo(progresivo.id_progresivo,function(data){
-          pozo_html.find('.nombrePozo').text(data.descripcion);
-          pozo_html.find('.agregar').attr('disabled',!editable);
-          pozo_html.find('.agregar').on("click",function(){
-            let fila = crearFilaEditableNivel(data.id_pozo);
-            pozo_html.find('.cuerpoTablaPozo').append(fila);
-          });
-          pozo_html.show();
-        });
-
+          mostrarPozo(data.id_pozo,data.descripcion,editable);
+        }),
+        function(err){console.log(err);}
     });
 
     for (var i = 0; i < pozos.length; i++){
-      let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo').show();
-      let id_pozo = pozos[i].id_pozo;
-      pozo_html.find('.nombrePozo').text(pozos[i].descripcion);
-      pozo_html.show();
-      $('#contenedorPozos').append(pozo_html);
-
-      let fila_ejemplo_pozo = pozo_html.find('.filaEjemplo');
-      for (var j = 0; j < pozos[i].niveles.length; j++) {
-        let fila = fila_ejemplo_pozo.clone().removeClass('filaEjemplo').show();
-
-        const nivel = pozos[i].niveles[j];
-
-        setearValoresFilaNivel(fila,nivel);
-
-        fila.find('.cuerpoTablaPozoAcciones').children().each(
-          function (index,child){
-            $(child).attr('disabled',!editable);
-        });
-
-        fila.find('.cuerpoTablaPozoAcciones .editar').on('click',function(){
-          let fila_editable = crearFilaEditableNivel(id_pozo,nivel.id_nivel_progresivo);
-          setearValoresFilaNivel(fila_editable,nivel,true);
-          fila.replaceWith(fila_editable);
-        });
-
-        pozo_html.find('.cuerpoTablaPozo').append(fila);
-      }
-
-      pozo_html.find('.agregar').attr('disabled',!editable);
-      pozo_html.find('.agregar').on("click",function(){
-        let fila = crearFilaEditableNivel(id_pozo);
-        pozo_html.find('.cuerpoTablaPozo').append(fila);
-        $(this).attr('disabled',true);
-      });
-
-      pozo_html.find('.editarPozo')
+      mostrarPozo(pozos[i].id_pozo,pozos[i].descripcion,editable,pozos[i].niveles);
     }
-
-    $('#contenedorPozos').find('.editarPozo').attr('disabled',!editable);
-
 
     llenarTablaMaquinas(maquinas,editable);
 
