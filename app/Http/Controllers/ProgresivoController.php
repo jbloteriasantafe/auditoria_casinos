@@ -141,9 +141,9 @@ class ProgresivoController extends Controller
     return response()->json(['error' => 'id_pozo']);
   }
 
-  public function modificarNivel(Request $request,$id_pozo){
+  public function modificarNivel(Request $request,$id_nivel_progresivo){
     //TODO: validate id_nivel_progresivo not null
-    $nivel = NivelProgresivo::find($request->id_nivel_progresivo);
+    $nivel = NivelProgresivo::find($id_nivel_progresivo);
     if($nivel != null){
       $nivel->nro_nivel = $request->nro_nivel;
       $nivel->nombre_nivel = $request->nombre_nivel;
@@ -155,6 +155,15 @@ class ProgresivoController extends Controller
       return $nivel;
     }
     return response()->json(['error' => 'id_nivel_progresivo']);
+  }
+
+  public function eliminarNivel($id_nivel_progresivo){
+    $nivel = NivelProgresivo::find($id_nivel_progresivo);
+    if($nivel == null){
+      return response()->json(['error' => 'id_nivel_progresivo']);
+    }
+    $nivel->delete();
+    return array();
   }
 
   public function crearPozo(Request $request){

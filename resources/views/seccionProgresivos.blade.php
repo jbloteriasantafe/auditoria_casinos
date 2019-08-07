@@ -141,32 +141,38 @@
                   <div class="modal-body modal-Cuerpo">
                       <div class="row">
                         <div class="col-md-6 col-lg-6">
-                          <h5>Nombre Progresivo</h5>
+                          <h5 class='row'>Nombre Progresivo</h5>
                           <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
-                          <br>
                           <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
                         </div>
                       </div>
-                      <div id="cuerpo">
-                        <!-- comienzo seccdio invididual -->
-                        <div class="row">
-                          <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> <b>Agregar</b></button></h5>
-                        </div>
-                       <h3>Pozos</h3>
-                       
-                       <div id="contenedorPozos" class="" style="overflow-y: auto;overflow-x: hidden;height: 350px;"></div>
+                    <div class="navModal">
+
+                      <div class=''>
+                         <h3 class=''>Pozos</h3>
+                         <div class="row">
+                           <h5>Nuevo Pozo:
+                             <button id="btn-agregarPozo" class="btn btn-success  " type="button">
+                               <i class="fa fa-fw fa-plus"></i>
+                               <b>Agregar</b>
+                             </button>
+                           </h5>
+                         </div>
+                         <div id="contenedorPozos" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+                     </div>
+                     <div class=''>
+                       <h3 class=''>Maquinas</h3>
                        <div class="row">
-                         <h5>Enlazar maquina:  <button id='btn-agregarMaquina' class="btn btn-success">
-                           <i class="fa fa-fw fa-plus"></i>
-                           <b>Enlazar</b>
-                         </button></h5>
+                         <h5>Enlazar maquina:
+                           <button id='btn-agregarMaquina' class="btn btn-success">
+                             <i class="fa fa-fw fa-plus"></i>
+                             <b>Enlazar</b>
+                           </button>
+                         </h5>
                        </div>
-                       <h3>Maquinas</h3>
-                       <div id="contenedorMaquinas" class="" style="overflow-y: auto;overflow-x: hidden;height: 150px;"></div>
-
-
-                        <!-- fin despaleable pozos-->
+                       <div id="contenedorMaquinas" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+                     </div>
 
                   </div> <!-- /Fin panel minimizable -->
 
@@ -423,11 +429,18 @@
     <div class="row top-buffer tablaPozoDiv ejemplo" style="display: none">
       <div class="col-md-14">
         <div>
+          <button class="btn btn-link abrirPozo"></i>
+            <i class="fa fa-fw fa-angle-up"></i>
+          </button>
           <b class="nombrePozo">Pozo</b>
           <button class="btn btn-info editarPozo">
             <i class="fa fa-fw fa-pencil-alt"></i>
           </button>
-          <div class="panel-body">
+          <button class="btn btn-info eliminarPozo"></i>
+            <i class="fa fa-fw fa-trash-alt"></i>
+          </button>
+
+          <div class="panel-body collapse">
             <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
               <thead>
                 <tr>

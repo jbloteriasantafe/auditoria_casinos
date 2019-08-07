@@ -52,9 +52,11 @@ Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_
 Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
 Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
 Route::post('progresivos/agregarNivel/{id_pozo}','ProgresivoController@agregarNivel');
-Route::post('progresivos/modificarNivel/{id_pozo}','ProgresivoController@modificarNivel');
+Route::post('progresivos/modificarNivel/{id_nivel_progresivo}','ProgresivoController@modificarNivel');
+Route::get('progresivos/eliminarNivel/{id_nivel_progresivo}','ProgresivoController@eliminarNivel');
 Route::post('progresivos/crearPozo','ProgresivoController@crearPozo');
 Route::post('progresivos/modificarPozo/{id_pozo}','ProgresivoController@modificarPozo');
+Route::get('progresivos/eliminarPozo/{id_pozo}','ProgresivoController@eliminarPozo');
 //Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
 //Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
 //Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');
