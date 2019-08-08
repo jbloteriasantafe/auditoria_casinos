@@ -61,20 +61,25 @@ class Casino extends Model
   }
 
   public function mesas(){
-  return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
-}
+    return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
+  }
 
-public function meses(){
-  return $this->hasMany('App\MesCasino','id_casino','id_casino');
-}
+  public function meses(){
+    return $this->hasMany('App\MesCasino','id_casino','id_casino');
+  }
 
-public function detalles_informe_final_mesas(){
-  return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
-}
+  public function detalles_informe_final_mesas(){
+    return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
+  }
 
-public function fichas(){
-  return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
-}
+  public function fichas(){
+    return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
+  }
+  
+  public function progresivos(){
+    return $this->hasMany('App\Progresivo','id_casino','id_casino');
+  }
+
 
   public static function boot(){
         parent::boot();

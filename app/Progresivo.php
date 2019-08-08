@@ -13,7 +13,8 @@ class Progresivo extends Model
   protected $visible = array(
     'id_progresivo',
     'nombre',
-    'porc_recuperacion',);
+    'porc_recuperacion',
+    'id_casino');
   public $timestamps = false;
 
 
@@ -23,6 +24,10 @@ class Progresivo extends Model
 
   public function maquinas(){
         return $this->belongsToMany('App\Maquina','maquina_tiene_progresivo','id_progresivo','id_maquina');
+  }
+
+  public function casino(){
+        return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
 
   public static function boot(){

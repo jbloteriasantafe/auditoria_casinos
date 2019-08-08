@@ -2,6 +2,12 @@
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
+<?php
+use App\Http\Controllers\UsuarioController;
+use Illuminate\Http\Request;
+
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+
 
 @section('estilos')
   <link rel="stylesheet" href="css/paginacion.css">
@@ -22,12 +28,26 @@
           <div id="collapseFiltros" class="panel-collapse collapse">
             <div class="panel-body">
               <div class="row"> <!-- Primera fila -->
-                <div class="col-lg-6">
+                <div class="col-lg-4">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="busqueda_casino">
+
+                    @if ($usuario['usuario']->es_superusuario)
+                    <option value="0">Todos los casinos</option>
+                    @endif
+
+                    @foreach ($usuario['usuario']->casinos as $casino)
+                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                    
+                  </select>
+                </div>
+                <div class="col-lg-4">
                   <h5>Nombre Progresivo</h5>
                   <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
                 </div>
-                <div class="col-lg-6">
-                  <h5 style="color:#f5f5f5">Búsqueda</h5>
+                <div class="col-lg-4">
+                  <h5>Búsqueda</h5>
                   <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                 </div>
               </div> <!-- / Primera fila -->
@@ -147,8 +167,7 @@
                           <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
                         </div>
                       </div>
-                    <div class="navModal">
-
+                    <div class=''>
                       <div class=''>
                          <h3 class=''>Pozos</h3>
                          <div class="row">
@@ -173,7 +192,6 @@
                        </div>
                        <div id="contenedorMaquinas" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
                      </div>
-
                   </div> <!-- /Fin panel minimizable -->
 
                   <div class="modal-footer">
@@ -433,10 +451,10 @@
             <i class="fa fa-fw fa-angle-up"></i>
           </button>
           <b class="nombrePozo">Pozo</b>
-          <button class="btn btn-info editarPozo">
+          <button class="btn btn-link editarPozo">
             <i class="fa fa-fw fa-pencil-alt"></i>
           </button>
-          <button class="btn btn-info eliminarPozo"></i>
+          <button class="btn btn-link eliminarPozo"></i>
             <i class="fa fa-fw fa-trash-alt"></i>
           </button>
 

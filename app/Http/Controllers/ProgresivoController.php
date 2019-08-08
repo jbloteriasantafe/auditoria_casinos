@@ -42,8 +42,15 @@ class ProgresivoController extends Controller
     $progresivos = Progresivo::all();
     $casinos = Casino::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Progresivos' , 'progresivos');
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
-    return view('seccionProgresivos', ['progresivos' => $progresivos,'casinos' => $casinos]);
+    if($user->es_superusuario){
+      return view('seccionProgresivos', ['progresivos' => $progresivos,'casinos' => $casinos]);
+    }
+    else{
+      $casino = $user->casinos->first();
+      return view('seccionProgresivos', ['progresivos' => $casino->progresivos,'casinos' => $user->casinos]);
+    }
   }
 
 
@@ -62,19 +69,39 @@ class ProgresivoController extends Controller
   }
 
   public function buscarProgresivos(Request $request){
-    $reglas = Array();
-    if(!empty($request->nombre_progresivo))
-      $reglas[]=['nombre', 'like', '%'.$request->nombre_progresivo.'%'];
+    if($request->id_casino == null) return array();
+
+    $where_casino = false;
+    $where_nombre = false;
+    if($request->id_casino != 0){
+      $casino = Casino::find($request->id_casino);
+      if($casino == null) return array();
+      $where_casino = true;
+    }
+    if($request->nombre_progresivo != null &&
+       $request->nombre_progresivo != ''){
+      $where_nombre = true;
+    }
 
     $sort_by = $request->sort_by;
-    $resultados=DB::table('progresivo')
+    $resultados=
+    DB::table('progresivo')
     ->select('progresivo.*')
-    ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by);
-                })
-    ->where($reglas)->paginate($request->page_size);
+    ->when($sort_by,
+           function($query) use ($sort_by){
+             return $query->orderBy($sort_by);
+           });
 
-    return $resultados;
+    if($where_casino){
+      $resultados=$resultados->where('progresivo.id_casino','=',$casino->id_casino);
+    }
+
+    if($where_nombre){
+      $filtro = '%' . $request->nombre_progresivo . '%';
+      $resultados=$resultados->where('progresivo.nombre','like',$filtro);
+    }
+
+    return $resultados->paginate($request->page_size);
   }
 
   public function buscarProgresivoLinkeadoPorNombre(Request $request){
@@ -189,6 +216,22 @@ class ProgresivoController extends Controller
     $pozo->descripcion = $request->descripcion;
     $pozo->save();
     return $pozo;
+  }
+
+  public function eliminarPozo($id_pozo){
+    $pozo = Pozo::find($id_pozo);
+    if($pozo == null){
+      return response()->json(['error' => 'id_pozo']);
+    }
+
+    $niveles = $pozo->niveles;
+
+    foreach($niveles as $nivel){
+      $this->eliminarNivel($nivel->id_nivel_progresivo);
+    }
+    $pozo->delete();
+
+    return array();
   }
 
   public function obtenerProgresivoPorIdMaquina($id_maquina){
