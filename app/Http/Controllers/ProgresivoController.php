@@ -104,10 +104,7 @@ class ProgresivoController extends Controller
     return $resultados->paginate($request->page_size);
   }
 
-  public function buscarProgresivoLinkeadoPorNombre(Request $request){
-      $resultados=Progresivo::where([['nombre_progresivo' , 'like' , '%' . $request->busqueda .'%' ] , ['linkeado' , '=' , 1] , ['individual' , '=' , 0]])->get();
-      return ['progresivos' => $resultados];
-  }
+
 
   public function obtenerProgresivo($id){
     //TODO: agregar columna id_casino a progresivos.
@@ -150,6 +147,10 @@ class ProgresivoController extends Controller
            'maquinas' => $maquinas_arr];
   }
 
+
+  public function modificarProgresivo(Request $request,$id_progresivo){
+    return array();
+  }
   public function agregarNivel(Request $request,$id_pozo){
     //TODO: validate, ej id_pozo not null
     $nivel = new NivelProgresivo;
@@ -250,6 +251,11 @@ class ProgresivoController extends Controller
     return ['progresivo' => $progresivo,
             'niveles' => $niveles_final,
             'pozo' => $pozo];
+  }
+
+  public function buscarProgresivoLinkeadoPorNombre(Request $request){
+      $resultados=Progresivo::where([['nombre_progresivo' , 'like' , '%' . $request->busqueda .'%' ] , ['linkeado' , '=' , 1] , ['individual' , '=' , 0]])->get();
+      return ['progresivos' => $resultados];
   }
 
   /* Se comenta, cambió en la forma de tratar el progresivo
@@ -435,6 +441,7 @@ public function guardarProgresivo(Request $request){
   return ['progresivo' => $progresivo , 'tipo' => $progresivo->tipoProgresivo()];
 }
 
+  /*
   public function modificarProgresivo(Request $request){
     Validator::make($request->all(), [
         'id_progresivo' => 'required|exists:progresivo,id_progresivo',
@@ -543,7 +550,7 @@ public function guardarProgresivo(Request $request){
       }
     }
     return $result;
-  }
+  }*/
 
   public function existenNivelSuperior($id_pozo){//true si base > 10000
       $pozo = Pozo::find($id_pozo);
