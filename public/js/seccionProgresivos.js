@@ -1041,47 +1041,51 @@ function setearFilaMaquinas(fila,id,nro_admin,sector,isla,marca_juego){
   fila.find('.unlink').on('click',function(){fila.remove()});
 }
 
+function filaEditableMaquina(){
+  let fila = filaEjemploMaquina();
+  let input = $('<input></input>')
+  .addClass('form-control')
+  .addClass('editable')
+  .attr('list','maquinas_lista');
+
+  setearFilaMaquinas(fila,'','','','','')
+
+  fila.find('.cuerpoTablaNroAdmin').replaceWith(input);
+  fila.find('.cuerpoTablaAcciones').empty();
+  fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-check').addClass('confirmar'));
+  fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-times').addClass('cancelar'));
+
+  fila.find('.cancelar').on('click',function(){
+    fila.remove();
+  });
+
+  fila.find('.confirmar').on('click',function(){
+    let filaCompleta = filaEjemploMaquina();
+    let value = input.val();
+    let data =  $('#maquinas_lista')
+    .find('option[value='+input.val()+']');
+    let data_id = data.attr('data-id');
+    let nro_admin = data.attr('data-nro_admin');
+    let sector = data.attr('data-sector');
+    let isla = data.attr('data-isla');
+    let marca_juego = data.attr('data-marca_juego');
+
+    setearFilaMaquinas(filaCompleta,data_id,nro_admin,sector,isla,marca_juego);
+
+    fila.replaceWith(filaCompleta);
+  });
+
+  return fila;
+}
+
 function llenarTablaMaquinas(maquinas,editable){
   let maq_html = $('.tablaMaquinasDiv.ejemplo').clone().removeClass('ejemplo');
   $('#contenedorMaquinas').append(maq_html);
   maq_html.show();
 
   $('#btn-agregarMaquina').attr('disabled',!editable).off();
-  $('#btn-agregarMaquina').on('click',function(){
-    let fila = filaEjemploMaquina();
-    let input = $('<input></input>')
-    .addClass('form-control')
-    .addClass('editable')
-    .attr('list','maquinas_lista');
-
-    setearFilaMaquinas(fila,'','','','','')
-
-    fila.find('.cuerpoTablaNroAdmin').replaceWith(input);
-    fila.find('.cuerpoTablaAcciones').empty();
-    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-check').addClass('confirmar'));
-    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-times').addClass('cancelar'));
-
-    fila.find('.cancelar').on('click',function(){
-      fila.remove();
-    });
-
-    fila.find('.confirmar').on('click',function(){
-      let filaCompleta = filaEjemploMaquina();
-      let value = input.val();
-      let data =  $('#maquinas_lista')
-      .find('option[value='+input.val()+']');
-      let data_id = data.attr('data-id');
-      let nro_admin = data.attr('data-nro_admin');
-      let sector = data.attr('data-sector');
-      let isla = data.attr('data-isla');
-      let marca_juego = data.attr('data-marca_juego');
-
-      setearFilaMaquinas(filaCompleta,data_id,nro_admin,sector,isla,sector,marca_juego);
-
-      fila.replaceWith(filaCompleta);
-    })
-
-    maq_html.find('.cuerpoTabla').append(fila);
+  $('#btn-agregarMaquina').on('click', function() {
+    maq_html.find('.cuerpoTabla').append(filaEditableMaquina());
   });
 
 
@@ -1103,10 +1107,6 @@ function llenarTablaMaquinas(maquinas,editable){
     maq_html.find('.cuerpoTabla').append(fila);
   }
 }
-
-
-
-
 
 function moverAPozo(id_maquina, listaMaquinas){
   var listas = $('#cuerpo_linkeado .listaMaquinas').not(listaMaquinas);
