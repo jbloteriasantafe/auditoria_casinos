@@ -18,15 +18,21 @@ use App\Http\Controllers\TipoProgresivoController;
 class ProgresivoController extends Controller
 {
   private static $atributos = [
-    'nombre_progresivo' => 'Nombre del Progresivo',
-    'tipoProgresivo' => 'Tipo de Progresivo',
-    'niveles' => 'Niveles de Progresivo',
-    'niveles.*.nro_nivel' => 'Nro Nivel',
-    'niveles.*.nombre_nivel' => 'Nombre Nivel',
-    'niveles.*.porc_oculto' => '% Oculto',
-    'niveles.*.porc_visible' => '% Visible',
-    'niveles.*.base' => 'Base',
-    'niveles.*.maximo' => 'Máximo',
+    'id_progresivo' => 'ID del progresivo',
+    'nombre' => 'Nombre del Progresivo',
+    'porc_recuperacion' => '% de recuperacion',
+    'pozos' => 'Pozos del progresivo',
+    'pozos.*.id_pozo' => 'ID del pozo',
+    'pozos.*.descripcion' => 'Descripcion del pozo',
+    'pozos.*.niveles' => 'Niveles del pozo',
+    'pozos.*.niveles.*.id_nivel_progresivo' => 'ID del nivel',
+    'pozos.*.niveles.*.nro_nivel' => 'Nro Nivel',
+    'pozos.*.niveles.*.nombre_nivel' => 'Nombre Nivel',
+    'pozos.*.niveles.*.porc_oculto' => '% Oculto',
+    'pozos.*.niveles.*.porc_visible' => '% Visible',
+    'pozos.*.niveles.*.base' => 'Base',
+    'pozos.*.niveles.*.maximo' => 'Máximo',
+    'maquinas.*.id_maquina' => 'ID de la maquina asociada al progresivo'
   ];
 
   private static $instance;
@@ -45,11 +51,15 @@ class ProgresivoController extends Controller
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
     if($user->es_superusuario){
-      return view('seccionProgresivos', ['progresivos' => $progresivos,'casinos' => $casinos]);
+      return view('seccionProgresivos',
+      ['progresivos' => $progresivos,
+      'casinos' => $casinos]);
     }
     else{
       $casino = $user->casinos->first();
-      return view('seccionProgresivos', ['progresivos' => $casino->progresivos,'casinos' => $user->casinos]);
+      return view('seccionProgresivos',
+      ['progresivos' => $casino->progresivos,
+      'casinos' => $user->casinos]);
     }
   }
 
@@ -75,12 +85,23 @@ class ProgresivoController extends Controller
     $where_nombre = false;
     if($request->id_casino != 0){
       $casino = Casino::find($request->id_casino);
+      //El casino no existe.
       if($casino == null) return array();
       $where_casino = true;
     }
     if($request->nombre_progresivo != null &&
        $request->nombre_progresivo != ''){
       $where_nombre = true;
+    }
+
+    //Checkeo que solo el superusuario puede buscar todo.
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($request->id_casino == 0 && !$user->es_superusuario){
+      return array();
+    }
+
+    if($request->id_casino != 0 && !$user->usuarioTieneCasino($request->id_casino)){
+      return array();
     }
 
     $sort_by = $request->sort_by;
@@ -104,10 +125,52 @@ class ProgresivoController extends Controller
     return $resultados->paginate($request->page_size);
   }
 
+  private function datosMaquinas($maquinas){
+    $ret = [];
+    foreach($maquinas as $maq){
+      $isla = '-';
+      $sector = '-';
+      if(isset($maq->isla)){
+        $isla = $maq->isla->nro_isla;
+        if(isset($maq->isla->sector) && isset($maq->isla->sector->descripcion)){
+          $sector = $maq->isla->sector->descripcion;
+        }
+      }
+
+      $ret[] = [
+        'id' => $maq->id_maquina ,
+        'nombre' => $maq->nro_admin . $maq->casino->codigo,
+        'nro_admin' => $maq->nro_admin,
+        'isla' => $isla,
+        'sector' => $sector,
+        'marca_juego' => $maq->marca_juego];
+    }
+    return $ret;
+  }
+
+  public function buscarMaquinas(Request $request,$id_casino){
+    //TODO: Deberia retornar las maquinas que estan dadas de baja,
+    //i.e. tienen el parametro deleted_at seteado?
+    //Usando el ORM no nos la devuelve por defecto pero nose si tiene sentido
+    //Agregarle un progresivo a una maquina borrada...
+    if($id_casino == null) return array();
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($id_casino == 0){
+      if($user->es_superusuario) return $this->datosMaquinas(Maquina::all());
+      else return array();
+    }
+
+    $casino = Casino::find($id_casino);
+    if($casino == null || !$user->usuarioTieneCasino($id_casino)){
+        return array();
+    }
+
+    return $this->datosMaquinas($casino->maquinas);
+  }
+
 
 
   public function obtenerProgresivo($id){
-    //TODO: agregar columna id_casino a progresivos.
     //Retorno toda la informacion nesteada,
     // nose si hay una forma mejor.
     $progresivo = Progresivo::find($id);
@@ -149,8 +212,126 @@ class ProgresivoController extends Controller
 
 
   public function modificarProgresivo(Request $request,$id_progresivo){
-    return array();
+    Validator::make($request->all(), [
+        'id_progresivo' => 'required|integer',
+        'nombre' => 'required',
+        'porc_recup' => 'required',
+        'pozos' => 'nullable',
+        'maquinas' => 'nullable',
+        'pozos.*.id_pozo' => 'required | integer',
+        'pozos.*.descripcion' => 'required',
+        'pozos.*.niveles' => 'nullable',
+        'pozos.*.niveles.*.id_nivel_progresivo' => 'required|integer',
+        'niveles.*.nro_nivel' => 'required|integer',
+        'niveles.*.nombre_nivel' => 'required',
+        'niveles.*.porc_oculto' => 'nullable',
+        'niveles.*.porc_visible' => 'nullable',
+        'niveles.*.base' => 'nullable',
+        'niveles.*.maximo' => 'nullable',
+        'maquinas' => 'nullable',
+        'maquinas.*.id_maquina' => 'required',
+    ], array(), self::$atributos)->after(function ($validator){
+      // TODO evaluar el valor maximo si es por progresivo y / o por nivel
+    })->validate();
+
+    $progresivo = Progresivo::with('pozos.niveles','maquinas')
+    ->whereIn('id_progresivo',[$request->id_progresivo])->first();
+    if($progresivo == null){
+      return array('errors' => ['id_progresivo']);
+    }
+
+    $progresivo->nombre = $request->nombre;
+    $progresivo->porc_recup = $request->porc_recup;
+    $progresivo->save();
+
+    $aux = [];
+    if(isset($request->pozos)){
+      $aux = $request->pozos;
+    }
+    $this->actualizarPozos($progresivo,$aux);
+
+    $aux = [];
+    if(isset($request->maquinas)){
+      $aux = $request->maquinas;
+    }
+    $this->actualizarMaquinas($progresivo,$aux);
+
+
+
+    return $progresivo->toArray();
   }
+
+  private function actualizarPozos($progresivo,$pozos){
+    $pozosAgregOModif = [];
+    foreach($pozos as $pozo){
+      $pozo_bd = null;
+
+      if($pozo['id_pozo'] != -1){
+        $pozo_bd = Pozo::find($pozo['id_pozo']);
+      }
+      else{
+        $pozo_bd = new Pozo;
+      }
+
+      if($pozo_bd != null){
+        $pozo_bd->descripcion = $pozo['descripcion'];
+        $pozo_bd->id_progresivo = $progresivo->id_progresivo;
+        $pozo_bd->save();
+        $pozosAgregOModif[] = $pozo_bd->id_pozo;
+        $niveles_aux = [];
+        if(array_key_exists('niveles',$pozo) && $pozo['niveles'] != null){
+          $niveles_aux = $pozo['niveles'];
+        }
+        $this->actualizarNiveles($pozo_bd,$niveles_aux);
+      }
+    }
+
+    $pozos_bd = $progresivo->pozos;
+
+    foreach($pozos_bd as $p){
+      if(!in_array($p->id_pozo,$pozosAgregOModif)){
+        $this->actualizarNiveles($p,[]);
+        $p->delete();
+      }
+    }
+
+  }
+  private function actualizarNiveles($pozo,$niveles){
+    $nivelesAgregOModif = [];
+    foreach($niveles as $nivel){
+      $nivel_bd = null;
+      if($nivel['id_nivel_progresivo'] != -1){
+        $nivel_bd = NivelProgresivo::find($nivel['id_nivel_progresivo']);
+      }
+      else{
+        $nivel_bd = new NivelProgresivo;
+      }
+
+      if($nivel_bd != null){
+        $nivel_bd->nro_nivel = $nivel['nro_nivel'];
+        $nivel_bd->nombre_nivel = $nivel['nombre_nivel'];
+        $nivel_bd->base = $nivel['base'];
+        $nivel_bd->porc_oculto = $nivel['porc_oculto'];
+        $nivel_bd->porc_visible = $nivel['porc_visible'];
+        $nivel_bd->maximo = $nivel['maximo'];
+        $nivel_bd->id_pozo = $pozo->id_pozo;
+        $nivel_bd->save();
+        $nivelesAgregOModif[] = $nivel_bd->id_nivel_progresivo;
+      }
+    }
+
+    $niveles_bd = $pozo->niveles;
+    foreach($niveles_bd as $nivel_bd){
+      if(!in_array($nivel_bd->id_nivel_progresivo,$nivelesAgregOModif)){
+        $nivel_bd->delete();
+      }
+    }
+  }
+
+  private function actualizarMaquinas($progresivo,$maquinas){
+
+  }
+
   public function agregarNivel(Request $request,$id_pozo){
     //TODO: validate, ej id_pozo not null
     $nivel = new NivelProgresivo;

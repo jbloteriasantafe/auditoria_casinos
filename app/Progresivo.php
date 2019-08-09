@@ -13,7 +13,7 @@ class Progresivo extends Model
   protected $visible = array(
     'id_progresivo',
     'nombre',
-    'porc_recuperacion',
+    'porc_recup',
     'id_casino');
   public $timestamps = false;
 

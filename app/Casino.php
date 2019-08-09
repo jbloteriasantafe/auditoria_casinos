@@ -75,11 +75,14 @@ class Casino extends Model
   public function fichas(){
     return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
   }
-  
+
   public function progresivos(){
     return $this->hasMany('App\Progresivo','id_casino','id_casino');
   }
 
+  public function maquinas(){
+    return $this->hasMany('App\Maquina','id_casino','id_casino');
+  }
 
   public static function boot(){
         parent::boot();

@@ -17,6 +17,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
 @section('contenidoVista')
 
+<datalist id='maquinas_lista'>
+</datalist>
+
 <div class="row">
   <div class="col-lg-12 col-xl-9">
     <div id="contenedorFiltros" class="row"> <!-- Tarjeta de FILTROS -->
@@ -39,7 +42,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                     @foreach ($usuario['usuario']->casinos as $casino)
                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                     @endforeach
-                    
+
                   </select>
                 </div>
                 <div class="col-lg-4">
@@ -163,8 +166,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                         <div class="col-md-6 col-lg-6">
                           <h5 class='row'>Nombre Progresivo</h5>
                           <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
-                          <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
-                          <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
+                        </div>
+                        <div class="col-md-6 col-lg-6">
+                          <h5 class='row'>Porcentaje de recuperación</h5>
+                          <input id="porc_recup" type="number"  class="form-control"  min="0" max="100" step="0.001" placeholder="0"></input>
                         </div>
                       </div>
                     <div class=''>
@@ -518,12 +523,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
               </thead>
               <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
                 <tr class="filaEjemplo">
-                  <td class="col-xs-1 cuerpoTablaNroAdmin">999</td>
+                  <td class="col-xs-2 cuerpoTablaNroAdmin">999</td>
                   <td class="col-xs-2 cuerpoTablaSector">SECTOR999</td>
                   <td class="col-xs-1 cuerpoTablaIsla">999</td>
                   <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
-                  <td class="col-xs-4 cuerpoTablaAcciones">
-                    <button class="btn btn-info">
+                  <td class="col-xs-3 cuerpoTablaAcciones">
+                    <button class="btn btn-info unlink">
                       <i class="fas fa-unlink"></i>
                     </button>
                   </td>

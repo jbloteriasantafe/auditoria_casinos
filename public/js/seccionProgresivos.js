@@ -62,7 +62,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();
             for (var i = 0; i < resultados.data.length; i++){
-                console.log(resultados.data[i]);
+                //console.log(resultados.data[i]);
                 var filaProgresivo = generarFilaTabla(resultados.data[i]);
                 $('#cuerpoTabla')
                     .append(filaProgresivo)
@@ -73,6 +73,27 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         error: function (data) {
             console.log('Error:', data);
         }
+      });
+      $.ajax({
+          type: 'GET',
+          url: 'progresivos/buscarMaquinas/'+formData.id_casino,
+          success: function (resultados) {
+              let maquinas_lista = $('#maquinas_lista');
+              maquinas_lista.empty();
+              let option = $('<option></option>');
+              for (var i=0; i < resultados.length; i++){
+                let fila = option.clone().attr('value',resultados[i].nombre)
+                .attr('data-id',resultados[i].id)
+                .attr('data-isla',resultados[i].isla)
+                .attr('data-sector',resultados[i].sector)
+                .attr('data-nro_admin',resultados[i].nro_admin)
+                .attr('data-marca_juego',resultados[i].marca_juego);
+                maquinas_lista.append(fila);
+              }
+          },
+          error: function (data) {
+              console.log('Error:', data);
+          }
       });
 });
 
@@ -698,6 +719,9 @@ function crearEditable(tipo,
 function filaEjemplo(){
   return $('.tablaPozoDiv.ejemplo').find('.filaEjemplo').clone().removeClass('filaEjemplo').show();
 }
+function filaEjemploMaquina(){
+  return $('.tablaMaquinasDiv.ejemplo').find('.filaEjemplo').clone().removeClass('filaEjemplo').show();
+}
 
 function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
   fila.attr('data-id',nivel.id_nivel_progresivo);
@@ -937,15 +961,31 @@ function arregloPozos(){
   return ret;
 }
 function arregloMaquinas(){
-  return {}
+  const maq_html = $($('.tablaMaquinasDiv').not('.ejemplo').first());
+  let ret = [];
+
+  maq_html.find('tbody tr').each(function(idx,c){
+    let fila = $(c);
+    ret.push({
+      id_maquina : fila.attr('data-id'),
+      nro_admin : fila.find('.cuerpoTablaNroAdmin').text(),
+      nro_isla :  fila.find('.cuerpoTablaIsla').text(),
+      sector_descripcion : fila.find('.cuerpoTablaSector').text(),
+      marca_juego : fila.find('.cuerpoTablaMarcaJuego').text()
+    });
+  });
+
+  return ret;
 }
 
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
+    $('#nombre_progresivo').attr('disabled',!editable);
+    $('#porc_recup').val(progresivo.porc_recup);
+    $('#porc_recup').attr('disabled',!editable);
     $('#contenedorPozos').empty();
     $('#contenedorMaquinas').empty();
-    $('#btn-agregarMaquina').attr('disabled',!editable);
     $('#btn-agregarPozo').attr('disabled',!editable).off();
     $('#btn-agregarPozo').on('click',function(){
         mostrarPozo(-1,'Pozo',editable);
@@ -972,6 +1012,7 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
       let formData = {
         id_progresivo : progresivo.id_progresivo,
         nombre : $('#nombre_progresivo').val(),
+        porc_recup :  $('#porc_recup').val(),
         pozos : arregloPozos(),
         maquinas : arregloMaquinas(),
       };
@@ -991,22 +1032,74 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
 
 }
 
+function setearFilaMaquinas(fila,id,nro_admin,sector,isla,marca_juego){
+  fila.find('.cuerpoTablaNroAdmin').text(nro_admin);
+  fila.find('.cuerpoTablaSector').text(sector)
+  fila.find('.cuerpoTablaIsla').text(isla);
+  fila.find('.cuerpoTablaMarcaJuego').text(marca_juego);
+  fila.attr('data-id',id);
+  fila.find('.unlink').on('click',function(){fila.remove()});
+}
+
 function llenarTablaMaquinas(maquinas,editable){
   let maq_html = $('.tablaMaquinasDiv.ejemplo').clone().removeClass('ejemplo');
   $('#contenedorMaquinas').append(maq_html);
   maq_html.show();
-  var fila_ejemplo_maq = maq_html.find('.filaEjemplo').hide().clone().removeClass('filaEjemplo').show();
+
+  $('#btn-agregarMaquina').attr('disabled',!editable).off();
+  $('#btn-agregarMaquina').on('click',function(){
+    let fila = filaEjemploMaquina();
+    let input = $('<input></input>')
+    .addClass('form-control')
+    .addClass('editable')
+    .attr('list','maquinas_lista');
+
+    setearFilaMaquinas(fila,'','','','','')
+
+    fila.find('.cuerpoTablaNroAdmin').replaceWith(input);
+    fila.find('.cuerpoTablaAcciones').empty();
+    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-check').addClass('confirmar'));
+    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-times').addClass('cancelar'));
+
+    fila.find('.cancelar').on('click',function(){
+      fila.remove();
+    });
+
+    fila.find('.confirmar').on('click',function(){
+      let filaCompleta = filaEjemploMaquina();
+      let value = input.val();
+      let data =  $('#maquinas_lista')
+      .find('option[value='+input.val()+']');
+      let data_id = data.attr('data-id');
+      let nro_admin = data.attr('data-nro_admin');
+      let sector = data.attr('data-sector');
+      let isla = data.attr('data-isla');
+      let marca_juego = data.attr('data-marca_juego');
+
+      setearFilaMaquinas(filaCompleta,data_id,nro_admin,sector,isla,sector,marca_juego);
+
+      fila.replaceWith(filaCompleta);
+    })
+
+    maq_html.find('.cuerpoTabla').append(fila);
+  });
+
+
+  var fila_ejemplo_maq = filaEjemploMaquina();
+  maq_html.find('.filaEjemplo').remove();
   for (var j = 0; j < maquinas.length; j++) {
     let fila = fila_ejemplo_maq.clone();
-    fila.attr('data-id',maquinas[j].id_maquina);
-    fila.find('.cuerpoTablaNroAdmin').text(maquinas[j].nro_admin);
-    fila.find('.cuerpoTablaSector').text(maquinas[j].sector);
-    fila.find('.cuerpoTablaIsla').text(maquinas[j].isla);
-    fila.find('.cuerpoTablaMarcaJuego').text(maquinas[j].marca_juego);
+
+    setearFilaMaquinas(fila,
+      maquinas[j].id_maquina,maquinas[j].nro_admin,
+      maquinas[j].sector,maquinas[j].isla,
+      maquinas[j].marca_juego);
+
     fila.find('.cuerpoTablaAcciones').children().each(
       function (index,child){
         $(child).attr('disabled',!editable);
     });
+
     maq_html.find('.cuerpoTabla').append(fila);
   }
 }

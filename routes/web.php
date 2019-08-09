@@ -50,6 +50,7 @@ Progresivos
 ***********/
 Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
 Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
+Route::get('progresivos/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
 Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
 Route::post('progresivos/modificarProgresivo/{id}','ProgresivoController@modificarProgresivo');
 Route::post('progresivos/agregarNivel/{id_pozo}','ProgresivoController@agregarNivel');
