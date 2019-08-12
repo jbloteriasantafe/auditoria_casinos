@@ -1041,6 +1041,11 @@ function setearFilaMaquinas(fila,id,nro_admin,sector,isla,marca_juego){
   fila.find('.unlink').on('click',function(){fila.remove()});
 }
 
+function existeEnTablaMaquinas(dataid){
+  let tabla =  $('.tablaMaquinasDiv').not('.ejemplo');
+  return tabla.find('tbody tr[data-id="'+dataid+'"]').length != 0;
+}
+
 function filaEditableMaquina(){
   let fila = filaEjemploMaquina();
   let input = $('<input></input>')
@@ -1069,10 +1074,14 @@ function filaEditableMaquina(){
     let sector = data.attr('data-sector');
     let isla = data.attr('data-isla');
     let marca_juego = data.attr('data-marca_juego');
+    if(existeEnTablaMaquinas(data_id)){
+      fila.remove();
+    }
+    else{
+      setearFilaMaquinas(filaCompleta,data_id,nro_admin,sector,isla,marca_juego);
+      fila.replaceWith(filaCompleta);
+    }
 
-    setearFilaMaquinas(filaCompleta,data_id,nro_admin,sector,isla,marca_juego);
-
-    fila.replaceWith(filaCompleta);
   });
 
   return fila;
