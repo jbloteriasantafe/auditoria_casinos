@@ -984,6 +984,7 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
 
       let formData = {
         id_progresivo : progresivo.id_progresivo,
+        id_casino : $('#modalProgresivo_casino').val(),
         nombre : $('#nombre_progresivo').val(),
         porc_recup :  $('#porc_recup').val(),
         pozos : arregloPozos(),
@@ -993,8 +994,8 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
       if(progresivo.id_progresivo == -1){
         mensajeExito = 'El progresivo fue creado con éxito.';
         url = 'progresivos/crearProgresivo';
-        formData.id_casino = $('#modalProgresivo_casino').val();
       }
+
       $.ajax({
           type: 'POST',
           data: formData,
@@ -1009,9 +1010,13 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
               $('<p></p>')
               .text(mensajeExito)
             );
+            $('#modalProgresivo').modal('hide');
             $('#mensajeExito').show();
           },
           error: function(err){
+            $('#mensajeError').find('.textoMensaje p')
+            .replaceWith($('<p></p>').text('INSERTAR ERROR'));
+            $('#mensajeError').show();
             console.log(err);
           }
       });
