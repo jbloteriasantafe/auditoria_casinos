@@ -21,6 +21,7 @@ class ProgresivoController extends Controller
     'id_progresivo' => 'ID del progresivo',
     'nombre' => 'Nombre del Progresivo',
     'porc_recuperacion' => '% de recuperacion',
+    'id_casino' => 'Casino donde esta el progresivo',
     'pozos' => 'Pozos del progresivo',
     'pozos.*.id_pozo' => 'ID del pozo',
     'pozos.*.descripcion' => 'Descripcion del pozo',
@@ -217,7 +218,7 @@ class ProgresivoController extends Controller
 
   public function crearProgresivo(Request $request){
     Validator::make($request->all(),[
-      'id_progresivo' => 'required'
+      'id_progresivo' => 'required',
       'nombre' => 'required',
       'porc_recup' => 'required',
       'id_casino' => 'required'
