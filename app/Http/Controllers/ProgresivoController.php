@@ -218,11 +218,11 @@ class ProgresivoController extends Controller
 
   public function crearProgresivo(Request $request){
     Validator::make($request->all(),[
-      'id_progresivo' => 'required',
-      'nombre' => 'required',
-      'porc_recup' => 'required',
-      'id_casino' => 'required'
-    ],array(),self::$atibutos)->after(function ($validator){})->validate();
+      'id_progresivo' => 'required|integer',
+      'nombre'        => 'required|max:100',
+      'porc_recup'    => 'required|numeric|min:0|max:100',
+      'id_casino'     => 'required|integer'
+    ],array(),self::$atributos)->after(function ($validator){})->validate();
 
     if($request->id_progresivo != -1){
       return $this->errorOut(['id_progresivo' => 'Malformado']);

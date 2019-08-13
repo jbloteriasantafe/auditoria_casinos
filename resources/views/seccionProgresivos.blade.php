@@ -92,7 +92,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-              <div class="backgroundNuevo"></div>
+              <div class="backgroundNuevo">
+              </div>
               <div class="row">
                 <div class="col-xs-12">
                   <center>
@@ -113,7 +114,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           <a href="" id="btn-nuevo" style="text-decoration: none;">
             <div class="panel panel-default panelBotonNuevo">
               <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-                <div class="backgroundNuevo"></div>
+                <div class="backgroundNuevo">
+                </div>
                 <div class="row">
                   <div class="col-xs-12">
                     <center>
@@ -128,8 +130,49 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
       </div>
     </div>
-            <!-- /.row -->
 
+<div class="row">
+  <div class="col-lg-12 col-xl-9">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+
+          <div class="panel-heading">
+            <h4>ÚLTIMOS PROGRESIVOS INDIVIDUALES</h4>
+          </div>
+
+          <div class="panel-body">
+            <table id="tablaResultadosIndividuales" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-6" estado="">MAQUINA  <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
+                <tr class="filaEjemplo">
+                  <td class="col-xs-6 cuerpoTablaNombre">MAQUINA999CASINO</th>
+                  <td class="col-xs-3 cuerpoTablaAcciones">
+                    <button class="btn btn-info mostrar">
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info editar">
+                      <i class="fa fa-fw fa-pencil-alt"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info borrar">
+                      <i class="fa fa-fw fa-trash-alt"></i>
+                    </button>
+                  </th>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Modal Progresivo -->
     <div class="modal fade" id="modalProgresivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
           <div class="modal-dialog modal-lg">
