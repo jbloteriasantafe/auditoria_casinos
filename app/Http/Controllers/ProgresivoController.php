@@ -43,7 +43,7 @@ class ProgresivoController extends Controller
     }
     return self::$instance;
   }
-  
+
   public function getAll(){
     $todos = Progresivo::all();
     return $todos;
@@ -115,38 +115,54 @@ class ProgresivoController extends Controller
     return $resultados->paginate($request->page_size);
   }
 
-  private function datosMaquinas($maquinas){
-    $ret = [];
-    foreach($maquinas as $maq){
-      $isla = '-';
-      $sector = '-';
-      if(isset($maq->isla)){
-        $isla = $maq->isla->nro_isla;
-        if(isset($maq->isla->sector) && isset($maq->isla->sector->descripcion)){
-          $sector = $maq->isla->sector->descripcion;
-        }
-      }
 
-      $ret[] = [
-        'id' => $maq->id_maquina ,
-        'nombre' => $maq->nro_admin . $maq->casino->codigo,
-        'nro_admin' => $maq->nro_admin,
-        'isla' => $isla,
-        'sector' => $sector,
-        'marca_juego' => $maq->marca_juego];
+  private function datosMaquinasCasino($id_casino = null){
+    $query =
+    "select maq.id_maquina,
+            maq.nro_admin,maq.marca_juego,
+            CONCAT(maq.nro_admin,cas.codigo) as nombre,
+            ifnull(isla.nro_isla,'-') as isla,
+            ifnull(sec.descripcion,'-') as sector
+    from maquina as maq
+    join casino as cas on (maq.id_casino = cas.id_casino)
+    left join isla on (maq.id_isla = isla.id_isla)
+    left join sector as sec on (isla.id_sector = sec.id_sector)
+    where maq.deleted_at is NULL";
+    if($id_casino != null){
+      $query = $query . " and cas.id_casino = :id_casino";
     }
-    return $ret;
+    return DB::select(DB::raw($query),['id_casino' => $id_casino]);
+  }
+
+  private function datosMaquinasProgresivo($id_progresivo = null){
+    $query =
+    "select maq.id_maquina,
+            maq.nro_admin,
+            maq.marca_juego,
+            CONCAT(maq.nro_admin,cas.codigo) as nombre,
+            ifnull(isla.nro_isla,'-') as isla,
+            ifnull(sec.descripcion,'-') as sector
+    from progresivo as prog
+    join maquina_tiene_progresivo as maq_prog on (prog.id_progresivo = maq_prog.id_progresivo)
+    join maquina as maq on (maq.id_maquina = maq_prog.id_maquina)
+    join casino as cas on (maq.id_casino = cas.id_casino)
+    left join isla on (maq.id_isla = isla.id_isla)
+    left join sector as sec on (isla.id_sector = sec.id_sector)
+    where maq.deleted_at is NULL";
+    if($id_progresivo != null){
+      $query = $query . " and prog.id_progresivo = :id_progresivo";
+    }
+    return DB::select(DB::raw($query),['id_progresivo' => $id_progresivo]);
   }
 
   public function buscarMaquinas(Request $request,$id_casino){
     //TODO: Deberia retornar las maquinas que estan dadas de baja,
     //i.e. tienen el parametro deleted_at seteado?
-    //Usando el ORM no nos la devuelve por defecto pero nose si tiene sentido
     //Agregarle un progresivo a una maquina borrada...
     if($id_casino == null) return array();
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($id_casino == 0){
-      if($user->es_superusuario) return $this->datosMaquinas(Maquina::all());
+      if($user->es_superusuario) return $this->datosMaquinasCasino();
       else return array();
     }
 
@@ -155,9 +171,8 @@ class ProgresivoController extends Controller
         return array();
     }
 
-    return $this->datosMaquinas($casino->maquinas);
+    return $this->datosMaquinasCasino($casino->id_casino);
   }
-
 
 
   public function obtenerProgresivo($id){
@@ -185,7 +200,7 @@ class ProgresivoController extends Controller
       $maquinas = $progresivo->maquinas;
 
       if($maquinas != null){
-        $maquinas_arr = $this->datosMaquinas($maquinas);
+        $maquinas_arr = $this->datosMaquinasProgresivo($progresivo->id_progresivo);
       }
 
     }
