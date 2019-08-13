@@ -86,10 +86,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div>
   </div> <!-- / Tarjeta TABLA -->
 
-  {{-- <div class="col-lg-12 col-xl-3">
+  <div class="col-lg-12 col-xl-3">
     <div class="row">
       <div class="col-lg-12">
-        <a href="" id="btn-nuevo" style="text-decoration: none;">
+        <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
               <div class="backgroundNuevo"></div>
@@ -97,7 +97,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <div class="col-xs-12">
                   <center>
                     <h5 class="txtLogo">+</h5>
-                    <h4 class="txtNuevo">NUEVO PROGRESIVO</h4>
+                    <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
                   </center>
                 </div>
               </div>
@@ -105,12 +105,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           </a>
         </div>
       </div>
-    </div> --}}
+    </div>
 
     <div class="col-lg-12 col-xl-3">
       <div class="row">
         <div class="col-lg-12">
-          <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
+          <a href="" id="btn-nuevo" style="text-decoration: none;">
             <div class="panel panel-default panelBotonNuevo">
               <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
                 <div class="backgroundNuevo"></div>
@@ -118,7 +118,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   <div class="col-xs-12">
                     <center>
                       <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
+                      <h4 class="txtNuevo">NUEVO PROGRESIVO</h4>
                     </center>
                   </div>
                 </div>
@@ -127,28 +127,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           </div>
         </div>
       </div>
-
-      <div class="col-lg-12 col-xl-3">
-        <div class="row">
-          <div class="col-lg-12">
-            <a href="" id="btn-nuevo-link" style="text-decoration: none;">
-              <div class="panel panel-default panelBotonNuevo">
-                <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-                  <div class="backgroundNuevo"></div>
-                  <div class="row">
-                    <div class="col-xs-12">
-                      <center>
-                        <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
-                      </center>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+    </div>
             <!-- /.row -->
 
     <!-- Modal Progresivo -->
@@ -163,13 +142,21 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <div  id="colapsado" class="collapse in">
                   <div class="modal-body modal-Cuerpo">
                       <div class="row">
-                        <div class="col-md-6 col-lg-6">
+                        <div class="col-md-4 col-lg-4">
                           <h5 class='row'>Nombre Progresivo</h5>
                           <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
                         </div>
-                        <div class="col-md-6 col-lg-6">
+                        <div class="col-md-4 col-lg-4">
                           <h5 class='row'>Porcentaje de recuperación</h5>
                           <input id="porc_recup" type="number"  class="form-control"  min="0" max="100" step="0.001" placeholder="0"></input>
+                        </div>
+                        <div class="col-md-4 col-lg-4">
+                          <h5 class='row'>Casino</h5>
+                          <select class="form-control" id="modalProgresivo_casino">
+                            @foreach ($usuario['usuario']->casinos as $casino)
+                            <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                            @endforeach
+                          </select>
                         </div>
                       </div>
                     <div class=''>

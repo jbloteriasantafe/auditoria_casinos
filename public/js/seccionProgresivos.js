@@ -15,86 +15,86 @@ $(document).ready(function(){
   $('#opcProgresivos').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcProgresivos').addClass('opcionesSeleccionado');
 
-
-
-  limpiarModal();
-
   $('#btn-buscar').trigger('click');
 });
 
 
 //Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+
+  e.preventDefault();
+
+  //Fix error cuando librería saca los selectores
+  if(isNaN($('#herramientasPaginacion').getPageSize())){
+    var size = 10; // por defecto
+  }else {
+    var size = $('#herramientasPaginacion').getPageSize();
+  }
+
+  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+
+  var formData = {
+    nombre_progresivo: $('#B_nombre_progresivo').val(),
+    id_casino: $('#busqueda_casino').val(),
+    page: page_number,
+    sort_by: 'nombre',
+    page_size: page_size,
+  };
+
+  $.ajax({
+      type: 'POST',
+      url: 'progresivos/buscarProgresivos',
+      data: formData,
+      dataType: 'json',
+      success: function (resultados) {
+          console.log(resultados);
+          $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
+          $('#cuerpoTabla tr').remove();
+          for (var i = 0; i < resultados.data.length; i++){
+              var filaProgresivo = generarFilaTabla(resultados.data[i]);
+              $('#cuerpoTabla').append(filaProgresivo);
+          }
+          $('#herramientasPaginacion').generarIndices(
+            page_number,
+            page_size,
+            resultados.total,
+            clickIndice);
+
+      },
+      error: function (data) {
+          console.log('Error:', data);
+      }
     });
 
-    e.preventDefault();
+  function callbackMaquinas(resultados){
+    let maquinas_lista = $('#maquinas_lista');
+    maquinas_lista.empty();
+    let option = $('<option></option>');
+    for (var i=0; i < resultados.length; i++){
+      let fila = option.clone().attr('value',resultados[i].nombre)
+      .attr('data-id',resultados[i].id)
+      .attr('data-isla',resultados[i].isla)
+      .attr('data-sector',resultados[i].sector)
+      .attr('data-nro_admin',resultados[i].nro_admin)
+      .attr('data-marca_juego',resultados[i].marca_juego);
+      maquinas_lista.append(fila);
+    };
+  }
 
-    //Fix error cuando librería saca los selectores
-    if(isNaN($('#herramientasPaginacion').getPageSize())){
-      var size = 10; // por defecto
-    }else {
-      var size = $('#herramientasPaginacion').getPageSize();
-    }
+  let ajaxData = {
+    type: 'GET',
+    url: 'progresivos/buscarMaquinas/'+$('#busqueda_casino').val()
+  };
 
-    var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-
-    var formData = {
-      nombre_progresivo: $('#B_nombre_progresivo').val(),
-      id_casino: $('#busqueda_casino').val(),
-      page: page_number,
-      sort_by: 'nombre',
-      page_size: page_size,
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: 'progresivos/buscarProgresivos',
-        data: formData,
-        dataType: 'json',
-        success: function (resultados) {
-            console.log(resultados);
-            $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-            $('#cuerpoTabla tr').remove();
-            for (var i = 0; i < resultados.data.length; i++){
-                //console.log(resultados.data[i]);
-                var filaProgresivo = generarFilaTabla(resultados.data[i]);
-                $('#cuerpoTabla')
-                    .append(filaProgresivo)
-            }
-            $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-
-        },
-        error: function (data) {
-            console.log('Error:', data);
-        }
-      });
-      $.ajax({
-          type: 'GET',
-          url: 'progresivos/buscarMaquinas/'+formData.id_casino,
-          success: function (resultados) {
-              let maquinas_lista = $('#maquinas_lista');
-              maquinas_lista.empty();
-              let option = $('<option></option>');
-              for (var i=0; i < resultados.length; i++){
-                let fila = option.clone().attr('value',resultados[i].nombre)
-                .attr('data-id',resultados[i].id)
-                .attr('data-isla',resultados[i].isla)
-                .attr('data-sector',resultados[i].sector)
-                .attr('data-nro_admin',resultados[i].nro_admin)
-                .attr('data-marca_juego',resultados[i].marca_juego);
-                maquinas_lista.append(fila);
-              }
-          },
-          error: function (data) {
-              console.log('Error:', data);
-          }
-      });
+  $.when($.ajax(ajaxData))
+  .then(callbackMaquinas, function(err){console.log(err)});
 });
 
 $('#btn-ayuda').click(function(e){
@@ -104,15 +104,11 @@ $('#btn-ayuda').click(function(e){
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
-
 });
 
 //Mostrar modal para agregar nuevo Progresivo
 $('#btn-nuevo').click(function(e){
-    $('#mensajeExito').hide();
     e.preventDefault();
-    limpiarModal();
-    habilitarControles(true);
     $('.btn-agregarNivelProgresivo').show();
     $('#btn-cancelar').text('CANCELAR');
     $('#btn-guardar').val("nuevo");
@@ -121,6 +117,7 @@ $('#btn-nuevo').click(function(e){
     $('.modal-title').text('| NUEVO PROGRESIVO');
     $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
     $('#modalProgresivo').modal('show');
+    mostrarProgresivo({id_progresivo: -1,nombre: '',porc_recup: 0},[],[],true);
 });
 
 // Modal crear nuevo progresivo individual
@@ -276,7 +273,6 @@ $('#btn-guardar-link').on('click', function(e){
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
-      limpiarModal();
       $('.modal-title').text('| VER MÁS');
       $('.modal-header').attr('style','font-family: Roboto-Black; background: #4FC3F7');
       $('.btn-agregarNivelProgresivo').hide();
@@ -287,7 +283,6 @@ $(document).on('click','.detalle',function(){
       $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data){
           console.log(data);
           mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,false);
-          habilitarControles(false);
           $('#modalProgresivo').modal('show');
       });
 });
@@ -295,7 +290,6 @@ $(document).on('click','.detalle',function(){
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
       $('#mensajeExito').hide();
-      limpiarModal();
       habilitarControles(true);
       $('#btn-cancelar').text('CANCELAR');
       $('.btn-agregarNivelProgresivo').show();
@@ -309,8 +303,6 @@ $(document).on('click','.modificar',function(){
       $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data){
           mostrarProgresivo(data.progresivo,data.pozos,data.maquinas,true);
           console.log('niveles' , data.niveles);
-
-          // habilitarControles(true);
           $('#btn-guardar').val("modificar");
           $('#modalProgresivo').modal('show');
       });
@@ -346,13 +338,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
 });
 
 /***********EVENTOS DEL MODAL**********/
-
-// $(document).on("keypress" , function(e){
-//   if(e.which == 13 && $('#modalProgresivo').is(':visible')) {
-//     e.preventDefault();
-//     $('#btn-guardar').click();
-//   }
-// })
 
 $(document).on("keyup " , ".porc_visible" , function() {
   var input = $(this).val();
@@ -544,41 +529,7 @@ $(document).on("click " , ".borrarPozo" , function() {
     var nro_pozo = $(this).attr('data-pozo');
     borrarPozo(nro_pozo);
 });
-/*
-function agregarMaquina(id_maquina, nro_admin,nombre,modelo, listaMaquinas){
-    listaMaquinas.append($('<li>')
-        //Se agrega el id del progresivo de la lista
-        .val(id_maquina)
-        .addClass('row')
-        .css('list-style','none')
-        //Columna de NUMERO ADMIN
-        .append($('<div>')
-            .addClass('col-xs-2').css('margin-top','6px')
-            .text(nro_admin)
-        )
-        //Columna de NOMBRE PROGRESIVO
-        .append($('<div>')
-            .addClass('col-xs-4').css('margin-top','6px')
-            .text(nombre)
-        )
-        //Columna de TIPO PROGRESIVO
-        .append($('<div>')
-            .addClass('col-xs-4').css('margin-top','6px')
-            .text(modelo)
-        )
-        //Columna BOTON QUITAR
-        .append($('<div>')
-            .addClass('col-xs-2')
-            .append($('<button>')
-                .addClass('btn').addClass('btn-danger').addClass('borrarFila').addClass('borrarMaquina')
-                .append($('<i>')
-                    .addClass('fa fa-fw fa-trash')
-                )
-            )
-        )
-    );
-}
-*/
+
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
@@ -594,6 +545,7 @@ function generarFilaTabla(progresivo){
     fila.attr('id','progresivo' + progresivo.id_progresivo)
     .append($('<td>')
             .addClass('col-xs-6')
+            .addClass('nombre')
             .text(progresivo.nombre)
     )
     .append($('<td>')
@@ -624,6 +576,36 @@ function generarFilaTabla(progresivo){
               .attr('value',progresivo.id_progresivo)
           )
       )
+
+      fila.find('.eliminar').off().on('click',function(){
+        $('.modal-title').text('ADVERTENCIA');
+        $('.modal-header').removeAttr('style');
+        $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+
+        $('#btn-eliminarModal').val(id_progresivo);
+        $('#modalEliminar').modal('show');
+        $('#btn-eliminarModal').off().on('click',function(){
+          $.ajaxSetup({
+              headers: {
+                  'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+              }
+          })
+          $.ajax({
+              type: "DELETE",
+              url: "progresivos/eliminarProgresivo/" + progresivo.id_progresivo,
+              success: function (data) {
+                console.log(data);
+                fila.remove();
+                $("#tablaResultados").trigger("update");
+                $('#modalEliminar').modal('hide');
+              },
+              error: function (data) {
+                console.log('Error: ', data);
+              }
+          })
+        });
+      });
+
       return fila;
 }
 
@@ -651,18 +633,6 @@ function habilitarControles(valor){
     }
 }
 
-function limpiarModal(){
-    $('#frmProgresivo').trigger('reset');
-    $('#columna > .NivelProgresivo').remove();
-    $('#id_progresivo').val(0);
-    $('#juegosSeleccionados li').remove();
-    $('#inputJuego').prop("readonly" , false);
-    $('#juegoSeleccionado').text("");
-    $('#juegoSeleccionado').val("");
-    $('#agregarJuego').css('display' , 'none');
-    $('#cancelarJuego').css('display' , 'none');
-    limpiarAlertas();
-}
 
 function limpiarAlertas(){
     $('#nombre_progresivo').removeClass('alerta');
@@ -677,21 +647,6 @@ function limpiarAlertas(){
       $(this).find('#maximo').removeClass('alerta');
     });
     $('.alertaTabla').remove();
-}
-
-function clonarRadioButton(i){
-  var div_radios_clonado = $('#modelo_radio').clone();
-  var id_casino = 0;
-  $('input' , div_radios_clonado).each(function(){
-    if($(this).is(':checked'))
-      $(this).prop('checked', false);
-    id_casino = $(this).val();
-    $('label[for="' +  $(this).attr('id') + '"]' , div_radios_clonado).attr('for', 'link_pozo_' + i + '_' + id_casino);
-    $(this).attr('id', 'link_pozo_' + i + '_' + id_casino);
-    $(this).attr('name' , 'casinos_'  + i);
-  })
-  div_radios_clonado.removeAttr('id');
-  return div_radios_clonado;
 }
 
 function crearBoton(icono){
@@ -818,6 +773,20 @@ function modificarNivel(fila){
   fila.parent().parent().parent().find('.agregar').attr('disabled',false);
 }
 
+function limpiarNullsNivel(nivel){
+  function limpiarNull(val){
+    return val == null? '' : val;
+  }
+  return {
+    id_nivel_progresivo : limpiarNull(nivel.id_nivel_progresivo),
+    nro_nivel :  limpiarNull(nivel.nro_nivel),
+    nombre_nivel :  limpiarNull(nivel.nombre_nivel),
+    base :  limpiarNull(nivel.base),
+    porc_oculto :  limpiarNull(nivel.porc_oculto),
+    porc_visible :  limpiarNull(nivel.porc_visible),
+    maximo :  limpiarNull(nivel.maximo)
+  };
+}
 
 function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
   let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo');
@@ -833,7 +802,7 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
   for (var j = 0; j < niveles.length; j++) {
     let fila = fila_ejemplo_pozo.clone();
 
-    const nivel = niveles[j];
+    const nivel = limpiarNullsNivel(niveles[j]);
 
     setearValoresFilaNivel(fila,nivel);
 
@@ -979,6 +948,8 @@ function arregloMaquinas(){
 }
 
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
+    $('#modalProgresivo_casino').attr('disabled',progresivo.id_progresivo != -1);
+    $('#modalProgresivo_casino').val(progresivo.id_casino);
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
     $('#nombre_progresivo').attr('disabled',!editable);
@@ -1000,14 +971,16 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     llenarTablaMaquinas(maquinas,editable);
 
     $('#btn-guardar').attr('disabled',!editable).off();
+
     $('#btn-guardar').on('click',function(){
       $.ajaxSetup({
           headers: {
               'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
           }
       })
-
+      let mensajeExito = 'El progresivo fue modificado con éxito.';
       let url = 'progresivos/modificarProgresivo/'+progresivo.id_progresivo;
+
 
       let formData = {
         id_progresivo : progresivo.id_progresivo,
@@ -1017,15 +990,29 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
         maquinas : arregloMaquinas(),
       };
 
+      if(progresivo.id_progresivo == -1){
+        mensajeExito = 'El progresivo fue creado con éxito.';
+        url = 'progresivos/crearProgresivo';
+        formData.id_casino = $('#modalProgresivo_casino').val();
+      }
       $.ajax({
           type: 'POST',
           data: formData,
           url: url,
           success: function(data){
-            console.log(data)
+            console.log(data);
+            let fila = $('#cuerpoTabla').find('#progresivo'+progresivo.id_progresivo);
+            fila.find('.nombre').text(formData.nombre);
+            $('#mensajeExito')
+            .find('.textoMensaje p')
+            .replaceWith(
+              $('<p></p>')
+              .text(mensajeExito)
+            );
+            $('#mensajeExito').show();
           },
           error: function(err){
-            console.log(err)
+            console.log(err);
           }
       });
     });
@@ -1104,7 +1091,7 @@ function llenarTablaMaquinas(maquinas,editable){
     let fila = fila_ejemplo_maq.clone();
 
     setearFilaMaquinas(fila,
-      maquinas[j].id_maquina,maquinas[j].nro_admin,
+      maquinas[j].id,maquinas[j].nro_admin,
       maquinas[j].sector,maquinas[j].isla,
       maquinas[j].marca_juego);
 
@@ -1115,365 +1102,4 @@ function llenarTablaMaquinas(maquinas,editable){
 
     maq_html.find('.cuerpoTabla').append(fila);
   }
-}
-
-function moverAPozo(id_maquina, listaMaquinas){
-  var listas = $('#cuerpo_linkeado .listaMaquinas').not(listaMaquinas);
-  $('li' , listas).each(function(){
-     if(parseInt($(this).val()) == parseInt(id_maquina)){
-        var maquina_clon = $(this).clone();
-        listaMaquinas.append(maquina_clon);
-        $(this).remove();
-     }
-  })
-}
-
-
-/****************TODOS EVENTOS DE BUSCADORES*****************/
-
-//Agregar Máquina
-$(document).on("click",  ".agregarMaquina" , function(){
-  //Crear un item de la lista
-  var input = $(this).parent().parent().find('input');
-  var id = input.obtenerElementoSeleccionado();
-  var listaMaquinas = $(this).parent().parent().parent().parent().parent().find('.listaMaquinas');
-  if(id != 0){
-    if(!existeEnDataList(id,tipoProgresivo())){
-      $.get('http://' + window.location.host +"/maquinas/obtenerConfiguracionMaquina/" + id, function(data){
-        agregarMaquina( data.maquina.id_maquina,data.maquina.nro_admin,data.maquina.marca,data.maquina.modelo,listaMaquinas);
-        input.setearElementoSeleccionado(0,"");
-      });
-
-    }else {
-      if(tipoProgresivo() == 'link'){
-        moverAPozo(id,listaMaquinas);
-      }
-      input.setearElementoSeleccionado(0,"");
-    }
-  }
-});
-
-//Agregar Isla
-$(document).on("click", ".agregarIsla" ,function(){
-  var listaMaquinas =  $(this).parent().parent().parent().parent().parent().find('.listaMaquinas');
-  var input = $(this).parent().parent().find('input');
-  var id = input.obtenerElementoSeleccionado();
-  if(id != 0){
-    console.log('agregarIsla-click');
-    agregarIsla(id,listaMaquinas,tipoProgresivo());
-    input.setearElementoSeleccionado(0,"")
-  }
-});
-
-$(document).on('click','.borrarMaquina',function(e){
-  e.preventDefault();
-  $(this).parent().parent().remove();
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Quitar eventos de la tecla Enter
-$("#contenedorFiltros input").on('keypress',function(e){
-    if(e.which == 13) {
-      e.preventDefault();
-      $('#btn-buscar').click();
-    }
-});
-
-$('#btn-eliminarModal').click(function(e){
-      var id_progresivo = $(this).val();
-
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      })
-
-      $.ajax({
-          type: "DELETE",
-          url: "progresivos/eliminarProgresivo/" + id_progresivo,
-          success: function (data) {
-            console.log(data);
-            $('#progresivo' + id_progresivo).remove();
-            $("#tablaResultados").trigger("update");
-            $('#modalEliminar').modal('hide');
-          },
-          error: function (data) {
-            console.log('Error: ', data);
-          }
-      });
-});
-
-
-//Crear nuevo progresivo / actualizar si existe
-$('#btn-guardar').click(function (e) {
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      });
-
-      var niveles = [];
-
-      if($('#selectTipoProgresivos').val()  == 'LINKEADO'){//si es linkeado, capturo y mando informacion de casda pozo
-        var pozos = [];
-
-        $('#contenedorPozos').children().each(function(indexPozo){
-          var maquinas= [];
-          var niveles= [];
-          $(this).find(".listaMaquinas").children().each(function(indexMaquina){
-            var maquina;
-            maquina = {
-                id_maquina : $(this).val(),
-            }
-            maquinas.push(maquina);
-          });
-
-          $(this).find(".columna").children().each(function(indexNivel){
-            var nivel = {
-              id_nivel: $(this).attr('id'),
-              nro_nivel : $(this).find(".nro_nivel").val(),
-              nombre_nivel: $(this).find('.nombre_nivel').val(),
-              porc_oculto : $(this).find(".porc_oculto").val(),
-              porc_visible: $(this).find(".porc_visible").val(),
-              base: $(this).find(".base").val(),
-            }
-            niveles.push(nivel);
-
-          });
-
-          var pozo = {
-            maquinas: maquinas,
-            niveles: niveles,
-          };
-
-          pozos.push(pozo);
-
-        })
-
-        var formData = {
-           id_progresivo : $('#id_progresivo').val(),
-           nombre:$('#nombre_progresivo').val() ,
-           tipo: $('#selectTipoProgresivos').val(),
-           pozos: pozos , //si es individual manda un solo pozo
-           maximo: $('#maximo').val(),
-           porc_recuperacion : $('#porcentaje_recuperacion').val(),
-        }
-
-      }else { //INDIVIDUAL
-        var maquinas = [];
-        var  pozos = [];
-
-        $('#cuerpo_individual').find(".columna").children().each(function(indexNivel){
-          var nivel = {
-            id_nivel: $(this).attr('id'),
-            nro_nivel : $(this).find(".nro_nivel").val(),
-            nombre_nivel: $(this).find('.nombre_nivel').val(),
-            porc_oculto : $(this).find(".porc_oculto").val(),
-            porc_visible: $(this).find(".porc_visible").val(),
-            base: $(this).find(".base").val(),
-          }
-          niveles.push(nivel);
-
-        });
-
-        $('#cuerpo_individual').find('.listaMaquinas').children().each(function(indexMaquina){
-          var maquina;
-          var maquina;
-          maquina = {
-              id_maquina : $(this).val(),
-          };
-          maquinas.push(maquina);
-        })
-
-        var pozo = {
-          maquinas: maquinas,
-          niveles: niveles,
-        } ;
-
-        var formData = {
-           id_progresivo : $('#id_progresivo').val(),
-           nombre: $('#nombre_progresivo').val() ,
-           tipo: $('#selectTipoProgresivos').val(),
-           pozos: pozo, //se manda un solo pozo
-           maximo: $('#maximo').val(),
-           porc_recuperacion : $('#porcentaje_recuperacion').val(),
-        }
-
-      }
-
-      var state = $('#btn-guardar').val();
-      var type = "POST";
-      var url = ((state == "modificar") ? 'progresivos/modificarProgresivo':'progresivos/guardarProgresivo');
-
-
-      console.log(formData);
-      $.ajax({
-          type: type,
-          url: url,
-          data: formData,
-          dataType: 'json',
-          success: function (data) {
-
-              $('.modal').modal('hide');
-
-              $('#mensajeExito').show();
-
-              var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-              var tam = $('#herramientasPaginacion').getPageSize();
-              var columna = $('#tablaLayouts .activa').attr('value');
-              var orden = $('#tablaLayouts .activa').attr('estado');
-
-              $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-          },
-          error: function (data) {
-      //         //console.log('Error:', data);
-      //         var response = JSON.parse(data.responseText);
-      //
-      //         limpiarAlertas();
-      //
-      //         if(typeof response.nombre_progresivo !== 'undefined'){
-      //           $('#nombre_progresivo').addClass('alerta');
-      //           $('#alerta-nombre-progresivo').text(response.nombre_progresivo[0]);
-      //           $('#alerta-nombre-progresivo').show();
-      //         }
-      //
-      //         var i=0;
-      //         $('#columna .NivelProgresivo').each(function(){
-      //           var error=' ';
-      //           if(typeof response['niveles.'+ i +'.nro_nivel'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.nro_nivel']+'<br>';
-      //             $(this).find('#nro_nivel').addClass('alerta');
-      //           }
-      //           if(typeof response['niveles.'+ i +'.nombre_nivel'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.nombre_nivel']+'<br>';
-      //             $(this).find('#nombre_nivel').addClass('alerta');
-      //           }
-      //           if(typeof response['niveles.'+ i +'.porc_oculto'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.porc_oculto']+'<br>';
-      //             $(this).find('#porc_oculto').addClass('alerta');
-      //           }
-      //           if(typeof response['niveles.'+ i +'.porc_visible'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.porc_visible']+'<br>';
-      //             $(this).find('#porc_visible').addClass('alerta');
-      //           }
-      //           if(typeof response['niveles.'+ i +'.base'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.base']+'<br>';
-      //             $(this).find('#base').addClass('alerta');
-      //           }
-      //           if(typeof response['niveles.'+ i +'.maximo'] !== 'undefined'){
-      //             error+=response['niveles.'+ i +'.maximo']+'<br>';
-      //             $(this).find('#maximo').addClass('alerta');
-      //           }
-      //           if(error != ' '){
-      //           var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
-      //             $(this).append(alerta);
-      //           }
-      //           i++;
-      //         })
-
-          }
-      });
-});
-
-/************************************/
-$('.modal').on('hidden.bs.modal', function() {//cuando se cierra el modal
-  limpiarCollapseProgresivo(true);
-  limpiarProgresivoSeleccionado();
-  $('.columna').empty();
-  $('.pozo').each(function(index){
-      $(this).find('.cAgregarProgresivo').attr('aria-expanded', false);
-      $(this).find('.collapse').removeClass('in');
-  })
-
-  $('.radioGroup input').prop('checked' , false);
-
-  $('.listaMaquinas').empty();
-})
-
-function tipoProgresivo(){
-  var bandera = '';
-  if($('#cuerpo_individual').is(':visible')) {
-    bandera = 'individual';
-  }else {
-    bandera = 'link';
-  }
-  return bandera
-}
-
-function existeEnDataList( id_maquina, tipo_progresivo){
-  var bandera = false;
-  switch (tipo_progresivo) {
-    case 'link':
-      var listas = $('#cuerpo_linkeado .listaMaquinas');
-      $('li' , listas).each(function(){
-          if(parseInt($(this).val()) == parseInt(id_maquina)){
-            bandera=true;
-            console.log('existe linkeado');
-         }
-      })
-      break;
-    case 'individual':
-        var listas = $('#cuerpo_individual .listaMaquinas');
-        $('li' , listas).each(function(){
-            if(parseInt($(this).val()) == parseInt(id_maquina)){
-              bandera=true;
-              console.log('existe individual');
-           }
-        })
-      break;
-
-  }
-    return bandera;
-}
-
-function limpiarCollapseProgresivo(bandera = false){
-  //si bandera viene en true mantener input del buscador
-  if (bandera != true) {
-    console.log('limpia');
-    $('#nombre_progresivo').prop("readonly", false).val("");
-    $('#nombre_progresivo').setearElementoSeleccionado(0 , "");
-    seleccionado_progresivo = 0;
-  }
-  $('.pozo').remove();
-  $('#maximo').val('');
-  $('#selectTipoProgresivos').val(0).trigger('change');
-  $('#porcentaje_recuperacion').val(""); //Se esconde el botón de agregar
-  $('#btn-cancelarProgresivo').hide();
-  $('#btn-agregarProgresivo').hide();
-  $('#btn-crearProgresivo').hide();
-  $('#btn-agregarNivelProgresivo').show();
-  $('.columna>.NivelProgresivo').remove();//quita los niveles de progresivo individual y linkeado
-}
-
-function limpiarProgresivoSeleccionado(){
-  $('#progresivoSeleccionado').text("");
-  $('#tipoSeleccionado').text("");
-  $('#maximoSeleccionado').text("");
-  $('#porc_recuperacionSeleccionado').text("");
-  $('#noexiste_progresivo').show();
-  limpiarNivelesProgresivos();
-  $('#tablaProgresivoSeleccionado').hide();
-  $('#tablaNivelesSeleccionados').hide();
-}
-
-function limpiarNivelesProgresivos(){
-  $('#columna .NivelProgresivo input').each(function(indexMayor){
-    if($(this).is('[readonly]')){
-      $('#columna').empty();
-    }
-  });
-};
-
-function mostrarBonus(bandera){
-  var asdf;
 }

@@ -43,6 +43,11 @@ class ProgresivoController extends Controller
     }
     return self::$instance;
   }
+  
+  public function getAll(){
+    $todos = Progresivo::all();
+    return $todos;
+  }
 
   public function buscarTodos(){
     $progresivos = Progresivo::all();
@@ -61,21 +66,6 @@ class ProgresivoController extends Controller
       ['progresivos' => $casino->progresivos,
       'casinos' => $user->casinos]);
     }
-  }
-
-
-  public function getAll(){
-    $todos = Progresivo::all();
-    return $todos;
-  }
-
-  public function buscarProgresivoPorNombreYTipo($busqueda){
-    $resultados = DB::table('progresivo')
-      ->select('progresivo.id_progresivo','progresivo.nombre_progresivo','progresivo.linkeado','progresivo.individual')
-      ->where('progresivo.nombre_progresivo' , 'like' , '%'.$busqueda.'%')
-      ->get();
-
-    return ['resultados' => $resultados];
   }
 
   public function buscarProgresivos(Request $request){
@@ -195,12 +185,7 @@ class ProgresivoController extends Controller
       $maquinas = $progresivo->maquinas;
 
       if($maquinas != null){
-        foreach($maquinas as $maq){
-          $maq_arr = $maq->toArray();
-          $maq_arr["isla"] = $maq->isla->nro_isla;
-          $maq_arr["sector"] = $maq->isla->sector->descripcion;
-          $maquinas_arr[]=$maq_arr;
-        }
+        $maquinas_arr = $this->datosMaquinas($maquinas);
       }
 
     }
@@ -210,8 +195,34 @@ class ProgresivoController extends Controller
            'maquinas' => $maquinas_arr];
   }
 
+  private function errorOut($map){
+    return response()->json(['errors' => $map],422);
+  }
 
-  public function modificarProgresivo(Request $request,$id_progresivo){
+  public function crearProgresivo(Request $request){
+    if($request->id_progresivo == null || $request->id_progresivo != -1){
+      return $this->errorOut(['id_progresivo' => 'Nulo o malformado']);
+    }
+    if($request->id_casino == null || Casino::find($request->id_casino) == null){
+      return $this->errorOut(['id_casino' => 'Nulo o no existe']);
+    }
+    if(isset($request->maquinas)){
+      $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
+      if(!$valido){
+        return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
+      }
+    }
+
+    $progresivo = new Progresivo;
+    $progresivo->nombre = $request->nombre;
+    $progresivo->porc_recup = 0;
+    $progresivo->id_casino = $request->id_casino;
+    $progresivo->save();
+    $request->id_progresivo = $progresivo->id_progresivo;
+    return $this->modificarProgresivo($request,$progresivo->id_progresivo,false);
+  }
+
+  public function modificarProgresivo(Request $request,$id_progresivo,$check_maquinas = true){
     Validator::make($request->all(), [
         'id_progresivo' => 'required|integer',
         'nombre' => 'required',
@@ -231,14 +242,24 @@ class ProgresivoController extends Controller
         'maquinas' => 'nullable',
         'maquinas.*.id_maquina' => 'required',
     ], array(), self::$atributos)->after(function ($validator){
-      // TODO evaluar el valor maximo si es por progresivo y / o por nivel
     })->validate();
+
+    if($check_maquinas){
+      if(isset($request->maquinas)){
+        $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
+        if(!$valido){
+          return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
+        }
+      }
+    }
 
     $progresivo = Progresivo::with('pozos.niveles','maquinas')
     ->whereIn('id_progresivo',[$request->id_progresivo])->first();
+
     if($progresivo == null){
-      return array('errors' => ['id_progresivo']);
+      return $this->errorOut(['id_progresivo' => 'Progresivo no existe']);
     }
+
 
     $progresivo->nombre = $request->nombre;
     $progresivo->porc_recup = $request->porc_recup;
@@ -256,12 +277,29 @@ class ProgresivoController extends Controller
     }
     $this->actualizarMaquinas($progresivo,$aux);
 
-
-
     return $progresivo->toArray();
   }
 
+  public function eliminarProgresivo($id_progresivo){
+    if($id_progresivo == null) return $this->errorOut(['id_progresivo' => 'Progresivo nulo']);
+    $progresivo = Progresivo::find($id_progresivo);
+    if($progresivo == null) return $this->errorOut(['id_progresivo' => 'Progresivo no existe']);
+
+    $progresivo->maquinas()->sync([]);
+
+    foreach($progresivo->pozos as $pozo){
+      foreach($pozo->niveles as $nivel){
+        $nivel->delete();
+      }
+      $pozo->delete();
+    }
+
+    $progresivo->delete();
+  }
+
   private function actualizarPozos($progresivo,$pozos){
+    if($progresivo == null || $pozos == null) return;
+
     $pozosAgregOModif = [];
     foreach($pozos as $pozo){
       $pozo_bd = null;
@@ -297,6 +335,8 @@ class ProgresivoController extends Controller
 
   }
   private function actualizarNiveles($pozo,$niveles){
+    if($pozo == null || $niveles == null) return;
+
     $nivelesAgregOModif = [];
     foreach($niveles as $nivel){
       $nivel_bd = null;
@@ -329,11 +369,21 @@ class ProgresivoController extends Controller
   }
 
   private function actualizarMaquinas($progresivo,$maquinas){
+    if($progresivo == null || $maquinas == null) return;
 
+    $maquinasAgregadas = [];
+    foreach($maquinas as $maq){
+      $id = $maq['id_maquina'];
+      $maquina_bd = Maquina::find($id);
+      if($maquina_bd == null) continue;
+      $maquinasAgregadas[] = $id;
+    }
+
+    $progresivo->maquinas()->sync($maquinasAgregadas);
+    $progresivo->save();
   }
 
   public function agregarNivel(Request $request,$id_pozo){
-    //TODO: validate, ej id_pozo not null
     $nivel = new NivelProgresivo;
     $pozo = Pozo::find($id_pozo);
     if($pozo != null){
@@ -347,11 +397,10 @@ class ProgresivoController extends Controller
         $nivel->save();
         return $nivel;
     }
-    return response()->json(['error' => 'id_pozo']);
+    return null;
   }
 
   public function modificarNivel(Request $request,$id_nivel_progresivo){
-    //TODO: validate id_nivel_progresivo not null
     $nivel = NivelProgresivo::find($id_nivel_progresivo);
     if($nivel != null){
       $nivel->nro_nivel = $request->nro_nivel;
@@ -363,22 +412,22 @@ class ProgresivoController extends Controller
       $nivel->save();
       return $nivel;
     }
-    return response()->json(['error' => 'id_nivel_progresivo']);
+    return null;
   }
 
   public function eliminarNivel($id_nivel_progresivo){
     $nivel = NivelProgresivo::find($id_nivel_progresivo);
     if($nivel == null){
-      return response()->json(['error' => 'id_nivel_progresivo']);
+      return false;
     }
     $nivel->delete();
-    return array();
+    return true;
   }
 
   public function crearPozo(Request $request){
     $progresivo = Progresivo::find($request->id_progresivo);
     if($progresivo == null){
-      return response()->json(['error' => 'id_progresivo']);
+      return null;
     }
 
     $descripcion = 'Pozo';
@@ -390,10 +439,9 @@ class ProgresivoController extends Controller
   }
 
   public function modificarPozo(Request $request,$id_pozo){
-    //TODO: validate
     $pozo = Pozo::find($id_pozo);
     if($pozo == null){
-      return response()->json(['error' => 'id_pozo']);
+      return null;
     }
     $pozo->descripcion = $request->descripcion;
     $pozo->save();
@@ -403,7 +451,7 @@ class ProgresivoController extends Controller
   public function eliminarPozo($id_pozo){
     $pozo = Pozo::find($id_pozo);
     if($pozo == null){
-      return response()->json(['error' => 'id_pozo']);
+      return false;
     }
 
     $niveles = $pozo->niveles;
@@ -411,11 +459,21 @@ class ProgresivoController extends Controller
     foreach($niveles as $nivel){
       $this->eliminarNivel($nivel->id_nivel_progresivo);
     }
+
     $pozo->delete();
 
-    return array();
+    return true;
   }
 
+  public function checkCasinoMaquinas($maquinas,$id_casino){
+    foreach ($maquinas as $maq) {
+      $maq_bd = Maquina::find($maq['id_maquina']);
+      if($maq_bd->id_casino != $id_casino) return false;
+    }
+    return true;
+  }
+
+  //OLD CODE!!
   public function obtenerProgresivoPorIdMaquina($id_maquina){
     $maquina= Maquina::find($id_maquina);
     $pozo = $maquina->pozo;
@@ -746,6 +804,7 @@ public function guardarProgresivo(Request $request){
       return false;
   }
 
+/*
   public function eliminarProgresivo($id){
     $progresivo = Progresivo::find($id);
     $niveles = $progresivo->niveles;
@@ -777,7 +836,7 @@ public function guardarProgresivo(Request $request){
     $progresivo = Progresivo::destroy($id);
 
     return ['progresivo' => $progresivo];
-  }
+  }*/
 
   /*******
   METODOS DE GESTIONAR MAQUINA
@@ -990,4 +1049,14 @@ public function guardarProgresivo(Request $request){
     }
 
   }
+
+
+    public function buscarProgresivoPorNombreYTipo($busqueda){
+      $resultados = DB::table('progresivo')
+        ->select('progresivo.id_progresivo','progresivo.nombre_progresivo','progresivo.linkeado','progresivo.individual')
+        ->where('progresivo.nombre_progresivo' , 'like' , '%'.$busqueda.'%')
+        ->get();
+
+      return ['resultados' => $resultados];
+    }
 }
