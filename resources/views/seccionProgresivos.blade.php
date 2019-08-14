@@ -251,18 +251,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
         <div  id="colapsado" class="collapse in">
           <div class="modal-body modal-Cuerpo">
+            <h3 class=''>Parametros base</h3>
             <div class="row">
               <div class="col-md-4 col-lg-4">
                 <h5 class=''>Nombre Progresivo</h5>
-                <input id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                <input id="inputNombreProgIndividual" id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
               </div>
               <div class="col-md-4 col-lg-4">
                 <h5 class="">Porcentaje de recuperación</h5>
-                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
+                <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="col-md-4 col-lg-4">
                 <h5 class=''>Casino</h5>
-                <select class="form-control" id="modalProgresivo_casino">
+                <select class="form-control" id="modalProgresivoIndividual_casino">
                   @foreach ($usuario['usuario']->casinos as $casino)
                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
@@ -272,26 +273,26 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             <div class="row">
               <div class="col-md-3 col-lg-3">
                 <h5 class=''>Máximo</h5>
-                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
+                <input id="inputMaximoIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="col-md-3 col-lg-3">
                 <h5 class=''>Base</h5>
-                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
+                <input id="inputBaseIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="col-md-3 col-lg-3">
                 <h5 class=''>Porcentaje visible</h5>
-                <input class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+                <input id="inputPorcVisibleIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
               <div class="col-md-3 col-lg-3">
                 <h5 class=''>Porcentaje oculto</h5>
-                <input class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+                <input id="inputPorcOcultoIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
             </div>
             <div class="row">
               <div class=''>
                 <h3 class=''>Maquinas</h3>
                 <div class="row">
-                  <h5>Agregar maquina:
+                  <h5>Agregar progresivo individual:
                     <button id='btn-agregarMaquinaIndividual' class="btn btn-success">
                       <i class="fa fa-fw fa-plus"></i>
                       <b>Agregar</b>
@@ -479,8 +480,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <td class="col-xs-1 cuerpoPorcVisible">99.99</td>
                 <td class="col-xs-1 cuerpoPorcOculto">99.99</td>
                 <td class="col-xs-2 cuerpoTablaAcciones">
-                  <button class="btn btn-info unlink">
-                    <i class="fas fa-unlink"></i>
+                  <button class="btn btn-info editar">
+                    <i class="fas fa-pencil-alt"></i>
+                  </button>
+                  <button class="btn btn-info eliminar">
+                    <i class="fas fa-trash"></i>
                   </button>
                 </td>
               </tr>
