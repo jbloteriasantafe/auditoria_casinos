@@ -122,9 +122,34 @@ $('#btn-nuevo').click(function(e){
 // Modal crear nuevo progresivo individual
 $('#btn-nuevo-ind').click(function(e){
   e.preventDefault();
+  $('#btn-cancelar').text('CANCELAR');
+  $('#btn-guardar').val("nuevo");
+  $('#btn-guardar').removeClass();
+  $('#btn-guardar').addClass('btn btn-successAceptar');
+  $('.modal-title').text('| NUEVOS PROGRESIVOS INDIVIDUALES');
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
   nuevoProgresivoIndividual();
 });
 
+function filaEjemploIndividual(){
+  return $('.tablaMaquinasDivIndividual').find('.filaEjemplo')
+  .clone().removeClass('filaEjemplo');
+}
+function filaEditableIndividual(){
+  let fila = filaEjemploIndividual();
+  //fila.find('.cuerpoTablaNroAdmin').replaceWith(crearEditable())
+}
+
+function nuevoProgresivoIndividual(){
+  $('#modalProgresivoIndividual').modal('show');
+  $('#contenedorMaquinasIndividual').empty();
+  let maq_html = $('.tablaMaquinasDivIndividual').clone().removeClass('ejemplo').show();
+  let cuerpo_tabla = maq_html.find('.cuerpoTabla').empty();
+  $('#contenedorMaquinasIndividual').append(maq_html);
+  $('#btn-agregarMaquinaIndividual').off().on('click',function(){
+    cuerpo_tabla.append(filaEjemploIndividual());
+  });
+}
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){

@@ -128,42 +128,44 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
   </div>
 </div>
 
-<div class="col-lg-12 col-xl-9">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="panel panel-default">
+<div class="row">
+  <div class="col-lg-12 col-xl-9">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
 
-        <div class="panel-heading">
-          <h4>ÚLTIMOS PROGRESIVOS INDIVIDUALES</h4>
-        </div>
+          <div class="panel-heading">
+            <h4>ÚLTIMOS PROGRESIVOS INDIVIDUALES</h4>
+          </div>
 
-        <div class="panel-body">
-          <table id="tablaResultadosIndividuales" class="table table-fixed tablesorter">
-            <thead>
-              <tr>
-                <th class="col-xs-6" estado="">MAQUINA  <i class="fa fa-sort"></i></th>
-                <th class="col-xs-3">ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
-              <tr class="filaEjemplo">
-                <td class="col-xs-6 cuerpoTablaNombre">MAQUINA999CASINO</th>
-                  <td class="col-xs-3 cuerpoTablaAcciones">
-                    <button class="btn btn-info mostrar">
-                      <i class="fa fa-fw fa-search-plus"></i>
-                    </button>
-                    <span> </span>
-                    <button class="btn btn-info editar">
-                      <i class="fa fa-fw fa-pencil-alt"></i>
-                    </button>
-                    <span> </span>
-                    <button class="btn btn-info borrar">
-                      <i class="fa fa-fw fa-trash-alt"></i>
-                    </button>
-                  </th>
+          <div class="panel-body">
+            <table id="tablaResultadosIndividuales" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-6" estado="">MAQUINA  <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-6">ACCIONES</th>
                 </tr>
-              </tbody>
-            </table>
+              </thead>
+              <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
+                <tr class="filaEjemplo">
+                  <td class="col-xs-6 cuerpoTablaNombre">MAQUINA999CASINO</th>
+                    <td class="col-xs-6 cuerpoTablaAcciones">
+                      <button class="btn btn-info mostrar">
+                        <i class="fa fa-fw fa-search-plus"></i>
+                      </button>
+                      <span> </span>
+                      <button class="btn btn-info editar">
+                        <i class="fa fa-fw fa-pencil-alt"></i>
+                      </button>
+                      <span> </span>
+                      <button class="btn btn-info borrar">
+                        <i class="fa fa-fw fa-trash-alt"></i>
+                      </button>
+                    </th>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -198,7 +200,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </select>
               </div>
             </div>
-            <div class=''>
+            <div class='row'>
+              <hr></hr>
               <div class=''>
                 <h3 class=''>Pozos</h3>
                 <div class="row">
@@ -211,6 +214,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </div>
                 <div id="contenedorPozos" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
               </div>
+              <hr></hr>
               <div class=''>
                 <h3 class=''>Maquinas</h3>
                 <div class="row">
@@ -243,21 +247,21 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         <div class="modal-header" style="background: #5cb85c;">
           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-          <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO INDIVIDUAL</h3>
+          <h3 class="modal-title" style="color: #fff;">| NUEVOS PROGRESIVOS INDIVIDUALES</h3>
         </div>
         <div  id="colapsado" class="collapse in">
           <div class="modal-body modal-Cuerpo">
             <div class="row">
               <div class="col-md-4 col-lg-4">
-                <h5 class='row'>Nombre Progresivo</h5>
-                <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
+                <h5 class=''>Nombre Progresivo</h5>
+                <input id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
               </div>
               <div class="col-md-4 col-lg-4">
-                <h5 class='row'>Porcentaje de recuperación</h5>
-                <input id="porc_recup" type="number"  class="form-control"  min="0" max="100" step="0.001" placeholder="0"></input>
+                <h5 class="">Porcentaje de recuperación</h5>
+                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="col-md-4 col-lg-4">
-                <h5 class='row'>Casino</h5>
+                <h5 class=''>Casino</h5>
                 <select class="form-control" id="modalProgresivo_casino">
                   @foreach ($usuario['usuario']->casinos as $casino)
                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
@@ -265,8 +269,38 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </select>
               </div>
             </div>
-            <div class=''>
-            </div> <!-- /Fin panel minimizable -->
+            <div class="row">
+              <div class="col-md-3 col-lg-3">
+                <h5 class=''>Máximo</h5>
+                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
+              </div>
+              <div class="col-md-3 col-lg-3">
+                <h5 class=''>Base</h5>
+                <input class="editable form-control" type="number" min="0" step="any" placeholder="0">
+              </div>
+              <div class="col-md-3 col-lg-3">
+                <h5 class=''>Porcentaje visible</h5>
+                <input class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              </div>
+              <div class="col-md-3 col-lg-3">
+                <h5 class=''>Porcentaje oculto</h5>
+                <input class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              </div>
+            </div>
+            <div class="row">
+              <div class=''>
+                <h3 class=''>Maquinas</h3>
+                <div class="row">
+                  <h5>Agregar maquina:
+                    <button id='btn-agregarMaquinaIndividual' class="btn btn-success">
+                      <i class="fa fa-fw fa-plus"></i>
+                      <b>Agregar</b>
+                    </button>
+                  </h5>
+                </div>
+                <div id="contenedorMaquinasIndividual" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+              </div>
+            </div>
 
             <div class="modal-footer">
               <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
@@ -403,6 +437,59 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div>
   </div>
 
+  <div class="row top-buffer tablaMaquinasDivIndividual ejemplo"  style="display: none;">
+    <div class="col-md-12">
+      <div>
+        <div class="panel-body">
+          <table class="table table-condensed tablesorter tablaMaquinasIndividual">
+            <thead>
+              <tr>
+                <th class="col-xs-1" value="maquina.nro_admin" estado="">
+                  <small>#</small>
+                  <i class="fa fa-sort"></i>
+                </th>
+                <th class="col-xs-1" value="maquina.sector" estado="">
+                  <small>Sector</small>
+                  <i class="fa fa-sort"></i></th>
+                <th class="col-xs-1" value="maquina.isla" estado="">
+                  <small>Isla</small>
+                  <i class="fa fa-sort"></i>
+                </th>
+                <th class="col-xs-2" value="maquina.marca_juego" estado="">
+                  <small>Marca juego</small>
+                  <i class="fa fa-sort"></i>
+                </th>
+                <th class="col-xs-1"><small>% Recup</small></th>
+                <th class="col-xs-1"><small>Máximo</small></th>
+                <th class="col-xs-1"><small>Base</small></th>
+                <th class="col-xs-1"><small>% Visible</small></th>
+                <th class="col-xs-1"><small>% Oculto</small></th>
+                <th class="col-xs-2"><small>ACCIONES</small></th>
+              </tr>
+            </thead>
+            <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
+              <tr class="filaEjemplo">
+                <td class="col-xx-1 cuerpoTablaNroAdmin">999</td>
+                <td class="col-xs-1 cuerpoTablaSector">SECTOR999</td>
+                <td class="col-xs-1 cuerpoTablaIsla">999</td>
+                <td class="col-xs-2 cuerpoTablaMarcaJuego">SIN MARCA</td>
+                <td class="col-xs-1 cuerpoPorcRecup">99.99</td>
+                <td class="col-xs-1 cuerpoMaximo">999999</td>
+                <td class="col-xs-1 cuerpoBase">9999</td>
+                <td class="col-xs-1 cuerpoPorcVisible">99.99</td>
+                <td class="col-xs-1 cuerpoPorcOculto">99.99</td>
+                <td class="col-xs-2 cuerpoTablaAcciones">
+                  <button class="btn btn-info unlink">
+                    <i class="fas fa-unlink"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
       <meta name="_token" content="{!! csrf_token() !!}" />
 
