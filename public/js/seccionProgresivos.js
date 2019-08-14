@@ -109,7 +109,6 @@ $('#btn-ayuda').click(function(e){
 //Mostrar modal para agregar nuevo Progresivo
 $('#btn-nuevo').click(function(e){
     e.preventDefault();
-    $('.btn-agregarNivelProgresivo').show();
     $('#btn-cancelar').text('CANCELAR');
     $('#btn-guardar').val("nuevo");
     $('#btn-guardar').removeClass();
@@ -123,153 +122,9 @@ $('#btn-nuevo').click(function(e){
 // Modal crear nuevo progresivo individual
 $('#btn-nuevo-ind').click(function(e){
   e.preventDefault();
-  $('#modalProgInd').modal('show');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-  $('#inputIslaInd').generarDataList("islas/buscarIslaPorCasinoYNro/" + 0,'islas','id_isla','nro_isla',2,true);
-  $('#inputMtmInd').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
-  $('#inputIslaInd').setearElementoSeleccionado(0,"");
-  $('#inputMtmInd').setearElementoSeleccionado(0,"");
-
+  nuevoProgresivoIndividual();
 });
 
-
-// Modal crear nuevo progresivo linkeado
-$('#btn-nuevo-link').click(function(e){
-  e.preventDefault();
-  $('#modalProgLink').modal('show');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-  $('#inputIslaLink').generarDataList("islas/buscarIslaPorCasinoYNro/" + 0,'islas','id_isla','nro_isla',2,true);
-  $('#inputMtmLink').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
-  $('#inputIslaLink').setearElementoSeleccionado(0,"");
-  $('#inputMtmLink').setearElementoSeleccionado(0,"");
-
-});
-
-// Modal aceptar nuevo progresivo linkeado
-
-$('#btn-guardar-link').on('click', function(e){
-    $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-  var niveles = [];
-  var pozos = [];
-
-  // Carga de niveles
-  $('#niveles_link').find(".columna").children().each(function(indexNivel){
-    var nivel = {
-      id_nivel: $(this).attr('id'),
-      nro_nivel : $(this).find(".nro_nivel").val(),
-      nombre_nivel: $(this).find('.nombre_nivel').val(),
-      //porc_oculto : $(this).find(".porc_oculto").val(), Se quita hasta formalizar su utilidad
-      porc_visible: $(this).find(".porc_visible").val(),
-      base: $(this).find(".base").val(),
-    }
-    niveles.push(nivel);
-
-  });
-
-  // carga de pozos
-  $('#contenedorPozosLink').children().each(function(indexPozo){
-    var maquinas= [];
-    $(this).find(".listaMaquinas").children().each(function(indexMaquina){
-      var maquina;
-      maquina = {
-          id_maquina : $(this).val(),
-      }
-      maquinas.push(maquina);
-    });
-
-    var pozo = {
-      maquinas: maquinas,
-    };
-    pozos.push(pozo);
-
-  });
-
-  var formData = {
-     id_progresivo : $('#id_progresivo_link').val(),
-     nombre:$('#nombre_progresivo_link').val() ,
-     tipo: "LINKEADO", //$('#selectTipoProgresivos').val(), se cambia el modal, solo puede ser link
-     pozos: pozos , //si es individual manda un solo pozo
-     maximo: $('#maximo_link').val(),
-     niveles: niveles,
-     //porc_recuperacion : $('#porcentaje_recuperacion').val(), se elimina este valor hasta formalizar utilidad
-  }
-
-  var state = $('#btn-guardar').val();
-  var type = "POST";
-  var url = ((state == "modificar") ? 'progresivos/modificarProgresivo':'progresivos/guardarProgresivo');
-
-  $.ajax({
-      type: type,
-      url: url,
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-
-          $('.modal').modal('hide');
-
-          $('#mensajeExito').show();
-
-          var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-          var tam = $('#herramientasPaginacion').getPageSize();
-          var columna = $('#tablaLayouts .activa').attr('value');
-          var orden = $('#tablaLayouts .activa').attr('estado');
-
-          $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-      },
-      error: function (data) {
-  //         //console.log('Error:', data);
-  //         var response = JSON.parse(data.responseText);
-  //
-  //         limpiarAlertas();
-  //
-  //         if(typeof response.nombre_progresivo !== 'undefined'){
-  //           $('#nombre_progresivo').addClass('alerta');
-  //           $('#alerta-nombre-progresivo').text(response.nombre_progresivo[0]);
-  //           $('#alerta-nombre-progresivo').show();
-  //         }
-  //
-  //         var i=0;
-  //         $('#columna .NivelProgresivo').each(function(){
-  //           var error=' ';
-  //           if(typeof response['niveles.'+ i +'.nro_nivel'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.nro_nivel']+'<br>';
-  //             $(this).find('#nro_nivel').addClass('alerta');
-  //           }
-  //           if(typeof response['niveles.'+ i +'.nombre_nivel'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.nombre_nivel']+'<br>';
-  //             $(this).find('#nombre_nivel').addClass('alerta');
-  //           }
-  //           if(typeof response['niveles.'+ i +'.porc_oculto'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.porc_oculto']+'<br>';
-  //             $(this).find('#porc_oculto').addClass('alerta');
-  //           }
-  //           if(typeof response['niveles.'+ i +'.porc_visible'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.porc_visible']+'<br>';
-  //             $(this).find('#porc_visible').addClass('alerta');
-  //           }
-  //           if(typeof response['niveles.'+ i +'.base'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.base']+'<br>';
-  //             $(this).find('#base').addClass('alerta');
-  //           }
-  //           if(typeof response['niveles.'+ i +'.maximo'] !== 'undefined'){
-  //             error+=response['niveles.'+ i +'.maximo']+'<br>';
-  //             $(this).find('#maximo').addClass('alerta');
-  //           }
-  //           if(error != ' '){
-  //           var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
-  //             $(this).append(alerta);
-  //           }
-  //           i++;
-  //         })
-
-      }
-  });
-
-});
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
@@ -290,7 +145,6 @@ $(document).on('click','.detalle',function(){
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
       $('#mensajeExito').hide();
-      habilitarControles(true);
       $('#btn-cancelar').text('CANCELAR');
       $('.btn-agregarNivelProgresivo').show();
       $('.modal-title').text('| MODIFICAR PROGRESIVO');
@@ -337,198 +191,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
-/***********EVENTOS DEL MODAL**********/
-
-$(document).on("keyup " , ".porc_visible" , function() {
-  var input = $(this).val();
-  var index = $(this).parent().parent().index();
-  $('.columna').each(function() {
-    $(this).children().eq(index).find('.porc_visible').val(input);
-  })
-});
-
-$(document).on("keyup " , ".nro_nivel" , function() {
-  var input = $(this).val();
-  var index = $(this).parent().parent().index();
-  $('.columna').each(function() {
-    $(this).children().eq(index).find('.nro_nivel').val(input);
-  })
-});
-
-$(document).on("keyup " , ".porc_oculto" , function() {
-  var input = $(this).val();
-  var index = $(this).parent().parent().index();
-  $('.columna').each(function() {
-    $(this).children().eq(index).find('.porc_oculto').val(input);
-  })
-});
-
-$(document).on("keyup " , ".nombre_nivel" , function() {
-    var input = $(this).val();
-    var index = $(this).parent().parent().index();
-    $('.columna').each(function() {
-      $(this).children().eq(index).find('.nombre_nivel').val(input);
-    })
-});
-
-$(document).on('click','.btn-agregarNivelProgresivo',function(){
-    $('#tablaNivelesProgresivoEncabezado').show();
-    var columna =  $(this).parent().parent().find('.columna');
-    agregarNivelProgresivo(null,true,-1);//-1 significa a todos las collumnas
-});
-
-//borrar un nivel progresivo
-$(document).on('click','.borrarNivelProgresivo',function(){
-    var index = $(this).parent().parent().index();
-
-    $('.columna').each(function() {
-      $(this).children().eq(index).remove();
-    })
-
-});
-
-$('#selectTipoProgresivos').on('change' , function(){
-  switch ($(this).val()) {
-    case 'LINKEADO':
-    $('#cuerpo_linkeado').show();
-    $('#cuerpo_individual').hide();
-      break;
-    case 'INDIVIDUAL':
-    $('#cuerpo_individual').show();
-    $('#cuerpo_linkeado').hide();
-      break;
-    case '0':
-    $('#cuerpo_individual').hide();
-    $('#cuerpo_linkeado').hide();
-      break;
-    default:
-      break;
-
-  }
-})
-
-
-$('#btn-agregarPozo-link').click(function(){
-  // solo se agrega un pozo si existen maquinas a quien asignarselo
-  var listaMaquinas = $(this).parent().parent().find('.listaMaquinas').find('li').clone();
-  if (listaMaquinas.length >0){
-    var nro_pozo = $('#contenedorPozosLink').children().length + 1 ;
-    var pozo = agregarPozo(nro_pozo);
-    //var radio_button_group = clonarRadioButton(nro_pozo);
-
-    $('#contenedorPozosLink').append(pozo);
-    if($('#pozo_' + (nro_pozo - 1) + ' .columna').length){
-      $("#pozo_" + nro_pozo + " .columna").replaceWith($('#pozo_' + (nro_pozo - 1) + ' .columna').clone());
-    }
-    //$('#pozo_' + nro_pozo + ' .contenedorBuscadores').prepend(radio_button_group);
-
-    $('#pozo_'+nro_pozo).find('.listaMaquinas').html(listaMaquinas);
-    $(this).parent().parent().find('.listaMaquinas').empty();
-    }
-
-})
-
-$(document).on('change' , '.radioGroup' , function(){
-  var id_casino = $('input:checked' , $(this)).val();
-  console.log(id_casino);
-  $('.buscadorIsla' , $(this).parent() ).generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/" + id_casino,'islas','id_isla','nro_isla',2,true);
-  $('.buscadorMaquina' , $(this).parent()).generarDataList("http://" + window.location.host+  "/maquinas/buscarMaquinaPorNumeroMarcaYModelo/" + id_casino ,'resultados','id_maquina','nro_admin',2,true);
-  $('.buscadorIsla' ,  $(this).parent()).setearElementoSeleccionado(0,"");
-  $('.buscadorMaquina' , $(this).parent()).setearElementoSeleccionado(0,"");
-})
-
-function agregarPozo(nro_pozo){
-  var retorno =
-'<div class="row pozo" id="pozo_'+ nro_pozo +'" data-id="0">'
-+   '<div id="seccionAgregarNivelProgresivo'+ nro_pozo +'" style="cursor:pointer;" class="cAgregarProgresivo" data-toggle="collapse" data-target="#collapseAgregarProgresivo'+nro_pozo+'">'
-+       '<div class="row" style="border-top: 4px solid #a0968b; padding-top: 15px;">'
-+           '<div class="col-xs-10">'
-+               '<h4>POZO: <i class="fa fa-fw fa-angle-down"></i></h4>'
-+           '</div>'
-+       '</div>'
-+   '</div>'
-+   '<div id="collapseAgregarNivelProgresivo'+nro_pozo+'" class="collapse" data-pozo="'+nro_pozo+'">'
-+     '<div class="row">'
-+       '<div id="" class="col-md-6 col-lg-6">'
-+         '<div class="row">'
-+           '<div class="col-md-7 col-lg-7">'
-+               '<h5>Niveles:</h5>'
-+           '</div>'
-+           '<div class="col-md-2 col-lg-2">'
-+           '</div>'
-+           '<div class="col-md-3 col-lg-3 errorVacio">'
-+           '</div>'
-+         '</div>'
-+         '<div class="row">'
-+           '<div class="col-md-12">'
-+             '<div class="panel panel-default">'
-+                 '<div class="panel-heading">'
-+                   '<h4>NIVELES</h4>'
-+                 '</div>'
-+                 '<div class="panel-body">'
-+                  '<table id="tablaNiveles"'+nro_pozo+' class="table table-fixed tablesorter">'
-+                    '<thead>'
-+                       '<tr>'
-+                           '<th class="col-xs-6" value="nivel.nombre" estado="">NOMBRE NIVEL  <i class="fa fa-sort"></i></th>'
-+                            '<th class="col-xs-6">ACCIONES</th>'
-+                         '</tr>'
-+                      '</thead>'
-+                      '<tbody id="cuerpoTablaNiveles'+nro_pozo+'" style="height: 350px;">'
-+                      '</tbody>'
-+                   '</table>'
-+                 '</div>'
-+             '</div>'
-+           '</div>'
-+         '</div>'
-+     '</div>'
-+   '</div>'
-+'</div>'
-+'<br>'
-+'<br>'
-+'<button  class="btn btn-danger borrarPozo" type="button" name="button" style="" data-pozo="'+ nro_pozo +'"> <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i>BORRAR POZO</button>'
-+'</div><br>'
-+'</div> </div>';
-  return retorno;
-}
-
-/*****FUNCIONES*****/
-function agregarIsla(id_isla , listaMaquinas , tipo_progresivo){
-  $.get("islas/obtenerIsla/" + id_isla , function(data){
-    switch (tipo_progresivo) {
-      case 'link':
-          console.log('agregarIsla-link');
-          for (var i = 0; i < data.maquinas.length; i++) {
-            if(existeEnDataList(data.maquinas[i].id_maquina,tipo_progresivo)){
-              moverAPozo(data.maquinas[i].id_maquina,listaMaquinas);
-            }else {
-              agregarMaquina(data.maquinas[i].id_maquina ,data.maquinas[i].nro_admin ,data.maquinas[i].marca , data.maquinas[i].modelo , listaMaquinas);
-            }
-          }
-          break;
-
-      case 'individual':
-        console.log('agregarIsla-individual');
-        for (var i = 0; i < data.maquinas.length; i++) {
-          if(!existeEnDataList(data.maquinas[i].id_maquina,tipo_progresivo)){
-            agregarMaquina(data.maquinas[i].id_maquina ,data.maquinas[i].nro_admin ,data.maquinas[i].marca , data.maquinas[i].modelo , listaMaquinas);
-          }
-        }
-        break;
-      default: break;
-
-    }
-
-  });
-}
-
-function borrarPozo(nro_pozo){
-  $('#pozo_' + nro_pozo).remove();
-}
-
-$(document).on("click " , ".borrarPozo" , function() {
-    var nro_pozo = $(this).attr('data-pozo');
-    borrarPozo(nro_pozo);
-});
 
 function clickIndice(e,pageNumber,tam){
   if(e != null){
@@ -609,46 +271,6 @@ function generarFilaTabla(progresivo){
       return fila;
 }
 
-function habilitarControles(valor){
-    if(valor){// nuevo y modificar
-      $('#nombre_progresivo').prop('readonly',false);
-      $('#selectTipoProgresivos').prop('disabled',false);
-      $('#porcentaje_recuperacion').prop('readonly',false);
-      $('#maximo').prop('readonly',false);
-      $('.buscadorIsla').prop('readonly',false);
-      $('.buscadorMaquina').prop('readonly',false);
-      $('#btn-agregarNivelProgresivo').show();
-      $('#btn-guardar').prop('disabled',false).show();
-      $('#btn-guardar').css('display','inline-block');
-    }
-    else{// ver detalle
-      $('#modalProgresivo input').prop("readonly" , true);
-      $('#nombre_progresivo').prop('readonly',true);
-      $('#selectTipoProgresivos').prop('disabled',true);
-      $('#btn-agregarNivelProgresivo').hide();
-      $('.borrarFila').remove();
-      $('#btn-guardar').prop('disabled',true).hide();
-      $('#btn-guardar').css('display','none');
-      $('#borrarJuego').remove();
-    }
-}
-
-
-function limpiarAlertas(){
-    $('#nombre_progresivo').removeClass('alerta');
-    $('#alerta-nombre_progresivo').text('').hide();
-
-    $('#columna .NivelProgresivo').each(function(){
-      $(this).find('#nro_nivel').removeClass('alerta');
-      $(this).find('#nombre_nivel').removeClass('alerta');
-      $(this).find('#porc_oculto').removeClass('alerta');
-      $(this).find('#porc_visible').removeClass('alerta');
-      $(this).find('#base').removeClass('alerta');
-      $(this).find('#maximo').removeClass('alerta');
-    });
-    $('.alertaTabla').remove();
-}
-
 function crearBoton(icono){
   let btn = $('<button></button>').addClass('btn').addClass('btn-info');
   let i = $('<i></i>').addClass('fa').addClass('fa-fw').addClass(icono);
@@ -698,6 +320,7 @@ function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
     fila.find('.cuerpoTablaPorcOculto .editable').val(nivel.porc_oculto);
   }
 }
+
 function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
   let fila = filaEjemplo();
 
