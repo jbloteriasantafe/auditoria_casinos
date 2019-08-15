@@ -145,12 +145,8 @@ function filaEditableIndividual(){
   let fila_isla = fila.find('.cuerpoTablaIsla').empty();
   let fila_marcajuego = fila.find('.cuerpoTablaMarcaJuego').empty();
 
-  function agregarClickCallback(dom,input){
-    input.addClass(dom.attr('class'));
-    dom.on('click',function(){
-      dom.empty().append(input);
-      dom.off();
-    });
+  function existeEnTablaIndividuales(id){
+    return $('#contenedorMaquinasIndividual tbody tr[data-id='+id+']').length > 0;
   }
 
   //No puedo agregarle un editable de numeros con flechas
@@ -205,6 +201,10 @@ function filaEditableIndividual(){
     let isla = data.attr('data-isla');
     let marca_juego = data.attr('data-marca_juego');
 
+    if(existeEnTablaIndividuales(data_id)){
+      fila.remove();
+    }
+
     fila.attr('data-id',data_id);
     fila_nroadmin.empty().append(nro_admin);
     fila_sector.append(sector);
@@ -237,6 +237,68 @@ function filaEditableIndividual(){
   return fila
 }
 
+function arregloProgresivoIndividual(fila){
+  return {
+    id_maquina: fila.attr('data-id'),
+    nro_admin: fila.find('.cuerpoTablaNroAdmin').text(),
+    sector: fila.find('.cuerpoTablaSector').text(),
+    isla: fila.find('.cuerpoTablaIsla').text(),
+    marca_juego: fila.find('.cuerpoTablaMarcaJuego').text(),
+    porc_recup: fila.find('.cuerpoPorcRecup').text(),
+    maximo: fila.find('.cuerpoMaximo').text(),
+    base: fila.find('.cuerpoBase').text(),
+    porc_visible: fila.find('.cuerpoPorcVisible').text(),
+    porc_oculto: fila.find('.cuerpoPorcOculto').text()
+  };
+}
+
+function enviarFormularioIndividual(){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  })
+
+  let mensajeExito = 'Los progresivos fueron cargados con éxito.';
+  let url = 'progresivos/crearProgresivosIndividuales';
+
+  let formData = {
+    id_casino : $('modalProgresivoIndividual_casino').val(),
+    maquinas : []
+  };
+
+  let filas = $('#contenedorMaquinasIndividual tbody tr');
+
+  filas.each(function(idx,f){
+    let fila = $(f);
+    if(fila.find('input').length > 0) return;
+    formData.maquinas.push(arregloProgresivoIndividual(fila));
+  })
+
+  $.ajax({
+      type: 'POST',
+      data: formData,
+      url: url,
+      success: function(data){
+        console.log(data);
+        $('#mensajeExito')
+        .find('.textoMensaje p')
+        .replaceWith(
+          $('<p></p>')
+          .text(mensajeExito)
+        );
+        $('#modalProgresivo').modal('hide');
+        $('#mensajeExito').show();
+      },
+      error: function(err){
+        $('#mensajeError').find('.textoMensaje p')
+        .replaceWith($('<p></p>').text('INSERTAR ERROR'));
+        $('#mensajeError').show();
+        console.log(err);
+      }
+  });
+}
+
 function nuevoProgresivoIndividual(){
   $('#modalProgresivoIndividual').modal('show');
   $('#contenedorMaquinasIndividual').empty();
@@ -252,6 +314,8 @@ function nuevoProgresivoIndividual(){
   $('#btn-agregarMaquinaIndividual').off().on('click',function(){
     cuerpo_tabla.append(filaEditableIndividual());
   });
+
+  $('#btn-guardarIndividual').off().on('click',enviarFormularioIndividual);
 }
 
 //Mostrar modal con los datos del Log

@@ -268,21 +268,24 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           <div class="modal-body modal-Cuerpo">
             <div class="">
               <div class="row">
-                <h5 class='col-sm'>Casino</h5>
-                <select class="col-sm form-control" id="modalProgresivoIndividual_casino">
-                  @foreach ($usuario['usuario']->casinos as $casino)
-                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                  @endforeach
-                </select>
+                <h3 class='col-md-3 col-lg-3'>Parametros base</h3>
+                <div class='col-md-5 col-lg-5'></div>
+                <h5 class='col-md-1 col-lg-1'>Casino</h5>
+                <div class='col-md-3 col-lg-3 '>
+                  <select class="form-control" id="modalProgresivoIndividual_casino">
+                    @foreach ($usuario['usuario']->casinos as $casino)
+                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
               </div>
             </div>
-            <h3 class=''>Parametros base</h3>
-            <div class="row">
-              <div class="col-md-4 col-lg-4">
-                <h5 class="">Porcentaje de recuperación</h5>
+            <div class="row no-gutters">
+              <div class="col-md-3 col-lg-3">
+                <h5 class="">% Recuperación</h5>
                 <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
-              <div class="col-md-2 col-lg-2">
+              <div class="col-md-3 col-lg-3">
                 <h5 class=''>Máximo</h5>
                 <input id="inputMaximoIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
@@ -291,11 +294,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <input id="inputBaseIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="col-md-2 col-lg-2">
-                <h5 class=''>% visible</h5>
+                <h5 class=''>% Visible</h5>
                 <input id="inputPorcVisibleIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
               <div class="col-md-2 col-lg-2">
-                <h5 class=''>% oculto</h5>
+                <h5 class=''>% Oculto</h5>
                 <input id="inputPorcOcultoIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
             </div>
@@ -315,8 +318,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
-              <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+              <button type="button" class="btn btn-successAceptar" id="btn-guardarIndividual" value="nuevo">ACEPTAR</button>
+              <button type="button" class="btn btn-default" id="btn-cancelarIndividual" data-dismiss="modal" aria-label="Close">CANCELAR</button>
               <input type="hidden" id="id_progresivo" value="0">
             </div>
           </div> <!-- Fin modal-header -->
