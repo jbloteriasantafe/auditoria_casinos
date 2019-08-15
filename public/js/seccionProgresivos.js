@@ -263,7 +263,7 @@ function enviarFormularioIndividual(){
   let url = 'progresivos/crearProgresivosIndividuales';
 
   let formData = {
-    id_casino : $('modalProgresivoIndividual_casino').val(),
+    id_casino : $('#modalProgresivoIndividual_casino').val(),
     maquinas : []
   };
 

@@ -55,6 +55,7 @@ Route::get('progresivos/obtenerProgresivo/{id_progresivo}','ProgresivoController
 Route::post('progresivos/crearProgresivo','ProgresivoController@crearProgresivo');
 Route::post('progresivos/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
 Route::delete('progresivos/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
+Route::post('progresivos/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
 //Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
 //Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
 //Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');
