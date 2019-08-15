@@ -12,7 +12,22 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 @section('estilos')
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="/css/lista-datos.css">
-
+<style>
+.chico {
+  font-size: 85%;
+}
+.chico2 {
+  font-size: 95%;
+}
+.input_chico {
+  width: 90%;
+}
+.sinflechas{
+  -webkit-appearance: none;
+  margin: 0;
+  -moz-appearance: textfield;
+}
+</style>
 @endsection
 
 @section('contenidoVista')
@@ -251,40 +266,36 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
         <div  id="colapsado" class="collapse in">
           <div class="modal-body modal-Cuerpo">
-            <h3 class=''>Parametros base</h3>
-            <div class="row">
-              <div class="col-md-4 col-lg-4">
-                <h5 class=''>Nombre Progresivo</h5>
-                <input id="inputNombreProgIndividual" id="nombre_progresivo_ind" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
-              </div>
-              <div class="col-md-4 col-lg-4">
-                <h5 class="">Porcentaje de recuperación</h5>
-                <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
-              </div>
-              <div class="col-md-4 col-lg-4">
-                <h5 class=''>Casino</h5>
-                <select class="form-control" id="modalProgresivoIndividual_casino">
+            <div class="">
+              <div class="row">
+                <h5 class='col-sm'>Casino</h5>
+                <select class="col-sm form-control" id="modalProgresivoIndividual_casino">
                   @foreach ($usuario['usuario']->casinos as $casino)
                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
                 </select>
               </div>
             </div>
+            <h3 class=''>Parametros base</h3>
             <div class="row">
-              <div class="col-md-3 col-lg-3">
+              <div class="col-md-4 col-lg-4">
+                <h5 class="">Porcentaje de recuperación</h5>
+                <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              </div>
+              <div class="col-md-2 col-lg-2">
                 <h5 class=''>Máximo</h5>
                 <input id="inputMaximoIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
-              <div class="col-md-3 col-lg-3">
+              <div class="col-md-2 col-lg-2">
                 <h5 class=''>Base</h5>
                 <input id="inputBaseIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
               </div>
-              <div class="col-md-3 col-lg-3">
-                <h5 class=''>Porcentaje visible</h5>
+              <div class="col-md-2 col-lg-2">
+                <h5 class=''>% visible</h5>
                 <input id="inputPorcVisibleIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
-              <div class="col-md-3 col-lg-3">
-                <h5 class=''>Porcentaje oculto</h5>
+              <div class="col-md-2 col-lg-2">
+                <h5 class=''>% oculto</h5>
                 <input id="inputPorcOcultoIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
               </div>
             </div>
@@ -445,41 +456,41 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           <table class="table table-condensed tablesorter tablaMaquinasIndividual">
             <thead>
               <tr>
-                <th class="col-xs-1" value="maquina.nro_admin" estado="">
-                  <small>#</small>
+                <th class="col-xs-1 chico" value="maquina.nro_admin" estado="">
+                  #
                   <i class="fa fa-sort"></i>
                 </th>
-                <th class="col-xs-1" value="maquina.sector" estado="">
-                  <small>Sector</small>
+                <th class="col-xs-1 chico" value="maquina.sector" estado="">
+                  Sector
                   <i class="fa fa-sort"></i></th>
-                <th class="col-xs-1" value="maquina.isla" estado="">
-                  <small>Isla</small>
+                <th class="col-xs-1 chico" value="maquina.isla" estado="">
+                  Isla
                   <i class="fa fa-sort"></i>
                 </th>
-                <th class="col-xs-2" value="maquina.marca_juego" estado="">
-                  <small>Marca juego</small>
+                <th class="col-xs-2 chico" value="maquina.marca_juego" estado="">
+                  Marca juego
                   <i class="fa fa-sort"></i>
                 </th>
-                <th class="col-xs-1"><small>% Recup</small></th>
-                <th class="col-xs-1"><small>Máximo</small></th>
-                <th class="col-xs-1"><small>Base</small></th>
-                <th class="col-xs-1"><small>% Visible</small></th>
-                <th class="col-xs-1"><small>% Oculto</small></th>
-                <th class="col-xs-2"><small>ACCIONES</small></th>
+                <th class="col-xs-1 chico">% Recup</th>
+                <th class="col-xs-1 chico">Máximo</th>
+                <th class="col-xs-1 chico">Base</th>
+                <th class="col-xs-1 chico">% Visible</th>
+                <th class="col-xs-1 chico">% Oculto</th>
+                <th class="col-xs-2 chico">ACCIONES</th>
               </tr>
             </thead>
             <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
-              <tr class="filaEjemplo">
-                <td class="col-xx-1 cuerpoTablaNroAdmin">999</td>
-                <td class="col-xs-1 cuerpoTablaSector">SECTOR999</td>
-                <td class="col-xs-1 cuerpoTablaIsla">999</td>
-                <td class="col-xs-2 cuerpoTablaMarcaJuego">SIN MARCA</td>
-                <td class="col-xs-1 cuerpoPorcRecup">99.99</td>
-                <td class="col-xs-1 cuerpoMaximo">999999</td>
-                <td class="col-xs-1 cuerpoBase">9999</td>
-                <td class="col-xs-1 cuerpoPorcVisible">99.99</td>
-                <td class="col-xs-1 cuerpoPorcOculto">99.99</td>
-                <td class="col-xs-2 cuerpoTablaAcciones">
+              <tr class="filaEjemplo form-group form-group-sm">
+                <td class="col-xx-1 cuerpoTablaNroAdmin chico">999</td>
+                <td class="col-xs-1 cuerpoTablaSector chico">SECTOR999</td>
+                <td class="col-xs-1 cuerpoTablaIsla chico">999</td>
+                <td class="col-xs-2 cuerpoTablaMarcaJuego chico">SIN MARCA</td>
+                <td class="col-xs-1 cuerpoPorcRecup chico">99.99</td>
+                <td class="col-xs-1 cuerpoMaximo chico">999999</td>
+                <td class="col-xs-1 cuerpoBase chico">9999</td>
+                <td class="col-xs-1 cuerpoPorcVisible chico">99.99</td>
+                <td class="col-xs-1 cuerpoPorcOculto chico">99.99</td>
+                <td class="col-xs-2 cuerpoTablaAcciones chico">
                   <button class="btn btn-info editar">
                     <i class="fas fa-pencil-alt"></i>
                   </button>

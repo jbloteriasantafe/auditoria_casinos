@@ -135,6 +135,8 @@ function filaEjemploIndividual(){
   return $('.tablaMaquinasDivIndividual').find('.filaEjemplo')
   .clone().removeClass('filaEjemplo');
 }
+
+
 function filaEditableIndividual(){
   let fila = filaEjemploIndividual();
   let input = crearEditable('text').attr('list','maquinas_lista')
@@ -143,16 +145,60 @@ function filaEditableIndividual(){
   let fila_isla = fila.find('.cuerpoTablaIsla').empty();
   let fila_marcajuego = fila.find('.cuerpoTablaMarcaJuego').empty();
 
-  fila.find('.cuerpoPorcRecup').text($('#inputPorcRecupIndividual').val());
-  fila.find('.cuerpoMaximo').text($('#inputMaximoIndividual').val());
-  fila.find('.cuerpoBase').text($('#inputBaseIndividual').val());
-  fila.find('.cuerpoPorcVisible').text($('#inputPorcVisibleIndividual').val());
-  fila.find('.cuerpoPorcOculto').text($('#inputPorcOcultoIndividual').val());
+  function agregarClickCallback(dom,input){
+    input.addClass(dom.attr('class'));
+    dom.on('click',function(){
+      dom.empty().append(input);
+      dom.off();
+    });
+  }
+
+  //No puedo agregarle un editable de numeros con flechas
+  //porque las flechas son muy grandes.
+
+  const input_porcentaje = crearEditable('number','0').addClass('sinflechas');
+  const input_numero = crearEditable('number','',0,null,'any').addClass('sinflechas');
+  let fila_porcrecup = fila.find('.cuerpoPorcRecup')
+  .empty().append(input_porcentaje.clone().val($('#inputPorcRecupIndividual').val()));
+
+  let fila_maximo = fila.find('.cuerpoMaximo')
+  .empty().append(input_numero.clone().val($('#inputMaximoIndividual').val()));
+
+  let fila_base = fila.find('.cuerpoBase')
+  .empty().append(input_numero.clone().val($('#inputBaseIndividual').val()));
+
+  let fila_porcvisible = fila.find('.cuerpoPorcVisible')
+  .empty().append(input_porcentaje.clone().val($('#inputPorcVisibleIndividual').val()));
+
+  let fila_porcoculto = fila.find('.cuerpoPorcOculto')
+  .empty().append(input_porcentaje.clone().val($('#inputPorcOcultoIndividual').val()));
 
   let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click',function(){
+    const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
+    const fila_maximo_val = fila_maximo.find('.editable').val();
+    const fila_base_val = fila_base.find('.editable').val();
+    const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
+    const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
+    if(isNaN(fila_porcrecup_val)) return;
+    if(isNaN(fila_maximo_val)) return;
+    if(isNaN(fila_base_val)) return;
+    if(isNaN(fila_porcoculto_val)) return;
+    if(isNaN(fila_porcvisible_val)) return;
+    if(fila_maximo_val < 0) return;
+    if(fila_base_val < 0) return;
+    if(fila_porcrecup_val<0
+    || fila_porcrecup_val>100) return;
+    if(fila_porcoculto_val<0
+    || fila_porcoculto_val>100) return;
+    if(fila_porcvisible_val<0
+    || fila_porcvisible_val>100) return;
+
     let value = input.val();
     let data =  $('#maquinas_lista')
     .find('option[value='+value+']');
+
+    if(data.length == 0) return;
+
     let data_id = data.attr('data-id');
     let nro_admin = data.attr('data-nro_admin');
     let sector = data.attr('data-sector');
@@ -161,46 +207,34 @@ function filaEditableIndividual(){
 
     fila.attr('data-id',data_id);
     fila_nroadmin.empty().append(nro_admin);
-    fila_sector.text(sector);
-    fila_isla.text(isla);
-    fila_marcajuego.text(marca_juego);
+    fila_sector.append(sector);
+    fila_isla.append(isla);
+    fila_marcajuego.append(marca_juego);
+
+    fila.find('input').each(function(index,c){
+      $(c).replaceWith($(c).val());
+    });
+
+    fila.children().each(function(index,c){
+      $(c).off();//Saco eventos click.
+    })
 
     fila.find('.cuerpoTablaAcciones').empty();
 
-    let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
     let botonBorrar = crearBoton('fa-trash').addClass('borrar');
-    fila.find('.cuerpoTablaAcciones').append(botonEditar).append(botonBorrar);
+    fila.find('.cuerpoTablaAcciones').append(botonBorrar);
 
-    botonEditar.on('click',function(){filaIndividualEditarParametros(fila)});
     botonBorrar.on('click',function(){fila.remove();});
   });
+
   let botonCancelar = crearBoton('fa-times').addClass('cancelar');
   botonCancelar.on('click',function(){
     fila.remove();
   });
+
   fila.find('.cuerpoTablaAcciones')
   .empty().append(botonConfirmar).append(botonCancelar);
-  return fila;
-}
-
-function filaIndividualEditarParametros(fila){
-  let input_porcRecup = crearEditable('number',0,100);
-  let input_porcVisible = crearEditable('number',0,100);
-  let input_porcOculto = crearEditable('number',0,100);
-  let input_maximo = crearEditable('number',0);
-  let input_base = crearEditable('number',0);
-  fila.find('.cuerpoPorcRecup').empty().append(input_porcRecup);
-  fila.find('.cuerpoMaximo').empty().append(input_maximo);
-  fila.find('.cuerpoBase').empty().append(input_base);
-  fila.find('.cuerpoPorcVisible').empty().append(input_porcVisible);
-  fila.find('.cuerpoPorcOculto').empty().append(input_porcOculto);
-
-  let botonConfirmar = crearBoton('fa-check').addClass('confirmar');
-  let botonCancelar = crearBoton('fa-times').addClass('cancelar')
-  fila.find('.cuerpoTablaAcciones').empty().append(botonConfirmar).append(botonCancelar);
-
-  botonCancelar.on('click',function(){fila.remove();});
-
+  return fila
 }
 
 function nuevoProgresivoIndividual(){
@@ -778,6 +812,9 @@ function filaEditableMaquina(){
     let value = input.val();
     let data =  $('#maquinas_lista')
     .find('option[value='+input.val()+']');
+
+    if(data.length == 0) return;
+
     let data_id = data.attr('data-id');
     let nro_admin = data.attr('data-nro_admin');
     let sector = data.attr('data-sector');
