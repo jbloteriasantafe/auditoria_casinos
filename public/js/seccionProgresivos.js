@@ -16,7 +16,35 @@ $(document).ready(function(){
   $('#opcProgresivos').addClass('opcionesSeleccionado');
 
   $('#btn-buscar').trigger('click');
+  cargarMaquinas();
+  $('#btn-buscar-individuales').trigger('click');
 });
+
+
+function cargarMaquinas(){
+  function callbackMaquinas(resultados){
+    let maquinas_lista = $('#maquinas_lista');
+    maquinas_lista.empty();
+    let option = $('<option></option>');
+    for (var i=0; i < resultados.length; i++){
+      let fila = option.clone().attr('value',resultados[i].nombre)
+      .attr('data-id',resultados[i].id)
+      .attr('data-isla',resultados[i].isla)
+      .attr('data-sector',resultados[i].sector)
+      .attr('data-nro_admin',resultados[i].nro_admin)
+      .attr('data-marca_juego',resultados[i].marca_juego);
+      maquinas_lista.append(fila);
+    };
+  }
+
+  let ajaxData = {
+    type: 'GET',
+    url: 'progresivos/buscarMaquinas/'+$('#busqueda_casino').val()
+  };
+
+  $.when($.ajax(ajaxData))
+  .then(callbackMaquinas, function(err){console.log(err)});
+}
 
 
 //Busqueda
@@ -56,9 +84,10 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       success: function (resultados) {
           console.log(resultados);
           $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-          $('#cuerpoTabla tr').remove();
+          $('#cuerpoTabla tr').not('.filaEjemplo').remove();
           for (var i = 0; i < resultados.data.length; i++){
-              var filaProgresivo = generarFilaTabla(resultados.data[i]);
+              let prog = resultados.data[i];
+              let filaProgresivo = generarFilaTabla(prog);
               $('#cuerpoTabla').append(filaProgresivo);
           }
           $('#herramientasPaginacion').generarIndices(
@@ -72,29 +101,32 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
           console.log('Error:', data);
       }
     });
+});
 
-  function callbackMaquinas(resultados){
-    let maquinas_lista = $('#maquinas_lista');
-    maquinas_lista.empty();
-    let option = $('<option></option>');
-    for (var i=0; i < resultados.length; i++){
-      let fila = option.clone().attr('value',resultados[i].nombre)
-      .attr('data-id',resultados[i].id)
-      .attr('data-isla',resultados[i].isla)
-      .attr('data-sector',resultados[i].sector)
-      .attr('data-nro_admin',resultados[i].nro_admin)
-      .attr('data-marca_juego',resultados[i].marca_juego);
-      maquinas_lista.append(fila);
-    };
-  }
+$('#btn-buscar-individuales').on('click',function(e){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
 
-  let ajaxData = {
-    type: 'GET',
-    url: 'progresivos/buscarMaquinas/'+$('#busqueda_casino').val()
-  };
+  e.preventDefault();
 
-  $.when($.ajax(ajaxData))
-  .then(callbackMaquinas, function(err){console.log(err)});
+  $.ajax({
+    type: 'POST',
+    url: 'progresivos/buscarProgresivosIndividuales',
+    data: {desde: 0,hasta: 0, id_casino: 0},
+    dataType: 'json',
+    success: function(resultados){
+      $('#cuerpoTablaIndividuales tr').not('.filaEjemplo').remove();
+      for(let i = 0; i < resultados.length; i++){
+        let prog = resultados[i];
+        let filaProgresivo = generarFilaTablaIndividual(prog);
+        $('#cuerpoTablaIndividuales').append(filaProgresivo);
+      }
+    },
+    error: function(err){console.log(err);}
+  });
 });
 
 $('#btn-ayuda').click(function(e){
@@ -394,44 +426,38 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-function generarFilaTabla(progresivo){
-    var fila = $(document.createElement('tr'));
-    fila.attr('id','progresivo' + progresivo.id_progresivo)
-    .append($('<td>')
-            .addClass('col-xs-6')
-            .addClass('nombre')
-            .text(progresivo.nombre)
-    )
-    .append($('<td>')
-          .addClass('col-xs-6')
-          .append($('<button>')
-              .append($('<i>')
-                  .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-              )
-              .append($('<span>').text(' VER MÁS'))
-              .addClass('btn').addClass('btn-info').addClass('detalle')
-              .attr('value',progresivo.id_progresivo)
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>')
-              .append($('<i>')
-                  .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-              )
-              .append($('<span>').text(' MODIFICAR'))
-              .addClass('btn').addClass('btn-warning').addClass('modificar')
-              .attr('value',progresivo.id_progresivo)
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>')
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-              )
-              .append($('<span>').text(' ELIMINAR'))
-              .addClass('btn').addClass('btn-danger').addClass('eliminar')
-              .attr('value',progresivo.id_progresivo)
-          )
-      )
+function generarFilaTablaIndividual(progresivo){
+  //Por alguna razon .show() le setea el style display: table-row y se ve mal.
+  let fila = $('#cuerpoTablaIndividuales .filaEjemplo')
+  .clone().removeClass('filaEjemplo').css('display','');
+  let casino = $('#busqueda_casino option[value='+progresivo.id_casino+']').text();
+  let maquina = progresivo.maquina;
+  let nivel = progresivo.pozo.nivel;
+  fila.find('.cuerpoTablaNroAdmin').text(maquina.nro_admin);
+  fila.find('.cuerpoTablaCasino').text(casino);
+  fila.find('.cuerpoTablaSector').text(maquina.sector);
+  fila.find('.cuerpoTablaIsla').text(maquina.isla);
+  fila.find('.cuerpoTablaMarcaJuego').text(maquina.marca_juego);
+  fila.find('.cuerpoPorcRecup').text(progresivo.porc_recup);
+  fila.find('.cuerpoMaximo').text(nivel.maximo);
+  fila.find('.cuerpoBase').text(nivel.base);
+  fila.find('.cuerpoPorcVisible').text(nivel.porc_visible);
+  fila.find('.cuerpoPorcOculto').text(nivel.porc_oculto);
+  return fila;
+}
 
-      fila.find('.eliminar').off().on('click',function(){
+function generarFilaTabla(progresivo){
+    let fila =  $('#cuerpoTabla .filaEjemplo')
+    .clone().removeClass('filaEjemplo').css('display','');
+    let casino = $('#busqueda_casino option[value='+progresivo.id_casino+']').text();
+
+    fila.find('.nombre').text(progresivo.nombre);
+    fila.find('.casino').text(casino);
+    fila.attr('id','progresivo' + progresivo.id_progresivo)
+    fila.find('.modificar').val(progresivo.id_progresivo);
+    fila.find('.detalle').val(progresivo.id_progresivo);
+    fila.find('.eliminar').val(progresivo.id_progresivo).off()
+    .on('click',function(){
         $('.modal-title').text('ADVERTENCIA');
         $('.modal-header').removeAttr('style');
         $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
@@ -698,6 +724,16 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
   pozo_html.find('.agregar').attr('disabled',!editable);
   pozo_html.find('.agregar').on("click",function(){
     let fila = crearFilaEditableNivel();
+    //La primera vez que se agrega una fila,
+    //No se la deja cancelar la edicion sino que se la elimina.
+    fila.find('.cancelar').replaceWith(
+      crearBoton('fa-trash-alt').addClass('borrar')
+    );
+    fila.find('.borrar').on('click',function(){
+      fila.remove();
+      pozo_html.find('.agregar').attr('disabled',false);
+    })
+    
     pozo_html.find('.cuerpoTablaPozo').append(fila);
     $(this).attr('disabled',true);
   });

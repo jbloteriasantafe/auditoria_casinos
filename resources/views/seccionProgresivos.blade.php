@@ -82,11 +82,29 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
               <table id="tablaResultados" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-6" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO  <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-6">ACCIONES</th>
+                    <th class="col-xs-4" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-4" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-4">ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
+                  <tr class="filaEjemplo" style='display: none;'>
+                    <td class="col-xs-4 nombre">PROGRESIVO999</td>
+                    <td class="col-xs-4 casino">CASINO999</td>
+                    <td class="col-xs-4 acciones">
+                        <button class="btn btn-info detalle">
+                          <i class="fa fa-fw fa-search-plus"></i>
+                        </button>
+                        <span> </span>
+                        <button class="btn btn-info modificar">
+                          <i class="fa fa-fw fa-pencil-alt"></i>
+                        </button>
+                        <span> </span>
+                        <button class="btn btn-info eliminar">
+                          <i class="fa fa-fw fa-trash-alt"></i>
+                        </button>
+                    </td>
+                  </tr>
 
                 </tbody>
               </table>
@@ -145,6 +163,45 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
 <div class="row">
   <div class="col-lg-12 col-xl-9">
+    <div id="contenedorFiltrosIndividuales" class="row"> <!-- Tarjeta de FILTROS -->
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosIndividuales" style="cursor: pointer">
+            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+          </div>
+          <div id="collapseFiltrosIndividuales" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div class="row"> <!-- Primera fila -->
+                <div class="col-lg-3">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="busqueda_casino_individuales">
+                    @if ($usuario['usuario']->es_superusuario)
+                    <option value="0">Todos los casinos</option>
+                    @endif
+                    @foreach ($usuario['usuario']->casinos as $casino)
+                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Desde</h5>
+                  <input id="maquina_desde" type="text" class="form-control" placeholder="Número maquina">
+                </div>
+                <div class="col-lg-3">
+                  <h5>Hasta</h5>
+                  <input id="maquina_hasta" type="text" class="form-control" placeholder="Número maquina">
+                </div>
+                <div class="col-lg-3">
+                  <h5>Búsqueda</h5>
+                  <button id="btn-buscar-individuales" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                </div>
+              </div> <!-- / Primera fila -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- / Tarjeta FILTROS -->
+
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
@@ -155,29 +212,42 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
           <div class="panel-body">
             <table id="tablaResultadosIndividuales" class="table table-fixed tablesorter">
-              <thead>
-                <tr>
-                  <th class="col-xs-6" estado="">MAQUINA  <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-6">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
-                <tr class="filaEjemplo">
-                  <td class="col-xs-6 cuerpoTablaNombre">MAQUINA999CASINO</th>
-                    <td class="col-xs-6 cuerpoTablaAcciones">
-                      <button class="btn btn-info mostrar">
-                        <i class="fa fa-fw fa-search-plus"></i>
-                      </button>
-                      <span> </span>
-                      <button class="btn btn-info editar">
-                        <i class="fa fa-fw fa-pencil-alt"></i>
-                      </button>
-                      <span> </span>
-                      <button class="btn btn-info borrar">
-                        <i class="fa fa-fw fa-trash-alt"></i>
-                      </button>
-                    </th>
+                <thead>
+                  <tr>
+                    <th class="col-xs-1 chico" estado="">MAQUINA<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1 chico" estado="">CASINO</th>
+                    <th class="col-xs-1 chico" estado="">SECTOR</th>
+                    <th class="col-xs-1 chico" estado="">ISLA</th>
+                    <th class="col-xs-2 chico" estado="">MARCA JUEGO</th>
+                    <th class="col-xs-1 chico" estado="">% RECUP</th>
+                    <th class="col-xs-1 chico" estado="">MÁXIMO</th>
+                    <th class="col-xs-1 chico" estado="">BASE</th>
+                    <th class="col-xs-1 chico" estado="">% VISIBLE</th>
+                    <th class="col-xs-1 chico" estado="">% OCULTO</th>
+                    <th class="col-xs-1 chico">ACCIONES</th>
                   </tr>
+                </thead>
+                <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
+                    <tr class="filaEjemplo form-group" style='display: none;'>
+                      <td class="col-xs-1 cuerpoTablaNroAdmin">999</td>
+                      <td class="col-xs-1 cuerpoTablaCasino">CASINO999</td>
+                      <td class="col-xs-1 cuerpoTablaSector">SECTOR999</td>
+                      <td class="col-xs-1 cuerpoTablaIsla">999</td>
+                      <td class="col-xs-2 cuerpoTablaMarcaJuego">SIN MARCA</td>
+                      <td class="col-xs-1 cuerpoPorcRecup">99.99</td>
+                      <td class="col-xs-1 cuerpoMaximo">999999</td>
+                      <td class="col-xs-1 cuerpoBase">9999</td>
+                      <td class="col-xs-1 cuerpoPorcVisible">99.99</td>
+                      <td class="col-xs-1 cuerpoPorcOculto">99.99</td>
+                      <td class="col-xs-1 cuerpoTablaAcciones">
+                          <button class="btn btn-info editar">
+                            <i class="fa fa-fw fa-pencil-alt"></i>
+                          </button>
+                          <button class="btn btn-info borrar">
+                            <i class="fa fa-fw fa-trash-alt "></i>
+                          </button>
+                      </td>
+                    </tr>
                 </tbody>
               </table>
             </div>

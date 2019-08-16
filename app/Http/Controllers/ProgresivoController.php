@@ -102,7 +102,8 @@ class ProgresivoController extends Controller
     ->when($sort_by,
            function($query) use ($sort_by){
              return $query->orderBy($sort_by);
-           });
+           })
+    ->where('progresivo.es_individual','=',0);
 
     if($where_casino){
       $resultados=$resultados->where('progresivo.id_casino','=',$casino->id_casino);
@@ -136,7 +137,7 @@ class ProgresivoController extends Controller
     return DB::select(DB::raw($query),['id_casino' => $id_casino]);
   }
 
-  private function datosMaquinasProgresivo($id_progresivo = null){
+  private function datosMaquinasProgresivo($id_progresivo = null,$limit = null){
     $query =
     "select maq.id_maquina as id,
             maq.nro_admin as nro_admin,
@@ -154,7 +155,10 @@ class ProgresivoController extends Controller
     if($id_progresivo != null){
       $query = $query . " and prog.id_progresivo = :id_progresivo";
     }
-    return DB::select(DB::raw($query),['id_progresivo' => $id_progresivo]);
+    if($limit != null){
+      $query = $query . " limit :limit";
+    }
+    return DB::select(DB::raw($query),['id_progresivo' => $id_progresivo,'limit'=>$limit]);
   }
 
   public function buscarMaquinas(Request $request,$id_casino){
@@ -240,6 +244,7 @@ class ProgresivoController extends Controller
       $progresivo->nombre = $request->nombre;
       $progresivo->porc_recup = $request->porc_recup;
       $progresivo->id_casino = $request->id_casino;
+      $progresivo->es_individual = 0;
       $progresivo->save();
 
       $request->id_progresivo = $progresivo->id_progresivo;
@@ -347,6 +352,7 @@ class ProgresivoController extends Controller
         $progresivo->porc_recup = $maq['porc_recup'];
         $progresivo->id_casino  = $request->id_casino;
         $progresivo->nombre     = $identificador;
+        $progresivo->es_individual = true;
 
         $progresivo->save();
         $progresivo->maquinas()->sync($maq['id_maquina']);
@@ -560,5 +566,23 @@ class ProgresivoController extends Controller
       if($maq_bd->id_casino != $id_casino) return false;
     }
     return true;
+  }
+
+  public function buscarProgresivosIndividuales(Request $request){
+    $progresivos = Progresivo::all()->where('es_individual','!=',0);
+    $respuesta = [];
+    foreach($progresivos as $progresivo){
+      $maquina = $this->datosMaquinasProgresivo($progresivo->id_progresivo,1);
+      $progresivo_arr = $progresivo->toArray();
+      $progresivo_arr['maquina'] = $maquina[0];
+      $pozo = $progresivo->pozos->first();
+      $pozo_arr = $pozo->toArray();
+      $progresivo_arr['pozo']=$pozo_arr;
+      $nivel = $pozo->niveles->first();
+      $nivel_arr = $nivel->toArray();
+      $progresivo_arr['pozo']['nivel']=$nivel_arr;
+      $respuesta[]=$progresivo_arr;
+    }
+    return $respuesta;
   }
 }
