@@ -115,7 +115,11 @@ $('#btn-buscar-individuales').on('click',function(e){
   $.ajax({
     type: 'POST',
     url: 'progresivos/buscarProgresivosIndividuales',
-    data: {desde: 0,hasta: 0, id_casino: 0},
+    data: {
+      desde: $('#maquina_desde').val(),
+      hasta: $('#maquina_hasta').val(),
+      id_casino: $('#busqueda_casino_individuales').val()
+    },
     dataType: 'json',
     success: function(resultados){
       $('#cuerpoTablaIndividuales tr').not('.filaEjemplo').remove();
@@ -433,16 +437,16 @@ function generarFilaTablaIndividual(progresivo){
   let casino = $('#busqueda_casino option[value='+progresivo.id_casino+']').text();
   let maquina = progresivo.maquina;
   let nivel = progresivo.pozo.nivel;
-  fila.find('.cuerpoTablaNroAdmin').text(maquina.nro_admin);
-  fila.find('.cuerpoTablaCasino').text(casino);
-  fila.find('.cuerpoTablaSector').text(maquina.sector);
-  fila.find('.cuerpoTablaIsla').text(maquina.isla);
-  fila.find('.cuerpoTablaMarcaJuego').text(maquina.marca_juego);
-  fila.find('.cuerpoPorcRecup').text(progresivo.porc_recup);
-  fila.find('.cuerpoMaximo').text(nivel.maximo);
-  fila.find('.cuerpoBase').text(nivel.base);
-  fila.find('.cuerpoPorcVisible').text(nivel.porc_visible);
-  fila.find('.cuerpoPorcOculto').text(nivel.porc_oculto);
+  fila.find('.cuerpoTablaNroAdmin').text(limpiarNull(maquina.nro_admin));
+  fila.find('.cuerpoTablaCasino').text(limpiarNull(casino));
+  fila.find('.cuerpoTablaSector').text(limpiarNull(maquina.sector));
+  fila.find('.cuerpoTablaIsla').text(limpiarNull(maquina.isla));
+  fila.find('.cuerpoTablaMarcaJuego').text(limpiarNull(maquina.marca_juego));
+  fila.find('.cuerpoPorcRecup').text(limpiarNull(progresivo.porc_recup));
+  fila.find('.cuerpoMaximo').text(limpiarNull(nivel.maximo));
+  fila.find('.cuerpoBase').text(limpiarNull(nivel.base));
+  fila.find('.cuerpoPorcVisible').text(limpiarNull(nivel.porc_visible));
+  fila.find('.cuerpoPorcOculto').text(limpiarNull(nivel.porc_oculto));
   return fila;
 }
 
@@ -614,10 +618,11 @@ function modificarNivel(fila){
   fila.parent().parent().parent().find('.agregar').attr('disabled',false);
 }
 
+function limpiarNull(val){
+  return val == null? '' : val;
+}
+
 function limpiarNullsNivel(nivel){
-  function limpiarNull(val){
-    return val == null? '' : val;
-  }
   return {
     id_nivel_progresivo : limpiarNull(nivel.id_nivel_progresivo),
     nro_nivel :  limpiarNull(nivel.nro_nivel),
@@ -733,7 +738,7 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
       fila.remove();
       pozo_html.find('.agregar').attr('disabled',false);
     })
-    
+
     pozo_html.find('.cuerpoTablaPozo').append(fila);
     $(this).attr('disabled',true);
   });
