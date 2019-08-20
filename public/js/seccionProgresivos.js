@@ -17,7 +17,6 @@ $(document).ready(function(){
 
   $('#btn-buscar').trigger('click');
   cargarMaquinas();
-  $('#btn-buscar-individuales').trigger('click');
 });
 
 
@@ -28,7 +27,7 @@ function cargarMaquinas(){
     let option = $('<option></option>');
     for (var i=0; i < resultados.length; i++){
       let fila = option.clone().attr('value',resultados[i].nombre)
-      .attr('data-id',resultados[i].id)
+      .attr('data-id',resultados[i].id_maquina)
       .attr('data-isla',resultados[i].isla)
       .attr('data-sector',resultados[i].sector)
       .attr('data-nro_admin',resultados[i].nro_admin)
@@ -104,33 +103,20 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 });
 
 $('#btn-buscar-individuales').on('click',function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
   e.preventDefault();
+  $('#btn-cancelar').text('CANCELAR');
+  $('#btn-guardar').val("nuevo");
+  $('#btn-guardar').removeClass();
+  $('#btn-guardar').addClass('btn btn-successAceptar');
+  $('.modal-title').text('| MODIFICAR PROGRESIVOS INDIVIDUALES');
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #ff9d2d; color: #fff');
+  let data = {
+    desde: $('#maquina_desde').val(),
+    hasta: $('#maquina_hasta').val(),
+    id_casino: $('#busqueda_casino_individuales').val()
+  };
 
-  $.ajax({
-    type: 'POST',
-    url: 'progresivos/buscarProgresivosIndividuales',
-    data: {
-      desde: $('#maquina_desde').val(),
-      hasta: $('#maquina_hasta').val(),
-      id_casino: $('#busqueda_casino_individuales').val()
-    },
-    dataType: 'json',
-    success: function(resultados){
-      $('#cuerpoTablaIndividuales tr').not('.filaEjemplo').remove();
-      for(let i = 0; i < resultados.length; i++){
-        let prog = resultados[i];
-        let filaProgresivo = generarFilaTablaIndividual(prog);
-        $('#cuerpoTablaIndividuales').append(filaProgresivo);
-      }
-    },
-    error: function(err){console.log(err);}
-  });
+  mostrarProgresivoIndividual(data);
 });
 
 $('#btn-ayuda').click(function(e){
@@ -164,17 +150,59 @@ $('#btn-nuevo-ind').click(function(e){
   $('#btn-guardar').addClass('btn btn-successAceptar');
   $('.modal-title').text('| NUEVOS PROGRESIVOS INDIVIDUALES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-  nuevoProgresivoIndividual();
+  mostrarProgresivoIndividual();
 });
 
 function filaEjemploIndividual(){
-  return $('.tablaMaquinasDivIndividual').find('.filaEjemplo')
-  .clone().removeClass('filaEjemplo');
+  let fila = $('.tablaMaquinasDivIndividual').find('.filaEjemplo').clone().removeClass('filaEjemplo');
+
+  let botonEditar = fila.find('.editar');
+  let botonBorrar = fila.find('.borrar');
+
+  fila.find('.eliminar').click(function(){
+    fila.remove();
+  });
+
+  fila.find('.editar').click(function(){
+    let data = arregloProgresivoIndividual(fila);
+    let filaEditable = filaEditableIndividualParcial(data);
+    fila.replaceWith(filaEditable);
+  })
+
+  return fila;
 }
 
+function arregloProgresivoIndividual(fila){
+  return {
+    id_maquina: fila.attr('data-id'),
+    nro_admin: fila.find('.cuerpoTablaNroAdmin').text(),
+    sector: fila.find('.cuerpoTablaSector').text(),
+    isla: fila.find('.cuerpoTablaIsla').text(),
+    marca_juego: fila.find('.cuerpoTablaMarcaJuego').text(),
+    porc_recup: fila.find('.cuerpoPorcRecup').text(),
+    maximo: fila.find('.cuerpoMaximo').text(),
+    base: fila.find('.cuerpoBase').text(),
+    porc_visible: fila.find('.cuerpoPorcVisible').text(),
+    porc_oculto: fila.find('.cuerpoPorcOculto').text()
+  };
+}
+
+function setearFilaProgresivoIndividual(fila,data){
+  fila.attr('data-id',data.id_maquina);
+  fila.find('.cuerpoTablaNroAdmin').text(limpiarNull(data.nro_admin));
+  fila.find('.cuerpoTablaSector').text(limpiarNull(data.sector));
+  fila.find('.cuerpoTablaIsla').text(limpiarNull(data.isla));
+  fila.find('.cuerpoTablaMarcaJuego').text(limpiarNull(data.marca_juego));
+  fila.find('.cuerpoPorcRecup').text(limpiarNull(data.porc_recup));
+  fila.find('.cuerpoMaximo').text(limpiarNull(data.maximo));
+  fila.find('.cuerpoBase').text(limpiarNull(data.base));
+  fila.find('.cuerpoPorcVisible').text(limpiarNull(data.porc_visible));
+  fila.find('.cuerpoPorcOculto').text(limpiarNull(data.porc_oculto));
+}
 
 function filaEditableIndividual(){
   let fila = filaEjemploIndividual();
+
   let input = crearEditable('text').attr('list','maquinas_lista')
   let fila_nroadmin = fila.find('.cuerpoTablaNroAdmin').empty().append(input);
   let fila_sector = fila.find('.cuerpoTablaSector').empty();
@@ -257,6 +285,14 @@ function filaEditableIndividual(){
 
     fila.find('.cuerpoTablaAcciones').empty();
 
+    let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
+    fila.find('.cuerpoTablaAcciones').append(botonEditar);
+
+    botonEditar.on('click',function(){
+      let data = arregloProgresivoIndividual(fila);
+      fila.replaceWith(filaEditableIndividualParcial(data));
+    });
+
     let botonBorrar = crearBoton('fa-trash').addClass('borrar');
     fila.find('.cuerpoTablaAcciones').append(botonBorrar);
 
@@ -273,19 +309,89 @@ function filaEditableIndividual(){
   return fila
 }
 
-function arregloProgresivoIndividual(fila){
-  return {
-    id_maquina: fila.attr('data-id'),
-    nro_admin: fila.find('.cuerpoTablaNroAdmin').text(),
-    sector: fila.find('.cuerpoTablaSector').text(),
-    isla: fila.find('.cuerpoTablaIsla').text(),
-    marca_juego: fila.find('.cuerpoTablaMarcaJuego').text(),
-    porc_recup: fila.find('.cuerpoPorcRecup').text(),
-    maximo: fila.find('.cuerpoMaximo').text(),
-    base: fila.find('.cuerpoBase').text(),
-    porc_visible: fila.find('.cuerpoPorcVisible').text(),
-    porc_oculto: fila.find('.cuerpoPorcOculto').text()
-  };
+function filaEditableIndividualParcial(data){
+  let fila = filaEjemploIndividual();
+
+  fila.attr('data-id',data.id_maquina);
+  let fila_nroadmin = fila.find('.cuerpoTablaNroAdmin').text(data.nro_admin);
+  let fila_sector = fila.find('.cuerpoTablaSector').text(data.sector);
+  let fila_isla = fila.find('.cuerpoTablaIsla').text(data.isla);
+  let fila_marcajuego = fila.find('.cuerpoTablaMarcaJuego').text(data.marca_juego);
+
+  //No puedo agregarle un editable de numeros con flechas
+  //porque las flechas son muy grandes.
+
+  const input_porcentaje = crearEditable('number','0').addClass('sinflechas');
+  const input_numero = crearEditable('number','',0,null,'any').addClass('sinflechas');
+  let fila_porcrecup = fila.find('.cuerpoPorcRecup')
+  .empty().append(input_porcentaje.clone().val(data.porc_recup));
+
+  let fila_maximo = fila.find('.cuerpoMaximo')
+  .empty().append(input_numero.clone().val(data.maximo));
+
+  let fila_base = fila.find('.cuerpoBase')
+  .empty().append(input_numero.clone().val(data.base));
+
+  let fila_porcvisible = fila.find('.cuerpoPorcVisible')
+  .empty().append(input_porcentaje.clone().val(data.porc_visible));
+
+  let fila_porcoculto = fila.find('.cuerpoPorcOculto')
+  .empty().append(input_porcentaje.clone().val(data.porc_oculto));
+
+  let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click',function(){
+    const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
+    const fila_maximo_val = fila_maximo.find('.editable').val();
+    const fila_base_val = fila_base.find('.editable').val();
+    const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
+    const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
+    if(isNaN(fila_porcrecup_val)) return;
+    if(isNaN(fila_maximo_val)) return;
+    if(isNaN(fila_base_val)) return;
+    if(isNaN(fila_porcoculto_val)) return;
+    if(isNaN(fila_porcvisible_val)) return;
+    if(fila_maximo_val < 0) return;
+    if(fila_base_val < 0) return;
+    if(fila_porcrecup_val<0
+    || fila_porcrecup_val>100) return;
+    if(fila_porcoculto_val<0
+    || fila_porcoculto_val>100) return;
+    if(fila_porcvisible_val<0
+    || fila_porcvisible_val>100) return;
+
+    fila.find('input').each(function(index,c){
+      $(c).replaceWith($(c).val());
+    });
+
+    fila.children().each(function(index,c){
+      $(c).off();//Saco eventos click.
+    })
+
+    fila.find('.cuerpoTablaAcciones').empty();
+
+    let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
+    fila.find('.cuerpoTablaAcciones').append(botonEditar);
+
+    botonEditar.on('click',function(){
+      let data = arregloProgresivoIndividual(fila);
+      fila.replaceWith(filaEditableIndividualParcial(data));
+    });
+
+    let botonBorrar = crearBoton('fa-trash').addClass('borrar');
+    fila.find('.cuerpoTablaAcciones').append(botonBorrar);
+
+    botonBorrar.on('click',function(){fila.remove();});
+  });
+
+  let botonCancelar = crearBoton('fa-times').addClass('cancelar');
+  botonCancelar.on('click',function(){
+    let filaNoEditable = filaEjemploIndividual();
+    setearFilaProgresivoIndividual(filaNoEditable,data);
+    fila.replaceWith(filaNoEditable);
+  });
+
+  fila.find('.cuerpoTablaAcciones')
+  .empty().append(botonConfirmar).append(botonCancelar);
+  return fila;
 }
 
 function enviarFormularioIndividual(){
@@ -323,7 +429,7 @@ function enviarFormularioIndividual(){
           $('<p></p>')
           .text(mensajeExito)
         );
-        $('#modalProgresivo').modal('hide');
+        $('#modalProgresivoIndividual').modal('hide');
         $('#mensajeExito').show();
       },
       error: function(err){
@@ -335,8 +441,78 @@ function enviarFormularioIndividual(){
   });
 }
 
-function nuevoProgresivoIndividual(){
+
+function enviarFormularioIndividualModif(desde,hasta){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  })
+
+  let mensajeExito = 'Los progresivos fueron modificados.';
+  let url = 'progresivos/modificarProgresivosIndividuales';
+
+  let formData = {
+    id_casino : $('#modalProgresivoIndividual_casino').val(),
+    desde: desde,
+    hasta: hasta,
+    maquinas : []
+  };
+
+  let filas = $('#contenedorMaquinasIndividual tbody tr');
+
+  filas.each(function(idx,f){
+    let fila = $(f);
+    if(fila.find('input').length > 0) return;
+    formData.maquinas.push(arregloProgresivoIndividual(fila));
+  })
+
+  $.ajax({
+      type: 'POST',
+      data: formData,
+      url: url,
+      success: function(data){
+        console.log(data);
+        $('#mensajeExito')
+        .find('.textoMensaje p')
+        .replaceWith(
+          $('<p></p>')
+          .text(mensajeExito)
+        );
+        $('#modalProgresivoIndividual').modal('hide');
+        $('#mensajeExito').show();
+      },
+      error: function(err){
+        $('#mensajeError').find('.textoMensaje p')
+        .replaceWith($('<p></p>').text('INSERTAR ERROR'));
+        $('#mensajeError').show();
+        console.log(err);
+      }
+  });
+}
+
+function obtenerProgresivosIndividuales(data,success = function(x){console.log(x)},err = function(x){console.log(x)}){
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+
+  $.ajax({
+    type: 'POST',
+    url: 'progresivos/buscarProgresivosIndividuales',
+    data: data,
+    dataType: 'json',
+    success: success,
+    error: err
+  });
+}
+
+function mostrarProgresivoIndividual(data = null){
   $('#modalProgresivoIndividual').modal('show');
+  $('#modalProgresivoIndividual_seccionSup').show();
+  $('#modalProgresivoIndividual_seccionParametros').show();
+  $('#btn-agregarMaquinaIndividual').off().parent().parent().show();
   $('#contenedorMaquinasIndividual').empty();
   $('#inputPorcRecupIndividual').val(0);
   $('#inputMaximoIndividual').val(0);
@@ -352,10 +528,41 @@ function nuevoProgresivoIndividual(){
   });
 
   $('#btn-guardarIndividual').off().on('click',enviarFormularioIndividual);
+
+  if(data != null){
+    const callbackForm = function(){enviarFormularioIndividualModif(data.desde,data.hasta);}
+    $('#btn-guardarIndividual').off().on('click',callbackForm);
+    $('#btn-agregarMaquinaIndividual').off().parent().parent().hide();
+    //Seteo el casino pq despues se usa para enviar el formulario.
+    $('#modalProgresivoIndividual_casino').val(data.id_casino);
+    $('#modalProgresivoIndividual_seccionSup').hide();
+    $('#modalProgresivoIndividual_seccionParametros').hide();
+    obtenerProgresivosIndividuales(data,function(resultados){
+      for(let i = 0; i < resultados.length; i++){
+        const prog = resultados[i];
+        const data = {
+          id_maquina : prog.maquina.id_maquina,
+          nro_admin: prog.maquina.nro_admin,
+          sector: prog.maquina.sector,
+          isla: prog.maquina.isla,
+          marca_juego: prog.maquina.marca_juego,
+          porc_recup: prog.porc_recup,
+          maximo: prog.pozo.nivel.maximo,
+          base: prog.pozo.nivel.base,
+          porc_visible: prog.pozo.nivel.porc_visible,
+          porc_oculto: prog.pozo.nivel.porc_oculto
+        };
+
+        let filaProgresivo = filaEjemploIndividual();
+        setearFilaProgresivoIndividual(filaProgresivo,data);
+        cuerpo_tabla.append(filaProgresivo);
+      }
+    });
+  }
 }
 
 //Mostrar modal con los datos del Log
-$(document).on('click','.detalle',function(){
+$(document).on('click','#cuerpoTabla tr .detalle',function(){
       $('.modal-title').text('| VER MÁS');
       $('.modal-header').attr('style','font-family: Roboto-Black; background: #4FC3F7');
       $('.btn-agregarNivelProgresivo').hide();
@@ -371,7 +578,7 @@ $(document).on('click','.detalle',function(){
 });
 
 //Mostrar modal con los datos del Juego cargado
-$(document).on('click','.modificar',function(){
+$(document).on('click','#cuerpoTabla tr .modificar',function(){
       $('#mensajeExito').hide();
       $('#btn-cancelar').text('CANCELAR');
       $('.btn-agregarNivelProgresivo').show();
@@ -391,7 +598,7 @@ $(document).on('click','.modificar',function(){
 });
 
 //Borrar Progresivo y remover de la tabla
-$(document).on('click','.eliminar',function(){
+$(document).on('click','#cuerpoTabla tr .eliminar',function(){
       //Cambiar colores modal
       $('.modal-title').text('ADVERTENCIA');
       $('.modal-header').removeAttr('style');
@@ -428,26 +635,6 @@ function clickIndice(e,pageNumber,tam){
   var columna = $('#tablaResultados .activa').attr('value');
   var orden = $('#tablaResultados .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
-function generarFilaTablaIndividual(progresivo){
-  //Por alguna razon .show() le setea el style display: table-row y se ve mal.
-  let fila = $('#cuerpoTablaIndividuales .filaEjemplo')
-  .clone().removeClass('filaEjemplo').css('display','');
-  let casino = $('#busqueda_casino option[value='+progresivo.id_casino+']').text();
-  let maquina = progresivo.maquina;
-  let nivel = progresivo.pozo.nivel;
-  fila.find('.cuerpoTablaNroAdmin').text(limpiarNull(maquina.nro_admin));
-  fila.find('.cuerpoTablaCasino').text(limpiarNull(casino));
-  fila.find('.cuerpoTablaSector').text(limpiarNull(maquina.sector));
-  fila.find('.cuerpoTablaIsla').text(limpiarNull(maquina.isla));
-  fila.find('.cuerpoTablaMarcaJuego').text(limpiarNull(maquina.marca_juego));
-  fila.find('.cuerpoPorcRecup').text(limpiarNull(progresivo.porc_recup));
-  fila.find('.cuerpoMaximo').text(limpiarNull(nivel.maximo));
-  fila.find('.cuerpoBase').text(limpiarNull(nivel.base));
-  fila.find('.cuerpoPorcVisible').text(limpiarNull(nivel.porc_visible));
-  fila.find('.cuerpoPorcOculto').text(limpiarNull(nivel.porc_oculto));
-  return fila;
 }
 
 function generarFilaTabla(progresivo){
@@ -955,7 +1142,7 @@ function llenarTablaMaquinas(maquinas,editable){
     let fila = fila_ejemplo_maq.clone();
 
     setearFilaMaquinas(fila,
-      maquinas[j].id,maquinas[j].nro_admin,
+      maquinas[j].id_maquina,maquinas[j].nro_admin,
       maquinas[j].sector,maquinas[j].isla,
       maquinas[j].marca_juego);
 

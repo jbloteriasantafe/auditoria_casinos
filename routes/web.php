@@ -57,6 +57,7 @@ Route::post('progresivos/modificarProgresivo/{id_progresivo}','ProgresivoControl
 Route::delete('progresivos/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
 Route::post('progresivos/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
 Route::post('progresivos/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
+Route::post('progresivos/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
 /***********
 Casinos
 ***********/

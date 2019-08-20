@@ -36,6 +36,68 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 </datalist>
 
 <div class="row">
+  <div class="col-lg-12 col-xl-9" class="">
+    <div id="contenedorFiltrosIndividuales" class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Buscar individuales</h4>
+          </div>
+          <div class="">
+            <div class="panel-body">
+              <div class="row"> <!-- Primera fila -->
+                <div class="col-lg-3">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="busqueda_casino_individuales">
+                    @foreach ($usuario['usuario']->casinos as $casino)
+                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Desde</h5>
+                  <input id="maquina_desde" type="text" class="form-control" placeholder="Número maquina">
+                </div>
+                <div class="col-lg-3">
+                  <h5>Hasta</h5>
+                  <input id="maquina_hasta" type="text" class="form-control" placeholder="Número maquina">
+                </div>
+                <div class="col-lg-3">
+                  <h5>Búsqueda</h5>
+                  <button id="btn-buscar-individuales" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="col-lg-12 col-xl-3">
+      <div class="row">
+        <div class="col-lg-12">
+          <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
+                <div class="backgroundNuevo">
+                </div>
+                <div class="row">
+                  <div class="col-xs-12">
+                    <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
+                    </center>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+    </div>
+  </div>
+
+<div class="row">
   <div class="col-lg-12 col-xl-9">
       <div id="contenedorFiltros" class="row"> <!-- Tarjeta de FILTROS -->
         <div class="col-md-12">
@@ -116,27 +178,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
       </div>
   </div> <!-- / Tarjeta TABLA -->
 
-  <div class="col-lg-12 col-xl-3">
-    <div class="row">
-      <div class="col-lg-12">
-        <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-            <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"><center>
-              <div class="backgroundNuevo">
-              </div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                    <h5 class="txtLogo">+</h5>
-                    <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
-                  </center>
-                </div>
-              </div>
-            </div>
-          </a>
-        </div>
-      </div>
-  </div>
+
 
   <div class="col-lg-12 col-xl-3">
     <div class="row">
@@ -161,101 +203,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
   </div>
 </div>
 
-<div class="row">
-  <div class="col-lg-12 col-xl-9">
-    <div id="contenedorFiltrosIndividuales" class="row"> <!-- Tarjeta de FILTROS -->
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosIndividuales" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosIndividuales" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row"> <!-- Primera fila -->
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="busqueda_casino_individuales">
-                    @if ($usuario['usuario']->es_superusuario)
-                    <option value="0">Todos los casinos</option>
-                    @endif
-                    @foreach ($usuario['usuario']->casinos as $casino)
-                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Desde</h5>
-                  <input id="maquina_desde" type="text" class="form-control" placeholder="Número maquina">
-                </div>
-                <div class="col-lg-3">
-                  <h5>Hasta</h5>
-                  <input id="maquina_hasta" type="text" class="form-control" placeholder="Número maquina">
-                </div>
-                <div class="col-lg-3">
-                  <h5>Búsqueda</h5>
-                  <button id="btn-buscar-individuales" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                </div>
-              </div> <!-- / Primera fila -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> <!-- / Tarjeta FILTROS -->
 
-    <div class="row">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-
-          <div class="panel-heading">
-            <h4>ÚLTIMOS PROGRESIVOS INDIVIDUALES</h4>
-          </div>
-
-          <div class="panel-body">
-            <table id="tablaResultadosIndividuales" class="table table-fixed tablesorter">
-                <thead>
-                  <tr>
-                    <th class="col-xs-1 chico" estado="">MAQUINA<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-1 chico" estado="">CASINO</th>
-                    <th class="col-xs-1 chico" estado="">SECTOR</th>
-                    <th class="col-xs-1 chico" estado="">ISLA</th>
-                    <th class="col-xs-2 chico" estado="">MARCA JUEGO</th>
-                    <th class="col-xs-1 chico" estado="">% RECUP</th>
-                    <th class="col-xs-1 chico" estado="">MÁXIMO</th>
-                    <th class="col-xs-1 chico" estado="">BASE</th>
-                    <th class="col-xs-1 chico" estado="">% VISIBLE</th>
-                    <th class="col-xs-1 chico" estado="">% OCULTO</th>
-                    <th class="col-xs-1 chico">ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody id="cuerpoTablaIndividuales" style="height: 350px;">
-                    <tr class="filaEjemplo form-group" style='display: none;'>
-                      <td class="col-xs-1 cuerpoTablaNroAdmin">999</td>
-                      <td class="col-xs-1 cuerpoTablaCasino">CASINO999</td>
-                      <td class="col-xs-1 cuerpoTablaSector">SECTOR999</td>
-                      <td class="col-xs-1 cuerpoTablaIsla">999</td>
-                      <td class="col-xs-2 cuerpoTablaMarcaJuego">SIN MARCA</td>
-                      <td class="col-xs-1 cuerpoPorcRecup">99.99</td>
-                      <td class="col-xs-1 cuerpoMaximo">999999</td>
-                      <td class="col-xs-1 cuerpoBase">9999</td>
-                      <td class="col-xs-1 cuerpoPorcVisible">99.99</td>
-                      <td class="col-xs-1 cuerpoPorcOculto">99.99</td>
-                      <td class="col-xs-1 cuerpoTablaAcciones">
-                          <button class="btn btn-info editar">
-                            <i class="fa fa-fw fa-pencil-alt"></i>
-                          </button>
-                          <button class="btn btn-info borrar">
-                            <i class="fa fa-fw fa-trash-alt "></i>
-                          </button>
-                      </td>
-                    </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
   <!-- Modal Progresivo -->
   <div class="modal fade" id="modalProgresivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -336,7 +284,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
         <div  id="colapsado" class="collapse in">
           <div class="modal-body modal-Cuerpo">
-            <div class="">
+            <div class="" id='modalProgresivoIndividual_seccionSup'>
               <div class="row">
                 <h3 class='col-md-3 col-lg-3'>Parametros base</h3>
                 <div class='col-md-5 col-lg-5'></div>
@@ -350,7 +298,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </div>
               </div>
             </div>
-            <div class="row no-gutters">
+            <div class="row no-gutters" id='modalProgresivoIndividual_seccionParametros'>
               <div class="col-md-3 col-lg-3">
                 <h5 class="">% Recuperación</h5>
                 <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
@@ -563,7 +511,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <td class="col-xs-1 cuerpoBase chico">9999</td>
                 <td class="col-xs-1 cuerpoPorcVisible chico">99.99</td>
                 <td class="col-xs-1 cuerpoPorcOculto chico">99.99</td>
-                <td class="col-xs-2 cuerpoTablaAcciones chico">
+                <td class="col-xs-2 cuerpoTablaAcciones">
                   <button class="btn btn-info editar">
                     <i class="fas fa-pencil-alt"></i>
                   </button>
