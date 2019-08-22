@@ -77,6 +77,12 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                 <span> {{$rel->fecha_ejecucion}}</span>
             </div>
             @endif
+            <div class="infoHora">
+                <?php
+                $hora = (localtime(time(),true));
+                echo $hora['tm_hour'] .":". $hora['tm_min'];
+                ?>
+            </div>
         </div>
 
 
