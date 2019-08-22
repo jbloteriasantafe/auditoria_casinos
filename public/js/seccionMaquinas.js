@@ -284,7 +284,9 @@ $(document).on('click','.btn-info',function(){
 
       $.get('http://' + window.location.host + "/maquinas/obtenerMTM/" + id_maquina, function(data){
         console.log(data);
+
         mostrarMaquina(data,'detalle');
+
         habilitarControles(false);
 
         $('.seccion').hide();

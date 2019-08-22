@@ -817,7 +817,7 @@ function obtenerDatosProgresivo(){
 function mostrarProgresivo(progresivo, casino){
 
   if(progresivo != null){
-    $('#noexiste_progresivo').hide();
+    //$('#noexiste_progresivo').hide();
     $('#progresivoSeleccionado').text(progresivo.progresivo.nombre_progresivo);
     $('#progresivoSeleccionado').attr('data-id', progresivo.progresivo.id_progresivo);
 
@@ -873,6 +873,59 @@ function mostrarProgresivo(progresivo, casino){
   $('.buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('.buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/" + casino_global,'islas','id_isla','nro_isla',1,true);;
   $('.buscadorIsla').setearElementoSeleccionado(0,"");
+
+
+
+
+  //Niveles de prueba
+var nivel1_pozo1 = {
+                    nombre: "Nivel 1 - Pozo 1",
+                    base: 10,
+                    maximo: 15,
+                    porc_vis: 5,
+                    porc_oculto: 7
+                    };
+
+var nivel2_pozo1 = {
+                    nombre: "Nivel 2 - Pozo 1",
+                    base: 15,
+                    maximo: 30,
+                    porc_vis: 3,
+                    porc_oculto: 6
+                    };
+
+var nivel1_pozo2 = {
+                    nombre: "Nivel 1 - Pozo 2",
+                    base: 18,
+                    maximo: 40,
+                    porc_vis: 3,
+                    porc_oculto: 12
+                    };
+
+niveles_pozo1_progre1 = {nivel1_pozo1, nivel2_pozo1};
+
+  //Pozos de prueba
+  var pozo1_progre1 = {
+                      nombre: "Pozo 1 - Progre 1",
+                      niveles: niveles_pozo1_progre1
+                      };
+
+  var pozo2_progre1 = {
+                      nombre: "Pozo 2 - Progre 1",
+                      niveles: nivel1_pozo2
+                      };
+
+  pozos_progre1 = {pozo1_progre1, pozo2_progre1};
+
+  //Progresivos de prueba
+  var progre1 = {
+                nombre:"Progresivo 1",
+                porc_recup: "10%",
+                pozos: pozos_progre1
+                };
+
+
+
 }
 
 function ocultarProgresivo(){
