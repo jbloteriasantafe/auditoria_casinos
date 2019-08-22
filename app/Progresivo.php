@@ -14,7 +14,8 @@ class Progresivo extends Model
     'id_progresivo',
     'nombre',
     'porc_recup',
-    'id_casino');
+    'id_casino',
+    'es_individual');
   public $timestamps = false;
 
 

@@ -102,7 +102,8 @@ class ProgresivoController extends Controller
     ->when($sort_by,
            function($query) use ($sort_by){
              return $query->orderBy($sort_by);
-           });
+           })
+    ->where('progresivo.es_individual','=',0);
 
     if($where_casino){
       $resultados=$resultados->where('progresivo.id_casino','=',$casino->id_casino);
@@ -119,7 +120,7 @@ class ProgresivoController extends Controller
 
   private function datosMaquinasCasino($id_casino = null){
     $query =
-    "select maq.id_maquina as id,
+    "select maq.id_maquina as id_maquina,
             maq.nro_admin as nro_admin,
             maq.marca_juego as marca_juego,
             CONCAT(maq.nro_admin,cas.codigo) as nombre,
@@ -130,15 +131,18 @@ class ProgresivoController extends Controller
     left join isla on (maq.id_isla = isla.id_isla)
     left join sector as sec on (isla.id_sector = sec.id_sector)
     where maq.deleted_at is NULL";
+
+    $parametros = array();
     if($id_casino != null){
       $query = $query . " and cas.id_casino = :id_casino";
+      $parametros['id_casino'] = $id_casino;
     }
-    return DB::select(DB::raw($query),['id_casino' => $id_casino]);
+    return DB::select(DB::raw($query),$parametros);
   }
 
-  private function datosMaquinasProgresivo($id_progresivo = null){
+  private function datosMaquinasProgresivo($id_progresivo = null,$limit = null){
     $query =
-    "select maq.id_maquina as id,
+    "select maq.id_maquina as id_maquina,
             maq.nro_admin as nro_admin,
             maq.marca_juego as marca_juego,
             CONCAT(maq.nro_admin,cas.codigo) as nombre,
@@ -151,11 +155,20 @@ class ProgresivoController extends Controller
     left join isla on (maq.id_isla = isla.id_isla)
     left join sector as sec on (isla.id_sector = sec.id_sector)
     where maq.deleted_at is NULL";
+
+    $parametros = array();
     if($id_progresivo != null){
       $query = $query . " and prog.id_progresivo = :id_progresivo";
+      $parametros['id_progresivo'] = $id_progresivo;
     }
-    return DB::select(DB::raw($query),['id_progresivo' => $id_progresivo]);
+    if($limit != null){
+      $query = $query . " limit :limit";
+      $parametros['limit'] = $limit;
+    }
+    return DB::select(DB::raw($query),$parametros);
   }
+
+
 
   public function buscarMaquinas(Request $request,$id_casino){
     //TODO: Deberia retornar las maquinas que estan dadas de baja,
@@ -235,17 +248,25 @@ class ProgresivoController extends Controller
       }
     }
 
-    $progresivo = new Progresivo;
-    $progresivo->nombre = $request->nombre;
-    $progresivo->porc_recup = $request->porc_recup;
-    $progresivo->id_casino = $request->id_casino;
-    $progresivo->save();
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+      return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
+    }
 
-    $request->id_progresivo = $progresivo->id_progresivo;
-    return $this->modificarProgresivo($request,$progresivo->id_progresivo,false);
+    DB::transaction(function() use ($request){
+      $progresivo = new Progresivo;
+      $progresivo->nombre = $request->nombre;
+      $progresivo->porc_recup = $request->porc_recup;
+      $progresivo->id_casino = $request->id_casino;
+      $progresivo->es_individual = 0;
+      $progresivo->save();
+
+      $request->id_progresivo = $progresivo->id_progresivo;
+      $this->modificarProgresivoAux($request);
+    });
   }
 
-  public function modificarProgresivo(Request $request,$id_progresivo,$check_maquinas = true){
+  public function modificarProgresivo(Request $request,$id_progresivo){
     Validator::make($request->all(), [
         'id_progresivo'                         => 'required|integer',
         'nombre'                                => 'required|max:100',
@@ -263,19 +284,28 @@ class ProgresivoController extends Controller
         'pozos.*.niveles.*.porc_oculto'         => 'nullable|numeric|min:0|max:100',
         'pozos.*.niveles.*.porc_visible'        => 'nullable|numeric|min:0|max:100',
         'pozos.*.niveles.*.base'                => 'nullable|numeric|min:0',
-        'pozos.*.niveles.*.maximo'              => 'nullable|numeric||min:0'
+        'pozos.*.niveles.*.maximo'              => 'nullable|numeric|min:0'
     ], array(), self::$atributos)->after(function ($validator){
     })->validate();
 
-    if($check_maquinas){
-      if(isset($request->maquinas)){
-        $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
-        if(!$valido){
-          return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
-        }
+    if(isset($request->maquinas)){
+      $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
+      if(!$valido){
+        return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
       }
     }
 
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+      return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
+    }
+
+    DB::transaction(function() use ($request){
+      $this->modificarProgresivoAux($request);
+    });
+  }
+
+  private function modificarProgresivoAux($request){
     $progresivo = Progresivo::with('pozos.niveles','maquinas')
     ->whereIn('id_progresivo',[$request->id_progresivo])->first();
 
@@ -299,9 +329,197 @@ class ProgresivoController extends Controller
     }
 
     $this->actualizarMaquinas($progresivo,$aux);
-
-    return $this->obtenerProgresivo($progresivo->id_progresivo);
   }
+
+  public function crearProgresivosIndividuales(Request $request){
+    Validator::make($request->all(), [
+        'id_casino'                        => 'required|integer',
+        'maquinas'                         => 'required|array',
+        'maquinas.*.id_maquina'            => 'required|integer',
+        'maquinas.*.maximo'                => 'nullable|numeric|min:0',
+        'maquinas.*.base'                  => 'nullable|numeric|min:0',
+        'maquinas.*.porc_recup'     => 'required|numeric|min:0|max:100',
+        'maquinas.*.porc_visible'          => 'nullable|numeric|min:0|max:100',
+        'maquinas.*.porc_oculto'           => 'nullable|numeric|min:0|max:100'
+    ], array(), self::$atributos)->after(function ($validator){
+    })->validate();
+
+    $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
+    if(!$valido){
+      return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
+    }
+
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+      return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
+    }
+
+    DB::beginTransaction();
+
+    try{
+      foreach($request->maquinas as $maq){
+        $maq_bd = Maquina::find($maq['id_maquina']);
+        $casino_bd = Casino::find($request->id_casino);
+        $identificador =
+        'IND' .
+        $maq_bd->nro_admin .
+        $casino_bd->codigo .
+        ' ' .
+        date("d-m-Y H:i:s");;
+
+        if($maq_bd == null){
+          return $this->errorOut(['id_maquina' => 'Maquina no existe.']);
+        }
+
+        $individuales = $maq_bd->progresivos()->where('es_individual','=','1')->get()->count();
+        if($individuales != 0){
+          DB::rollBack();
+          return $this->errorOut([ 'es_individual' => $maq['id_maquina'] ]);
+        }
+        $progresivo = new Progresivo;
+        $pozo = new Pozo;
+        $nivel_progresivo = new NivelProgresivo;
+
+        $progresivo->porc_recup = $maq['porc_recup'];
+        $progresivo->id_casino  = $request->id_casino;
+        $progresivo->nombre     = $identificador;
+        $progresivo->es_individual = true;
+
+        $progresivo->save();
+        $progresivo->maquinas()->sync([$maq['id_maquina']]);
+        $progresivo->save();
+
+        $pozo->descripcion       = $identificador;
+        $pozo->id_progresivo = $progresivo->id_progresivo;
+        $pozo->save();
+
+        $nivel_progresivo->nro_nivel    = 1;
+        $nivel_progresivo->nombre_nivel = $identificador;
+        $nivel_progresivo->base         = $maq['base'];
+        $nivel_progresivo->porc_oculto  = $maq['porc_oculto'];
+        $nivel_progresivo->porc_visible = $maq['porc_visible'];
+        $nivel_progresivo->maximo       = $maq['maximo'];
+        $nivel_progresivo->id_pozo      = $pozo->id_pozo;
+
+        $nivel_progresivo->save();
+      }
+    }
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
+    }
+
+    DB::commit();
+  }
+
+  private function obtenerIndividuales($id_casino = null,$desde = null,$hasta = null,$not_id_maq = null){
+    $query =
+    "select
+    maqprog.id_maquina as id_maquina,
+    prog.id_progresivo as id_progresivo,
+    prog.porc_recup as porc_recup,
+    pozo.id_pozo as id_pozo,
+    niv.id_nivel_progresivo as id_nivel_progresivo,
+    niv.base as base,
+    niv.porc_oculto as porc_oculto,
+    niv.porc_visible as porc_visible,
+    niv.maximo as maximo
+    from maquina_tiene_progresivo maqprog
+    join maquina as maq on (maq.id_maquina = maqprog.id_maquina)
+    join progresivo as prog on (maqprog.id_progresivo = prog.id_progresivo)
+    join pozo on (prog.id_progresivo = pozo.id_progresivo)
+    join nivel_progresivo as niv on (niv.id_pozo = pozo.id_pozo)
+    where prog.es_individual = 1
+    and maq.id_casino = prog.id_casino";
+
+    $parametros = [];
+
+    if($id_casino != null){
+      $query = $query . " and prog.id_casino = :id_casino";
+      $parametros['id_casino'] = $id_casino;
+    }
+    if($desde != null){
+      $query = $query . " and maq.nro_admin >= :desde";
+      $parametros['desde'] = $desde;
+    }
+    if($hasta != null){
+      $query = $query . " and maq.nro_admin <= :hasta";
+      $parametros['hasta'] = $hasta;
+    }
+
+    //Menos estas maquinas
+    if($not_id_maq != null){
+      //Hago una por una porque NOT IN no acepta arreglos...
+      //por las comas
+      foreach($not_id_maq as $id){
+        $query = $query . " and maq.id_maquina <> :id_maquina" . $id;
+        $parametros['id_maquina'.$id]=$id;
+      }
+    }
+
+    return DB::select(DB::raw($query),$parametros);
+  }
+
+
+  public function modificarProgresivosIndividuales(Request $request){
+    Validator::make($request->all(), [
+        'id_casino'                        => 'required|integer',
+        'desde'                            => 'nullable|integer',
+        'hasta'                            => 'nullable|integer',
+        'maquinas'                         => 'required|array',
+        'maquinas.*.id_maquina'            => 'required|integer',
+        'maquinas.*.maximo'                => 'nullable|numeric|min:0',
+        'maquinas.*.base'                  => 'nullable|numeric|min:0',
+        'maquinas.*.porc_recup'     => 'required|numeric|min:0|max:100',
+        'maquinas.*.porc_visible'          => 'nullable|numeric|min:0|max:100',
+        'maquinas.*.porc_oculto'           => 'nullable|numeric|min:0|max:100'
+    ], array(), self::$atributos)->after(function ($validator){
+    })->validate();
+
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+      return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
+    }
+
+    $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
+    if(!$valido){
+      return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
+    }
+
+    DB::transaction(function() use ($request){
+      $modificados = [];
+      $desde = $request->desde;
+      $hasta = $request->hasta;
+      $id_casino = $request->id_casino;
+      foreach($request->maquinas as $maq){
+        $maq_bd = Maquina::find($maq['id_maquina']);
+        if($maq_bd === null) continue;
+        if($maq_bd->id_casino != $id_casino) continue;
+        if($request->desde != null && $maq_bd->nro_admin < $desde) continue;
+        if($request->hasta != null && $maq_bd->nro_admin > $hasta) continue;
+        $progresivo = $maq_bd->progresivos()->where('es_individual','=','1')->first();
+        $progresivo->porc_recup = $maq['porc_recup'];
+        $progresivo->save();
+
+        $nivel = $progresivo->pozos->first()->niveles->first();
+        $nivel->maximo = $maq['maximo'];
+        $nivel->base = $maq['base'];
+        $nivel->porc_visible = $maq['porc_visible'];
+        $nivel->porc_oculto = $maq['porc_oculto'];
+        $nivel->save();
+
+        $modificados[] = $maq['id_maquina'];
+      }
+      //Si no fueron modificados, hay que borrarlos porque quiere decir que no se enviaron
+      //en el formulario
+      $lista_borrar = $this->obtenerIndividuales($id_casino,$desde,$hasta,$modificados);
+      foreach($lista_borrar as $p){
+        $this->eliminarProgresivo($p->id_progresivo);
+      }
+    });
+  }
+
+
 
   public function eliminarProgresivo($id_progresivo){
     if($id_progresivo === null) return $this->errorOut(['id_progresivo' => 'Progresivo nulo']);
@@ -494,5 +712,53 @@ class ProgresivoController extends Controller
       if($maq_bd->id_casino != $id_casino) return false;
     }
     return true;
+  }
+
+  public function buscarProgresivosIndividuales(Request $request){
+    Validator::make($request->all(), [
+        'id_casino' => 'required|integer'
+    ], array(), self::$atributos)->after(function ($validator){
+    })->validate();
+
+    $desde = $request->desde;
+    $hasta = $request->hasta;
+    $id_casino = $request->id_casino;
+
+    //Checkeo que solo el superusuario puede buscar todo.
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($id_casino == 0 && !$user->es_superusuario){
+      return array();
+    }
+
+    if($id_casino != 0 && !$user->usuarioTieneCasino($id_casino)){
+      return array();
+    }
+
+    $progresivos = Progresivo::all()->where('es_individual','!=',0);
+
+    $respuesta = [];
+    foreach($progresivos as $progresivo){
+      $maquina = $this->datosMaquinasProgresivo($progresivo->id_progresivo,1)[0];
+      //@TODO: SLOW, podria hacerse todo en una consulta SQL.
+      if($desde != null && $maquina->nro_admin < $desde) continue;
+      if($hasta != null && $maquina->nro_admin > $hasta) continue;
+      $no_pertenece_a_casino = $id_casino != 0 && $progresivo->id_casino != $id_casino;
+      if($no_pertenece_a_casino) continue;
+
+      $maq_bd = Maquina::find($maquina->id_maquina);
+      $no_pertenece_a_casino = $id_casino != 0 && $maq_bd->id_casino != $id_casino;
+      if($no_pertenece_a_casino) continue;
+
+      $progresivo_arr = $progresivo->toArray();
+      $progresivo_arr['maquina'] = $maquina;
+      $pozo = $progresivo->pozos->first();
+      $pozo_arr = $pozo->toArray();
+      $progresivo_arr['pozo']=$pozo_arr;
+      $nivel = $pozo->niveles->first();
+      $nivel_arr = $nivel->toArray();
+      $progresivo_arr['pozo']['nivel']=$nivel_arr;
+      $respuesta[]=$progresivo_arr;
+    }
+    return $respuesta;
   }
 }
