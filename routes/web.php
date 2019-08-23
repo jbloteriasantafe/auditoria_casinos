@@ -48,7 +48,9 @@ Route::get('logActividades/obtenerLogActividad/{id}','LogController@obtenerLogAc
 /***********
 Progresivos
 ***********/
+
 Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
+Route::get('progresivos/cargarProgresivos',"ProgresivoController@cargarProgresivos");
 Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
 Route::get('progresivos/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
 Route::get('progresivos/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
