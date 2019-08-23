@@ -91,14 +91,14 @@ class MTMController extends Controller
      $mtm=Maquina::find($id);
 
      // la gestion de juego activo, se contempla solo si la mtm no es multijuego
-     
+
       if($mtm->juego_activo == null){
         $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
         $mtm->save();
       }
       $juego_activo = $mtm->juego_activo;
-     
-     
+
+
 
      //OBTENGO EL GLI
      if($mtm->gliSoft != null){//si existe lo mando.
@@ -548,10 +548,10 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
-             
+
             $id_pack_juego=null;
-            
-            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]; 
+
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego];
           }
         }
         if(isset($gli_soft)){
@@ -588,7 +588,7 @@ class MTMController extends Controller
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
     $MTM->juegos()->sync($juegos_finales);
-    
+
 
     //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
     switch ($request->id_progresivo) {
@@ -797,7 +797,7 @@ class MTMController extends Controller
         $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
         $MTM= Maquina::find($request->id_maquina);
         //CONDICIONES ANTERIORES
-        
+
 
 
         /*
@@ -874,7 +874,7 @@ class MTMController extends Controller
                 }
                 // la gestion de pack se quita del modal mtm
                 $id_pack_juego=null;
-                
+
                 $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
                 // $juegos_finales[] = ($juego->id_juego);
               }
@@ -892,7 +892,7 @@ class MTMController extends Controller
         }
         $MTM->id_juego = $juegoActivo->id_juego;
         }
-        
+
 
 
         // $MTM->juegos()->sync($juegos_finales);
@@ -925,7 +925,7 @@ class MTMController extends Controller
         $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
         $MTM->id_isla=$unaIsla->id_isla;
         $MTM->id_casino=$unaIsla->id_casino;
-        
+
         //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
         $MTM->save();
         if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
@@ -1175,7 +1175,7 @@ class MTMController extends Controller
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
-  
+
   // modificarDenominacionJuego cambia la denominacion del juego activo de la mtm
   public function modificarDenominacionJuego( $denominacion, $id_maquina){
     $m = Maquina::find($id_maquina);
@@ -1183,7 +1183,7 @@ class MTMController extends Controller
     DB:: table('maquina_tiene_juego')
       ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
       ->Update(['denominacion' => $denominacion]);
-      
+
     $razon = "Se cambió denominacio al juego activo";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $m;
@@ -1295,7 +1295,7 @@ class MTMController extends Controller
       ->Update(['porcentaje_devolucion' => $porcentaje_devolucion]);
     $razon = "Se modificó el procentaje de devolución del juego activo";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
-    
+
     return $m;
   }
 
@@ -1392,7 +1392,6 @@ class MTMController extends Controller
       return ['tipo' => $maquina->tipoMoneda];
   }
 
-  
+
 
 }
-

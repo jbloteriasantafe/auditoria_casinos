@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 
+<?php
+use App\Usuario;
+use App\EstadoRelevamiento;
+?>
+
 <html>
 
 <style>
@@ -47,37 +52,66 @@ p {
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
               <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
                     print_r($hoy); ?></div>
+                    <!-- Momentaneamente esta vista va a lanzar un error si se intenta generar una planilla que no tenga detallles de relevamiento progresivo, porque solo hay una cargada en bdd-->
+                    <table>
+                      <tr>
+                        <th class="tablaInicio" style="background-color: #dddddd">NÚMERO DE RELEVAMIENTO</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">FECHA PRODUCCIÓN</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">FECHA AUDITORÍA</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">FISCALIZADOR</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">ESTADO</th>
+                      </tr>
+
+                      <tr>
+                        <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->id_relevamiento_progresivo}}</td>
+                        <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_generacion}}</td>
+                        <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_ejecucion}}</td>
+                        <td class="tablaInicio" style="background-color: white"><?php print_r(Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre); ?></td>
+                        <td class="tablaInicio" style="background-color: white"><?php print_r(EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion) ?></td>
+                      </tr>
+                    </table>
+                    <br>
 
                     <table>
                       <tr>
-                        <th class="tablaInicio">ISLA</th>
-                        <th class="tablaInicio">PROGRESIVO</th>
-                        <th class="tablaInicio">NIVEL</th>
-                        <th class="tablaInicio">BASE</th>
-                        <th class="tablaInicio">ACTUAL</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">MÁQUINA/S</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">POZO</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
                       </tr>
-                      @foreach($detalles as $detalle)
+
+                      @foreach ($detalles as $detalle)
                       <tr>
-                        <td class="tablaCampos" style="padding: 11px;">{{$detalle->nro_isla}} </td>
-                        <td class="tablaCampos" style="padding: 11px;">{{$detalle->nombre_progresivo}} </td>
-                        <td class="tablaCampos" style="padding: 11px;">{{$detalle->nombre_nivel}} </td>
-                        <td class="tablaCampos" style="padding: 11px;">{{$detalle->base}}</td>
-                        <td class="tablaCampos" style="padding: 11px; background-color: #fff;"> </td>
+                        <td class="tablaInicio" style="background-color: white">{{$detalle['nro_islas']}} </td>
+                        <td class="tablaInicio" style="background-color: white">{{$detalle['nro_maquinas']}} </td>
+                        <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} </td>
+                        <td class="tablaInicio" style="background-color: white">{{$detalle['pozo']}} </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel1'] != NULL) {{$detalle['nivel1']}} @else 0 @endif </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel2'] != NULL) {{$detalle['nivel2']}} @else 0 @endif </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel3'] != NULL) {{$detalle['nivel3']}} @else 0 @endif </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel4'] != NULL) {{$detalle['nivel4']}} @else 0 @endif </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel5'] != NULL) {{$detalle['nivel5']}} @else 0 @endif </td>
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel6'] != NULL) {{$detalle['nivel6']}} @else 0 @endif </td>
                       </tr>
                       @endforeach
-                      <br><br>
+
                     </table>
-                    <br><div class="primerEncabezado">Observaciones generales del proceso:</div><br>
+                    <br><br>
+
+                    <div class="primerEncabezado">Observaciones generales del proceso:</div><br>
                     <div style="color: #9c9c9c; ">
-                    @for($i = 0; $i<750; $i++)
+                    @for($i = 0; $i<552; $i++)
                     .
                     @endfor
                   </div><br><br>
                     <br><br><br><br><br>
                     <!-- Si la planilla fue relevada -->
-                    <div class="primerEncabezado" style="padding-left: 440px;"><p style="width: 250px; padding-left: 60px;">Firma y Aclaración/s Responsable/s.</p></div>
-
-
-
+                    <div class="primerEncabezado" style="padding-left: 440px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 </html>

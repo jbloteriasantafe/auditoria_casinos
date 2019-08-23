@@ -20,6 +20,9 @@ class Maquina extends Model
   public function isla(){
     return $this->belongsTo('App\Isla','id_isla','id_isla');
   }
+  public function nro_admin(){
+    return $this->nro_admin;
+  }
   public function gliSoft(){
     return $this->belongsTo('App\GliSoft','id_gli_soft','id_gli_soft');
   }
