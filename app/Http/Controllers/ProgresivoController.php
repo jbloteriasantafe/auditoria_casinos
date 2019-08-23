@@ -764,6 +764,11 @@ class ProgresivoController extends Controller
   }
 
   public function cargarProgresivos(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario){
+      return "Operacion no permitida";
+    }
+
     $query_mel =
     "select 1 as id_casino,p.*
     from progresivos_melinque p";
@@ -781,6 +786,7 @@ class ProgresivoController extends Controller
       $casinos = Casino::all();
       foreach($progresivos as $idx => $p){
         dump($idx);
+
         $progresivo_bd = new Progresivo;
         $progresivo_bd->porc_recup = 0;
         $nombre = $p->nombre;
@@ -790,14 +796,13 @@ class ProgresivoController extends Controller
 
           $nombre =
           'PROG' .
-          $nro_admin  .
-          $casinos->find($p->id_casino)->codigo .
+          $idx .
           ' ' .
-          date("d-m-Y H:i:s");
+          $nro_admin  .
+          $casinos->find($p->id_casino)->codigo;
         }
 
         $progresivo_bd->nombre = $nombre;
-
         $progresivo_bd->es_individual = $p->es_individual;
         $progresivo_bd->id_casino = $p->id_casino;
         $progresivo_bd->save();
@@ -808,8 +813,12 @@ class ProgresivoController extends Controller
           if($maq_bd != null){
             $progresivo_bd->maquinas()->sync([$maq_bd->id_maquina]);
           }
+          else if($progresivo_bd->es_individual == 1){
+            //Si es individual y no tiene maquina, no se lo carga.
+            $progresivo_bd->delete();
+            continue;
+          }
         }
-
 
         $pozo_bd = new Pozo;
         $pozo_bd->descripcion = $nombre;
@@ -822,7 +831,7 @@ class ProgresivoController extends Controller
         $nivel1_bd->base = $p->base1;
         $nivel1_bd->porc_oculto = $p->porc_ocu1;
         $nivel1_bd->porc_visible = $p->porc_vis1;
-        $nivel1_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel1_bd->maximo = $p->Max;
         $nivel1_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel1_bd->save();
 
@@ -832,7 +841,7 @@ class ProgresivoController extends Controller
         $nivel2_bd->base = $p->base2;
         $nivel2_bd->porc_oculto = $p->porc_ocu2;
         $nivel2_bd->porc_visible = $p->porc_vis2;
-        $nivel2_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel2_bd->maximo = $p->Max;
         $nivel2_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel2_bd->save();
 
@@ -842,7 +851,7 @@ class ProgresivoController extends Controller
         $nivel3_bd->base = $p->base3;
         $nivel3_bd->porc_oculto = $p->porc_ocu3;
         $nivel3_bd->porc_visible = $p->porc_vis3;
-        $nivel3_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel3_bd->maximo = $p->Max;
         $nivel3_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel3_bd->save();
 
@@ -852,7 +861,7 @@ class ProgresivoController extends Controller
         $nivel4_bd->base = $p->base4;
         $nivel4_bd->porc_oculto = $p->porc_ocu4;
         $nivel4_bd->porc_visible = $p->porc_vis4;
-        $nivel4_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel4_bd->maximo = $p->Max;
         $nivel4_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel4_bd->save();
 
@@ -862,7 +871,7 @@ class ProgresivoController extends Controller
         $nivel5_bd->base = $p->base5;
         $nivel5_bd->porc_oculto = $p->porc_ocu5;
         $nivel5_bd->porc_visible = $p->porc_vis5;
-        $nivel5_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel5_bd->maximo = $p->Max;
         $nivel5_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel5_bd->save();
 
@@ -872,10 +881,21 @@ class ProgresivoController extends Controller
         $nivel6_bd->base = $p->base6;
         $nivel6_bd->porc_oculto = $p->porc_ocu6;
         $nivel6_bd->porc_visible = $p->porc_vis6;
-        $nivel6_bd->maximo = $p->Max;//TODO: cambiar esto para que este en el progresivo
+        $nivel6_bd->maximo = $p->Max;
         $nivel6_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel6_bd->save();
       }
+
+      $deleteq =
+      "DELETE FROM nivel_progresivo
+      where
+      nombre_nivel is NULL and
+      base is NULL and
+      porc_oculto is NULL and
+      porc_visible is NULL and
+      maximo is NULL";
+
+      DB::statement($deleteq);
     });
 
     return;

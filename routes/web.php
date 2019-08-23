@@ -49,17 +49,23 @@ Route::get('logActividades/obtenerLogActividad/{id}','LogController@obtenerLogAc
 Progresivos
 ***********/
 
-Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
-Route::get('progresivos/cargarProgresivos',"ProgresivoController@cargarProgresivos");
-Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
-Route::get('progresivos/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
-Route::get('progresivos/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
-Route::post('progresivos/crearProgresivo','ProgresivoController@crearProgresivo');
-Route::post('progresivos/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
-Route::delete('progresivos/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
-Route::post('progresivos/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
-Route::post('progresivos/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
-Route::post('progresivos/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
+Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_seccion_progresivos'], function () {
+  Route::get('/','ProgresivoController@buscarTodos');
+  Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
+  Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
+  Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
+  Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
+  Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
+  Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
+  Route::post('/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
+  Route::post('/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
+  Route::post('/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
+
+  //Carga los progresivos desde las tablas progresivos_melinque, etc
+  //En principio habria que borrar las tablas una vez cargadas
+  //Por las dudas.
+  Route::get('/cargarProgresivos',"ProgresivoController@cargarProgresivos");
+});
 /***********
 Casinos
 ***********/
