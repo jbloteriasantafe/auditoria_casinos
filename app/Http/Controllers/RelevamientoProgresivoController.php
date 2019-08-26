@@ -257,47 +257,60 @@ class RelevamientoProgresivoController extends Controller
       }
       */
 
-      $x=0;
-      $nro_maquinas = "";
-      foreach ($progresivo->maquinas as $maq) {
-        $id_maquinas[] = $maq->id_maquina;
-        if ($x == 0) {
-          $nro_maquinas = $maq->nro_admin;
-        }
-        else {
-          $nro_maquinas = $nro_maquinas . '/' . $maq->nro_admin;
-        }
-        $x++;
+    //Si algun nivel del pozo tiene una base menor a 10000, se debe ignorar el detalle relevamiento progresivo asociado.
+    $flag=1;
+    foreach ($pozo->niveles as $nivel) {
+      if ($nivel->base<10000) {
+        $flag=0;
+        break;
       }
+    }
 
-      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')->whereIn('id_maquina' , $id_maquinas)->get();
 
-      $i = 0;
-      $nro_islas="";
-      foreach ($resultados as $resultado) {
+      if ($flag) {
 
-        if($i == 0){
-          $nro_islas = $resultado->nro_isla;
-        }else {
-          $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
+        $x=0;
+        $nro_maquinas = "";
+        foreach ($progresivo->maquinas as $maq) {
+          $id_maquinas[] = $maq->id_maquina;
+          if ($x == 0) {
+            $nro_maquinas = $maq->nro_admin;
+          }
+          else {
+            $nro_maquinas = $nro_maquinas . '/' . $maq->nro_admin;
+          }
+          $x++;
         }
-        $i++;
+
+        $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')->whereIn('id_maquina' , $id_maquinas)->get();
+
+        $i = 0;
+        $nro_islas="";
+        foreach ($resultados as $resultado) {
+
+          if($i == 0){
+            $nro_islas = $resultado->nro_isla;
+          }else {
+            $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
+          }
+          $i++;
+        }
+
+        $detalle = array(
+        'nro_maquinas' => $nro_maquinas,
+        'nro_islas' => $nro_islas,
+        'pozo' => $pozo->descripcion,
+        'progresivo' => $progresivo->nombre,
+        'nivel1' => $detalle_relevamiento->nivel1,
+        'nivel2' => $detalle_relevamiento->nivel2,
+        'nivel3' => $detalle_relevamiento->nivel3,
+        'nivel4' => $detalle_relevamiento->nivel4,
+        'nivel5' => $detalle_relevamiento->nivel5,
+        'nivel6' => $detalle_relevamiento->nivel6,
+        );
+
+        $detalles[] = $detalle;
       }
-
-    $detalle = array(
-      'nro_maquinas' => $nro_maquinas,
-      'nro_islas' => $nro_islas,
-      'pozo' => $pozo->descripcion,
-      'progresivo' => $progresivo->nombre,
-      'nivel1' => $detalle_relevamiento->nivel1,
-      'nivel2' => $detalle_relevamiento->nivel2,
-      'nivel3' => $detalle_relevamiento->nivel3,
-      'nivel4' => $detalle_relevamiento->nivel4,
-      'nivel5' => $detalle_relevamiento->nivel5,
-      'nivel6' => $detalle_relevamiento->nivel6,
-    );
-
-    $detalles[] = $detalle;
     }
 
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
