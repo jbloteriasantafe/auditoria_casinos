@@ -27,6 +27,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
   margin: 0;
   -moz-appearance: textfield;
 }
+.erroneo {
+  border-color : #dc3545;
+}
 </style>
 @endsection
 
@@ -233,7 +236,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </select>
               </div>
             </div>
-            <div class='row'>
+            <div id='modalProgresivo_cuerpo' class='row'>
               <hr></hr>
               <div class=''>
                 <h3 class=''>Pozos</h3>

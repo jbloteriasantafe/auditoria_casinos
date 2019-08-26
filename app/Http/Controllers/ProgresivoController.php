@@ -227,7 +227,7 @@ class ProgresivoController extends Controller
   }
 
   private function errorOut($map){
-    return response()->json(['errors' => $map],422);
+    return response()->json($map,422);
   }
 
   public function crearProgresivo(Request $request){
@@ -453,6 +453,7 @@ class ProgresivoController extends Controller
       //Hago una por una porque NOT IN no acepta arreglos...
       //por las comas
       foreach($not_id_maq as $id){
+        dump('Agregando id '.$id);
         $query = $query . " and maq.id_maquina <> :id_maquina" . $id;
         $parametros['id_maquina'.$id]=$id;
       }
@@ -493,6 +494,10 @@ class ProgresivoController extends Controller
       $hasta = $request->hasta;
       $id_casino = $request->id_casino;
       foreach($request->maquinas as $maq){
+        //Por algun motivo, cuando hago este dump funciona O_o
+        //Si lo saco, no funciona, no se si es algo de tiempo
+        //O es que dump cambia algo en el arreglo
+        dump($maq);//NO SACAR!!
         $maq_bd = Maquina::find($maq['id_maquina']);
         if($maq_bd === null) continue;
         if($maq_bd->id_casino != $id_casino) continue;
@@ -503,10 +508,10 @@ class ProgresivoController extends Controller
         $progresivo->save();
 
         $nivel = $progresivo->pozos->first()->niveles->first();
-        $nivel->maximo = $maq['maximo'];
-        $nivel->base = $maq['base'];
-        $nivel->porc_visible = $maq['porc_visible'];
-        $nivel->porc_oculto = $maq['porc_oculto'];
+        if(isset($maq['maximo'])) $nivel->maximo = $maq['maximo'];
+        if(isset($maq['base'])) $nivel->base = $maq['base'];
+        if(isset($maq['porc_visible'])) $nivel->porc_visible = $maq['porc_visible'];
+        if(isset($maq['porc_oculto'])) $nivel->porc_oculto = $maq['porc_oculto'];
         $nivel->save();
 
         $modificados[] = $maq['id_maquina'];
@@ -514,6 +519,8 @@ class ProgresivoController extends Controller
       //Si no fueron modificados, hay que borrarlos porque quiere decir que no se enviaron
       //en el formulario
       $lista_borrar = $this->obtenerIndividuales($id_casino,$desde,$hasta,$modificados);
+      //dump($modificados);
+      //dump($lista_borrar);
       foreach($lista_borrar as $p){
         $this->eliminarProgresivo($p->id_progresivo);
       }
@@ -892,8 +899,7 @@ class ProgresivoController extends Controller
       nombre_nivel is NULL and
       base is NULL and
       porc_oculto is NULL and
-      porc_visible is NULL and
-      maximo is NULL";
+      porc_visible is NULL";
 
       DB::statement($deleteq);
     });

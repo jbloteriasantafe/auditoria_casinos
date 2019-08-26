@@ -239,7 +239,7 @@ function filaEditableIndividual(){
     const fila_base_val = fila_base.find('.editable').val();
     const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
     const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
-    if(isNaN(fila_porcrecup_val)) return;
+    if(isNaN(fila_porcrecup_val) || fila_porcrecup_val === "") return;
     if(isNaN(fila_maximo_val)) return;
     if(isNaN(fila_base_val)) return;
     if(isNaN(fila_porcoculto_val)) return;
@@ -344,7 +344,7 @@ function filaEditableIndividualParcial(data){
     const fila_base_val = fila_base.find('.editable').val();
     const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
     const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
-    if(isNaN(fila_porcrecup_val)) return;
+    if(isNaN(fila_porcrecup_val) || fila_porcrecup_val === "") return;
     if(isNaN(fila_maximo_val)) return;
     if(isNaN(fila_base_val)) return;
     if(isNaN(fila_porcoculto_val)) return;
@@ -395,6 +395,13 @@ function filaEditableIndividualParcial(data){
 }
 
 function enviarFormularioIndividual(){
+  limpiarErrores();
+  let err = verificarFormularioIndividual();
+  if(err.errores){
+    mostrarError(err.mensaje);
+    return;
+  }
+
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -432,17 +439,19 @@ function enviarFormularioIndividual(){
         $('#modalProgresivoIndividual').modal('hide');
         $('#mensajeExito').show();
       },
-      error: function(err){
-        $('#mensajeError').find('.textoMensaje p')
-        .replaceWith($('<p></p>').text('INSERTAR ERROR'));
-        $('#mensajeError').show();
-        console.log(err);
-      }
+      error: mostrarRespuestaError
   });
 }
 
 
 function enviarFormularioIndividualModif(desde,hasta){
+  limpiarErrores();
+  let err = verificarFormularioIndividual();
+  if(err.errores){
+    mostrarError(err.mensaje);
+    return;
+  }
+
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -482,12 +491,7 @@ function enviarFormularioIndividualModif(desde,hasta){
         $('#modalProgresivoIndividual').modal('hide');
         $('#mensajeExito').show();
       },
-      error: function(err){
-        $('#mensajeError').find('.textoMensaje p')
-        .replaceWith($('<p></p>').text('INSERTAR ERROR'));
-        $('#mensajeError').show();
-        console.log(err);
-      }
+      error: mostrarRespuestaError
   });
 }
 
@@ -509,6 +513,7 @@ function obtenerProgresivosIndividuales(data,success = function(x){console.log(x
 }
 
 function mostrarProgresivoIndividual(data = null){
+  limpiarErrores();
   $('#modalProgresivoIndividual').modal('show');
   $('#modalProgresivoIndividual_seccionSup').show();
   $('#modalProgresivoIndividual_seccionParametros').show();
@@ -538,6 +543,9 @@ function mostrarProgresivoIndividual(data = null){
     $('#modalProgresivoIndividual_seccionSup').hide();
     $('#modalProgresivoIndividual_seccionParametros').hide();
     obtenerProgresivosIndividuales(data,function(resultados){
+      resultados.sort(function(r1,r2){
+        return r1.maquina.nro_admin >= r2.maquina.nro_admin;
+      })
       for(let i = 0; i < resultados.length; i++){
         const prog = resultados[i];
         const data = {
@@ -991,6 +999,7 @@ function arregloMaquinas(){
 }
 
 function mostrarProgresivo(progresivo,pozos,maquinas,editable){
+    limpiarErrores();
     $('#modalProgresivo_casino').attr('disabled',progresivo.id_progresivo != -1);
     $('#modalProgresivo_casino').val(progresivo.id_casino);
     $('#id_progresivo').val(progresivo.id_progresivo);
@@ -1016,6 +1025,14 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
     $('#btn-guardar').attr('disabled',!editable).off();
 
     $('#btn-guardar').on('click',function(){
+      limpiarErrores();
+      let err = verificarFormulario();
+
+      if(err.errores){
+        mostrarError(err.mensaje);
+        return;
+      }
+
       $.ajaxSetup({
           headers: {
               'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -1056,15 +1073,93 @@ function mostrarProgresivo(progresivo,pozos,maquinas,editable){
             $('#modalProgresivo').modal('hide');
             $('#mensajeExito').show();
           },
-          error: function(err){
-            $('#mensajeError').find('.textoMensaje p')
-            .replaceWith($('<p></p>').text('INSERTAR ERROR'));
-            $('#mensajeError').show();
-            console.log(err);
-          }
+          error: mostrarRespuestaError
       });
     });
 
+}
+
+function mostrarRespuestaError(err){
+  let respuesta = err.responseJSON;
+  console.log(err);
+  console.log(respuesta);
+  let msj = "";
+  if(respuesta != undefined){
+    let llaves = Object.keys(respuesta);
+    for(let i = 0;i<llaves.length;i++){
+      let k = llaves[i];
+      msj = msj + "<p>" + k + ' => ' + respuesta[k] +"</p>";
+    }
+  }
+
+  mostrarError(msj);
+}
+
+function mostrarError(mensaje=''){
+  $('#mensajeError').hide();
+  setTimeout(function(){
+    $('#mensajeError').find('.textoMensaje')
+    .empty()
+    .append('<h2>ERROR</h2>')
+    .append(mensaje);
+    $('#mensajeError').show();
+  }, 500);
+}
+
+function verificarFormulario(){
+  let errores = false;
+  let mensaje = "";
+
+  let sin_completar = $('#modalProgresivo_cuerpo').find('input');
+  if(sin_completar.length>0){
+    sin_completar.each(function(idx,c){
+      $(c).addClass('erroneo');
+    });
+    errores = true;
+    mensaje = mensaje + "<p>Tiene pozos, niveles o maquinas sin completar</p>";
+  }
+
+  let porc_recup = $('#porc_recup');
+  if(porc_recup.val() == "" || porc_recup.val()>100 || porc_recup.val()<0){
+    porc_recup.addClass('erroneo');
+    errores = true;
+    mensaje = mensaje + "<p>El porcentaje de recuperacion es erroneo</p>";
+  }
+
+  let nombre_progresivo = $('#nombre_progresivo');
+  if(nombre_progresivo.val() == ""){
+    nombre_progresivo.addClass('erroneo');
+    errores = true;
+    mensaje = mensaje + "<p>Sin nombre de progresivo</p>";
+  }
+
+  let casino = $('#modalProgresivo_casino');
+  if(casino.val() === null){
+    casino.addClass('erroneo');
+    errores = true;
+    mensaje = mensaje + "<p>Error en el casino seleccionado</p>";
+  }
+
+  return {errores : errores, mensaje : mensaje};
+}
+
+function verificarFormularioIndividual(){
+  let errores = false;
+  let mensaje = "";
+
+  let sin_completar = $('#contenedorMaquinasIndividual .tablaMaquinasIndividual tr input');
+  if(sin_completar.length > 0){
+    sin_completar.each(function(idx,c){
+      $(c).addClass('erroneo');
+    });
+    errores = true;
+    mensaje = mensaje + "<p>Tiene progresivos sin completar</p>";
+  }
+  return {errores : errores, mensaje : mensaje};
+}
+
+function limpiarErrores(){
+  $('.erroneo').removeClass('erroneo');
 }
 
 function setearFilaMaquinas(fila,id,nro_admin,sector,isla,marca_juego){
