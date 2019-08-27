@@ -17,6 +17,13 @@ use Illuminate\Http\Request;
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
+<datalist id="datalist_fiscalizadores">
+  @foreach ($casinos as $casino)
+  @foreach($fiscalizadores[$casino->id_casino] as $u)
+  <option data-id="{{$u['id_usuario']}}" data-id-casino="{{$casino->id_casino}}">{{$u['nombre']}}</option>
+  @endforeach
+  @endforeach
+</datalist>
 
                 <div class="row">
                   <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
@@ -100,6 +107,38 @@ use Illuminate\Http\Request;
                             </tr>
                           </thead>
                           <tbody id="cuerpoTabla" style="height: 250px;">
+                            <tr class='filaEjemplo' style="">
+                              <td class="col-xs-2 fecha">
+                                01 Ene 9999
+                              </td>
+                              <td class="col-xs-2 casino">
+                                EJEMPLO
+                              </td>
+                              <td class="col-xs-2 sector">
+                                SECTOR999
+                              </td>
+                              <td class="col-xs-1 subcontrol">
+                                99
+                              </td>
+                              <td class="col-xs-2">
+                                <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
+                                <span class="textoEstado">EJEMPLO</span>
+                              </td>
+                              <td class="col-xs-3 acciones">
+                                <button class="btn btn-info planilla" type="button">
+                                  <i class="far  fa-fw fa-file-alt"></i></button>
+                                <span></span>
+                                <button class="btn btn-warning carga" type="button">
+                                  <i class="fa fa-fw fa-upload"></i></button>
+                                <span></span>
+                                <button class="btn btn-success validar" type="button">
+                                  <i class="fa fa-fw fa-check"></i></button>
+                                <span></span>
+                                <button class="btn btn-info imprimir" type="button">
+                                  <i class="fa fa-fw fa-print"></i></button>
+                              </td>
+
+                            </tr>
 
                           </tbody>
                         </table>
@@ -332,10 +371,6 @@ use Illuminate\Http\Request;
 
                 <div class="modal-body modalCuerpo">
                           <div class="row">
-                            <div class="col-lg-2 col-lg-offset-1">
-                              <h5>FECHA DE CONTROL LAYOUT</h5>
-                              <input id="cargaFechaActual" type='text' class="form-control" readonly>
-                            </div>
                             <div class="col-lg-2">
                               <h5>FECHA DE GENERACIÓN</h5>
                               <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
@@ -407,6 +442,7 @@ use Illuminate\Http\Request;
                           </div>
                           <div class="row">
                             <div id="contenedor_progresivos" class="col-md-12">
+
 
                             </div>
                           </div>
@@ -551,25 +587,6 @@ use Illuminate\Http\Request;
               </div>
             </div>
           </div>
-    </div>
-
-    <!-- ejemplo renglon carga -->
-    <div id="clonar" class="row" hidden>
-      <div class="col-md-2 col-md-offset-1">
-        <input type='text' class="form-control nro_isla" placeholder="" readonly/>
-      </div>
-      <div class="col-md-2">
-        <input type='text' class="form-control nombre_progresivo" placeholder="" readonly/>
-      </div>
-      <div class="col-md-2">
-        <input type='text' class="form-control nombre_nivel" placeholder="" readonly/>
-      </div>
-      <div class="col-md-2">
-        <input type='text' class="form-control base" placeholder="" readonly/>
-      </div>
-      <div class="col-md-2">
-        <input type='text' class="form-control actual" placeholder="actual"  />
-      </div>
     </div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />

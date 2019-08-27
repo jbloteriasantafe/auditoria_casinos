@@ -97,8 +97,9 @@ class RelevamientoProgresivoController extends Controller
       $casinos = $usuario->casinos;
       $estados = EstadoRelevamiento::all();
       UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Progresivo' , 'relevamientosProgresivo');
+      $fiscalizadores = $this->obtenerFiscalizadores($casinos,$usuario);
 
-      return view('seccionRelevamientoProgresivo', ['casinos' => $casinos , 'estados' => $estados]);
+      return view('seccionRelevamientoProgresivo', ['casinos' => $casinos , 'estados' => $estados, "fiscalizadores" => $fiscalizadores])->render();
   }
 
   public function buscarRelevamientosProgresivos(Request $request){
@@ -138,6 +139,20 @@ class RelevamientoProgresivoController extends Controller
     }
 
     return $resultados;
+  }
+
+  private function obtenerFiscalizadores($casinos,$user){
+    $controller = UsuarioController::getInstancia();
+    $fiscalizadores = array();
+    foreach($casinos as $c){
+      $cas = array();
+      $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
+      foreach($fs as $f){
+        $cas[]=array('id_usuario' => $f->id_usuario,'nombre' => $f->nombre);
+      }
+      $fiscalizadores[$c->id_casino]=$cas;
+    }
+    return $fiscalizadores;
   }
 
   public function crearRelevamientoProgresivos(Request $request){

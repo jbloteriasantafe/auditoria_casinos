@@ -409,7 +409,6 @@ Route::post('relevamientosProgresivo/cargarRelevamiento','RelevamientoProgresivo
 Route::post('relevamientosProgresivo/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
 Route::get('relevamientosProgresivo/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
 Route::get('relevamientosProgresivo/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
-
 /*******************
   Máquinas a pedir
 ********************/
