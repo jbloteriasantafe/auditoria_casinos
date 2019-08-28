@@ -107,41 +107,6 @@ $('#btn-salir').click(function(){
   }
 });
 
-$(document).on('click','.carga',function(e){
-
-  e.preventDefault();
-
-  salida = 0;//ocultar mensaje de salida
-  guardado = true;
-
-  $('#modalCargaRelevamientoProgresivos .mensajeSalida').hide();
-  var id_relevamiento = $(this).val();
-  $('#id_relevamiento').val(id_relevamiento);
-  $('#btn-guardar').hide();
-  $('#btn-finalizar').hide();
-
-  $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
-      $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
-      $('#inputFisca').setearElementoSeleccionado(0,"");
-
-      $('#cargaFechaActual').val(data.relevamiento.fecha);
-      $('#cargaFechaGeneracion').val(data.relevamiento.fecha);
-      $('#cargaCasino').val(data.casino.nombre);
-      $('#cargaSector').val(data.sector);
-      if(data.usuario_cargador != null)
-      $('#fiscaCarga').val(data.usuario_cargador.nombre);
-
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarRenglon(data.detalles[i],$('#contenedor_progresivos'));
-
-      }
-
-      habilitarBotonFinalizar();
-  });
-
-  $('#modalCargaRelevamientoProgresivos').modal('show');
-});
-
 //VALIDAR EL RELEVAMIENTO
 $(document).on('click','.validar',function(e){
 
@@ -432,11 +397,7 @@ $('#btn-finalizar').click(function(e){
   });
 });
 
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
-$(document).on('click','.planilla',function(){
 
-        window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(),'_blank');
-});
 
 //validar
 $('#btn-finalizarValidacion').click(function(e){
@@ -554,18 +515,6 @@ function habilitarBotonFinalizar(){
   else $('#btn-finalizar').hide();
 }
 
-function buscarFisca(inputFisca){
-  var datalist = $('#datalistFisca');
-  //Si el string del input es más largo que 2 caracteres busca en la BD
-  $.get("usuarios/buscarUsuariosPorNombre/" + inputFisca, function(data){
-    datalist.empty();
-
-      $.each(data.usuarios, function(index, usuario) {
-          datalist.append($('<option>').text(usuario.nombre).attr('id',usuario.id_usuario));
-      });
-  });
-}
-
 function maquinasAPedido(){
   var id_sector = $('#sector option:selected').val();
   var fecha = $('#fechaDate').val();
@@ -611,7 +560,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       }
 
     var formData = {
-      fecha: $('#buscadorFecha').val(),
+      fecha_generacion: $('#buscadorFecha').val(),
       casino: $('#buscadorCasino').val(),
       sector: $('#buscadorSector').val(),
       estadoRelevamiento: $('#buscadorEstado').val(),
@@ -629,7 +578,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
             console.log(resultados);
 
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-            $('#cuerpoTabla tr').remove();
+            $('#cuerpoTabla tr').not('.filaEjemplo').remove();
 
             //1ro - Se generan todas las filas con todos los iconos
             //2do - Se muestran los iconos por permiso
@@ -639,7 +588,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
                 var fila = generarFilaTabla(resultados.data[i]);
                 $('#cuerpoTabla').append(fila);
             }
-            mostrarIconosPorPermisos();
 
             $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
 
@@ -681,105 +629,79 @@ function clickIndice(e,pageNumber,tam){
 function generarFilaTabla(relevamiento){
     var subrelevamiento;
     relevamiento.sub_control != null ? subrelevamiento = relevamiento.sub_control : subrelevamiento = '';
-    var fila = $(document.createElement('tr'));
-    fila.attr('id', relevamiento.id_relevamiento_progresivo)
-        .append($('<td>').addClass('col-xs-2')
-            .text((relevamiento.fecha))
-        )
-        .append($('<td>').addClass('col-xs-2')
-            .text(relevamiento.casino)
-        )
-        .append($('<td>').addClass('col-xs-2')
-            .text(relevamiento.sector)
-        )
-        .append($('<td>').addClass('col-xs-1')
-            .text(subrelevamiento)
-        )
-        .append($('<td>').addClass('col-xs-2')
-            .append($('<i>').addClass('fas fa-fw fa-dot-circle'))
-            .append($('<span>').text(relevamiento.estado))
-        )
-        .append($('<td>').addClass('col-xs-3')
-            .append($('<button>').addClass('btn btn-info planilla').attr('type','button').val(relevamiento.id_relevamiento_progresivo)
-                .append($('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-warning carga').attr('type','button').val(relevamiento.id_relevamiento_progresivo)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-success validar').attr('type','button').val(relevamiento.id_relevamiento_progresivo)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(relevamiento.id_relevamiento_progresivo)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
-            )
-        )
+    let fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
 
-        var icono_planilla = fila.find('.planilla');
-        var icono_carga = fila.find('.carga');
-        var icono_validacion = fila.find('.validar');
-        var icono_impirmir = fila.find('.imprimir');
+    fila.attr('id', relevamiento.id_relevamiento_progresivo);
+    fila.find('.fecha').text(relevamiento.fecha);
+    fila.find('.casino').text(relevamiento.casino);
+    fila.find('.sector').text(relevamiento.sector);
+    fila.find('.subcontrol').text(subrelevamiento);
+    fila.find('.textoEstado').text(relevamiento.estado);
+    fila.find('button').each(function(idx,c){$(c).val(relevamiento.id_relevamiento_progresivo);});
+    let planilla = fila.find('.planilla');
+    let carga = fila.find('.carga');
+    let validacion = fila.find('.validar');
+    let imprimir = fila.find('.imprimir');
 
-      //Qué ESTADO e ICONOS mostrar
-      switch (relevamiento.estado) {
-        case 'Generado':
-            fila.find('.fa-dot-circle').addClass('faGenerado');
-
-            icono_planilla.show();
-            icono_carga.show();
-            icono_validacion.hide();
-            icono_impirmir.hide();
-            break;
-        case 'Cargando':
-            fila.find('.fa-dot-circle').addClass('faCargando');
-            break;
-        case 'Finalizado':
-            fila.find('.fa-dot-circle').addClass('faFinalizado');
-
-            icono_validacion.show();
-            icono_impirmir.show();
-            icono_carga.hide();
-            icono_planilla.hide();
-            break;
-        case 'Validado':
-            fila.find('.fa-dot-circle').addClass('faValidado');
-
-            icono_impirmir.show();
-            icono_validacion.hide();
-            icono_carga.hide();
-            icono_planilla.hide();
-            break;
-      }
-
-      return fila;
-}
-
-//Se usa para mostrar los iconos según los permisos del usuario
-function mostrarIconosPorPermisos(){
-    var formData = {
-        permisos : ["ver_planilla_layout_parcial","carga_layout_parcial","validar_layout_parcial"],
+    //Se setea el display como table-row por algun motivo :/
+    //Lo saco a pata.
+    fila.css('display','');
+    //Qué ESTADO e ICONOS mostrar
+    switch (relevamiento.estado) {
+      case 'Generado':
+          fila.find('.fa-dot-circle').addClass('faGenerado');
+          break;
+      case 'Cargando':
+          fila.find('.fa-dot-circle').addClass('faCargando');
+          break;
+      case 'Finalizado':
+          fila.find('.fa-dot-circle').addClass('faFinalizado');
+          break;
+      case 'Validado':
+          fila.find('.fa-dot-circle').addClass('faValidado');
+          break;
     }
 
-    $.ajax({
-      type: 'GET',
-      url: 'usuarios/usuarioTienePermisos',
-      data: formData,
-      dataType: 'json',
-      success: function(data) {
-
-        //Para los iconos que no hay permisos: OCULTARLOS!
-        if (!data.ver_planilla_layout_parcial) $('.planilla').hide();
-        if (!data.carga_layout_parcial) $('.carga').hide();
-        if (!data.validar_layout_parcial) $('.validar').hide();
-
-        // return data;
-      },
-      error: function(error) {
-          console.log(error);
-      },
+    planilla.click(function(){
+      window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(),'_blank');
     });
+
+    carga.click(function(e){
+      e.preventDefault();
+
+      salida = 0;//ocultar mensaje de salida
+      guardado = true;
+
+      $('#modalCargaRelevamientoProgresivos .mensajeSalida').hide();
+      var id_relevamiento = $(this).val();
+      $('#id_relevamiento').val(id_relevamiento);
+      $('#btn-guardar').hide();
+      $('#btn-finalizar').hide();
+
+      $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
+          //$('#inputFisca').setearElementoSeleccionado(0,"");
+          $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
+
+          $('#cargaFechaActual').val(data.relevamiento.fecha);
+          $('#cargaFechaGeneracion').val(data.relevamiento.fecha);
+          $('#cargaCasino').val(data.casino.nombre);
+          $('#cargaSector').val(data.sector);
+          if(data.usuario_cargador != null)
+          $('#fiscaCarga').val(data.usuario_cargador.nombre);
+
+          for (var i = 0; i < data.detalles.length; i++) {
+            agregarRenglon(data.detalles[i],$('#contenedor_progresivos'));
+          }
+
+          habilitarBotonFinalizar();
+      });
+
+      $('#modalCargaRelevamientoProgresivos').modal('show');
+    });
+
+
+
+    return fila;
 }
 
 //Opacidad del modal al minimizar
