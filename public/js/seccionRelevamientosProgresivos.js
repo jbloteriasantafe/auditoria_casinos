@@ -513,18 +513,6 @@ function habilitarBotonFinalizar(){
   else $('#btn-finalizar').hide();
 }
 
-function buscarFisca(inputFisca){
-  var datalist = $('#datalistFisca');
-  //Si el string del input es más largo que 2 caracteres busca en la BD
-  $.get("usuarios/buscarUsuariosPorNombre/" + inputFisca, function(data){
-    datalist.empty();
-
-      $.each(data.usuarios, function(index, usuario) {
-          datalist.append($('<option>').text(usuario.nombre).attr('id',usuario.id_usuario));
-      });
-  });
-}
-
 function maquinasAPedido(){
   var id_sector = $('#sector option:selected').val();
   var fecha = $('#fechaDate').val();
@@ -689,8 +677,8 @@ function generarFilaTabla(relevamiento){
       $('#btn-finalizar').hide();
 
       $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
-          $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
-          $('#inputFisca').setearElementoSeleccionado(0,"");
+          //$('#inputFisca').setearElementoSeleccionado(0,"");
+          $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
 
           $('#cargaFechaActual').val(data.relevamiento.fecha);
           $('#cargaFechaGeneracion').val(data.relevamiento.fecha);

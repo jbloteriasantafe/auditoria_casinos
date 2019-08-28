@@ -55,9 +55,11 @@ class RelevamientoProgresivoController extends Controller
       $niveles = array();
       $id_maquinas_pozo = array();
       $pozo = Pozo::find($detalle->id_pozo);
-      foreach ($pozo->maquinas as $maq){
+      if($pozo == null) continue;
+      foreach ($pozo->progresivo->maquinas as $maq){
         $id_maquinas_pozo[] = $maq->id_maquina;
       }
+
       $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina','maquina.id_isla','=','isla.id_isla')->whereIn('id_maquina',$id_maquinas_pozo)->get();
       $i=0;
       foreach ($resultados as $resultado){

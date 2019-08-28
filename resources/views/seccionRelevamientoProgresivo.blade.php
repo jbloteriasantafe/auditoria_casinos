@@ -17,13 +17,14 @@ use Illuminate\Http\Request;
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
-<datalist id="datalist_fiscalizadores">
-  @foreach ($casinos as $casino)
+
+@foreach ($casinos as $casino)
+<datalist id="datalist{{$casino->id_casino}}">
   @foreach($fiscalizadores[$casino->id_casino] as $u)
-  <option data-id="{{$u['id_usuario']}}" data-id-casino="{{$casino->id_casino}}">{{$u['nombre']}}</option>
-  @endforeach
+  <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
   @endforeach
 </datalist>
+@endforeach
 
                 <div class="row">
                   <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
@@ -107,7 +108,7 @@ use Illuminate\Http\Request;
                             </tr>
                           </thead>
                           <tbody id="cuerpoTabla" style="height: 250px;">
-                            <tr class='filaEjemplo' style="">
+                            <tr class='filaEjemplo' style="display: none;">
                               <td class="col-xs-2 fecha">
                                 01 Ene 9999
                               </td>
@@ -396,7 +397,7 @@ use Illuminate\Http\Request;
                             </div>
                             <div class="col-md-2">
                                 <h5>FISCALIZADOR TOMA</h5>
-                                <input id="inputFisca" class="form-control" type="text" autocomplete="off">
+                                <input id="inputFisca" class="form-control" type="text" autocomplete="off" list="">
                             </div>
                             <div class="col-md-2">
                                 <h5>TÉCNICO</h5>
