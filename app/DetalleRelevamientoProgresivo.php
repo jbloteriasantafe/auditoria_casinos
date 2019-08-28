@@ -9,23 +9,14 @@ class DetalleRelevamientoProgresivo extends Model
   protected $connection = 'mysql';
   protected $table = 'detalle_relevamiento_progresivo';
   protected $primaryKey = 'id_detalle_relevamiento_progresivo';
-  protected $visible = array('id_detalle_relevamiento_progresivo', 'id_relevamiento_progresivo','id_progresivo','id_pozo', 'valor_actual');
+  protected $visible = array('id_detalle_relevamiento_progresivo', 'id_relevamiento_progresivo','id_pozo', 'nivel1', 'nivel2', 'nivel3', 'nivel4','nivel5','nivel6');
   public $timestamps = false;
 
   public function relevamiento_progresivo(){
     return $this->belongsTo('App\RelevamientoProgresivo','id_relevamiento_progresivo','id_relevamiento_progresivo');
   }
 
-  public function progresivo(){
-    return $this->belongsTo('App\Progresivo','id_progresivo','id_progresivo');
+  public function pozo(){
+    return $this->belongsTo('App\Pozo','id_pozo','id_pozo');
   }
-
-  public function isla(){
-    return $this->belongsTo('App\Isla','id_isla','id_isla');
-  }
-
-  public function maquina(){
-    return $this->belongsTo('App\Maquina','id_maquina','id_maquina');
-  }
-
 }

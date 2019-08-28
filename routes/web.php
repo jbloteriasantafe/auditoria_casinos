@@ -405,6 +405,7 @@ RELEVAMIENTO PROGRESIVO
 Route::get('relevamientosProgresivo','RelevamientoProgresivoController@buscarTodo'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
 Route::get('relevamientosProgresivo/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
 Route::post('relevamientosProgresivo/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
+Route::post('relevamientosProgresivo/probandoAlgo' , 'RelevamientoProgresivoController@probando');
 Route::post('relevamientosProgresivo/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
 Route::post('relevamientosProgresivo/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
 Route::get('relevamientosProgresivo/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');

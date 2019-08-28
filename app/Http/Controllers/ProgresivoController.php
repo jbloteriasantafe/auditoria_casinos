@@ -906,4 +906,19 @@ class ProgresivoController extends Controller
 
     return;
   }
+
+  //retorna true si el pozo posee algun nivel con base mayor a 10.000 (pesos)
+  public function existenNivelSuperior ($id_pozo) {
+    $pozo = Pozo::find($id_pozo);
+
+    $cantidad_ok = 0;
+    foreach ($pozo->niveles as $nivel) {
+      if ($nivel->base >= RelevamientoProgresivoController::$param_niveles_pozo) {
+        $cantidad_ok++;
+      }
+    }
+
+    $ret = ($cantidad_ok > 0) ? true : false;
+    return $ret;
+  }
 }
