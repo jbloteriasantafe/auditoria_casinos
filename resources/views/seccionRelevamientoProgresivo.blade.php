@@ -461,20 +461,15 @@ use Illuminate\Http\Request;
                                 </td>
                                 <td class="col-xs-1">
                                   <select class="causaNoToma form-control">
-                                    <option></option>
-                                    <option>ROTO</option>
-                                    <option>APAGADO</option>
+                                    <option value="-1"></option>
+                                    @foreach($causasNoToma as $causa)
+                                    <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
+                                    @endforeach
                                   </select>
                                 </td>
                               </tr>
                             </tbody>
                           </table>
-                          <div class="row">
-                            <div id="contenedor_progresivos" class="col-md-12">
-
-
-                            </div>
-                          </div>
                           <br>
                           <div class="row">
                               <div class="col-md-8 col-md-offset-2">

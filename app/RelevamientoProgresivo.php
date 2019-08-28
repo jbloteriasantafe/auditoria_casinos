@@ -9,7 +9,19 @@ class RelevamientoProgresivo extends Model
   protected $connection = 'mysql';
   protected $table = 'relevamiento_progresivo';
   protected $primaryKey = 'id_relevamiento_progresivo';
-  protected $visible = array('id_relevamiento_progresivo','nro_relevamiento_progresivo','subrelevamiento','backup','fecha_generacion','fecha_ejecucion','fecha_carga','observacion_carga','observacion_validacion','id_estado_relevamiento');
+  protected $visible = array(
+  'id_relevamiento_progresivo',
+  'nro_relevamiento_progresivo',
+  'subrelevamiento',
+  'id_usuario_cargador',
+  'id_usuario_fiscalizador',
+  'backup',
+  'fecha_generacion',
+  'fecha_ejecucion',
+  'fecha_carga',
+  'observacion_carga',
+  'observacion_validacion',
+  'id_estado_relevamiento');
   public $timestamps = false;
 
   public function sector(){

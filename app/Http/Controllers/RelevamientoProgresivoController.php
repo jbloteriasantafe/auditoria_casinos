@@ -28,7 +28,7 @@ use App\LayoutTotal;
 use App\DetalleLayoutTotal;
 use App\MaquinaAPedido;
 use App\Isla;
-use App\TipoCausaNoToma;
+use App\TipoCausaNoTomaProgresivo;
 
 
 class RelevamientoProgresivoController extends Controller
@@ -105,6 +105,7 @@ class RelevamientoProgresivoController extends Controller
 
     return ['detalles' => $detalles,
             'relevamiento' => $relevamiento,
+            'sector' => $relevamiento->sector,
             'casino' => $casino,
             'usuario_cargador' => $relevamiento->usuario_cargador,
             'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador];
@@ -118,7 +119,13 @@ class RelevamientoProgresivoController extends Controller
       UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Progresivo' , 'relevamientosProgresivo');
       $fiscalizadores = $this->obtenerFiscalizadores($casinos,$usuario);
 
-      return view('seccionRelevamientoProgresivo', ['casinos' => $casinos , 'estados' => $estados, "fiscalizadores" => $fiscalizadores])->render();
+      return view('seccionRelevamientoProgresivo',
+      ['casinos' => $casinos ,
+      'estados' => $estados,
+      "fiscalizadores" => $fiscalizadores,
+      "causasNoToma" => TipoCausaNoTomaProgresivo::all()]
+
+      )->render();
   }
 
   public function buscarRelevamientosProgresivos(Request $request){

@@ -682,12 +682,14 @@ function generarFilaTabla(relevamiento){
           //$('#inputFisca').setearElementoSeleccionado(0,"");
           $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
 
-          $('#cargaFechaActual').val(data.relevamiento.fecha);
-          $('#cargaFechaGeneracion').val(data.relevamiento.fecha);
+          $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
           $('#cargaCasino').val(data.casino.nombre);
-          $('#cargaSector').val(data.sector);
+          $('#cargaSector').val(data.sector.descripcion);
+          $('#cargaSubrelevamiento').val('TODO:!!!!')
           if(data.usuario_cargador != null)
-          $('#fiscaCarga').val(data.usuario_cargador.nombre);
+            $('#fiscaCarga').val(data.usuario_cargador.nombre);
+          if(data.usuario_fiscalizador != null)
+            $('#inputFisca').val(data.usuario_fiscalizador.nombre);
 
           for (var i = 0; i < data.detalles.length; i++) {
             agregarRenglon(data.detalles[i],$('#contenedor_progresivos'));
