@@ -33,6 +33,8 @@ use App\TipoCausaNoToma;
 
 class RelevamientoProgresivoController extends Controller
 {
+  public static $param_niveles_pozo = 100;
+
   private static $atributos = [
   ];
   private static $instance;
@@ -72,7 +74,7 @@ class RelevamientoProgresivoController extends Controller
       }
       foreach ($pozo->niveles_progresivo as $nivel){
         $base = ($nivel->pivot->base != null ? $nivel->pivot->base : $nivel->base);
-        if($base >= 10000){
+        if($base >= RelevamientoProgresivoController::$param_niveles_pozo){
           $unNivel = new \stdClass;
           $unNivel->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
           $unNivel->nro_isla = $nro_isla;
@@ -158,10 +160,10 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function crearRelevamientoProgresivos(Request $request){
-    //algoritmo sortea progresivos linkeados y selecciona solo los niveles con base mayor a $10.000
+    $fecha_hoy = date("Y-m-d"); //fecha de hoy
+
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
-        'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'
     ], array(), self::$atributos)->after(function($validator){
       $relevamientos = RelevamientoProgresivo::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0],['id_estado_relevamiento','!=',1]])->count();
       if($relevamientos > 0){
@@ -169,7 +171,6 @@ class RelevamientoProgresivoController extends Controller
       }
     })->validate();
 
-    $fecha_hoy = date("Y-m-d"); //fecha de hoy
 
     //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
     $relevamientos = RelevamientoProgresivo::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
@@ -182,22 +183,26 @@ class RelevamientoProgresivoController extends Controller
       $relevamiento->delete();
     }
 
-    $progresivos = DB::table('pozo')->select('pozo.id_pozo' , 'progresivo.id_progresivo')
+
+    $progresivos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
                                     ->join('maquina','maquina.id_pozo','=','pozo.id_pozo')
                                     ->join('isla','maquina.id_isla','=','isla.id_isla')
                                     ->join('sector','isla.id_sector','=','sector.id_sector')
                                     ->join('pozo_tiene_nivel_progresivo','pozo.id_pozo','=','pozo_tiene_nivel_progresivo.id_pozo')
                                     ->join('nivel_progresivo','pozo_tiene_nivel_progresivo.id_nivel_progresivo','=','nivel_progresivo.id_nivel_progresivo')
+                                    // mio: ->join('nivel_progresivo', 'pozo.id_pozo', '=', 'nivel_progresivo.id_pozo')
                                     ->join('progresivo','nivel_progresivo.id_progresivo','=','progresivo.id_progresivo')
-                                    ->where([['sector.id_sector','=',$request->id_sector] , ['progresivo.linkeado' , '=' , 1]])
-                                    ->groupBy('id_pozo', 'id_progresivo')
+                                    ->where('sector.id_sector','=',$request->id_sector)
+                                    ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();// pozo->nivel_progresivo
 
+    dd($progresivos);
 
+/*
      //creo los detalles
      $detalles = array();
      foreach($progresivos as $resultado_prog){
-       if(ProgresivoController::getInstancia()->existenNivelSuperior($resultado_prog->id_pozo)){ //true si el pozo posee algun nivel con base mayor a 10.000 (pesos)
+       if(ProgresivoController::getInstancia()->existenNivelSuperior($resultado_prog->id_pozo)){
          $detalle = new DetalleRelevamientoProgresivo;
          $detalle->id_pozo = $resultado_prog->id_pozo;
          $detalle->id_progresivo = $resultado_prog->id_progresivo;
@@ -227,6 +232,7 @@ class RelevamientoProgresivoController extends Controller
      }
 
      return ['codigo' => 200];
+     */
   }
 
   public function generarPlanillaProgresivos($id_relevamiento_progresivo){
@@ -247,7 +253,7 @@ class RelevamientoProgresivoController extends Controller
       $id_maquinas = array();
 
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
-      $progresivo = Progresivo::find($detalle_relevamiento->id_progresivo);
+      $progresivo = $pozo->progresivo;
 
       /* codigo viejo!
       foreach ($pozo->maquinas as $maq) {
@@ -274,18 +280,7 @@ class RelevamientoProgresivoController extends Controller
       }
       */
 
-    //Si algun nivel del pozo tiene una base menor a 10000, se debe ignorar el detalle relevamiento progresivo asociado.
-    $flag=1;
-    foreach ($pozo->niveles as $nivel) {
-      if ($nivel->base<10000) {
-        $flag=0;
-        break;
-      }
-    }
-
-
-      if ($flag) {
-
+      if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
         $x=0;
         $nro_maquinas = "";
         foreach ($progresivo->maquinas as $maq) {
@@ -318,12 +313,12 @@ class RelevamientoProgresivoController extends Controller
         'nro_islas' => $nro_islas,
         'pozo' => $pozo->descripcion,
         'progresivo' => $progresivo->nombre,
-        'nivel1' => $detalle_relevamiento->nivel1,
-        'nivel2' => $detalle_relevamiento->nivel2,
-        'nivel3' => $detalle_relevamiento->nivel3,
-        'nivel4' => $detalle_relevamiento->nivel4,
-        'nivel5' => $detalle_relevamiento->nivel5,
-        'nivel6' => $detalle_relevamiento->nivel6,
+        'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
+        'nivel2' => number_format($detalle_relevamiento->nivel2, 2, '.', ''),
+        'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
+        'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
+        'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
+        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', '')
         );
 
         $detalles[] = $detalle;

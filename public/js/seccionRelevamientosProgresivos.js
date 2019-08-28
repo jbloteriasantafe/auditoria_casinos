@@ -252,6 +252,7 @@ $('#buscadorCasino').on('change',function(){
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
+
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -262,8 +263,8 @@ $('#btn-generar').click(function(e){
 
   var formData = {
     id_sector: $('#sector').val(),
-    cantidad_maquinas: $('#cantidad_maquinas').val(),
-    cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
+    //cantidad_maquinas: $('#cantidad_maquinas').val(),
+    //cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
   }
 
   $.ajax({
@@ -293,6 +294,7 @@ $('#btn-generar').click(function(e){
         }
       }
   });
+
 });
 
 var guardado;
