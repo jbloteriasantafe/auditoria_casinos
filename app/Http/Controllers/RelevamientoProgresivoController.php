@@ -187,15 +187,14 @@ class RelevamientoProgresivoController extends Controller
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
     ], array(), self::$atributos)->after(function($validator){
-      $relevamientos = RelevamientoProgresivo::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0],['id_estado_relevamiento','!=',1]])->count();
+      $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->count();
       if($relevamientos > 0){
         $validator->errors()->add('relevamiento_en_carga','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
       }
     })->validate();
 
-
     //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
-    $relevamientos = RelevamientoProgresivo::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
+    $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
     $id_relevamientos_viejo= array();
     foreach($relevamientos as $relevamiento){
       foreach($relevamiento->detalles as $detalle){
@@ -205,56 +204,48 @@ class RelevamientoProgresivoController extends Controller
       $relevamiento->delete();
     }
 
-
     $progresivos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
-                                    ->join('maquina','maquina.id_pozo','=','pozo.id_pozo')
+                                    ->join('maquina_tiene_progresivo', 'pozo.id_progresivo', '=', 'maquina_tiene_progresivo.id_progresivo')
+                                    ->join('maquina', 'maquina.id_maquina', '=', 'maquina_tiene_progresivo.id_maquina')
                                     ->join('isla','maquina.id_isla','=','isla.id_isla')
                                     ->join('sector','isla.id_sector','=','sector.id_sector')
-                                    ->join('pozo_tiene_nivel_progresivo','pozo.id_pozo','=','pozo_tiene_nivel_progresivo.id_pozo')
-                                    ->join('nivel_progresivo','pozo_tiene_nivel_progresivo.id_nivel_progresivo','=','nivel_progresivo.id_nivel_progresivo')
-                                    // mio: ->join('nivel_progresivo', 'pozo.id_pozo', '=', 'nivel_progresivo.id_pozo')
-                                    ->join('progresivo','nivel_progresivo.id_progresivo','=','progresivo.id_progresivo')
                                     ->where('sector.id_sector','=',$request->id_sector)
                                     ->groupBy('id_progresivo', 'id_pozo')
-                                    ->get();// pozo->nivel_progresivo
+                                    ->get();
 
-    dd($progresivos);
 
-/*
      //creo los detalles
      $detalles = array();
-     foreach($progresivos as $resultado_prog){
-       if(ProgresivoController::getInstancia()->existenNivelSuperior($resultado_prog->id_pozo)){
+     foreach($progresivos as $progresivo){
+       if(ProgresivoController::getInstancia()->existenNivelSuperior($progresivo->id_pozo)){
          $detalle = new DetalleRelevamientoProgresivo;
-         $detalle->id_pozo = $resultado_prog->id_pozo;
-         $detalle->id_progresivo = $resultado_prog->id_progresivo;
+         $detalle->id_pozo = $progresivo->id_pozo;
          $detalles[] = $detalle;
        }
      }
 
-     if(empty($detalles)){
-       //creo el relevamiento progresivo
-       $relevamiento_progresivos = new RelevamientoProgresivo;
-       $relevamiento_progresivos->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
-       $relevamiento_progresivos->fecha = $fecha_hoy;
-       $relevamiento_progresivos->fecha_generacion = $fecha_hoy;
-       $relevamiento_progresivos->id_sector = $request->id_sector;
-       $relevamiento_progresivos->id_estado_relevamiento = 1;
-       $relevamiento_progresivos->backup = 0;
-       $relevamiento_progresivos->save();
+     if(!empty($detalles)){
 
-       foreach($detalles as $detalle_a_guardar){
-         $detalle->id_progresivo = $resultado_prog->id_progresivo;
+       //creo y guardo el relevamiento progresivo
+       $relevamiento_progresivo = new RelevamientoProgresivo;
+       $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
+       $relevamiento_progresivo->fecha_generacion = $fecha_hoy;
+       $relevamiento_progresivo->id_sector = $request->id_sector;
+       $relevamiento_progresivo->id_estado_relevamiento = 1;
+       $relevamiento_progresivo->backup = 0;
+       $relevamiento_progresivo->save();
+
+       //guardo los detalles
+       foreach($detalles as $detalle){
+          $detalle->id_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
          $detalle->save();
        }
-     }else{
 
-       return ['codigo' => 500];//error, no existen progresivos para relevar.
-
+      }else{
+       return ['codigo' => 500]; //error, no existen progresivos para relevar.
      }
 
-     return ['codigo' => 200];
-     */
+    return ['codigo' => 200];
   }
 
   public function generarPlanillaProgresivos($id_relevamiento_progresivo){
