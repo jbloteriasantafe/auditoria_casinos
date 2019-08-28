@@ -422,24 +422,52 @@ use Illuminate\Http\Request;
                                   </p>
                               </div>
                           </div>
-                          <div class="row">
-                              <div class="col-xs-2 col-xs-offset-1">
-                                  <h4>Nro Isla</h4>
-                              </div>
-                              <div class="col-xs-2">
-                                <h4>Nombre Progresivo</h4>
-                              </div>
-                              <div class="col-xs-2">
-                                <h4>Nombre Nivel</h4>
-                              </div>
-                              <div class="col-xs-2">
-                                <h4>Base</h4>
-                              </div>
-                              <div class="col-xs-2">
-                                <h4>Valor Actual</h4>
-                              </div>
-
-                          </div>
+                          <table class="table table-fixed tablaPozos">
+                            <thead>
+                              <th class="col-xs-2">Progresivo</th>
+                              <th class="col-xs-1">Pozo</th>
+                              <th class="col-xs-2">Isla</th>
+                              <th class="col-xs-1">Nivel 1</th>
+                              <th class="col-xs-1">Nivel 2</th>
+                              <th class="col-xs-1">Nivel 3</th>
+                              <th class="col-xs-1">Nivel 4</th>
+                              <th class="col-xs-1">Nivel 5</th>
+                              <th class="col-xs-1">Nivel 6</th>
+                              <th class="col-xs-1">Causa no toma</th>
+                            </thead>
+                            <tbody class="cuerpoTablaPozos">
+                              <tr class="filaEjemplo">
+                                <td class="col-xs-2" class="nombreProgresivo">PROGRESIVO99</td>
+                                <td class="col-xs-1" class="nombrePozo">POZO99</td>
+                                <td class="col-xs-2" class="isla">ISLA1/ISLA2/...</td>
+                                <td class="col-xs-1">
+                                  <input class="nivel1 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <input class="nivel2 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <input class="nivel3 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <input class="nivel4 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <input class="nivel5 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <input class="nivel6 form-control" type="number" min="0"></input>
+                                </td>
+                                <td class="col-xs-1">
+                                  <select class="causaNoToma form-control">
+                                    <option></option>
+                                    <option>ROTO</option>
+                                    <option>APAGADO</option>
+                                  </select>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                           <div class="row">
                             <div id="contenedor_progresivos" class="col-md-12">
 

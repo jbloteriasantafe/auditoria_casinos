@@ -83,7 +83,10 @@ class RelevamientoProgresivoController extends Controller
       $d = new \stdClass;
       $d->nro_isla = $nro_isla;
       $d->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
-      $d->nombre=$pozo->progresivo->nombre;
+      $d->nombre_progresivo=$pozo->progresivo->nombre;
+      $d->nombre_pozo=$pozo->descripcion;
+      $d->id_pozo = $pozo->id_pozo;
+      $d->id_tipo_causa_no_toma_progresivo = $detalle->id_tipo_causa_no_toma_progresivo;
       $d->niveles=array();
       $detalle_arr = $detalle->toArray();
       foreach ($pozo->niveles as $nivel){
@@ -93,6 +96,7 @@ class RelevamientoProgresivoController extends Controller
           $unNivel->nombre_nivel = $nivel->nombre_nivel;
           $unNivel->nro_nivel = $nivel->nro_nivel;
           $unNivel->valor= $detalle_arr['nivel' . $nivel->nro_nivel];
+          $unNivel->id_nivel_progresivo = $nivel->id_nivel_progresivo;
           $d->niveles[] = $unNivel;
         }
       }
