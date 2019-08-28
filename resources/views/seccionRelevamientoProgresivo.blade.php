@@ -371,38 +371,34 @@ use Illuminate\Http\Request;
 
                 <div class="modal-body modalCuerpo">
                           <div class="row">
-                            <div class="col-lg-2">
+                            <div class="col-lg-3">
                               <h5>FECHA DE GENERACIÓN</h5>
                               <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
                             </div>
-                            <div class="col-lg-2">
+                            <div class="col-lg-3">
                               <h5>CASINO</h5>
                               <input id="cargaCasino" type='text' class="form-control" readonly>
                             </div>
-                            <div class="col-lg-2">
+                            <div class="col-lg-3">
                               <h5>SECTOR</h5>
                               <input id="cargaSector" type='text' class="form-control" readonly>
                             </div>
-                            <div class="col-lg-2">
+                            <div class="col-lg-3">
                               <h5>SUB RELEVAMIENTO</h5>
                               <input id="cargaSubrelevamiento" type='text' class="form-control" readonly>
                             </div>
                           </div>
 
                           <div class="row">
-                            <div class="col-md-2 col-md-offset-1">
+                            <div class="col-md-4">
                                 <h5>FISCALIZADOR CARGA</h5>
                                 <input id="fiscaCarga" type="text"class="form-control" readonly>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <h5>FISCALIZADOR TOMA</h5>
                                 <input id="inputFisca" class="form-control" type="text" autocomplete="off" list="">
                             </div>
-                            <div class="col-md-2">
-                                <h5>TÉCNICO</h5>
-                                <input id="tecnico"  type="text"class="form-control">
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <h5>FECHA EJECUCIÓN</h5>
                                    <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
                                        <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off"/>
@@ -425,8 +421,8 @@ use Illuminate\Http\Request;
                           <table class="table table-fixed tablaPozos">
                             <thead>
                               <th class="col-xs-2">Progresivo</th>
-                              <th class="col-xs-1">Pozo</th>
-                              <th class="col-xs-2">Isla</th>
+                              <th class="col-xs-2">Pozo</th>
+                              <th class="col-xs-1">Isla</th>
                               <th class="col-xs-1">Nivel 1</th>
                               <th class="col-xs-1">Nivel 2</th>
                               <th class="col-xs-1">Nivel 3</th>
@@ -436,28 +432,15 @@ use Illuminate\Http\Request;
                               <th class="col-xs-1">Causa no toma</th>
                             </thead>
                             <tbody class="cuerpoTablaPozos">
-                              <tr class="filaEjemplo">
-                                <td class="col-xs-2" class="nombreProgresivo">PROGRESIVO99</td>
-                                <td class="col-xs-1" class="nombrePozo">POZO99</td>
-                                <td class="col-xs-2" class="isla">ISLA1/ISLA2/...</td>
+                              <tr class="filaEjemplo" style="display: none">
+                                <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
+                                <td class="col-xs-2 nombrePozo">POZO99</td>
+                                <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
+                                @for ($i=1;$i<=6;$i++)
                                 <td class="col-xs-1">
-                                  <input class="nivel1 form-control" type="number" min="0"></input>
+                                  <input class="nivel{{$i}} form-control" type="number" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                                 </td>
-                                <td class="col-xs-1">
-                                  <input class="nivel2 form-control" type="number" min="0"></input>
-                                </td>
-                                <td class="col-xs-1">
-                                  <input class="nivel3 form-control" type="number" min="0"></input>
-                                </td>
-                                <td class="col-xs-1">
-                                  <input class="nivel4 form-control" type="number" min="0"></input>
-                                </td>
-                                <td class="col-xs-1">
-                                  <input class="nivel5 form-control" type="number" min="0"></input>
-                                </td>
-                                <td class="col-xs-1">
-                                  <input class="nivel6 form-control" type="number" min="0"></input>
-                                </td>
+                                @endfor
                                 <td class="col-xs-1">
                                   <select class="causaNoToma form-control">
                                     <option value="-1"></option>

@@ -138,6 +138,11 @@ $(document).on('click','.validar',function(e){
 
 })
 
+function filaEjemploCarga(){
+    return $('#modalCargaRelevamientoProgresivos .filaEjemplo')
+    .clone().removeClass('filaEjemplo').show().css('display','');
+}
+
 function agregarRenglon(detalle, contenedor){
     console.log(detalle.nombre_nivel ,detalle.base);
     var clonado = $('#clonar').clone();
@@ -678,26 +683,7 @@ function generarFilaTabla(relevamiento){
       $('#btn-guardar').hide();
       $('#btn-finalizar').hide();
 
-      $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
-          //$('#inputFisca').setearElementoSeleccionado(0,"");
-          $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
-
-          $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
-          $('#cargaCasino').val(data.casino.nombre);
-          $('#cargaSector').val(data.sector.descripcion);
-          $('#cargaSubrelevamiento').val('TODO:!!!!')
-          if(data.usuario_cargador != null)
-            $('#fiscaCarga').val(data.usuario_cargador.nombre);
-          if(data.usuario_fiscalizador != null)
-            $('#inputFisca').val(data.usuario_fiscalizador.nombre);
-
-          for (var i = 0; i < data.detalles.length; i++) {
-            agregarRenglon(data.detalles[i],$('#contenedor_progresivos'));
-          }
-
-          habilitarBotonFinalizar();
-      });
-
+      $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, setearRelevamiento);
       $('#modalCargaRelevamientoProgresivos').modal('show');
     });
 
@@ -706,6 +692,59 @@ function generarFilaTabla(relevamiento){
     return fila;
 }
 
+
+function setearRelevamiento(data){
+  //$('#inputFisca').setearElementoSeleccionado(0,"");
+  $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
+
+  $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
+  $('#cargaCasino').val(data.casino.nombre);
+  $('#cargaSector').val(data.sector.descripcion);
+  $('#cargaSubrelevamiento').val('TODO:!!!!')
+  if(data.usuario_cargador != null)
+    $('#fiscaCarga').val(data.usuario_cargador.nombre);
+  if(data.usuario_fiscalizador != null)
+    $('#inputFisca').val(data.usuario_fiscalizador.nombre);
+
+  let tabla = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos');
+  for (let i = 0; i < data.detalles.length; i++) {
+    let detalle = data.detalles[i];
+    let fila = filaEjemploCarga();
+    fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
+    fila.find('.nombrePozo').text(detalle.nombre_pozo);
+    fila.find('.isla').text(detalle.nro_isla);
+
+    for(let n=0;n<detalle.niveles.length;n++){
+      let nivel = detalle.niveles[n];
+      if(nivel.nombre_nivel != null)
+        fila.find('.nivel'+nivel.nro_nivel).attr('placeholder',nivel.nombre_nivel);
+      fila.find('.nivel'+nivel.nro_nivel).val(nivel.valor);
+      fila.find('.nivel'+nivel.nro_nivel).attr('data-id',nivel.id_nivel_progresivo);
+    }
+
+    fila.find('input:not([data-id])').attr('disabled',true);
+
+    if(detalle.id_tipo_causa_no_toma_progresivo != null){
+        fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
+    }
+    tabla.append(fila);
+
+
+    fila.find('.causaNoToma').on('change',function(){
+      if($(this).val() != -1){
+        fila.find('input').attr('disabled',true)
+        fila.find('input').css('color','#fff');
+      }
+      else{
+        fila.find('input').attr('disabled',false);
+        fila.find('input').css('color','');
+        fila.find('input:not([data-id])').attr('disabled',true);
+      }
+    });
+  }
+
+  habilitarBotonFinalizar();
+}
 //Opacidad del modal al minimizar
 $('#btn-minimizarValidar').click(function(){
     if($(this).data("minimizar")==true){
