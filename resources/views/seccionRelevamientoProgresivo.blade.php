@@ -220,9 +220,8 @@ use Illuminate\Http\Request;
                             <div class="col-md-6">
                               <h5>CASINO</h5>
                               <select id="casino" class="form-control selectCasinos" name="">
-                                @if(count($casinos) != 1)
                                   <option value="0">- Seleccione un casino -</option>
-                                @endif
+
 
                                 @foreach ($casinos as $casino)
                                 <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>

@@ -176,15 +176,14 @@ class RelevamientoProgresivoController extends Controller
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
     ], array(), self::$atributos)->after(function($validator){
-      $relevamientos = RelevamientoProgresivo::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0],['id_estado_relevamiento','!=',1]])->count();
+      $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->count();
       if($relevamientos > 0){
         $validator->errors()->add('relevamiento_en_carga','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
       }
     })->validate();
 
-
     //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
-    $relevamientos = RelevamientoProgresivo::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
+    $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
     $id_relevamientos_viejo= array();
     foreach($relevamientos as $relevamiento){
       foreach($relevamiento->detalles as $detalle){
@@ -202,7 +201,6 @@ class RelevamientoProgresivoController extends Controller
                                     ->where('sector.id_sector','=',$request->id_sector)
                                     ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();
-    dd($progresivos);
 
 
      //creo los detalles
@@ -211,12 +209,12 @@ class RelevamientoProgresivoController extends Controller
        if(ProgresivoController::getInstancia()->existenNivelSuperior($progresivo->id_pozo)){
          $detalle = new DetalleRelevamientoProgresivo;
          $detalle->id_pozo = $progresivo->id_pozo;
-         $detalle->id_progresivo = $progresivo->id_progresivo;
          $detalles[] = $detalle;
        }
      }
 
      if(!empty($detalles)){
+
        //creo y guardo el relevamiento progresivo
        $relevamiento_progresivo = new RelevamientoProgresivo;
        $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
@@ -228,6 +226,7 @@ class RelevamientoProgresivoController extends Controller
 
        //guardo los detalles
        foreach($detalles as $detalle){
+          $detalle->id_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
          $detalle->save();
        }
 
