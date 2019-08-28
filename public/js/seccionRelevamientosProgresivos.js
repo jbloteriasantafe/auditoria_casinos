@@ -560,7 +560,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       }
 
     var formData = {
-      fecha: $('#buscadorFecha').val(),
+      fecha_generacion: $('#buscadorFecha').val(),
       casino: $('#buscadorCasino').val(),
       sector: $('#buscadorSector').val(),
       estadoRelevamiento: $('#buscadorEstado').val(),

@@ -54,16 +54,23 @@ class RelevamientoProgresivoController extends Controller
 
     $casino = $relevamiento->sector->casino;
     foreach ($relevamiento->detalles as $detalle) {
+
       $niveles = array();
       $id_maquinas_pozo = array();
       $pozo = Pozo::find($detalle->id_pozo);
       if($pozo == null) continue;
-      foreach ($pozo->progresivo->maquinas as $maq){
-        $id_maquinas_pozo[] = $maq->id_maquina;
+      $maquinas = $pozo->progresivo->maquinas;
+      foreach ($maquinas as $maq){
+        $id_maquinas_pozo[] = $maq['id_maquina'];
       }
 
-      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina','maquina.id_isla','=','isla.id_isla')->whereIn('id_maquina',$id_maquinas_pozo)->get();
+      $resultados = DB::table('isla')
+      ->selectRaw('DISTINCT(nro_isla)')
+      ->join('maquina','maquina.id_isla','=','isla.id_isla')
+      ->whereIn('id_maquina',$id_maquinas_pozo)->get();
+
       $i=0;
+      $nro_isla='';
       foreach ($resultados as $resultado){
         if($i == 0){
           $nro_isla = $resultado->nro_isla;
@@ -72,20 +79,24 @@ class RelevamientoProgresivoController extends Controller
         }
         $i++;
       }
-      foreach ($pozo->niveles_progresivo as $nivel){
-        $base = ($nivel->pivot->base != null ? $nivel->pivot->base : $nivel->base);
-        if($base >= RelevamientoProgresivoController::$param_niveles_pozo){
+
+      $d = new \stdClass;
+      $d->nro_isla = $nro_isla;
+      $d->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
+      $d->nombre=$pozo->progresivo->nombre;
+      $d->niveles=array();
+      $detalle_arr = $detalle->toArray();
+      foreach ($pozo->niveles as $nivel){
+        if($nivel->base >= RelevamientoProgresivoController::$param_niveles_pozo){
           $unNivel = new \stdClass;
-          $unNivel->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
-          $unNivel->nro_isla = $nro_isla;
-          $unNivel->nombre_progresivo = $detalle->progresivo->nombre_progresivo;
-          $unNivel->base = $base;
-          $unNivel->nombre_nivel =$nivel->nombre_nivel;
+          $unNivel->base = $nivel->base;
+          $unNivel->nombre_nivel = $nivel->nombre_nivel;
           $unNivel->nro_nivel = $nivel->nro_nivel;
-          $unNivel->valor= $detalle->valor_actual;
-          $detalles[] = $unNivel;
+          $unNivel->valor= $detalle_arr['nivel' . $nivel->nro_nivel];
+          $d->niveles[] = $unNivel;
         }
       }
+      $detalles[]=$d;
     }
 
     return ['detalles' => $detalles,
@@ -113,7 +124,7 @@ class RelevamientoProgresivoController extends Controller
       $casinos[] = $casino->id_casino;
     }
     if(!empty($request->fecha)){
-      $reglas[]=['relevamiento_progresivo.fecha', '=', $request->fecha];
+      $reglas[]=['relevamiento_progresivo.fecha_generacion', '=', $request->fecha];
     }
     if($request->casino!=0){
       $reglas[]=['casino.id_casino', '=', $request->casino];
@@ -139,7 +150,7 @@ class RelevamientoProgresivoController extends Controller
       ->where('backup' , '=', 0)->paginate($request->page_size);
 
     foreach ($resultados as $resultado) {
-      $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha));
+      $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha_generacion));
     }
 
     return $resultados;

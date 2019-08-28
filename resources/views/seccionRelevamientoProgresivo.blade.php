@@ -99,7 +99,7 @@ use Illuminate\Http\Request;
                         <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                           <thead>
                             <tr>
-                              <th class="col-xs-2 activa" value="relevamiento_progresivo.fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                              <th class="col-xs-2 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
                               <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
                               <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR <i class="fa fa-sort"></i></th>
                               <th class="col-xs-1" value="relevamiento_progresivo.sub_control" estado="">SUB <i class="fa fa-sort"></i></th>
