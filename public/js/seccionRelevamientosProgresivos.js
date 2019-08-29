@@ -681,8 +681,8 @@ function setearRelevamiento(data){
     $('#fiscaCarga').val(data.usuario_cargador.nombre);
   if(data.usuario_fiscalizador != null)
     $('#inputFisca').val(data.usuario_fiscalizador.nombre);
-  if(data.subrelevamiento != null){
-    $('#cargaSubrelevamiento').val(data.subrelevamiento);
+  if(data.relevamiento.subrelevamiento != null){
+    $('#cargaSubrelevamiento').val(data.relevamiento.subrelevamiento);
   }
 
 
