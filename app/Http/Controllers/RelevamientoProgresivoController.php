@@ -183,6 +183,8 @@ class RelevamientoProgresivoController extends Controller
 
   public function crearRelevamientoProgresivos(Request $request){
     $fecha_hoy = date("Y-m-d"); //fecha de hoy
+    $usuario_actual = UsuarioController::getInstancia()->quienSoy();
+    $fiscalizador = $usuario_actual['usuario'];
 
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
@@ -232,6 +234,7 @@ class RelevamientoProgresivoController extends Controller
        $relevamiento_progresivo->fecha_generacion = $fecha_hoy;
        $relevamiento_progresivo->id_sector = $request->id_sector;
        $relevamiento_progresivo->id_estado_relevamiento = 1;
+       $relevamiento_progresivo->id_usuario_fiscalizador = $fiscalizador->id_usuario;
        $relevamiento_progresivo->backup = 0;
        $relevamiento_progresivo->save();
 
