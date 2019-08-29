@@ -676,11 +676,15 @@ function setearRelevamiento(data){
   $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
   $('#cargaCasino').val(data.casino.nombre);
   $('#cargaSector').val(data.sector.descripcion);
-  $('#cargaSubrelevamiento').val('TODO:!!!!')
+
   if(data.usuario_cargador != null)
     $('#fiscaCarga').val(data.usuario_cargador.nombre);
   if(data.usuario_fiscalizador != null)
     $('#inputFisca').val(data.usuario_fiscalizador.nombre);
+  if(data.subrelevamiento != null){
+    $('#cargaSubrelevamiento').val(data.subrelevamiento);
+  }
+
 
   let tabla = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos');
   for (let i = 0; i < data.detalles.length; i++) {
@@ -699,7 +703,6 @@ function setearRelevamiento(data){
       fila.find('.nivel'+nivel.nro_nivel)
       .val(nivel.valor)
       .attr('data-id',nivel.id_nivel_progresivo);
-
     }
 
     fila.find('input:not([data-id])').attr('disabled',true);
@@ -727,16 +730,28 @@ function setearRelevamiento(data){
   $('#btn-finalizar').click(function(){
     let err = validarFormulario(data.casino.id_casino);
     if(err.errores){
-      console.log(err.mensaje);
+      console.log(err.mensajes);
+      mensajeError(err.mensajes);
       return;
     }
     enviarFormularioCarga(
       data.casino.id_casino,
       data.relevamiento.id_relevamiento_progresivo,
-      data.relevamiento.nro_relevamiento_progresivo,
+      data.relevamiento.subrelevamiento,
     );
   })
 
+}
+
+function mensajeError(errores){
+  $('#mensajeError .textoMensaje').empty();
+  for(let i=0;i<errores.length;i++){
+    $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
+  }
+  $('#mensajeError').hide();
+  setTimeout(function(){
+      $('#mensajeError').show();
+  },250);
 }
 
 function obtenerIdFiscalizador(id_casino,str){
@@ -748,21 +763,20 @@ function obtenerIdFiscalizador(id_casino,str){
 function enviarFormularioCarga(
   id_casino,
   id_relevamiento,
-  nro_relevamiento){
+  subrelevamiento){
 
   let url = "relevamientoProgresivo/cargarRelevamiento";
 
   let formData = {
     id_casino : id_casino,
     id_relevamiento_progresivo : id_relevamiento,
-    nro_relevamiento : nro_relevamiento,
+    subrelevamiento : subrelevamiento,
     fiscalizador : obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
     detalles : [],
     fecha_ejecucion : $('#fecha').val()
   };
 
   let filas = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo');
-
 
   for(let i = 0;i<filas.length;i++){
     let fila = $(filas[i]);
@@ -814,18 +828,18 @@ function enviarFormularioCarga(
 function validarFormulario(id_casino){
 
   let errores = false;
-  let mensaje = "";
+  let mensajes = [];
   let fisca = $('#inputFisca').val();
   if(fisca == ""
   || obtenerIdFiscalizador(id_casino,fisca) === null){
     errores = true;
-    mensaje = mensaje + "\n" + "Ingrese un fiscalizador";
+    mensajes.push("Ingrese un fiscalizador");
   }
 
   let fecha = $('#fecha').val();
   if(fecha == ""){
     errores = true;
-    mensaje = mensaje + "\n" + "Ingrese una fecha de ejecución";
+    mensajes.push("Ingrese una fecha de ejecución");
   }
 
   let filas = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr')
@@ -835,11 +849,11 @@ function validarFormulario(id_casino){
     let input = $(inputs[i]);
     if(input.val()==""){
       errores = true;
-      mensaje = mensaje + "\n" + "Tiene al menos un nivel sin ingresar";
+      mensajes.push("Tiene al menos un nivel sin ingresar");
       break;
     }
   }
-  return {errores: errores, mensaje: mensaje};
+  return {errores: errores, mensajes: mensajes};
 }
 
 //Opacidad del modal al minimizar
