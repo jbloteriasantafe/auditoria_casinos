@@ -6,6 +6,10 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\UsuarioController;
+$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
+$puede_validar = $user->es_administrador || $user->es_superusuario;
 ?>
 
 @section('estilos')
@@ -129,12 +133,16 @@ use Illuminate\Http\Request;
                                 <button class="btn btn-info planilla" type="button">
                                   <i class="far  fa-fw fa-file-alt"></i></button>
                                 <span></span>
+                                @if($puede_fiscalizar)
                                 <button class="btn btn-warning carga" type="button">
                                   <i class="fa fa-fw fa-upload"></i></button>
                                 <span></span>
+                                @endif
+                                @if($puede_validar)
                                 <button class="btn btn-success validar" type="button">
                                   <i class="fa fa-fw fa-check"></i></button>
                                 <span></span>
+                                @endif
                                 <button class="btn btn-info imprimir" type="button">
                                   <i class="fa fa-fw fa-print"></i></button>
                               </td>

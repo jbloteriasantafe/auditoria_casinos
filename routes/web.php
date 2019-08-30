@@ -402,13 +402,16 @@ Route::get('obtenerFechaActual',function(){
 /**************
 RELEVAMIENTO PROGRESIVO
 **************/
-Route::get('relevamientosProgresivo','RelevamientoProgresivoController@buscarTodo'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::get('relevamientosProgresivo/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::post('relevamientosProgresivo/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
-Route::post('relevamientosProgresivo/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
-Route::post('relevamientosProgresivo/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
-Route::get('relevamientosProgresivo/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
-Route::get('relevamientosProgresivo/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','RelevamientoProgresivoController@buscarTodo'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
+  Route::get('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
+  Route::post('/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
+  Route::post('/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
+  Route::post('/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
+  Route::get('/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
+  Route::get('/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+});
+
 /*******************
   Máquinas a pedir
 ********************/

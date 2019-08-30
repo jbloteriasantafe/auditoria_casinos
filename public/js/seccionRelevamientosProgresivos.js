@@ -107,36 +107,6 @@ $('#btn-salir').click(function(){
   }
 });
 
-//VALIDAR EL RELEVAMIENTO
-$(document).on('click','.validar',function(e){
-
-  e.preventDefault();
-
-  var id_relevamiento = $(this).val();
-
-  $('#id_relevamiento').val(id_relevamiento);
-
-  $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
-
-      $('#modalValidarRelevamientoProgresivos').modal('show');
-
-      $('#validacionFechaActual').val(data.relevamiento.fecha);
-      $('#validacionCasino').val(data.casino.nombre);
-      $('#validacionSector').val(data.sector);
-      $('#validacionTecnico').val(data.relevamiento.tecnico);
-      $('#validacionFechaEjecucion').val(data.relevamiento.fecha_ejecucion);
-      $('#validacionInputFisca').val(data.usuario_fiscalizador.nombre);
-      $('#validacionFiscaCarga').val(data.usuario_cargador.nombre);
-      $('#validacionFechaGeneracion').val(data.relevamiento.fecha_generacion);
-
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarRenglon(data.detalles[i],$('#validacion_contenedor_progresivos'));
-      }
-
-
-  });
-
-})
 
 function filaEjemploCarga(){
     return $('#modalCargaRelevamientoProgresivos .filaEjemplo')
@@ -303,22 +273,6 @@ $('#btn-generar').click(function(e){
 });
 
 var guardado;
-
-$('#modalCargaRelevamientoProgresivos').on('change', "input", function(){
-  habilitarBotonGuardar();
-});
-
-$(document).on('change','.tipo_causa_no_toma',function(){
-    //Si se elige algun tipo de no toma se vacian las cargas de contadores
-    $(this).parent().parent().find('td').children('.contador').val('');
-    //Se cambia el icono de diferencia
-    $(this).parent().parent().find('td').find('i.fa-question').hide();
-    $(this).parent().parent().find('td').find('i.fa-times').show();
-    $(this).parent().parent().find('td').find('i.fa-check').hide();
-    $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
-
-    habilitarBotonGuardar();
-});
 
 //SALIR DEL RELEVAMIENTO
 var salida; //cantidad de veces que se apreta salir
@@ -620,30 +574,11 @@ function generarFilaTabla(relevamiento){
     let validacion = fila.find('.validar');
     let imprimir = fila.find('.imprimir');
 
-    //Se setea el display como table-row por algun motivo :/
-    //Lo saco a pata.
-    fila.css('display','');
-    //Qué ESTADO e ICONOS mostrar
-    switch (relevamiento.estado) {
-      case 'Generado':
-          fila.find('.fa-dot-circle').addClass('faGenerado');
-          break;
-      case 'Cargando':
-          fila.find('.fa-dot-circle').addClass('faCargando');
-          break;
-      case 'Finalizado':
-          fila.find('.fa-dot-circle').addClass('faFinalizado');
-          break;
-      case 'Validado':
-          fila.find('.fa-dot-circle').addClass('faValidado');
-          break;
-    }
-
-    planilla.click(function(){
+    let planillaCallback = function (){
       window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(),'_blank');
-    });
+    };
 
-    carga.click(function(e){
+    let cargaCallback = function (e){
       e.preventDefault();
 
       salida = 0;//ocultar mensaje de salida
@@ -657,9 +592,60 @@ function generarFilaTabla(relevamiento){
 
       $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, setearRelevamiento);
       $('#modalCargaRelevamientoProgresivos').modal('show');
-    });
+    };
 
+    let validacionCallback = function (e){
+        e.preventDefault();
 
+        var id_relevamiento = $(this).val();
+        $('#id_relevamiento').val(id_relevamiento);
+
+        salida = 0;//ocultar mensaje de salida
+        guardado = true;
+
+        $('#modalCargaRelevamientoProgresivos .mensajeSalida').hide();
+        var id_relevamiento = $(this).val();
+        $('#id_relevamiento').val(id_relevamiento);
+        $('#btn-guardar').hide();
+        $('#btn-finalizar').hide();
+
+        //$.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, setearRelevamiento);
+        $('#modalValidarRelevamientoProgresivos').modal('show');
+    };
+
+    let imprimirCallback = function(){};
+
+    //Se setea el display como table-row por algun motivo :/
+    //Lo saco a pata.
+    fila.css('display','');
+    //Qué ESTADO e ICONOS mostrar
+    switch (relevamiento.estado) {
+      case 'Generado':
+          fila.find('.fa-dot-circle').addClass('faGenerado');
+          carga.click(cargaCallback);
+          validacion.remove();
+          imprimir.remove();
+          break;
+      case 'Cargando':
+          fila.find('.fa-dot-circle').addClass('faCargando');
+          carga.click(cargaCallback);
+          validacion.remove();
+          imprimir.remove();
+          break;
+      case 'Finalizado':
+          fila.find('.fa-dot-circle').addClass('faFinalizado');
+          validacion.click(validacionCallback);
+          carga.remove();
+          imprimir.remove();
+          break;
+      case 'Validado':
+          fila.find('.fa-dot-circle').addClass('faValidado');
+          carga.remove();
+          validacion.remove();
+          break;
+    }
+
+    planilla.click(planillaCallback);
 
     return fila;
 }
@@ -826,7 +812,6 @@ function enviarFormularioCarga(
 }
 
 function validarFormulario(id_casino){
-
   let errores = false;
   let mensajes = [];
   let fisca = $('#inputFisca').val();
