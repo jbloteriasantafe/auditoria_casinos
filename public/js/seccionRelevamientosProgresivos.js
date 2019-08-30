@@ -93,11 +93,11 @@ $('#btn-nuevo').click(function(e){
 });
 
 function filaEjemploCarga(){
-    return $('#modalCargaRelevamientoProgresivos .filaEjemplo').not('.validacion')
+    return $('#modalRelevamientoProgresivos .filaEjemplo').not('.validacion')
     .clone().removeClass('filaEjemplo').show().css('display','');
 }
 function filaEjemploValidacion(){
-    return $('#modalCargaRelevamientoProgresivos .filaEjemplo.validacion')
+    return $('#modalRelevamientoProgresivos .filaEjemplo.validacion')
     .clone().removeClass('filaEjemplo').removeClass('validacion').show().css('display','');
 }
 
@@ -119,7 +119,7 @@ function agregarRenglon(detalle, contenedor){
     contenedor.append($('<br>'));
 }
 
-$('#modalCargaRelevamientoProgresivos').on('hidden.bs.modal', function() {
+$('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('.form-control'));//oculto todos los errores
   $('#contenedor_progresivos').empty();
   $('#cargaFechaActual').val('');
@@ -438,15 +438,16 @@ function generarFilaTabla(relevamiento){
     let cargaCallback = function (e){
       e.preventDefault();
 
-      $('#modalCargaRelevamientoProgresivos .mensajeSalida').hide();
+      $('#modalRelevamientoProgresivos .mensajeSalida').hide();
       var id_relevamiento = $(this).val();
       $('#id_relevamiento').val(id_relevamiento);
-      $('#btn-guardar').hide();
-      $('#btn-finalizar').hide();
 
-      $('#modalCargaRelevamientoProgresivos')
+      $('#btn-guardar').show();
+      $('#btn-finalizar').show().text("CARGAR").off();
+
+      $('#modalRelevamientoProgresivos')
       .find('.modal-header').attr("font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
-      $('#modalCargaRelevamientoProgresivos').
+      $('#modalRelevamientoProgresivos').
       find('.modal-title').text('| CARGAR RELEVAMIENTO DE PROGRESIVOS');
 
       $('#inputFisca').attr('disabled',false);
@@ -455,7 +456,6 @@ function generarFilaTabla(relevamiento){
       $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
         setearRelevamiento(data,obtenerFila);
 
-        $('#btn-finalizar').show().text("CARGAR").off();
         $('#btn-finalizar').click(function(){
           let err = validarFormulario(data.casino.id_casino);
           if(err.errores){
@@ -474,7 +474,7 @@ function generarFilaTabla(relevamiento){
 
       $('#observacion_carga').removeAttr('disabled');
       $('#observacion_validacion').parent().hide();
-      $('#modalCargaRelevamientoProgresivos').modal('show');
+      $('#modalRelevamientoProgresivos').modal('show');
     };
 
     let validacionCallback = function (e){
@@ -483,15 +483,15 @@ function generarFilaTabla(relevamiento){
         var id_relevamiento = $(this).val();
         $('#id_relevamiento').val(id_relevamiento);
 
-        $('#modalCargaRelevamientoProgresivos .mensajeSalida').hide();
+        $('#modalRelevamientoProgresivos .mensajeSalida').hide();
         var id_relevamiento = $(this).val();
         $('#id_relevamiento').val(id_relevamiento);
         $('#btn-guardar').hide();
-        $('#btn-finalizar').hide();
+        $('#btn-finalizar').show().text("VISAR").off();
 
-        $('#modalCargaRelevamientoProgresivos')
+        $('#modalRelevamientoProgresivos')
         .find('.modal-header').attr('style',"font-family:'Roboto-Black';color:white;background-color:#69F0AE;");
-        $('#modalCargaRelevamientoProgresivos').
+        $('#modalRelevamientoProgresivos').
         find('.modal-title').text('| VALIDAR RELEVAMIENTO DE PROGRESIVOS');
 
         $('#inputFisca').attr('disabled',true);
@@ -500,7 +500,6 @@ function generarFilaTabla(relevamiento){
         $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
           setearRelevamiento(data,obtenerFilaValidacion);
 
-          $('#btn-finalizar').show().text("VISAR").off();
           $('#btn-finalizar').click(function(){
             enviarFormularioValidacion(
                         data.casino.id_casino,
@@ -511,7 +510,7 @@ function generarFilaTabla(relevamiento){
 
         $('#observacion_carga').attr('disabled',true);
         $('#observacion_validacion').parent().show();
-        $('#modalCargaRelevamientoProgresivos').modal('show');
+        $('#modalRelevamientoProgresivos').modal('show');
     };
 
     let imprimirCallback = function(){};
@@ -553,7 +552,7 @@ function generarFilaTabla(relevamiento){
 }
 
 $('#btn-salir').click(function(){
-  $('#modalCargaRelevamientoProgresivos').modal('hide');
+  $('#modalRelevamientoProgresivos').modal('hide');
 });
 
 function obtenerFila(detalle){
@@ -636,9 +635,9 @@ function obtenerFilaValidacion(detalle){
 
 function setearRelevamiento(data,filaCallback){
   //Limpio los campos
-  $('#modalCargaRelevamientoProgresivos input').val('');
-  $('#modalCargaRelevamientoProgresivos select').val(-1);
-  $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo').remove();
+  $('#modalRelevamientoProgresivos input').val('');
+  $('#modalRelevamientoProgresivos select').val(-1);
+  $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo').remove();
 
   $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
 
@@ -647,9 +646,9 @@ function setearRelevamiento(data,filaCallback){
   $('#cargaSector').val(data.sector.descripcion);
 
   if(data.usuario_cargador != null)
-    $('#inputFisca').val(data.usuario_cargador.nombre);
+    $('#usuario_cargador').val(data.usuario_cargador.nombre);
   if(data.usuario_fiscalizador != null)
-    $('#fiscaCarga').val(data.usuario_fiscalizador.nombre);
+    $('#usuario_fiscalizador').val(data.usuario_fiscalizador.nombre);
 
   if(data.relevamiento.subrelevamiento != null){
     $('#cargaSubrelevamiento').val(data.relevamiento.subrelevamiento);
@@ -665,7 +664,7 @@ function setearRelevamiento(data,filaCallback){
     $('#observacion_validacion').val(data.relevamiento.observacion_validacion);
   }
 
-  let tabla = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos');
+  let tabla = $('#modalRelevamientoProgresivos .cuerpoTablaPozos');
   for (let i = 0; i < data.detalles.length; i++) {
     tabla.append(filaCallback(data.detalles[i]));
   }
@@ -705,7 +704,7 @@ function enviarFormularioCarga(
     detalles : []
   };
 
-  let filas = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo');
+  let filas = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo');
 
   for(let i = 0;i<filas.length;i++){
     let fila = $(filas[i]);
@@ -801,7 +800,7 @@ function validarFormulario(id_casino){
     mensajes.push("Ingrese una fecha de ejecución");
   }
 
-  let filas = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr')
+  let filas = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr')
   .not('.filaEjemplo');
   let inputs = filas.find('input:not([disabled])');
   for(let i = 0;i<inputs.length;i++){
