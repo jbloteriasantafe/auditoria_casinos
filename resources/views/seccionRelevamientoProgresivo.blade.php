@@ -458,6 +458,24 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
                                   </select>
                                 </td>
                               </tr>
+                              <tr class="filaEjemplo validacion" style="display: none">
+                                <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
+                                <td class="col-xs-2 nombrePozo">POZO99</td>
+                                <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
+                                @for ($i=1;$i<=6;$i++)
+                                <td class="col-xs-1">
+                                  <input disabled="disabled" class="nivel{{$i}} form-control" type="number" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                                </td>
+                                @endfor
+                                <td class="col-xs-1">
+                                  <select disabled="disabled" class="causaNoToma form-control">
+                                    <option value="-1"></option>
+                                    @foreach($causasNoToma as $causa)
+                                    <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
+                                    @endforeach
+                                  </select>
+                                </td>
+                              </tr>
                             </tbody>
                           </table>
                           <br>
@@ -467,98 +485,17 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
                                 <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
                               </div>
                           </div>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
-                  <button type="button" class="btn btn-default" id="btn-salir">SALIR</button>
-                </div>
-              </div>
-            </div>
-          </div>
-    </div>
-
-    <!-- Modal validar layout -->
-    <div class="modal fade" id="modalValidarRelevamientoProgresivos" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:95%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;">
-                 <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargarValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title">| VALIDAR RELEVAMIENTO DE PROGRESIVOS </h3>
-                </div>
-
-                <div  id="colapsadoCargarValidar" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-                          <div class="row">
-                            <div class="col-lg-2 col-lg-offset-1">
-                              <h5>FECHA DE CONTROL LAYOUT</h5>
-                              <input id="validacionFechaActual" type='text' class="form-control" readonly>
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>FECHA DE GENERACIÓN</h5>
-                              <input id="validacionFechaGeneracion" type='text' class="form-control" readonly>
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>CASINO</h5>
-                              <input id="validacionCasino" type='text' class="form-control" readonly>
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>SECTOR</h5>
-                              <input id="validacionSector" type='text' class="form-control" readonly>
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>SUB RELEVAMIENTO</h5>
-                              <input id="validacionSubrelevamiento" type='text' class="form-control" readonly>
-                            </div>
-                          </div>
-
-                          <div class="row">
-                            <div class="col-md-2 col-md-offset-1">
-                                <h5>FISCALIZADOR CARGA</h5>
-                                <input id="validacionFiscaCarga" type="text"class="form-control" readonly>
-                            </div>
-                            <div class="col-md-2">
-                                <h5>FISCALIZADOR TOMA</h5>
-                                <input id="validacionInputFisca" class="form-control" type="text" autocomplete="off">
-                            </div>
-                            <div class="col-md-2">
-                                <h5>TÉCNICO</h5>
-                                <input id="validacionTecnico"  type="text"class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <h5>FECHA EJECUCIÓN</h5>
-                                <input id="validacionFechaEjecucion" type="text"class="form-control" readonly>
-                            </div>
-                          </div>
-
-                          <br><br>
-
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <p style="font-family:'Roboto-Regular';font-size:16px;margin-left:20px;">
-                                     <i class="fa fa-fw fa-exclamation" style="color:#2196F3"></i> Haga doble click sobre los campos para entrar y salir del modo edición.
-                                  </p>
-                              </div>
-                          </div>
-                          <div class="row">
-                            <div id="validacion_contenedor_progresivos" class="col-md-12">
-
-                            </div>
-                          </div>
-                          <br>
                           <div class="row">
                               <div class="col-md-8 col-md-offset-2">
-                                <h5>OBSERVACIONES</h5>
+                                <h5>OBSERVACIONES AL VISAR</h5>
                                 <textarea id="observacion_validacion" class="form-control" style="resize:vertical;"></textarea>
                               </div>
                           </div>
 
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-finalizarValidacion" value="nuevo">FINALIZAR RELEVAMIENTO</button>
-                  <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_layout_parcial" value="0">
+                  <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
+                  <button type="button" class="btn btn-default" id="btn-salir">SALIR</button>
                 </div>
               </div>
             </div>
