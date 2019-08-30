@@ -101,24 +101,6 @@ function filaEjemploValidacion(){
     .clone().removeClass('filaEjemplo').removeClass('validacion').show().css('display','');
 }
 
-function agregarRenglon(detalle, contenedor){
-    console.log(detalle.nombre_nivel ,detalle.base);
-    var clonado = $('#clonar').clone();
-    clonado.show();
-    clonado.attr('id' , detalle.id_detalle_relevamiento_progresivo);
-    clonado.addClass('clonado');
-    clonado.find('.nro_isla').val(detalle.nro_isla);
-    clonado.find('.nombre_nivel').val(detalle.nombre_nivel);
-    clonado.find('.nombre_progresivo').val(detalle.nombre_progresivo);
-    clonado.find('.base').val(detalle.base);
-    if (detalle.valor != null){
-      clonado.find('.actual').val(detalle.valor);
-      clonado.find('.actual').prop('readonly',true);
-    }
-    contenedor.append(clonado);
-    contenedor.append($('<br>'));
-}
-
 $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('.form-control'));//oculto todos los errores
   $('#contenedor_progresivos').empty();
@@ -868,3 +850,7 @@ $('#btn-minimizarSinSistema').click(function(){
     $(this).data("minimizar",true);
   }
 });
+
+$('.cabeceraTablaPozos th').click(function(){
+  console.log($(this).attr('data-id'));
+})
