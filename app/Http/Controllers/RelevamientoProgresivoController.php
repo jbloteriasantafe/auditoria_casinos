@@ -271,31 +271,6 @@ class RelevamientoProgresivoController extends Controller
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo;
 
-      /* codigo viejo!
-      foreach ($pozo->maquinas as $maq) {
-        $id_maquinas_pozo[] = $maq->id_maquina;
-      }
-      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')->whereIn('id_maquina' , $id_maquinas_pozo)->get();
-      $i = 0;
-      foreach ($resultados as $resultado) {
-        if($i == 0){
-          $nro_isla = $resultado->nro_isla;
-        }else{
-          $nro_isla = $nro_isla . '/' . $resultado->nro_isla;
-        }
-        $i++;
-      }
-      foreach ($pozo->niveles_progresivo as $nivel){
-         $unNivel = new \stdClass;
-         $unNivel->nro_isla = $nro_isla;
-         $unNivel->nombre_progresivo = $detalle_relevamiento->progresivo->nombre_progresivo;
-         $unNivel->base = $nivel->pivot->base;
-         $unNivel->nombre_nivel =$nivel->nombre_nivel;
-         $unNivel->nro_nivel = $nivel->nro_nivel;
-         $detalles[] = $unNivel;
-      }
-      */
-
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
         $x=0;
         $nro_maquinas = "";
@@ -355,21 +330,43 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function cargarRelevamiento(Request $request){
+
     Validator::make($request->all(),[
         'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
+
         'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
-        'fecha_ejecucion' => 'required|date',
+        //'id_usuario_cargador' => 'required|exists:usuario,id_usuario',
+        'fiscalizador' => 'exists:usuario,id_usuario',
+        'fecha_ejecucion' => 'required',
         'observacion' => 'nullable',
-        'id_relevamiento_progresivo' => 'nullable|numeric',
         'detalles.*' => 'nullable',
         'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
-        'detalles.*.valor' => 'required|numeric',
+        //'detalles.*.valor' => 'required|numeric',
+
     ], array(), self::$atributos)->after(function($validator){
       $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
+      $controller = UsuarioController::getInstancia();
+
       if($relevamiento->id_estado_relevamiento != 1){
         $validator->errors()->add('error_estado_relevamiento','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
       }
+      /*
+      if($validator->getData()['fecha_ejecucion'] < $relevamiento->fecha_generacion){
+        $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
+      }
+      if($controller->usuarioTieneCasino($validator->getData()['id_usuario_cargador']) == -1) {
+          $validator->errors()->add('error_usuario_tiene_casino','El fiscalizador cargador no tiene el casino correcto asociado');
+      }
+      */
+
     })->validate();
+
+
+    $data = $request->all();
+    dump($request->fecha_ejecucion);
+    die();
+
+
     $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
     $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
     $rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
@@ -377,11 +374,14 @@ class RelevamientoProgresivoController extends Controller
     $rel->estado_relevamiento()->associate(3); // id_estado finalizado
     $rel->observacion_carga = $request->observacion;
     $rel->save();
+
+
     foreach($request->detalles as $detalle) {
       $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
       $unDetalle->valor_actual = $detalle['valor'];
       $unDetalle->save();
     }
+
     return ['codigo' => 200];
   }
 

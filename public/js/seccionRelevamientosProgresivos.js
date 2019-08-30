@@ -604,6 +604,7 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function generarFilaTabla(relevamiento){
+
     var subrelevamiento;
     relevamiento.sub_control != null ? subrelevamiento = relevamiento.sub_control : subrelevamiento = '';
     let fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
@@ -676,6 +677,7 @@ function setearRelevamiento(data){
   $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
   $('#cargaCasino').val(data.casino.nombre);
   $('#cargaSector').val(data.sector.descripcion);
+  $('#fiscaCarga').val(data.relevamiento.id_usuario_fiscalizador);
 
   if(data.usuario_cargador != null)
     $('#fiscaCarga').val(data.usuario_cargador.nombre);
@@ -728,16 +730,20 @@ function setearRelevamiento(data){
 
   $('#btn-finalizar').show().text("CARGAR").off();
   $('#btn-finalizar').click(function(){
+
+
     let err = validarFormulario(data.casino.id_casino);
     if(err.errores){
       console.log(err.mensajes);
       mensajeError(err.mensajes);
       return;
     }
+
     enviarFormularioCarga(
       data.casino.id_casino,
       data.relevamiento.id_relevamiento_progresivo,
       data.relevamiento.subrelevamiento,
+      data.relevamiento.id_usuario_fiscalizador,
     );
   })
 
@@ -763,15 +769,17 @@ function obtenerIdFiscalizador(id_casino,str){
 function enviarFormularioCarga(
   id_casino,
   id_relevamiento,
-  subrelevamiento){
+  subrelevamiento,
+  id_usuario_fiscalizador){
 
-  let url = "relevamientoProgresivo/cargarRelevamiento";
+  let url = "relevamientosProgresivo/cargarRelevamiento";
 
   let formData = {
     id_casino : id_casino,
     id_relevamiento_progresivo : id_relevamiento,
     subrelevamiento : subrelevamiento,
-    fiscalizador : obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
+    fiscalizador: obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
+    id_usuario_fiscalizador : id_usuario_fiscalizador,
     detalles : [],
     fecha_ejecucion : $('#fecha').val()
   };

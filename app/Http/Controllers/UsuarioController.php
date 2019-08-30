@@ -597,4 +597,22 @@ class UsuarioController extends Controller
     return null;
   }
 
+  public function usuarioTieneCasino ($id_usuario) {
+    $casinos = DB::table('usuario_tiene_casino')    ->select('id_casino')
+                                                    ->where('usuario_tiene_casino.id_usuario','=',$id_usuario)
+                                                    ->get();
+    $casinos_array = $casinos->toArray();
+    $ret = array();
+    foreach ($casinos_array as $cas) {
+      $ret[] = $cas->id_casino;
+    }
+
+    if(count($ret) > 0) {
+      return $ret;
+    }
+    else {
+      return -1;
+    }
+  }
+
 }
