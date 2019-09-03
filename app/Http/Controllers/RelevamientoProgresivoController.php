@@ -387,13 +387,14 @@ class RelevamientoProgresivoController extends Controller
 
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
-        'id_relevamiento' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
+        'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
         'observacion_validacion' => 'required',
     ], array(), self::$atributos)->after(function($validator){
-      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento']);
+      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
       if($relevamiento->id_estado_relevamiento != 3){
-        $validator->errors()->add('estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
-      }
+        $validator->errors()->add('error_estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
+      };
+      /* no hace falta creo, si se habilita el modal de visar relevamiento es porque ya se cargaron todos sus niveles
       $bandera = true;
       foreach ($relevamiento->detalles as $detalle) {
         if($detalle->valor_actual == null){
@@ -403,9 +404,10 @@ class RelevamientoProgresivoController extends Controller
       if(!$bandera){
         $validator->errors()->add('relevamiento_incompleta','No se han relevado todos los niveles de progresivo.');
       }
+      */
     })->validate();
 
-    $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento);
+    $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
     $relevamiento->observacion_validacion = $request->observacion_validacion;
     $relevamiento->estado_relevamiento()->associate(4);
     $relevamiento->save();

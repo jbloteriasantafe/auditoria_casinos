@@ -649,6 +649,7 @@ function setearRelevamiento(data,filaCallback){
   $('#cargaCasino').val(data.casino.nombre);
   $('#cargaSector').val(data.sector.descripcion);
   $('#fiscaCarga').val(data.relevamiento.id_usuario_fiscalizador);
+  $('#fecha').val(data.relevamiento.fecha_ejecucion);
 
   if(data.usuario_cargador != null)
     $('#inputFisca').val(data.usuario_cargador.nombre);
@@ -753,7 +754,9 @@ function enviarFormularioCarga(
       url: url,
       data: formData,
       dataType: 'json',
-      success: function (data) {console.log(data);},
+      success: function (data) {
+                                console.log(data);
+                                $('#modalCargaRelevamientoProgresivos').modal('hide');},
       error: function (data){console.log(data);}
   });
 
@@ -764,13 +767,13 @@ function enviarFormularioValidacion(
   id_relevamiento,
   subrelevamiento){
 
-  let url = "relevamientoProgresivo/validarRelevamiento";
+  let url = "relevamientosProgresivo/validarRelevamiento";
 
   let formData = {
     id_casino : id_casino,
     id_relevamiento_progresivo : id_relevamiento,
     subrelevamiento : subrelevamiento,
-    observaciones : $('#observacion_validacion').val()
+    observacion_validacion : $('#observacion_validacion').val()
   };
 
   $.ajaxSetup({
@@ -784,7 +787,9 @@ function enviarFormularioValidacion(
       url: url,
       data: formData,
       dataType: 'json',
-      success: function (data) {console.log(data);},
+      success: function (data) {
+                                console.log(data);
+                                $('#modalCargaRelevamientoProgresivos').modal('hide');},
       error: function (data){console.log(data);}
   });
 
