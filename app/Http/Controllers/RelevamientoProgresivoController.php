@@ -321,7 +321,7 @@ class RelevamientoProgresivoController extends Controller
 
 
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
-    $view = View::make('planillaRelevamientoProgresivoEdit', compact('detalles','relevamiento_progresivo'));
+    $view = View::make('planillaRelevamientosProgresivo', compact('detalles','relevamiento_progresivo'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());

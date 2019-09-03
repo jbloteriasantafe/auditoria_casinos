@@ -542,7 +542,7 @@ function generarFilaTabla(relevamiento){
           carga.remove();
           imprimir.remove();
           break;
-      case 'Validado':
+      case 'Visado':
           fila.find('.fa-dot-circle').addClass('faValidado');
           carga.remove();
           validacion.remove();
