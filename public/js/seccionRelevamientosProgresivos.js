@@ -458,12 +458,14 @@ function generarFilaTabla(relevamiento){
 
         $('#btn-finalizar').show().text("CARGAR").off();
         $('#btn-finalizar').click(function(){
+
           let err = validarFormulario(data.casino.id_casino);
           if(err.errores){
             console.log(err.mensajes);
             mensajeError(err.mensajes);
             return;
           }
+
           enviarFormularioCarga(
             data.casino.id_casino,
             data.relevamiento.id_relevamiento_progresivo,
@@ -671,29 +673,6 @@ function setearRelevamiento(data,filaCallback){
   for (let i = 0; i < data.detalles.length; i++) {
     tabla.append(filaCallback(data.detalles[i]));
   }
-<<<<<<< HEAD
-
-  $('#btn-finalizar').show().text("CARGAR").off();
-  $('#btn-finalizar').click(function(){
-
-
-    let err = validarFormulario(data.casino.id_casino);
-    if(err.errores){
-      console.log(err.mensajes);
-      mensajeError(err.mensajes);
-      return;
-    }
-
-    enviarFormularioCarga(
-      data.casino.id_casino,
-      data.relevamiento.id_relevamiento_progresivo,
-      data.relevamiento.subrelevamiento,
-      data.relevamiento.id_usuario_fiscalizador,
-    );
-  })
-
-=======
->>>>>>> ea6fc10c65c9724d2d0cdf2a479d5a3b0649b0f5
 }
 
 function mensajeError(errores){
@@ -725,17 +704,10 @@ function enviarFormularioCarga(
     id_casino : id_casino,
     id_relevamiento_progresivo : id_relevamiento,
     subrelevamiento : subrelevamiento,
-<<<<<<< HEAD
-    fiscalizador: obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
-    id_usuario_fiscalizador : id_usuario_fiscalizador,
-    detalles : [],
-    fecha_ejecucion : $('#fecha').val()
-=======
     fecha_ejecucion : $('#fecha').val(),
     id_usuario_fiscalizador : obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
     observaciones : $('#observacion_carga').val(),
     detalles : []
->>>>>>> ea6fc10c65c9724d2d0cdf2a479d5a3b0649b0f5
   };
 
   let filas = $('#modalCargaRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo');

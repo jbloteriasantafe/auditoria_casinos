@@ -597,22 +597,37 @@ class UsuarioController extends Controller
     return null;
   }
 
-  public function usuarioTieneCasino ($id_usuario) {
+  public function usuarioTieneCasinoCorrespondiente ($id_usuario, $id_casino) {
     $casinos = DB::table('usuario_tiene_casino')    ->select('id_casino')
                                                     ->where('usuario_tiene_casino.id_usuario','=',$id_usuario)
                                                     ->get();
+
     $casinos_array = $casinos->toArray();
-    $ret = array();
-    foreach ($casinos_array as $cas) {
-      $ret[] = $cas->id_casino;
+
+    foreach ($casinos_array as $casino) {
+        if ($casino->id_casino == $id_casino) {
+          return true;
+        }
     }
 
-    if(count($ret) > 0) {
-      return $ret;
+    return false;
+  }
+
+  public function usuarioEsFiscalizador ($id_usuario) {
+    $roles = DB::table('usuario_tiene_rol') ->select('id_rol')
+                                            ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+                                            ->get();
+
+
+    $roles_array = $roles->toArray();
+
+    foreach ($roles_array as $rol) {
+        if ($rol->id_rol == 3) {
+          return true;
+        }
     }
-    else {
-      return -1;
-    }
+
+    return false;
   }
 
 }
