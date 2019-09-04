@@ -427,10 +427,10 @@ function generarFilaTabla(relevamiento){
     fila.find('.subcontrol').text(subrelevamiento);
     fila.find('.textoEstado').text(relevamiento.estado);
     fila.find('button').each(function(idx,c){$(c).val(relevamiento.id_relevamiento_progresivo);});
-    let planilla = fila.find('.planilla');
-    let carga = fila.find('.carga');
-    let validacion = fila.find('.validar');
-    let imprimir = fila.find('.imprimir');
+    let planilla = fila.find('.planilla').attr({'data-toggle':'tooltip','data-placement':'top','title':'VER PLANILLA','data-delay':'{"show":"300", "hide":"100"}'});
+    let carga = fila.find('.carga').attr({'data-toggle':'tooltip','data-placement':'top','title':'CARGAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'});
+    let validacion = fila.find('.validar').attr({'data-toggle':'tooltip','data-placement':'top','title':'VISAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'});
+    let imprimir = fila.find('.imprimir').attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'});
 
     let planillaCallback = function (){
       window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(),'_blank');
@@ -517,7 +517,9 @@ function generarFilaTabla(relevamiento){
         $('#modalCargaRelevamientoProgresivos').modal('show');
     };
 
-    let imprimirCallback = function(){};
+    let imprimirCallback = function(){
+      window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(),'_blank');
+    };
 
     //Se setea el display como table-row por algun motivo :/
     //Lo saco a pata.
@@ -540,17 +542,18 @@ function generarFilaTabla(relevamiento){
           fila.find('.fa-dot-circle').addClass('faFinalizado');
           validacion.click(validacionCallback);
           carga.remove();
-          imprimir.remove();
+          planilla.remove();
           break;
       case 'Visado':
           fila.find('.fa-dot-circle').addClass('faValidado');
+          planilla.remove();
           carga.remove();
           validacion.remove();
           break;
     }
 
     planilla.click(planillaCallback);
-
+    imprimir.click(imprimirCallback);
 
     return fila;
 }

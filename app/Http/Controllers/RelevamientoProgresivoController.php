@@ -33,6 +33,7 @@ use App\TipoCausaNoTomaProgresivo;
 
 class RelevamientoProgresivoController extends Controller
 {
+  //Parámetro para no mostrar niveles inferiores al valor del mismo
   public static $param_niveles_pozo = 100;
 
   private static $atributos = [
@@ -302,6 +303,13 @@ class RelevamientoProgresivoController extends Controller
           $i++;
         }
 
+        if($detalle_relevamiento->id_tipo_causa_no_toma_progresivo != NULL) {
+          $causa_no_toma_progresivo = TipoCausaNoTomaProgresivo::find($detalle_relevamiento->id_tipo_causa_no_toma_progresivo)->descripcion;
+        }
+        else {
+          $causa_no_toma_progresivo = -1;
+        }
+
         $detalle = array(
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
@@ -312,7 +320,8 @@ class RelevamientoProgresivoController extends Controller
         'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
         'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
         'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
-        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', '')
+        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'causa_no_toma_progresivo' => $causa_no_toma_progresivo
         );
 
         $detalles[] = $detalle;
