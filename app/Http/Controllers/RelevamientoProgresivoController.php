@@ -33,6 +33,7 @@ use App\TipoCausaNoTomaProgresivo;
 
 class RelevamientoProgresivoController extends Controller
 {
+  //Parámetro para no mostrar niveles inferiores al valor del mismo
   public static $param_niveles_pozo = 100;
 
   private static $atributos = [
@@ -234,7 +235,7 @@ class RelevamientoProgresivoController extends Controller
        $relevamiento_progresivo->fecha_generacion = $fecha_hoy;
        $relevamiento_progresivo->id_sector = $request->id_sector;
        $relevamiento_progresivo->id_estado_relevamiento = 1;
-       $relevamiento_progresivo->id_usuario_fiscalizador = $fiscalizador->id_usuario;
+       $relevamiento_progresivo->id_usuario_cargador = $fiscalizador->id_usuario;
        $relevamiento_progresivo->backup = 0;
        $relevamiento_progresivo->save();
 
@@ -271,31 +272,6 @@ class RelevamientoProgresivoController extends Controller
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo;
 
-      /* codigo viejo!
-      foreach ($pozo->maquinas as $maq) {
-        $id_maquinas_pozo[] = $maq->id_maquina;
-      }
-      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')->whereIn('id_maquina' , $id_maquinas_pozo)->get();
-      $i = 0;
-      foreach ($resultados as $resultado) {
-        if($i == 0){
-          $nro_isla = $resultado->nro_isla;
-        }else{
-          $nro_isla = $nro_isla . '/' . $resultado->nro_isla;
-        }
-        $i++;
-      }
-      foreach ($pozo->niveles_progresivo as $nivel){
-         $unNivel = new \stdClass;
-         $unNivel->nro_isla = $nro_isla;
-         $unNivel->nombre_progresivo = $detalle_relevamiento->progresivo->nombre_progresivo;
-         $unNivel->base = $nivel->pivot->base;
-         $unNivel->nombre_nivel =$nivel->nombre_nivel;
-         $unNivel->nro_nivel = $nivel->nro_nivel;
-         $detalles[] = $unNivel;
-      }
-      */
-
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
         $x=0;
         $nro_maquinas = "";
@@ -310,7 +286,10 @@ class RelevamientoProgresivoController extends Controller
           $x++;
         }
 
-        $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')->whereIn('id_maquina' , $id_maquinas)->get();
+        $resultados = DB::table('isla') ->selectRaw('DISTINCT(nro_isla)')
+                                        ->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')
+                                        ->whereIn('id_maquina' , $id_maquinas)
+                                        ->get();
 
         $i = 0;
         $nro_islas="";
@@ -324,6 +303,13 @@ class RelevamientoProgresivoController extends Controller
           $i++;
         }
 
+        if($detalle_relevamiento->id_tipo_causa_no_toma_progresivo != NULL) {
+          $causa_no_toma_progresivo = TipoCausaNoTomaProgresivo::find($detalle_relevamiento->id_tipo_causa_no_toma_progresivo)->descripcion;
+        }
+        else {
+          $causa_no_toma_progresivo = -1;
+        }
+
         $detalle = array(
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
@@ -334,15 +320,17 @@ class RelevamientoProgresivoController extends Controller
         'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
         'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
         'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
-        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', '')
+        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'causa_no_toma_progresivo' => $causa_no_toma_progresivo
         );
 
         $detalles[] = $detalle;
       }
     }
 
+
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
-    $view = View::make('planillaRelevamientoProgresivoEdit', compact('detalles','relevamiento_progresivo'));
+    $view = View::make('planillaRelevamientosProgresivo', compact('detalles','relevamiento_progresivo'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -358,42 +346,64 @@ class RelevamientoProgresivoController extends Controller
     Validator::make($request->all(),[
         'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
         'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
-        'fecha_ejecucion' => 'required|date',
+        'fiscalizador' => 'exists:usuario,id_usuario',
+        'fecha_ejecucion' => 'required',
         'observacion' => 'nullable',
-        'id_relevamiento_progresivo' => 'nullable|numeric',
         'detalles.*' => 'nullable',
         'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
-        'detalles.*.valor' => 'required|numeric',
     ], array(), self::$atributos)->after(function($validator){
       $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
-      if($relevamiento->id_estado_relevamiento != 1){
-        $validator->errors()->add('error_estado_relevamiento','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
+      $controller = UsuarioController::getInstancia();
+
+      if($this->datetimeIntoDate($validator->getData()['fecha_ejecucion']) < $relevamiento->fecha_generacion){
+        $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
+      }
+      if(!$controller->usuarioTieneCasinoCorrespondiente($validator->getData()['id_usuario_fiscalizador'], $validator->getData()['id_casino'])) {
+          $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
+      }
+      if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
+          $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
       }
     })->validate();
+
     $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
     $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
-    $rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
-    $rel->fecha_ejecucion = $request->fecha_ejecucion;
+    //$rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
+    $rel->fecha_ejecucion = $this->datetimeIntoSqlDatetime($request->fecha_ejecucion);
     $rel->estado_relevamiento()->associate(3); // id_estado finalizado
-    $rel->observacion_carga = $request->observacion;
+    $rel->observacion_carga = $request->observaciones;
     $rel->save();
+
     foreach($request->detalles as $detalle) {
       $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
-      $unDetalle->valor_actual = $detalle['valor'];
+
+      if ($detalle['id_tipo_causa_no_toma'] == NULL) {
+        $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
+        $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
+        $unDetalle->nivel3 = array_key_exists(2, $detalle['niveles']) ? $detalle['niveles'][2]['valor'] : NULL;
+        $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
+        $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
+        $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
+      }
+      else {
+        $unDetalle->id_tipo_causa_no_toma_progresivo = $detalle['id_tipo_causa_no_toma'];
+      }
       $unDetalle->save();
     }
+
     return ['codigo' => 200];
   }
 
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
-        'id_relevamiento' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
+        'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
         'observacion_validacion' => 'required',
     ], array(), self::$atributos)->after(function($validator){
-      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento']);
+      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
       if($relevamiento->id_estado_relevamiento != 3){
-        $validator->errors()->add('estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
-      }
+        $validator->errors()->add('error_estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
+      };
+      /* no hace falta creo, si se habilita el modal de visar relevamiento es porque ya se cargaron todos sus niveles
       $bandera = true;
       foreach ($relevamiento->detalles as $detalle) {
         if($detalle->valor_actual == null){
@@ -403,14 +413,138 @@ class RelevamientoProgresivoController extends Controller
       if(!$bandera){
         $validator->errors()->add('relevamiento_incompleta','No se han relevado todos los niveles de progresivo.');
       }
+      */
     })->validate();
 
-    $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento);
+    $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
     $relevamiento->observacion_validacion = $request->observacion_validacion;
     $relevamiento->estado_relevamiento()->associate(4);
     $relevamiento->save();
 
     return ['codigo' => 200];
+  }
+
+  public function datetimeIntoDate ($datetime) {
+    $dia = substr($datetime, 0, 2);
+    $mes_string = substr($datetime, 3, -13);
+    $año = substr($datetime, -12, -8);
+
+    switch ($mes_string) {
+
+      case "Enero":
+        $mes = "01";
+        break;
+
+      case "Febrero":
+        $mes = "02";
+        break;
+
+      case "Marzo":
+        $mes = "03";
+        break;
+
+      case "Abril":
+        $mes = "04";
+        break;
+
+      case "Mayo":
+        $mes = "05";
+        break;
+
+      case "Junio":
+        $mes = "06";
+        break;
+
+      case "Julio":
+        $mes = "07";
+        break;
+
+      case "Agosto":
+        $mes = "08";
+        break;
+
+      case "Septiembre":
+        $mes = "09";
+        break;
+
+      case "Octubre":
+        $mes = "10";
+        break;
+
+      case "Noviembre":
+        $mes = "11";
+        break;
+
+      case "Diciembre":
+        $mes = "12";
+        break;
+    }
+
+    $ret = $año . "-" . $mes . "-" . $dia;
+    return $ret;
+  }
+
+  public function datetimeIntoSqlDatetime ($datetime) {
+    $dia = substr($datetime, 0, 2);
+    $mes_string = substr($datetime, 3, -13);
+    $año = substr($datetime, -12, -8);
+    $hora = substr($datetime, -5, -3);
+    $mins = substr($datetime, -2);
+
+    switch ($mes_string) {
+
+      case "Enero":
+        $mes = "01";
+        break;
+
+      case "Febrero":
+        $mes = "02";
+        break;
+
+      case "Marzo":
+        $mes = "03";
+        break;
+
+      case "Abril":
+        $mes = "04";
+        break;
+
+      case "Mayo":
+        $mes = "05";
+        break;
+
+      case "Junio":
+        $mes = "06";
+        break;
+
+      case "Julio":
+        $mes = "07";
+        break;
+
+      case "Agosto":
+        $mes = "08";
+        break;
+
+      case "Septiembre":
+        $mes = "09";
+        break;
+
+      case "Octubre":
+        $mes = "10";
+        break;
+
+      case "Noviembre":
+        $mes = "11";
+        break;
+
+      case "Diciembre":
+        $mes = "12";
+        break;
+      }
+
+
+      $ret = $año . "-" . $mes . "-" . $dia . " " . $hora . ":" . $mes . ":00";
+      return $ret;
   }
 
 }

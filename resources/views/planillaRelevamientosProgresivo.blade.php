@@ -53,6 +53,7 @@ p {
               <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
                     print_r($hoy); ?></div>
                     <!-- Momentaneamente esta vista va a lanzar un error si se intenta generar una planilla que no tenga detallles de relevamiento progresivo, porque solo hay una cargada en bdd-->
+
                     <table>
                       <tr>
                         <th class="tablaInicio" style="background-color: #dddddd">NÚMERO DE RELEVAMIENTO</th>
@@ -63,10 +64,10 @@ p {
                       </tr>
 
                       <tr>
-                        <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->id_relevamiento_progresivo}}</td>
+                        <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->nro_relevamiento_progresivo}}</td>
                         <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_generacion}}</td>
                         <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_ejecucion}}</td>
-                        <td class="tablaInicio" style="background-color: white"><?php print_r(Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre); ?></td>
+                        <td class="tablaInicio" style="background-color: white"><?php if ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) print_r(Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre); ?></td>
                         <td class="tablaInicio" style="background-color: white"><?php print_r(EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion) ?></td>
                       </tr>
                     </table>
@@ -75,7 +76,7 @@ p {
                     <table>
                       <tr>
                         <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">MÁQUINA/S</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
                         <th class="tablaInicio" style="background-color: #dddddd">POZO</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
@@ -84,6 +85,7 @@ p {
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">CAUSA NO TOMA</th>
                       </tr>
 
                       @foreach ($detalles as $detalle)
@@ -92,12 +94,19 @@ p {
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_maquinas']}} </td>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} </td>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['pozo']}} </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel1'] != NULL) {{$detalle['nivel1']}} @else 0 @endif </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel2'] != NULL) {{$detalle['nivel2']}} @else 0 @endif </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel3'] != NULL) {{$detalle['nivel3']}} @else 0 @endif </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel4'] != NULL) {{$detalle['nivel4']}} @else 0 @endif </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel5'] != NULL) {{$detalle['nivel5']}} @else 0 @endif </td>
-                        <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel6'] != NULL) {{$detalle['nivel6']}} @else 0 @endif </td>
+                        @if ($detalle['causa_no_toma_progresivo'] != -1)
+                          @for ($i=0; $i<6; $i++)
+                            <td class="tablaInicio" style="background-color: white"> - </td>
+                          @endfor
+                        @else
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel1'] != 0.00) {{$detalle['nivel1']}} @endif </td>
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel2'] != 0.00) {{$detalle['nivel2']}} @endif </td>
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel3'] != 0.00) {{$detalle['nivel3']}} @endif </td>
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel4'] != 0.00) {{$detalle['nivel4']}} @endif </td>
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel5'] != 0.00) {{$detalle['nivel5']}} @endif </td>
+                          <td class="tablaInicio" style="background-color: white"> @if($detalle['nivel6'] != 0.00) {{$detalle['nivel6']}} @endif </td>
+                        @endif
+                        <td class="tablaInicio" style="background-color: white"> @if($detalle['causa_no_toma_progresivo'] != -1) {{$detalle['causa_no_toma_progresivo']}} @endif </td> </td>
                       </tr>
                       @endforeach
 
