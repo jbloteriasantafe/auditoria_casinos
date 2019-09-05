@@ -434,6 +434,7 @@ function generarFilaTabla(relevamiento){
       find('.modal-title').text('| CARGAR RELEVAMIENTO DE PROGRESIVOS');
 
       $('#inputFisca').attr('disabled',false);
+      $('#usuario_fiscalizador').attr('disabled',false);
       $('#fecha').attr('disabled',false);
 
       $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
@@ -455,12 +456,6 @@ function generarFilaTabla(relevamiento){
         });
 
         $('#btn-guardar').click(function(){
-          let err = validarFormulario(data.casino.id_casino);
-          if(err.errores){
-            console.log(err.mensajes);
-            mensajeError(err.mensajes);
-            return;
-          }
           enviarFormularioCarga(
             data.casino.id_casino,
             data.relevamiento.id_relevamiento_progresivo,
@@ -494,6 +489,7 @@ function generarFilaTabla(relevamiento){
         find('.modal-title').text('| VALIDAR RELEVAMIENTO DE PROGRESIVOS');
 
         $('#inputFisca').attr('disabled',true);
+        $('#usuario_fiscalizador').attr('disabled',true);
         $('#fecha').attr('disabled',true);
 
         $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento, function(data){
