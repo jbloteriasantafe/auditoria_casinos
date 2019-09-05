@@ -440,7 +440,6 @@ function generarFilaTabla(relevamiento){
         setearRelevamiento(data,obtenerFila);
 
         $('#btn-finalizar').click(function(){
-
           let err = validarFormulario(data.casino.id_casino);
           if(err.errores){
             console.log(err.mensajes);
@@ -452,6 +451,21 @@ function generarFilaTabla(relevamiento){
             data.casino.id_casino,
             data.relevamiento.id_relevamiento_progresivo,
             data.relevamiento.subrelevamiento
+          );
+        });
+
+        $('#btn-guardar').click(function(){
+          let err = validarFormulario(data.casino.id_casino);
+          if(err.errores){
+            console.log(err.mensajes);
+            mensajeError(err.mensajes);
+            return;
+          }
+          enviarFormularioCarga(
+            data.casino.id_casino,
+            data.relevamiento.id_relevamiento_progresivo,
+            data.relevamiento.subrelevamiento,
+            "relevamientosProgresivo/guardarRelevamiento"
           );
         });
 
@@ -627,7 +641,7 @@ function setearRelevamiento(data,filaCallback){
   $('#modalRelevamientoProgresivos select').val(-1);
   $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr').not('.filaEjemplo').remove();
 
-  $('#inputFisca').attr('list','datalist'+data.casino.id_casino);
+  $('#usuario_fiscalizador').attr('list','datalist'+data.casino.id_casino);
 
   $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
   $('#cargaCasino').val(data.casino.nombre);
@@ -681,16 +695,14 @@ function enviarFormularioCarga(
   id_casino,
   id_relevamiento,
   subrelevamiento,
-  id_usuario_fiscalizador){
-
-  let url = "relevamientosProgresivo/cargarRelevamiento";
+  url="relevamientosProgresivo/cargarRelevamiento"){
 
   let formData = {
     id_casino : id_casino,
     id_relevamiento_progresivo : id_relevamiento,
     subrelevamiento : subrelevamiento,
     fecha_ejecucion : $('#fecha').val(),
-    id_usuario_fiscalizador : obtenerIdFiscalizador(id_casino,$('#inputFisca').val()),
+    id_usuario_fiscalizador : obtenerIdFiscalizador(id_casino,$('#usuario_fiscalizador').val()),
     observaciones : $('#observacion_carga').val(),
     detalles : []
   };
@@ -782,7 +794,7 @@ function enviarFormularioValidacion(
 function validarFormulario(id_casino){
   let errores = false;
   let mensajes = [];
-  let fisca = $('#inputFisca').val();
+  let fisca = $('#usuario_fiscalizador').val();
   if(fisca == ""
   || obtenerIdFiscalizador(id_casino,fisca) === null){
     errores = true;
