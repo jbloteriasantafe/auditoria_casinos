@@ -407,6 +407,7 @@ Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permi
   Route::get('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
   Route::post('/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
   Route::post('/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
+  Route::post('/guardarRelevamiento','RelevamientoProgresivoController@guardarRelevamiento');
   Route::post('/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
   Route::get('/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
   Route::get('/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');

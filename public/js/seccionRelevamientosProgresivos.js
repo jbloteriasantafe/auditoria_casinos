@@ -54,7 +54,7 @@ $(document).ready(function(){
     language:  'es',
     autoclose: 1,
     todayHighlight: 1,
-    format: 'dd MM yyyy - HH:ii',
+    format: 'yyyy-mm-dd HH:ii:ss',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 0,
@@ -425,7 +425,7 @@ function generarFilaTabla(relevamiento){
       var id_relevamiento = $(this).val();
       $('#id_relevamiento').val(id_relevamiento);
 
-      $('#btn-guardar').show();
+      $('#btn-guardar').show().off();
       $('#btn-finalizar').show().text("CARGAR").off();
 
       $('#modalRelevamientoProgresivos')
@@ -564,6 +564,15 @@ function obtenerFila(detalle){
   fila.find('.isla').text(detalle.nro_isla);
   fila.attr('data-id',detalle.id_detalle_relevamiento_progresivo);
 
+  fila.find('.causaNoToma').on('change',function(){
+    causaNoTomaCallback(this);
+  });
+
+  if(detalle.id_tipo_causa_no_toma_progresivo != null){
+      fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
+      fila.find('.causaNoToma').change();
+  }
+
   for(let n=0;n<detalle.niveles.length;n++){
     let nivel = detalle.niveles[n];
     if(nivel.nombre_nivel != null)
@@ -574,26 +583,23 @@ function obtenerFila(detalle){
     .attr('data-id',nivel.id_nivel_progresivo);
   }
 
+
   fila.find('input:not([data-id])').attr('disabled',true);
 
-  if(detalle.id_tipo_causa_no_toma_progresivo != null){
-      fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
-  }
-
-
-  fila.find('.causaNoToma').on('change',function(){
-    if($(this).val() != -1){
-      fila.find('input').attr('disabled',true)
-      fila.find('input').css('color','#fff');
-    }
-    else{
-      fila.find('input').attr('disabled',false);
-      fila.find('input').css('color','');
-      fila.find('input:not([data-id])').attr('disabled',true);
-    }
-  });
-
   return fila;
+}
+
+function causaNoTomaCallback(x){
+  let fila = $(x).parent().parent();
+  if($(x).val() != -1){
+    fila.find('input').attr('disabled',true)
+    fila.find('input').css('color','#fff');
+  }
+  else{
+    fila.find('input').attr('disabled',false);
+    fila.find('input').css('color','');
+    fila.find('input:not([data-id])').attr('disabled',true);
+  }
 }
 
 function obtenerFilaValidacion(detalle){
@@ -876,6 +882,82 @@ $('#btn-minimizarSinSistema').click(function(){
   }
 });
 
-$('.cabeceraTablaPozos th').click(function(){
-  console.log($(this).attr('data-id'));
+$('.cabeceraTablaPozos th.sortable').click(function(){
+  let sort_by = $(this).attr('data-id');
+  let filas = $('.cuerpoTablaPozos tr');
+  console.log(sort_by);
+  if($(this).attr('sorted') === undefined){
+    $(this).attr('sorted',false);
+  }
+
+  let xor = $(this).attr('sorted');
+
+  if(xor === "true") $(this).attr('sorted',false);
+  else $(this).attr('sorted',true);
+
+  function comp(a,b){
+    let aa = $(a).find('.'+sort_by)[0];
+    let bb = $(b).find('.'+sort_by)[0];
+
+    let aa_type = aa.tagName;
+    let bb_type = bb.tagName;
+
+    if(aa_type === bb_type){
+      if(aa_type === "TD"){
+        return aa.textContent.localeCompare(bb.textContent) != xor;
+      }
+      else throw "Comparison not programmed.";
+    }
+    else throw "Error not matching types in comparison";
+  }
+
+  let reordenadas = ordenar(filas,comp,
+    function(add){
+      let clonado = $(add).clone();
+      //Tengo que setear todo de vuelta, el clone no clona bien -___-
+      clonado.find('.causaNoToma').val($(add).find('.causaNoToma').val());
+      clonado.find('.causaNoToma').change(function(){
+        causaNoTomaCallback(this);
+      });
+      return clonado;
+    }
+  );
+
+  $('.cuerpoTablaPozos').empty();
+  for(let i = 0;i<reordenadas.length;i++){
+    $('.cuerpoTablaPozos').append(reordenadas[i]);
+  }
 })
+
+
+
+function ordenar(list,comp,onadd=function(add){return add;}){
+  //Encuentra el optimo valor, con una lista negra
+  function find_val(list,comp,blacklist){
+    let ret = null;
+    let ret_idx = null;
+    for(let i=0;i<list.length;i++){
+      let item = list[i];
+      if(!blacklist[i] && (ret_idx === null || comp(item,ret))){
+        ret = item;
+        ret_idx = i;
+      }
+    }
+    return {elem: ret, index: ret_idx};
+  }
+
+  let newlist = [];
+  let used = [];
+
+  for(let i=0;i<list.length;i++){
+    used.push(false);
+  }
+
+  for(let i=0;i<list.length;i++){
+    let to_add = find_val(list,comp,used);
+    newlist.push(onadd(to_add.elem));
+    used[to_add.index]=true;
+  }
+
+  return newlist;
+}

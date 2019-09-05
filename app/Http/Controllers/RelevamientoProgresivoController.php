@@ -342,56 +342,77 @@ class RelevamientoProgresivoController extends Controller
     return $dompdf;
   }
 
-  public function cargarRelevamiento(Request $request){
-    Validator::make($request->all(),[
-        'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
-        'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
-        'fiscalizador' => 'exists:usuario,id_usuario',
-        'fecha_ejecucion' => 'required',
-        'observacion' => 'nullable',
-        'detalles.*' => 'nullable',
-        'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
-    ], array(), self::$atributos)->after(function($validator){
-      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
-      $controller = UsuarioController::getInstancia();
+  public function cargarRelevamiento(Request $request,$validar = true){
+    if($validar){
+      Validator::make($request->all(),[
+          'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
+          'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
+          'fiscalizador' => 'exists:usuario,id_usuario',
+          'fecha_ejecucion' => 'required',
+          'observacion' => 'nullable',
+          'detalles.*' => 'nullable',
+          'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
+      ], array(), self::$atributos)->after(function($validator){
+        $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
+        $controller = UsuarioController::getInstancia();
 
-      if($this->datetimeIntoDate($validator->getData()['fecha_ejecucion']) < $relevamiento->fecha_generacion){
-        $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
-      }
-      if(!$controller->usuarioTieneCasinoCorrespondiente($validator->getData()['id_usuario_fiscalizador'], $validator->getData()['id_casino'])) {
-          $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
-      }
-      if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
-          $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
-      }
-    })->validate();
-
-    $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
-    $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
-    //$rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
-    $rel->fecha_ejecucion = $this->datetimeIntoSqlDatetime($request->fecha_ejecucion);
-    $rel->estado_relevamiento()->associate(3); // id_estado finalizado
-    $rel->observacion_carga = $request->observaciones;
-    $rel->save();
-
-    foreach($request->detalles as $detalle) {
-      $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
-
-      if ($detalle['id_tipo_causa_no_toma'] == NULL) {
-        $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
-        $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
-        $unDetalle->nivel3 = array_key_exists(2, $detalle['niveles']) ? $detalle['niveles'][2]['valor'] : NULL;
-        $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
-        $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
-        $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
-      }
-      else {
-        $unDetalle->id_tipo_causa_no_toma_progresivo = $detalle['id_tipo_causa_no_toma'];
-      }
-      $unDetalle->save();
+        if($validator->getData()['fecha_ejecucion'] < $relevamiento->fecha_generacion){
+          $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
+        }
+        if(!$controller->usuarioTieneCasinoCorrespondiente($validator->getData()['id_usuario_fiscalizador'], $validator->getData()['id_casino'])) {
+            $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
+        }
+        if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
+            $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
+        }
+      })->validate();
     }
 
+    DB::transaction(function() use($request){
+      $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
+      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
+      //$rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
+      $rel->fecha_ejecucion = $request->fecha_ejecucion;
+      $rel->estado_relevamiento()->associate(3); // id_estado finalizado
+      $rel->observacion_carga = $request->observaciones;
+      $rel->save();
+
+      foreach($request->detalles as $detalle) {
+        $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
+
+        if ($detalle['id_tipo_causa_no_toma'] === null) {
+          $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
+          $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
+          $unDetalle->nivel3 = array_key_exists(2, $detalle['niveles']) ? $detalle['niveles'][2]['valor'] : NULL;
+          $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
+          $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
+          $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
+        }
+        else {
+          $unDetalle->nivel1 = NULL;
+          $unDetalle->nivel2 = NULL;
+          $unDetalle->nivel3 = NULL;
+          $unDetalle->nivel4 = NULL;
+          $unDetalle->nivel5 = NULL;
+          $unDetalle->nivel6 = NULL;
+          $unDetalle->id_tipo_causa_no_toma_progresivo = $detalle['id_tipo_causa_no_toma'];
+        }
+        $unDetalle->save();
+      }
+    });
+
     return ['codigo' => 200];
+  }
+
+  public function guardarRelevamiento(Request $request){
+    $resultado = $this->cargarRelevamiento($request,false);
+    if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){
+      $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
+      $rel->estado_relevamiento()->associate(2);
+      $rel->save();
+      return ['codigo' => 200];
+    }
+    else return $resultado;
   }
 
   public function validarRelevamiento(Request $request){
@@ -422,129 +443,6 @@ class RelevamientoProgresivoController extends Controller
     $relevamiento->save();
 
     return ['codigo' => 200];
-  }
-
-  public function datetimeIntoDate ($datetime) {
-    $dia = substr($datetime, 0, 2);
-    $mes_string = substr($datetime, 3, -13);
-    $año = substr($datetime, -12, -8);
-
-    switch ($mes_string) {
-
-      case "Enero":
-        $mes = "01";
-        break;
-
-      case "Febrero":
-        $mes = "02";
-        break;
-
-      case "Marzo":
-        $mes = "03";
-        break;
-
-      case "Abril":
-        $mes = "04";
-        break;
-
-      case "Mayo":
-        $mes = "05";
-        break;
-
-      case "Junio":
-        $mes = "06";
-        break;
-
-      case "Julio":
-        $mes = "07";
-        break;
-
-      case "Agosto":
-        $mes = "08";
-        break;
-
-      case "Septiembre":
-        $mes = "09";
-        break;
-
-      case "Octubre":
-        $mes = "10";
-        break;
-
-      case "Noviembre":
-        $mes = "11";
-        break;
-
-      case "Diciembre":
-        $mes = "12";
-        break;
-    }
-
-    $ret = $año . "-" . $mes . "-" . $dia;
-    return $ret;
-  }
-
-  public function datetimeIntoSqlDatetime ($datetime) {
-    $dia = substr($datetime, 0, 2);
-    $mes_string = substr($datetime, 3, -13);
-    $año = substr($datetime, -12, -8);
-    $hora = substr($datetime, -5, -3);
-    $mins = substr($datetime, -2);
-
-    switch ($mes_string) {
-
-      case "Enero":
-        $mes = "01";
-        break;
-
-      case "Febrero":
-        $mes = "02";
-        break;
-
-      case "Marzo":
-        $mes = "03";
-        break;
-
-      case "Abril":
-        $mes = "04";
-        break;
-
-      case "Mayo":
-        $mes = "05";
-        break;
-
-      case "Junio":
-        $mes = "06";
-        break;
-
-      case "Julio":
-        $mes = "07";
-        break;
-
-      case "Agosto":
-        $mes = "08";
-        break;
-
-      case "Septiembre":
-        $mes = "09";
-        break;
-
-      case "Octubre":
-        $mes = "10";
-        break;
-
-      case "Noviembre":
-        $mes = "11";
-        break;
-
-      case "Diciembre":
-        $mes = "12";
-        break;
-      }
-
-
-      $ret = $año . "-" . $mes . "-" . $dia . " " . $hora . ":" . $mes . ":00";
-      return $ret;
   }
 
 }

@@ -409,7 +409,7 @@ $niveles = 6;
                             </div>
                             <div class="col-md-4">
                                 <h5>FECHA EJECUCIÓN</h5>
-                                   <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                                   <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
                                        <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off"/>
                                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -422,9 +422,9 @@ $niveles = 6;
 
                           <table class="table table-fixed" style="margin-bottom: 0px;">
                             <thead class="cabeceraTablaPozos">
-                              <th class="col-xs-2" data-id="nombreProgresivo">Progresivo</th>
-                              <th class="col-xs-2" data-id="nombrePozo">Pozo</th>
-                              <th class="col-xs-1" data-id="isla">Isla</th>
+                              <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo</th>
+                              <th class="col-xs-2 sortable" data-id="nombrePozo">Pozo</th>
+                              <th class="col-xs-1 sortable" data-id="isla">Isla</th>
                               @for ($i=1;$i<=$niveles;$i++)
                               <th class="col-xs-1" data-id="nivel{{$i}}">Nivel {{$i}}</th>
                               @endfor
