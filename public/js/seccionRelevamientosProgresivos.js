@@ -9,7 +9,7 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'dd MM yyyy',
+    format: 'yyyy-mm-dd',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
@@ -106,7 +106,7 @@ $('#casino').on('change',function(){
     }
 
   });
-  
+
   $('#sector').removeClass('alerta');
 });
 

@@ -135,9 +135,14 @@ class RelevamientoProgresivoController extends Controller
     foreach ($usuario->casinos as $casino) {
       $casinos[] = $casino->id_casino;
     }
-    if(!empty($request->fecha)){
-      $reglas[]=['relevamiento_progresivo.fecha_generacion', '=', $request->fecha];
+
+    if(!empty($request->fecha_generacion)){
+      $fecha_desde = $request->fecha_generacion . ' 00:00:00';
+      $fecha_hasta = $request->fecha_generacion . ' 23:59:59';
+      $reglas[]=['relevamiento_progresivo.fecha_generacion','>=',$fecha_desde];
+      $reglas[]=['relevamiento_progresivo.fecha_generacion','<=',$fecha_hasta];
     }
+
     if($request->casino!=0){
       $reglas[]=['casino.id_casino', '=', $request->casino];
     }
@@ -160,6 +165,8 @@ class RelevamientoProgresivoController extends Controller
       ->where($reglas)
       ->whereIn('casino.id_casino' , $casinos)
       ->where('backup' , '=', 0)->paginate($request->page_size);
+
+
 
     return $resultados;
   }
