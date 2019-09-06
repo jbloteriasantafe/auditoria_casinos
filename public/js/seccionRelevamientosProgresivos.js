@@ -396,6 +396,21 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+function obtenerMensajesError(response){
+  json = response.responseJSON;
+  mensajes = [];
+  keys = Object.keys(json);
+  for(let i=0;i<keys.length;i++){
+    let k = keys[i];
+    let msgs = json[k];
+    for(let j=0;j<msgs.length;j++){
+      mensajes.push(msgs[j]);
+    }
+  }
+
+  return mensajes;
+}
+
 function generarFilaTabla(relevamiento){
 
     var subrelevamiento;
@@ -451,7 +466,16 @@ function generarFilaTabla(relevamiento){
           enviarFormularioCarga(
             data.casino.id_casino,
             data.relevamiento.id_relevamiento_progresivo,
-            data.relevamiento.subrelevamiento
+            data.relevamiento.subrelevamiento,
+            function (data) {
+              console.log(data);
+              $('#modalCargaRelevamientoProgresivos').modal('hide');
+            },
+            function (x) {
+              console.log(x);
+              let msgs = obtenerMensajesError(x);
+              mensajeError(msgs);
+            }
           );
         });
 
@@ -460,6 +484,12 @@ function generarFilaTabla(relevamiento){
             data.casino.id_casino,
             data.relevamiento.id_relevamiento_progresivo,
             data.relevamiento.subrelevamiento,
+            function(x){
+              console.log(x)
+            },
+            function(x){
+              console.log(x);
+            },
             "relevamientosProgresivo/guardarRelevamiento"
           );
         });
@@ -697,6 +727,8 @@ function enviarFormularioCarga(
   id_casino,
   id_relevamiento,
   subrelevamiento,
+  succ = function(data){console.log(data);},
+  err = function(data){console.log(data);},
   url="relevamientosProgresivo/cargarRelevamiento"){
 
   let formData = {
@@ -752,10 +784,8 @@ function enviarFormularioCarga(
       url: url,
       data: formData,
       dataType: 'json',
-      success: function (data) {
-                                console.log(data);
-                                $('#modalCargaRelevamientoProgresivos').modal('hide');},
-      error: function (data){console.log(data);}
+      success: succ,
+      error: err
   });
 
 }
