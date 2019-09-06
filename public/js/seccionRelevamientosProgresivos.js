@@ -1,29 +1,8 @@
 $(document).ready(function(){
-
-  $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
-  $('#procedimientos').removeClass();
-  $('#procedimientos').addClass('subMenu2 collapse in');
-  $('#contadores').removeClass();
-  $('#contadores').addClass('subMenu3 collapse in');
-
   $('.tituloSeccionPantalla').text('Relevamiento de progresivos');
   $('#opcRelevamientosProgresivos').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcImportaciones').addClass('opcionesSeleccionado');
   $('#iconoCarga').hide();
-
-  $('#fechaControlSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
 
   $('#dtpBuscadorFecha').datetimepicker({
     language:  'es',
@@ -35,18 +14,7 @@ $(document).ready(function(){
     startView: 2,
     minView: 2,
     ignoreReadonly: true,
-  });
-
-  $('#fechaGeneracion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
+    endDate: '+0d'
   });
 
   $('#dtpFecha').datetimepicker({
@@ -60,11 +28,25 @@ $(document).ready(function(){
     minView: 0,
     ignoreReadonly: true,
     minuteStep: 5,
+    endDate: '+0d'
+  });
+
+  $('#fechaRelevamientoDiv').datetimepicker({
+    todayBtn:  1,
+    language:  'es',
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 0,
+    ignoreReadonly: true,
+    minuteStep: 5,
+    endDate: '+0d'
   });
 
   //trigger buscar, carga de tabla, fecha desc
   $('#btn-buscar').trigger('click');
-
 });
 
 $('#btn-ayuda').click(function(e){
@@ -77,19 +59,14 @@ $('#btn-ayuda').click(function(e){
 
 });
 
+$('#modalRelevamiento select').change(sacarAlerta);
+
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
   $('.modal-title').text('| NUEVO RELEVAMIENTO PROGRESIVOS');
   $('#modalImportacionBeneficios .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalRelevamiento').modal('show');
-
-  $.get("obtenerFechaActual", function(data){
-    //Mayuscula pŕimer letra
-    var fecha = data.fecha.charAt(0).toUpperCase() + data.fecha.slice(1);
-    $('#fechaActual').val(fecha);
-    $('#fechaDate').val(data.fechaDate);
-  });
 });
 
 function filaEjemploCarga(){
@@ -113,50 +90,6 @@ $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
   $('#validacionFiscaCarga').val('');
 })
 
-$('#modalValidarRelevamientoProgresivos').on('hidden.bs.modal', function() {
-  ocultarErrorValidacion($('.form-control'));//oculto todos los errores
-  $('#validacion_contenedor_progresivos').empty();
-  $('#validacionFechaActual').val('');
-  $('#validacionCasino').val('');
-  $('#validacionSector').val('');
-  $('#validacionTecnico').val('');
-  $('#validacionFechaEjecucion').val('');
-  $('#validacionInputFisca').val('');
-  $('#validacionFiscaCarga').val('');
-  $('#validacion_contenedor_progresivos').empty();
-})
-
-//ABRIR MODAL DE NUEVO RELEVAMIENTO
-$('#btn-nuevoRelevamiento').click(function(e){
-  e.preventDefault();
-  $('#frmRelevamiento').trigger('reset');
-  $('#sector option').remove();
-  $('#maquinas_pedido').hide();
-  $('#modalRelevamiento').modal('show');
-
-  $.get("obtenerFechaActual", function(data){
-    $('#fechaActual').val(data.fecha);
-    $('#fechaDate').val(data.fechaDate);
-  });
-});
-
-$('#casinoSinSistema').on('change', function(){
-  var id_casino = $('#casinoSinSistema option:selected').attr('id');
-
-  $('#sectorSinSistema option').remove();
-
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-    console.log(data);
-    for (var i = 0; i < data.sectores.length; i++) {
-      $('#sectorSinSistema')
-          .append($('<option>')
-              .val(data.sectores[i].id_sector)
-              .text(data.sectores[i].descripcion)
-          )
-    }
-  });
-});
-
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('#casino').on('change',function(){
   var id_casino = $('#casino option:selected').attr('id');
@@ -173,6 +106,8 @@ $('#casino').on('change',function(){
     }
 
   });
+  
+  $('#sector').removeClass('alerta');
 });
 
 $('#buscadorCasino').on('change',function(){
@@ -197,7 +132,6 @@ $('#buscadorCasino').on('change',function(){
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
-
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -208,8 +142,7 @@ $('#btn-generar').click(function(e){
 
   var formData = {
     id_sector: $('#sector').val(),
-    //cantidad_maquinas: $('#cantidad_maquinas').val(),
-    //cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
+    fecha_generacion: $('#fechaRelevamientoInput').val()
   }
 
   $.ajax({
@@ -220,89 +153,31 @@ $('#btn-generar').click(function(e){
       success: function (data) {
             $('#btn-buscar').trigger('click');
             $('#modalRelevamiento').modal('hide');
-            // var iframe;
-            // iframe = document.getElementById("download-container");
-            // if (iframe === null){
-            //     iframe = document.createElement('iframe');
-            //     iframe.id = "download-container";
-            //     iframe.style.visibility = 'hidden';
-            //     document.body.appendChild(iframe);
-            // }
-            // iframe.src = data.url_zip;
       },
       error: function (data) {
         var response = JSON.parse(data.responseText);
 
         if(typeof response.id_sector !== 'undefined'){
-              $('#sector').addClass('alerta');
-              $('#casino').addClass('alerta');
+          $('#sector').addClass('alerta');
+          $('#casino').addClass('alerta');
+        }
+        if(typeof response.fecha_generacion !== 'undefined'){
+          $('#fechaRelevamientoInput').addClass('alerta');
         }
       }
   });
 
 });
 
-$('#btn-relevamientoSinSistema').click(function(e){
-    e.preventDefault();
-    $('.modal-title').text('| RELEVAMIENTO SIN SISTEMA');
-    $('#modalImportacionBeneficios .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-    $('#modalRelevamientoSinSistema').modal('show');
-});
-
-//Generar el relevamiento de backup
-$('#btn-backup').click(function(e){
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  e.preventDefault();
-
-  var formData = {
-    fecha: $('#fechaRelSinSistema_date').val(),
-    fecha_generacion: $('#fechaGeneracion_date').val(),
-    id_sector: $('#sectorSinSistema').val(),
+function sacarAlerta(){
+  let this2 = $(this);
+  if(this2.val().length > 0){
+    this2.removeClass('alerta');
+    this2.off();
   }
+};
 
-  console.log(formData);
-
-  $.ajax({
-      type: "POST",
-      url: 'relevamientos/usarRelevamientoBackUp',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
-        $('#btn-buscar').trigger('click');
-      },
-      error: function (data) {
-        console.log('ERROR!');
-        console.log(data);
-      }
-  });
-
-});
-
-function maquinasAPedido(){
-  var id_sector = $('#sector option:selected').val();
-  var fecha = $('#fechaDate').val();
-
-  $.get("mtm_a_pedido/obtenerMtmAPedido/" + fecha + "/" + id_sector, function(data){
-      console.log(data);
-      var cantidad = data.cantidad;
-
-      if (cantidad == 0){
-        $('#maquinas_pedido').hide();
-      }else {
-        if (cantidad == 1) $('#maquinas_pedido').find('span').text('Este sector tiene ' + cantidad + ' máquina a pedido.');
-        else $('#maquinas_pedido').find('span').text('Este sector tiene ' + cantidad + ' máquinas a pedido.');
-
-        $('#maquinas_pedido').show();
-      }
-  });
-}
+$('input').change(sacarAlerta);
 
 //PAGINACION
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
@@ -349,10 +224,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').not('.filaEjemplo').remove();
-
-            //1ro - Se generan todas las filas con todos los iconos
-            //2do - Se muestran los iconos por permiso
-            //3ro - Se muestran los iconos de cada fila según el estado
 
             for (var i = 0; i < resultados.data.length; i++){
                 var fila = generarFilaTabla(resultados.data[i]);
@@ -418,7 +289,7 @@ function generarFilaTabla(relevamiento){
     let fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
 
     fila.attr('id', relevamiento.id_relevamiento_progresivo);
-    fila.find('.fecha').text(relevamiento.fecha);
+    fila.find('.fecha').text(relevamiento.fecha_generacion);
     fila.find('.casino').text(relevamiento.casino);
     fila.find('.sector').text(relevamiento.sector);
     fila.find('.subcontrol').text(subrelevamiento);
@@ -609,6 +480,7 @@ function obtenerFila(detalle){
     .attr('data-id',nivel.id_nivel_progresivo);
   }
 
+  fila.find('input').off().change(sacarAlerta);
 
   fila.find('input:not([data-id])').attr('disabled',true);
 
@@ -620,6 +492,7 @@ function causaNoTomaCallback(x){
   if($(x).val() != -1){
     fila.find('input').attr('disabled',true)
     fila.find('input').css('color','#fff');
+    fila.find('.alerta').removeClass('alerta');
   }
   else{
     fila.find('input').attr('disabled',false);
@@ -824,6 +697,7 @@ function enviarFormularioValidacion(
 }
 
 function validarFormulario(id_casino){
+
   let errores = false;
   let mensajes = [];
   let fisca = $('#usuario_fiscalizador').val();
@@ -831,38 +705,32 @@ function validarFormulario(id_casino){
   || obtenerIdFiscalizador(id_casino,fisca) === null){
     errores = true;
     mensajes.push("Ingrese un fiscalizador");
+    $('#usuario_fiscalizador').addClass('alerta');
   }
 
   let fecha = $('#fecha').val();
   if(fecha == ""){
     errores = true;
     mensajes.push("Ingrese una fecha de ejecución");
+    $('#fecha').addClass('alerta');
   }
 
   let filas = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr')
   .not('.filaEjemplo');
   let inputs = filas.find('input:not([disabled])');
+  let hay_vacio = false;
   for(let i = 0;i<inputs.length;i++){
     let input = $(inputs[i]);
     if(input.val()==""){
       errores = true;
-      mensajes.push("Tiene al menos un nivel sin ingresar");
-      break;
+      hay_vacio = true;
+      input.addClass('alerta');
     }
   }
+  if(hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar");
   return {errores: errores, mensajes: mensajes};
 }
 
-//Opacidad del modal al minimizar
-$('#btn-minimizarValidar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-      $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
 
 //Opacidad del modal al minimizar
 $('#btn-minimizarCargar').click(function(){
@@ -875,16 +743,6 @@ $('#btn-minimizarCargar').click(function(){
   }
 });
 
-//Opacidad del modal al minimizar
-$('#btn-minimizarPlanilla').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-      $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
 
 //Opacidad del modal al minimizar
 $('#btn-minimizarCrear').click(function(){
@@ -897,16 +755,6 @@ $('#btn-minimizarCrear').click(function(){
   }
 });
 
-//Opacidad del modal al minimizar
-$('#btn-minimizarSinSistema').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-      $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
 
 $('.cabeceraTablaPozos th.sortable').click(function(){
   let sort_by = $(this).attr('data-id');
@@ -942,9 +790,12 @@ $('.cabeceraTablaPozos th.sortable').click(function(){
       let clonado = $(add).clone();
       //Tengo que setear todo de vuelta, el clone no clona bien -___-
       clonado.find('.causaNoToma').val($(add).find('.causaNoToma').val());
-      clonado.find('.causaNoToma').change(function(){
+      clonado.find('.causaNoToma').off().change(function(){
         causaNoTomaCallback(this);
       });
+
+      clonado.find('input').off().change(sacarAlerta);
+
       return clonado;
     }
   );

@@ -161,10 +161,6 @@ class RelevamientoProgresivoController extends Controller
       ->whereIn('casino.id_casino' , $casinos)
       ->where('backup' , '=', 0)->paginate($request->page_size);
 
-    foreach ($resultados as $resultado) {
-      $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha_generacion));
-    }
-
     return $resultados;
   }
 
@@ -183,29 +179,14 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function crearRelevamientoProgresivos(Request $request){
-    $fecha_hoy = date("Y-m-d"); //fecha de hoy
     $usuario_actual = UsuarioController::getInstancia()->quienSoy();
     $fiscalizador = $usuario_actual['usuario'];
 
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
+        'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
     ], array(), self::$atributos)->after(function($validator){
-      $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->count();
-      if($relevamientos > 0){
-        $validator->errors()->add('relevamiento_en_carga','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
-      }
     })->validate();
-
-    //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
-    $relevamientos = RelevamientoProgresivo::where([['fecha_generacion',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
-    $id_relevamientos_viejo= array();
-    foreach($relevamientos as $relevamiento){
-      foreach($relevamiento->detalles as $detalle){
-        $detalle->delete();
-      }
-      $id_relevamientos_viejo[]=$relevamiento->id_relevamiento;
-      $relevamiento->delete();
-    }
 
     $progresivos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
                                     ->join('maquina_tiene_progresivo', 'pozo.id_progresivo', '=', 'maquina_tiene_progresivo.id_progresivo')
@@ -229,20 +210,23 @@ class RelevamientoProgresivoController extends Controller
      if(!empty($detalles)){
 
        //creo y guardo el relevamiento progresivo
-       $relevamiento_progresivo = new RelevamientoProgresivo;
-       $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
-       $relevamiento_progresivo->fecha_generacion = $fecha_hoy;
-       $relevamiento_progresivo->id_sector = $request->id_sector;
-       $relevamiento_progresivo->id_estado_relevamiento = 1;
-       $relevamiento_progresivo->id_usuario_cargador = $fiscalizador->id_usuario;
-       $relevamiento_progresivo->backup = 0;
-       $relevamiento_progresivo->save();
+       DB::transaction(function() use($request,$fiscalizador,$detalles){
+         $relevamiento_progresivo = new RelevamientoProgresivo;
+         $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
+         $relevamiento_progresivo->fecha_generacion = $request->fecha_generacion;
+         $relevamiento_progresivo->id_sector = $request->id_sector;
+         $relevamiento_progresivo->id_estado_relevamiento = 1;
+         $relevamiento_progresivo->id_usuario_cargador = $fiscalizador->id_usuario;
+         $relevamiento_progresivo->backup = 0;
+         $relevamiento_progresivo->save();
 
-       //guardo los detalles
-       foreach($detalles as $detalle){
-          $detalle->id_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
-         $detalle->save();
-       }
+         //guardo los detalles
+         foreach($detalles as $detalle){
+            $detalle->id_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
+           $detalle->save();
+         }
+       });
+
 
       }else{
        return ['codigo' => 500]; //error, no existen progresivos para relevar.
