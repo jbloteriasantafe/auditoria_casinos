@@ -10,6 +10,7 @@ use App\Http\Controllers\UsuarioController;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario;
+$niveles = 6;
 ?>
 
 @section('estilos')
@@ -367,7 +368,7 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
 
 
     <!-- Modal cargar layout -->
-    <div class="modal fade" id="modalCargaRelevamientoProgresivos" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modalRelevamientoProgresivos" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:95%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
@@ -400,15 +401,15 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
                           <div class="row">
                             <div class="col-md-4">
                                 <h5>FISCALIZADOR CARGA</h5>
-                                <input id="fiscaCarga" type="text"class="form-control" readonly>
+                                <input id="usuario_cargador" type="text"class="form-control" readonly>
                             </div>
                             <div class="col-md-4">
                                 <h5>FISCALIZADOR TOMA</h5>
-                                <input id="inputFisca" class="form-control" type="text" autocomplete="off" list="">
+                                <input id="usuario_fiscalizador" class="form-control" type="text" autocomplete="off" list="">
                             </div>
                             <div class="col-md-4">
                                 <h5>FECHA EJECUCIÓN</h5>
-                                   <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                                   <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
                                        <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off"/>
                                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -419,32 +420,26 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
 
                           <br><br>
 
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <p style="font-family:'Roboto-Regular';font-size:16px;margin-left:20px;">
-                                     <i class="fa fa-fw fa-exclamation" style="color:#2196F3"></i> Haga doble click sobre los campos para entrar y salir del modo edición.
-                                  </p>
-                              </div>
-                          </div>
-                          <table class="table table-fixed tablaPozos">
-                            <thead>
-                              <th class="col-xs-2">Progresivo</th>
-                              <th class="col-xs-2">Pozo</th>
-                              <th class="col-xs-1">Isla</th>
-                              <th class="col-xs-1">Nivel 1</th>
-                              <th class="col-xs-1">Nivel 2</th>
-                              <th class="col-xs-1">Nivel 3</th>
-                              <th class="col-xs-1">Nivel 4</th>
-                              <th class="col-xs-1">Nivel 5</th>
-                              <th class="col-xs-1">Nivel 6</th>
-                              <th class="col-xs-1">Causa no toma</th>
+                          <table class="table table-fixed" style="margin-bottom: 0px;">
+                            <thead class="cabeceraTablaPozos">
+                              <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo</th>
+                              <th class="col-xs-2 sortable" data-id="nombrePozo">Pozo</th>
+                              <th class="col-xs-1 sortable" data-id="isla">Isla</th>
+                              @for ($i=1;$i<=$niveles;$i++)
+                              <th class="col-xs-1" data-id="nivel{{$i}}">Nivel {{$i}}</th>
+                              @endfor
+                              <th class="col-xs-1" data-id="causaNoToma">Causa no toma</th>
                             </thead>
+                            <tbody></tbody>
+                          </table>
+                          <div class="" style="overflow: scroll;height: 500px;">
+                          <table class="table table-fixed tablaPozos">
                             <tbody class="cuerpoTablaPozos">
                               <tr class="filaEjemplo" style="display: none">
                                 <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
                                 <td class="col-xs-2 nombrePozo">POZO99</td>
                                 <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
-                                @for ($i=1;$i<=6;$i++)
+                                @for ($i=1;$i<=$niveles;$i++)
                                 <td class="col-xs-1">
                                   <input class="nivel{{$i}} form-control" type="number" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                                 </td>
@@ -478,6 +473,7 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
                               </tr>
                             </tbody>
                           </table>
+                        </div>
                           <br>
                           <div class="row">
                               <div class="col-md-8 col-md-offset-2">
@@ -494,8 +490,9 @@ $puede_validar = $user->es_administrador || $user->es_superusuario;
 
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
-                  <button type="button" class="btn btn-default" id="btn-salir">SALIR</button>
+                  <button type="button" class="btn btn-warningModificar" id="btn-guardar">GUARDAR TEMPORALMENTE</button>
+                  <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
+                  <button type="button" class="btn btn-dangerElimina" id="btn-salir">SALIR</button>
                 </div>
               </div>
             </div>
