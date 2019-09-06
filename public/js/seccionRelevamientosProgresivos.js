@@ -59,6 +59,8 @@ $('#btn-ayuda').click(function(e){
 
 });
 
+$('#modalRelevamiento select').change(sacarAlerta);
+
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
@@ -104,6 +106,8 @@ $('#casino').on('change',function(){
     }
 
   });
+  
+  $('#sector').removeClass('alerta');
 });
 
 $('#buscadorCasino').on('change',function(){
@@ -164,6 +168,16 @@ $('#btn-generar').click(function(e){
   });
 
 });
+
+function sacarAlerta(){
+  let this2 = $(this);
+  if(this2.val().length > 0){
+    this2.removeClass('alerta');
+    this2.off();
+  }
+};
+
+$('input').change(sacarAlerta);
 
 //PAGINACION
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
@@ -466,6 +480,7 @@ function obtenerFila(detalle){
     .attr('data-id',nivel.id_nivel_progresivo);
   }
 
+  fila.find('input').off().change(sacarAlerta);
 
   fila.find('input:not([data-id])').attr('disabled',true);
 
@@ -477,6 +492,7 @@ function causaNoTomaCallback(x){
   if($(x).val() != -1){
     fila.find('input').attr('disabled',true)
     fila.find('input').css('color','#fff');
+    fila.find('.alerta').removeClass('alerta');
   }
   else{
     fila.find('input').attr('disabled',false);
@@ -681,6 +697,7 @@ function enviarFormularioValidacion(
 }
 
 function validarFormulario(id_casino){
+
   let errores = false;
   let mensajes = [];
   let fisca = $('#usuario_fiscalizador').val();
@@ -688,25 +705,29 @@ function validarFormulario(id_casino){
   || obtenerIdFiscalizador(id_casino,fisca) === null){
     errores = true;
     mensajes.push("Ingrese un fiscalizador");
+    $('#usuario_fiscalizador').addClass('alerta');
   }
 
   let fecha = $('#fecha').val();
   if(fecha == ""){
     errores = true;
     mensajes.push("Ingrese una fecha de ejecución");
+    $('#fecha').addClass('alerta');
   }
 
   let filas = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr')
   .not('.filaEjemplo');
   let inputs = filas.find('input:not([disabled])');
+  let hay_vacio = false;
   for(let i = 0;i<inputs.length;i++){
     let input = $(inputs[i]);
     if(input.val()==""){
       errores = true;
-      mensajes.push("Tiene al menos un nivel sin ingresar");
-      break;
+      hay_vacio = true;
+      input.addClass('alerta');
     }
   }
+  if(hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar");
   return {errores: errores, mensajes: mensajes};
 }
 
@@ -769,9 +790,12 @@ $('.cabeceraTablaPozos th.sortable').click(function(){
       let clonado = $(add).clone();
       //Tengo que setear todo de vuelta, el clone no clona bien -___-
       clonado.find('.causaNoToma').val($(add).find('.causaNoToma').val());
-      clonado.find('.causaNoToma').change(function(){
+      clonado.find('.causaNoToma').off().change(function(){
         causaNoTomaCallback(this);
       });
+
+      clonado.find('input').off().change(sacarAlerta);
+
       return clonado;
     }
   );
