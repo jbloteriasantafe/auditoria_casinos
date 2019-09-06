@@ -551,7 +551,7 @@ function setearRelevamiento(data,filaCallback){
   $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
   $('#cargaCasino').val(data.casino.nombre);
   $('#cargaSector').val(data.sector.descripcion);
-  $('#fiscaCarga').val(data.relevamiento.id_usuario_fiscalizador);
+  $('#fiscaCarga').val(data.relevamiento.id_usuario_cargador);
   $('#fecha').val(data.relevamiento.fecha_ejecucion);
 
   if(data.usuario_cargador != null)

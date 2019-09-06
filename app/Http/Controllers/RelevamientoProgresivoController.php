@@ -204,7 +204,6 @@ class RelevamientoProgresivoController extends Controller
                                     ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();
 
-
      //creo los detalles
      $detalles = array();
      foreach($progresivos as $progresivo){
@@ -255,6 +254,8 @@ class RelevamientoProgresivoController extends Controller
 
   public function crearPlanillaProgresivos($relevamiento_progresivo){
     $detalles = array();
+    $detalles_linkeados = array();
+    $detalles_individuales = array();
 
     foreach ($relevamiento_progresivo->detalles as $detalle_relevamiento) {
       $niveles = array();
@@ -262,6 +263,10 @@ class RelevamientoProgresivoController extends Controller
 
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo;
+
+      if ($pozo->id_pozo == 114) {
+        dd("positivo");
+      }
 
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
         $x=0;
@@ -306,6 +311,7 @@ class RelevamientoProgresivoController extends Controller
         'nro_islas' => $nro_islas,
         'pozo' => $pozo->descripcion,
         'progresivo' => $progresivo->nombre,
+        'es_individual' => $progresivo->es_individual,
         'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
         'nivel2' => number_format($detalle_relevamiento->nivel2, 2, '.', ''),
         'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
@@ -319,9 +325,18 @@ class RelevamientoProgresivoController extends Controller
       }
     }
 
+    foreach ($detalles as $detalle) {
+      if ($detalle['es_individual'] == 0) {
+        array_push($detalles_linkeados, $detalle);
+      }
+      else {
+        dd("entro aca");
+        array_push($detalles_individuales, $detalle);
+      }
+    }
 
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
-    $view = View::make('planillaRelevamientosProgresivo', compact('detalles','relevamiento_progresivo'));
+    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
