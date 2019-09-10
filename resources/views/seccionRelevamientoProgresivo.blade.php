@@ -213,26 +213,19 @@ $niveles = 6;
                       <div class="row">
                         <div class="col-md-6">
                           <h5>CASINO</h5>
-                          <select id="casino" class="form-control selectCasinos" name="">
-                              <option value="0">- Seleccione un casino -</option>
-
-
-                            @foreach ($casinos as $casino)
-                            <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                            @endforeach
+                          <select id="casino" class="form-control" name="">
+                              <option value="">- Seleccione un casino -</option>
+                              <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+                               @foreach ($usuario['usuario']->casinos as $casino)
+                               <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                               @endforeach
                           </select>
                           <br> <span id="alertaCasino" class="alertaSpan"></span>
                         </div>
                         <div class="col-md-6">
                           <h5>SECTOR</h5>
                           <select id="sector" class="form-control selectSector" name="">
-                              @if(count($casinos) == 1)
-                                @foreach($casinos[0]->sectores as $sector)
-                                  <option value="{{$sector->id_sector}}">{{$sector->descripcion}}</option>
-                                @endforeach
-                              @else
-                              <option value="">-Seleccione un casino-</option>
-                              @endif
+                              <option value=""></option>
                           </select>
                           <br> <span id="alertaSector" class="alertaSpan"></span>
                         </div>

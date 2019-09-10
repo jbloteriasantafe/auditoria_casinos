@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-
-<?php
-use App\Usuario;
-use App\EstadoRelevamiento;
-?>
-
 <html>
 
 <style>
@@ -56,7 +50,9 @@ p {
                     <!-- Tabla de datos del relevamiento de progresivos -->
                     <table>
                       <tr>
-                        <th class="tablaInicio" style="background-color: #dddddd">NÚMERO DE RELEVAMIENTO</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">CASINO</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">SECTOR</th>
+                        <th class="tablaInicio" style="background-color: #dddddd">N° RELEV.</th>
                         <th class="tablaInicio" style="background-color: #dddddd">FECHA PRODUCCIÓN</th>
                         <th class="tablaInicio" style="background-color: #dddddd">FECHA AUDITORÍA</th>
                         <th class="tablaInicio" style="background-color: #dddddd">FISCALIZADOR</th>
@@ -64,11 +60,13 @@ p {
                       </tr>
 
                       <tr>
+                        <td class="tablaInicio" style="background-color: white">{{$otros_datos_relevamiento_progresivo['casino']}}</td>
+                        <td class="tablaInicio" style="background-color: white">{{$otros_datos_relevamiento_progresivo['sector']}}</td>
                         <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->nro_relevamiento_progresivo}}</td>
                         <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_generacion}}</td>
                         <td class="tablaInicio" style="background-color: white">{{$relevamiento_progresivo->fecha_ejecucion}}</td>
-                        <td class="tablaInicio" style="background-color: white"><?php if ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) print_r(Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre); ?></td>
-                        <td class="tablaInicio" style="background-color: white"><?php print_r(EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion) ?></td>
+                        <td class="tablaInicio" style="background-color: white">{{$otros_datos_relevamiento_progresivo['fiscalizador']}}</td>
+                        <td class="tablaInicio" style="background-color: white">{{$otros_datos_relevamiento_progresivo['estado']}}</td>
                       </tr>
                     </table>
                     <br>
@@ -161,15 +159,37 @@ p {
                     <br><br>
                     @endif
 
-                    <!-- Campo de observaciones generales del relevamiento -->
-                    <div class="primerEncabezado">Observaciones generales del proceso:</div><br>
-                    <div style="color: #9c9c9c; ">
+
+                @if($otros_datos_relevamiento_progresivo['estado'] == 'Generado')
+                  <!-- Campo de observaciones generales del relevamiento -->
+                  <div class="primerEncabezado">Observaciones generales del proceso:</div><br>
+                  <div style="color: #9c9c9c; ">
                     @for($i = 0; $i<552; $i++)
-                    .
+                      .
                     @endfor
                   </div><br><br>
-                    <br><br><br><br><br>
-                    <!-- Si la planilla fue relevada -->
-                    <div class="primerEncabezado" style="padding-left: 440px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
+                @elseif ($otros_datos_relevamiento_progresivo['estado'] == 'Finalizado')
+                  <!-- Campo de observaciones de carga -->
+                  <div class="primerEncabezado">Observaciones de carga:</div>
+                  <div style="color: #9c9c9c; ">
+                    {{$relevamiento_progresivo->observacion_carga}}
+                  </div><br><br>
+                @else <!-- estado visado -->
+                  <!-- Campo de observaciones de carga -->
+                  <div class="primerEncabezado">Observaciones de carga:</div>
+                  <div style="color: #9c9c9c; ">
+                    {{$relevamiento_progresivo->observacion_carga}}
+                  </div><br>
+                  <!-- Campo de observaciones de validacion -->
+                  <div class="primerEncabezado">Observaciones de validacion:</div>
+                  <div style="color: #9c9c9c; ">
+                    {{$relevamiento_progresivo->observacion_validacion}}
+                  </div><br><br>
+                @endif
+
+
+              <br>
+              <!-- Si la planilla fue relevada -->
+              <div class="primerEncabezado" style="padding-left: 440px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 </html>

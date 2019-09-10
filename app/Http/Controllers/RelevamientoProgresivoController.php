@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Usuario;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\DB;
 use App\RelevamientoProgresivo;
@@ -269,6 +270,7 @@ class RelevamientoProgresivoController extends Controller
       }
 
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
+
         $x=0;
         $nro_maquinas = "";
         foreach ($progresivo->maquinas as $maq) {
@@ -330,13 +332,20 @@ class RelevamientoProgresivoController extends Controller
         array_push($detalles_linkeados, $detalle);
       }
       else {
-        dd("entro aca");
         array_push($detalles_individuales, $detalle);
       }
     }
 
+    $sector = Sector::find($relevamiento_progresivo->id_sector);
+    $otros_datos_relevamiento_progresivo = array(
+      'sector' => $sector->descripcion,
+      'casino' => (Casino::find($sector->id_casino))->nombre,
+      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) : "",
+      'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
+    );
+
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
-    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo'));
+    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
