@@ -90,15 +90,17 @@ $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
   $('#validacionFiscaCarga').val('');
 })
 
+console.log($('#modalRelevamiento #casino option:selected').attr('id'));
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('#casino').on('change',function(){
-  var id_casino = $('#casino option:selected').attr('id');
+$('#modalRelevamiento #casino').on('change', function(){
+    console.log("cambio!");
+  var id_casino = $('#modalRelevamiento #casino option:selected').attr('id');
 
-  $('#sector option').remove();
+  $('#modalRelevamiento #sector option').remove();
   $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     for (var i = 0; i < data.sectores.length; i++) {
-      $('#sector')
+      $('#modalRelevamiento #sector')
           .append($('<option>')
               .val(data.sectores[i].id_sector)
               .text(data.sectores[i].descripcion)
@@ -106,7 +108,7 @@ $('#casino').on('change',function(){
     }
 
   });
-  
+
   $('#sector').removeClass('alerta');
 });
 
