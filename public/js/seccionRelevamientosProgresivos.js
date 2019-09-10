@@ -176,7 +176,6 @@ function sacarAlerta(){
   let this2 = $(this);
   if(this2.val().length > 0){
     this2.removeClass('alerta');
-    this2.off();
   }
 };
 
