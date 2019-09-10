@@ -353,9 +353,10 @@ class RelevamientoProgresivoController extends Controller
       Validator::make($request->all(),[
           'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
           'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
+          'id_casino' => 'required|exists:casino,id_casino',
           'fiscalizador' => 'exists:usuario,id_usuario',
           'fecha_ejecucion' => 'required',
-          'observacion' => 'nullable',
+          'observaciones' => 'nullable|string',
           'detalles.*' => 'nullable',
           'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
       ], array(), self::$atributos)->after(function($validator){
@@ -371,6 +372,12 @@ class RelevamientoProgresivoController extends Controller
         if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
             $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
         }
+        //Hasta donde se, no hay forma de pedirle la longitud de un campo a eloquent
+        //De una forma que no sea una raw query. Lo hardcodeo.
+        if(strlen($validator->getData()['observaciones'])>200){
+          $validator->errors()->add('error_observaciones', 'La observacion supera los 200 caracteres');
+        }
+
       })->validate();
     }
 
@@ -424,29 +431,26 @@ class RelevamientoProgresivoController extends Controller
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
-        'observacion_validacion' => 'required',
+        'observacion_validacion' => 'nullable|string',
     ], array(), self::$atributos)->after(function($validator){
       $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
       if($relevamiento->id_estado_relevamiento != 3){
         $validator->errors()->add('error_estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
-      };
-      /* no hace falta creo, si se habilita el modal de visar relevamiento es porque ya se cargaron todos sus niveles
-      $bandera = true;
-      foreach ($relevamiento->detalles as $detalle) {
-        if($detalle->valor_actual == null){
-          $bandera = false;
-        }
       }
-      if(!$bandera){
-        $validator->errors()->add('relevamiento_incompleta','No se han relevado todos los niveles de progresivo.');
+      //Hasta donde se, no hay forma de pedirle la longitud de un campo a eloquent
+      //De una forma que no sea una raw query. Lo hardcodeo.
+      if(strlen($validator->getData()['observacion_validacion'])>200){
+        $validator->errors()->add('error_observacion_validacion', 'La observacion supera los 200 caracteres');
       }
-      */
     })->validate();
 
-    $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
-    $relevamiento->observacion_validacion = $request->observacion_validacion;
-    $relevamiento->estado_relevamiento()->associate(4);
-    $relevamiento->save();
+    DB::transaction(function() use($request){
+      $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
+      $relevamiento->observacion_validacion = $request->observacion_validacion;
+      $relevamiento->estado_relevamiento()->associate(4);
+      $relevamiento->save();
+    });
+
 
     return ['codigo' => 200];
   }

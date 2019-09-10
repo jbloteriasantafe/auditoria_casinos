@@ -21,6 +21,12 @@ $niveles = 6;
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
+<style>
+.fondoBlanco {
+  background-color: rgb(255,255,255) !important;
+}
+</style>
+
 @endsection
 
 @foreach ($casinos as $casino)
@@ -30,6 +36,8 @@ $niveles = 6;
   @endforeach
 </datalist>
 @endforeach
+
+
 
 <div class="row">
     <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
@@ -319,9 +327,11 @@ $niveles = 6;
                         <div class="col-md-4">
                             <h5>FECHA EJECUCIÓN</h5>
                                <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
-                                   <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
-                                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                   <input type='text' class="form-control fondoBlanco" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off" readonly/>
+                                   <span class="input-group-addon usables" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                   <span class="input-group-addon usables" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                   <span class="input-group-addon nousables" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                   <span class="input-group-addon nousables" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                </div>
                         </div>
                       </div>
