@@ -803,9 +803,19 @@ class ProgresivoController extends Controller
 
           $nombre =
           'PROG' .
-          $idx .
-          ' ' .
-          $nro_admin  .
+          ($idx+1) .
+          ' - ' .
+          round($nro_admin)  .
+          $casinos->find($p->id_casino)->codigo;
+        }
+        else{
+          $nro_admin = '';
+          if($p->nro_admin != null) $nro_admin=$p->nro_admin;
+
+          $nombre =
+          $p->nombre .
+          ' - ' .
+          round($nro_admin) .
           $casinos->find($p->id_casino)->codigo;
         }
 
@@ -816,7 +826,7 @@ class ProgresivoController extends Controller
 
         if($p->nro_admin != null){
           $maq_bd = $casinos->find($p->id_casino)
-          ->maquinas()->where('nro_admin','=',$p->nro_admin)->first();
+          ->maquinas()->where('nro_admin','=',round($p->nro_admin))->first();
           if($maq_bd != null){
             $progresivo_bd->maquinas()->sync([$maq_bd->id_maquina]);
           }
@@ -828,7 +838,7 @@ class ProgresivoController extends Controller
         }
 
         $pozo_bd = new Pozo;
-        $pozo_bd->descripcion = $nombre;
+        $pozo_bd->descripcion = 'POZO P'.$progresivo_bd->id_progresivo;
         $pozo_bd->id_progresivo = $progresivo_bd->id_progresivo;
         $pozo_bd->save();
 
