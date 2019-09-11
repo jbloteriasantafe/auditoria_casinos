@@ -119,7 +119,7 @@ $niveles = 6;
                 <th class="col-xs-3">ACCIÓN </th>
               </tr>
             </thead>
-            <tbody id="cuerpoTabla" style="height: 250px;">
+            <tbody id="cuerpoTabla" style="height: 350px;">
               <tr class='filaEjemplo' style="display: none;">
                 <td class="col-xs-2 fecha">
                   01 Ene 9999
@@ -422,7 +422,7 @@ $niveles = 6;
 <div class="col-md-12">
   <h5>Tarjeta de Relevamiento de progresivos</h5>
   <p>
-    Genera relevamientos aleatorios de progresivos dentro del casino, donde se deberán completar
+    Genera relevamientos progresivos dentro del casino, donde se deberán completar
     las planillas de informes, y luego, cargarlas según correspondan dichos datos.
   </p>
 </div>

@@ -366,8 +366,13 @@ class RelevamientoProgresivoController extends Controller
           'fiscalizador' => 'exists:usuario,id_usuario',
           'fecha_ejecucion' => 'required',
           'observaciones' => 'nullable|string',
-          'detalles.*' => 'nullable',
+          'detalles.*' => 'nullable|array',
           'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
+          'detalles.*.niveles' => 'required|array',
+          'detalles.*.niveles.*' => 'nullable',
+          'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
+          'detalles.*.niveles.*.numero' => 'required|string',
+          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo'
       ], array(), self::$atributos)->after(function($validator){
         $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
         $controller = UsuarioController::getInstancia();
@@ -386,7 +391,6 @@ class RelevamientoProgresivoController extends Controller
         if(strlen($validator->getData()['observaciones'])>200){
           $validator->errors()->add('error_observaciones', 'La observacion supera los 200 caracteres');
         }
-
       })->validate();
     }
 

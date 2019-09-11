@@ -68,7 +68,7 @@ $('#modalRelevamiento select').change(sacarAlerta);
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
   $('.modal-title').text('| NUEVO RELEVAMIENTO PROGRESIVOS');
-  $('#modalImportacionBeneficios .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalRelevamiento .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalRelevamiento').modal('show');
 });
 
@@ -185,80 +185,92 @@ $('input').change(sacarAlerta);
 
 //PAGINACION
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      });
-
-      e.preventDefault();
-
-      //Fix error cuando librería saca los selectores
-      if(isNaN($('#herramientasPaginacion').getPageSize())){
-        var size = 10; // por defecto
-      }else {
-        var size = $('#herramientasPaginacion').getPageSize();
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
+  });
 
-      var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-      // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaRelevamientos .activa').attr('value'),orden: $('#tablaRelevamientos .activa').attr('estado')} ;
-      if(sort_by == null){ // limpio las columnas
-        $('#tablaRelevamientos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-      }
+  e.preventDefault();
 
-    var formData = {
-      fecha_generacion: $('#buscadorFecha').val(),
-      casino: $('#buscadorCasino').val(),
-      sector: $('#buscadorSector').val(),
-      estadoRelevamiento: $('#buscadorEstado').val(),
-      page: page_number,
-      sort_by: sort_by,
-      page_size: page_size,
-    }
+  //Fix error cuando librería saca los selectores
+  if(isNaN($('#herramientasPaginacion').getPageSize())){
+    var size = 10; // por defecto
+  }else {
+    var size = $('#herramientasPaginacion').getPageSize();
+  }
 
-    $.ajax({
-        type: 'GET',
-        url: 'http://' + window.location.host +'/relevamientosProgresivo/buscarRelevamientosProgresivos',
-        data: formData,
-        dataType: 'json',
-        success: function (resultados) {
-            console.log(resultados);
+  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaRelevamientos .activa').attr('value'),orden: $('#tablaRelevamientos .activa').attr('estado')} ;
+  if(sort_by == null){ // limpio las columnas
+    $('#tablaRelevamientos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
+  }
 
-            $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-            $('#cuerpoTabla tr').not('.filaEjemplo').remove();
+  var formData = {
+    fecha_generacion: $('#buscadorFecha').val(),
+    casino: $('#buscadorCasino').val(),
+    sector: $('#buscadorSector').val(),
+    estadoRelevamiento: $('#buscadorEstado').val(),
+    page: page_number,
+    sort_by: sort_by,
+    page_size: page_size,
+  }
 
-            for (var i = 0; i < resultados.data.length; i++){
-                var fila = generarFilaTabla(resultados.data[i]);
-                $('#cuerpoTabla').append(fila);
-            }
+  $.ajax({
+      type: 'GET',
+      url: 'http://' + window.location.host +'/relevamientosProgresivo/buscarRelevamientosProgresivos',
+      data: formData,
+      dataType: 'json',
+      success: function (resultados) {
+        console.log(resultados);
 
-            $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
+        $('#herramientasPaginacion')
+        .generarTitulo(page_number,page_size,resultados.total,clickIndice);
 
-        },
-        error: function (data) {
-            console.log('Error:', data);
+        $('#cuerpoTabla tr').not('.filaEjemplo').remove();
+
+        for (var i = 0; i < resultados.data.length; i++){
+            var fila = generarFilaTabla(resultados.data[i]);
+            $('#cuerpoTabla').append(fila);
         }
-      });
+
+        $('#herramientasPaginacion')
+        .generarIndices(page_number,page_size,resultados.total,clickIndice);
+      },
+      error: function (data) {
+          console.log('Error:', data);
+      }
+    });
 });
 
 //Paginacion
 $(document).on('click','#tablaRelevamientos thead tr th[value]',function(e){
   $('#tablaRelevamientos th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+    $(e.currentTarget).children('i')
+    .removeClass().addClass('fa fa-sort-desc')
+    .parent().addClass('activa').attr('estado','desc');
   }
   else{
     if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+      $(e.currentTarget).children('i')
+      .removeClass().addClass('fa fa-sort-asc')
+      .parent().addClass('activa').attr('estado','asc');
     }
     else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+      $(e.currentTarget).children('i')
+      .removeClass().addClass('fa fa-sort')
+      .parent().attr('estado','');
     }
   }
-  $('#tablaRelevamientos th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+  $('#tablaRelevamientos th:not(.activa) i')
+  .removeClass().addClass('fa fa-sort')
+  .parent().attr('estado','');
+  clickIndice(e,
+              $('#herramientasPaginacion').getCurrentPage(),
+              $('#herramientasPaginacion').getPageSize());
 });
 
 function clickIndice(e,pageNumber,tam){
@@ -295,7 +307,10 @@ function cargarRelevamiento(relevamiento){
   $('#btn-finalizar').show().text("CARGAR").off();
 
   $('#modalRelevamientoProgresivos')
-  .find('.modal-header').attr("font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
+  .find('.modal-header')
+  .attr("style",
+        "font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
+
   $('#modalRelevamientoProgresivos').
   find('.modal-title').text('| CARGAR RELEVAMIENTO DE PROGRESIVOS');
 
@@ -307,7 +322,8 @@ function cargarRelevamiento(relevamiento){
   $('#dtpFecha span.usables').show();
   $('#dtpFecha span.nousables').hide();
 
-  $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo, function(data){
+  $.get('relevamientosProgresivo/obtenerRelevamiento/'+relevamiento.id_relevamiento_progresivo,
+   function(data){
     setearRelevamiento(data,obtenerFila);
 
     $('#btn-finalizar').click(function(){
@@ -364,7 +380,9 @@ function validarRelevamiento(relevamiento){
   $('#btn-finalizar').show().text("VISAR").off();
 
   $('#modalRelevamientoProgresivos')
-  .find('.modal-header').attr('style',"font-family:'Roboto-Black';color:white;background-color:#69F0AE;");
+  .find('.modal-header')
+  .attr('style',
+        "font-family:'Roboto-Black';color:white;background-color:#69F0AE;");
   $('#modalRelevamientoProgresivos').
   find('.modal-title').text('| VALIDAR RELEVAMIENTO DE PROGRESIVOS');
 
@@ -376,11 +394,13 @@ function validarRelevamiento(relevamiento){
   $('#dtpFecha span.nousables').show();
   $('#dtpFecha span.usables').hide();
 
-  $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo, function(data){
+  $.get('relevamientosProgresivo/obtenerRelevamiento/'+relevamiento.id_relevamiento_progresivo,
+  function(data){
     setearRelevamiento(data,obtenerFilaValidacion);
 
     $('#btn-finalizar').click(function(){
-      enviarFormularioValidacion(relevamiento.id_relevamiento_progresivo,function(x){
+      enviarFormularioValidacion(relevamiento.id_relevamiento_progresivo,
+      function(x){
         console.log(x);
         $('#modalRelevamientoProgresivos').modal('hide');
         let fila = $('#cuerpoTabla tr[data-id="'+relevamiento.id_relevamiento_progresivo+'"]');
@@ -742,13 +762,13 @@ function validarFormulario(id_casino){
   let hay_vacio = false;
   for(let i = 0;i<inputs.length;i++){
     let input = $(inputs[i]);
-    if(input.val()==""){
+    if(input.val()=="" || input.val()<0){
       errores = true;
       hay_vacio = true;
       input.addClass('alerta');
     }
   }
-  if(hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar");
+  if(hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar o con valores invalidos");
   return {errores: errores, mensajes: mensajes};
 }
 
