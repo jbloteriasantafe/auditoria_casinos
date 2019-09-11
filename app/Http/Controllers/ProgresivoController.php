@@ -844,6 +844,7 @@ class ProgresivoController extends Controller
 
         $nivel1_bd = new NivelProgresivo;
         $nivel1_bd->nro_nivel = 1;
+        if($p->menu1 === null || strlen($p->menu1) == 0) $p->menu1 = '' . 1;
         $nivel1_bd->nombre_nivel = $p->menu1;
         $nivel1_bd->base = $p->base1;
         $nivel1_bd->porc_oculto = $p->porc_ocu1;
@@ -854,6 +855,7 @@ class ProgresivoController extends Controller
 
         $nivel2_bd = new NivelProgresivo;
         $nivel2_bd->nro_nivel = 2;
+        if($p->menu2 === null || strlen($p->menu2) == 0) $p->menu2 = '' . 2;
         $nivel2_bd->nombre_nivel = $p->menu2;
         $nivel2_bd->base = $p->base2;
         $nivel2_bd->porc_oculto = $p->porc_ocu2;
@@ -864,6 +866,7 @@ class ProgresivoController extends Controller
 
         $nivel3_bd = new NivelProgresivo;
         $nivel3_bd->nro_nivel = 3;
+        if($p->menu3 === null || strlen($p->menu3) == 0) $p->menu3 = '' . 3;
         $nivel3_bd->nombre_nivel = $p->menu3;
         $nivel3_bd->base = $p->base3;
         $nivel3_bd->porc_oculto = $p->porc_ocu3;
@@ -874,6 +877,7 @@ class ProgresivoController extends Controller
 
         $nivel4_bd = new NivelProgresivo;
         $nivel4_bd->nro_nivel = 4;
+        if($p->menu4 === null || strlen($p->menu4) == 0) $p->menu4 = '' . 4;
         $nivel4_bd->nombre_nivel = $p->menu4;
         $nivel4_bd->base = $p->base4;
         $nivel4_bd->porc_oculto = $p->porc_ocu4;
@@ -884,6 +888,7 @@ class ProgresivoController extends Controller
 
         $nivel5_bd = new NivelProgresivo;
         $nivel5_bd->nro_nivel = 5;
+        if($p->menu5 === null || strlen($p->menu5) == 0) $p->menu5 = '' . 5;
         $nivel5_bd->nombre_nivel = $p->menu5;
         $nivel5_bd->base = $p->base5;
         $nivel5_bd->porc_oculto = $p->porc_ocu5;
@@ -894,6 +899,7 @@ class ProgresivoController extends Controller
 
         $nivel6_bd = new NivelProgresivo;
         $nivel6_bd->nro_nivel = 6;
+        if($p->menu6 === null || strlen($p->menu6) == 0) $p->menu6 = '' . 6;
         $nivel6_bd->nombre_nivel = $p->menu6;
         $nivel6_bd->base = $p->base6;
         $nivel6_bd->porc_oculto = $p->porc_ocu6;
@@ -906,7 +912,7 @@ class ProgresivoController extends Controller
       $deleteq =
       "DELETE FROM nivel_progresivo
       where
-      nombre_nivel is NULL and
+      LENGTH(nombre_nivel) = 1 and
       base is NULL and
       porc_oculto is NULL and
       porc_visible is NULL";

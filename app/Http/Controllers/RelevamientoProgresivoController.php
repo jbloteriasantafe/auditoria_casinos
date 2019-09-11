@@ -92,7 +92,6 @@ class RelevamientoProgresivoController extends Controller
       $d->niveles=array();
       $detalle_arr = $detalle->toArray();
       foreach ($pozo->niveles as $nivel){
-        if($nivel->base >= RelevamientoProgresivoController::$param_niveles_pozo){
           $unNivel = new \stdClass;
           $unNivel->base = $nivel->base;
           $unNivel->nombre_nivel = $nivel->nombre_nivel;
@@ -100,7 +99,6 @@ class RelevamientoProgresivoController extends Controller
           $unNivel->valor= $detalle_arr['nivel' . $nivel->nro_nivel];
           $unNivel->id_nivel_progresivo = $nivel->id_nivel_progresivo;
           $d->niveles[] = $unNivel;
-        }
       }
       $detalles[]=$d;
     }
