@@ -1008,7 +1008,7 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
       fila.find('.cuerpoTablaPozoNumero').text(parseInt(nro)+1);
     }
     else{
-      fila.find('.cuerpoTablaPozoNumero').text('0');
+      fila.find('.cuerpoTablaPozoNumero').text('1');
     }
 
   });

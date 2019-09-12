@@ -511,8 +511,14 @@ $('#btn-salir').click(function(){
 
 function obtenerFila(detalle){
   let fila = filaEjemploCarga();
-  fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
-  fila.find('.nombrePozo').text(detalle.nombre_pozo);
+  if(detalle.pozo_unico){
+    fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
+  }
+  else{
+    fila.find('.nombreProgresivo').text(detalle.nombre_progresivo + ' (' + detalle.nombre_pozo+')');
+  }
+  fila.find('.nombrePozo').text('');
+  
   fila.find('.isla').text(detalle.nro_isla);
   fila.attr('data-id',detalle.id_detalle_relevamiento_progresivo);
 

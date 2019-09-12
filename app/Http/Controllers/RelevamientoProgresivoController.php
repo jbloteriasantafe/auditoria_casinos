@@ -56,7 +56,6 @@ class RelevamientoProgresivoController extends Controller
 
     $casino = $relevamiento->sector->casino;
     foreach ($relevamiento->detalles as $detalle) {
-
       $niveles = array();
       $id_maquinas_pozo = array();
       $pozo = Pozo::find($detalle->id_pozo);
@@ -86,6 +85,7 @@ class RelevamientoProgresivoController extends Controller
       $d->nro_isla = $nro_isla;
       $d->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
       $d->nombre_progresivo=$pozo->progresivo->nombre;
+      $d->pozo_unico = count($pozo->progresivo->pozos) == 1;
       $d->nombre_pozo=$pozo->descripcion;
       $d->id_pozo = $pozo->id_pozo;
       $d->id_tipo_causa_no_toma_progresivo = $detalle->id_tipo_causa_no_toma_progresivo;
@@ -194,7 +194,7 @@ class RelevamientoProgresivoController extends Controller
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    $progresivos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
+    $pozos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
                                     ->join('maquina_tiene_progresivo', 'pozo.id_progresivo', '=', 'maquina_tiene_progresivo.id_progresivo')
                                     ->join('maquina', 'maquina.id_maquina', '=', 'maquina_tiene_progresivo.id_maquina')
                                     ->join('isla','maquina.id_isla','=','isla.id_isla')
@@ -207,10 +207,10 @@ class RelevamientoProgresivoController extends Controller
 
      //creo los detalles
      $detalles = array();
-     foreach($progresivos as $progresivo){
-       if(ProgresivoController::getInstancia()->existenNivelSuperior($progresivo->id_pozo)){
+     foreach($pozos as $pozo){
+       if(ProgresivoController::getInstancia()->existenNivelSuperior($pozo->id_pozo)){
          $detalle = new DetalleRelevamientoProgresivo;
-         $detalle->id_pozo = $progresivo->id_pozo;
+         $detalle->id_pozo = $pozo->id_pozo;
          $detalles[] = $detalle;
        }
      }
