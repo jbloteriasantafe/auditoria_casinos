@@ -21,6 +21,8 @@ tr:nth-child(even) {
 p {
       border-top: 1px solid #000;
 }
+
+div.breakNow { page-break-inside:avoid; page-break-after:always; }
 </style>
 
   <head>
@@ -79,7 +81,6 @@ p {
                         <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">POZO</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
@@ -93,8 +94,12 @@ p {
                       <tr>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_islas']}} </td>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_maquinas']}} </td>
-                        <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} </td>
-                        <td class="tablaInicio" style="background-color: white">{{$detalle['pozo']}} </td>
+                        @if ($detalle['pozo_unico'])
+                          <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}}</td>
+                        @else
+                          <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+                        @endif
+
                         @if ($detalle['causa_no_toma_progresivo'] != -1)
                           @for ($i=0; $i<6; $i++)
                             <td class="tablaInicio" style="background-color: white"> - </td>
@@ -117,6 +122,7 @@ p {
 
                     <!-- Tabla de progresivos individuales -->
                     @if (count($detalles_individuales) > 0)
+                    <div class="breakNow"> </div>
                     <div class="primerEncabezado">Listado de progresivos individuales:</div>
                     <table>
                       <tr>
@@ -159,34 +165,19 @@ p {
                     <br><br>
                     @endif
 
+                    @if ($relevamiento_progresivo->observacion_carga != NULL)
+                      <div class="primerEncabezado">Observaciones de carga:</div>
+                      <div style="color: #9c9c9c; ">
+                        {{$relevamiento_progresivo->observacion_carga}}
+                      </div><br><br>
+                    @endif
 
-                @if($otros_datos_relevamiento_progresivo['estado'] == 'Generado')
-                  <!-- Campo de observaciones generales del relevamiento -->
-                  <div class="primerEncabezado">Observaciones generales del proceso:</div><br>
-                  <div style="color: #9c9c9c; ">
-                    @for($i = 0; $i<552; $i++)
-                      .
-                    @endfor
-                  </div><br><br>
-                @elseif ($otros_datos_relevamiento_progresivo['estado'] == 'Finalizado')
-                  <!-- Campo de observaciones de carga -->
-                  <div class="primerEncabezado">Observaciones de carga:</div>
-                  <div style="color: #9c9c9c; ">
-                    {{$relevamiento_progresivo->observacion_carga}}
-                  </div><br><br>
-                @else <!-- estado visado -->
-                  <!-- Campo de observaciones de carga -->
-                  <div class="primerEncabezado">Observaciones de carga:</div>
-                  <div style="color: #9c9c9c; ">
-                    {{$relevamiento_progresivo->observacion_carga}}
-                  </div><br>
-                  <!-- Campo de observaciones de validacion -->
-                  <div class="primerEncabezado">Observaciones de validacion:</div>
-                  <div style="color: #9c9c9c; ">
-                    {{$relevamiento_progresivo->observacion_validacion}}
-                  </div><br><br>
-                @endif
-
+                    @if ($relevamiento_progresivo->observacion_validacion != NULL)
+                      <div class="primerEncabezado">Observaciones de validacion:</div>
+                      <div style="color: #9c9c9c; ">
+                        {{$relevamiento_progresivo->observacion_validacion}}
+                      </div><br><br>
+                    @endif
 
               <br>
               <!-- Si la planilla fue relevada -->

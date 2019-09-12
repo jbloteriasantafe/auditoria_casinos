@@ -313,6 +313,7 @@ class RelevamientoProgresivoController extends Controller
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
         'pozo' => $pozo->descripcion,
+        'pozo_unico' => count($pozo->progresivo->pozos) == 1,
         'progresivo' => $progresivo->nombre,
         'es_individual' => $progresivo->es_individual,
         'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
@@ -407,7 +408,7 @@ class RelevamientoProgresivoController extends Controller
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
 
-        if ($detalle['id_tipo_causa_no_toma'] === null) {
+        if (!array_key_exists('id_tipo_causa_no_toma', $detalle) || $detalle['id_tipo_causa_no_toma'] === null) {
           $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
           $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
           $unDetalle->nivel3 = array_key_exists(2, $detalle['niveles']) ? $detalle['niveles'][2]['valor'] : NULL;
