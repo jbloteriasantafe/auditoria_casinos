@@ -129,7 +129,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                         <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">POZO</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
@@ -143,8 +142,13 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                       <tr>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_islas']}} </td>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_maquinas']}} </td>
-                        <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} </td>
-                        <td class="tablaInicio" style="background-color: white">{{$detalle['pozo']}} </td>
+
+                        @if ($detalle['pozo_unico'])
+                          <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}}</td>
+                        @else
+                          <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+                        @endif
+
                         @if ($detalle['causa_no_toma_progresivo'] != -1)
                           @for ($i=0; $i<6; $i++)
                             <td class="tablaInicio" style="background-color: white"> - </td>
