@@ -370,7 +370,7 @@ class RelevamientoProgresivoController extends Controller
           'observaciones' => 'nullable|string',
           'detalles.*' => 'nullable|array',
           'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
-          'detalles.*.niveles' => 'required|array',
+          'detalles.*.niveles' => 'nullable|array',
           'detalles.*.niveles.*' => 'nullable',
           'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
           'detalles.*.niveles.*.numero' => 'required|string',
