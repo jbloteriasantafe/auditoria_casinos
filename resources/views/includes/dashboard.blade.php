@@ -66,6 +66,8 @@ $cas = $usuario['usuario']->casinos;
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 
+
+
     @section('estilos')
     @show
 
@@ -664,6 +666,50 @@ $cas = $usuario['usuario']->casinos;
 
                             </ul>
                         </li>
+
+                        <!-- MENU BINGO -->
+                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
+                        <li>
+                            <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('tablero_control','iconoTableroControl')
+                                </span>
+                                <span>Bingo</span>
+                            </div>
+
+                            <!-- SEGUNDO NIVEL -->
+                            <ul class="subMenu1 collapse" id="bingoMenu">
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
+                              <li>
+                                <div id="opcBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo'" href="#" style="cursor: pointer;">
+                                  <span>Sesiones y Relevamiento</span>
+                                </div>
+                              </li>
+                              @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                              <li>
+                                <div id="opcImportarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/importarRelevamiento'" href="#" style="cursor: pointer;">
+                                  <span>Importar Relevamiento</span>
+                                </div>
+                              </li>
+                              @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                              <li>
+                                <div id="opcReporteEstadoBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesEstado'" href="#" style="cursor: pointer;">
+                                  <span>Reportes de Estados</span>
+                                </div>
+                              </li>
+                              @endif
+                            </ul>
+
+                        </li>
+                        @endif
+                        <!-- fin menu bingo -->
+
+
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_importaciones'))
                         <div class="separadoresMenu" style="font-size:11px !important">GESTIÓN CONTABLE MESAS</div>
                           <li>

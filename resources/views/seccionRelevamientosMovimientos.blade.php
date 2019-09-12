@@ -259,17 +259,19 @@ $cas = $usuario['usuario']->casinos;
                     <input id="macCargar" type="text" value="" class="form-control">
                     <br>
                   </div> <!-- modelo -->
-                  <div class="col-lg-4">
-                    <h5>ISLA</h5>
-                    <input id="islaRelevadaCargar" type="text" value="" class="form-control">
-                    <br>
-                  </div>
+
 
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>
                     <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
                     <br>
                   </div> <!-- SECTOR -->
+
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaCargar" type="text" value="" class="form-control">
+                    <br>
+                  </div>
 
                 </div> <!-- segundo row -->
 

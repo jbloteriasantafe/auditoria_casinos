@@ -76,6 +76,14 @@ public function fichas(){
   return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
 }
 
+public function sesionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
+}
+
+public function importancionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
+}
+
   public static function boot(){
         parent::boot();
         Casino::observe(new CasinoObserver());

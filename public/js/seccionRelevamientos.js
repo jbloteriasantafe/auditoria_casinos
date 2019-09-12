@@ -444,7 +444,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
       input6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? true : false;
       input7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? true : false;
       input8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? true : false;
-              
+
       if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
           inputValido=true;
       }else{
@@ -1489,7 +1489,7 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
-    
+
     var medida = $(this).siblings('input:checked').val();
     //var denominacion = $(this).siblings('input:text');
     var fila = $(this).closest('tr');
@@ -1523,9 +1523,9 @@ $(document).on('click','.ajustar',function(e){
 
     }
     else {
-        
+
         denMaestro=fila.attr('data-denominacion');
-        
+
         if (denMaestro==""){
           denMaestro=0.01
         }
@@ -1551,7 +1551,7 @@ $(document).on('click' , '.estadisticas_no_toma' , function (){
     //   $('#btn-buscarMTM').trigger('click');
 
     //  }));
-      
+
   } else {
       //Browser has blocked it
       alert('Please allow popups for this website');
@@ -1919,7 +1919,7 @@ function calculoDiferencia(tablaRelevamientos){
               input6 = $(this).find('.cont6').val() != '' ? true : false;
               input7 = $(this).find('.cont7').val() != '' ? true : false;
               input8 = $(this).find('.cont8').val() != '' ? true : false;
-              
+
               if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
                 inputValido=true;
               }else{
@@ -2385,7 +2385,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-
+console.log(formData);
   $.ajax({
     type: "POST",
     url: 'relevamientos/buscarRelevamientos',

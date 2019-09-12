@@ -62,3 +62,15 @@
   position: relative !important;
   top: -7px !important;
 }
+#terminoFormula, #terminoCierreSesion, #terminoRelevamiento {
+  margin-bottom: 15px!important;
+}
+.pbzero{
+  padding-bottom: 0px!important;
+}
+.pbtitle{
+  padding-bottom: 10px!important;
+}
+.bbnav{
+  border-bottom: 0px!important;
+}
