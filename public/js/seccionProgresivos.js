@@ -159,11 +159,11 @@ function filaEjemploIndividual(){
   let botonEditar = fila.find('.editar');
   let botonBorrar = fila.find('.borrar');
 
-  fila.find('.eliminar').click(function(){
-    fila.remove();
+  botonBorrar.click(function(){
+    borrarFila(fila);
   });
 
-  fila.find('.editar').click(function(){
+  botonEditar.click(function(){
     let data = arregloProgresivoIndividual(fila);
     let filaEditable = filaEditableIndividualParcial(data);
     fila.replaceWith(filaEditable);
@@ -717,6 +717,51 @@ function filaEjemploMaquina(){
   return $('.tablaMaquinasDiv.ejemplo').find('.filaEjemplo').clone().removeClass('filaEjemplo').show();
 }
 
+function subirFila(fila){
+  let elem = fila[0];
+  let parent = elem.parentNode;
+  let arriba = elem.previousElementSibling;
+  if(arriba === null) return;
+
+  let elem_nivel = elem.getElementsByClassName('cuerpoTablaPozoNumero')[0];
+  let arriba_nivel = arriba.getElementsByClassName('cuerpoTablaPozoNumero')[0];
+
+  const arriba_nro = parseInt(arriba_nivel.innerText);
+  const elem_nro = parseInt(elem_nivel.innerText);
+  if(arriba_nro<elem_nro){
+      arriba_nivel.innerText = elem_nro.toString();
+      elem_nivel.innerText = arriba_nro.toString();
+      parent.insertBefore(elem,arriba);
+  }
+}
+
+function bajarFila(fila){
+  let elem = fila[0];
+  let parent = elem.parentNode;
+  let abajo = elem.nextElementSibling;
+  if(abajo === null) return;
+
+  let elem_nivel = elem.getElementsByClassName('cuerpoTablaPozoNumero')[0];
+  let abajo_nivel = abajo.getElementsByClassName('cuerpoTablaPozoNumero')[0];
+
+  const abajo_nro = parseInt(abajo_nivel.innerText);
+  const elem_nro = parseInt(elem_nivel.innerText);
+  if(elem_nro<abajo_nro){
+      abajo_nivel.innerText = elem_nro.toString();
+      elem_nivel.innerText = abajo_nro.toString();
+      parent.insertBefore(abajo,elem);
+  }
+}
+
+function borrarFila(fila){
+  let parent = fila.parent();
+  fila.remove();
+  let children = parent.children();
+  children.each(function(i,c){
+    $(c).find('.cuerpoTablaPozoNumero').text(i+1);
+  });
+}
+
 function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
   fila.attr('data-id',nivel.id_nivel_progresivo);
 
@@ -729,7 +774,7 @@ function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
     fila.find('.cuerpoTablaPorcOculto').text(nivel.porc_oculto);
   }
   else{
-    fila.find('.cuerpoTablaPozoNumero .editable').val(nivel.nro_nivel);
+    fila.find('.cuerpoTablaPozoNumero').text(nivel.nro_nivel);
     fila.find('.cuerpoTablaPozoNombre .editable').val(nivel.nombre_nivel);
     fila.find('.cuerpoTablaPozoBase .editable').val(nivel.base);
     fila.find('.cuerpoTablaPozoMaximo .editable').val(nivel.maximo);
@@ -741,7 +786,7 @@ function setearValoresFilaNivel(fila,nivel,fila_es_editable=false){
 function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
   let fila = filaEjemplo();
 
-  fila.find('.cuerpoTablaPozoNumero').empty().append(crearEditable('number','',0,null,'any'))
+  fila.find('.cuerpoTablaPozoNumero').empty();
   fila.find('.cuerpoTablaPozoNombre').empty().append(crearEditable("text"));
   fila.find('.cuerpoTablaPozoBase').empty().append(crearEditable("number","0",0,null,"any"));
   fila.find('.cuerpoTablaPozoMaximo').empty().append(crearEditable("number","0",0,null,"any"));
@@ -755,13 +800,12 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
   setearValoresFilaNivel(fila,valores,true);
 
   fila.find('.confirmar').on('click',function(){
-    let numero = fila.find('.cuerpoTablaPozoNumero .editable').val();
     let nombre = fila.find('.cuerpoTablaPozoNombre .editable').val();
     let base = fila.find('.cuerpoTablaPozoBase .editable').val();
     let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
     let porc_visible = fila.find('.cuerpoTablaPorcVisible .editable').val();
     let porc_oculto = fila.find('.cuerpoTablaPorcOculto .editable').val();
-    let valido =  numero != '';
+    let valido = true;
     valido = valido && (nombre != '');
     valido = valido && (base >= 0);
     valido = valido && (maximo >= 0);
@@ -769,6 +813,13 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
     valido = valido && (porc_oculto >= 0) && (porc_oculto <= 100);
     if(valido) modificarNivel(fila);
   });
+
+  fila.find('.subir').on('click',function(){
+    subirFila(fila);
+  });
+  fila.find('.bajar').on('click',function(){
+    bajarFila(fila);
+  })
 
   fila.find('.cancelar').on('click',function(){
     let nueva_fila = filaEjemplo();
@@ -780,8 +831,15 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
     });
 
     nueva_fila.find('.cuerpoTablaPozoAcciones .borrar').on('click',function(){
-      nueva_fila.remove();
+      borrarFila(nueva_fila);
     });
+
+    nueva_fila.find('.subir').on('click',function(){
+      subirFila(nueva_fila);
+    });
+    nueva_fila.find('.bajar').on('click',function(){
+      bajarFila(nueva_fila);
+    })
 
     fila.replaceWith(nueva_fila);
   });
@@ -807,7 +865,7 @@ function modificarNivel(fila){
   });
 
   fila.find('.cuerpoTablaPozoAcciones .borrar').on('click',function(){
-    fila.remove();
+    borrarFila(fila);
   });
 
   fila.parent().parent().parent().find('.agregar').attr('disabled',false);
@@ -858,8 +916,15 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
     });
 
     fila.find('.cuerpoTablaPozoAcciones .borrar').on('click',function(){
-      fila.remove();
+      borrarFila(fila);
     });
+
+    fila.find('.subir').on('click',function(){
+      subirFila(fila);
+    }).attr('disabled',!editable);
+    fila.find('.bajar').on('click',function(){
+      bajarFila(fila);
+    }).attr('disabled',!editable);
 
     pozo_html.find('.cuerpoTablaPozo').append(fila);
   }
@@ -930,12 +995,22 @@ function mostrarPozo(id_pozo,nombre,editable,niveles = {}){
       crearBoton('fa-trash-alt').addClass('borrar')
     );
     fila.find('.borrar').on('click',function(){
-      fila.remove();
+      borrarFila(fila);
       pozo_html.find('.agregar').attr('disabled',false);
     })
 
     pozo_html.find('.cuerpoTablaPozo').append(fila);
     $(this).attr('disabled',true);
+
+    const fila_anterior = fila.prev();
+    if(fila_anterior.length > 0){
+      let nro = fila_anterior.find('.cuerpoTablaPozoNumero').text();
+      fila.find('.cuerpoTablaPozoNumero').text(parseInt(nro)+1);
+    }
+    else{
+      fila.find('.cuerpoTablaPozoNumero').text('0');
+    }
+
   });
 
 }

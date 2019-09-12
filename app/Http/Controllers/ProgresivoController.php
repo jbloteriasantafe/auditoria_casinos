@@ -208,8 +208,14 @@ class ProgresivoController extends Controller
           if($pozo->niveles != null){
             $niveles = $pozo->niveles->toArray();
           }
+          usort($niveles,function($a,$b){
+            return $a['nro_nivel'] > $b['nro_nivel'];
+          });
+
           $pozo_arr['niveles']=$niveles;
           $pozos_arr[]=$pozo_arr;
+
+
         }
       }
 

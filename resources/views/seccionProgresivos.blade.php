@@ -412,18 +412,24 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             </thead>
             <tbody class="cuerpoTablaPozo">
               <tr class="filaEjemplo" style="display: none;">
+                <td class="col-xs-1 cuerpoTablaPozoFlechas">
+                  <button class="btn btn-link subir chico" style="background-color: transparent !important;" >
+                    <i class="fa fa-fw fa-arrow-up"></i>
+                  </button>
+                  <button class="btn btn-link bajar chico" style="background-color: transparent !important;" >
+                    <i class="fa fa-fw fa-arrow-down"></i>
+                  </button>
+                </td>
                 <td class="col-xs-1 cuerpoTablaPozoNumero">999</td>
                 <td class="col-xs-2 cuerpoTablaPozoNombre">NOMBRE EJEMPLO</td>
                 <td class="col-xs-2 cuerpoTablaPozoBase">999999999</td>
                 <td class="col-xs-2 cuerpoTablaPozoMaximo">999999999</td>
                 <td class="col-xs-1 cuerpoTablaPorcVisible">12.34</td>
                 <td class="col-xs-1 cuerpoTablaPorcOculto">12.34</td>
-                <td class="col-xs-3 cuerpoTablaPozoAcciones">
-                  <span> </span>
+                <td class="col-xs-2 cuerpoTablaPozoAcciones">
                   <button class="btn btn-info editar">
                     <i class="fa fa-fw fa-pencil-alt"></i>
                   </button>
-                  <span> </span>
                   <button class="btn btn-info borrar">
                     <i class="fa fa-fw fa-trash-alt"></i>
                   </button>
