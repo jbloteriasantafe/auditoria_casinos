@@ -401,13 +401,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
             <thead>
               <tr>
+                <th class="col-xs-1">Mover</th>
                 <th class="col-xs-1" value="nivel_progresivo.nro_nivel" estado="">#<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="nivel_progresivo.nombre_nivel" estado="">Nombre nivel progresivo<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="nivel_progresivo.base" estado="">Base<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="nivel_progresivo.maximo" estado="">Máximo<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="nivel_progresivo.porc_visible" estado="">% Visible<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="nivel_progresivo.porc_oculto" estado="">% Oculto<i class="fa fa-sort"></i></th>
-                <th class="col-xs-3">ACCIONES</th>
+                <th class="col-xs-2">ACCIONES</th>
               </tr>
             </thead>
             <tbody class="cuerpoTablaPozo">

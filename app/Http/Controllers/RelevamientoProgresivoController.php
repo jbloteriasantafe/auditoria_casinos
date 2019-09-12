@@ -58,12 +58,16 @@ class RelevamientoProgresivoController extends Controller
     foreach ($relevamiento->detalles as $detalle) {
       $niveles = array();
       $id_maquinas_pozo = array();
+      $nro_admin_maquinas = '';
       $pozo = Pozo::find($detalle->id_pozo);
       if($pozo == null) continue;
       $maquinas = $pozo->progresivo->maquinas;
       foreach ($maquinas as $maq){
         $id_maquinas_pozo[] = $maq['id_maquina'];
+        $nro_admin_maquinas = $nro_admin_maquinas .'/'. $maq['nro_admin'];
       }
+
+      $nro_admin_maquinas = substr_replace($nro_admin_maquinas,'',0,1);
 
       $resultados = DB::table('isla')
       ->selectRaw('DISTINCT(nro_isla)')
@@ -89,6 +93,7 @@ class RelevamientoProgresivoController extends Controller
       $d->nombre_pozo=$pozo->descripcion;
       $d->id_pozo = $pozo->id_pozo;
       $d->id_tipo_causa_no_toma_progresivo = $detalle->id_tipo_causa_no_toma_progresivo;
+      $d->nro_admins=$nro_admin_maquinas;
       $d->niveles=array();
       $detalle_arr = $detalle->toArray();
       foreach ($pozo->niveles as $nivel){

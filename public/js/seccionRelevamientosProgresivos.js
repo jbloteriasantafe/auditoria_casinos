@@ -517,8 +517,8 @@ function obtenerFila(detalle){
   else{
     fila.find('.nombreProgresivo').text(detalle.nombre_progresivo + ' (' + detalle.nombre_pozo+')');
   }
-  fila.find('.nombrePozo').text('');
-  
+  fila.find('.maquinas').text(detalle.nro_admins);
+
   fila.find('.isla').text(detalle.nro_isla);
   fila.attr('data-id',detalle.id_detalle_relevamiento_progresivo);
 

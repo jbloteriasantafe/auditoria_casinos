@@ -334,7 +334,7 @@ $niveles = 6;
                       <table class="table table-fixed" style="margin-bottom: 0px;">
                         <thead class="cabeceraTablaPozos">
                           <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo</th>
-                          <th class="col-xs-2 sortable" data-id="nombrePozo">Pozo</th>
+                          <th class="col-xs-2 sortable" data-id="maquinas">Maquinas</th>
                           <th class="col-xs-1 sortable" data-id="isla">Isla</th>
                           @for ($i=1;$i<=$niveles;$i++)
                           <th class="col-xs-1" data-id="nivel{{$i}}">Nivel {{$i}}</th>
@@ -348,7 +348,7 @@ $niveles = 6;
                         <tbody class="cuerpoTablaPozos">
                           <tr class="filaEjemplo" style="display: none">
                             <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
-                            <td class="col-xs-2 nombrePozo">POZO99</td>
+                            <td class="col-xs-2 maquinas">MAQUINA1/MAQUINA2/...</td>
                             <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
                             @for ($i=1;$i<=$niveles;$i++)
                             <td class="col-xs-1">
