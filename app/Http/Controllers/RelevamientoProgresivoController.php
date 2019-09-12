@@ -35,7 +35,7 @@ use App\TipoCausaNoTomaProgresivo;
 class RelevamientoProgresivoController extends Controller
 {
   //Parámetro para no mostrar niveles inferiores al valor del mismo
-  public static $param_niveles_pozo = 100;
+  public static $param_niveles_pozo = 0;
 
   private static $atributos = [
   ];
@@ -203,6 +203,8 @@ class RelevamientoProgresivoController extends Controller
                                     ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();
 
+
+
      //creo los detalles
      $detalles = array();
      foreach($progresivos as $progresivo){
@@ -262,10 +264,6 @@ class RelevamientoProgresivoController extends Controller
 
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo;
-
-      if ($pozo->id_pozo == 114) {
-        dd("positivo");
-      }
 
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
 
