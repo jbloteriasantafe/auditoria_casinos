@@ -370,18 +370,16 @@ class ProgresivoController extends Controller
         $identificador =
         'IND' .
         $maq_bd->nro_admin .
-        $casino_bd->codigo .
-        ' ' .
-        date("d-m-Y H:i:s");;
+        $casino_bd->codigo;
 
         if($maq_bd == null){
-          return $this->errorOut(['id_maquina' => 'Maquina no existe.']);
+          return $this->errorOut(['id_maquina' => 'Maquina '. $maq['id_maquina'] . ' no existe.']);
         }
 
         $individuales = $maq_bd->progresivos()->where('es_individual','=','1')->get()->count();
         if($individuales != 0){
           DB::rollBack();
-          return $this->errorOut([ 'es_individual' => $maq['id_maquina'] ]);
+          return $this->errorOut([ 'es_individual' => 'Maquina '.$maq['nro_admin'].' ya tiene un progresivo individual' ]);
         }
         $progresivo = new Progresivo;
         $pozo = new Pozo;
