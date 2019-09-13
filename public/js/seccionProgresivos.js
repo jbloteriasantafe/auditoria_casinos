@@ -246,6 +246,7 @@ function filaEditableIndividual(){
     if(isNaN(fila_porcvisible_val)) return;
     if(fila_maximo_val < 0) return;
     if(fila_base_val < 0) return;
+    if(fila_base_val > fila_maximo_val) return;
     if(fila_porcrecup_val<0
     || fila_porcrecup_val>100) return;
     if(fila_porcoculto_val<0
@@ -351,6 +352,7 @@ function filaEditableIndividualParcial(data){
     if(isNaN(fila_porcvisible_val)) return;
     if(fila_maximo_val < 0) return;
     if(fila_base_val < 0) return;
+    if(fila_base_val > fila_maximo_val) return;
     if(fila_porcrecup_val<0
     || fila_porcrecup_val>100) return;
     if(fila_porcoculto_val<0
