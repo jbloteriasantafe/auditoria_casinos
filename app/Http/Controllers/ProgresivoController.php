@@ -419,8 +419,9 @@ class ProgresivoController extends Controller
 
   private function obtenerIndividuales($id_casino = null,$desde = null,$hasta = null,$not_id_maq = null){
     $query =
-    "select
+    "select distinct
     maqprog.id_maquina as id_maquina,
+    maq.nro_admin as nro_admin,
     prog.id_progresivo as id_progresivo,
     prog.porc_recup as porc_recup,
     pozo.id_pozo as id_pozo,
@@ -457,7 +458,7 @@ class ProgresivoController extends Controller
       //Hago una por una porque NOT IN no acepta arreglos...
       //por las comas
       foreach($not_id_maq as $id){
-        dump('Agregando id '.$id);
+        //dump('Agregando id '.$id);
         $query = $query . " and maq.id_maquina <> :id_maquina" . $id;
         $parametros['id_maquina'.$id]=$id;
       }
@@ -476,7 +477,7 @@ class ProgresivoController extends Controller
         'maquinas.*.id_maquina'            => 'required|integer',
         'maquinas.*.maximo'                => 'nullable|numeric|min:0',
         'maquinas.*.base'                  => 'nullable|numeric|min:0',
-        'maquinas.*.porc_recup'     => 'required|numeric|min:0|max:100',
+        'maquinas.*.porc_recup'            => 'required|numeric|min:0|max:100',
         'maquinas.*.porc_visible'          => 'nullable|numeric|min:0|max:100',
         'maquinas.*.porc_oculto'           => 'nullable|numeric|min:0|max:100'
     ], array(), self::$atributos)->after(function ($validator){
@@ -498,15 +499,23 @@ class ProgresivoController extends Controller
       $hasta = $request->hasta;
       $id_casino = $request->id_casino;
       foreach($request->maquinas as $maq){
-        //Por algun motivo, cuando hago este dump funciona O_o
-        //Si lo saco, no funciona, no se si es algo de tiempo
-        //O es que dump cambia algo en el arreglo
-        dump($maq);//NO SACAR!!
         $maq_bd = Maquina::find($maq['id_maquina']);
-        if($maq_bd === null) continue;
-        if($maq_bd->id_casino != $id_casino) continue;
-        if($request->desde != null && $maq_bd->nro_admin < $desde) continue;
-        if($request->hasta != null && $maq_bd->nro_admin > $hasta) continue;
+        if($maq_bd === null) {
+          //dump('Salto '. $maq['id_maquina'] . ' no se encontro');
+          continue;
+        }
+        if($maq_bd->id_casino != $id_casino)  {
+          //dump('Salto '. $maq['id_maquina'] . ' no es mismo casino');
+          continue;
+        }
+        if($request->desde != null && $maq_bd->nro_admin < $desde)  {
+          //dump('Salto '. $maq['id_maquina'] . ' no entra en el rango DESDE');
+          continue;
+        }
+        if($request->hasta != null && $maq_bd->nro_admin > $hasta)  {
+          //dump('Salto '. $maq['id_maquina'] . ' no entra en el rango HASTA');
+          continue;
+        }
         $progresivo = $maq_bd->progresivos()->where('es_individual','=','1')->first();
         $progresivo->porc_recup = $maq['porc_recup'];
         $progresivo->save();
@@ -522,8 +531,8 @@ class ProgresivoController extends Controller
       }
       //Si no fueron modificados, hay que borrarlos porque quiere decir que no se enviaron
       //en el formulario
-      $lista_borrar = $this->obtenerIndividuales($id_casino,$desde,$hasta,$modificados);
       //dump($modificados);
+      $lista_borrar = $this->obtenerIndividuales($id_casino,$desde,$hasta,$modificados);
       //dump($lista_borrar);
       foreach($lista_borrar as $p){
         $this->eliminarProgresivo($p->id_progresivo);
@@ -856,6 +865,9 @@ class ProgresivoController extends Controller
         $nivel1_bd->maximo = $p->Max;
         $nivel1_bd->id_pozo = $pozo_bd->id_pozo;
         $nivel1_bd->save();
+
+        //Si es individual, cargo un solo nivel.
+        if($progresivo_bd->es_individual == 1) continue;
 
         $nivel2_bd = new NivelProgresivo;
         $nivel2_bd->nro_nivel = 2;
