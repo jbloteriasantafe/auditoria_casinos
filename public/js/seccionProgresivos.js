@@ -157,10 +157,10 @@ function filaEjemploIndividual(){
   let fila = $('.tablaMaquinasDivIndividual').find('.filaEjemplo').clone().removeClass('filaEjemplo');
 
   let botonEditar = fila.find('.editar');
-  let botonBorrar = fila.find('.borrar');
+  let botonBorrar = fila.find('.eliminar');
 
   botonBorrar.click(function(){
-    borrarFila(fila);
+    fila.remove();
   });
 
   botonEditar.click(function(){
