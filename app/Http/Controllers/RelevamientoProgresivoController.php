@@ -271,7 +271,6 @@ class RelevamientoProgresivoController extends Controller
       $progresivo = $pozo->progresivo;
 
       if (ProgresivoController::getInstancia()->existenNivelSuperior($detalle_relevamiento->id_pozo) == true) {
-
         $x=0;
         $nro_maquinas = "";
         foreach ($progresivo->maquinas as $maq) {
@@ -327,6 +326,7 @@ class RelevamientoProgresivoController extends Controller
 
         $detalles[] = $detalle;
       }
+
     }
 
     foreach ($detalles as $detalle) {
