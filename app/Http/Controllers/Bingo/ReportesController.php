@@ -20,8 +20,8 @@ class ReportesController extends Controller{
       //por cada estado, obtener las importaciones y relevamientos(sesiones/partidas)
       $respuesta = $this->obtenerCargados($estados);
 
-      // return ['respuesta' => $respuesta, 'estados' => $estados];
-      return $respuesta;
+      return ['respuesta' => $respuesta, 'estados' => $estados];
+      // return $respuesta;
     }
     //función index de reporte de diferencia
     public function reportesDiferencia(){
@@ -146,7 +146,12 @@ class ReportesController extends Controller{
       $sesion = app(\App\Http\Controllers\Bingo\SesionesController::class)
                     ->obtenerSesionFC($importacion[0]->fecha,$importacion[0]->id_casino, 'diferencia');
 
-      return ['importacion' => $importacion, 'sesion' => $sesion];
+      $reglas = array();
+      $reglas [] =['fecha_sesion','=', $importacion[0]->fecha];
+      $reglas [] =['id_casino','=', $importacion[0]->id_casino];
+      $reporte = ReporteEstado::where($reglas)->first();
+
+      return ['importacion' => $importacion, 'sesion' => $sesion, 'reporte' => $reporte];
     }
 
     //guardar los datos del reporte de diferencia (observaciones + visado)
@@ -156,10 +161,12 @@ class ReportesController extends Controller{
       $reglas [] = ['id_casino','=',$importacion->id_casino];
       $reglas [] = ['fecha_sesion','=',$importacion->fecha];
 
-      $reporte = ReporteEstado::where($reglas)->get();
-      dd($reporte);
+      $reporte = ReporteEstado::where($reglas)->first();
+
       $reporte->visado = 1;
-      $reporte->observacion_visado = $request->observacion;
+      $reporte->observaciones_visado = $request->observacion;
       $reporte->save();
+
+      return $reporte;
     }
   }

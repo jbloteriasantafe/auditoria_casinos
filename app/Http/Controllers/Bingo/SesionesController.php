@@ -415,8 +415,9 @@ class SesionesController extends Controller
 
       $sesion = SesionBingo::where('id_casino','=',$id_casino)->where('fecha_inicio','=',$fecha)->first();
       if($sesion != null) {
-        if ($valor == 'diferencia')  return $this->obtenerSesion($sesion->id_sesion);
-        else return $this->obtenerSesionSH($sesion->id_sesion);
+        return $this->obtenerSesion($sesion->id_sesion);
+        // if ($valor == 'diferencia')  return $this->obtenerSesion($sesion->id_sesion);
+        // else return $this->obtenerSesionSH($sesion->id_sesion);
       }
       return -1;
     }

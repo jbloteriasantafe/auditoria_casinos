@@ -110,7 +110,7 @@ $casinos = $usuario->casinos;
     <div class="col-md-12">
       <h5>Tarjeta de Importar Relevamientos</h5>
       <p>
-        Visualiza e importa relevamientos de partidas de bingo.
+        Visualiza los estados de las sesiones.
       </p>
     </div>
     @endsection

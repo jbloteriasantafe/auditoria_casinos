@@ -86,13 +86,10 @@ $casinos = $usuario->casinos;
                                     <th class="col" value="fecha_inicio">FECHA SESIÓN <i class="fa fa-sort"></i></th>
                                     <th class="col" value="id_casino">CASINO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="hora_inicio">HORA INICIO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="usuario_inicio">INICIÓ USUARIO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="pozo_dot_inicio">POZO DOT. INICIO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="pozo_extra_inicio">POZO EXTRA INICIO<i class="fa fa-sort"></i></th>
-                                    <th class="col" value="usuario_fin">CERRO USUARIO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="hora_fin">HORA FIN <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="pozo_dot_fin">POZO DOT. FIN <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="pozo_extra_fin">POZO EXTRA FIN<i class="fa fa-sort"></i></th>
+                                    <th class="col" value="importado">IMPORTADO <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="relevamiento">RELEVAMIENTO <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="sesion_cerrada">SESIÓN CERRADA <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="visado">VISADO <i class="fa fa-sort"></i></th>
                                     <th class="col" >ACCIÓN</th>
                                   </tr>
                                 </thead>
@@ -289,7 +286,7 @@ $casinos = $usuario->casinos;
     <div class="col-md-12">
       <h5>Tarjeta de Importar Relevamientos</h5>
       <p>
-        Visualiza e importa relevamientos de partidas de bingo.
+        Visualiza los estados de las sesiones y las valida.
       </p>
     </div>
     @endsection

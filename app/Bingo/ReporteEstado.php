@@ -9,7 +9,7 @@ class ReporteEstado extends Model
   protected $connection = 'mysql';
   protected $table = 'reporte_estado_bingo';
   protected $primaryKey = 'id_reporte_estado';
-  protected $visible = array('id_reporte_estado','fecha_sesion','importacion','relevamiento','sesion_cerrada','id_casino');
+  protected $visible = array('id_reporte_estado','fecha_sesion','importacion','relevamiento','sesion_cerrada','id_casino','observaciones_visado');
   public $timestamps = false;
 
 }

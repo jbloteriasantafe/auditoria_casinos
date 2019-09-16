@@ -667,8 +667,7 @@ $cas = $usuario['usuario']->casinos;
                             </ul>
                         </li>
 
-                        <!-- MENU BINGO -->
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
+                        @if ($cas == 2)
                         <li>
                             <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
                               <span class="flechita">
@@ -679,35 +678,40 @@ $cas = $usuario['usuario']->casinos;
                                 </span>
                                 <span>Bingo</span>
                             </div>
-
-                            <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="bingoMenu">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_sesion_relevamientos'))
                               <li>
                                 <div id="opcBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo'" href="#" style="cursor: pointer;">
                                   <span>Sesiones y Relevamiento</span>
                                 </div>
                               </li>
                               @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_bingo'))
                               <li>
                                 <div id="opcImportarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/importarRelevamiento'" href="#" style="cursor: pointer;">
                                   <span>Importar Relevamiento</span>
                                 </div>
                               </li>
                               @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_estado_bingo'))
                               <li>
                                 <div id="opcReporteEstadoBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesEstado'" href="#" style="cursor: pointer;">
                                   <span>Reportes de Estados</span>
                                 </div>
                               </li>
                               @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_diferencia_bingo'))
+                              <li>
+                                <div id="opcReporteEstadoDiferenciaBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesDiferencia'" href="#" style="cursor: pointer;">
+                                  <span>Reportes de Diferencia</span>
+                                </div>
+                              </li>
+                              @endif
                             </ul>
+                          </li>
+                          @endif
 
-                        </li>
-                        @endif
-                        <!-- fin menu bingo -->
+
 
 
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_importaciones'))
