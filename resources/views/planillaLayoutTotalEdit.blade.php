@@ -81,14 +81,17 @@ p {
               <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas</span></h2>
         </div>
 
-        <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
-        <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div>
-        <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
+        <div class="camposTab titulo" style="top: -16px; right:386px;">TURNO</div>
+        <div class="camposInfo" style="top: -16px; right:255px;"></span>{{$rel->turno}}</div>
+        <div class="camposTab titulo" style="top: 0px; right:324px;">FECHA PLANILLA</div>
+        <div class="camposInfo" style="top: 0px; right:201px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
+        <div class="camposTab titulo" style="top: 16px; right:199px;">HORA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
+        <div class="camposTab titulo" style="top: 32px; right:159px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; __</div>
 
         <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(Ingresar total de máquinas observadas por isla)</i>:</div>
         <br>
+
         @foreach($detalles as $detalle)
         <div class="recuadroLista" style="padding-left: 10px;"> {{$detalle->descripcion}}</div>
         <?php $pos = 0; ?>
@@ -127,7 +130,7 @@ p {
                   @endif
                   @endforeach
                 </div>
-            
+
             @endif
 
         </div>
@@ -143,11 +146,14 @@ p {
               <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas </span></h2>
         </div>
 
-        <div class="camposTab titulo" style="top: 12px; right:385px;">TURNO</div>
-        <div class="camposInfo" style="top: 12px; right:294px;"></span>{{$rel->turno}}</div> 
-        <div class="camposTab titulo" style="top: 28px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:220px;"></span><?php $hoy = date('j-m-y / H:i');
+        <div class="camposTab titulo" style="top: -16px; right:386px;">TURNO</div>
+        <div class="camposInfo" style="top: -16px; right:255px;"></span>{{$rel->turno}}</div>
+        <div class="camposTab titulo" style="top: 0px; right:324px;">FECHA PLANILLA</div>
+        <div class="camposInfo" style="top: 0px; right:201px;"></span><?php $hoy = date('j-m-y / H:i');
         print_r($hoy); ?></div>
+        <div class="camposTab titulo" style="top: 16px; right:199px;">HORA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
+        <div class="camposTab titulo" style="top: 32px; right:159px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; __</div>
+
 
               <div class="divTable">
                 <div class="divTableBody">

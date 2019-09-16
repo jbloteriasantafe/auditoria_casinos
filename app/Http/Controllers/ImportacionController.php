@@ -10,6 +10,8 @@ use App\TipoMoneda;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\RelevamientoController;
 use App\Http\Controllers\LectorCSVController;
+use App\Relevamiento;
+use App\DetalleRelevamiento;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Casino;
@@ -30,7 +32,7 @@ class ImportacionController extends Controller
   }
 
   public function buscarTodo(){
-    
+
     $tipoMoneda = TipoMoneda::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Importaciones' , 'importaciones');
     return view('seccionImportaciones', ['tipoMoneda' => $tipoMoneda, 'casinos' => Casino::all()]);
@@ -338,7 +340,7 @@ class ImportacionController extends Controller
           }
 
           //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
-          
+
         if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
@@ -347,30 +349,52 @@ class ImportacionController extends Controller
         }
     })->validate();
 
-    
+
     //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
     if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
       $id_usuario=session('id_usuario');
       if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
         return ['resultado' => 'existeRel'];
       }
-      
+
     }
 
+
+    $ret = null;
     switch($request->id_casino){
       case 1:
-        return LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,1);
+        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,1);
         break;
       case 2:
-        return LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,2);
+        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,2);
         break;
       case 3:
-        return LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda);
+        $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda);
         break;
       default:
         break;
     }
-    
+
+
+    $fecha = $ret['fecha'];
+    //Actualizo los producidos de los relevamientos que ya estan en el sistema.
+    $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
+  
+    foreach($relevamientos as $rel){
+      if($rel->sector->casino->id_casino == $request->id_casino){
+        foreach($rel->detalles as $det){
+          $det->producido_importado =
+          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_casino,$det->id_maquina);
+          if($det->producido_calculado_relevado != null){
+            $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
+          }
+          $det->save();
+        }
+        $rel->save();
+      }
+    }
+
+    return $ret;
   }
 
   public function importarProducido(Request $request){
@@ -430,6 +454,6 @@ class ImportacionController extends Controller
         break;
     }
   }
-  
+
 
 }

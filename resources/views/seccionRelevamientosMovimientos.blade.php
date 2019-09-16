@@ -259,7 +259,10 @@ $cas = $usuario['usuario']->casinos;
                     <input id="macCargar" type="text" value="" class="form-control">
                     <br>
                   </div> <!-- modelo -->
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>

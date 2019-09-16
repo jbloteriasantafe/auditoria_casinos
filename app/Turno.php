@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 */
 class Turno extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'turno';
   protected $primaryKey = 'id_turno';

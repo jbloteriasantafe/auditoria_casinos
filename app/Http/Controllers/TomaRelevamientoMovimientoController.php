@@ -40,7 +40,9 @@ class TomaRelevamientoMovimientoController extends Controller
   $denominacion ,
   $cant_creditos,
   $fecha_sala,
-  $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar, $es_toma_2){
+  $observaciones, $mac,
+  $sectorRelevadoCargar,
+  $islaRelevadaCargar, $es_toma_2){
     $mtm = Maquina::find($id_maquina);
 
     $toma = new TomaRelevamientoMovimiento;
@@ -97,22 +99,35 @@ class TomaRelevamientoMovimientoController extends Controller
   }
 
   //permite editar la toma relevamiento
-  public function editarTomaRelevamiento($tomas, $contadores,$juego ,$apuesta_max,
-  $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,$fecha_sala,$observaciones, $mac,
-  $islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso){
+  public function editarTomaRelevamiento(
+  $tomas,
+  $contadores,
+  $juego ,
+  $apuesta_max,
+  $cant_lineas,
+  $porcentaje_devolucion,
+  $denominacion ,
+  $cant_creditos,
+  $fecha_sala,
+  $observaciones,
+  $mac,
+  $sectorRelevadoCargar,
+  $islaRelevadaCargar,
+  $es_toma_reingreso){
+
 
     //detecto que la toma que esta modificando es la primera porque el rel tiene cargada una sola
       if(count($tomas) == 1){
-        $toma = $tomas->first;
+        $toma = $tomas[0];
         $this->completar($toma, $contadores,$juego ,$apuesta_max,
         $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-        $fecha_sala,$observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
+        $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso);
       }else{//debe ser la otra
         foreach ($tomas as $toma) {
           if($toma->toma_reingreso == 1){//la busco distinguiendo su atributo
             $this->completar($toma, $contadores,$juego ,$apuesta_max,
             $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-            $fecha_sala,$observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
+            $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso);
           }
         }
       }
@@ -121,7 +136,8 @@ class TomaRelevamientoMovimientoController extends Controller
 
   private function completar($toma, $contadores,$juego ,$apuesta_max,
   $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-  $fecha_sala,$observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso){
+  $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso){
+
     if(isset($contadores[0]['valor'])){
     $toma->vcont1= $contadores[0]['valor'];
     }
@@ -156,7 +172,9 @@ class TomaRelevamientoMovimientoController extends Controller
     $toma->mac = $mac;
     $toma->nro_isla_relevada = $islaRelevadaCargar;
     $toma->descripcion_sector_relevado = $sectorRelevadoCargar;
+
     $toma->save();
+
   }
 
 

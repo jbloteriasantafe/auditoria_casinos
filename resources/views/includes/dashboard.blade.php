@@ -159,15 +159,18 @@ $cas = $usuario['usuario']->casinos;
               <div class="contenedorMenu">
                 <div class="contenedorUsuario">
                   <?php
-                    $cas = $usuario['usuario']->casinos[0]->id_casino;
-                    if($cas == 1){
-                      echo '<div class="fondoMEL"></div>';
-                    }
-                    else if($cas == 2){
-                      echo '<div class="fondoSFE"></div>';
-                    }
-                    else if($cas == 3){
-                      echo '<div class="fondoROS"></div>';
+                    $casinos = $usuario['usuario']->casinos;
+                    if(count($casinos)!=0){
+                      $cas = $casinos[0]->id_casino;
+                      if($cas == 1){
+                        echo '<div class="fondoMEL"></div>';
+                      }
+                      else if($cas == 2){
+                        echo '<div class="fondoSFE"></div>';
+                      }
+                      else if($cas == 3){
+                        echo '<div class="fondoROS"></div>';
+                      }
                     }
                   ?>
                     <div class="infoUsuario">

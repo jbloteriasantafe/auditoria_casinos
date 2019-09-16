@@ -511,7 +511,7 @@ class LectorCSVController extends Controller
   // al temporal lo opera para para tomar los ultimos datos de los contadores
   // genera un join con las maquinas para tener valores de maquinas que existan en el maestro de mtm
   // y con esto se va agregado en los detalles_contadores
-  // luego elimina los temporales 
+  // luego elimina los temporales
   public function importarContadorSantaFeMelincue($archivoCSV,$casino){
 
     $contador = new ContadorHorario;
@@ -686,7 +686,7 @@ class LectorCSVController extends Controller
                                             GROUP BY maquina) AS prod_a
 
                        WHERE prod_a.maquina = mtm.nro_admin
-                         AND mtm.deleted_at IS NULL 
+                         AND mtm.deleted_at IS NULL
                          AND mtm.id_casino = '%d'
                        ",$producido->id_producido,$producido->id_producido,$casino);
 
@@ -763,7 +763,7 @@ class LectorCSVController extends Controller
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
     $producido->save();
-  //fin de implementacion 
+  //fin de implementacion
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
   // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
@@ -824,8 +824,8 @@ class LectorCSVController extends Controller
   }
   // importarContadorRosario misma metodologia que en santa fe, se tiene en cuenta el formato
   // de archivo de rosario y que tienen distintos tipos de moneda
-  // se tiene en cuenta la denominacion de carga, esto permite realziar las transformaciones de 
-  // creadito a plata, esta denominacion la toma del maestro de maquinas 
+  // se tiene en cuenta la denominacion de carga, esto permite realziar las transformaciones de
+  // creadito a plata, esta denominacion la toma del maestro de maquinas
   // se deja de manera estatica la denominacion que se tomo al momento de cargar
   public function importarContadorRosario($archivoCSV,$fecha,$id_tipo_moneda){
 
@@ -965,7 +965,7 @@ class LectorCSVController extends Controller
                        WHERE prod.id_producido = '%d'
                          AND prod.maquina = mtm.nro_admin
                          AND mtm.id_casino = 3
-                         AND mtm.deleted_at IS NULL 
+                         AND mtm.deleted_at IS NULL
                          AND mtm.id_tipo_moneda = '%d'
                        ",$producido->id_producido,$id_tipo_moneda);
 
@@ -994,7 +994,7 @@ class LectorCSVController extends Controller
           $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
                                 ->where("id_producido","=", $producido->id_producido)
                                 ->count();
-          
+
           if(!$cant){
             $daux= new DetalleProducido;
             $daux->valor=0;

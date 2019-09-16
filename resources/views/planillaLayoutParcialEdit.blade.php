@@ -45,9 +45,12 @@ p {
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMTM08 | Control de Layout Parcial de sala (MTM)</span></h2>
         </div>
-              <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-              <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
+              <div class="camposTab titulo" style="top: -15px; right:-15px;">FECHA PLANILLA</div>
+              <div class="camposInfo" style="top: 0px; right:0px;"></span><?php $hoy = date('j-m-y / h:i');
                     print_r($hoy); ?></div>
+              <div class="camposTab titulo" style="top: 15px; right:-30px;">HORA DE EJECUCIÓN</div>
+              <div class="camposTab titulo" style="top: 30px; right:-5px;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+
               <table>
                 <tr>
                   <th class="tablaInicio">SECTOR</th>
@@ -155,6 +158,6 @@ p {
               <!-- Si la planilla fue relevada -->
               <div class="primerEncabezado"><p style="width: 250px;">Firma y Aclaración/s Responsable/s.</p></div>
 
-          
+
   </body>
 </html>

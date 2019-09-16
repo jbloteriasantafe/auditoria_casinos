@@ -725,111 +725,122 @@ $(document).on('click','.verDetalle',function(e){
 
     for (var i = 0; i < data.detalles.length; i++) {
 
-        var fila= $(document.createElement('tr'));
+      var fila= $(document.createElement('tr'));
 
-        fila.attr('id', data.detalles[i].id_detalle_relevamiento)
-            .append($('<td>').css('align','center')
-            .text(data.detalles[i].nro_admin))
+      fila.attr('id', data.detalles[i].id_detalle_relevamiento)
+      .append($('<td>').css('align','center')
+      .text(data.detalles[i].nro_admin))
 
-            if(data.detalles[i].detalle.cont1 != null){
-              fila.append($('<td>').css('align','center')
-              .text(data.detalles[i].detalle.cont1))}
-            else{
-              fila.append($('<td>')
-              .text(' - ')).css('align','center')
-            }
-            if(data.detalles[i].detalle.cont2 != null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont2).css('text-align','center'))}
-            else{
-              fila.append($('<td>').css('text-align','center')
-              .text(' - '))
-            }
-            if(data.detalles[i].detalle.cont3!= null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont3).css('text-align','center'))}
-            else{
-              fila.append($('<td>').css('text-align','center')
-              .text(' - '))
-            }
+      if(data.detalles[i].detalle.cont1 != null){
+        fila.append($('<td>').css('align','center')
+        .text(data.detalles[i].detalle.cont1))
+      }
+      else{
+        fila.append($('<td>')
+        .text(' - ')).css('align','center')
+      }
+      if(data.detalles[i].detalle.cont2 != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont2).css('text-align','center'))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
+      if(data.detalles[i].detalle.cont3!= null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont3).css('text-align','center'))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
 
-            if(data.detalles[i].detalle.cont4 != null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont4).css('text-align','center'))}
-            else{
-              fila.append($('<td>').css('text-align','center')
-              .text(' - '))
-            }
-            if(data.detalles[i].detalle.cont5 != null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont5).css('text-align','center'))}
-            else{
-              fila.append($('<td>').css('text-align','center')
-              .text(' - '))
-            }
-            if(data.detalles[i].detalle.cont6 != null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont6).css('text-align','center'))}
-            else{
-              fila.append($('<td>').css('text-align','center')
-              .text(' - '))
-            }
-            if(data.detalles[i].detalle.cont7 != null){
-              fila.append($('<td>')
-              .text(data.detalles[i].detalle.cont7).css('text-align','center'))}
-            if(data.detalles[i].detalle.cont8 != null){
-                fila.append($('<td>').css('text-align','center')
-                .text(data.detalles[i].detalle.cont8).css('text-align','center'))}
+      if(data.detalles[i].detalle.cont4 != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont4).css('text-align','center'))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
+      if(data.detalles[i].detalle.cont5 != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont5).css('text-align','center'))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
+      if(data.detalles[i].detalle.cont6 != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont6).css('text-align','center'))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
+      if(data.detalles[i].detalle.cont7 != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.cont7).css('text-align','center'))
+      }
 
-
-                if(data.detalles[i].detalle.producido_calculado_relevado != null){
-                  fila.append($('<td>').css('text-align','center')
-                  .text(data.detalles[i].detalle.producido_calculado_relevado))}
-                else{
-                  fila.append($('<td>').css('text-align','center')
-                  .text(' - '))
-                }
-
-                if(data.detalles[i].detalle.producido_importado != null){
-                  fila.append($('<td>')
-                  .text(data.detalles[i].detalle.producido_importado))}
-                else{
-                  fila.append($('<td>').css('text-align','center')
-                  .text(' - '))
-                }
-
-                if(data.detalles[i].detalle.diferencia != null){
-                  fila.append($('<td>')
-                  .text(data.detalles[i].detalle.diferencia))}
-                else{
-                  fila.append($('<td>').css('text-align','center')
-                  .text(' - '))
-                }
+      if(data.detalles[i].detalle.cont8 != null){
+        fila.append($('<td>').css('text-align','center')
+        .text(data.detalles[i].detalle.cont8).css('text-align','center'))
+      }
 
 
+      if(data.detalles[i].detalle.producido_calculado_relevado != null){
+        fila.append($('<td>').css('text-align','center')
+        .text(data.detalles[i].detalle.producido_calculado_relevado))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
 
+      if(data.detalles[i].detalle.producido_importado != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.producido_importado))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
 
-            fila.append($('<td>')
-            .text(' '))
+      if(data.detalles[i].detalle.diferencia != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].detalle.diferencia))
+      }
+      else{
+        fila.append($('<td>').css('text-align','center')
+        .text(' - '))
+      }
 
-            if(data.detalles[i].tipo_no_toma != null){
-            fila.append($('<td>')
-            .text(data.detalles[i].tipo_no_toma).prop('disabled', true))}
-            else{
-              fila.append($('<td>')
-              .text(' - ').prop('disabled', true))
-            }
-            fila.append($('<td>')
-            .text(data.detalles[i].denominacion).prop('disabled', true))
-            if(data.detalles[i].mtm_pedido != null){
-            fila.append($('<td>')
-            .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))}
-            else{
-              fila.append($('<td>')
-              .text(' ').prop('disabled', true))
-            }
+      fila.append($('<td>')
+      .text(' '))
 
-            $('#tablaValidarRelevamiento tbody').append(fila);
+      if(data.detalles[i].tipo_no_toma != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].tipo_no_toma).prop('disabled', true))
+      }
+      else{
+        fila.append($('<td>')
+        .text(' - ').prop('disabled', true))
+      }
+      fila.append($('<td>')
+      .text(data.detalles[i].denominacion).prop('disabled', true))
+      if(data.detalles[i].mtm_pedido != null){
+        fila.append($('<td>')
+        .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))
+      }
+      else{
+        fila.append($('<td>')
+        .text(' ').prop('disabled', true))
+      }
+
+      $('#tablaValidarRelevamiento tbody').append(fila);
     }
 
     $('#modalValidarRelevamiento').modal('show');
@@ -1725,7 +1736,11 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                                   .val(data.detalles[i].detalle.id_maquina)
                                   .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'));
       if(estadoRelevamiento == 'Validar'){
-        if(data.detalles[i].tipo_causa_no_toma != null || data.detalles[i].detalle.producido_importado==null) {
+        var diff = data.detalles[i].detalle.diferencia;
+        if(data.detalles[i].tipo_causa_no_toma != null
+          || diff == null
+          || (diff != 0 && ( diff %1000000 != 0))  
+        ) {
 
           a_pedido_dos.show();
           a_pedido.show();

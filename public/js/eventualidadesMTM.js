@@ -58,7 +58,7 @@ $(document).ready(function(){
        });
    });
 
-   
+
    $('#btn-buscarEventualidadMTM').trigger('click');
 });
 $('#cantidad').on('keypress',function(e){
@@ -279,6 +279,12 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
             var fila= $('<tr>');
             var maq= data.maquinas[i].nro_admin;
 
+            var dibujo = 'fa-upload';
+
+            if(data.maquinas[i].estado.id_estado_relevamiento != 1){
+              dibujo = 'fa-pencil-alt';
+            }
+
             fila.append($('<td>')
                 .addClass('col-xs-8')
                 .text(maq));
@@ -286,7 +292,7 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
                 .addClass('col-xs-4')
                 .append($('<button>')
                 .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass('fa-upload'))
+                .addClass('fa').addClass('fa-fw').addClass(dibujo))
                 .attr('type','button')
                 .addClass('btn btn-info detalleMTM')
                 .attr('id', data.maquinas[i].id_maquina)
@@ -368,10 +374,11 @@ $(document).on('click','.detalleMTM',function(){
 
 
   $('#modalCargarMaqEv #detallesMTM').show();
-
   var id_maq=$(this).attr('id');
   console.log('id_maquina', id_maq);
-  $('#modalCargarMaqEv').find('#id_maq').val(id_maq);
+
+  $('#modalCargarMaqEv #id_maq').val(id_maq);
+
 
   var id_rel=$(this).attr('data-relevamiento');
 
@@ -469,8 +476,8 @@ function cargarDatos (data){
     $('#cant_lineasEv').val(data.toma.cant_creditos);
     $('#observacionesTomaEv').val(data.toma.observaciones);
     $('#macEv').val(data.toma.mac);
-    $('#sectorRelevadoEv').val(data.toma.nro_isla_relevada);
-    $('#islaRelevadaEv').val(data.toma.descripcion_sector_relevado);
+    $('#sectorRelevadoEv').val(data.toma.descripcion_sector_relevado);
+    $('#islaRelevadaEv').val(data.toma.nro_isla_relevada);
     }
 
     //$('#juegoEv').prop('disabled',true);
@@ -584,6 +591,29 @@ $(document).on('click','#guardarEv',function(){
       ocultarErrorValidacion($('#select_tevent'));
       ocultarErrorValidacion($('#fechaEv'));
       ocultarErrorValidacion($('#macEv'));
+
+//      var maq=$('#modalCargarMaqEv').find('#id_maq').val();
+
+//      $('#modalCargarMaqEv').find('#id_maq').val();
+
+      var boton = $('#modalCargarMaqEv')
+      .find('.detalleMTM[id='+id_maq+']')[0];
+      $(boton).empty();
+      $(boton).append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
+
+      var cantbotones = $('#modalCargarMaqEv')
+      .find('.detalleMTM').size();
+
+      var cantlapices = $('#modalCargarMaqEv')
+      .find('.detalleMTM').find('.fa-pencil-alt').size();
+
+      //Actualizo el boton de la pantalla principal
+      //Todos fueron cargados.
+      if(cantbotones == cantlapices){
+        var btn_menu = $('.btn_cargarEvmtm[value='+id_log_movimiento+']');
+        btn_menu.empty();
+        btn_menu.append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
+      }
 
 
     },
@@ -719,6 +749,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
                   )
                   .attr('type','button')
                   .addClass('btn btn-info verMaquinaEv')
+                  .attr('data-numadmin',data.relevamientos[i].nro_admin)
                   .attr('data-maquina',data.relevamientos[i].id_maquina)
                   .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
                   .attr('data-estado', data.relevamientos[i].id_estado_relevamiento))
@@ -735,6 +766,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
                     )
                     .attr('type','button')
                     .addClass('btn btn-info verMaquinaEv')
+                    .attr('data-numadmin',data.relevamientos[i].nro_admin)
                     .attr('data-maquina',data.relevamientos[i].id_maquina)
                     .attr('data-relevamiento', data.relevamientos[i].id_relev_mov)
                     .attr('data-estado', data.relevamientos[i].id_estado_relevamiento)
@@ -769,6 +801,7 @@ $(document).on('click','.verMaquinaEv',function(){
   $('#enviarValidarEv').show();
   $('#errorValidacionEv').show();}
 
+  var numadmin = $(this).attr('data-numadmin');
   var id_maquina = $(this).attr('data-maquina');
   var tablaContadores = $('#tablaValidarContadores tbody');
   var id_relevamiento = $(this).attr('data-relevamiento');
@@ -776,6 +809,7 @@ $(document).on('click','.verMaquinaEv',function(){
 
   //guardo el id_maquina en el input maquina del modal
   $('#modalValidacionEventualidadMTM').find('#maquina').val(id_maquina);
+  $('#modalValidacionEventualidadMTM').find('#maquina').attr('numadmin',numadmin);
   $('#modalValidacionEventualidadMTM').find('#relevamiento').val(id_relevamiento);
   $('#mensajeExitoValidacion').hide();
   $('#sectorRelevadoVal').val('');
@@ -904,7 +938,7 @@ $(document).on('click', '#enviarValidarEv', function(){
       id_relev_mov: id,
       observacion: observacion,
     }
-  
+
 
     $.ajax({
       type: 'POST',
@@ -916,33 +950,36 @@ $(document).on('click', '#enviarValidarEv', function(){
           $('#mensajeExitoValidacion').show();
           $('#enviarValidarEv').hide();
           $('#errorValidarEv').hide();
-    
-  
-          $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
-  
-              var maq=$(this).parent().find('.verMaquinaEv').attr('data-relevamiento');
+
+
+          $('#tablaMaquinasFiscalizacion tbody tr').each(function()
+          {
+              var maq=$('#modalValidacionEventualidadMTM').find('#maquina').val();
               console.log('44',maq);
-              if (maq == id){
-                var cambio = $(this).parent().find('.verMaquinaEv');
-                cambio.attr('data-estado',4);
+              var boton=$(this).find('.verMaquinaEv');
+              //Deberia ser siempre true.
+              if($(boton).attr('data-maquina') == maq)
+              {
+                $(boton).attr('data-estado',4);
                 $(this).append($('<td>')
-                    .addClass('col-xs-2')
-                    .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
+                .addClass('col-xs-2')
+                .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
               }
-          });
+            });
+          };
         }
-      },
+      ,
       error: function (data) {
         console.log('Error:', data);
       }
-      });
+    });
       /*
     $.get('eventualidadesMTM/visar/' + id, function(data){
       if(data.id_estado_relevamiento == 4){
         $('#mensajeExitoValidacion').show();
         $('#enviarValidarEv').hide();
         $('#errorValidarEv').hide();
-  
+
 
         $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
 
@@ -958,8 +995,8 @@ $(document).on('click', '#enviarValidarEv', function(){
         });
       }
 */
-    }); 
-    
+});
+
 $('#modalValidacionEventualidadMTM').on('hidden.bs.modal', function() {
 
   $('#btn-buscarEventualidadMTM').trigger('click');
@@ -1013,7 +1050,7 @@ $('#btn-buscarEventualidadMTM').click(function(e){
 
       for (var i = 0; i < data.eventualidades.length; i++) {
 
-        var filaEventualidad = generarFilaTabla(data.eventualidades[i], data.esControlador);
+        var filaEventualidad = generarFilaTabla(data.eventualidades[i], data.esControlador,data.esSuperUsuario);
         $('#cuerpoTablaEvMTM').append(filaEventualidad);
         console.log('fila:',filaEventualidad);      }
 
@@ -1029,7 +1066,7 @@ $("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
     $('#btn-buscarEventualidadMTM').trigger('click',['eventualidades.fecha_toma','desc']);
 });
 //Se generan filas en la tabla principal con las eventualidades encontradas
-function generarFilaTabla(event,controlador){
+function generarFilaTabla(event,controlador,superusuario){
   var fila = $(document.createElement('tr'));
   var fecha;
   var tipo_ev;
@@ -1063,12 +1100,12 @@ function generarFilaTabla(event,controlador){
       fila.append($('<td>')
       .addClass('col-xs-2')
       .text(casino)
-      )
-      .append($('<td>')
+      );
+      fila.append($('<td>')
       .addClass('col-xs-2')
       .text(islas)
-      )
-      .append($('<td>')
+      );
+      contenido = $('<td>')
       .addClass('col-xs-3')
       .append($('<span>').text(' '))
       .append($('<span>').text(' '))
@@ -1079,11 +1116,18 @@ function generarFilaTabla(event,controlador){
       .append($('<span>').text('IMPRIMIR'))
       .addClass('btn').addClass('btn-info')
       .attr('value',event.id_log_movimiento)
-      )
+      );
 
-      .append($('<button>')
+      if(estado!=1){
+        dibujo = 'fa-upload';
+      }
+      else{
+        dibujo = "fa-pencil-alt";
+      }
+
+      contenido.append($('<button>')
       .addClass('btn_cargarEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass(dibujo)
       )
       .append($('<span>').text('CARGAR'))
       .addClass('btn').addClass('btn-success')
@@ -1099,7 +1143,6 @@ function generarFilaTabla(event,controlador){
       .addClass('btn').addClass('btn-success')
       .attr('value',event.id_log_movimiento)
       )
-
       .append($('<span>').text(' '))
       .append($('<button>')
       .addClass('btn_borrarEvmtm')
@@ -1109,15 +1152,16 @@ function generarFilaTabla(event,controlador){
       .addClass('btn').addClass('btn-danger')
       .attr('value',event.id_log_movimiento)
       )
-    );
+
+      fila.append(contenido);
 
     if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
-    if(controlador == 0 ){fila.find('.btn_validarEvmtm').hide();}
-    if (controlador == 1 && estado==8) {fila.find('.btn_validarEvmtm').hide()}
-    if(controlador == 1 && estado == 6){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
-    if(controlador==1 && estado==1){fila.find('.btn_cargarEvmtm').hide(); fila.find('.btn_borrarEvmtm').hide();}
+    if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide();}
+    if (controlador == 1 && estado==8 && !superusuario) {fila.find('.btn_validarEvmtm').hide()}
+    if(controlador == 1 && estado == 6 && !superusuario){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
+    if(controlador==1 && estado==1 && !superusuario){fila.find('.btn_cargarEvmtm').hide();}
 
-      return fila;
+    return fila;
 };
 
 //botón de eliminar que esta dentro del modal de cargar en la lista de maquinas, sectores e islas

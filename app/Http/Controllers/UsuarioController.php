@@ -308,20 +308,40 @@ class UsuarioController extends Controller
       $cas[]=$cass->id_casino;
     }
 
-    $resultados=DB::table('usuario')
-                    ->select('usuario.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->whereIn('casino.id_casino',$cas)
-                    ->distinct('id_usuario')
-                    ->whereNull('usuario.deleted_at')
-                    ->orderBy('user_name','asc')
+
+    $resultado = DB::table('usuario_tiene_rol')
+                    ->whereIn('id_rol',[1])
+                    ->where('id_usuario','=',$user->id_usuario)
                     ->get();
+
+    if(count($resultado) > 0){ //usuario es superusuario
+      //le dejo ver todos los usuarios
+      $resultados=DB::table('usuario')
+                        ->select('usuario.*')
+                        ->distinct('id_usuario')
+                        ->whereNull('usuario.deleted_at')
+                        ->orderBy('user_name','asc')
+                        ->get();
+    }
+    else{
+      $resultados=DB::table('usuario')
+                        ->select('usuario.*')
+                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+                        ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+                        ->whereIn('casino.id_casino',$cas)
+                        ->distinct('id_usuario')
+                        ->whereNull('usuario.deleted_at')
+                        ->orderBy('user_name','asc')
+                        ->get();
+    }
+
     $rolController= RolController::getInstancia();
+
     $resultado = DB::table('usuario_tiene_rol')
                     ->whereIn('id_rol',[2])
                     ->where('id_usuario','=',$user->id_usuario)
                     ->get();
+
     if(count($resultado) > 0){//el usuario es administrador
       $casinos=Casino::whereIn('id_casino',$cas)->get();
       $roles = Rol::whereNotIn('id_rol',[1,5,6])->get();
@@ -329,7 +349,6 @@ class UsuarioController extends Controller
       $casinos=Casino::all();
       $roles=Rol::all();
     }
-
 
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
@@ -577,4 +596,14 @@ class UsuarioController extends Controller
     }
     return $casinos;
   }
+
+  public function obtenerUsuario(Request $request){
+    if($request->session()->has("id_usuario")){
+      $id_usuario = $request->session()->get("id_usuario");
+      $usuario = Usuario::find($id_usuario);
+      return $usuario;
+    }
+    return null;
+  }
+
 }

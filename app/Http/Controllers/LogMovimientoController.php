@@ -586,7 +586,7 @@ class LogMovimientoController extends Controller
             // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
             // MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
             MTMController::getInstancia()->modificarDevolucionJuego($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
-            
+
             $maq= Maquina::find($maquina['id_maquina']);
             if($this->noTieneRelevamientoCreado($maquina['id_maquina'],$req['id_log_movimiento']))
             {
@@ -1439,7 +1439,7 @@ class LogMovimientoController extends Controller
     foreach ($log->relevamientos_movimientos as $rel) {
       $rel->log_movimiento()->dissociate();
       foreach($rel->toma_relevamiento_movimiento as $toma){
-        $toma->delete();  
+        $toma->delete();
       }
       RelevamientoMovimiento::destroy($rel->id_relev_mov);
     }
@@ -1631,10 +1631,11 @@ class LogMovimientoController extends Controller
       $tipos = TipoMovimiento::all();
       $casinos = $usuario->casinos;
       $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
-
+      $esSuperUsuario = $usuario->es_superusuario;
 
       return ['eventualidades'=>$resultados,
               'esControlador' =>$esControlador,/*$esControlador*/
+              'esSuperUsuario' => $esSuperUsuario,
               'tiposEventualidadesMTM'=> $tipos,
               'casinos' => $casinos];
 
@@ -1667,12 +1668,14 @@ class LogMovimientoController extends Controller
       $tipos = TipoMovimiento::whereNotIn('id_tipo_movimiento',[1,8,9])->get();//egreso , cambio_layout , denominacion , % devolucion , juego
       $casinos = $usuario->casinos;
       $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
+      $esSuperUsuario=$usuario->es_superusuario;
 
       UsuarioController::getInstancia()->agregarSeccionReciente('Intervenciones MTM' , 'eventualidadesMTM');
 
       return view('eventualidadesMTM',
                   ['eventualidades'=>$resultados,
                    'esControlador' => $esControlador/*$esControlador*/,
+                   'esSuperUsuario' => $esSuperUsuario,
                    'tiposEventualidadesMTM'=> $tipos,
                    'casinos' => $casinos]);
 
@@ -1789,6 +1792,7 @@ class LogMovimientoController extends Controller
 
   public function cargarEventualidadMTM(Request $request){
     // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
+
     $validator =Validator::make($request->all(), [
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'id_cargador' => 'nullable|exists:usuario,id_usuario',
@@ -1801,7 +1805,7 @@ class LogMovimientoController extends Controller
         'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'cant_creditos' => 'nullable|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
-        'observaciones' => 'nullable|max:280',
+        'observaciones' => 'nullable|max:800',
         'mac' => 'nullable | max:100',
         'sectorRelevadoEv' => 'required',
         'islaRelevadaEv' => 'required'
@@ -1871,6 +1875,8 @@ class LogMovimientoController extends Controller
         */
       })->validate();
 
+
+
      if(isset($validator))
       {
         if ($validator->fails())
@@ -1881,17 +1887,21 @@ class LogMovimientoController extends Controller
         }
      }
 
+
      $log = LogMovimiento::find($request['id_log_movimiento']);
      //$log->tipo_movimiento()->associate($request['tipo_movimiento']);
      $cant_rels =count($log->relevamientos_movimientos);
 
 
+
+     //dump($request);
      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
       $request['juego'] , $request['apuesta_max'], $request['cant_lineas'], $request['porcentaje_devolucion'], $request['denominacion'] ,
       $request['cant_creditos'], $request['fecha_sala'], $request['observaciones'],
       $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento'],
       $request['sectorRelevadoEv'],$request['islaRelevadaEv']
       );
+
 
       $id_usuario = session('id_usuario');
 
@@ -1957,6 +1967,7 @@ class LogMovimientoController extends Controller
     $maquinas = array();
     foreach ($relevamientos as $rel) {
       $maquinas[] = ['id_relevamiento' => $rel->id_relev_mov,
+                      'estado' => $rel->estado_relevamiento,
                      'nro_admin' => $rel->maquina->nro_admin,
                      'id_maquina' => $rel->maquina->id_maquina
                    ];
@@ -2044,7 +2055,7 @@ class LogMovimientoController extends Controller
                       ->join('sector','sector.id_sector','=','isla.id_sector')
                       ->where('sector.id_sector' , '=' , $id_sector)
                       ->get();
-      
+
       foreach($maquinas as  $m){
         $m->denominacion= $m->obtenerDenominacion();
         $m->porcentaje_devolucion=$m->obtenerPorcentajeDevolucion();
@@ -2082,12 +2093,12 @@ class LogMovimientoController extends Controller
   public function obtenerMaquina($id_maquina){
     //dado un casino,devuelve sectores que concuerden con el nombre del sector
     $m = Maquina::Find($id_maquina);
-    
+
     $m->denominacion= $m->obtenerDenominacion();
     $m->porcentaje_devolucion= $m->obtenerPorcentajeDevolucion();
 
     $juego_activo= $m->juego_activo;
-    
+
 
     $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
 

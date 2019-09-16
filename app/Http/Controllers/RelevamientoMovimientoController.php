@@ -354,7 +354,7 @@ class RelevamientoMovimientoController extends Controller
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamientoEv( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
     $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento , $s, $i){
-
+     //dump($id_log_movimiento,$id_maquina);
      $relevamiento = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
      $relevamiento->estado_relevamiento()->associate(3);//finalizado
      $relevamiento->fecha_relev_sala = $fecha_sala;
@@ -363,9 +363,10 @@ class RelevamientoMovimientoController extends Controller
      $relevamiento->cargador()->associate($id_cargador);
      $relevamiento->save();
 
-
      if(count($relevamiento->toma_relevamiento_movimiento) == 0){
-         TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
+
+         TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento(
+         $id_maquina ,
          $relevamiento->id_relev_mov,
          $contadores,
          $juego ,
@@ -377,6 +378,7 @@ class RelevamientoMovimientoController extends Controller
          $fecha_sala,
          $observaciones,$mac,$s,$i,0);
        }else{
+
          TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
          $relevamiento->toma_relevamiento_movimiento,
          $contadores,
@@ -411,13 +413,13 @@ class RelevamientoMovimientoController extends Controller
  // observacion el resto son valores de estados
  public function validarRelevamientoTomaConObservacion($relevamiento, $validado, $obsAdmin){
   $toma = TomaRelevamientoMovimiento::where('id_relevamiento_movimiento','=',$relevamiento->id_relev_mov)->get()->first();
-  
+
   if($validado == 1){
       $relevamiento->estado_relevamiento()->associate(4);//validado
   }else{
     $relevamiento->estado_relevamiento()->associate(6);//Error
   }
-  
+
     if ($obsAdmin!="") {
       $obsFisca=$toma->observaciones;
       $obsFisca=$obsFisca . " \n . ***Observaciones Admin**** :  \n";
@@ -425,7 +427,7 @@ class RelevamientoMovimientoController extends Controller
       $toma->observaciones= $obsTotal;
       $toma->save();
     }
-    
+
   $relevamiento->save();
   $razon = $toma->observaciones;
   return $razon;
