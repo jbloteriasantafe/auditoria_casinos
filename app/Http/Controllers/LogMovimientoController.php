@@ -1805,7 +1805,7 @@ class LogMovimientoController extends Controller
         'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'cant_creditos' => 'nullable|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
-        'observaciones' => 'nullable|max:280',
+        'observaciones' => 'nullable|max:800',
         'mac' => 'nullable | max:100',
         'sectorRelevadoEv' => 'required',
         'islaRelevadaEv' => 'required'

@@ -81,7 +81,7 @@ function agregarFilaJuego(juego, tablas) {
                        .text(juego.cod_juego)
   );
   }
-  
+
   fila.append($('<td>').addClass('col-xs-3')
                        .append(tablas_pago)
   );
@@ -596,8 +596,12 @@ $('#btn-guardar').click(function (e){
 
 
           if(typeof response.file !== 'undefined'){
-            // $('#alertaArchivo').text(response.file[0]);
-            // $('#alertaArchivo').show();
+            $('#mensajeError .textoMensaje').empty();
+            $('#mensajeError .textoMensaje').append($('<h3></h3>').text("El archivo no es de tipo PDF."));
+            $('#mensajeError').hide();
+            setTimeout(function(){
+                $('#mensajeError').show();
+            },250);
           }
 
         }//fin error
