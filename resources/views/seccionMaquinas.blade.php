@@ -6,7 +6,9 @@
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+$usuario = UsuarioController::getInstancia()->quienSoy();
+
+?>
 
 @section('estilos')
   <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
@@ -48,7 +50,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <h5>Denominacion</h5>
                                   <input id="busqueda_denominacion" type="text" class="form-control" placeholder="Denominacion">
                                 </div>
-                                
+
 
                               </div> <!-- / Primera fila -->
 
@@ -79,7 +81,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                 <div class="col-lg-2">
                                   <h5>ESTADO</h5>
                                   <select class="form-control" id="busqueda_estado">
-                                    <option value="0">TODOS</option> 
+                                    <option value="0">TODOS</option>
                                     <option value="1">ACTIVA</option>
                                     <option value="2">NO ACTIVA</option>
                                   </select>
@@ -88,7 +90,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <h5 style="color:#f5f5f5">Búsqueda</h5>
                                   <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR </button>
                                 </div>
-                                
+
                               </div> <!-- / Segunda fila -->
 
                               <br>
@@ -184,7 +186,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   </style>
 
                   <div class="navModal" style="position:relative; bottom:-15px; text-align:center; font-family: Roboto-Regular; font-size: 20px; color: #999;">
-
                         <div width="10%">
                               <i id="error_nav_maquina" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navMaquina"><h4>MÁQUINA</h4></a>
@@ -197,15 +198,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <i id="error_nav_juego" class="fa fa-times" style="color:#F44336;"></i>
                               <a href="" id="navJuego"><h4>JUEGOS</h4></a>
                         </div>
-                        <div width="10%">
-                          <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
-                          <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
-                        </div>
 
-                        <div width="10%">
-                              <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
-                              <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
-                        </div>
                         <div width="10%">
                               <i id="error_nav_soft" class="fa fa-times" style="color:#F44336;"></i>
                               <a href="" id="navSoft"><h4>GLI SOFT</h4></a>
@@ -218,7 +211,21 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <i id="error_nav_formula" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navFormula"><h4>FÓRMULA</h4></a>
                         </div>
-
+                        @if ($usuario['usuario']->es_superusuario)
+                        <div width="10%">
+                              <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
+                              <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
+                        </div>
+                        @else
+                        <div width="10%" style="display: none;">
+                              <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
+                              <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
+                        </div>
+                        @endif
+                        <div width="10%" "display: none;">
+                          <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
+                          <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
+                        </div>
                   </div>
 
                 </div>
@@ -607,10 +614,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                             <div class="col-md-6">
                             <h5>Paquete Actual</h5>
                             <input id="inputPackActual" class="form-control" type="text" data-idPack="" disabled>
-                          
+
                             </div>
-                            <div class="col-md-12"> 
-                              
+                            <div class="col-md-12">
+
                                 <table id="tablaMtmJuegoPack" class="table" style="margin-top:30px; margin-bottom:20px;">
                                   <thead>
                                     <tr>
@@ -623,7 +630,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <tbody>
                                   </tbody>
                                 </table>
-                              </div> 
+                              </div>
                             </div>
                       </div>
                        <!-- PASO  | PAQUETE JUEGO -->
@@ -679,9 +686,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <h5>Código de Juego</h5>
                                       <input id="inputCodigo" disabled data-codigo="" class="form-control" type="text" autocomplete="off" placeholder="Código de juego"/>
                                   </div>
-                                  
+
                               </div>
-                              
+
                               <div class="row" style="padding-bottom: 15px;">
                                 <div class="col-md-4">
                                   <h5>Den. de Sala</h5>

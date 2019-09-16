@@ -6,6 +6,12 @@ use Illuminate\Http\Request;
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
 $cas = $usuario['usuario']->casinos;
+
+//@HACK temporal @TODO remover cuand se pase a todos los casinos
+$tiene_santafe = UsuarioController::getInstancia()
+->usuarioTieneCasinoCorrespondiente($id_usuario,2);
+$ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
+
 ?>
 
 <!DOCTYPE html>
@@ -383,7 +389,7 @@ $cas = $usuario['usuario']->casinos;
                                           </div>
                                         </li>
                                         @endif
-                                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_progresivos'))
+                                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_progresivos') && $tiene_santafe)
                                         <li>
                                           <div id="opcProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/progresivos'" href="#" style="cursor: pointer;">
                                             <span>Progresivos</span>
@@ -487,7 +493,7 @@ $cas = $usuario['usuario']->casinos;
                                            </div>
                                          </li>
                                          @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos'))
+                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos') && $tiene_santafe)
                                          <li>
                                            <div id="opcRelevamientosProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosProgresivo'" href="#" style="cursor: pointer;">
                                              <span>Progresivos</span>
@@ -542,7 +548,7 @@ $cas = $usuario['usuario']->casinos;
                                          @endif
                                      </ul>
                                      @endif
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']))
+                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo) 
                                      <div id="gestionarPruebas" class="opcionesHover" data-target="#prueba" data-toggle="collapse" href="#">
                                        <span class="flechita">
                                          <i class="fa fa-angle-right"></i>

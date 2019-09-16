@@ -157,10 +157,10 @@ function filaEjemploIndividual(){
   let fila = $('.tablaMaquinasDivIndividual').find('.filaEjemplo').clone().removeClass('filaEjemplo');
 
   let botonEditar = fila.find('.editar');
-  let botonBorrar = fila.find('.borrar');
+  let botonBorrar = fila.find('.eliminar');
 
   botonBorrar.click(function(){
-    borrarFila(fila);
+    fila.remove();
   });
 
   botonEditar.click(function(){
@@ -234,30 +234,63 @@ function filaEditableIndividual(){
   .empty().append(input_porcentaje.clone().val($('#inputPorcOcultoIndividual').val()));
 
   let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click',function(){
+    fila.find('.erroneo').removeClass('erroneo');
     const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
     const fila_maximo_val = fila_maximo.find('.editable').val();
     const fila_base_val = fila_base.find('.editable').val();
     const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
     const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
-    if(isNaN(fila_porcrecup_val) || fila_porcrecup_val === "") return;
-    if(isNaN(fila_maximo_val)) return;
-    if(isNaN(fila_base_val)) return;
-    if(isNaN(fila_porcoculto_val)) return;
-    if(isNaN(fila_porcvisible_val)) return;
-    if(fila_maximo_val < 0) return;
-    if(fila_base_val < 0) return;
-    if(fila_porcrecup_val<0
-    || fila_porcrecup_val>100) return;
-    if(fila_porcoculto_val<0
-    || fila_porcoculto_val>100) return;
-    if(fila_porcvisible_val<0
-    || fila_porcvisible_val>100) return;
+    let valido = true;
+    if(isNaN(fila_porcrecup_val) 
+    || fila_porcrecup_val == ""
+    || fila_porcrecup_val<0
+    || fila_porcrecup_val>100
+    ){
+      fila_porcrecup.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_maximo_val) || fila_maximo_val < 0){
+      fila_maximo.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_base_val) || fila_base_val == "" || fila_base_val < 0){
+      fila_base.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_porcoculto_val)
+    || fila_porcoculto_val<0
+    || fila_porcoculto_val>100){
+      fila_porcoculto.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_porcvisible_val) 
+    || fila_porcvisible_val == ""
+    || fila_porcvisible_val<0
+    || fila_porcvisible_val>100){
+      fila_porcvisible.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+
+    if(fila_base_val > fila_maximo_val){
+      fila_base.find('.editable').addClass('erroneo');
+      fila_maximo.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+
+    if(!valido) return;
 
     let value = input.val();
+    if(value == ''){
+      input.addClass('erroneo');
+      return;
+    }
     let data =  $('#maquinas_lista')
     .find('option[value='+value+']');
 
-    if(data.length == 0) return;
+    if(data.length == 0){
+      input.addClass('erroneo');
+      return;
+    }
 
     let data_id = data.attr('data-id');
     let nro_admin = data.attr('data-nro_admin');
@@ -339,24 +372,50 @@ function filaEditableIndividualParcial(data){
   .empty().append(input_porcentaje.clone().val(data.porc_oculto));
 
   let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click',function(){
+    fila.find('.erroneo').removeClass('erroneo');
     const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
     const fila_maximo_val = fila_maximo.find('.editable').val();
     const fila_base_val = fila_base.find('.editable').val();
     const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
     const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
-    if(isNaN(fila_porcrecup_val) || fila_porcrecup_val === "") return;
-    if(isNaN(fila_maximo_val)) return;
-    if(isNaN(fila_base_val)) return;
-    if(isNaN(fila_porcoculto_val)) return;
-    if(isNaN(fila_porcvisible_val)) return;
-    if(fila_maximo_val < 0) return;
-    if(fila_base_val < 0) return;
-    if(fila_porcrecup_val<0
-    || fila_porcrecup_val>100) return;
-    if(fila_porcoculto_val<0
-    || fila_porcoculto_val>100) return;
-    if(fila_porcvisible_val<0
-    || fila_porcvisible_val>100) return;
+    let valido = true;
+    if(isNaN(fila_porcrecup_val) 
+    || fila_porcrecup_val == ""
+    || fila_porcrecup_val<0
+    || fila_porcrecup_val>100
+    ){
+      fila_porcrecup.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_maximo_val) || fila_maximo_val < 0){
+      fila_maximo.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_base_val) || fila_base_val == "" || fila_base_val < 0){
+      fila_base.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_porcoculto_val)
+    || fila_porcoculto_val<0
+    || fila_porcoculto_val>100){
+      fila_porcoculto.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    if(isNaN(fila_porcvisible_val) 
+    || fila_porcvisible_val == ""
+    || fila_porcvisible_val<0
+    || fila_porcvisible_val>100){
+      fila_porcvisible.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+
+    if(fila_base_val > fila_maximo_val){
+      fila_base.find('.editable').addClass('erroneo');
+      fila_maximo.find('.editable').addClass('erroneo');
+      valido = false;
+    }
+    
+    if(!valido) return;
 
     fila.find('input').each(function(index,c){
       $(c).replaceWith($(c).val());
@@ -800,17 +859,50 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
   setearValoresFilaNivel(fila,valores,true);
 
   fila.find('.confirmar').on('click',function(){
+    fila.find('.erroneo').removeClass('erroneo');
     let nombre = fila.find('.cuerpoTablaPozoNombre .editable').val();
     let base = fila.find('.cuerpoTablaPozoBase .editable').val();
-    let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
     let porc_visible = fila.find('.cuerpoTablaPorcVisible .editable').val();
     let porc_oculto = fila.find('.cuerpoTablaPorcOculto .editable').val();
+    let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
+
+    const nombre_valido = nombre != '';
+    const base_valida = base != '' && base >= 0;
+    const porc_visible_valida = porc_visible != '' && 
+                               (porc_visible >= 0) && (porc_visible <= 100);
+    const porc_oculto_valido = (porc_oculto >= 0) && (porc_oculto <= 100);
+    const maximo_valido = maximo >= 0;
+    
     let valido = true;
-    valido = valido && (nombre != '');
-    valido = valido && (base >= 0);
-    valido = valido && (maximo >= 0);
-    valido = valido && (porc_visible >= 0) && (porc_visible <= 100);
-    valido = valido && (porc_oculto >= 0) && (porc_oculto <= 100);
+    if(!nombre_valido){
+      fila.find('.cuerpoTablaPozoNombre .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!base_valida){
+      fila.find('.cuerpoTablaPozoBase .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!porc_visible_valida){
+      fila.find('.cuerpoTablaPorcVisible .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!porc_oculto_valido){
+      fila.find('.cuerpoTablaPorcOculto .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!maximo_valido){
+      fila.find('.cuerpoTablaPozoMaximo .editable').addClass('erroneo');
+      valido = false;
+    }
+
+    const maximo_existe = maximo != '';
+    if(base_valida && maximo_existe && base>maximo){
+      fila.find('.cuerpoTablaPozoBase .editable').addClass('erroneo');
+      fila.find('.cuerpoTablaPozoMaximo .editable').addClass('erroneo');
+      valido = false;
+    }
+
+
     if(valido) modificarNivel(fila);
   });
 
