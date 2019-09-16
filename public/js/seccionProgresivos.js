@@ -802,17 +802,50 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo : -1 }){
   setearValoresFilaNivel(fila,valores,true);
 
   fila.find('.confirmar').on('click',function(){
+    fila.find('.erroneo').removeClass('erroneo');
     let nombre = fila.find('.cuerpoTablaPozoNombre .editable').val();
     let base = fila.find('.cuerpoTablaPozoBase .editable').val();
-    let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
     let porc_visible = fila.find('.cuerpoTablaPorcVisible .editable').val();
     let porc_oculto = fila.find('.cuerpoTablaPorcOculto .editable').val();
+    let maximo = fila.find('.cuerpoTablaPozoMaximo .editable').val();
+
+    const nombre_valido = nombre != '';
+    const base_valida = base != '' && base >= 0;
+    const porc_visible_valida = porc_visible != '' && 
+                               (porc_visible >= 0) && (porc_visible <= 100);
+    const porc_oculto_valido = (porc_oculto >= 0) && (porc_oculto <= 100);
+    const maximo_valido = maximo >= 0;
+    
     let valido = true;
-    valido = valido && (nombre != '');
-    valido = valido && (base >= 0);
-    valido = valido && (maximo >= 0);
-    valido = valido && (porc_visible >= 0) && (porc_visible <= 100);
-    valido = valido && (porc_oculto >= 0) && (porc_oculto <= 100);
+    if(!nombre_valido){
+      fila.find('.cuerpoTablaPozoNombre .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!base_valida){
+      fila.find('.cuerpoTablaPozoBase .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!porc_visible_valida){
+      fila.find('.cuerpoTablaPorcVisible .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!porc_oculto_valido){
+      fila.find('.cuerpoTablaPorcOculto .editable').addClass('erroneo');
+      valido = false;
+    }
+    if(!maximo_valido){
+      fila.find('.cuerpoTablaPozoMaximo .editable').addClass('erroneo');
+      valido = false;
+    }
+
+    const maximo_existe = maximo != '';
+    if(base_valida && maximo_existe && base>maximo){
+      fila.find('.cuerpoTablaPozoBase .editable').addClass('erroneo');
+      fila.find('.cuerpoTablaPozoMaximo .editable').addClass('erroneo');
+      valido = false;
+    }
+
+
     if(valido) modificarNivel(fila);
   });
 
