@@ -72,6 +72,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
     <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 
+
+
     @section('estilos')
     @show
 
@@ -673,6 +675,54 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                             </ul>
                         </li>
+
+                        @if ($cas == 2)
+                        <li>
+                            <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('tablero_control','iconoTableroControl')
+                                </span>
+                                <span>Bingo</span>
+                            </div>
+                            <ul class="subMenu1 collapse" id="bingoMenu">
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_sesion_relevamientos'))
+                              <li>
+                                <div id="opcBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo'" href="#" style="cursor: pointer;">
+                                  <span>Sesiones y Relevamiento</span>
+                                </div>
+                              </li>
+                              @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_bingo'))
+                              <li>
+                                <div id="opcImportarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/importarRelevamiento'" href="#" style="cursor: pointer;">
+                                  <span>Importar Relevamiento</span>
+                                </div>
+                              </li>
+                              @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_estado_bingo'))
+                              <li>
+                                <div id="opcReporteEstadoBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesEstado'" href="#" style="cursor: pointer;">
+                                  <span>Reportes de Estados</span>
+                                </div>
+                              </li>
+                              @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_diferencia_bingo'))
+                              <li>
+                                <div id="opcReporteEstadoDiferenciaBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesDiferencia'" href="#" style="cursor: pointer;">
+                                  <span>Reportes de Diferencia</span>
+                                </div>
+                              </li>
+                              @endif
+                            </ul>
+                          </li>
+                          @endif
+
+
+
+
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_importaciones'))
                         <div class="separadoresMenu" style="font-size:11px !important">GESTIÓN CONTABLE MESAS</div>
                           <li>

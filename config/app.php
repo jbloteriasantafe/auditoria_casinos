@@ -180,6 +180,7 @@ return [
         Chumper\Zipper\ZipperServiceProvider::class,
         BladeSvg\BladeSvgServiceProvider::class,
 
+
         /*
         *
         *Providers Creados
@@ -240,7 +241,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'PDF' => Barryvdh\DomPDF\Facade::class,
-        'Zipper' => Chumper\Zipper\Zipper::class
+        'Zipper' => Chumper\Zipper\Zipper::class,
+
     ],
 
 ];
