@@ -10,7 +10,7 @@ class Casino extends Model
   protected $connection = 'mysql';
   protected $table = 'casino';
   protected $primaryKey = 'id_casino';
-  protected $visible = array('id_casino','nombre','codigo','fecha_inicio','porcentaje_sorteo_mesas');
+  protected $visible = array('id_casino','nombre','codigo','fecha_inicio','porcentaje_sorteo_mesas','minimo_relevamiento_progresivo');
   public $timestamps = false;
 
   public function turnos(){

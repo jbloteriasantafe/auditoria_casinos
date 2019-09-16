@@ -939,13 +939,15 @@ class ProgresivoController extends Controller
     return;
   }
 
-  //retorna true si el pozo posee algun nivel con base mayor a 10.000 (pesos)
+  //retorna true si el pozo posee algun 
+  //nivel con base mayor a la definida en el casino
   public function existenNivelSuperior ($id_pozo) {
     $pozo = Pozo::find($id_pozo);
+    $casino = $pozo->progresivo->casino;
 
     $cantidad_ok = 0;
     foreach ($pozo->niveles as $nivel) {
-      if ($nivel->base >= RelevamientoProgresivoController::$param_niveles_pozo) {
+      if ($nivel->base >= $casino->minimo_relevamiento_progresivo) {
         $cantidad_ok++;
       }
     }
