@@ -70,6 +70,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   var formData = {
     nombre_progresivo: $('#B_nombre_progresivo').val(),
     id_casino: $('#busqueda_casino').val(),
+    islas: $('#B_islas').val(),
     page: page_number,
     sort_by: 'nombre',
     page_size: page_size,

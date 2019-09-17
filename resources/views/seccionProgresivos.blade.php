@@ -111,7 +111,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             <div id="collapseFiltros" class="panel-collapse collapse">
               <div class="panel-body">
                 <div class="row"> <!-- Primera fila -->
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Casino</h5>
                     <select class="form-control" id="busqueda_casino">
                       @if ($usuario['usuario']->es_superusuario)
@@ -122,11 +122,15 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       @endforeach
                     </select>
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Nombre Progresivo</h5>
                     <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
+                    <h5>Islas</h5>
+                    <input id="B_islas" type="test" class="form-control" placeholder="Islas">
+                  </div>
+                  <div class="col-lg-3">
                     <h5>Búsqueda</h5>
                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                   </div>
