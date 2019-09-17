@@ -711,6 +711,7 @@ function generarFilaTabla(progresivo){
 
     fila.find('.nombre').text(progresivo.nombre);
     fila.find('.casino').text(casino);
+    fila.find('.islas').text(progresivo.islas);
     fila.attr('id','progresivo' + progresivo.id_progresivo)
     fila.find('.modificar').val(progresivo.id_progresivo);
     fila.find('.detalle').val(progresivo.id_progresivo);

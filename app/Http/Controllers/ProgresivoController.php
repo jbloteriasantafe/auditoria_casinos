@@ -115,7 +115,39 @@ class ProgresivoController extends Controller
       $resultados=$resultados->where('progresivo.nombre','like',$filtro);
     }
 
-    return $resultados->paginate($request->page_size);
+    $res = $resultados->paginate($request->page_size)->toArray();
+    foreach($res['data'] as $row){
+      $p = Progresivo::find($row->id_progresivo);
+      $maqs = $p->maquinas;
+      $maqs_str = '';
+      $islas = [];
+      foreach($maqs as $m){
+        $maqs_str = $maqs_str .'/'. $m->nro_admin;
+        //Uso un arreglo asociativo para mantener una cantidad unica
+        //Ej si aparece 2 veces la misma isla, 
+        //No quiero que aparesca 2 veces
+        //En el resultado
+        $isla = $m->isla;
+        if($isla != null){
+          $nro_isla = $isla->nro_isla;
+          if($nro_isla != null){
+            $islas[$m->isla->nro_isla]=true;
+          }
+        }
+      }
+      $maqs_str = substr($maqs_str,1);
+      if($maqs_str == false) $maqs_str = '';
+
+      $islas_str = '';
+      foreach($islas as $isla => $sin_uso){
+        $islas_str = $islas_str .'/'. $isla;
+      }
+      $islas_str = substr($islas_str,1);
+      if($islas_str == false) $islas_str = '';
+      $row->maquinas = $maqs_str;
+      $row->islas = $islas_str;
+    }
+    return $res;
   }
 
 
