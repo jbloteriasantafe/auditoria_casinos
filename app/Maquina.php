@@ -20,6 +20,9 @@ class Maquina extends Model
   public function isla(){
     return $this->belongsTo('App\Isla','id_isla','id_isla');
   }
+  public function nro_admin(){
+    return $this->nro_admin;
+  }
   public function gliSoft(){
     return $this->belongsTo('App\GliSoft','id_gli_soft','id_gli_soft');
   }
@@ -63,6 +66,10 @@ class Maquina extends Model
         // return $this->belongsToMany('App\modelo a donde voy ','tabla intermedia','id donde estoy','id donde voy')->withPivot('denominacion', 'porcentaje_devolucion');
   }
 
+  public function progresivos(){
+    return $this->belongsToMany('App\Progresivo','maquina_tiene_progresivo','id_maquina','id_progresivo');
+  }
+
   public function juego_activo(){
     return $this->belongsTo('App\Juego','id_juego','id_juego');
   }
@@ -103,6 +110,7 @@ class Maquina extends Model
     return $this->HasMany('App\AjusteTemporalProducido','id_maquina','id_maquina');
   }
 
+
   public static function boot(){
     parent::boot();
     Maquina::observe(new MaquinaObserver());
@@ -117,7 +125,7 @@ class Maquina extends Model
   // obtenerPorcentajeDevolucion obtiene el porcentaje de devolucion del juego activo
   // sino existe devuelve vacio
   public function obtenerPorcentajeDevolucion(){
-    
+
     $id_juego = $this->juego_activo->id_juego;
     $resultado = $this->juegos->where('id_juego' , $id_juego)->first();
 
@@ -129,10 +137,10 @@ class Maquina extends Model
 
   // obtenerDenominacion obtiene la denominacion del juego activo o "" sino existe
   public function obtenerDenominacion(){
-    
+
     $id_juego = $this->juego_activo->id_juego;
     $resultado = $this->juegos->where('id_juego' , $id_juego)->first();
-    
+
     if(isset($resultado)){
       return  $resultado->pivot->denominacion;
     }

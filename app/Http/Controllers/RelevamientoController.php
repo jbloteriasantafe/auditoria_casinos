@@ -197,6 +197,7 @@ class RelevamientoController extends Controller
   // genera los backup para la carga sin sistema
   // genera las planillas , comprime las de backup y se descargan
   public function crearRelevamiento(Request $request){
+    dump("Hola");
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
         'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'

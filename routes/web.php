@@ -48,15 +48,24 @@ Route::get('logActividades/obtenerLogActividad/{id}','LogController@obtenerLogAc
 /***********
 Progresivos
 ***********/
-Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
-Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
-Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
-Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
-Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
-Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');
-Route::post('progresivos/modificarProgresivo','ProgresivoController@modificarProgresivo');
-Route::get('progresivos/buscarProgresivoPorNombreYTipo/{busqueda}','ProgresivoController@buscarProgresivoPorNombreYTipo');
-Route::get('progresivos/buscarProgresivoLinkeadoPorNombre/{busqueda}','ProgresivoController@buscarProgresivoLinkeadoPorNombre');
+
+Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_seccion_progresivos'], function () {
+  Route::get('/','ProgresivoController@buscarTodos');
+  Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
+  Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
+  Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
+  Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
+  Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
+  Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
+  Route::post('/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
+  Route::post('/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
+  Route::post('/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
+
+  //Carga los progresivos desde las tablas progresivos_melinque, etc
+  //En principio habria que borrar las tablas una vez cargadas
+  //Por las dudas.
+  Route::get('/cargarProgresivos',"ProgresivoController@cargarProgresivos");
+});
 /***********
 Casinos
 ***********/
@@ -393,13 +402,16 @@ Route::get('obtenerFechaActual',function(){
 /**************
 RELEVAMIENTO PROGRESIVO
 **************/
-Route::get('relevamientosProgresivo','RelevamientoProgresivoController@buscarTodo'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::get('relevamientosProgresivo/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::post('relevamientosProgresivo/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
-Route::post('relevamientosProgresivo/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
-Route::post('relevamientosProgresivo/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
-Route::get('relevamientosProgresivo/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
-Route::get('relevamientosProgresivo/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','RelevamientoProgresivoController@buscarTodo');
+  Route::get('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos');
+  Route::post('/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
+  Route::post('/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
+  Route::post('/guardarRelevamiento','RelevamientoProgresivoController@guardarRelevamiento');
+  Route::post('/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
+  Route::get('/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
+  Route::get('/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+});
 
 /*******************
   Máquinas a pedir

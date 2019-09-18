@@ -65,7 +65,6 @@ class GliSoftController extends Controller
 
   //METODO QUE RESPONDEN A GUARDAR
   public function guardarGliSoft(Request $request){
-
     Validator::make($request->all(), [
       'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
       'observaciones' => 'nullable|string',
@@ -75,6 +74,7 @@ class GliSoftController extends Controller
         //$validator->getData()['descripcion'] get campo de validador
     })->validate();
 
+        dd("llega aca?");
     $GLI=new GliSoft;
 
     $GLI->nro_archivo =$request->nro_certificado;
