@@ -197,7 +197,6 @@ class RelevamientoController extends Controller
   // genera los backup para la carga sin sistema
   // genera las planillas , comprime las de backup y se descargan
   public function crearRelevamiento(Request $request){
-    dump("Hola");
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
         'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'
@@ -744,6 +743,12 @@ class RelevamientoController extends Controller
 
     $view = View::make('planillaRelevamientos2018', compact('detalles','rel'));
 
+    global $_dompdf_warnings;
+    $_dompdf_warnings = array();
+    global $_dompdf_show_warnings;
+    $_dompdf_show_warnings = true;
+
+    dump($_dompdf_warnings);
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
