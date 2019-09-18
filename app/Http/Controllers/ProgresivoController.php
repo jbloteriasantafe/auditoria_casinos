@@ -75,6 +75,7 @@ class ProgresivoController extends Controller
 
     $where_casino = false;
     $where_nombre = false;
+    $where_islas = false;
     if($request->id_casino != 0){
       $casino = Casino::find($request->id_casino);
       //El casino no existe.
@@ -84,6 +85,10 @@ class ProgresivoController extends Controller
     if($request->nombre_progresivo != null &&
        $request->nombre_progresivo != ''){
       $where_nombre = true;
+    }
+
+    if($request->islas != null){
+      $where_islas = true;
     }
 
     //Checkeo que solo el superusuario puede buscar todo.
@@ -97,25 +102,59 @@ class ProgresivoController extends Controller
     }
 
     $sort_by = $request->sort_by;
-    $resultados=
+
+    $resultados =
     DB::table('progresivo')
     ->select('progresivo.*')
+    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(isla.nro_isla, 'SIN')) separator '/') as islas")
+    ->leftjoin('maquina_tiene_progresivo',
+    'progresivo.id_progresivo','=','maquina_tiene_progresivo.id_progresivo')
+    ->leftjoin('maquina','maquina_tiene_progresivo.id_maquina','=','maquina.id_maquina')
+    ->leftjoin('isla','maquina.id_isla','=','isla.id_isla')
     ->when($sort_by,
            function($query) use ($sort_by){
              return $query->orderBy($sort_by);
            })
     ->where('progresivo.es_individual','=',0);
 
-    if($where_casino){
-      $resultados=$resultados->where('progresivo.id_casino','=',$casino->id_casino);
-    }
+    $reglas = [];
 
     if($where_nombre){
-      $filtro = '%' . $request->nombre_progresivo . '%';
-      $resultados=$resultados->where('progresivo.nombre','like',$filtro);
+      $reglas[]=["progresivo.nombre","like",'%'.$request->nombre_progresivo.'%'];
     }
 
-    return $resultados->paginate($request->page_size);
+    if($where_casino){
+      $reglas[]=['progresivo.id_casino','=',$casino->id_casino];
+    }
+
+
+    if($where_islas){
+      if($request->islas == 'SIN'){
+        $resultados = $resultados->whereNull('isla.nro_isla');
+      }
+      else{
+        $islas_busqueda = ($request->islas === null)? null 
+        : explode('/',$request->islas);
+  
+        if($islas_busqueda != null){
+          $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda);
+        }
+      }
+
+
+    }
+
+    $resultados = $resultados->where($reglas);
+
+
+    $resultados = $resultados->groupBy('progresivo.id_progresivo');
+
+    //dump($resultados->toSql());
+    //dump($resultados->getBindings());
+
+    $resultados = $resultados->paginate($request->page_size);
+
+    return $resultados;
   }
 
 
@@ -301,6 +340,8 @@ class ProgresivoController extends Controller
         return $this->errorOut(['id_casino' => 'Maquinas y casino tienen casinos distinto']);
       }
     }
+
+    $id_casino = $request->id_casino;
 
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){

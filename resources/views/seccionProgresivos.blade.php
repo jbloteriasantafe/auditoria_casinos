@@ -111,7 +111,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             <div id="collapseFiltros" class="panel-collapse collapse">
               <div class="panel-body">
                 <div class="row"> <!-- Primera fila -->
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Casino</h5>
                     <select class="form-control" id="busqueda_casino">
                       @if ($usuario['usuario']->es_superusuario)
@@ -122,11 +122,15 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       @endforeach
                     </select>
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Nombre Progresivo</h5>
                     <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
+                    <h5>Islas</h5>
+                    <input id="B_islas" type="test" class="form-control" placeholder="Islas">
+                  </div>
+                  <div class="col-lg-3">
                     <h5>Búsqueda</h5>
                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                   </div>
@@ -147,16 +151,18 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
               <table id="tablaResultados" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-4" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-4" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-4">ACCIONES</th>
+                    <th class="col-xs-3" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3" value="progresivo.islas">ISLAS</td>
+                    <th class="col-xs-3">ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class="filaEjemplo" style='display: none;'>
-                    <td class="col-xs-4 nombre">PROGRESIVO999</td>
-                    <td class="col-xs-4 casino">CASINO999</td>
-                    <td class="col-xs-4 acciones">
+                    <td class="col-xs-3 nombre">PROGRESIVO999</td>
+                    <td class="col-xs-3 casino">CASINO999</td>
+                    <td class="col-xs-3 islas">ISLA1/ISLA2/...</td>
+                    <td class="col-xs-3 acciones">
                         <button class="btn btn-info detalle">
                           <i class="fa fa-fw fa-search-plus"></i>
                         </button>

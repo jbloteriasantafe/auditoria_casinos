@@ -588,6 +588,15 @@ class UsuarioController extends Controller
       return 0;
     }
   }
+  public function getCasinos(){
+    $usuario = $this->buscarUsuario(session('id_usuario'));
+    $casinos=array();
+    foreach($usuario['usuario']->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+    return $casinos;
+  }
+
   public function obtenerUsuario(Request $request){
     if($request->session()->has("id_usuario")){
       $id_usuario = $request->session()->get("id_usuario");

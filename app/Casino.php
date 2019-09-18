@@ -84,6 +84,14 @@ class Casino extends Model
     return $this->hasMany('App\Maquina','id_casino','id_casino');
   }
 
+public function sesionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
+}
+
+public function importancionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
+}
+
   public static function boot(){
         parent::boot();
         Casino::observe(new CasinoObserver());

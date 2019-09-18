@@ -2399,7 +2399,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-
+console.log(formData);
   $.ajax({
     type: "POST",
     url: 'relevamientos/buscarRelevamientos',

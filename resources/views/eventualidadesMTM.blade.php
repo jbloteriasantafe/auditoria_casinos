@@ -305,7 +305,7 @@
             <div class="row"> <!-- PRIMER FILA-->
 
           <div class="col-md-3">
-            <h5>Fiscalizador Toma: </h5>
+            <h5>Fiscalizador Toma:</h5>
             <div class="row"> <!-- row 2 -->
               <div class="input-group lista-datos-group">
                 <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
@@ -342,7 +342,7 @@
           <br>
           </div>
         </div> <!-- FIN PRIMER FILA-->
-
+      </div>
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row"> <!-- row inicial -->
 
@@ -368,7 +368,11 @@
 
                   <div class="col-lg-4">
                     <h5>N° Admin</h5>
+<<<<<<< HEAD
+                    <div class="input-group lista-datos-group">
+=======
                   <div class="input-group lista-datos-group">
+>>>>>>> master
                       <input id="inputAdmin" type="text"class="form-control">
                     </div>
                   </div>
@@ -409,16 +413,31 @@
                 </div> <!-- segundo row -->
 
                 <div class="row">
+<<<<<<< HEAD
+
+=======
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>
                     <input id="sectorRelevadoEv" type="text" value="" class="form-control">
                     <br>
                   </div>
+>>>>>>> master
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaEv" type="text" value="" class="form-control">
+                    <br>
+<<<<<<< HEAD
+                  </div> <!-- SECTOR -->
                   <div class="col-lg-4">
                     <h5>ISLA</h5>
                     <input id="islaRelevadaEv" type="text" value="" class="form-control">
                     <br>
                   </div>
+
+
+=======
+                  </div>
+>>>>>>> master
                 </div>
 
                 <div class="row"> <!-- TERCER ROW DE DETALLE -->

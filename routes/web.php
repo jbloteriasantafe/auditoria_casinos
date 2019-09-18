@@ -689,7 +689,7 @@ Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\Info
 
 //importaciones
 Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+Route::post('+/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
 Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
 Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
@@ -752,3 +752,42 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::post('solicitudImagenes/guardar','Mesas\Bunker\ABMCImgBunkerController@cargar');
   Route::get('/solicitudImagenes','Mesas\Bunker\ABMCImgBunkerController@index');
 });
+
+//BINGO
+//Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
+  Route::get('bingo','Bingo\SesionesController@index');
+  Route::get('bingo/buscarSesion','Bingo\SesionesController@buscarSesion');
+  Route::post('bingo/guardarSesion','Bingo\SesionesController@guardarSesion');
+  Route::delete('bingo/eliminarSesion/{id}','Bingo\SesionesController@eliminarSesion');
+  Route::get('bingo/obtenerSesion/{id}','Bingo\SesionesController@obtenerSesion');
+  Route::post('bingo/guardarCierreSesion','Bingo\SesionesController@guardarCierreSesion');
+  Route::post('bingo/guardarRelevamiento','Bingo\SesionesController@guardarRelevamiento');
+  Route::post('bingo/reAbrirSesion/{id}','Bingo\SesionesController@reAbrirSesion');
+  Route::post('bingo/modificarCierreSesion','Bingo\SesionesController@modificarCierreSesion');
+  Route::post('bingo/modificarSesion','Bingo\SesionesController@modificarSesion');
+  Route::get('bingo/generarPlanillaSesion','Bingo\SesionesController@generarPlanillaSesion');
+  Route::get('bingo/generarPlanillaRelevamiento','Bingo\SesionesController@generarPlanillaRelevamiento');
+  Route::get('bingo/gestionBingo','Bingo\GestionController@index');
+  Route::get('bingo/buscarPremio','Bingo\GestionController@buscarPremio');
+  Route::get('bingo/buscarCanon','Bingo\GestionController@buscarCanon');
+  Route::post('bingo/guardarPremio','Bingo\GestionController@guardarPremio');
+  Route::post('bingo/guardarCanon','Bingo\GestionController@guardarCanon');
+  Route::delete('bingo/eliminarPremio/{id}','Bingo\GestionController@eliminarPremio');
+  Route::delete('bingo/eliminarCanon/{id}','Bingo\GestionController@eliminarCanon');
+  Route::get('bingo/importarRelevamiento','Bingo\ImportacionController@index');
+  Route::get('bingo/buscarRelevamiento','Bingo\ImportacionController@buscarRelevamiento');
+  Route::delete('bingo/eliminarImportacion/{id}','Bingo\ImportacionController@eliminarImportacion');
+  Route::post('bingo/guardarImportacion','Bingo\ImportacionController@guardarImportacion');
+  Route::get('bingo/obtenerPremio/{id}','Bingo\GestionController@obtenerPremio');
+  Route::get('bingo/obtenerCanon/{id}','Bingo\GestionController@obtenerCanon');
+  Route::post('bingo/modificarPremio','Bingo\GestionController@modificarPremio');
+  Route::post('bingo/modificarCanon','Bingo\GestionController@modificarCanon');
+  Route::get('bingo/obtenerImportacionCompleta/{id}','Bingo\ImportacionController@obtenerImportacionCompleta');
+  Route::get('bingo/obtenerImportacionSimple/{fecha}/{casino}','Bingo\ImportacionController@obtenerImportacionSimple');
+  Route::get('bingo/reportesEstado','Bingo\ReportesController@reportesEstado');
+  Route::get('bingo/buscarEstado','Bingo\ReportesController@buscarEstado');
+  Route::get('bingo/reportesDiferencia','Bingo\ReportesController@reportesDiferencia');
+  Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
+  Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
+  Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
+//});
