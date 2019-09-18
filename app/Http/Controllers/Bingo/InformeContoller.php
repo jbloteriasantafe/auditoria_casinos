@@ -7,14 +7,20 @@ use App\Http\Controllers\Controller;
 
 class InformeContoller extends Controller
 {
-    public function generarPlanilla($mm, $aaaa, $id_casino){
+    public function generarPlanilla(){
+
+    $fecha = '18-09-2019';
+    $mm = substr($fecha,2,2);
+    $aaaa = substr($fecha,4,4);
+    dd($aa);
+    $importaciones = app(\App\Http\Controllers\Bingo\ImportacionController::class)
+                              ->obtenerImportacionFC($fecha, $id_casino);
 
     $sumarecaudado = $this->sumarRecaudado($mm, $aaaa, $id_casino);
     $sumapremiolinea = $this->sumarPremioLinea($mm, $aaaa, $id_casino);
     $sumapremiobingo = $this->sumarPremioBingo($mm, $aaaa, $id_casino);
 
     $beneficio = $sumarecaudado - ($sumapremiolinea + $sumapremiobingo);
-      
 
     }
 
