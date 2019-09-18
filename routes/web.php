@@ -207,23 +207,26 @@ Route::delete('formulas/eliminarFormula/{id}','FormulaController@eliminarFormula
 /***********
 Seccion MTM
 ************/
-Route::get('maquinas','MTMController@buscarTodo')->middleware('tiene_permiso:ver_seccion_maquinas');
-Route::get('maquinas/{id}','MTMController@buscarTodo');
-Route::post('maquinas/guardarMaquina', 'MTMController@guardarMaquina');
-Route::post('maquinas/modificarMaquina', 'MTMController@modificarMaquina');
-Route::post('maquinas/buscarMaquinas', 'MTMController@buscarMaquinas');
-Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
-Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
-Route::get('/maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
-Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
-Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
-Route::delete('maquinas/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
-Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
-// Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
-Route::post('maquinas/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
-Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
-Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
-Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
+Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_maquinas'], function () {
+  Route::get('/','MTMController@buscarTodo');
+  Route::get('/{id}','MTMController@buscarTodo');
+  Route::post('/guardarMaquina', 'MTMController@guardarMaquina');
+  Route::post('/modificarMaquina', 'MTMController@modificarMaquina');
+  Route::post('/buscarMaquinas', 'MTMController@buscarMaquinas');
+  Route::get('/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+  Route::get('/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
+  Route::get('//obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
+  Route::get('/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+  Route::get('/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
+  Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
+  Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+  // Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+  Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
+  Route::get('/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
+  Route::get('/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
+  Route::get('/getMoneda/{nro}','MTMController@getMoneda');
+});
+
 
 /**********
 Islas
