@@ -538,7 +538,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos') && $tiene_santafe)
                                          <li>
                                            <div id="opcRelevamientosProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosProgresivo'" href="#" style="cursor: pointer;">
-                                             <span>Progresivos</span>
+                                             <span>Relevamientos Progresivo</span>
                                            </div>
                                          </li>
                                          @endif

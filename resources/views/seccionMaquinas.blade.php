@@ -211,17 +211,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <i id="error_nav_formula" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navFormula"><h4>FÓRMULA</h4></a>
                         </div>
-                        @if ($usuario['usuario']->es_superusuario)
-                        <div width="10%">
-                              <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
-                              <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
-                        </div>
-                        @else
-                        <div width="10%" style="display: none;">
-                              <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
-                              <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
-                        </div>
-                        @endif
                         <div width="10%" "display: none;">
                           <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
                           <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
