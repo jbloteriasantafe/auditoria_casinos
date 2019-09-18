@@ -793,4 +793,5 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
   Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
   Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
+  Route::post('bingo/generarPlanillaInforme','Bingo\InformeController@generarPlanilla');
 //});
