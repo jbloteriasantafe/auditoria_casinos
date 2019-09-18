@@ -470,4 +470,22 @@ class RelevamientoProgresivoController extends Controller
     return ['codigo' => 200];
   }
 
+  public function modificarParametrosRelevamientosProgresivo(Request $request) {
+    Validator::make($request->all(),[
+        'minimo_relevamiento_progresivo' => 'required',
+    ], array(), self::$atributos)->after(function($validator){
+
+      if($validator->getData()['minimo_relevamiento_progresivo'] <= 0){
+        $validator->errors()->add('error_minimo_relevamiento_progresivo', 'El valor mínimo de base de niveles para un pozo no puede ser negativo');
+      }
+    })->validate();
+
+
+    $cas = Casino::find($request->id_casino);
+    $cas->minimo_relevamiento_progresivo = $request->minimo_relevamiento_progresivo;
+    $cas->save();
+
+    return ['codigo' => 200];
+  }
+
 }

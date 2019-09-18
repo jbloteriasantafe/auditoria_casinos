@@ -187,6 +187,26 @@ $niveles = 6;
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-md-12">
+      <a href="" id="btn-modificar-parametros-relevamientos" dusk="btn-modificar" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/procedimientos.png"><center>
+            <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                      <h5 class="txtLogo" style="font-size:80px !important;margin-top:60px !important"> <i class="fas fa-fw fa-pencil-alt"></i> </h5>
+                      <br><br>
+                      <h4 class="txtNuevo">MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS</h4>
+                  </center>
+                </div>
+              </div>
+          </div>
+        </a>
+    </div>
+  </div>
+
   </div>
 
 </div>  <!-- /#row -->
@@ -409,6 +429,65 @@ $niveles = 6;
         </div>
       </div>
 </div>
+
+
+
+<!-- MODAL MODIFICAR PARÁMETROS DE PROGRESIVOS -->
+<div class="modal fade" id="modalModificarRelev" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg" style="width: 60%" >
+    <div class="modal-content">
+      <div class="modal-header" style="background-color:#FFA726;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title">| MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS </h3>
+      </div>
+      <div  id="colapsado" class="collapse in">
+        <div class="modal-body" style="font-family: Roboto;">
+          <div class="row" style="text-align:center !important;border-bottom:1px solid #ccc; padding-bottom:10px" >
+            <div class="row">
+            <div class="col-xs-6">
+              <span display="inline-block" class="col-xs-4">
+                <h6>CASINO:</h6>
+              </span>
+              <span display="inline" style="padding-left:-35px;text-align:left !important">
+                <div class="col-xs-8">
+                <select class="form-control" style="float:right !important" name="casinoSel" id="selectCasinoModificarRelev">
+                  @foreach ($casinos as $cas)
+                  <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+          </div>
+          </div>
+          <br>
+          <div id="valoresParamRelevProgresivos" class="row" style="border-bottom:2px solid #ccc;">
+            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;" id="req">MODIFICACIONES:</h6>
+            <div class="row">
+              <div class="col-xs-12">
+                <div class="row">
+                  <div class="col-xs-4" display="inline">
+                   <h6 style="font-size:16px">Valor mínimo de base de niveles para un pozo*: </h6>
+                  </div>
+                  <div class="col-xs-8" display="inline" style="text-align:left">
+                  <input type="text" class="form-control" id="valorMinimoRelevamientoProgresivo" name="" value="">
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> * Este valor corresponde a la base mínima a ser considerada para relevar. Si un pozo tiene algún <br>nivel con base mayor a la definida en el parámetro, será considerado para su relevamiento.</span>
+          <button type="button" class="btn btn-warningModificar" id="btn-guardar-param-relev-progresivos" value="nuevo" hidden="true">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 

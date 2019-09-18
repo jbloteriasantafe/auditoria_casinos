@@ -496,7 +496,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos') && $tiene_santafe)
                                          <li>
                                            <div id="opcRelevamientosProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosProgresivo'" href="#" style="cursor: pointer;">
-                                             <span>Progresivos</span>
+                                             <span>Relevamientos Progresivo</span>
                                            </div>
                                          </li>
                                          @endif
@@ -548,7 +548,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @endif
                                      </ul>
                                      @endif
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo) 
+                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo)
                                      <div id="gestionarPruebas" class="opcionesHover" data-target="#prueba" data-toggle="collapse" href="#">
                                        <span class="flechita">
                                          <i class="fa fa-angle-right"></i>

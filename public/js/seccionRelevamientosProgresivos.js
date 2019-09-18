@@ -854,6 +854,43 @@ $('.cabeceraTablaPozos th.sortable').click(function(){
 })
 
 
+$('#btn-modificar-parametros-relevamientos').on('click',function(e){
+  e.preventDefault();
+  $('#modalModificarRelev').modal('show');
+
+})
+
+
+$('#btn-guardar-param-relev-progresivos').on('click',function(e){
+
+  e.preventDefault();
+
+  var formData={
+    id_casino:$('#selectCasinoModificarRelev').val(),
+    minimo_relevamiento_progresivo: $('#valorMinimoRelevamientoProgresivo').val(),
+  };
+
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+
+  $.ajax({
+      type: 'POST',
+      url: 'progresivos/modificarParametrosRelevamientosProgresivo',
+      data: formData,
+      dataType: 'json',
+
+      success: function (data){
+        $('#modalModificarRelev').modal('hide');
+        $('#mensajeExito h3').text('ÉXITO');
+        $('#mensajeExito p').text('Cambios GUARDADOS. ');
+        $('#mensajeExito').show();
+        $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
+      },
+    });
+});
 
 function ordenar(list,comp,onadd=function(add){return add;}){
   //Encuentra el optimo valor, con una lista negra

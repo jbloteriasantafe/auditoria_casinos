@@ -60,6 +60,7 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
   Route::post('/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
   Route::post('/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
+  Route::post('/modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
 
   //Carga los progresivos desde las tablas progresivos_melinque, etc
   //En principio habria que borrar las tablas una vez cargadas
