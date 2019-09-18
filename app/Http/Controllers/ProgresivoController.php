@@ -137,8 +137,7 @@ class ProgresivoController extends Controller
         : explode('/',$request->islas);
   
         if($islas_busqueda != null){
-          $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda)
-          ->orWhereNull('isla.nro_isla');
+          $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda);
         }
       }
 
