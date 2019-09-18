@@ -489,9 +489,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               </li>
                               @endif
 
-<<<<<<< HEAD
-
-=======
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_maquinas','ver_seccion_progresivos','ver_seccion_islas',
                                                                                                                   'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
                                                                                                                   'ver_seccion_glihard','ver_seccion_sectores']))
@@ -570,7 +567,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                     </ul>
                               </li>
                               @endif
->>>>>>> abm-progresivo
 
                               <!-- Procedimientos -->
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos',
@@ -671,7 +667,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @endif
                                      </ul>
                                      @endif
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo) 
+                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo)
                                      <div id="gestionarPruebas" class="opcionesHover" data-target="#prueba" data-toggle="collapse" href="#">
                                        <span class="flechita">
                                          <i class="fa fa-angle-right"></i>
