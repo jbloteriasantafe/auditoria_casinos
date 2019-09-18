@@ -38,11 +38,19 @@ class GestionController extends Controller{
 
       $sort_by = $request->sort_by;
 
-      $resultados = DB::table('premio_bingo')
-                         ->select('premio_bingo.*')
+      $reglas = array();
+      
+      if($request->casino!=0){
+        $reglas[]=['casino.id_casino', '=', $request->casino];
+      }
+
+      $resultados = DB::table('bingo_premio')
+                         ->select('bingo_premio.*', 'casino.nombre')
+                         ->leftJoin('casino' , 'bingo_premio.id_casino','=','casino.id_casino')
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         })
+                      ->where($reglas)
                       ->paginate($request->page_size);
 
 
@@ -61,9 +69,9 @@ class GestionController extends Controller{
 
       $sort_by = $request->sort_by;
 
-      $resultados = DB::table('canon_bingo')
-                         ->select('canon_bingo.*', 'casino.nombre')
-                         ->leftJoin('casino' , 'canon_bingo.id_casino','=','casino.id_casino')
+      $resultados = DB::table('bingo_canon')
+                         ->select('bingo_canon.*', 'casino.nombre')
+                         ->leftJoin('casino' , 'bingo_canon.id_casino','=','casino.id_casino')
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         })
@@ -82,6 +90,7 @@ class GestionController extends Controller{
             'porcentaje_premio' => 'required|numeric',
             'bola_tope' => 'required|numeric',
             'tipo_premio' => 'required|numeric',
+            'casino_premio' => 'required|numeric',
         ])->validate();
 
 
@@ -94,6 +103,7 @@ class GestionController extends Controller{
       $premio->porcentaje = $request->porcentaje_premio;
       $premio->bola_tope = $request->bola_tope;
       $premio->tipo_premio = $request->tipo_premio;
+      $premio->id_casino = $request->casino_premio;
 
       $premio->save();
 
@@ -132,6 +142,7 @@ class GestionController extends Controller{
             'porcentaje_premio' => 'required|numeric',
             'bola_tope' => 'required|numeric',
             'tipo_premio' => 'required|numeric',
+            'casino_premio' => 'required|numeric',
         ])->validate();
 
       $premio = PremioBingo::findOrFail($request->id_premio);
@@ -140,6 +151,7 @@ class GestionController extends Controller{
       $premio->porcentaje = $request->porcentaje_premio;
       $premio->bola_tope = $request->bola_tope;
       $premio->tipo_premio = $request->tipo_premio;
+      $premio->id_casino = $request->casino_premio;
 
       $premio->save();
 

@@ -3,15 +3,15 @@ $(document).ready(function(){
   $('#barraMenu').attr('aria-expanded','true');
   // $('#maquinas').removeClass();
   // $('#maquinas').addClass('subMenu1 collapse in');
-  $('#bingoMenu').removeClass();
-  $('#bingoMenu').addClass('subMenu2 collapse in');
+  $('#gestionBingo').removeClass();
+  $('#gestionBingo').addClass('subMenu2 collapse in');
 
-  $('#bingoMenu').siblings('div.opcionesHover').attr('aria-expanded','true');
+  $('#gestionBingo').siblings('div.opcionesHover').attr('aria-expanded','true');
 
   $('.tituloSeccionPantalla').text('Gestion de Premios y Canon');
   // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcGestionBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcGestionBingo').addClass('opcionesSeleccionado');
+  $('#opcGestionarBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
+  $('#opcGestionarBingo').addClass('opcionesSeleccionado');
 
   $('#btn-buscar-premio').trigger('click');
 
@@ -102,7 +102,7 @@ $('#btn-buscar-premio').click(function(e,pagina,page_size,columna,orden){
     $('#tablaResultadosPremios th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
   var formData = {
-
+    casino: $('#buscadorCasino').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
@@ -259,6 +259,7 @@ $('#btn-guardar-premio').click(function (e) {
       bola_tope: $('#bola_tope').val(),
       tipo_premio: $('#tipo_premio').val(),
       id_premio: $('#id_premio').val(),
+      casino_premio:$('#casino_premio').val(),
     }
 
     var state = $('#btn-guardar-premio').val();
@@ -308,7 +309,9 @@ $('#btn-guardar-premio').click(function (e) {
               if(typeof response.tipo_premio !== 'undefined'){
                         mostrarErrorValidacion($('#tipo_premio'),'El campo no puede estar en blanco.' ,true);
                 }
-
+                if(typeof response.casino_premio !== 'undefined'){
+                          mostrarErrorValidacion($('#casino_premio'),'El campo no puede estar en blanco.' ,true);
+                  }
             })
 
         }
@@ -509,7 +512,7 @@ function generarFilaTablaPremio(premio){
   var fila = $(document.createElement('tr'));
       fila.attr('id', premio.id_premio)
         .append($('<td>')
-        .addClass('col-xs-4')
+        .addClass('col-xs-2')
             .text(premio.nombre_premio)
         )
         .append($('<td>')
@@ -523,6 +526,10 @@ function generarFilaTablaPremio(premio){
         .append($('<td>')
           .addClass('col-xs-2')
           .text(premio.tipo_premio)
+        )
+        .append($('<td>')
+          .addClass('col-xs-2')
+          .text(premio.nombre)
         )
         .append($('<td>')
           .addClass('col-xs-2')

@@ -40,21 +40,21 @@ class ImportacionController extends Controller
 
       $reglas = array();
       if(isset($request->fecha)){
-        $reglas[]=['importacion_bingo.fecha', '=', $request->fecha];
+        $reglas[]=['bingo_importacion.fecha', '=', $request->fecha];
       }
       if($request->casino!=0){
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
 
       //obtener solo la primera partida de cada importación sólo para maracar la sesión
-      $reglas[] = ['importacion_bingo.num_partida','=','1'];
+      $reglas[] = ['bingo_importacion.num_partida','=','1'];
 
       $sort_by = $request->sort_by;
 
-      $resultados = DB::table('importacion_bingo')
-                         ->select('importacion_bingo.*', 'casino.codigo', 'usuario.nombre')
-                         ->leftJoin('casino' , 'importacion_bingo.id_casino','=','casino.id_casino')
-                         ->leftJoin('usuario', 'importacion_bingo.id_usuario', '=', 'usuario.id_usuario')
+      $resultados = DB::table('bingo_importacion')
+                         ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
+                         ->leftJoin('casino' , 'bingo_importacion.id_casino','=','casino.id_casino')
+                         ->leftJoin('usuario', 'bingo_importacion.id_usuario', '=', 'usuario.id_usuario')
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){
@@ -83,7 +83,7 @@ class ImportacionController extends Controller
       $reglas [] =['id_casino','=', $importaciones[0]->id_casino];
       //busco el reporte que cumpla con las reglas
       $reporte = ReporteEstado::where($reglas)->first();
-    
+
       if($reporte->sesion_abierta == null || $reporte->sesion_abierta == 0){
         if($reporte->sesion_cerrada == null || $reporte->sesion_cerrada == 0) $reporte->delete();
       }
@@ -163,11 +163,11 @@ class ImportacionController extends Controller
       $importacion = ImportacionBingo::findOrFail($id);
 
       $reglas = array();
-      $reglas[]=['importacion_bingo.fecha', '=', $importacion->fecha];
-      $reglas[]=['importacion_bingo.id_casino', '=', $importacion->id_casino];
+      $reglas[]=['bingo_importacion.fecha', '=', $importacion->fecha];
+      $reglas[]=['bingo_importacion.id_casino', '=', $importacion->id_casino];
 
-      $respuesta = DB::table('importacion_bingo')
-                        ->select('importacion_bingo.*')
+      $respuesta = DB::table('bingo_importacion')
+                        ->select('bingo_importacion.*')
                         ->where($reglas)
                         ->get();
 
@@ -193,8 +193,8 @@ class ImportacionController extends Controller
       }
       //busca las importaciones cargadas que cumplan con "regla"
       $regla = array();
-      $regla [] =['importacion_bingo.id_casino', '=', $id_casino];
-      $regla [] =['importacion_bingo.fecha', '=', $fecha];
+      $regla [] =['bingo_importacion.id_casino', '=', $id_casino];
+      $regla [] =['bingo_importacion.fecha', '=', $fecha];
       $importacion = ImportacionBingo::where($regla)->first();
 
       return $importacion->id_importacion;
@@ -303,8 +303,8 @@ class ImportacionController extends Controller
       ], array(), self::$atributos)->after(function($validator){
         //valido que no exista importacion para el mismo día en el casino
         $regla_carga = array();
-        $regla_carga [] =['importacion_bingo.id_casino', '=', $validator->getData()['id_casino']];
-        $regla_carga [] =['importacion_bingo.fecha', '=', $validator->getData()['fecha']];
+        $regla_carga [] =['bingo_importacion.id_casino', '=', $validator->getData()['id_casino']];
+        $regla_carga [] =['bingo_importacion.fecha', '=', $validator->getData()['fecha']];
         $carga = ImportacionBingo::where($regla_carga)->count();
         if($carga > 0){
           $validator->errors()->add('importacion_cargada','La importación para esta fecha se encuentra cargarda.');

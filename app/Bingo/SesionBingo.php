@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SesionBingo extends Model
 {
   protected $connection = 'mysql';
-  protected $table = 'sesion_bingo';
+  protected $table = 'bingo_sesion';
   protected $primaryKey = 'id_sesion';
   protected $visible = array('id_sesion','fecha_inicio','hora_inicio',
                               'id_usuario_inicio','id_usuario_fin','id_casino',

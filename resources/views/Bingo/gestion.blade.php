@@ -21,7 +21,7 @@ $casinos = $usuario->casinos;
                 <div class="row">
                   <div class="col-lg-12 col-xl-5">
 
-                     <div class="row" style="display: none;"> <!-- fila de FILTROS -->
+                     <div class="row"> <!-- fila de FILTROS -->
                         <div class="col-md-12">
                           <div class="panel panel-default">
                             <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
@@ -31,8 +31,13 @@ $casinos = $usuario->casinos;
                               <div class="panel-body">
                                 <div class="row">
                                   <div class="col-md-6">
-                                    <h5>Nombre Premio</h5>
-                                    <input type="text" id="buscadorNombre" class="form-control" style="padding: 0px!important;">
+                                    <h5>Casino</h5>
+                                    <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                                        <option value="0">-Todos los Casinos-</option>
+                                        @foreach($casinos as $casino)
+                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                        @endforeach
+                                    </select>
                                   </div>
 
                                   <div class="col-md-6 text-right">
@@ -57,10 +62,11 @@ $casinos = $usuario->casinos;
                               <table id="tablaResultadosPremios" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-4" value="nombre_premio" estado="">NOMBRE DE PREMIO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="nombre_premio" estado="">NOMBRE DE PREMIO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="porcentaje" estado="">PORCENTAJE <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="bola_tope" estado="">BOLA TOPE  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="tipo_premio" estado="">TIPO PREMIO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="casino_p" estado="">CASINO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2">ACCIONES</th>
                                   </tr>
                                 </thead>
@@ -220,6 +226,14 @@ $casinos = $usuario->casinos;
                                   <input id="bola_tope" name="bola_tope" type="text" class="form-control"  placeholder="" value="" required>
                                 </div>
 
+                                <div class="col-lg-12">
+                                  <h5>CASINO</h5>
+                                  <select id="casino_premio" class="form-control selectCasinos" name="">
+                                      @foreach($casinos as $casino)
+                                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                      @endforeach
+                                  </select>
+                                </div>
                                 <div class="col-lg-12">
                                   <h5>TIPO PREMIO</h5>
                                   <select id="tipo_premio" class="form-control selectCasinos" name="">

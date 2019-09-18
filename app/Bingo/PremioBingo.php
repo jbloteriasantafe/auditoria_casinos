@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class PremioBingo extends Model
 {
   protected $connection = 'mysql';
-  protected $table = 'premio_bingo';
+  protected $table = 'bingo_premio';
   protected $primaryKey = 'id_premio';
-  protected $visible = array('id_premio','nombre_premio','porcentaje','bola_tope','tipo_premio');
+  protected $visible = array('id_premio','nombre_premio','porcentaje','bola_tope','tipo_premio','id_casino');
   public $timestamps = false;
 }

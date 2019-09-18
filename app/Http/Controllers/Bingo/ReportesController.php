@@ -101,16 +101,16 @@ class ReportesController extends Controller{
       //reglas que vienen desde el buscador para poder filtrar
       $reglas = array();
       if(isset($request->fecha)){
-        $reglas[]=['reporte_estado_bingo.fecha_sesion', '=', $request->fecha];
+        $reglas[]=['bingo_reporte_estado.fecha_sesion', '=', $request->fecha];
       }
       if($request->casino!=0){
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
       $sort_by = $request->sort_by;
       //consulta a la db para obtener los estados que cumplan con las reglas
-      $resultados = DB::table('reporte_estado_bingo')
-                         ->select('reporte_estado_bingo.*', 'casino.nombre')
-                         ->leftJoin('casino' , 'reporte_estado_bingo.id_casino','=','casino.id_casino')
+      $resultados = DB::table('bingo_reporte_estado')
+                         ->select('bingo_reporte_estado.*', 'casino.nombre')
+                         ->leftJoin('casino' , 'bingo_reporte_estado.id_casino','=','casino.id_casino')
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){

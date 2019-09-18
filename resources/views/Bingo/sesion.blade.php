@@ -9,7 +9,7 @@ use App\Bingo\PremioBingo;
 
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];;
 $casinos = $usuario->casinos;
-$premios = PremioBingo::all();
+$premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->all();
 ?>
 
 @section('estilos')

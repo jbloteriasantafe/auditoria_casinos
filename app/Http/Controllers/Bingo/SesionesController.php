@@ -40,22 +40,22 @@ class SesionesController extends Controller
       //reglas que vienen desde el buscador para poder filtrar
       $reglas = array();
       if(isset($request->fecha)){
-        $reglas[]=['sesion_bingo.fecha_inicio', '=', $request->fecha];
+        $reglas[]=['bingo_sesion.fecha_inicio', '=', $request->fecha];
       }
       if($request->casino!=0){
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
       if($request->estado != 0){
-        $reglas[]=['estado_sesion_bingo.id_estado_sesion', '=', $request->estado];
+        $reglas[]=['bingo_estado_sesion.id_estado_sesion', '=', $request->estado];
       }
       $sort_by = $request->sort_by;
       //consulta a la db para obtener las sesiones que cumplan con las reglas
-      $resultados = DB::table('sesion_bingo')
-                         ->select('sesion_bingo.*', 'casino.nombre', 'estado_sesion_bingo.descripcion', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
-                         ->leftJoin('casino' , 'sesion_bingo.id_casino','=','casino.id_casino')
-                         ->leftJoin('estado_sesion_bingo' , 'sesion_bingo.id_estado','=','estado_sesion_bingo.id_estado_sesion')
-                         ->leftJoin('usuario as u1', 'sesion_bingo.id_usuario_inicio', '=', 'u1.id_usuario')
-                         ->leftJoin('usuario as u2', 'sesion_bingo.id_usuario_fin', '=', 'u2.id_usuario')
+      $resultados = DB::table('bingo_sesion')
+                         ->select('bingo_sesion.*', 'casino.nombre', 'bingo_estado_sesion.descripcion', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
+                         ->leftJoin('casino' , 'bingo_sesion.id_casino','=','casino.id_casino')
+                         ->leftJoin('bingo_estado_sesion' , 'bingo_sesion.id_estado','=','bingo_estado_sesion.id_estado_sesion')
+                         ->leftJoin('usuario as u1', 'bingo_sesion.id_usuario_inicio', '=', 'u1.id_usuario')
+                         ->leftJoin('usuario as u2', 'bingo_sesion.id_usuario_fin', '=', 'u2.id_usuario')
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){
@@ -85,8 +85,8 @@ class SesionesController extends Controller
         ], array(), self::$atributos)->after(function($validator){
           //valido que no exista importacion para el mismo día en el casino
           $regla_carga = array();
-          $regla_carga [] =['sesion_bingo.id_casino', '=', $validator->getData()['casino']];
-          $regla_carga [] =['sesion_bingo.fecha_inicio', '=', $validator->getData()['fecha_inicio']];
+          $regla_carga [] =['bingo_sesion.id_casino', '=', $validator->getData()['casino']];
+          $regla_carga [] =['bingo_sesion.fecha_inicio', '=', $validator->getData()['fecha_inicio']];
           $carga = SesionBingo::where($regla_carga)->count();
           if($carga > 0){
             $validator->errors()->add('sesion_cargada','La sesion para esta fecha se encuentra cargarda.');
@@ -378,11 +378,11 @@ class SesionesController extends Controller
         $partidas[] = $relevamiento;
       }
 
-       $historico = DB::table('sesion_bingo_re')
+       $historico = DB::table('bingo_re_sesion')
        ->where('id_sesion','=', $id)
-       ->select('sesion_bingo_re.*', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
-       ->leftJoin('usuario as u1', 'sesion_bingo_re.id_usuario_inicio', '=', 'u1.id_usuario')
-       ->leftJoin('usuario as u2', 'sesion_bingo_re.id_usuario_fin', '=', 'u2.id_usuario')
+       ->select('bingo_re_sesion.*', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
+       ->leftJoin('usuario as u1', 'bingo_re_sesion.id_usuario_inicio', '=', 'u1.id_usuario')
+       ->leftJoin('usuario as u2', 'bingo_re_sesion.id_usuario_fin', '=', 'u2.id_usuario')
        ->where('id_sesion','=', $id)
        ->get();
 
@@ -398,10 +398,10 @@ class SesionesController extends Controller
         $reglas [] = ['id_casino','=',$sesion->id_casino];
         $reglas [] = ['fecha_inicio','=',$sesion->fecha_inicio];
 
-        $sesion = DB::table('sesion_bingo')
-                           ->select('sesion_bingo.*', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
-                           ->leftJoin('usuario as u1', 'sesion_bingo.id_usuario_inicio', '=', 'u1.id_usuario')
-                           ->leftJoin('usuario as u2', 'sesion_bingo.id_usuario_fin', '=', 'u2.id_usuario')
+        $sesion = DB::table('bingo_sesion')
+                           ->select('bingo_sesion.*', 'u1.nombre as nombre_inicio', 'u2.nombre as nombre_fin')
+                           ->leftJoin('usuario as u1', 'bingo_sesion.id_usuario_inicio', '=', 'u1.id_usuario')
+                           ->leftJoin('usuario as u2', 'bingo_sesion.id_usuario_fin', '=', 'u2.id_usuario')
                            ->where($reglas)
                            ->first();
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ImportacionBingo extends Model
 {
   protected $connection = 'mysql';
-  protected $table = 'importacion_bingo';
+  protected $table = 'bingo_importacion';
   protected $primaryKey = 'id_importacion';
   protected $visible = array('id_importacion',
                              'num_partida',
