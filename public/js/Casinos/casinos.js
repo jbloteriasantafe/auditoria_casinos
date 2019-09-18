@@ -317,23 +317,20 @@ $("ul.pestaniasTFM li").click(function() {
       $('.pestaniaPesosModif').show();
       $('.pestaniaTurnosModif').hide();
       $('.pestaniaDolaresModif').hide();
-
     }
     if(activeTab == '#fdolaresModif'){
-
       $('#p_dolares_modif').show();
       $('.pestaniaDolaresModif').show();
       $('.pestaniaTurnosModif').hide();
       $('.pestaniaPesosModif').hide();
-
     }
     if(activeTab == '#fturnosModif'){
       $('#p_turnos_modif').show();
       $('.pestaniaTurnosModif').show();
       $('.pestaniaPesosModif').hide();
       $('.pestaniaDolaresModif').hide();
-
     }
+
     $(activeTab).fadeIn(); //Fade in the active ID content
     return false;
 });

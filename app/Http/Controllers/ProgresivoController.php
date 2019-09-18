@@ -133,9 +133,9 @@ class ProgresivoController extends Controller
         $resultados = $resultados->whereNull('isla.nro_isla');
       }
       else{
-        $islas_busqueda = ($request->islas === null)? null 
+        $islas_busqueda = ($request->islas === null)? null
         : explode('/',$request->islas);
-  
+
         if($islas_busqueda != null){
           $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda);
         }
@@ -980,7 +980,7 @@ class ProgresivoController extends Controller
     return;
   }
 
-  //retorna true si el pozo posee algun 
+  //retorna true si el pozo posee algun
   //nivel con base mayor a la definida en el casino
   public function existenNivelSuperior ($id_pozo) {
     $pozo = Pozo::find($id_pozo);
@@ -995,5 +995,17 @@ class ProgresivoController extends Controller
 
     $ret = ($cantidad_ok > 0) ? true : false;
     return $ret;
+  }
+
+  public function obtenerProgresivoPorIdMaquina($id_maquina){
+    $maquina= Maquina::find($id_maquina);
+    $pozo = null;
+    $progresivo = '';
+    $niveles_final = array();
+
+    return ['progresivo' => $progresivo,
+            'niveles' => $niveles_final,
+            'pozo' => $pozo];
+
   }
 }

@@ -197,7 +197,6 @@ class RelevamientoController extends Controller
   // genera los backup para la carga sin sistema
   // genera las planillas , comprime las de backup y se descargan
   public function crearRelevamiento(Request $request){
-    dump("Hola");
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
         'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'
@@ -748,6 +747,7 @@ class RelevamientoController extends Controller
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
+
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
     $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
