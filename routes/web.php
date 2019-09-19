@@ -224,8 +224,9 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::get('/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
   Route::get('/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
-  Route::get('/getMoneda/{nro}','MTMController@getMoneda');
 });
+//Lo necesitan los auditores
+Route::get('/getMoneda/{nro}','MTMController@getMoneda');
 
 
 /**********
