@@ -79,7 +79,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                     <table>
                       <tr>
                         <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
                         <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
@@ -93,7 +92,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                       @foreach ($detalles_linkeados as $detalle)
                       <tr>
                         <td class="tablaInicio" style="background-color: white">{{$detalle['nro_islas']}} </td>
-                        <td class="tablaInicio" style="background-color: white">{{$detalle['nro_maquinas']}} </td>
                         @if ($detalle['pozo_unico'])
                           <td class="tablaInicio" style="background-color: white">{{$detalle['progresivo']}}</td>
                         @else
