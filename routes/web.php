@@ -213,21 +213,23 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('/guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('/modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('/buscarMaquinas', 'MTMController@buscarMaquinas');
-  Route::get('/obtenerMTM/{id}', 'MTMController@obtenerMTM');
-  Route::get('/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
-  Route::get('//obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
-  Route::get('/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
-  Route::get('/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
   Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
-  Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
   // Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
-  Route::get('/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
-  Route::get('/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
+  
 });
 //Lo necesitan los auditores
 Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
-
+//Estos por si las moscas lo pongo ... Son todos GET por lo menos
+//Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
+Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+Route::get('maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
+Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
+Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
+Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
+Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
 
 /**********
 Islas
