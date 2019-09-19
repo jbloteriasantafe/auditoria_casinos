@@ -226,7 +226,7 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::get('/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
 });
 //Lo necesitan los auditores
-Route::get('/getMoneda/{nro}','MTMController@getMoneda');
+Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
 
 
 /**********
