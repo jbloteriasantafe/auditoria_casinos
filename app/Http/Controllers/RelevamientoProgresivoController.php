@@ -265,44 +265,44 @@ class RelevamientoProgresivoController extends Controller
       $pozo = Pozo::find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo;
 
-        $x=0;
-        $nro_maquinas = "";
-        foreach ($progresivo->maquinas as $maq) {
-          $id_maquinas[] = $maq->id_maquina;
-          if ($x == 0) {
-            $nro_maquinas = $maq->nro_admin;
-          }
-          else {
-            $nro_maquinas = $nro_maquinas . '/' . $maq->nro_admin;
-          }
-          $x++;
-        }
-
-        $resultados = DB::table('isla') ->selectRaw('DISTINCT(nro_isla)')
-                                        ->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                                        ->whereIn('id_maquina' , $id_maquinas)
-                                        ->get();
-
-        $i = 0;
-        $nro_islas="";
-        foreach ($resultados as $resultado) {
-
-          if($i == 0){
-            $nro_islas = $resultado->nro_isla;
-          }else {
-            $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
-          }
-          $i++;
-        }
-
-        if($detalle_relevamiento->id_tipo_causa_no_toma_progresivo != NULL) {
-          $causa_no_toma_progresivo = TipoCausaNoTomaProgresivo::find($detalle_relevamiento->id_tipo_causa_no_toma_progresivo)->descripcion;
+      $x=0;
+      $nro_maquinas = "";
+      foreach ($progresivo->maquinas as $maq) {
+        $id_maquinas[] = $maq->id_maquina;
+        if ($x == 0) {
+          $nro_maquinas = $maq->nro_admin;
         }
         else {
-          $causa_no_toma_progresivo = -1;
+          $nro_maquinas = $nro_maquinas . '/' . $maq->nro_admin;
         }
+        $x++;
+      }
 
-        $detalle = array(
+      $resultados = DB::table('isla') ->selectRaw('DISTINCT(nro_isla)')
+                                      ->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')
+                                      ->whereIn('id_maquina' , $id_maquinas)
+                                      ->orderBy('nro_isla', 'asc')
+                                      ->get();
+      $i = 0;
+      $nro_islas="";
+      foreach ($resultados as $resultado) {
+
+        if($i == 0){
+          $nro_islas = $resultado->nro_isla;
+        }else {
+          $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
+        }
+        $i++;
+      }
+
+      if($detalle_relevamiento->id_tipo_causa_no_toma_progresivo != NULL) {
+        $causa_no_toma_progresivo = TipoCausaNoTomaProgresivo::find($detalle_relevamiento->id_tipo_causa_no_toma_progresivo)->descripcion;
+      }
+      else {
+        $causa_no_toma_progresivo = -1;
+      }
+
+      $detalle = array(
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
         'pozo' => $pozo->descripcion,
@@ -316,10 +316,9 @@ class RelevamientoProgresivoController extends Controller
         'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
         'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
         'causa_no_toma_progresivo' => $causa_no_toma_progresivo
-        );
+      );
 
-        $detalles[] = $detalle;
-
+      $detalles[] = $detalle;
     }
 
     foreach ($detalles as $detalle) {
