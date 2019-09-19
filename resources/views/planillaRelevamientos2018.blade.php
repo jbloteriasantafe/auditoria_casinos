@@ -72,7 +72,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                 <span>{{$rel->fecha}}</span>
             </div>
 
-            <!-- @if($rel->fecha_ejecucion != null)
+            @if($rel->fecha_ejecucion != null)
             <div class="infoHora">
                 <span> {{$rel->fecha_ejecucion}}</span>
             </div>
