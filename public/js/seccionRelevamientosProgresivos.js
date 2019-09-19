@@ -425,6 +425,8 @@ function cambiarEstadoFila(fila,relevamiento){
   let carga = fila.find('.carga').off();
   let validacion = fila.find('.validar').off();
   let imprimir = fila.find('.imprimir').off();
+  let eliminar = fila.find('.eliminar').off().show();
+
   fila.find('.textoEstado').text(relevamiento.estado);
 
   switch (relevamiento.estado) {
@@ -476,7 +478,43 @@ function cambiarEstadoFila(fila,relevamiento){
   imprimir.click(function (){
     window.open('relevamientosProgresivo/generarPlanilla/' + relevamiento.id_relevamiento_progresivo,'_blank');
   });
+  eliminar.click(function(){
+    mensajeAlerta(
+      //MENSAJES
+      ["<h4><b>ESTA POR ELIMINAR UN RELEVAMIENTO</b></h4>"],
+      //CONFIRMAR
+      function(){
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+            }
+        });
 
+        const id = $(eliminar).val();
+        if(id === null || typeof id === 'undefined'){
+          throw 'Error al eliminar progresivo id no definido';
+        }
+
+        $.ajax({
+            type: "GET",
+            url: 'relevamientosProgresivo/eliminarRelevamientoProgresivo/'+id,
+            success: function(data){
+              console.log(data);
+              $('#mensajeAlerta').hide();
+              $('#cuerpoTabla tr[data-id="'+id+'"').remove();
+            },
+            error: function(data){
+              console.log(data);
+              $('#mensajeAlerta').hide();
+            }
+        });
+      },
+      //CANCELAR
+      function(){
+        $('#mensajeAlerta').hide();
+      }
+    );
+  })
 }
 
 function generarFilaTabla(relevamiento){
@@ -495,7 +533,7 @@ function generarFilaTabla(relevamiento){
     let carga = fila.find('.carga').attr({'data-toggle':'tooltip','data-placement':'top','title':'CARGAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'});
     let validacion = fila.find('.validar').attr({'data-toggle':'tooltip','data-placement':'top','title':'VISAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'});
     let imprimir = fila.find('.imprimir').attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'});
-
+    let eliminar = fila.find('.eliminar').attr({'data-toggle':'tooltip','data-placement':'top','title':'ELIMINAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'});
     //Se setea el display como table-row por algun motivo :/
     //Lo saco a pata.
     fila.css('display','');
@@ -648,6 +686,16 @@ function mensajeError(errores){
   setTimeout(function(){
       $('#mensajeError').show();
   },250);
+}
+
+function mensajeAlerta(alertas,callbackConfirmar,callbackCancelar){
+  $('#mensajeAlerta .textoMensaje').empty();
+  for(let i=0;i<alertas.length;i++){
+    $('#mensajeAlerta .textoMensaje').append($(alertas[i]));
+  }
+  $('#mensajeAlerta .confirmar').off().click(callbackConfirmar);
+  $('#mensajeAlerta .cancelar').off().click(callbackCancelar);
+  $('#mensajeAlerta').show();
 }
 
 function obtenerIdFiscalizador(id_casino,str){

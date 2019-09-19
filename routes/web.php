@@ -418,6 +418,7 @@ Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permi
   Route::post('/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
   Route::get('/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
   Route::get('/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+  Route::get('/eliminarRelevamientoProgresivo/{id_relevamiento_progresivo}','RelevamientoProgresivoController@eliminarRelevamientoProgresivo');
 });
 
 /*******************

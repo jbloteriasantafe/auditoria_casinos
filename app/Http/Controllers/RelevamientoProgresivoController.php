@@ -481,13 +481,27 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function eliminarRelevamientoProgresivo ($id_relevamiento_progresivo) {
+    $usercontroller = UsuarioController::getInstancia();
+    $usuario = $usercontroller->quienSoy()['usuario'];
+    $progresivo = Progresivo::find($id_relevamiento_progresivo);
+    if($usuario === null || $progresivo === null) return;
+    
+    if(!$usercontroller->usuarioTieneCasinoCorrespondiente(
+    $usuario->id_usuario,
+    $progresivo->casino->id_casino)
+    ) return;
 
-    //elimino todos los detalles asociados al relevamiento progresivo
-    DB::table('detalle_relevamiento_progresivo')->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)->delete();
-
-    //finalmente, elimino el relevamiento
-    DB::table('relevamiento_progresivo')->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)->delete();
-
+    DB::transaction(function() use ($id_relevamiento_progresivo){
+        //elimino todos los detalles asociados al relevamiento progresivo
+      DB::table('detalle_relevamiento_progresivo')
+      ->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)
+      ->delete();
+      //finalmente, elimino el relevamiento
+      DB::table('relevamiento_progresivo')
+      ->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)
+      ->delete();
+    });
+    
     return ['codigo' => 200];
   }
 

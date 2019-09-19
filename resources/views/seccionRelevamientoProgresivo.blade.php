@@ -10,6 +10,8 @@ use App\Http\Controllers\UsuarioController;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario;
+$puede_eliminar = $user->es_administrador || $user->es_superusuario;
+$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 $niveles = 6;
 ?>
 
@@ -25,6 +27,7 @@ $niveles = 6;
 .fondoBlanco {
   background-color: rgb(255,255,255) !important;
 }
+
 </style>
 
 @endsection
@@ -151,6 +154,11 @@ $niveles = 6;
                     <i class="fa fa-fw fa-check"></i></button>
                   <span></span>
                   @endif
+                  @if($puede_eliminar)
+                  <button class="btn btn-success eliminar" type="button">
+                    <i class="fa fa-fw fa-trash"></i></button>
+                  <span></span>
+                  @endif
                   <button class="btn btn-info imprimir" type="button">
                     <i class="fa fa-fw fa-print"></i></button>
                 </td>
@@ -187,12 +195,15 @@ $niveles = 6;
     </div>
   </div>
 
+  @if($puede_modificar_valores)
   <div class="row">
     <div class="col-md-12">
       <a href="" id="btn-modificar-parametros-relevamientos" dusk="btn-modificar" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/procedimientos.png"><center>
-            <div class="backgroundNuevo"></div>
+            <div class="backgroundNuevo">
+
+            </div>
               <div class="row">
                 <div class="col-xs-12">
                   <center>
@@ -206,6 +217,7 @@ $niveles = 6;
         </a>
     </div>
   </div>
+  @endif
 
   </div>
 
@@ -487,6 +499,23 @@ $niveles = 6;
   </div>
 </div>
 
+<div class="modal" id="mensajeAlerta" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+              <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#D50000;">
+                  <h2 class="modal-title"><b>ATENCIÓN</b></h2>
+              </div>
+              <div class="modal-body textoMensaje">
+                  <h4><b>ESTA POR ELIMINAR UN RELEVAMIENTO</b></h4>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger confirmar">CONFIRMAR</button>
+                <button type="button" class="btn btn-secondary cancelar" data-dismiss="modal">CANCELAR</button>
+              </div>
+          </div>
+        </div>
+  </div>
+</div>
 
 
 <meta name="_token" content="{!! csrf_token() !!}" />
