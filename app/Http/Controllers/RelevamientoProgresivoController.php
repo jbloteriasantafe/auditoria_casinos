@@ -480,4 +480,15 @@ class RelevamientoProgresivoController extends Controller
     return ['codigo' => 200];
   }
 
+  public function eliminarRelevamientoProgresivo ($id_relevamiento_progresivo) {
+
+    //elimino todos los detalles asociados al relevamiento progresivo
+    DB::table('detalle_relevamiento_progresivo')->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)->delete();
+
+    //finalmente, elimino el relevamiento
+    DB::table('relevamiento_progresivo')->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)->delete();
+
+    return ['codigo' => 200];
+  }
+
 }
