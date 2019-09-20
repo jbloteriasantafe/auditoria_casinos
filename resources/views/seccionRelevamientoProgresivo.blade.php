@@ -40,10 +40,53 @@ $niveles = 6;
 </datalist>
 @endforeach
 
-
-
 <div class="row">
-    <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
+  <div class="col-xl-3">
+      <div class="row">
+        <div class="col-xl-12 col-md-4">
+              <a href="" id="btn-nuevo" style="text-decoration: none;">
+                <div class="panel panel-default panelBotonNuevo">
+                    <center>
+                      <img class="imgNuevo" src="/img/logos/relevamientos_white.png">
+                    </center>
+                    <div class="backgroundNuevo"></div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                          <center>
+                              <h5 class="txtLogo">+</h5>
+                              <h4 class="txtNuevo">GENERAR RELEVAMIENTOS DE PROGRESIVOS</h4>
+                          </center>
+                        </div>
+                    </div>
+                </div>
+              </a>
+          </div>
+
+          @if($puede_modificar_valores)
+        <div class="col-xl-12 col-md-4">
+            <a href="" id="btn-modificar-parametros-relevamientos" dusk="btn-modificar" style="text-decoration: none;">
+              <div class="panel panel-default panelBotonNuevo">
+                <center>
+                  <img class="imgNuevo" src="/img/logos/procedimientos.png">
+                </center>
+                <div class="backgroundNuevo"></div>
+                <div class="row">
+                  <div class="col-xs-12">
+                    <center>
+                        <h5 class="txtLogo" style="font-size:80px !important;margin-top:60px !important"> <i class="fas fa-fw fa-pencil-alt"></i> </h5>
+                        <br><br>
+                        <h4 class="txtNuevo">MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS</h4>
+                    </center>
+                  </div>
+                </div>
+              </div>
+            </a>
+        </div>
+        @endif
+    </div> 
+  </div><!-- row botones -->
+
+  <div class="col-xl-9">
       <!-- FILTROS -->
       <div class="row">
           <div class="col-md-12">
@@ -104,125 +147,74 @@ $niveles = 6;
 
       <div class="row">
         <div class="col-md-12">
-      <div class="panel panel-default">
-
-        <div class="panel-heading">
-          <h4>RELEVAMIENTO DE PROGRESIVOS GENERADO POR EL SISTEMA</h4>
-        </div>
-
-        <div class="panel-body">
-          <table id="tablaRelevamientos" class="table table-fixed tablesorter">
-            <thead>
-              <tr>
-                <th class="col-xs-2 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
-                <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
-                <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR <i class="fa fa-sort"></i></th>
-                <th class="col-xs-1" value="relevamiento_progresivo.sub_control" estado="">SUB <i class="fa fa-sort"></i></th>
-                <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
-                <th class="col-xs-3">ACCIÓN </th>
-              </tr>
-            </thead>
-            <tbody id="cuerpoTabla" style="height: 350px;">
-              <tr class='filaEjemplo' style="display: none;">
-                <td class="col-xs-2 fecha">
-                  01 Ene 9999
-                </td>
-                <td class="col-xs-2 casino">
-                  EJEMPLO
-                </td>
-                <td class="col-xs-2 sector">
-                  SECTOR999
-                </td>
-                <td class="col-xs-1 subcontrol">
-                  99
-                </td>
-                <td class="col-xs-2">
-                  <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
-                  <span class="textoEstado">EJEMPLO</span>
-                </td>
-                <td class="col-xs-3 acciones">
-                  <button class="btn btn-info planilla" type="button">
-                    <i class="far  fa-fw fa-file-alt"></i></button>
-                  <span></span>
-                  @if($puede_fiscalizar)
-                  <button class="btn btn-warning carga" type="button">
-                    <i class="fa fa-fw fa-upload"></i></button>
-                  <span></span>
-                  @endif
-                  @if($puede_validar)
-                  <button class="btn btn-success validar" type="button">
-                    <i class="fa fa-fw fa-check"></i></button>
-                  <span></span>
-                  @endif
-                  @if($puede_eliminar)
-                  <button class="btn btn-success eliminar" type="button">
-                    <i class="fa fa-fw fa-trash"></i></button>
-                  <span></span>
-                  @endif
-                  <button class="btn btn-info imprimir" type="button">
-                    <i class="fa fa-fw fa-print"></i></button>
-                </td>
-
-              </tr>
-
-            </tbody>
-          </table>
-          <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<!-- /.col-lg-12 col-xl-9 -->
-  <div class="col-lg-12 col-xl-3">
-  <div class="row">
-    <div class="col-md-12">
-     <a href="" id="btn-nuevo" style="text-decoration: none;">
-      <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/relevamientos_white.png"><center>
-          <div class="backgroundNuevo"></div>
-          <div class="row">
-              <div class="col-xs-12">
-                <center>
-                    <h5 class="txtLogo">+</h5>
-                    <h4 class="txtNuevo">GENERAR RELEVAMIENTOS DE PROGRESIVOS</h4>
-                </center>
-              </div>
-          </div>
-      </div>
-     </a>
-    </div>
-  </div>
-
-  @if($puede_modificar_valores)
-  <div class="row">
-    <div class="col-md-12">
-      <a href="" id="btn-modificar-parametros-relevamientos" dusk="btn-modificar" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center><img class="imgNuevo" src="/img/logos/procedimientos.png"><center>
-            <div class="backgroundNuevo">
-
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4>RELEVAMIENTO DE PROGRESIVOS GENERADO POR EL SISTEMA</h4>
             </div>
-              <div class="row">
-                <div class="col-xs-12">
-                  <center>
-                      <h5 class="txtLogo" style="font-size:80px !important;margin-top:60px !important"> <i class="fas fa-fw fa-pencil-alt"></i> </h5>
-                      <br><br>
-                      <h4 class="txtNuevo">MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS</h4>
-                  </center>
-                </div>
-              </div>
-          </div>
-        </a>
-    </div>
-  </div>
-  @endif
 
-  </div>
+            <div class="panel-body">
+              <table id="tablaRelevamientos" class="table table-fixed tablesorter">
+                <thead>
+                  <tr>
+                    <th class="col-xs-2 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1" value="relevamiento_progresivo.sub_control" estado="">SUB <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3">ACCIÓN </th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpoTabla" style="height: 350px;">
+                  <tr class='filaEjemplo' style="display: none;">
+                    <td class="col-xs-2 fecha">
+                      01 Ene 9999
+                    </td>
+                    <td class="col-xs-2 casino">
+                      EJEMPLO
+                    </td>
+                    <td class="col-xs-2 sector">
+                      SECTOR999
+                    </td>
+                    <td class="col-xs-1 subcontrol">
+                      99
+                    </td>
+                    <td class="col-xs-2">
+                      <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
+                      <span class="textoEstado">EJEMPLO</span>
+                    </td>
+                    <td class="col-xs-3 acciones">
+                      <button class="btn btn-info planilla" type="button">
+                        <i class="far  fa-fw fa-file-alt"></i></button>
+                      <span></span>
+                      @if($puede_fiscalizar)
+                      <button class="btn btn-warning carga" type="button">
+                        <i class="fa fa-fw fa-upload"></i></button>
+                      <span></span>
+                      @endif
+                      @if($puede_validar)
+                      <button class="btn btn-success validar" type="button">
+                        <i class="fa fa-fw fa-check"></i></button>
+                      <span></span>
+                      @endif
+                      @if($puede_eliminar)
+                      <button class="btn btn-success eliminar" type="button">
+                        <i class="fa fa-fw fa-trash"></i></button>
+                      <span></span>
+                      @endif
+                      <button class="btn btn-info imprimir" type="button">
+                        <i class="fa fa-fw fa-print"></i></button>
+                    </td>
 
-</div>  <!-- /#row -->
-
+                  </tr>
+                </tbody>
+              </table>
+              <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+            </div>
+        </div>
+      </div>
+  </div>  <!-- row tabla -->
+  
+</div> <!-- row principal -->
 <!--MODAL CREAR RELEVAMIENTO -->
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
