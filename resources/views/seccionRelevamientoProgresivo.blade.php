@@ -62,7 +62,7 @@ $niveles = 6;
               </a>
           </div>
 
-          @if($puede_modificar_valores)
+        @if($puede_modificar_valores)
         <div class="col-xl-12 col-md-4">
             <a href="" id="btn-modificar-parametros-relevamientos" dusk="btn-modificar" style="text-decoration: none;">
               <div class="panel panel-default panelBotonNuevo">
@@ -83,7 +83,7 @@ $niveles = 6;
             </a>
         </div>
         @endif
-    </div> 
+    </div>
   </div><!-- row botones -->
 
   <div class="col-xl-9">
@@ -213,7 +213,7 @@ $niveles = 6;
         </div>
       </div>
   </div>  <!-- row tabla -->
-  
+
 </div> <!-- row principal -->
 <!--MODAL CREAR RELEVAMIENTO -->
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -239,7 +239,7 @@ $niveles = 6;
                           <h5>CASINO</h5>
                           <select id="casino" class="form-control" name="">
                               <option value="">- Seleccione un casino -</option>
-                              <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+                              <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))?>
                                @foreach ($usuario['usuario']->casinos as $casino)
                                <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                @endforeach
