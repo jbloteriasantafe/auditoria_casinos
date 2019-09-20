@@ -38,7 +38,7 @@ function cargarMaquinas() {
 
     let ajaxData = {
         type: 'GET',
-        url: 'buscarMaquinas/' + $('#busqueda_casino').val()
+        url: 'progresivos/buscarMaquinas/' + $('#busqueda_casino').val()
     };
 
     $.when($.ajax(ajaxData))
@@ -78,7 +78,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
 
     $.ajax({
         type: 'POST',
-        url: 'buscarProgresivos',
+        url: 'progresivos/buscarProgresivos',
         data: formData,
         dataType: 'json',
         success: function(resultados) {
@@ -272,7 +272,7 @@ function filaEditableIndividual() {
             valido = false;
         }
 
-        if (fila_base_val > fila_maximo_val) {
+        if (fila_maximo_val != '' && fila_base_val > fila_maximo_val) {
             fila_base.find('.editable').addClass('erroneo');
             fila_maximo.find('.editable').addClass('erroneo');
             valido = false;
@@ -469,7 +469,7 @@ function enviarFormularioIndividual() {
     })
 
     let mensajeExito = 'Los progresivos fueron cargados con éxito.';
-    let url = 'crearProgresivosIndividuales';
+    let url = 'progresivos/crearProgresivosIndividuales';
 
     let formData = {
         id_casino: $('#modalProgresivoIndividual_casino').val(),
@@ -519,7 +519,7 @@ function enviarFormularioIndividualModif(desde, hasta) {
     })
 
     let mensajeExito = 'Los progresivos fueron modificados.';
-    let url = 'modificarProgresivosIndividuales';
+    let url = 'progresivos/modificarProgresivosIndividuales';
 
     let formData = {
         id_casino: $('#modalProgresivoIndividual_casino').val(),
@@ -564,7 +564,7 @@ function obtenerProgresivosIndividuales(data, success = function(x) { console.lo
 
     $.ajax({
         type: 'POST',
-        url: 'buscarProgresivosIndividuales',
+        url: 'progresivos/buscarProgresivosIndividuales',
         data: data,
         dataType: 'json',
         success: success,
@@ -638,7 +638,7 @@ $(document).on('click', '#cuerpoTabla tr .detalle', function() {
 
     var id_progresivo = $(this).val();
 
-    $.get("obtenerProgresivo/" + id_progresivo, function(data) {
+    $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
         console.log(data);
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, false);
         $('#modalProgresivo').modal('show');
@@ -657,24 +657,12 @@ $(document).on('click', '#cuerpoTabla tr .modificar', function() {
 
     var id_progresivo = $(this).val();
 
-    $.get("obtenerProgresivo/" + id_progresivo, function(data) {
+    $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, true);
         console.log('niveles', data.niveles);
         $('#btn-guardar').val("modificar");
         $('#modalProgresivo').modal('show');
     });
-});
-
-//Borrar Progresivo y remover de la tabla
-$(document).on('click', '#cuerpoTabla tr .eliminar', function() {
-    //Cambiar colores modal
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').removeAttr('style');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; color: #EF5350');
-
-    var id_progresivo = $(this).val();
-    $('#btn-eliminarModal').val(id_progresivo);
-    $('#modalEliminar').modal('show');
 });
 
 $(document).on('click', '#tablaResultados thead tr th[value]', function(e) {
@@ -730,7 +718,7 @@ function generarFilaTabla(progresivo) {
                 })
                 $.ajax({
                     type: "DELETE",
-                    url: "eliminarProgresivo/" + progresivo.id_progresivo,
+                    url: "progresivos/eliminarProgresivo/" + progresivo.id_progresivo,
                     success: function(data) {
                         console.log(data);
                         fila.remove();
@@ -1206,7 +1194,7 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
             }
         })
         let mensajeExito = 'El progresivo fue modificado con éxito.';
-        let url = 'modificarProgresivo/' + progresivo.id_progresivo;
+        let url = 'progresivos/modificarProgresivo/' + progresivo.id_progresivo;
 
 
         let formData = {
@@ -1220,7 +1208,7 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
 
         if (progresivo.id_progresivo == -1) {
             mensajeExito = 'El progresivo fue creado con éxito.';
-            url = 'crearProgresivo';
+            url = 'progresivos/crearProgresivo';
         }
 
         $.ajax({
