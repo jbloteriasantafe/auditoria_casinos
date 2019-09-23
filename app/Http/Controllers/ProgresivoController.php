@@ -514,11 +514,11 @@ class ProgresivoController extends Controller
         'id_casino'                        => 'required|integer',
         'desde'                            => 'nullable|integer',
         'hasta'                            => 'nullable|integer',
-        'maquinas'                         => 'required|array',
-        'maquinas.*.id_maquina'            => 'required|integer',
+        'maquinas'                         => 'nullable|array',
+        'maquinas.*.id_maquina'            => 'required_if:maquinas,array|integer',
         'maquinas.*.maximo'                => 'nullable|numeric|min:0',
         'maquinas.*.base'                  => 'nullable|numeric|min:0',
-        'maquinas.*.porc_recup'            => 'required|numeric|min:0|max:100',
+        'maquinas.*.porc_recup'            => 'required_if:maquinas,array|numeric|min:0|max:100',
         'maquinas.*.porc_visible'          => 'nullable|numeric|min:0|max:100',
         'maquinas.*.porc_oculto'           => 'nullable|numeric|min:0|max:100'
     ], array(), self::$atributos)->after(function ($validator){
@@ -528,6 +528,8 @@ class ProgresivoController extends Controller
     if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
       return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
     }
+
+    if(!isset($request->maquinas)) $request->maquinas = array();
 
     $valido = $this->checkCasinoMaquinas($request->maquinas,$request->id_casino);
     if(!$valido){
@@ -562,10 +564,16 @@ class ProgresivoController extends Controller
         $progresivo->save();
 
         $nivel = $progresivo->pozos->first()->niveles->first();
+        //Capaz que aca se puede setear directamente, en vez de un if...
         if(isset($maq['maximo'])) $nivel->maximo = $maq['maximo'];
+        else $nivel->maximo = null;
         if(isset($maq['base'])) $nivel->base = $maq['base'];
+        else $nivel->base = null;
         if(isset($maq['porc_visible'])) $nivel->porc_visible = $maq['porc_visible'];
+        else $nivel->porc_visible = null;
         if(isset($maq['porc_oculto'])) $nivel->porc_oculto = $maq['porc_oculto'];
+        else $nivel->porc_oculto = null;
+
         $nivel->save();
 
         $modificados[] = $maq['id_maquina'];

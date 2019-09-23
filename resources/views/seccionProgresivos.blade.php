@@ -553,6 +553,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 <!-- JavaScript personalizado -->
+<script src="/js/float.js" charset="utf-8"></script>
 <script src="/js/seccionProgresivos.js" charset="utf-8"></script>
 <script src="/js/seccionProgresivosFilas.js" charset="utf-8"></script>
 @endsection

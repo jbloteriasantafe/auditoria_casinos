@@ -173,42 +173,14 @@ function filaEjemploIndividual() {
     return fila;
 }
 
-function arregloProgresivoIndividual(fila) {
-    return {
-        id_maquina: fila.attr('data-id'),
-        nro_admin: fila.find('.cuerpoTablaNroAdmin').text(),
-        sector: fila.find('.cuerpoTablaSector').text(),
-        isla: fila.find('.cuerpoTablaIsla').text(),
-        marca_juego: fila.find('.cuerpoTablaMarcaJuego').text(),
-        porc_recup: fila.find('.cuerpoPorcRecup').text(),
-        maximo: fila.find('.cuerpoMaximo').text(),
-        base: fila.find('.cuerpoBase').text(),
-        porc_visible: fila.find('.cuerpoPorcVisible').text(),
-        porc_oculto: fila.find('.cuerpoPorcOculto').text()
-    };
-}
-
-function setearFilaProgresivoIndividual(fila, data) {
-    fila.attr('data-id', data.id_maquina);
-    fila.find('.cuerpoTablaNroAdmin').text(limpiarNull(data.nro_admin));
-    fila.find('.cuerpoTablaSector').text(limpiarNull(data.sector));
-    fila.find('.cuerpoTablaIsla').text(limpiarNull(data.isla));
-    fila.find('.cuerpoTablaMarcaJuego').text(limpiarNull(data.marca_juego));
-    fila.find('.cuerpoPorcRecup').text(limpiarNull(data.porc_recup));
-    fila.find('.cuerpoMaximo').text(limpiarNull(data.maximo));
-    fila.find('.cuerpoBase').text(limpiarNull(data.base));
-    fila.find('.cuerpoPorcVisible').text(limpiarNull(data.porc_visible));
-    fila.find('.cuerpoPorcOculto').text(limpiarNull(data.porc_oculto));
-}
-
 function filaEditableIndividual() {
     let fila = filaEjemploIndividual();
 
     let input = crearEditable('text').attr('list', 'maquinas_lista')
-    let fila_nroadmin = fila.find('.cuerpoTablaNroAdmin').empty().append(input);
-    let fila_sector = fila.find('.cuerpoTablaSector').empty();
-    let fila_isla = fila.find('.cuerpoTablaIsla').empty();
-    let fila_marcajuego = fila.find('.cuerpoTablaMarcaJuego').empty();
+    let fila_nroadmin = filaIndNroAdmin(fila).empty().append(input);
+    let fila_sector = filaIndSector(fila).empty();
+    let fila_isla = filaIndIsla(fila).empty();
+    let fila_marcajuego = filaIndMarcaJuego(fila).empty();
 
     function existeEnTablaIndividuales(id) {
         return $('#contenedorMaquinasIndividual tbody tr[data-id=' + id + ']').length > 0;
@@ -219,62 +191,59 @@ function filaEditableIndividual() {
 
     const input_porcentaje = crearEditable('number', '0').addClass('sinflechas');
     const input_numero = crearEditable('number', '', 0, null, 'any').addClass('sinflechas');
-    let fila_porcrecup = fila.find('.cuerpoPorcRecup')
-        .empty().append(input_porcentaje.clone().val($('#inputPorcRecupIndividual').val()));
 
-    let fila_maximo = fila.find('.cuerpoMaximo')
-        .empty().append(input_numero.clone().val($('#inputMaximoIndividual').val()));
+    filaIndRecup(fila).empty()
+        .append(input_porcentaje.clone().val($('#inputPorcRecupIndividual').val()));
 
-    let fila_base = fila.find('.cuerpoBase')
-        .empty().append(input_numero.clone().val($('#inputBaseIndividual').val()));
+    filaIndMaximo(fila).empty()
+        .append(input_numero.clone().val($('#inputMaximoIndividual').val()));
 
-    let fila_porcvisible = fila.find('.cuerpoPorcVisible')
+    filaIndBase(fila).empty()
+        .append(input_numero.clone().val($('#inputBaseIndividual').val()));
+
+    filaIndVisible(fila)
         .empty().append(input_porcentaje.clone().val($('#inputPorcVisibleIndividual').val()));
 
-    let fila_porcoculto = fila.find('.cuerpoPorcOculto')
+    filaIndOculto(fila)
         .empty().append(input_porcentaje.clone().val($('#inputPorcOcultoIndividual').val()));
 
     let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
-        const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
-        const fila_maximo_val = fila_maximo.find('.editable').val();
-        const fila_base_val = fila_base.find('.editable').val();
-        const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
-        const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
+        let fila_val = arregloProgresivoIndividual(fila);
         let valido = true;
-        if (isNaN(fila_porcrecup_val) ||
-            fila_porcrecup_val == "" ||
-            fila_porcrecup_val < 0 ||
-            fila_porcrecup_val > 100
+        if (isNaN(fila_val.porc_recup) ||
+            fila_val.porc_recup == "" ||
+            fila_val.porc_recup < 0 ||
+            fila_val.porc_recup > 100
         ) {
-            fila_porcrecup.find('.editable').addClass('erroneo');
+            filaIndRecup(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_maximo_val) || fila_maximo_val < 0) {
-            fila_maximo.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.maximo) || fila_val.maximo < 0) {
+            filaIndMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_base_val) || fila_base_val == "" || fila_base_val < 0) {
-            fila_base.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.base) || fila_val.base == "" || fila_val.base < 0) {
+            filaIndBase(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_porcoculto_val) ||
-            fila_porcoculto_val < 0 ||
-            fila_porcoculto_val > 100) {
-            fila_porcoculto.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.porc_oculto) ||
+            fila_val.porc_oculto < 0 ||
+            fila_val.porc_oculto > 100) {
+            filaIndOculto(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_porcvisible_val) ||
-            fila_porcvisible_val == "" ||
-            fila_porcvisible_val < 0 ||
-            fila_porcvisible_val > 100) {
-            fila_porcvisible.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.porc_visible) ||
+            fila_val.porc_visible == "" ||
+            fila_val.porc_visible < 0 ||
+            fila_val.porc_visible > 100) {
+            filaIndVisible(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
 
-        if (fila_maximo_val != '' && fila_base_val > fila_maximo_val) {
-            fila_base.find('.editable').addClass('erroneo');
-            fila_maximo.find('.editable').addClass('erroneo');
+        if (fila_val.maximo != '' && fila_val.base > (fila_val.maximo + 0.000001)) {
+            filaIndBase(fila).find('.editable').addClass('erroneo');
+            filaIndMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
 
@@ -303,34 +272,30 @@ function filaEditableIndividual() {
             fila.remove();
         }
 
-        fila.attr('data-id', data_id);
-        fila_nroadmin.empty().append(nro_admin);
-        fila_sector.append(sector);
-        fila_isla.append(isla);
-        fila_marcajuego.append(marca_juego);
+        fila_val.id_maquina = data_id;
+        fila_val.nro_admin = nro_admin;
+        fila_val.sector = sector;
+        fila_val.isla = isla;
+        fila_val.marca_juego = marca_juego;
 
-        fila.find('input').each(function(index, c) {
-            $(c).replaceWith($(c).val());
-        });
+        let nueva_fila = filaEjemploIndividual();
+        setearFilaProgresivoIndividual(nueva_fila, fila_val);
+        fila.replaceWith(nueva_fila);
 
-        fila.children().each(function(index, c) {
-            $(c).off(); //Saco eventos click.
-        })
-
-        fila.find('.cuerpoTablaAcciones').empty();
+        nueva_fila.find('.cuerpoTablaAcciones').empty();
 
         let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
-        fila.find('.cuerpoTablaAcciones').append(botonEditar);
+        nueva_fila.find('.cuerpoTablaAcciones').append(botonEditar);
 
         botonEditar.on('click', function() {
-            let data = arregloProgresivoIndividual(fila);
-            fila.replaceWith(filaEditableIndividualParcial(data));
+            let data = arregloProgresivoIndividual(nueva_fila);
+            nueva_fila.replaceWith(filaEditableIndividualParcial(data));
         });
 
         let botonBorrar = crearBoton('fa-trash').addClass('borrar');
-        fila.find('.cuerpoTablaAcciones').append(botonBorrar);
+        nueva_fila.find('.cuerpoTablaAcciones').append(botonBorrar);
 
-        botonBorrar.on('click', function() { fila.remove(); });
+        botonBorrar.on('click', function() { nueva_fila.remove(); });
     });
 
     let botonCancelar = crearBoton('fa-times').addClass('cancelar');
@@ -346,100 +311,79 @@ function filaEditableIndividual() {
 function filaEditableIndividualParcial(data) {
     let fila = filaEjemploIndividual();
 
-    fila.attr('data-id', data.id_maquina);
-    let fila_nroadmin = fila.find('.cuerpoTablaNroAdmin').text(data.nro_admin);
-    let fila_sector = fila.find('.cuerpoTablaSector').text(data.sector);
-    let fila_isla = fila.find('.cuerpoTablaIsla').text(data.isla);
-    let fila_marcajuego = fila.find('.cuerpoTablaMarcaJuego').text(data.marca_juego);
-
     //No puedo agregarle un editable de numeros con flechas
     //porque las flechas son muy grandes.
 
     const input_porcentaje = crearEditable('number', '0').addClass('sinflechas');
     const input_numero = crearEditable('number', '', 0, null, 'any').addClass('sinflechas');
-    let fila_porcrecup = fila.find('.cuerpoPorcRecup')
-        .empty().append(input_porcentaje.clone().val(data.porc_recup));
+    filaIndBase(fila).empty().append(input_numero.clone());
+    filaIndMaximo(fila).empty().append(input_numero.clone());
+    filaIndRecup(fila).empty().append(input_porcentaje.clone());
+    filaIndVisible(fila).empty().append(input_porcentaje.clone());
+    filaIndOculto(fila).empty().append(input_porcentaje.clone());
 
-    let fila_maximo = fila.find('.cuerpoMaximo')
-        .empty().append(input_numero.clone().val(data.maximo));
-
-    let fila_base = fila.find('.cuerpoBase')
-        .empty().append(input_numero.clone().val(data.base));
-
-    let fila_porcvisible = fila.find('.cuerpoPorcVisible')
-        .empty().append(input_porcentaje.clone().val(data.porc_visible));
-
-    let fila_porcoculto = fila.find('.cuerpoPorcOculto')
-        .empty().append(input_porcentaje.clone().val(data.porc_oculto));
+    setearFilaProgresivoIndividual(fila, data);
 
     let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
-        const fila_porcrecup_val = fila_porcrecup.find('.editable').val();
-        const fila_maximo_val = fila_maximo.find('.editable').val();
-        const fila_base_val = fila_base.find('.editable').val();
-        const fila_porcoculto_val = fila_porcoculto.find('.editable').val();
-        const fila_porcvisible_val = fila_porcvisible.find('.editable').val();
+        const fila_val = arregloProgresivoIndividual(fila);
         let valido = true;
-        if (isNaN(fila_porcrecup_val) ||
-            fila_porcrecup_val == "" ||
-            fila_porcrecup_val < 0 ||
-            fila_porcrecup_val > 100
+        if (isNaN(fila_val.porc_recup) ||
+            fila_val.porc_recup == "" ||
+            fila_val.porc_recup < 0 ||
+            fila_val.porc_recup > 100
         ) {
-            fila_porcrecup.find('.editable').addClass('erroneo');
+            filaIndRecup(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_maximo_val) || fila_maximo_val < 0) {
-            fila_maximo.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.maximo) || fila_val.maximo < 0) {
+            filaIndMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_base_val) || fila_base_val == "" || fila_base_val < 0) {
-            fila_base.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.base) || fila_val.base == "" || fila_val.base < 0) {
+            filaIndBase(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_porcoculto_val) ||
-            fila_porcoculto_val < 0 ||
-            fila_porcoculto_val > 100) {
-            fila_porcoculto.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.porc_oculto) ||
+            fila_val.porc_oculto < 0 ||
+            fila_val.porc_oculto > 100) {
+            filaIndOculto(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-        if (isNaN(fila_porcvisible_val) ||
-            fila_porcvisible_val == "" ||
-            fila_porcvisible_val < 0 ||
-            fila_porcvisible_val > 100) {
-            fila_porcvisible.find('.editable').addClass('erroneo');
+        if (isNaN(fila_val.porc_visible) ||
+            fila_val.porc_visible == "" ||
+            fila_val.porc_visible < 0 ||
+            fila_val.porc_visible > 100) {
+            filaIndVisible(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
 
-        if (fila_base_val > fila_maximo_val) {
-            fila_base.find('.editable').addClass('erroneo');
-            fila_maximo.find('.editable').addClass('erroneo');
+        if (fila_val.maximo != '' && fila_val.base > (fila_val.maximo + 0.000001)) {
+            filaIndBase(fila).find('.editable').addClass('erroneo');
+            filaIndMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
 
         if (!valido) return;
 
-        fila.find('input').each(function(index, c) {
-            $(c).replaceWith($(c).val());
-        });
+        let nueva_fila = filaEjemploIndividual();
+        setearFilaProgresivoIndividual(nueva_fila, fila_val)
+        fila.replaceWith(nueva_fila);
 
-        fila.children().each(function(index, c) {
-            $(c).off(); //Saco eventos click.
-        })
-
-        fila.find('.cuerpoTablaAcciones').empty();
+        nueva_fila.find('.cuerpoTablaAcciones').empty();
 
         let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
-        fila.find('.cuerpoTablaAcciones').append(botonEditar);
+        nueva_fila.find('.cuerpoTablaAcciones').append(botonEditar);
 
         botonEditar.on('click', function() {
-            let data = arregloProgresivoIndividual(fila);
-            fila.replaceWith(filaEditableIndividualParcial(data));
+            let data = arregloProgresivoIndividual(nueva_fila);
+            nueva_fila.replaceWith(filaEditableIndividualParcial(data));
         });
 
         let botonBorrar = crearBoton('fa-trash').addClass('borrar');
-        fila.find('.cuerpoTablaAcciones').append(botonBorrar);
+        nueva_fila.find('.cuerpoTablaAcciones').append(botonBorrar);
 
-        botonBorrar.on('click', function() { fila.remove(); });
+        botonBorrar.on('click', function() { nueva_fila.remove(); });
     });
 
     let botonCancelar = crearBoton('fa-times').addClass('cancelar');
@@ -809,8 +753,6 @@ function borrarFila(fila) {
     });
 }
 
-
-
 function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
     let fila = filaEjemplo();
     filaNumero(fila).empty();
@@ -937,22 +879,6 @@ function modificarNivel(fila) {
     nueva_fila.parent().parent().parent().find('.agregar').attr('disabled', false);
 }
 
-function limpiarNull(val) {
-    return val === null ? '' : val;
-}
-
-function limpiarNullsNivel(nivel) {
-    return {
-        id_nivel_progresivo: limpiarNull(nivel.id_nivel_progresivo),
-        nro_nivel: limpiarNull(nivel.nro_nivel),
-        nombre_nivel: limpiarNull(nivel.nombre_nivel),
-        base: limpiarNull(nivel.base),
-        porc_oculto: limpiarNull(nivel.porc_oculto),
-        porc_visible: limpiarNull(nivel.porc_visible),
-        maximo: limpiarNull(nivel.maximo)
-    };
-}
-
 function mostrarPozo(id_pozo, nombre, editable, niveles = {}) {
     let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo');
     pozo_html.find('.nombrePozo').text(nombre);
@@ -968,7 +894,7 @@ function mostrarPozo(id_pozo, nombre, editable, niveles = {}) {
     for (var j = 0; j < niveles.length; j++) {
         let fila = fila_ejemplo_pozo.clone();
 
-        const nivel = limpiarNullsNivel(niveles[j]);
+        const nivel = niveles[j];
 
         setearValoresFilaNivel(fila, nivel);
 

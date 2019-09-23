@@ -21,64 +21,6 @@ GET()->VAL: float
 
 */
 
-
-
-function isFloatComma(f) {
-    //Un mas o menos no obligatorio
-    //Al menos un numero
-    //Una coma con al menos un numero no obligatorio
-    const floatCommaRegExp = /(\+|-)?\d+(,\d+)?/;
-    f = f.toString();
-    const match = floatCommaRegExp.exec(f);
-    //console.log(f);
-    //console.log(match);
-    if (match === null || match.length == 0) return false;
-    return match[0].length == f.length;
-}
-
-function isFloatDot(f) {
-    const floatDotRegExp = /(\+|-)?\d+(\.\d+)?/;
-    f = f.toString();
-    const match = floatDotRegExp.exec(f);
-    //console.log(f);
-    //console.log(match);
-    if (match === null || match.length == 0) return false;
-    return match[0].length == f.length;
-}
-/*
-//Pasa un float a formato español (con coma)
-function float2text(f) {
-    const res = f.toLocaleString('es', { 'useGrouping': false });
-    return res;
-}*/
-
-//Reemplazo las comas con puntos
-function comma2dot(f) {
-    const res = f.replace(',', '.');
-    return res;
-}
-
-function dot2comma(f) {
-    const res = f.replace('.', ',');
-    return res;
-}
-
-function getDotFloat(f) {
-    if (f === null) return '';
-    f = f.toString();
-    if (isFloatComma(f)) return comma2dot(f);
-    if (isFloatDot(f)) return f;
-    return '';
-}
-
-function getCommaFloat(f) {
-    if (f === null) return '';
-    f = f.toString();
-    if (isFloatComma(f)) return f;
-    if (isFloatDot(f)) return dot2comma(f);
-    return '';
-}
-
 function filaObj(f, str) {
     return $(f).find(str);
 }
@@ -182,4 +124,121 @@ function setearValoresFilaNivel(fila, nivel) {
     filaMaximoVal(fila, nivel.maximo);
     filaVisibleVal(fila, nivel.porc_visible);
     filaOcultoVal(fila, nivel.porc_oculto);
+}
+
+//INDIVIDUALES
+
+function filaIndNroAdmin(f) {
+    return filaObj(f, '.cuerpoTablaNroAdmin');
+}
+
+function filaIndSector(f) {
+    return filaObj(f, '.cuerpoTablaSector');
+}
+
+function filaIndIsla(f) {
+    return filaObj(f, '.cuerpoTablaIsla');
+}
+
+function filaIndMarcaJuego(f) {
+    return filaObj(f, '.cuerpoTablaMarcaJuego');
+}
+
+function filaIndRecup(f) {
+    return filaObj(f, '.cuerpoPorcRecup');
+}
+
+function filaIndMaximo(f) {
+    return filaObj(f, '.cuerpoMaximo');
+}
+
+function filaIndBase(f) {
+    return filaObj(f, '.cuerpoBase');
+}
+
+function filaIndVisible(f) {
+    return filaObj(f, '.cuerpoPorcVisible');
+}
+
+function filaIndOculto(f) {
+    return filaObj(f, '.cuerpoPorcOculto');
+}
+
+
+function filaIndIdVal(f, newval = undefined) {
+    if ((typeof newval !== 'undefined')) {
+        f.attr('data-id', newval);
+        return newval;
+    } else {
+        return f.attr('data-id');
+    }
+}
+
+function filaIndNroAdminVal(f, newval = undefined) {
+    return objVal(filaIndNroAdmin(f), newval);
+}
+
+function filaIndSectorVal(f, newval = undefined) {
+    return objVal(filaIndSector(f), newval);
+}
+
+function filaIndIslaVal(f, newval = undefined) {
+    return objVal(filaIndIsla(f), newval);
+}
+
+function filaIndMarcaJuegoVal(f, newval = undefined) {
+    return objVal(filaIndMarcaJuego(f), newval);
+}
+
+function filaIndRecupVal(f, newval = undefined) {
+    const val = objVal(filaIndRecup(f), newval, true);
+    return getDotFloat(val);
+}
+
+function filaIndMaximoVal(f, newval = undefined) {
+    const val = objVal(filaIndMaximo(f), newval, true);
+    return getDotFloat(val);
+}
+
+function filaIndBaseVal(f, newval = undefined) {
+    const val = objVal(filaIndBase(f), newval, true);
+    return getDotFloat(val);
+}
+
+function filaIndVisibleVal(f, newval = undefined) {
+    const val = objVal(filaIndVisible(f), newval, true);
+    return getDotFloat(val);
+}
+
+function filaIndOcultoVal(f, newval = undefined) {
+    const val = objVal(filaIndOculto(f), newval, true);
+    return getDotFloat(val);
+}
+
+function setearFilaProgresivoIndividual(fila, data) {
+    filaIndIdVal(fila, data.id_maquina);
+    filaIndNroAdminVal(fila, data.nro_admin);
+    filaIndSectorVal(fila, data.sector);
+    filaIndIslaVal(fila, data.isla);
+    filaIndMarcaJuegoVal(fila, data.marca_juego);
+    filaIndRecupVal(fila, data.porc_recup);
+    filaIndMaximoVal(fila, data.maximo);
+    filaIndBaseVal(fila, data.base);
+    filaIndVisibleVal(fila, data.porc_visible);
+    filaIndOcultoVal(fila, data.porc_oculto);
+}
+
+function arregloProgresivoIndividual(fila) {
+    return {
+        id_maquina: filaIndIdVal(fila),
+        nro_admin: filaIndNroAdminVal(fila),
+        sector: filaIndSectorVal(fila),
+        isla: filaIndIslaVal(fila),
+        marca_juego: filaIndMarcaJuegoVal(fila),
+        porc_recup: filaIndRecupVal(fila),
+        maximo: filaIndMaximoVal(fila),
+        base: filaIndBaseVal(fila),
+        porc_visible: filaIndVisibleVal(fila),
+        porc_oculto: filaIndOcultoVal(fila)
+    };
 }
