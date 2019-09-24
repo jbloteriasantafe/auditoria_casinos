@@ -136,15 +136,18 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
                                     <div class="col-lg-4">
                                       <h5>CASINO</h5>
                                       <select id="b_casino" class="form-control" name="">
-                                          <option value="">- Seleccione un casino -</option>
-                                           @foreach ($usuario->casinos as $casino)
-                                           <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                           @endforeach
+                                          @if($usuario->es_superusuario)
+                                          <option value="">Todos los casinos</option>
+                                          @endif
+                                          @foreach ($usuario->casinos as $casino)
+                                          <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                          @endforeach
                                       </select>
                                     </div>
                                     <div class="col-lg-4">
                                       <h5>SECTOR</h5>
                                       <select id="busqueda_sector" class="form-control" name="">
+                                        <option value="0">Todos los sectores</option>
                                         <option value=""></option>
                                       </select>
                                     </div>
