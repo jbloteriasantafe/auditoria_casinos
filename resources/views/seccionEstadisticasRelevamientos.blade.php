@@ -236,22 +236,14 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
                         <div class="row">
                             <div class="col-md-6">
                               <h5>Fecha de inicio</h5>
-                              <div class='input-group date' id='dtpFechaInicio_m' data-link-field="fecha_inicio_m" data-link-format="yyyy-mm-dd">
-                                <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio_m" data-content='Valor de campo <strong>incorrecto</strong>.' data-trigger="manual" data-toggle="popover" data-placement="top"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fecha_inicio_m" value=""/>
-                              </div>
+                              <input type='text' class="form-control" placeholder="Fecha de inicio" id="B_fecha_inicio_m" autocomplete="off" readonly/>
                             </div>
                             <div class="col-md-6">
                               <h5>Fecha de finalización</h5>
-                              <div class='input-group date' id='dtpFechaFin_m' data-link-field="fecha_fin_m" data-link-format="yyyy-mm-dd">
-                                <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin_m"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fecha_fin_m" value=""/>
+                              <div class='input-group date' id='dtpFechaFin_m' data-date-format="yyyy/mm/dd" data-link-format="yyyy/mm/dd">
+                                <input type='text' class="form-control" placeholder="Fecha de finalización" id="B_fecha_fin_m" autocomplete="off"/>
+                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                               </div>
                             </div>
                         </div>

@@ -11,6 +11,7 @@ $(document).ready(function() {
     $('#opcEstadisticas').addClass('opcionesSeleccionado');
 
     habilitarDTP();
+    habilitarDTPPedido();
     $('#btn-buscarMaquina').popover({ html: true });
     $('#fecha_desde').popover({ html: true });
     $('#B_fecha_inicio_m').popover({ html: true });
@@ -332,6 +333,28 @@ function calcularProducido(formula, contadores) {
     }
 }
 
+function habilitarDTPPedido() {
+    $('#dtpFechaFin_m')
+        .datetimepicker({
+            language: 'es',
+            todayBtn: 1,
+            autoclose: 1,
+            todayHighlight: 1,
+            format: 'yyyy-mm-dd',
+            pickerPosition: "bottom-left",
+            startView: 4,
+            minView: 2,
+            minDate: 1,
+            startDate: new Date()
+        });
+
+    const hoy = new Date();
+    const mañana = new Date(hoy.getTime() + (24 * 60 * 60 * 1000));
+
+    $('#B_fecha_inicio_m').val(dateToString(mañana));
+    $('#dtpFechaFin_m').datetimepicker("setDate", mañana);
+}
+
 function habilitarDTP() {
     $('#b_fecha_desde').datetimepicker({
         language: 'es',
@@ -356,29 +379,7 @@ function habilitarDTP() {
     });
 }
 
-function habilitarDTPpedido() {
-    $('#dtpFechaInicio_m').datetimepicker({
-        language: 'es',
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'dd / mm / yyyy',
-        pickerPosition: "bottom-left",
-        startView: 4,
-        minView: 2
-    });
 
-    $('#dtpFechaFin_m').datetimepicker({
-        language: 'es',
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'dd / mm / yyyy',
-        pickerPosition: "bottom-left",
-        startView: 4,
-        minView: 2
-    });
-}
 
 function clickIndice(e, pageNumber, tam) {
     if (e != null) {
@@ -406,6 +407,16 @@ $(document).on('click', '#tablaResultados thead tr th[value]', function(e) {
     clickIndice(e, $('#herramientasPaginacion').getCurrentPage(), $('#herramientasPaginacion').getPageSize());
 });
 
+function dateToString(date) {
+    var mm = date.getMonth() + 1;
+    var dd = date.getDate();
+
+    return [date.getFullYear(),
+        (mm > 9 ? '' : '0') + mm,
+        (dd > 9 ? '' : '0') + dd
+    ].join('-');
+}
+
 //Modal para pedir máquina
 $(document).on('click', '.pedido', function(e) {
     $('#modalPedido #frmPedido').trigger('reset');
@@ -413,7 +424,7 @@ $(document).on('click', '.pedido', function(e) {
 
     var id_maquina = $('#modalPedido #id_maquina').val();
 
-    habilitarDTPpedido();
+    habilitarDTPPedido();
 
     $.get('estadisticas_relevamientos/obtenerFechasMtmAPedido/' + id_maquina, function(data) {
         $('#nro_admin_pedido').val(data.maquina.nro_admin).attr('data-maquina', data.maquina.id_maquina).prop('readonly', true);
@@ -451,8 +462,8 @@ $('#btn-pedido').click(function(e) {
     var formData = {
         nro_admin: $('#nro_admin_pedido').val(),
         casino: $('#casino_pedido').attr('data-casino'),
-        fecha_inicio: $('#fecha_inicio_m').val(),
-        fecha_fin: $('#fecha_fin_m').val(),
+        fecha_inicio: $('#B_fecha_inicio_m').val(),
+        fecha_fin: $('#B_fecha_fin_m').val(),
     }
 
     $.ajax({
@@ -462,6 +473,19 @@ $('#btn-pedido').click(function(e) {
         dataType: 'json',
         success: function(data) {
             console.log('Pedido: ', data);
+            let mañana = new Date();
+            const hoy = new Date();
+            mañana.setDate(mañana.getDate() + 1);
+            mañana.setHours(0, 0, 0, 0);
+            const fecha_retorno = new Date(data.fecha.split('-').join('/'));
+
+            console.log('Hoy: ', hoy, 'Mañana: ', mañana, 'Devuelta: ', fecha_retorno);
+            for (var f = mañana; f <= fecha_retorno; f.setDate(f.getDate() + 1)) {
+                var fila = $('<tr>').append($('<td>').text(dateToString(f)));
+                console.log('Agregando ' + f.toString());
+                $('#modalPedido #fechasPedido tbody').append(fila);
+                $('#modalPedido #fechasPedido').show();
+            }
         },
         error: function(data) {
             var response = JSON.parse(data.responseText);
