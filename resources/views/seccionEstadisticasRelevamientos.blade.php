@@ -5,6 +5,8 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
+
+$usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 ?>
 @section('estilos')
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
@@ -12,6 +14,7 @@ use Illuminate\Http\Request;
 @endsection
 
 @section('contenidoVista')
+<datalist id="maquinas_lista"></datalist>
 
                 <div class="row"> <!-- row principal -->
 
@@ -31,11 +34,12 @@ use Illuminate\Http\Request;
                                       <div class="col-lg-12">
                                         <h5>CASINO</h5>
                                         <select id="b_casinoMaquina" class="form-control">
+                                            @if($usuario->es_superusuario)
                                             <option value="">Todos los casinos</option>
-                                            <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                             @foreach ($usuario['usuario']->casinos as $casino)
-                                             <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                             @endforeach
+                                            @endif
+                                            @foreach ($usuario->casinos as $casino)
+                                            <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                            @endforeach
                                         </select>
                                       </div>
                                     </div><br>
@@ -43,7 +47,7 @@ use Illuminate\Http\Request;
                                     <div class="row">
                                       <div class="col-lg-12">
                                         <h5>NÚMERO ADMIN</h5>
-                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin">
+                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin" list="maquinas_lista">
                                         </div>
                                     </div><br>
 
@@ -133,8 +137,7 @@ use Illuminate\Http\Request;
                                       <h5>CASINO</h5>
                                       <select id="b_casino" class="form-control" name="">
                                           <option value="">- Seleccione un casino -</option>
-                                          <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                           @foreach ($usuario['usuario']->casinos as $casino)
+                                           @foreach ($usuario->casinos as $casino)
                                            <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                            @endforeach
                                       </select>

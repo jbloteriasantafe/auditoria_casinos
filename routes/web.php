@@ -448,7 +448,7 @@ Route::post('estadisticas_relevamientos/guardarMtmAPedido','MaquinaAPedidoContro
 Route::post('estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
 Route::post('estadisticas_relevamientos/buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
 Route::get('estadisticas_relevamientos/obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
-
+Route::get('estadisticas_relevamientos/buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
 /**********
  Beneficios
 ***********/

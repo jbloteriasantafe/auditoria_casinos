@@ -27,7 +27,7 @@ use File;
 use DateTime;
 use App\TipoCantidadMaquinasPorRelevamiento;
 use App\CantidadMaquinasPorRelevamiento;
-
+use ProgresivoController;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -1152,23 +1152,30 @@ class RelevamientoController extends Controller
 
   public function obtenerUltimosRelevamientosPorMaquina(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|exists:casino,id_casino',
-        'nro_admin' => 'required|numeric',
-        'cantidad_relevamientos' => 'required|numeric'
+        'id_maquina' => 'required|numeric|exists:maquina,id_maquina',
+        'cantidad_relevamientos' => 'required|numeric|min:1'
     ], array(), self::$atributos)->after(function($validator){
-      $maquinas = Maquina::where([['nro_admin',$validator->getData()['nro_admin']],['id_casino',$validator->getData()['id_casino']]])->count();
-      if($maquinas < 1){
-        $validator->errors()->add('nro_admin','No existe una máquina con ese nro admin para ese casino.');
+      
+      $maq = Maquina::find($validator->getData()['id_maquina']);
+      //No deberia pasar porque se chequea en el validator.
+      if($maq === null) $validator->errors()->add('id_maquina','No existe esa maquina');
+      else{
+        $userc = UsuarioController::getInstancia();
+        $user = $userc->quienSoy()['usuario'];
+        $casino = $maq->casino;
+        if(!$userc->usuarioTieneCasinoCorrespondiente($user->id_usuario,$casino->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a ese casino');
+        }
       }
     })->validate();
 
-    $maquina = Maquina::where([['nro_admin',$request->nro_admin],['id_casino',$request->id_casino]])->first();
+    $maq = Maquina::find($request->id_maquina);
 
-    $maq = new \stdClass();
-    $maq->casino = $maquina->casino->nombre;
-    $maq->sector = $maquina->isla->sector->descripcion;
-    $maq->isla = $maquina->isla->nro_isla;
-    $maq->nro_admin = $maquina->nro_admin;
+    $ret = new \stdClass();
+    $ret->casino = $maq->casino->nombre;
+    $ret->sector = $maq->isla->sector->descripcion;
+    $ret->isla = $maq->isla->nro_isla;
+    $ret->nro_admin = $maq->nro_admin;
 
     $detalles = DB::table('detalle_relevamiento')
                     ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
@@ -1187,17 +1194,17 @@ class RelevamientoController extends Controller
                            ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                            ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
                            ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
-                           ->where('maquina.id_maquina',$maquina->id_maquina)
-                           ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
-                           ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
+                           ->where('maquina.id_maquina',$maq->id_maquina)
+                           ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
+                           ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)
                            //->groupby()
                            ->distinct('relevamiento.id_relevamiento',
                                      'detalle_relevamiento.id_detalle_relevamiento',
                                      'usuario.id_usuario',
                                      'detalle_contador_horario.id_detalle_contador_horario')
                            ->orderBy('relevamiento.fecha','desc')
-                           ->take(5)->get();
-    return ['maquina' => $maq,
+                           ->take($request->cantidad_relevamientos)->get();
+    return ['maquina' => $ret,
             'detalles' => $detalles];
   }
 
@@ -1522,5 +1529,40 @@ class RelevamientoController extends Controller
     }
 
     return $producido;
+  }
+
+  private function datosMaquinasCasino($id_casino = null){
+    $query =
+    "select maq.id_maquina as id_maquina,
+            maq.nro_admin as nro_admin,
+            maq.id_casino as id_casino,
+            cas.codigo as codigo
+    from maquina as maq
+    join casino cas on (maq.id_casino = cas.id_casino)
+    where maq.deleted_at is NULL";
+
+    $parametros = array();
+    if($id_casino != null){
+      $query = $query . " and cas.id_casino = :id_casino";
+      $parametros['id_casino'] = $id_casino;
+    }
+    return DB::select(DB::raw($query),$parametros);
+  }
+
+
+  public function buscarMaquinasPorCasino(Request $request,$id_casino){
+    if($id_casino === null) return array();
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($id_casino == 0){
+      if($user->es_superusuario) return $this->datosMaquinasCasino();
+      else return array();
+    }
+
+    $casino = Casino::find($id_casino);
+    if($casino === null || !$user->usuarioTieneCasino($id_casino)){
+        return array();
+    }
+
+    return $this->datosMaquinasCasino($casino->id_casino);
   }
 }
