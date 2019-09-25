@@ -6,6 +6,13 @@
 @section('estilos')
   <link rel="stylesheet" href="/css/lista-datos.css">
   <link rel="stylesheet" href="/css/estilosDetallesContables.css">
+  <style>
+  .tooltip-inner{
+    font-size: 100% !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
+  }
+  </style>
 @endsection
 
 @section('contenidoVista')
@@ -163,7 +170,10 @@
 
                             <div id="mov" class="filaMovimiento" hidden>
                                 <div class="circuloTiempo"></div>
-                                <span class="fecha">12-MAR-2018</span><i class="fa fa-share link"></i>
+                                <span class="fecha">12-MAR-2018</span>
+                                <button class="boton btn btn-link"  data-container="body" data-html="true" data-toggle="tooltip" data-placement="bottom" title="PLACEHOLDER">
+                                <i class="fa fa-share"></i>
+                                </button>
                                 <span class="razon infoResaltada">CAMBIO DE SECTOR</span>
                             </div>
 
