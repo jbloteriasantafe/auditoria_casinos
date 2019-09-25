@@ -1180,6 +1180,33 @@ class RelevamientoController extends Controller
             'detalles' => $detalles];
   }
 
+  public function obtenerUltimosRelevamientosPorMaquinaNroAdmin(Request $request){
+    Validator::make($request->all(),[
+        'id_casino' => 'required|numeric|exists:casino,id_casino',
+        'nro_admin' => 'required|numeric|exists:maquina,nro_admin',
+        'cantidad_relevamientos' => 'required|numeric|min:1'
+    ], array(), self::$atributos)->after(function($validator){
+      $id_casino = $validator->getData()['id_casino'];
+      $nro_admin = $validator->getData()['nro_admin'];
+      $maq = Maquina::where('nro_admin',$nro_admin)
+      ->where('id_casino',$id_casino)
+      ->first();
+      if($maq === null) $validator->errors()->add('id_maquina','No existe esa maquina');
+      else{
+        $userc = UsuarioController::getInstancia();
+        $user = $userc->quienSoy()['usuario'];
+        $casino = $maq->casino;
+        if(!$userc->usuarioTieneCasinoCorrespondiente($user->id_usuario,$casino->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a ese casino');
+        }
+      }
+    })->validate();
+    $maq = Maquina::where('nro_admin',$request->nro_admin)
+    ->where('id_casino',$request->id_casino)->first();
+    $request->merge(['id_maquina'=>$maq->id_maquina]);
+    return $this->obtenerUltimosRelevamientosPorMaquina($request);
+  }
+
   public function obtenerCantidadMaquinasPorRelevamiento($id_sector){
     Validator::make(['id_sector' => $id_sector],
                     ['id_sector' => 'required|exists:sector,id_sector']

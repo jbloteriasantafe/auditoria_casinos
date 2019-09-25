@@ -446,6 +446,7 @@ Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@a
 Route::get('estadisticas_relevamientos','MaquinaAPedidoController@buscarTodoInforme' )->middleware('tiene_permiso:ver_seccion_estadisticas_relevamientos');
 Route::post('estadisticas_relevamientos/guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
 Route::post('estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
+Route::post('estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquinaNroAdmin','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
 Route::post('estadisticas_relevamientos/buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
 Route::get('estadisticas_relevamientos/obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
 Route::get('estadisticas_relevamientos/buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
@@ -544,7 +545,6 @@ Route::get('informesJuegos',function(){
 Route::get('estadisticas_no_toma','informesController@mostrarEstadisticasNoTomaGenerico');
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 Route::get('estadisticas_no_toma/obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
-
 
 /************************
 Prueba Juegos y Progresivos
