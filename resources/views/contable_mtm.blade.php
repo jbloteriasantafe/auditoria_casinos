@@ -156,9 +156,8 @@
                               </div>
                           </div>
                         </div>
-                        <div id="listaMovimientos" class="col-md-3" style="text-align:left;">
-                            <h5>ÚLTIMOS MOVIMIENTOS</h5>
-
+                        <h5>ÚLTIMOS MOVIMIENTOS</h5>
+                        <div id="listaMovimientos" class="col-md-3" style="text-align:left;height: 450px;overflow: auto;">
                             <!-- <div class="lineaTiempo"></div> -->
                             <br><br>
 

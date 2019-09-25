@@ -17,6 +17,7 @@ use App\EstadoMaquina;
 use App\Cotizacion;
 use App\Isla;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class informesController extends Controller
 {
@@ -464,9 +465,48 @@ class informesController extends Controller
     $i= 0;
     $suma = 0;
     $datos = $arreglo = array();
-    $logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
-                        ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->take(5)->get();
+    
+    //Hay logs repetidos con ids distintos por algun motivo...
+    //Los agrupamos, para eso necesitamos cada campo, menos el id_log_maquina
+    //Antes se hacia asi y  retornaba duplicados! no cambiar 
+    //Sin saber esto
+    /*$logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
+    ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->get();*/
+    
+    $columnas_str = "";
+    $columnas = Schema::getColumnListing('log_maquina');
+    foreach($columnas as $col){
+      if($col != "id_log_maquina"){
+        $columnas_str .= ", l.".$col;
+      }
+    }
+    $columnas = Schema::getColumnListing('tipo_movimiento');
+    foreach($columnas as $col){
+      $columnas_str .= ", t.".$col;
+    }
 
+    $query="SELECT 
+    GROUP_CONCAT(DISTINCT(l.id_log_maquina) separator '/') as ids_logs_maquinas
+    "
+    .
+    $columnas_str
+    .
+    "
+    from log_maquina l
+    join tipo_movimiento t on (l.id_tipo_movimiento = t.id_tipo_movimiento)
+    where l.id_maquina = :id_maquina
+    GROUP BY
+    " 
+    .
+    substr($columnas_str,1)//saco la coma
+    ."
+    order by l.fecha desc";
+    
+    //dump($query);
+    
+    $parametros = ['id_maquina' => $id_maquina];
+    $logs = DB::select(DB::raw($query),$parametros);
+            
     while($fin){
       $estado = $this->checkEstadoMaquina($fecha, $maquina->id_maquina);
       $aux= new \stdClass();
