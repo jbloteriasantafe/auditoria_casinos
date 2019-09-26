@@ -224,9 +224,9 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::get('/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
   Route::get('/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
-  Route::get('/getMoneda/{nro}','MTMController@getMoneda');
-});
 
+});
+  Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
 
 /**********
 Islas
@@ -793,5 +793,7 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
   Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
   Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
-  Route::post('bingo/generarPlanillaInforme','Bingo\InformeController@generarPlanilla');
+  Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
+  Route::get('bingo/informe','Bingo\InformeController@index');
+  Route::delete('bingo/eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
 //});

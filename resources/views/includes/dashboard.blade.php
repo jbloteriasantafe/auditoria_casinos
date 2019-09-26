@@ -403,7 +403,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   <i class="fa fa-angle-right"></i>
                                 </span>
                                 <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('tablero_control','iconoTableroControl')
+                                  @svg('bingos','iconoTableroControl')
                                 </span>
                                 <span>Bingo</span>
                             </div>
@@ -723,7 +723,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   <i class="fa fa-angle-right"></i>
                                 </span>
                                 <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('tablero_control','iconoTableroControl')
+                                  @svg('bingos','iconoTableroControl')
                                 </span>
                                 <span>Bingo</span>
                             </div>

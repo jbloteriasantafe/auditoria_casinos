@@ -23,8 +23,8 @@ class ImportacionController extends Controller
       foreach($usuario['usuario']->casinos as $casino){
         $casinos[]=$casino->id_casino;
       }
-
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' , 'bingo');
+      //agrego a seccion reciente a BINGo
+      UsuarioController::getInstancia()->agregarSeccionReciente('Importación Bingo' , 'importacion-bingo');
 
 
       return view('Bingo.importacion', ['casinos' => $casinos]);
@@ -64,9 +64,6 @@ class ImportacionController extends Controller
                       ->whereIn('casino.id_casino', $casinos)
                       // ->orderBy('id_importacion', 'desc')
                       ->paginate($request->page_size);
-
-
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' ,'bingo');
 
      return $resultados;
     }
@@ -245,9 +242,16 @@ class ImportacionController extends Controller
     //Función auxiliar para guardar los datos de importación para rosario
     protected function guardarRosario($resultado, $usuario){
       $una_importacion = new ImportacionBingo;
+
       foreach ($resultado as $row) {
 
         $fecha = explode('/', $row[18]);
+
+        //si no pudo separar la fecha en 3 partes, el archivo no es válido
+        if( count($fecha) != 3) {
+          return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
+        }
+
         $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
 
         //creo una nueva importación para cargar los datos
@@ -310,5 +314,9 @@ class ImportacionController extends Controller
           $validator->errors()->add('importacion_cargada','La importación para esta fecha se encuentra cargarda.');
         }
       })->validate();
+    }
+
+    private function errorOut($map){
+      return response()->json($map,422);
     }
 }

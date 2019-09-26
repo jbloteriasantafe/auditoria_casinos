@@ -13,6 +13,19 @@ $(document).ready(function(){
   $('#opcReporteEstadoDiferenciaBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcReporteEstadoDiferenciaBingo').addClass('opcionesSeleccionado');
 
+  $('#dtpBuscadorFecha').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
   $('#btn-buscar').trigger('click');
 
 
@@ -114,13 +127,13 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       data: formData,
       dataType: 'json',
       success: function(resultados){
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.respuesta.relevados.length,clickIndice);
+        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.estados.total,clickIndice);
         $('#cuerpoTabla tr').remove()
 
         for (var i = 0; i < resultados.respuesta.relevados.length; i++){
           $('#cuerpoTabla').append(generarFilaTabla(resultados.respuesta.relevados[i],resultados.respuesta.importaciones[i],resultados.estados.data[i]));
         }
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.respuesta.relevados.length,clickIndice);
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.estados.total,clickIndice);
       },
       error: function(data){
         console.log('Error:', data);
@@ -151,7 +164,8 @@ $('#btn-finalizarValidacion').click(function(e){
 
             $('#mensajeExito p').text('Sesión VISADA existosamente.');
             $('#mensajeExito div').css('background-color','#4DB6AC');
-
+            $('#cuerpoTabla #' +data +' .no-visado').hide();
+            $('#cuerpoTabla #' +data +' .visado').show();
             $('#modalDetalles').modal('hide');
             //Mostrar éxito
             $('#mensajeExito').show();
@@ -169,8 +183,10 @@ $(document).on('click' , '.validar' , function() {
      $('#id_importacion').val($(this).val());
      var id_importacion = $('#id_importacion').val();
      $('#frmDetalles').trigger("reset");
+     $('#msje-sesion-no-cerrada').text('');
      //si la sesión tiene archivo importado, muestra el modal con los datos
      //sino, muestra mensaje de error
+     console.log(id_importacion);
      if(id_importacion != 'no_importado'){
        $('#modalDetalles .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
 
@@ -193,7 +209,8 @@ $(document).on('click' , '.validar' , function() {
             }
             $('#cuerpoTablaDetalles').append(generarFilaPartidaImportada(data.importacion[i], partida));
         }
-        if(data.reporte.observaciones_visado != null){
+
+        if(data.reporte.visado == 1){
           $('#observacion_validacion').val(data.reporte.observaciones_visado).attr('disabled','disabled');
           $('#btn-finalizarValidacion').hide();
         }
@@ -201,6 +218,12 @@ $(document).on('click' , '.validar' , function() {
           $('#observacion_validacion').removeAttr('disabled');
           $('#btn-finalizarValidacion').show();
         }
+
+        // if(data.reporte.sesion_abierta === 1 && data.reporte.sesion_cerrada !== 1){
+        //   $('#btn-finalizarValidacion').hide();
+        //   $('#msje-sesion-no-cerrada').text('Esta sesión se ha abierto pero no cerrado.');
+        // }
+
       });
     }else{
       mensajeSesionNoImportada();
@@ -208,8 +231,8 @@ $(document).on('click' , '.validar' , function() {
 
 })
 
-$(document).on('click','#tablaResultadosPremio thead tr th[value]',function(e){
-  $('#tablaResultadosPremio th').removeClass('activa');
+$(document).on('click','#tablaResultados thead tr th[value]',function(e){
+  $('#tablaResultados th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
   }
@@ -221,24 +244,7 @@ $(document).on('click','#tablaResultadosPremio thead tr th[value]',function(e){
       $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaResultadosPremio th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-$(document).on('click','#tablaResultadosCanon thead tr th[value]',function(e){
-  $('#tablaResultadosCanon th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultadosCanon th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
@@ -507,7 +513,11 @@ function generarFilaTabla(relevados, importados, estado){
     id_importacion = 'no_importado';
     importado = 'NO'
   }else{
+    // if(estado.sesion_abierta == 1 && estado.sesion_cerrada != 1){
+    //     id_importacion = 'abierta_no_cerrada';
+    // }else{
     id_importacion = importados[0].id_importacion;
+      // }
     importado = 'SI';
   }
 
@@ -522,94 +532,94 @@ function generarFilaTabla(relevados, importados, estado){
     else cerrada = 'SI';
   }
 
-var casino;
-var fecha;
-var hora;
+  var casino;
+  var fecha;
+  var hora;
 
-if(importados != -1 ){
-  if(importados[0].id_casino == 1) casino = 'Melincue';
-  if(importados[0].id_casino == 2) casino = 'Santa Fe';
-  if(importados[0].id_casino == 3) casino = 'Rosario';
-  fecha = importados[0].fecha;
-  hora = importados[0].hora_inicio;
-}else if(relevados != -1){
-  if(relevados.sesion.id_casino == 1) casino = 'Melincue';
-  if(relevados.sesion.id_casino == 2) casino = 'Santa Fe';
-  if(relevados.sesion.id_casino == 3) casino = 'Rosario';
-  fecha = relevados.sesion.fecha_inicio;
-  hora = relevados.sesion.hora_inicio;
-}
-var visado;
-if(estado.visado === 1){
-  visado = 'SI';
-}else{
-  visado = 'NO';
-}
-  var fila = $(document.createElement('tr'));
-      fila.attr('id', id_importacion)
-        .append($('<td>')
-        .addClass('col')
-            .text(fecha)
-        )
-        .append($('<td>')
+  if(importados != -1 ){
+    if(importados[0].id_casino == 1) casino = 'Melincue';
+    if(importados[0].id_casino == 2) casino = 'Santa Fe';
+    if(importados[0].id_casino == 3) casino = 'Rosario';
+    fecha = importados[0].fecha;
+    hora = importados[0].hora_inicio;
+  }else if(relevados != -1){
+    if(relevados.sesion.id_casino == 1) casino = 'Melincue';
+    if(relevados.sesion.id_casino == 2) casino = 'Santa Fe';
+    if(relevados.sesion.id_casino == 3) casino = 'Rosario';
+    fecha = relevados.sesion.fecha_inicio;
+    hora = relevados.sesion.hora_inicio;
+  }
+  var visado;
+  if(estado.visado === 1){
+    visado = 'SI';
+  }else{
+    visado = 'NO';
+  }
+    var fila = $(document.createElement('tr'));
+        fila.attr('id', id_importacion)
+          .append($('<td>')
           .addClass('col')
-          .text(casino)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(hora)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(importado)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(relevamiento)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(cerrada)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(visado)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .append($('<button>')
-              .append($('<i>')
-                  .addClass('fa')
-                  .addClass('fa-fw')
-                  .addClass('fa-check')
-                )
-              .append($('<span>').text('VISAR DIFERENCIA'))
-              .addClass('btn').addClass('btn-success').addClass('validar').addClass('no-visado')
-              .attr('value',id_importacion)
-            )
+              .text(fecha)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(casino)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(hora)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(importado)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(relevamiento)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(cerrada)
+          )
+          .append($('<td>')
+            .addClass('col')
+            .text(visado)
+          )
+          .append($('<td>')
+            .addClass('col')
             .append($('<button>')
                 .append($('<i>')
                     .addClass('fa')
                     .addClass('fa-fw')
-                    .addClass('fa-search-plus')
+                    .addClass('fa-check')
                   )
-                .append($('<span>').text('VER VISADO'))
-                .addClass('btn').addClass('btn-success').addClass('validar').addClass('visado')
+                .append($('<span>').text('VISAR DIFERENCIA'))
+                .addClass('btn').addClass('btn-success').addClass('validar').addClass('no-visado')
                 .attr('value',id_importacion)
               )
-          )
+              .append($('<button>')
+                  .append($('<i>')
+                      .addClass('fa')
+                      .addClass('fa-fw')
+                      .addClass('fa-search-plus')
+                    )
+                  .append($('<span>').text('VER VISADO'))
+                  .addClass('btn').addClass('btn-success').addClass('validar').addClass('visado')
+                  .attr('value',id_importacion)
+                )
+            )
 
-          if( id_importacion === 'no_importado'){
-            fila.find('.validar').removeClass('btn-success').addClass('btn-danger');
-          }
-          if( visado === 'SI') {
-            fila.find('.visado').show();
-            fila.find('.no-visado').hide();
-          }else{
-            fila.find('.visado').hide();
-            fila.find('.no-visado').show();
-          }
-    return fila;
+            if( id_importacion === 'no_importado'){
+              fila.find('.validar').removeClass('btn-success').addClass('btn-danger');
+            }
+            if( visado === 'SI') {
+              fila.find('.visado').show();
+              fila.find('.no-visado').hide();
+            }else{
+              fila.find('.visado').hide();
+              fila.find('.no-visado').show();
+            }
+      return fila;
 }
 //Generar fila con los datos de las partidas importadas
 function generarFilaPartidaImportada(importado, partida = -1){

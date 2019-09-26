@@ -1,104 +1,90 @@
+<!DOCTYPE html>
+
 <html>
-<head>
-  <title>Planilla de Sesión</title>
-  <!-- Custom Fonts -->
-  <!-- <link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css"> -->
-  <link rel="stylesheet" href="web-fonts-with-css/css/fontawesome-all.css">
-  <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
-  <link href="/css/importacionFuentes.css" rel="stylesheet">
-</head>
-<body>
-  <?php
-  use App\Http\Controllers\UsuarioController;
-  use Illuminate\Http\Request;
 
-  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];;
-  $casinos = $usuario->casinos;
-  $correcto = count($casinos);
-  $nombre_casino = '';
-  if($correcto == 1) {
-    foreach ($casinos as $casino) {
-      $nombre_casino = $casino->nombre;
-    }
-  }
-  ?>
-<div style="">
-  <div class="encabezadoImg">
-      <img src="img/logos/logo_planilla_sesion_bingo.png" width="100%">
-  </div>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 98%;
+}
 
-      <!-- <img src="img/logos/logo_planilla_sesion_bingo.png" width="100%"> -->
-      <div class="camposTab titulo" style="right: 70px; top: 50px!important">FECHA INFORME</div>
-      <div class="camposInfo" style="right: 70px; top: 70px!important"></span><?php $hoy = date('j-m-y / h:i');
-            print_r($hoy); ?></div>
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 3px;
+}
 
-      <table class="table" width="100%" border="1" cellspacing="0">
-            <tbody>
-         <tr>
-           <td style="background-color:#e4e4e4;  width: 15%">Fecha de sesión</td>
-           <td style="width: 15%"></td>
-           <td style="background-color:#e4e4e4;  width: 12%">Fiscalizador</td>
-           <td style="width: 23%"></td>
-           <td style="background-color:#e4e4e4;  width: 10%">Casino</td>
-           <td style="width: 15%">{{$nombre_casino}}</td>
-         </tr>
-       </tbody>
-      </table >
-<br>
-      <strong><em>Monto de los Pozos</em></strong>
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
 
-      <table class="table" width="100%" border="1" cellspacing="0">
-            <tbody>
-         <tr>
-           <td style="background-color:#e4e4e4;  width: 25%">Maxi Linea</td>
-           <td style="width: 25%">$</td>
-           <td style="background-color:#e4e4e4;  width: 25%">Maxi Bingo</td>
-           <td style="width: 25%">$</td>
-         </tr>
-       </tbody>
-      </table>
-<br>
-      <strong><em>Cartones Iniciales</em></strong>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
 
-      <table class="table" width="100%" border="1" cellspacing="0">
-        <thead>
-          <tr>
-            <th style="background-color:#e4e4e4; width: 10%"></th>
-            <th align="center" style="background-color:#e4e4e4; width: 20%">Valor Cartón</th>
-            <th style="background-color:#e4e4e4; width: 10%"></th>
-            <th align="center" style="background-color:#e4e4e4; width: 20%">Serie Inicial</th>
-            <th style="background-color:#e4e4e4; width: 10%"></th>
-            <th align="center" style="background-color:#e4e4e4; width: 20%">Carton Inicial</th>
-            <th style="background-color:#e4e4e4; width: 10%"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for ($i = 0; $i < 5; $i++)
-          <tr>
-            <td style="background-color:#e4e4e4; width: 10%"></td>
-            <td style="width: 20%">&nbsp;</td>
-            <td style="background-color:#e4e4e4; width: 10%"></td>
-            <td style="width: 20%"></td>
-            <td style="background-color:#e4e4e4; width: 10%"></td>
-            <td style="width: 20%"></td>
-            <td style="background-color:#e4e4e4; width: 10%"></td>
-          </tr>
-          @endfor
-        </tbody>
-      </table>
-<br>
-      <strong><em>Observaciones</em></strong>
+    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
 
-      <table style="WIDTH: 100%;" cellspacing="0" cellpadding="0" width="100%" border="1">
-        <tr>
-          <td height="100px">&nbsp;</td>
-        </tr>
-      </table>
-      <div align="center">
-        <p>...........................................................</p>
-        <p>Firma del Fiscalizador</p>
-      </div>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-</div>
-</body>
+    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
+
+    <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
+  </head>
+  <body>
+
+
+        <div class="encabezadoImg">
+              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <h2><span>RBIN01 | Informe de beneficios BINGO</span></h2>
+        </div>
+              <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
+              <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');
+                    print_r($hoy); ?></span></div>
+
+              <div class="primerEncabezado">Se han realizado los procedimientos de control correspondientes
+              al mes de <b>{{ $mes }}</b> del <b>Casino de {{$casino}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>BINGOS</b>
+              se obtuvo un beneficio de <b>${{ $beneficio }}</b>, detallando a continuación el producido diario.</div>
+
+              <br>
+
+              <table>
+                <tr>
+                  <th class="tablaInicio">FECHA</th>
+                  <th class="tablaInicio">RECAUDADO</th>
+                  <th class="tablaInicio">PREMIO LÍNEA</th>
+                  <th class="tablaInicio">PREMIO BINGO</th>
+                  <th class="tablaInicio">BENEFICIO</th>
+                </tr>
+                @foreach ($resultado_importaciones as $importacion)
+                <tr>
+                  <td class="tablaCampos">{{$importacion->fecha}}</td>
+                  <td class="tablaCampos">{{$importacion->recaudado}}</td>
+                  <td class="tablaCampos">{{$importacion->premio_linea}}</td>
+                  <td class="tablaCampos">{{$importacion->premio_bingo}}</td>
+                  <td class="tablaCampos">{{ ($importacion->recaudado - ($importacion->premio_linea + $importacion->premio_bingo))}}</td>
+                </tr>
+               @endforeach
+              </table>
+
+              <br><br>
+
+              <table>
+                <tr>
+                  <th class="tablaInicio">RECAUDADO</th>
+                  <th class="tablaInicio">PREMIO LÍNEA</th>
+                  <th class="tablaInicio">PREMIO BINGO</th>
+                  <th class="tablaInicio">BENEFICIO</th>
+                </tr>
+                <tr>
+                  <td class="tablaCampos">{{$sumarecaudado}}</td>
+                  <td class="tablaCampos">{{$sumapremiolinea}}</td>
+                  <td class="tablaCampos">{{$sumapremiobingo}}</td>
+                  <td class="tablaCampos">{{$beneficio}}</td>
+                </tr>
+              </table>
+  </body>
 </html>

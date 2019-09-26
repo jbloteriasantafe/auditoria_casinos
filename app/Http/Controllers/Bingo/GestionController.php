@@ -24,7 +24,6 @@ class GestionController extends Controller{
 
       UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' , 'bingo');
 
-
       return view('Bingo.gestion', ['casinos' => $casinos]);
     }
 
@@ -39,7 +38,7 @@ class GestionController extends Controller{
       $sort_by = $request->sort_by;
 
       $reglas = array();
-      
+
       if($request->casino!=0){
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
@@ -53,8 +52,6 @@ class GestionController extends Controller{
                       ->where($reglas)
                       ->paginate($request->page_size);
 
-
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' ,'bingo');
 
      return $resultados;
     }
@@ -76,9 +73,6 @@ class GestionController extends Controller{
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         })
                       ->paginate($request->page_size);
-
-
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' ,'bingo');
 
      return $resultados;
     }
