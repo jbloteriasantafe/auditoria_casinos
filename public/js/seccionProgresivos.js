@@ -785,33 +785,32 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
 
         let valido = true;
         if (!nombre_valido) {
-            filaNombre(fila).addClass('erroneo');
+            filaNombre(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
         if (!base_valida) {
-            filaBase(fila).addClass('erroneo');
+            filaBase(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
         if (!porc_visible_valida) {
-            filaVisible(fila).addClass('erroneo');
+            filaVisible(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
         if (!porc_oculto_valido) {
-            filaOculto(fila).addClass('erroneo');
+            filaOculto(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
         if (!maximo_valido) {
-            filaMaximo(fila).addClass('erroneo');
+            filaMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
 
         const maximo_existe = maximo != '';
         if (base_valida && maximo_existe && base > maximo) {
-            filaBase(fila).addClass('erroneo');
-            filaMaximo(fila).addClass('erroneo');
+            filaBase(fila).find('.editable').addClass('erroneo');
+            filaMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
         }
-
 
         if (valido) modificarNivel(fila);
     });
