@@ -461,6 +461,9 @@ class informesController extends Controller
     $maquina = Maquina::find($id_maquina);
     $sector = isset($maquina->isla->sector) ? $sector = $maquina->isla->sector->descripcion : $sector = "-";
     $fecha= date('Y-m-d');//hoy
+    //No tiene sentido mostrar el producido del dia de hoy porque siempre se carga
+    //Con un delay de un dia, empezamos desde ayer.
+    $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days')); 
     $fin = true;
     $i= 0;
     $suma = 0;
@@ -523,13 +526,13 @@ class informesController extends Controller
     }
     $fechax = Carbon::now()->format('Y-m-d');
     $detalles_5 = DB::table('detalle_relevamiento')
-                              ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
-                                  ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
-                                      ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
-                                      ->where('maquina.id_maquina','=',$id_maquina)
-                                      ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
-                                      ->orderBy('relevamiento.fecha_carga','desc')
-                                      ->take(5)->get();
+    ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
+    ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+    ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
+    ->where('maquina.id_maquina','=',$id_maquina)
+    ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
+    ->orderBy('relevamiento.fecha_carga','desc')
+    ->take(5)->get();
 
     return ['arreglo' => array_reverse($arreglo),
             'datos' => array_reverse($datos),
@@ -541,7 +544,7 @@ class informesController extends Controller
             'juego' => $maquina->juego_activo->nombre_juego,
             'producido' => $suma,
             'movimientos' => $logs,
-            'denominacion' => $maquina->denominacion,
+            'denominacion_juego' => $maquina->denominacion_juego,
             'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
             'relevamientos' => $detalles_5,
             ];
