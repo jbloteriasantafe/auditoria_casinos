@@ -341,7 +341,7 @@ class RelevamientoProgresivoController extends Controller
     // $view = View::make('planillaProgresivos', compact('detalles','rel'));
     $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
     $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -485,7 +485,7 @@ class RelevamientoProgresivoController extends Controller
     $usuario = $usercontroller->quienSoy()['usuario'];
     $progresivo = Progresivo::find($id_relevamiento_progresivo);
     if($usuario === null || $progresivo === null) return;
-    
+
     if(!$usercontroller->usuarioTieneCasinoCorrespondiente(
     $usuario->id_usuario,
     $progresivo->casino->id_casino)
@@ -501,7 +501,7 @@ class RelevamientoProgresivoController extends Controller
       ->where('id_relevamiento_progresivo', '=', $id_relevamiento_progresivo)
       ->delete();
     });
-    
+
     return ['codigo' => 200];
   }
 

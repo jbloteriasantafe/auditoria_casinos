@@ -45,8 +45,8 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
               <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
               <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
         </div>
-              <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-              <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
+              <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>
+              <div class="camposInfo" style="right:261px;"></span><?php $hoy = date('j-m-y / h:i');
                     print_r($hoy); ?></div>
 
                     <!-- Tabla de datos del relevamiento de progresivos -->
@@ -86,7 +86,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">CAUSA NO TOMA</th>
+                        <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
                       </tr>
 
                       @foreach ($detalles_linkeados as $detalle)
@@ -104,12 +104,13 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                           @endfor
                           <td class="tablaInicio" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
                         @else
-                          @if($detalle['nivel1'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel1']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel2'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel2']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel3'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel3']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel4'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel4']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel5'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel5']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel6'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel6']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
+                          @for ($i=1; $i<7; $i++)
+                            @if ($detalle['nivel' . $i] != 0.00)
+                              <td class="tablaInicio" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
+                            @else
+                              <td class="tablaInicio" style="background-color: #f5f5f5"></td>
+                            @endif
+                          @endfor
                           <td class="tablaInicio" style="background-color: white"></td>
                         @endif
                       </tr>
@@ -133,7 +134,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
                         <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">CAUSA NO TOMA</th>
+                        <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
                       </tr>
 
                       @foreach ($detalles_individuales as $detalle)
@@ -153,12 +154,13 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                           @endfor
                           <td class="tablaInicio" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
                         @else
-                          @if($detalle['nivel1'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel1']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel2'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel2']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel3'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel3']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel4'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel4']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel5'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel5']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
-                          @if($detalle['nivel6'] != 0.00) <td class="tablaInicio" style="background-color: white">{{$detalle['nivel6']}} </td> @else <td class="tablaInicio" style="background-color: #f5f5f5"></td> @endif
+                          @for ($i=1; $i<7; $i++)
+                            @if ($detalle['nivel' . $i] != 0.00)
+                              <td class="tablaInicio" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
+                            @else
+                              <td class="tablaInicio" style="background-color: #f5f5f5"></td>
+                            @endif
+                          @endfor
                           <td class="tablaInicio" style="background-color: white"></td>
                         @endif
                       </tr>
@@ -183,6 +185,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
               <br>
               <!-- Si la planilla fue relevada -->
-              <div class="primerEncabezado" style="padding-left: 440px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
+              <div class="primerEncabezado" style="padding-left: 720px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 </html>

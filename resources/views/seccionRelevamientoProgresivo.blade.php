@@ -376,7 +376,7 @@ $niveles = 6;
                             <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
                             @for ($i=1;$i<=$niveles;$i++)
                             <td class="col-xs-1">
-                              <input class="nivel{{$i}} form-control" type="number" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                              <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                             </td>
                             @endfor
                             <td class="col-xs-1">
@@ -394,7 +394,7 @@ $niveles = 6;
                             <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
                             @for ($i=1;$i<=6;$i++)
                             <td class="col-xs-1">
-                              <input disabled="disabled" class="nivel{{$i}} form-control" type="number" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                              <input disabled="disabled" class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                             </td>
                             @endfor
                             <td class="col-xs-1">
