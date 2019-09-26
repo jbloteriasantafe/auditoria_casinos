@@ -11,6 +11,11 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 @section('estilos')
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
   <link rel="stylesheet" href="css/paginacion.css">
+  <style>
+  .no_tomado{
+    background-color: rgb(238,238,238);
+  }
+  </style>
 @endsection
 
 @section('contenidoVista')
