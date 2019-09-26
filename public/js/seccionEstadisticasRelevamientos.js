@@ -19,21 +19,28 @@ $(document).ready(function() {
 });
 
 function cargarMaquinas() {
+    let id_casino = $('#b_casinoMaquina').val();
+    if (id_casino.length == 0) id_casino = 0;
+
     function callbackMaquinas(resultados) {
         let maquinas_lista = $('#maquinas_lista');
         maquinas_lista.empty();
         let option = $('<option></option>');
         for (var i = 0; i < resultados.length; i++) {
-            let fila = option.clone().attr('value', resultados[i].nro_admin + resultados[i].codigo)
-                .attr('data-id', resultados[i].id_maquina)
-                .attr('data-casino', resultados[i].id_casino)
-                .attr('data-nro_admin', resultados[i].nro_admin);
+            let fila = option.clone();
+            if (id_casino == 0) {
+                fila.val(resultados[i].nro_admin + resultados[i].codigo);
+            } else {
+                fila.val(resultados[i].nro_admin);
+            }
+
+            fila.attr('data-id', resultados[i].id_maquina);
+            fila.attr('data-casino', resultados[i].id_casino);
+            fila.attr('data-nro_admin', resultados[i].nro_admin);
             maquinas_lista.append(fila);
         };
+        actualizarBusqueda($('#b_adminMaquina').val());
     }
-
-    let id_casino = $('#b_casinoMaquina').val();
-    if (id_casino.length == 0) id_casino = 0;
 
     $.ajax({
         type: 'GET',
@@ -43,8 +50,31 @@ function cargarMaquinas() {
             console.log(data)
         }
     });
-
 }
+
+//Filtra datalist segun lo que tipea
+//Se hace asi pq sino matchea en el medio del string
+//Y no le gustaba al usuario 
+//i.e input='asd' -> recomendaba ('pepeasd','asd1','holaasd')
+//Ahora seria input='asd' -> recomendar ('asd1')
+function actualizarBusqueda(str) {
+    console.log('actualizando con', str);
+    $('#b_adminMaquina').attr('list', '');
+    $('#maquinas_lista_sub').empty();
+    const valores = $('#maquinas_lista').find('option');
+    for (let i = 0; i < valores.length; i++) {
+        const opt = $(valores[i]);
+        if (opt.val().substr(0, str.length) === str) {
+            //console.log('Agregando ', opt.val());
+            $('#maquinas_lista_sub').append(opt.clone());
+        }
+    }
+    $('#b_adminMaquina').attr('list', 'maquinas_lista_sub');
+    $('#b_adminMaquina').focus();
+}
+$('#b_adminMaquina').on('input', function() {
+    actualizarBusqueda($('#b_adminMaquina').val());
+})
 
 $('#b_casinoMaquina').change(function() {
     cargarMaquinas();
@@ -226,46 +256,6 @@ $('#btn-buscarMaquina').click(function(e) {
             $('#tablaRelevamientos tbody tr').remove();
             // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
             for (var i = 0; i < data.detalles.length; i++) {
-                /*
-                //Si NO hay una causa de no toma se calcula producido
-                var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
-                                         calcularProducido(data.formula, data.detalles[i]) : data.detalles[i].tipos_causa_no_toma;
-
-                var producidoSistema = Math.round((
-                                             parseFloat(data.detalles[i].coinin)
-                                           - parseFloat(data.detalles[i].coinout)
-                                           - parseFloat(data.detalles[i].jackpot)
-                                           - parseFloat(data.detalles[i].progresivo)
-                                       )*100)/100;
-
-                var fila = $('<tr>');
-
-                fila.append($('<td>').text(data.detalles[i].fecha))
-
-                data.detalles[i].cont1 != null ? fila.append($('<td>').text(data.detalles[i].cont1)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont2 != null ? fila.append($('<td>').text(data.detalles[i].cont2)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont3 != null ? fila.append($('<td>').text(data.detalles[i].cont3)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont4 != null ? fila.append($('<td>').text(data.detalles[i].cont4)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont5 != null ? fila.append($('<td>').text(data.detalles[i].cont5)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont6 != null ? fila.append($('<td>').text(data.detalles[i].cont6)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont7 != null ? fila.append($('<td>').text(data.detalles[i].cont7)) : fila.append($('<td>').text('-'));
-                data.detalles[i].cont8 != null ? fila.append($('<td>').text(data.detalles[i].cont8)) : fila.append($('<td>').text('-'));
-
-                fila.append($('<td>').text(data.detalles[i].coinin))
-                fila.append($('<td>').text(data.detalles[i].coinout))
-                fila.append($('<td>').text(data.detalles[i].jackpot))
-                fila.append($('<td>').text(data.detalles[i].progresivo))
-
-
-                fila.append($('<td>').text(producidoCalculado))
-                fila.append($('<td>').text(producidoSistema))
-
-                if (data.detalles[i].tipos_causa_no_toma == null) {
-                  diferencia = Math.round((producidoCalculado - producidoSistema)*100)/100;
-                }else{
-                   diferencia = '-';
-                }
-                */
                 var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
                     data.detalles[i].producido_calculado_relevado : data.detalles[i].tipos_causa_no_toma;
 

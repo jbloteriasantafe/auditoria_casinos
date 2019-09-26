@@ -14,7 +14,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 @endsection
 
 @section('contenidoVista')
+<!-- Tiene TODAS las maquinas del casino -->
 <datalist id="maquinas_lista"></datalist>
+<!-- Tiene las que va buscando dinamicamente -->
+<datalist id="maquinas_lista_sub"></datalist>
 
                 <div class="row"> <!-- row principal -->
 
@@ -47,7 +50,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
                                     <div class="row">
                                       <div class="col-lg-12">
                                         <h5>NÚMERO ADMIN</h5>
-                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin" list="maquinas_lista">
+                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin" list="maquinas_lista_sub" autoComplete="off">
                                         </div>
                                     </div><br>
 
