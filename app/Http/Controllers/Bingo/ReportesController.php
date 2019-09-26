@@ -28,7 +28,7 @@ class ReportesController extends Controller{
         //Busco los casinos a los que esta asociado el usuario
         $casinos = UsuarioController::getInstancia()->getCasinos();
         //agrego a seccion reciente a BINGo
-        UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' , 'bingo');
+        UsuarioController::getInstancia()->agregarSeccionReciente('Reporte Diferencia' , 'diferencia-bingo');
 
         return view('Bingo.ReporteDiferencia', ['casinos' => $casinos]);
     }
@@ -37,7 +37,7 @@ class ReportesController extends Controller{
         //Busco los casinos a los que esta asociado el usuario
         $casinos = UsuarioController::getInstancia()->getCasinos();
         //agrego a seccion reciente a BINGo
-        UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' , 'bingo');
+        UsuarioController::getInstancia()->agregarSeccionReciente('Reporte Estado' , 'estado-bingo');
 
         return view('Bingo.ReporteEstado', ['casinos' => $casinos]);
     }
@@ -45,8 +45,6 @@ class ReportesController extends Controller{
     public function buscarEstado(Request $request){
       //obtengo los estados
       $resultados = $this->obtenerEstados($request);
-      //agrego a seccion reciente a BINGo
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' ,'bingo');
 
       return $resultados;
     }
@@ -167,6 +165,6 @@ class ReportesController extends Controller{
       $reporte->observaciones_visado = $request->observacion;
       $reporte->save();
 
-      return $reporte;
+      return $request->id_importacion;
     }
   }

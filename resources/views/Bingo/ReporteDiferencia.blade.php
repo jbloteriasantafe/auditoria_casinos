@@ -13,6 +13,7 @@ $casinos = $usuario->casinos;
 @section('estilos')
   <link rel="stylesheet" href="/css/paginacion.css">
   <link rel="stylesheet" href="/css/lista-datos.css">
+
   <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
   <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
   <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -48,8 +49,15 @@ $casinos = $usuario->casinos;
                               <div class="panel-body">
                                 <div class="row">
                                   <div class="col-md-3">
-                                    <h5>FECHA DE SESIÓN</h5>
-                                    <input type="date" id="buscadorFecha" class="form-control" style="padding: 0px!important;">
+                                    <h5>Fecha de la sesión</h5>
+                                    <!-- <div class="form-group"> -->
+                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
+                                           <input type='text' class="form-control" placeholder="Fecha de sesión" id="buscadorFecha"/>
+                                           <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                       </div>
+                                       <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
+                                    <!-- </div> -->
                                   </div>
                                   <div class="col-md-3">
                                     <h5>CASINO</h5>
@@ -273,6 +281,10 @@ $casinos = $usuario->casinos;
                   </div>
             </div>
 
+
+
+
+
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
 
@@ -298,7 +310,15 @@ $casinos = $usuario->casinos;
     <!-- JavaScript personalizado -->
     <script src="/js/Bingo/gestion.js" charset="utf-8"></script>
     <script src="/js/Bingo/reporteDiferencia.js" type="text/javascript"></script>
+
+
+    <!-- Custom input Bootstrap -->
+    <script src="/js/fileinput.min.js" type="text/javascript"></script>
+    <script src="/js/locales/es.js" type="text/javascript"></script>
+    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+
+
     @endsection

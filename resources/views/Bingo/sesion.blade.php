@@ -13,8 +13,14 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 ?>
 
 @section('estilos')
-  <link rel="stylesheet" href="css/paginacion.css">
-  <link rel="stylesheet" href="/css/lista-datos.css">
+<link rel="stylesheet" href="/css/paginacion.css">
+<link rel="stylesheet" href="/css/lista-datos.css">
+
+<link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+<link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
+<link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="/css/animacionCarga.css">
+
 
 @endsection
 
@@ -32,10 +38,23 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
+
                                   <div class="col-md-3">
+                                    <h5>Fecha de la sesión</h5>
+                                    <!-- <div class="form-group"> -->
+                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
+                                           <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
+                                           <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                       </div>
+                                       <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
+                                    <!-- </div> -->
+                                  </div>
+
+                                  <!-- <div class="col-md-3">
                                     <h5>Fecha de Sesión</h5>
                                     <input type="date" id="buscadorFecha" class="form-control" style="padding: 0px!important;">
-                                  </div>
+                                  </div> -->
                                   <div class="col-md-3">
                                     <h5>Estado de la Sesión</h5>
                                     <select id="buscadorEstado" class="form-control" name="">
@@ -190,12 +209,25 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>FECHA INICIO</h5>
-                                  <input type="date" id="fechaInicioNueva" class="form-control" style="padding: 0px!important;">
+                                  <div class='input-group date' id='dtpFechaSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+
+                                  <!-- <input type="date" id="fechaInicioNueva" class="form-control" style="padding: 0px!important;"> -->
                                 </div>
 
                                 <div class="col-lg-4">
                                   <h5>HORA INICIO</h5>
-                                  <input id="horaInicioNueva" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required>
+                                  <div class='input-group date' id='dtpHoraSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
+                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+
+
+                                  <!-- <input id="horaInicioNueva" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -278,12 +310,24 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>FECHA CIERRE</h5>
-                                  <input type="date" id="fechaCierreSesion" class="form-control" style="padding: 0px!important;">
+                                  <div class='input-group date' id='dtpFechaCierreSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+
+                                  <!-- <input type="date" id="fechaCierreSesion" class="form-control" style="padding: 0px!important;"> -->
                                 </div>
 
                                 <div class="col-lg-4">
                                   <h5>HORA CIERRE</h5>
-                                  <input id="horaCierreSesion" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required>
+                                  <div class='input-group date' id='dtpHoraCierreSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
+                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+
+                                  <!-- <input id="horaCierreSesion" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -374,7 +418,12 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>HORA DE JUGADA</h5>
-                                  <input id="hora_jugada" name="hora_jugada" type="time" class="form-control"  placeholder="" value="">
+                                  <div class='input-group date' id='dtpHoraJugada' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
+                                      <input type='text' class="form-control" placeholder="Hora de partida" id="hora_jugada" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+                                  <!-- <input id="hora_jugada" name="hora_jugada" type="time" class="form-control"  placeholder="" value=""> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -571,6 +620,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                   <th class="col" value="pozo_dot_r">POZO DOT.</th>
                                   <th class="col" value="pozo_extra_r">POZO EXTRA</th>
                                   <th class="col" value="usuario_r">USUARIO</th>
+                                  <th class="col" id="accionesResultadoRel">ACCIONES</th>
                                 </tr>
                               </thead>
                               <tbody id="cuerpoTablaRel">
@@ -644,6 +694,32 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                   <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarSesion" value="0">ELIMINAR</button>
                   <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
                   <input type="hidden" id="cantidad_partidas" value="0">
+                </div>
+            </div>
+          </div>
+    </div>
+
+    <!-- Modal Eliminar -->
+    <div class="modal fade" id="modalEliminarPartida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+             <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                  <h3 class="modal-titleEliminarPartida" id="myModalLabel">ADVERTENCIA</h3>
+                </div>
+
+                <div class="modal-body" style="color:#fff; background-color:#EF5350;">
+                      <div class="form-group error ">
+                          <div class="col-lg-12">
+                            <strong id="mensajeEliminarPartida"></strong>
+                          </div>
+                      </div>
+
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarPartida" value="0">ELIMINAR</button>
+                  <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
                 </div>
             </div>
           </div>
@@ -725,7 +801,15 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <!-- JavaScript personalizado -->
     <script src="/js/Bingo/sesion.js" charset="utf-8"></script>
     <script src="/js/Bingo/lista-datos.js" type="text/javascript"></script>
+
+
+    <!-- Custom input Bootstrap -->
+    <script src="/js/fileinput.min.js" type="text/javascript"></script>
+    <script src="/js/locales/es.js" type="text/javascript"></script>
+    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
     <!-- DateTimePicker JavaScript -->
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+
+
     @endsection
