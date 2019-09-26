@@ -806,7 +806,10 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
         }
 
         const maximo_existe = maximo != '';
-        if (base_valida && maximo_existe && base > maximo) {
+        if (base_valida &&
+            maximo_existe &&
+            (parseFloat(base) > (parseFloat(maximo) + 0.000001))
+        ) {
             filaBase(fila).find('.editable').addClass('erroneo');
             filaMaximo(fila).find('.editable').addClass('erroneo');
             valido = false;
