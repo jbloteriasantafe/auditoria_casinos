@@ -256,10 +256,15 @@ $('#btn-buscarMaquina').click(function(e) {
             $('#tablaRelevamientos tbody tr').remove();
             // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
             for (var i = 0; i < data.detalles.length; i++) {
-                var producidoCalculado = data.detalles[i].tipos_causa_no_toma == null ?
-                    data.detalles[i].producido_calculado_relevado : data.detalles[i].tipos_causa_no_toma;
-
                 var fila = $('<tr>');
+
+                var producidoCalculado = null;
+                if (data.detalles[i].tipos_causa_no_toma == null) {
+                    producidoCalculado = data.detalles[i].producido_calculado_relevado;
+                } else {
+                    producidoCalculado = data.detalles[i].tipos_causa_no_toma;
+                    fila.addClass('no_tomado');
+                }
 
                 fila.append($('<td>').text(data.detalles[i].fecha))
 

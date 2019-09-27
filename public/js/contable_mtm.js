@@ -75,7 +75,7 @@ function limpiarNull(str, c = '-') {
 
 function movimientoAString(mov) {
     retstr = "";
-    retstr += "<br style=''>Denominacion: " + limpiarNull(mov.denominacion) + "</br>";
+    retstr += "<br style=''>Denominacion de juego: " + limpiarNull(mov.denominacion) + "</br>";
     retstr += "<br style=''>Numero de isla: " + limpiarNull(mov.nro_isla) + "</br>";
     retstr += "<br style=''>Sector: " + limpiarNull(mov.sector) + "</br>";
     retstr += "<br style=''>Juego: " + limpiarNull(mov.nombre_juego) + "</br>";
@@ -104,7 +104,7 @@ $('#btn-buscarMTM').click(function(e) {
 
         $('#isla').text(limpiarNull(isla));
         $('#juego').text(limpiarNull(data.juego));
-        $('#denominacion').text(limpiarNull(data.denominacion));
+        $('#denominacion').text(limpiarNull(data.denominacion_juego));
         $('#devolucion').text(limpiarNull(data.porcentaje_devolucion));
         $('#producido').text(addCommas(data.producido));
         for (var i = 0; i < data.datos.length; i++) {
@@ -197,7 +197,12 @@ $('#btn-buscarMTM').click(function(e) {
 });
 
 $('#modalMaquinaContable').on('shown.bs.modal', function() {
-    generarGraficoMTM(fechas, datos);
+    //Le agrego delay porque a veces no se estaba mostrando
+    //Creo que era por que se estaba cargando antes de que se muestre
+    //El modal...
+    setTimeout(function() {
+        generarGraficoMTM(fechas, datos);
+    }, 50);
 });
 
 $('#modalMaquinaContable').on('hidden.bs.modal', function() {

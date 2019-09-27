@@ -54,7 +54,7 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
   Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
   Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
-  Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
+    Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
   Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
   Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
   Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
@@ -217,7 +217,6 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
   // Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
-
 });
 //Lo necesitan los auditores
 Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
@@ -231,6 +230,7 @@ Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin
 Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
 Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
 Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
+
 
 /**********
 Islas
@@ -798,4 +798,7 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
   Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
   Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
+  Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
+  Route::get('bingo/informe','Bingo\InformeController@index');
+  Route::delete('bingo/eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
 //});

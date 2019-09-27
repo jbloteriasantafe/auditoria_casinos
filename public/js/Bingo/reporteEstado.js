@@ -13,6 +13,19 @@ $(document).ready(function(){
   $('#opcReporteEstadoBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcReporteEstadoBingo').addClass('opcionesSeleccionado');
 
+  $('#dtpBuscadorFecha').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+  
   $('#btn-buscar').trigger('click');
 
 

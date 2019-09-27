@@ -88,8 +88,8 @@
                                     <span id="juego" class="infoResaltada">LUCKY LARRYS LOBSTERMANIA</span>
                                 </div>
                                 <div class="col-md-4">
-                                    <h5>DENOMINACIÓN</h5>
-                                    <span id="denominacion" class="infoResaltada">0.1</span>
+                                    <h5>DENOMINACIÓN DE JUEGO</h5>
+                                    <span id="denominacion" class="infoResaltada">0.12</span>
                                 </div>
                                 <div class="col-md-4">
                                     <h5>% DEVOLUCIÓN</h5>
@@ -103,7 +103,7 @@
                     <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
                         <div class="col-md-9" style="text-align:center; border-right: 1px solid #ccc;">
                           <div class="row">
-                            <h5>PRODUCIDO</h5>
+                            <h5>PRODUCIDO ACUMULADO (ultimos 15 días)</h5>
                               <div class="col-md-12">
                                   <span class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
                                   <span id="producido" class="infoResaltada">123445</span>

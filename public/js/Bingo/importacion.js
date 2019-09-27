@@ -1,4 +1,4 @@
-$(document).ready(function(){
+  $(document).ready(function(){
 
   $('#barraMenu').attr('aria-expanded','true');
   // $('#maquinas').removeClass();
@@ -12,6 +12,19 @@ $(document).ready(function(){
   // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcImportarBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcImportarBingo').addClass('opcionesSeleccionado');
+
+  $('#dtpBuscadorFecha').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
 
   $('#btn-buscar').trigger('click');
 
@@ -267,6 +280,7 @@ $('#btn-guardar').click(function (e) {
         error: function (data) {
           var response = JSON.parse(data.responseText);
 
+          console.log(response);
           //Mostrar: mensajeError
           $('#modalImportacion #mensajeError').show();
           //Ocultar: rowArchivo, mensajes, iconoCarga

@@ -17,6 +17,9 @@ use App\Bingo\PartidaBingo;
 use App\Bingo\DetallePartidaBingo;
 use App\Bingo\ReporteEstado;
 
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+
 use Dompdf\Dompdf;
 use PDF;
 use View;
@@ -25,11 +28,15 @@ class SesionesController extends Controller
   private static $atributos = [
   ];
 
+    private function errorOut($map){
+      return response()->json($map,422);
+    }
+
     public function index(){
       //Busco los casinos a los que esta asociado el usuario
       $casinos = UsuarioController::getInstancia()->getCasinos();
       //agrego a seccion reciente a BINGo
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' , 'bingo');
+      UsuarioController::getInstancia()->agregarSeccionReciente('Sesiones y Relevamientos' ,'bingo');
 
       return view('Bingo.sesion', ['casinos' => $casinos]);
     }
@@ -65,9 +72,6 @@ class SesionesController extends Controller
                       ->whereIn('casino.id_casino', $casinos)
                       // ->orderBy('hora_inicio', 'desc')
                       ->paginate($request->page_size);
-
-      //agrego a seccion reciente a BINGo
-      UsuarioController::getInstancia()->agregarSeccionReciente('Bingo' ,'bingo');
 
      return $resultados;
     }
@@ -323,6 +327,14 @@ class SesionesController extends Controller
 
       $sesion=SesionBingo::findorfail($id);
 
+      //si esta cerrada, los fiscalizadores no pueden eliminar la sesión 
+      if($sesion->id_estado == 2) {
+        $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
+        if( $permiso == 1){
+            return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
+        }
+      }
+
       //Guardo la información para el reporte de estado
       //si no tiene cargado importacion, elimino el reporte
 
@@ -427,7 +439,7 @@ class SesionesController extends Controller
       //Validación de los datos
       Validator::make($request->all(), [
             'nro_partida' => 'required|numeric',
-            'hora_jugada' => 'required|date_format:H:i',
+            'hora_jugada' => 'required|date_format:H:i:s',
             'valor_carton' => 'required|numeric',
             'serie_inicio' => 'required|numeric',
             'serie_fin' => 'required|numeric',
@@ -445,9 +457,17 @@ class SesionesController extends Controller
             'detalles.*.nombre_premio' => 'required|numeric',
             'detalles.*.carton_ganador' => 'required|numeric',
         ])->after(function($validator){
+          //obtengo la sesión
           $sesion = SesionBingo::find($validator->getData()['id_sesion']);
+          //si esta cerrada, mensaje de error que no se pueden cargar los relevamientos
           if($sesion->id_estado == 2){
               $validator->errors()->add('relevamiento_cerrado', 'La sesión está cerrada, no se pueden cargar relevamientos.');
+          }
+          //verifica que las partidas no tengan numero de partida repetido
+          foreach ($sesion->partidasSesion as $partida){
+            if ( $partida->num_partida == $validator->getData()['nro_partida']){
+                $validator->errors()->add('partida_cargada', 'Ya se ha cargado un relevamiento con el mismo número de partida.');
+            }
           }
         })->validate();
 
@@ -479,7 +499,7 @@ class SesionesController extends Controller
       $partida->bola_linea = $request->pos_bola_linea;
       $partida->save();
 
-      //GUARDA LOS DETALLES DEL RELECAMIENTO
+      //GUARDA LOS DETALLES DEL RELEVAMIENTO
       foreach ($request->detalles as $detalle) {
             $detalle_partida = new DetallePartidaBingo;
 
@@ -496,6 +516,11 @@ class SesionesController extends Controller
     }
 
     public function reAbrirSesion($id){
+
+        $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
+        if( $permiso == 1){
+            return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
+        }
 
       $sesion = SesionBingo::findorfail($id);
 
@@ -527,25 +552,39 @@ class SesionesController extends Controller
       return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => '-'];
       }
 
-    public function generarPlanillaSesion(){
+      public function eliminarPartida($id){
 
-      $view = View::make('Bingo.planillaSesion');
-      $dompdf = new Dompdf();
-      $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml($view->render());
-      $dompdf->render();
-      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      return $dompdf->stream("Sesion-Bingo.pdf", Array('Attachment'=>0));
-    }
+        $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
+        if( $permiso == 1){
+            return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
+        }
 
-    public function generarPlanillaRelevamiento(){
+        $partida = PartidaBingo::findorfail($id);
 
-      $view = View::make('Bingo.planillaRelevamiento');
-      $dompdf = new Dompdf();
-      $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml($view->render());
-      $dompdf->render();
-      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      $dompdf->stream("Relevamiento-Bingo.pdf", Array('Attachment'=>0));
-    }
+        $partida->delete();
+
+        return ['partida' => $partida];
+      }
+
+      public function generarPlanillaSesion(){
+
+        $view = View::make('Bingo.planillaSesion');
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+        return $dompdf->stream("Sesion-Bingo.pdf", Array('Attachment'=>0));
+      }
+
+      public function generarPlanillaRelevamiento(){
+
+        $view = View::make('Bingo.planillaRelevamiento');
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+        $dompdf->stream("Relevamiento-Bingo.pdf", Array('Attachment'=>0));
+      }
 }

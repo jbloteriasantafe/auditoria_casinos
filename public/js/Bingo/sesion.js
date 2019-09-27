@@ -13,6 +13,115 @@ $(document).ready(function(){
   $('#opcBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcBingo').addClass('opcionesSeleccionado');
 
+  $('#dtpBuscadorFecha').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpFechaSesion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpFechaCierreSesion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpHoraSesion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 0,
+    minView: 0,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpHoraCierreSesion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 0,
+    minView: 0,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpHoraJugada').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 0,
+    minView: 0,
+    ignoreReadonly: true,
+    endDate: '+0d'
+  });
+
+  $('#dtpFecha').datetimepicker({
+    todayBtn:  1,
+    language:  'es',
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 0,
+    ignoreReadonly: true,
+    minuteStep: 5,
+    endDate: '+0d'
+  });
+
+  $('#dtpFecha span.nousables').off();
+
+  $('#fechaRelevamientoDiv').datetimepicker({
+    todayBtn:  1,
+    language:  'es',
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd HH:ii:ss',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 0,
+    ignoreReadonly: true,
+    minuteStep: 5,
+    endDate: '+0d'
+  });
+
+
   $('#btn-buscar').trigger('click');
 
 });
@@ -290,13 +399,13 @@ $('#btn-nuevo').click(function(e){
   $('.modal-title').text('| NUEVA SESIÓN');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
-  document.querySelector("#fechaInicioNueva").valueAsDate = new Date();
-  let h =new Date();
-  let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
-  document.querySelector("#horaInicioNueva").value = hora;
-  //Calulo la fecha actual
-  var fecha_actual = fechaHoy();
-  var fecha_str = $('#cuerpoTabla tr').last().children().text();
+  // document.querySelector("#fechaInicioNueva").valueAsDate = new Date();
+  // let h =new Date();
+  // let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
+  // document.querySelector("#horaInicioNueva").value = hora;
+  // //Calulo la fecha actual
+  // var fecha_actual = fechaHoy();
+  // var fecha_str = $('#cuerpoTabla tr').last().children().text();
   $('#modalFormula').modal('show');
 
 });
@@ -390,13 +499,24 @@ $(document).on('click','.borrarTerminoRelevamiento',function(){
 //Modal de eliminar una sesión
 $(document).on('click','.eliminar',function(){
     var id = $(this).val();
-    console.log(id);
     cantidadPartidas(id); //cargo la cantidad de partidas y luego si es necesario, muestra el mensaje
     $('.modal-title').text('ADVERTENCIA');
     $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
     $('#btn-eliminarSesion').val(id);
     $('#modalEliminar').modal('show');
     $('#mensajeEliminar').text('¿Seguro que desea eliminar la sesión del día "' + $(this).parent().parent().find('td:first').text()+'"?');
+
+});
+
+//Modal de eliminar una partida
+$(document).on('click','.borrarPartida',function(){
+    var id = $(this).val();
+    console.log(id);
+    $('.modal-title').text('ADVERTENCIA');
+    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+    $('#btn-eliminarPartida').val(id);
+    $('#modalEliminarPartida').modal('show');
+    $('#mensajeEliminarPartida').text('¿Seguro que desea eliminar la partida número "' + $(this).parent().parent().find('td:first').text()+'"?');
 
 });
 
@@ -420,6 +540,34 @@ $('#btn-eliminarSesion').click(function (e) {
           $("#tablaResultados").trigger("update");
 
           $('#modalEliminar').modal('hide');
+        },
+        error: function (data) {
+          console.log(data);
+          console.log('Error: ', data);
+        }
+    });
+});
+
+//Elimina una partida
+$('#btn-eliminarPartida').click(function (e) {
+    var id = $(this).val();
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    })
+
+    $.ajax({
+        type: "DELETE",
+        url: "bingo/eliminarPartida/" + id,
+        success: function (data) {
+
+          //Remueve de la tabla
+          $('#cuerpoTablaRel #'+ id).remove();
+          $("#tablaResultadosRel").trigger("update");
+
+          $('#modalEliminarPartida').modal('hide');
         },
         error: function (data) {
           console.log('Error: ', data);
@@ -702,11 +850,14 @@ $('#btn-guardar-relevamiento').click(function (e) {
                 },
                 error: function (data) {
                     var response = JSON.parse(data.responseText);
-
+                    console.log(response);
                     $('#columna .row').each(function(index,value){
 
                        if(typeof response.relevamiento_cerrado !== 'undefined'){
                            errorSesionCerrada();
+                        }
+                      if(typeof response.partida_cargada !== 'undefined'){
+                            mostrarErrorValidacion($('#nro_partida'),response.partida_cargada[0] ,true);
                         }
                       if(typeof response.nro_partida !== 'undefined'){
                           mostrarErrorValidacion($('#nro_partida'),'El campo no puede estar en blanco.' ,true);
@@ -732,7 +883,7 @@ $('#btn-guardar-relevamiento').click(function (e) {
                       if(typeof response.carton_fin_i !== 'undefined'){
                                 mostrarErrorValidacion($('#carton_fin_i'),'El campo no puede estar en blanco.' ,true);
                         }
-                      if(typeof response.carton_inicio_f !== 'undeffned'){
+                      if(typeof response.carton_inicio_f !== 'undefined'){
                                 mostrarErrorValidacion($('#carton_inicio_f'),'El campo no puede estar en blanco.' ,true);
                         }
                       if(typeof response.carton_fin_f !== 'undefined'){
@@ -796,6 +947,10 @@ $('#btn-abrirSesion').click(function (e) {
           $('#mensajeExito').show();
         },
         error: function (data) {
+          var response = JSON.parse(data.responseText);
+          if(typeof response.no_tiene_permiso !== 'undefined'){
+              errorPermiso();
+            }
           console.log('Error: ', data);
         }
     });
@@ -892,10 +1047,10 @@ $(document).on('click' , '.cerrarSesion' , function() {
       $('#frmCierreSesion').trigger('reset');
       $('#btn-guardar-cierre').removeClass();
 
-      document.querySelector("#fechaCierreSesion").valueAsDate = new Date();
-      let h =new Date();
-      let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
-      document.querySelector("#horaCierreSesion").value = hora;
+      // document.querySelector("#fechaCierreSesion").valueAsDate = new Date();
+      // let h =new Date();
+      // let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
+      // document.querySelector("#horaCierreSesion").value = hora;
 
       $('#btn-guardar-cierre').addClass('btn btn-informacion');
       $('#modalCierreSesion').modal('show');
@@ -907,6 +1062,7 @@ $(document).on('click' , '.relevamientos' , function() {
     console.log("relevamientos");
     $('#id_sesion').val($(this).val());
     var id_sesion = $('#id_sesion').val();
+
     $('.terminoRelevamiento').remove();
     $('#modalRelevamiento .modal-title').text('| CARGAR RELEVAMIENTO');
     $('#modalRelevamiento .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
@@ -933,7 +1089,7 @@ $(document).on('click' , '.detallesRel' , function() {
 
     $.get("bingo/obtenerSesion/" + id_sesion, function(data){
         console.log(data);
-          $('#modalDetallesRel .modal-title').text('| DETALLES SESIÓN ' + data.sesion.fecha_inicio);
+        $('#modalDetallesRel .modal-title').text('| DETALLES SESIÓN ' + data.sesion.fecha_inicio);
         $('#modalDetallesRel').modal('show');
 
         //detalles sesion
@@ -951,6 +1107,13 @@ $(document).on('click' , '.detallesRel' , function() {
         }else{
           $('#pozo_extra_final_d').val(data.sesion.pozo_extra_final).attr('readonly','readonly');
         }
+        //ocultar fila acción e icono eliminar partida si es fiscalizador
+        $.get('relevamientos/chequearRolFiscalizador', function(data){
+          if(data==1){
+            $('.borrarPartida').hide();
+            $('#accionesResultadoRel').hide();
+          }
+        })
         //genera la tabla con los relevamientos cargados
         for (var i = 0; i < data.partidas.length; i++){
           $('#cuerpoTablaRel').append(generarFilaTablaRel(data.partidas[i]));
@@ -1089,7 +1252,7 @@ function generarFilaTabla(sesion, estado, casino,nombre_inicio, nombre_fin, valo
               fila.find('.relevamientos').hide();
               fila.find('.modificar').hide();
 
-              //ocultar boton para abrir sesión si es fizcalizador
+              //ocultar boton para re abrir sesión  y eliminar si es fizcalizador
               $.get('relevamientos/chequearRolFiscalizador', function(data){
                 if(data==1){
                   fila.find('.cerrarSesion').hide();
@@ -1102,8 +1265,9 @@ function generarFilaTabla(sesion, estado, casino,nombre_inicio, nombre_fin, valo
 }
 //Generar fila con los datos de las partidas
 function generarFilaTablaRel(partida){
+  console.log(partida);
   var fila = $(document.createElement('tr'));
-      fila.attr('id', partida.id_partida)
+      fila.attr('id', partida[0].id_partida)
         .append($('<td>')
         .addClass('col')
             .text(partida[0].num_partida)
@@ -1171,6 +1335,22 @@ function generarFilaTablaRel(partida){
         .append($('<td>')
           .addClass('col')
           .text(partida[1])
+        )
+        .append($('<td>')
+            .addClass('col')
+            .css('padding-right','0px')
+            .append($('<button>')
+                .addClass('borrarPartida')
+                .addClass('btn')
+                .addClass('btn-danger')
+                .css('margin-top','6px')
+                .attr('type','button')
+                .attr('value',partida[0].id_partida)
+                .append($('<i>')
+                    .addClass('fa')
+                    .addClass('fa-trash')
+                )
+            )
         )
 
         return fila;
@@ -1258,6 +1438,13 @@ function errorCantidad() {
   $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
   $('#modalCorrecta').modal('show');
   $('#mensajeCorrecta').text('La cantidad de detalles que contiene el inicio de sesión no coinciden con los de cierre.');
+}
+//Mensaje de error no tiene permisos
+function errorPermiso() {
+  $('.modal-title-correcta').text('ERROR: NO TIENE PERMISOS');
+  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+  $('#modalCorrecta').modal('show');
+  $('#mensajeCorrecta').text('Su usuario no tiene los permisos necesarios para realizar esta acción.');
 }
 //Mensaje de error por cantidad de detalles distintas de inicio y cierre de sesión
 function advertenciaEliminarSesion() {
