@@ -54,13 +54,11 @@ function objVal(obj, newval = undefined, numeric = false) {
     if (edit) obj = obj.find('input');
 
     if ((typeof newval !== 'undefined')) { //SET
-        let commanewval = newval;
         let dotnewval = newval;
         if (numeric) {
-            commanewval = getCommaFloat(newval);
             dotnewval = getDotFloat(newval);
         }
-        return edit ? obj.val(dotnewval) : obj.text(commanewval);
+        return edit ? obj.val(dotnewval).val() : obj.text(dotnewval).text();
     } else { //GET
         return edit ? obj.val() : obj.text();
     }
@@ -76,21 +74,41 @@ function filaNombreVal(f, newval = undefined) {
 
 function filaBaseVal(f, newval = undefined) {
     const val = objVal(filaBase(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0) {
+        objVal(filaBase(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaMaximoVal(f, newval = undefined) {
     const val = objVal(filaMaximo(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0) {
+        objVal(filaMaximo(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaVisibleVal(f, newval = undefined) {
     const val = objVal(filaVisible(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0 || fval > 100) {
+        objVal(filaVisible(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaOcultoVal(f, newval = undefined) {
     const val = objVal(filaOculto(f), newval, true);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0 || fval > 100) {
+        objVal(filaOculto(f), "");
+        return "";
+    }
     return getDotFloat(val);
 }
 
@@ -192,27 +210,52 @@ function filaIndMarcaJuegoVal(f, newval = undefined) {
 
 function filaIndRecupVal(f, newval = undefined) {
     const val = objVal(filaIndRecup(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0 || fval > 100) {
+        objVal(filaIndRecup(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaIndMaximoVal(f, newval = undefined) {
     const val = objVal(filaIndMaximo(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0) {
+        objVal(filaIndMaximo(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaIndBaseVal(f, newval = undefined) {
     const val = objVal(filaIndBase(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0) {
+        objVal(filaIndBase(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaIndVisibleVal(f, newval = undefined) {
     const val = objVal(filaIndVisible(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0 || fval > 100) {
+        objVal(filaIndVisible(f), "");
+        return "";
+    }
+    return val;
 }
 
 function filaIndOcultoVal(f, newval = undefined) {
     const val = objVal(filaIndOculto(f), newval, true);
-    return getDotFloat(val);
+    const fval = parseFloat(val);
+    if (isNaN(fval) || fval < 0 || fval > 100) {
+        objVal(filaIndOculto(f), "");
+        return "";
+    }
+    return val;
 }
 
 function setearFilaProgresivoIndividual(fila, data) {

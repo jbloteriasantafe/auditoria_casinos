@@ -186,26 +186,21 @@ function filaEditableIndividual() {
         return $('#contenedorMaquinasIndividual tbody tr[data-id=' + id + ']').length > 0;
     }
 
-    //No puedo agregarle un editable de numeros con flechas
-    //porque las flechas son muy grandes.
+    {
+        const input2 = crearEditable('text').addClass('sinflechas');
 
-    const input_porcentaje = crearEditable('number', '0').addClass('sinflechas');
-    const input_numero = crearEditable('number', '', 0, null, 'any').addClass('sinflechas');
+        filaIndRecup(fila).empty().append(input2.clone());
+        filaIndMaximo(fila).empty().append(input2.clone());
+        filaIndBase(fila).empty().append(input2.clone());
+        filaIndVisible(fila).empty().append(input2.clone());
+        filaIndOculto(fila).empty().append(input2.clone());
 
-    filaIndRecup(fila).empty()
-        .append(input_porcentaje.clone().val($('#inputPorcRecupIndividual').val()));
-
-    filaIndMaximo(fila).empty()
-        .append(input_numero.clone().val($('#inputMaximoIndividual').val()));
-
-    filaIndBase(fila).empty()
-        .append(input_numero.clone().val($('#inputBaseIndividual').val()));
-
-    filaIndVisible(fila)
-        .empty().append(input_porcentaje.clone().val($('#inputPorcVisibleIndividual').val()));
-
-    filaIndOculto(fila)
-        .empty().append(input_porcentaje.clone().val($('#inputPorcOcultoIndividual').val()));
+        filaIndRecupVal(fila, $('#inputPorcRecupIndividual').val());
+        filaIndMaximoVal(fila, $('#inputMaximoIndividual').val());
+        filaIndBaseVal(fila, $('#inputBaseIndividual').val());
+        filaIndVisibleVal(fila, $('#inputPorcVisibleIndividual').val());
+        filaIndOcultoVal(fila, $('#inputPorcOcultoIndividual').val());
+    }
 
     let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
@@ -314,13 +309,12 @@ function filaEditableIndividualParcial(data) {
     //No puedo agregarle un editable de numeros con flechas
     //porque las flechas son muy grandes.
 
-    const input_porcentaje = crearEditable('number', '0').addClass('sinflechas');
-    const input_numero = crearEditable('number', '', 0, null, 'any').addClass('sinflechas');
-    filaIndBase(fila).empty().append(input_numero.clone());
-    filaIndMaximo(fila).empty().append(input_numero.clone());
-    filaIndRecup(fila).empty().append(input_porcentaje.clone());
-    filaIndVisible(fila).empty().append(input_porcentaje.clone());
-    filaIndOculto(fila).empty().append(input_porcentaje.clone());
+    const input = crearEditable('text');
+    filaIndBase(fila).empty().append(input.clone());
+    filaIndMaximo(fila).empty().append(input.clone());
+    filaIndRecup(fila).empty().append(input.clone());
+    filaIndVisible(fila).empty().append(input.clone());
+    filaIndOculto(fila).empty().append(input.clone());
 
     setearFilaProgresivoIndividual(fila, data);
 
@@ -757,10 +751,10 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
     let fila = filaEjemplo();
     filaNumero(fila).empty();
     filaNombre(fila).empty().append(crearEditable("text"));
-    filaBase(fila).empty().append(crearEditable("number", "0", 0, null, "any"));
-    filaMaximo(fila).empty().append(crearEditable("number", "0", 0, null, "any"));
-    filaVisible(fila).empty().append(crearEditable("number", "0"));
-    filaOculto(fila).empty().append(crearEditable("number", "0"));
+    filaBase(fila).empty().append(crearEditable("text"));
+    filaMaximo(fila).empty().append(crearEditable("text"));
+    filaVisible(fila).empty().append(crearEditable("text"));
+    filaOculto(fila).empty().append(crearEditable("text"));
     fila.find('.editar').remove();
     fila.find('.cuerpoTablaPozoAcciones').empty();
     fila.find('.cuerpoTablaPozoAcciones').append(crearBoton('fa-check').addClass('confirmar'));
@@ -1179,9 +1173,9 @@ function verificarFormulario() {
         mensaje = mensaje + "<p>Tiene pozos, niveles o maquinas sin completar</p>";
     }
 
-    let porc_recup = $('#porc_recup');
-    if (porc_recup.val() == "" || porc_recup.val() > 100 || porc_recup.val() < 0) {
-        porc_recup.addClass('erroneo');
+    let porc_recup = parseFloat($('#porc_recup').val());
+    if (isNaN(porc_recup) || porc_recup > 100 || porc_recup < 0) {
+        $('#porc_recup').addClass('erroneo');
         errores = true;
         mensaje = mensaje + "<p>El porcentaje de recuperacion es erroneo</p>";
     }

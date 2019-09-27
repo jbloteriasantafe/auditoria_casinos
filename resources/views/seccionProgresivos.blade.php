@@ -6,7 +6,9 @@
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+$selected = False;//Se setea una sola vez, pone el atributo selected en el casino del modal
+?>
 
 
 @section('estilos')
@@ -218,19 +220,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             </div>
             <div class="col-md-4 col-lg-4">
               <h5 class='row'>Porcentaje de recuperación</h5>
-              <input id="porc_recup" type="number"  class="form-control"  min="0" max="100" step="0.001" placeholder="0"></input>
+              <input id="porc_recup" type="text"  class="form-control" placeholder="0">
             </div>
             <div class="col-md-4 col-lg-4">
               <h5 class='row'>Casino</h5>
               <select class="form-control" id="modalProgresivo_casino">
                 @foreach ($usuario['usuario']->casinos as $casino)
-                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                <option value="{{$casino->id_casino}}" <?php if(!$selected){echo("selected");$selected=True;}?> >{{$casino->nombre}}</option>
                 @endforeach
               </select>
             </div>
           </div>
           <div id='modalProgresivo_cuerpo' class='row'>
-            <hr></hr>
+            <hr>
             <div class=''>
               <h3 class=''>Pozos</h3>
               <div class="row">
@@ -243,7 +245,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
               </div>
               <div id="contenedorPozos" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
             </div>
-            <hr></hr>
+            <hr>
             <div class=''>
               <h3 class=''>Maquinas</h3>
               <div class="row">
@@ -297,23 +299,23 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           <div class="row no-gutters" id='modalProgresivoIndividual_seccionParametros'>
             <div class="col-md-3 col-lg-3">
               <h5 class="">% Recuperación</h5>
-              <input id="inputPorcRecupIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              <input id="inputPorcRecupIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-3 col-lg-3">
               <h5 class=''>Máximo</h5>
-              <input id="inputMaximoIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
+              <input id="inputMaximoIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
               <h5 class=''>Base</h5>
-              <input id="inputBaseIndividual" class="editable form-control" type="number" min="0" step="any" placeholder="0">
+              <input id="inputBaseIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
               <h5 class=''>% Visible</h5>
-              <input id="inputPorcVisibleIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              <input id="inputPorcVisibleIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
               <h5 class=''>% Oculto</h5>
-              <input id="inputPorcOcultoIndividual" class="editable form-control" type="number" min="0" max="100" step="0.001" placeholder="0">
+              <input id="inputPorcOcultoIndividual" class="editable form-control" type="text">
             </div>
           </div>
           <div class="row">
