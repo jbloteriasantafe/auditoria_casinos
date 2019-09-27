@@ -426,7 +426,7 @@ $niveles = 6;
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-warningModificar" id="btn-guardar">GUARDAR TEMPORALMENTE</button>
-              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
+              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR</button>
               <button type="button" class="btn btn-dangerElimina" id="btn-salir">SALIR</button>
             </div>
           </div>

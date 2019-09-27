@@ -135,6 +135,14 @@ $('#buscadorCasino').on('change',function(){
   });
 });
 
+$('#selectCasinoModificarRelev').on('change', function(){
+
+  let id_casino = $('#selectCasinoModificarRelev').val();
+  $.get("progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino, function(data){
+      $('#valorMinimoRelevamientoProgresivo').val(data.rta);
+  });
+});
+
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
   $.ajaxSetup({
@@ -304,7 +312,7 @@ function cargarRelevamiento(relevamiento){
   $('#id_relevamiento').val(relevamiento.id_relevamiento_progresivo);
 
   $('#btn-guardar').show().off();
-  $('#btn-finalizar').show().text("CARGAR").off();
+  $('#btn-finalizar').show().text("FINALIZAR").off();
 
   $('#modalRelevamientoProgresivos')
   .find('.modal-header')
@@ -903,9 +911,14 @@ $('.cabeceraTablaPozos th.sortable').click(function(){
 
 
 $('#btn-modificar-parametros-relevamientos').on('click',function(e){
+
   e.preventDefault();
   $('#modalModificarRelev').modal('show');
 
+  let id_casino = $('#selectCasinoModificarRelev').val();
+  $.get("progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino, function(data){
+      $('#valorMinimoRelevamientoProgresivo').val(data.rta);
+  });
 })
 
 
