@@ -234,11 +234,15 @@ $('#btn-buscarMaquina').click(function(e) {
         //Ignorar
         return;
     }
+    const tomado = $('#b_tomado').val() == "" ? null : $('#b_tomado').val();
+    const diferencia = $('#b_diferencia').val() == "" ? null : $('#b_diferencia').val();
 
     var formData = {
         id_maquina: id_maquina,
-        cantidad_relevamientos: cantidad_relevamientos
+        cantidad_relevamientos: cantidad_relevamientos,
     };
+    if (tomado != null) formData.tomado = tomado;
+    if (diferencia != null) formData.diferencia = diferencia;
 
     $.ajax({
         type: 'POST',

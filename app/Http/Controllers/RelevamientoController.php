@@ -1125,10 +1125,12 @@ class RelevamientoController extends Controller
   public function obtenerUltimosRelevamientosPorMaquina(Request $request){
     Validator::make($request->all(),[
         'id_maquina' => 'required|numeric|exists:maquina,id_maquina',
-        'cantidad_relevamientos' => 'required|numeric|min:1'
+        'cantidad_relevamientos' => 'required|numeric|min:1',
+        'tomado' => 'nullable|string',
+        'diferencia' => 'nullable|string',
     ], array(), self::$atributos)->after(function($validator){
-      
-      $maq = Maquina::find($validator->getData()['id_maquina']);
+      $data = $validator->getData();
+      $maq = Maquina::find($data['id_maquina']);
       //No deberia pasar porque se chequea en el validator.
       if($maq === null) $validator->errors()->add('id_maquina','No existe esa maquina');
       else{
@@ -1137,6 +1139,22 @@ class RelevamientoController extends Controller
         $casino = $maq->casino;
         if(!$userc->usuarioTieneCasinoCorrespondiente($user->id_usuario,$casino->id_casino)){
           $validator->errors()->add('id_casino','El usuario no tiene acceso a ese casino');
+        }
+      }
+      if(array_key_exists('tomado',$data)){
+        $tomado = $data['tomado'];
+        if(!is_null($tomado) 
+        && $tomado != 'SI' 
+        && $tomado != 'NO'){
+          $validator->errors()->add('tomado','Tomado invalido');
+        }
+      }
+      if(array_key_exists('diferencia',$data)){
+        $diferencia = $data['diferencia'];
+        if(!is_null($diferencia)
+        && $diferencia != 'SI' 
+        && $diferencia != 'NO'){
+          $validator->errors()->add('diferencia','Diferencia invalido');
         }
       }
     })->validate();
@@ -1148,6 +1166,29 @@ class RelevamientoController extends Controller
     $ret->sector = $maq->isla->sector->descripcion;
     $ret->isla = $maq->isla->nro_isla;
     $ret->nro_admin = $maq->nro_admin;
+
+    $testString = array("SI" => True, "NO" => False, null => null);
+    $tomado = $testString[$request->tomado];
+    $diferencia = $testString[$request->diferencia];
+    $queryFunction = function($query) use ($diferencia,$tomado){
+      if(!is_null($tomado)){
+        if($tomado){
+         $query->whereNull('detalle_relevamiento.id_tipo_causa_no_toma');
+        }
+        else{
+          $query->whereNotNull('detalle_relevamiento.id_tipo_causa_no_toma');
+        }
+      }
+      if(!is_null($diferencia)){
+        $query->whereNotNull('detalle_relevamiento.diferencia');
+        if($diferencia){
+          $query->where('detalle_relevamiento.diferencia','<>','0');
+        }
+        else{
+          $query->where('detalle_relevamiento.diferencia','=','0');
+        }
+      }
+    };
 
     $detalles = DB::table('detalle_relevamiento')
                     ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
@@ -1169,6 +1210,7 @@ class RelevamientoController extends Controller
                            ->where('maquina.id_maquina',$maq->id_maquina)
                            ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
                            ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)
+                           ->where($queryFunction)
                            //->groupby()
                            ->distinct('relevamiento.id_relevamiento',
                                      'detalle_relevamiento.id_detalle_relevamiento',
