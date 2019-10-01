@@ -327,7 +327,7 @@ class SesionesController extends Controller
 
       $sesion=SesionBingo::findorfail($id);
 
-      //si esta cerrada, los fiscalizadores no pueden eliminar la sesión 
+      //si esta cerrada, los fiscalizadores no pueden eliminar la sesión
       if($sesion->id_estado == 2) {
         $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
         if( $permiso == 1){
@@ -515,8 +515,13 @@ class SesionesController extends Controller
         return ['partida' => $partida];
     }
 
-    public function reAbrirSesion($id){
+    public function reAbrirSesion(Request $request, $id){
+      //Validación del motivo
+      Validator::make($request->all(), [
+            'motivo' => 'required'
+        ])->validate();
 
+      //control de permiso
         $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
         if( $permiso == 1){
             return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
@@ -537,6 +542,7 @@ class SesionesController extends Controller
       $sesionre->pozo_extra_inicial = $sesion->pozo_extra_inicial;
       $sesionre->pozo_dotacion_final = $sesion->pozo_dotacion_final;
       $sesionre->pozo_extra_final = $sesion->pozo_extra_final;
+      $sesionre->observacion = $request->motivo;
 
       $sesionre->fecha_re = date("Y-m-d");
       $sesionre->save();
@@ -575,6 +581,17 @@ class SesionesController extends Controller
         $dompdf->render();
         $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
         return $dompdf->stream("Sesion-Bingo.pdf", Array('Attachment'=>0));
+      }
+
+      public function generarPlanillaCierreSesion(){
+
+        $view = View::make('Bingo.planillaCierreSesion');
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+        return $dompdf->stream("CierreSesion-Bingo.pdf", Array('Attachment'=>0));
       }
 
       public function generarPlanillaRelevamiento(){

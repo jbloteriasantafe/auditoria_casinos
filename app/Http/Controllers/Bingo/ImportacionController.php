@@ -112,12 +112,27 @@ class ImportacionController extends Controller
       $nfecha = $this->fechaArchivo($path);
 
       //si decidió guardar igual un archivo con fecha y casino ya importado, borro
+      //cargo las observaciones de re importación
       if($request->guarda_igual == 1){
+          //Validación del motivo
+          Validator::make($request->all(), [
+                'motivo' => 'required'
+            ])->validate();
+
          $id = $this->obtenerImportacionSimple($nfecha, $request->id_casino);
          $this->eliminarImportacion($id);
+         DB::table('bingo_obs_importacion')
+                           ->insert([
+                             'id_casino' => $request->id_casino,
+                             'fecha_importacion' => $nfecha,
+                             'id_usuario' => $usuario,
+                             'observacion' => $request->motivo
+                           ]);
       }
+
       //valido la importacion
       $this->validarImportacion($request->id_casino, $nfecha);
+
 
       //guardo todas las filas en lines, como csv corta con ',', habrá más columnas por fila
       $lines = array();
@@ -147,6 +162,11 @@ class ImportacionController extends Controller
         }
         $una_importacion = $this->guardarRosario($resultado, $usuario);
       }
+      //si el archivo no es correcto, devuelve el error
+      if( $una_importacion == 'error_archivo') {
+        return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
+      }
+
       //paso lo recibido a collection para agregarle los datos que faltan para mostrarse
       $una_importacion = collect($una_importacion);
       //Agrego nombre de usuario y código de casino
@@ -202,29 +222,35 @@ class ImportacionController extends Controller
 
       foreach ($resultado as $row) {
 
+        //si no pudo separar la fecha en 3 partes, el archivo no es válido
+        if( count($row) != 20) {
+          return 'error_archivo';
+        }
+
         $fecha = explode('/', $row[19]);
+
         $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
 
         //creo una nueva importación para cargar los datos
         $importacion = new ImportacionBingo;
         $importacion->id_casino = $id;
         $importacion->id_usuario = $usuario;
-        $importacion->num_partida = $row[0];
+        $importacion->num_partida = (int)$row[0];
         $importacion->hora_inicio = $row[1];
-        $importacion->serieA = $row[3];
-        $importacion->carton_inicio_A = $row[4];
-        $importacion->carton_fin_A = $row[5];
-        $importacion->cartones_vendidos = $row[6];
-        $importacion->serieB = $row[7];
-        $importacion->carton_inicio_B = $row[8];
-        $importacion->carton_fin_B = $row[9];
-        $importacion->valor_carton = $row[12];
-        $importacion->cant_bola = $row[13];
-        $importacion->recaudado = $row[14];
-        $importacion->premio_linea = $row[15];
-        $importacion->premio_bingo = $row[16];
-        $importacion->pozo_dot = $row[17];
-        $importacion->pozo_extra = $row[18];
+        $importacion->serieA = (int)$row[3];
+        $importacion->carton_inicio_A = (int)$row[4];
+        $importacion->carton_fin_A = (int)$row[5];
+        $importacion->cartones_vendidos = (int)$row[6];
+        $importacion->serieB = (int)$row[7];
+        $importacion->carton_inicio_B = (int)$row[8];
+        $importacion->carton_fin_B = (int)$row[9];
+        $importacion->valor_carton = (int)$row[12];
+        $importacion->cant_bola = (int)$row[13];
+        $importacion->recaudado = (float)$row[14];
+        $importacion->premio_linea = (float)$row[15];
+        $importacion->premio_bingo = (float)$row[16];
+        $importacion->pozo_dot = (float)$row[17];
+        $importacion->pozo_extra = (float)$row[18];
         $importacion->fecha = $nfecha;
 
         $importacion->save();
@@ -249,33 +275,32 @@ class ImportacionController extends Controller
 
         //si no pudo separar la fecha en 3 partes, el archivo no es válido
         if( count($fecha) != 3) {
-          return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
+          return 'error_archivo';
         }
-
         $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
 
         //creo una nueva importación para cargar los datos
         $importacion = new ImportacionBingo;
         $importacion->id_casino = '3';
         $importacion->id_usuario = $usuario;
-        $importacion->num_partida = $row[0];
+        $importacion->num_partida = (int)$row[0];
         $importacion->hora_inicio = $row[1];
-        $importacion->serieA = $row[3];
-        $importacion->carton_inicio_A = $row[4];
-        $importacion->carton_fin_A = $row[5];
-        $importacion->cartones_vendidos = $row[9];
-        if($row[6] != '')$importacion->serieB = $row[6];
-        if($row[7] != '')$importacion->carton_inicio_B = $row[7];
-        if($row[8] != '')$importacion->carton_fin_B = $row[8];
-        $importacion->valor_carton = $row[11];
+        $importacion->serieA = (int)$row[3];
+        $importacion->carton_inicio_A = (int)$row[4];
+        $importacion->carton_fin_A = (int)$row[5];
+        $importacion->cartones_vendidos = (int)$row[9];
+        if($row[6] != '')$importacion->serieB = (int)$row[6];
+        if($row[7] != '')$importacion->carton_inicio_B = (int)$row[7];
+        if($row[8] != '')$importacion->carton_fin_B = (int)$row[8];
+        $importacion->valor_carton = (int)$row[11];
 
-        if($row[12] != '')$importacion->cant_bola = $row[12];
+        if($row[12] != '')$importacion->cant_bola = (int)$row[12];
 
-        $importacion->recaudado = $row[13];
-        $importacion->premio_linea = $row[14];
-        $importacion->premio_bingo = $row[15];
-        $importacion->pozo_dot = $row[16];
-        $importacion->pozo_extra = $row[17];
+        $importacion->recaudado = (float)$row[13];
+        $importacion->premio_linea = (float)$row[14];
+        $importacion->premio_bingo = (float)$row[15];
+        $importacion->pozo_dot = (float)$row[16];
+        $importacion->pozo_extra = (float)$row[17];
         $importacion->fecha = $nfecha;
 
         $importacion->save();

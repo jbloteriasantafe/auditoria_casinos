@@ -726,7 +726,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     </div>
 
     <!-- Modal reAbrirSesion -->
-    <div class="modal fade" id="modalAbrirSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="modalAbrirSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
                 <div class="modal-header">
@@ -749,7 +749,41 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                 </div>
             </div>
           </div>
-    </div>
+    </div> -->
+
+
+    <!-- Modal reabrir sesión -->
+    <div class="modal fade" id="modalAbrirSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+        <div class="modal-dialog">
+           <div class="modal-content">
+
+             <div class="modal-header" style="background: #d9534f; color: #E53935;">
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                 <h3 class="modal-title" style="color:#000000;">ADVERTENCIA</h3>
+             </div>
+
+                  <div class="modal-body" style="color:#fff; background-color:#FFFFF;">
+              <form id="frmMotivos">
+
+                      <h6 style="color:#000000 !important; font-size:14px;"></h6>
+                      <br>
+                      <h6 id="mensajeAbrirSesion" style="color:#000000"></h6>
+                      <div id="campo-valor">
+                        <input placeholder="" id="motivo-reapertura" type="text" class="form-control">
+                      </div>
+              </form>
+                    </div>
+            <br>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" id="btn-abrirSesion">ACEPTAR</button>
+              <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal">CANCELAR</button>
+              <!-- <button type="button" class="btn btn-dangerAbrirSesion" id="btn-abrirSesion" value="0">ACEPTAR</button>
+              <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button> -->
+            </div>
+        </div>
+      </div>
+</div>
 
     <!-- Modal ERRORES / ADVERTENCIAS -->
     <div class="modal fade" id="modalCorrecta" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

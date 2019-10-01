@@ -745,6 +745,8 @@ $('#btn-guardar-cierre').click(function (e) {
 
                     $('#frmCierreSesion').trigger("reset");
                     $('#modalCierreSesion').modal('hide');
+                    //abre planilla cierre sesión
+                    window.open('bingo/generarPlanillaCierreSesion');
                     //Mostrar éxito
                     $('#mensajeExito').show();
                 },
@@ -933,9 +935,13 @@ $('#btn-abrirSesion').click(function (e) {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
         }
     })
-
+    var formData = {
+      motivo: $('#motivo-reapertura').val(),
+    }
+    console.log(formData);
     $.ajax({
         type: "POST",
+        data: formData,
         url: "bingo/reAbrirSesion/" + id,
         success: function (data) {
 
@@ -951,6 +957,10 @@ $('#btn-abrirSesion').click(function (e) {
           if(typeof response.no_tiene_permiso !== 'undefined'){
               errorPermiso();
             }
+          if(typeof response.motivo !== 'undefined'){
+              mostrarErrorValidacion($('#motivo-reapertura'),'El campo no puede estar en blanco.' ,true);
+            }
+
           console.log('Error: ', data);
         }
     });
@@ -1470,10 +1480,11 @@ function avisoSesionAbierta() {
 //Modal de aviso reAbrirSesion
 function reAbrirSesion(id_sesion){
     $('.modal-titleAbrirSesion').text('ADVERTENCIA');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+    // $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
     $('#btn-abrirSesion').val(id_sesion);
     $('#modalAbrirSesion').modal('show');
-    $('#mensajeAbrirSesion').text('Esta seguro que desea reabrir la sesión?');
+      $('#frmMotivos').trigger('reset');
+    $('#mensajeAbrirSesion').text('Esta seguro que desea reabrir la sesión? Por favor, ingrese el motivo.');
 }
 //Calculo de feecha de hoy
 function fechaHoy(){

@@ -105,6 +105,7 @@ class ReportesController extends Controller{
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
       $sort_by = $request->sort_by;
+      // dd($sort_by);
       //consulta a la db para obtener los estados que cumplan con las reglas
       $resultados = DB::table('bingo_reporte_estado')
                          ->select('bingo_reporte_estado.*', 'casino.nombre')
