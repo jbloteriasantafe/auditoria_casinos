@@ -64,7 +64,31 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
                                           <h5>CANTIDAD DE RELEVAMIENTOS</h5>
                                           <input id="b_cantidad_relevamientos" type="text" class="form-control" value="" placeholder="Cantidad de relevamientos">
                                       </div>
-                                    </div><br><br>
+                                    </div><br>
+
+                                    <div class="row">
+                                      <div class="col-lg-12">
+                                          <h5>Tomado</h5>
+                                          <select id="b_tomado" class="form-control">
+                                            <option value=''>Todos</option>
+                                            <option value='SI'>Tomado</option>
+                                            <option value='NO'>No tomado</option>
+                                          </select>
+                                      </div>
+                                    </div><br>
+
+                                    <div class="row">
+                                      <div class="col-lg-12">
+                                          <h5>Diferencia</h5>
+                                          <select id="b_diferencia" class="form-control">
+                                            <option value=''>Todos</option>
+                                            <option value='NO'>Sin diferencia</option>
+                                            <option value='SI'>Con diferencia</option>
+                                          </select>
+                                      </div>
+                                    </div><br>
+
+
 
                                     <div class="row">
                                       <div class="col-md-12">

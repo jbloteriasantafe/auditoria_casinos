@@ -173,14 +173,20 @@ class RelevamientoProgresivoController extends Controller
   private function obtenerFiscalizadores($casinos,$user){
     $controller = UsuarioController::getInstancia();
     $fiscalizadores = array();
+
     foreach($casinos as $c){
       $cas = array();
       $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
+
       foreach($fs as $f){
-        $cas[]=array('id_usuario' => $f->id_usuario,'nombre' => $f->nombre);
+        $cas[] = array(
+                      'id_usuario' => $f->id_usuario,
+                      'nombre' => $f->nombre
+                      );
       }
-      $fiscalizadores[$c->id_casino]=$cas;
+      $fiscalizadores[$c->id_casino] = $cas;
     }
+
     return $fiscalizadores;
   }
 
@@ -331,9 +337,11 @@ class RelevamientoProgresivoController extends Controller
     }
 
     $sector = Sector::find($relevamiento_progresivo->id_sector);
+    $casino = Casino::find($sector->id_casino);
     $otros_datos_relevamiento_progresivo = array(
       'sector' => $sector->descripcion,
-      'casino' => (Casino::find($sector->id_casino))->nombre,
+      'casino' => $casino->nombre,
+      'codigo_casino'=> $casino->codigo,
       'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) : "",
       'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
     );
@@ -345,8 +353,8 @@ class RelevamientoProgresivoController extends Controller
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    // $dompdf->getCanvas()->page_text(20, 815, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf;
   }
@@ -367,7 +375,9 @@ class RelevamientoProgresivoController extends Controller
           'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
           'detalles.*.niveles.*.numero' => 'required|string',
           'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo'
-      ], array(), self::$atributos)->after(function($validator){
+      ], array(
+        'detalles.*.niveles.*.valor.numeric' => 'El valor de un nivel no es numerico.'
+      ), self::$atributos)->after(function($validator){
         $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
         $controller = UsuarioController::getInstancia();
 
@@ -425,6 +435,24 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function guardarRelevamiento(Request $request){
+    //Como no se hace validacion, puede mandar texto, si es texto
+    //Lo pongo como nulo.
+    $detalles = $request->detalles;
+    //Tengo que hacer todo este berenjenal porque 
+    //PHP te hace copias en vez de referencias
+    //Y no pude hacer andar el array con &
+    //Un foreach seria mucho mas facil...
+    for($didx=0;$didx<sizeof($detalles);$didx++){
+      for($n = 0;$n<6;$n++){
+        if(array_key_exists($n,$detalles[$didx]['niveles'])){
+          $aux = $detalles[$didx]['niveles'][$n]['valor'];
+          $value = is_numeric($aux)? $aux : NULL;
+          $detalles[$didx]['niveles'][$n]['valor']=$value;
+        }
+      }
+    }
+    //dump($detalles);
+    $request->merge(['detalles'=>$detalles]);
     $resultado = $this->cargarRelevamiento($request,false);
     if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
@@ -467,7 +495,7 @@ class RelevamientoProgresivoController extends Controller
         'minimo_relevamiento_progresivo' => 'required',
     ], array(), self::$atributos)->after(function($validator){
 
-      if($validator->getData()['minimo_relevamiento_progresivo'] <= 0){
+      if($validator->getData()['minimo_relevamiento_progresivo'] < 0){
         $validator->errors()->add('error_minimo_relevamiento_progresivo', 'El valor mínimo de base de niveles para un pozo no puede ser negativo');
       }
     })->validate();
@@ -483,13 +511,12 @@ class RelevamientoProgresivoController extends Controller
   public function eliminarRelevamientoProgresivo ($id_relevamiento_progresivo) {
     $usercontroller = UsuarioController::getInstancia();
     $usuario = $usercontroller->quienSoy()['usuario'];
-    $progresivo = Progresivo::find($id_relevamiento_progresivo);
-    if($usuario === null || $progresivo === null) return;
+    $relevamiento_progresivo = RelevamientoProgresivo::find($id_relevamiento_progresivo);
+    $casino = Casino::find(Sector::find($relevamiento_progresivo->id_sector)->id_casino);
 
-    if(!$usercontroller->usuarioTieneCasinoCorrespondiente(
-    $usuario->id_usuario,
-    $progresivo->casino->id_casino)
-    ) return;
+    if($usuario === null || $relevamiento_progresivo === null) return;
+
+    if(!$usercontroller->usuarioTieneCasinoCorrespondiente($usuario->id_usuario, $casino->id_casino)) return;
 
     DB::transaction(function() use ($id_relevamiento_progresivo){
         //elimino todos los detalles asociados al relevamiento progresivo
@@ -503,6 +530,10 @@ class RelevamientoProgresivoController extends Controller
     });
 
     return ['codigo' => 200];
+  }
+
+  public function obtenerMinimorelevamientoProgresivo ($id_casino) {
+    return ['rta' => (Casino::find($id_casino))->minimo_relevamiento_progresivo];
   }
 
 }

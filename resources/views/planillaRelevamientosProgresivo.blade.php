@@ -42,12 +42,11 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-              <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
+            <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+            <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
         </div>
               <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>
-              <div class="camposInfo" style="right:261px;"></span><?php $hoy = date('j-m-y / h:i');
-                    print_r($hoy); ?></div>
+              <div class="camposInfo" style="right:261px;"></span><?php print_r(date('j-m-y / h:i')); ?></div>
 
                     <!-- Tabla de datos del relevamiento de progresivos -->
                     <table>
@@ -77,17 +76,19 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                     @if (count($detalles_linkeados) > 0)
                     <div class="primerEncabezado">Listado de progresivos linkeados:</div>
                     <table>
-                      <tr>
-                        <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-                        <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
-                      </tr>
+                      <thead>
+                        <tr>
+                          <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
+                          <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
+                        </tr>
+                      </thead>
 
                       @foreach ($detalles_linkeados as $detalle)
                       <tr>
@@ -122,20 +123,28 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                     <!-- Tabla de progresivos individuales -->
                     @if (count($detalles_individuales) > 0)
                     <div class="breakNow"> </div>
+                    <div class="encabezadoImg">
+                        <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+                        <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
+                    </div>
+                    <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>
+                    <div class="camposInfo" style="right:261px;"></span><?php print_r(date('j-m-y / h:i')); ?></div>
                     <div class="primerEncabezado">Listado de progresivos individuales:</div>
                     <table>
-                      <tr>
-                        <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
-                        <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-                        <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
-                      </tr>
+                      <thead>
+                        <tr>
+                          <th class="tablaInicio" style="background-color: #dddddd">ISLA/S</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">MÁQ./S</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">PROGRESIVO</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
+                          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
+                          <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
+                        </tr>
+                      </thead>
 
                       @foreach ($detalles_individuales as $detalle)
                       <tr>

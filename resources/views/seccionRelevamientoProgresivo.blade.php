@@ -33,11 +33,11 @@ $niveles = 6;
 @endsection
 
 @foreach ($casinos as $casino)
-<datalist id="datalist{{$casino->id_casino}}">
-  @foreach($fiscalizadores[$casino->id_casino] as $u)
-  <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
-  @endforeach
-</datalist>
+  <datalist id="datalist{{$casino->id_casino}}">
+    @foreach($fiscalizadores[$casino->id_casino] as $u)
+      <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
+    @endforeach
+  </datalist>
 @endforeach
 
 <div class="row">
@@ -426,7 +426,7 @@ $niveles = 6;
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-warningModificar" id="btn-guardar">GUARDAR TEMPORALMENTE</button>
-              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button>
+              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR</button>
               <button type="button" class="btn btn-dangerElimina" id="btn-salir">SALIR</button>
             </div>
           </div>

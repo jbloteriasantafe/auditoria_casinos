@@ -54,6 +54,7 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
   Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
   Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
+    Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
   Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
   Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
   Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
