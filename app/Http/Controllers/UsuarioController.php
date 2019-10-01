@@ -122,7 +122,7 @@ class UsuarioController extends Controller
                          ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                          ->where('usuario_tiene_casino.id_casino','=',$id_casino)
                          ->whereIn('usuario_tiene_rol.id_rol',[3])
-                         ->whereNotIn('usuario.id_usuario',[$id_usuario])
+                        // ->whereNotIn('usuario.id_usuario',[$id_usuario])
                          ->distinct('usuario.id_usuario')
                          ->get();
     return $fiscalizadores;

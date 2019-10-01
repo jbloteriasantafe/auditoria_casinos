@@ -173,14 +173,20 @@ class RelevamientoProgresivoController extends Controller
   private function obtenerFiscalizadores($casinos,$user){
     $controller = UsuarioController::getInstancia();
     $fiscalizadores = array();
+
     foreach($casinos as $c){
       $cas = array();
       $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
+
       foreach($fs as $f){
-        $cas[]=array('id_usuario' => $f->id_usuario,'nombre' => $f->nombre);
+        $cas[] = array(
+                      'id_usuario' => $f->id_usuario,
+                      'nombre' => $f->nombre
+                      );
       }
-      $fiscalizadores[$c->id_casino]=$cas;
+      $fiscalizadores[$c->id_casino] = $cas;
     }
+    
     return $fiscalizadores;
   }
 
