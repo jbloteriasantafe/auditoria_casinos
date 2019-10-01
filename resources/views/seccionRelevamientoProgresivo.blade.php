@@ -33,11 +33,11 @@ $niveles = 6;
 @endsection
 
 @foreach ($casinos as $casino)
-<datalist id="datalist{{$casino->id_casino}}">
-  @foreach($fiscalizadores[$casino->id_casino] as $u)
-  <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
-  @endforeach
-</datalist>
+  <datalist id="datalist{{$casino->id_casino}}">
+    @foreach($fiscalizadores[$casino->id_casino] as $u)
+      <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
+    @endforeach
+  </datalist>
 @endforeach
 
 <div class="row">
