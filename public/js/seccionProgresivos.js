@@ -16,6 +16,7 @@ $(document).ready(function() {
     $('#opcProgresivos').addClass('opcionesSeleccionado');
 
     $('#btn-buscar').trigger('click');
+    //$('[data-toggle="tooltip"]').tooltip('hide');
     cargarMaquinas();
 });
 
@@ -205,44 +206,32 @@ function filaEditableIndividual() {
     let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
         let fila_val = arregloProgresivoIndividual(fila);
-        let valido = true;
-        if (isNaN(fila_val.porc_recup) ||
-            fila_val.porc_recup == "" ||
-            fila_val.porc_recup < 0 ||
-            fila_val.porc_recup > 100
-        ) {
+        const validacion = validarFilaInd(fila);
+        if (!validacion.porc_recup) {
             filaIndRecup(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.maximo) || fila_val.maximo < 0) {
+        if (!validacion.maximo) {
             filaIndMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.base) || fila_val.base == "" || fila_val.base < 0) {
+        if (!validacion.base) {
             filaIndBase(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.porc_oculto) ||
-            fila_val.porc_oculto < 0 ||
-            fila_val.porc_oculto > 100) {
+        if (!validacion.porc_oculto) {
             filaIndOculto(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.porc_visible) ||
-            fila_val.porc_visible == "" ||
-            fila_val.porc_visible < 0 ||
-            fila_val.porc_visible > 100) {
+        if (!validacion.porc_visible) {
             filaIndVisible(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
 
-        if (fila_val.maximo != '' && fila_val.base > (fila_val.maximo + 0.000001)) {
-            filaIndBase(fila).find('.editable').addClass('erroneo');
-            filaIndMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
+        if (validacion.razones.length != 0) {
+            console.log(validacion.razones);
+            let finalstr = '';
+            for (let i = 0; i < validacion.razones.length; i++) {
+                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
+            }
+            mostrarError(finalstr);
+            return;
         }
-
-        if (!valido) return;
 
         let value = input.val();
         if (value == '') {
@@ -321,44 +310,32 @@ function filaEditableIndividualParcial(data) {
     let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
         const fila_val = arregloProgresivoIndividual(fila);
-        let valido = true;
-        if (isNaN(fila_val.porc_recup) ||
-            fila_val.porc_recup == "" ||
-            fila_val.porc_recup < 0 ||
-            fila_val.porc_recup > 100
-        ) {
+        const validacion = validarFilaInd(fila);
+        if (!validacion.porc_recup) {
             filaIndRecup(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.maximo) || fila_val.maximo < 0) {
+        if (!validacion.maximo) {
             filaIndMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.base) || fila_val.base == "" || fila_val.base < 0) {
+        if (!validacion.base) {
             filaIndBase(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.porc_oculto) ||
-            fila_val.porc_oculto < 0 ||
-            fila_val.porc_oculto > 100) {
+        if (!validacion.porc_oculto) {
             filaIndOculto(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (isNaN(fila_val.porc_visible) ||
-            fila_val.porc_visible == "" ||
-            fila_val.porc_visible < 0 ||
-            fila_val.porc_visible > 100) {
+        if (!validacion.porc_visible) {
             filaIndVisible(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
 
-        if (fila_val.maximo != '' && fila_val.base > (fila_val.maximo + 0.000001)) {
-            filaIndBase(fila).find('.editable').addClass('erroneo');
-            filaIndMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
+        if (validacion.razones.length != 0) {
+            console.log(validacion.razones);
+            let finalstr = '';
+            for (let i = 0; i < validacion.razones.length; i++) {
+                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
+            }
+            mostrarError(finalstr);
+            return;
         }
-
-        if (!valido) return;
 
         let nueva_fila = filaEjemploIndividual();
         setearFilaProgresivoIndividual(nueva_fila, fila_val)
@@ -764,52 +741,37 @@ function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
 
     fila.find('.confirmar').on('click', function() {
         fila.find('.erroneo').removeClass('erroneo');
-        let nombre = filaNombreVal(fila);
-        let base = filaBaseVal(fila);
-        let porc_visible = filaVisibleVal(fila);
-        let porc_oculto = filaOcultoVal(fila);
-        let maximo = filaMaximoVal(fila);
-
-        const nombre_valido = nombre != '';
-        const base_valida = base != '' && base >= 0;
-        const porc_visible_valida = porc_visible != '' &&
-            (porc_visible >= 0) && (porc_visible <= 100);
-        const porc_oculto_valido = (porc_oculto >= 0) && (porc_oculto <= 100);
-        const maximo_valido = maximo >= 0;
-
-        let valido = true;
-        if (!nombre_valido) {
+        const validacion = validarFila(fila);
+        if (!validacion.nombre_nivel) {
             filaNombre(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (!base_valida) {
+        if (!validacion.base) {
             filaBase(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (!porc_visible_valida) {
+        if (!validacion.porc_visible) {
             filaVisible(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (!porc_oculto_valido) {
+        if (!validacion.porc_oculto) {
             filaOculto(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-        if (!maximo_valido) {
+        if (!validacion.maximo) {
             filaMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
         }
-
-        const maximo_existe = maximo != '';
-        if (base_valida &&
-            maximo_existe &&
-            (parseFloat(base) > (parseFloat(maximo) + 0.000001))
-        ) {
-            filaBase(fila).find('.editable').addClass('erroneo');
-            filaMaximo(fila).find('.editable').addClass('erroneo');
-            valido = false;
+        if (validacion.razones.length == 0) modificarNivel(fila);
+        else {
+            console.log(validacion.razones);
+            let finalstr = '';
+            for (let i = 0; i < validacion.razones.length; i++) {
+                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
+            }
+            mostrarError(finalstr);
+            //fila.attr('title', finalstr);
+            //@HACK nuestra version de bootstrap es vieja
+            //y update o dispose nos tira un error
+            //fila.attr('data-original-title', finalstr);
+            //fila.tooltip('destroy');
+            //fila.tooltip('show');
         }
-
-        if (valido) modificarNivel(fila);
     });
 
     fila.find('.subir').on('click', function() {

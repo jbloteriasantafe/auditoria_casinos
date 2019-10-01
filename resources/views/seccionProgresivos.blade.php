@@ -407,7 +407,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
             </tr>
           </thead>
           <tbody class="cuerpoTablaPozo">
-            <tr class="filaEjemplo" style="display: none;">
+            <tr class="filaEjemplo" style="display: none;" >
               <td class="col-xs-1 cuerpoTablaPozoFlechas">
                 <button class="btn btn-link subir chico" style="background-color: transparent !important;" >
                   <i class="fa fa-fw fa-arrow-up"></i>
