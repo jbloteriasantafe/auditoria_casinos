@@ -611,6 +611,7 @@ class UsuarioController extends Controller
                                                     ->where('usuario_tiene_casino.id_usuario','=',$id_usuario)
                                                     ->get();
 
+
     $casinos_array = $casinos->toArray();
 
     foreach ($casinos_array as $casino) {
