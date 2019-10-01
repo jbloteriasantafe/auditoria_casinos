@@ -375,7 +375,9 @@ class RelevamientoProgresivoController extends Controller
           'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
           'detalles.*.niveles.*.numero' => 'required|string',
           'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo'
-      ], array(), self::$atributos)->after(function($validator){
+      ], array(
+        'detalles.*.niveles.*.valor.numeric' => 'El valor de un nivel no es numerico.'
+      ), self::$atributos)->after(function($validator){
         $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
         $controller = UsuarioController::getInstancia();
 

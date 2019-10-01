@@ -133,7 +133,7 @@ $('#btn-buscarMTM').click(function(e) {
                 $('.boton', movimiento).attr('title', movimientoAString(data.movimientos[i]));
                 $('#listaMovimientos').append(movimiento);
             }
-            $('[data-toggle="tooltip"]').tooltip()
+            $('[data-toggle="tooltip"]').tooltip();
         } else {
             $('#mensajeMovimiento').show();
         }
