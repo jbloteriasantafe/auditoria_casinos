@@ -73,6 +73,15 @@ function limpiarNull(str, c = '-') {
     return str === null ? c : str;
 }
 
+function buscarTipoCausa(tipo_causas,id){
+    for(let i=0;i<tipo_causas.length;i++){
+        if(tipo_causas[i].id_tipo_causa_no_toma == id){
+            return tipo_causas[i];
+        }
+    }
+    return null;
+}
+
 function movimientoAString(mov) {
     retstr = "";
     retstr += "<br style=''>Denominacion de juego: " + limpiarNull(mov.denominacion) + "</br>";
@@ -141,54 +150,38 @@ $('#btn-buscarMTM').click(function(e) {
         for (var i = 0; i < data.relevamientos.length; i++) {
 
             var fila = $(document.createElement('tr'));
+            const rel = data.relevamientos[i];
 
             fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].fecha_carga))
+                    .text(rel.fecha_carga))
                 .append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].nro_admin))
-            if (data.relevamientos[i].cont1 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont1))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
-            if (data.relevamientos[i].cont2 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont2))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
-            if (data.relevamientos[i].cont3 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont3))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
-            if (data.relevamientos[i].cont4 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont4))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
-            if (data.relevamientos[i].cont5 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont5))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
-            if (data.relevamientos[i].cont6 != null) {
-                fila.append($('<td>').css('align', 'center')
-                    .text(data.relevamientos[i].cont6))
-            } else {
-                fila.append($('<td>').css('align', 'center')
-                    .text('-'))
-            }
+                    .text(rel.nro_admin));
 
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont1)));
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont2)));
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont3)));
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont4)));
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont5)));
+            fila.append($('<td>').css('align', 'center')
+                .text(limpiarNull(rel.cont6)));
+            fila.append($('<td>').css('align', 'center')
+            .text(limpiarNull(rel.producido_calculado_relevado)));
+            fila.append($('<td>').css('align', 'center')
+            .text(limpiarNull(rel.producido_importado)));
+            fila.append($('<td>').css('align', 'center')
+            .text(limpiarNull(rel.diferencia)));
+            const causa = buscarTipoCausa(
+                data.tipos_causa_no_toma,
+                rel.id_tipo_causa_no_toma);
+            let descripcion = '-';
+            if(causa != null) descripcion = causa.descripcion;
+            fila.append($('<td>').css('align', 'center')
+            .text(descripcion));
             $('#tablaContadoresTomados tbody').append(fila);
         }
         setTimeout(function(){

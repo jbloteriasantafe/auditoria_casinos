@@ -199,6 +199,10 @@
                               <th>CONTADOR 4</th>
                               <th>CONTADOR 5</th>
                               <th>CONTADOR 6</th>
+                              <th>P. CALCULADO ($)</th>
+                              <th>P. IMPORTADO ($)</th>
+                              <th>DIFERENCIA</th>
+                              <th>TIPO NO TOMA</th>
                               <!-- <th>CONTADOR 7</th> -->
                               <!-- <th>CONTADOR 8</th> -->
                               <!-- <th>P. CALCULADO ($)</th>

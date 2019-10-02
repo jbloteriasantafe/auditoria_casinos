@@ -16,6 +16,7 @@ use App\DetalleRelevamiento;
 use App\EstadoMaquina;
 use App\Cotizacion;
 use App\Isla;
+use App\TipoCausaNoToma;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 
@@ -547,6 +548,7 @@ class informesController extends Controller
             'denominacion_juego' => $maquina->denominacion_juego,
             'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
             'relevamientos' => $detalles_5,
+            'tipos_causa_no_toma' => TipoCausaNoToma::all()
             ];
   }
 
