@@ -25,7 +25,7 @@ $(document).ready(function(){
     ignoreReadonly: true,
     endDate: '+0d'
   });
-  
+
   $('#btn-buscar').trigger('click');
 
 
@@ -144,8 +144,8 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
 
 
-$(document).on('click','#tablaResultadosPremio thead tr th[value]',function(e){
-  $('#tablaResultadosPremio th').removeClass('activa');
+$(document).on('click','#tablaResultados thead tr th[value]',function(e){
+  $('#tablaResultados th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
   }
@@ -157,24 +157,7 @@ $(document).on('click','#tablaResultadosPremio thead tr th[value]',function(e){
       $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaResultadosPremio th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-$(document).on('click','#tablaResultadosCanon thead tr th[value]',function(e){
-  $('#tablaResultadosCanon th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultadosCanon th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
