@@ -535,6 +535,7 @@ class informesController extends Controller
     ->orderBy('relevamiento.fecha_carga','desc')
     ->take(5)->get();
 
+    $juego = $maquina->juego_activo;
     return ['arreglo' => array_reverse($arreglo),
             'datos' => array_reverse($datos),
             'nro_admin' => $maquina->nro_admin  ,
@@ -542,11 +543,11 @@ class informesController extends Controller
             'casino' => $maquina->casino->nombre,
             'isla' => ['nro_isla' =>  $maquina->isla->nro_isla , 'codigo' => $maquina->isla->codigo],
             'sector' => $sector,
-            'juego' => $maquina->juego_activo->nombre_juego,
+            'juego' => $juego->nombre_juego,
             'producido' => $suma,
             'movimientos' => $logs,
-            'denominacion_juego' => $maquina->denominacion_juego,
-            'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
+            'denominacion_juego' => $maquina->obtenerDenominacion(),
+            'porcentaje_devolucion' => $maquina->obtenerPorcentajeDevolucion(),
             'relevamientos' => $detalles_5,
             'tipos_causa_no_toma' => TipoCausaNoToma::all()
             ];
