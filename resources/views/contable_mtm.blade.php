@@ -186,7 +186,7 @@
                     <br>
                     <div class="row">
                       <div class="col-md-12">
-                        <h6>Contadores Tomados en los últimos 5 días:</h6>
+                        <h6>Contadores de las últimas 5 tomas:</h6>
                         <br>
                         <table id="tablaContadoresTomados" class="table">
                           <thead>

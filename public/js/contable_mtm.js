@@ -191,18 +191,18 @@ $('#btn-buscarMTM').click(function(e) {
 
             $('#tablaContadoresTomados tbody').append(fila);
         }
+        setTimeout(function(){
+            generarGraficoMTM(fechas, datos);
+        },200);
     })
 
 
 });
 
 $('#modalMaquinaContable').on('shown.bs.modal', function() {
-    //Le agrego delay porque a veces no se estaba mostrando
-    //Creo que era por que se estaba cargando antes de que se muestre
-    //El modal...
-    setTimeout(function() {
-        generarGraficoMTM(fechas, datos);
-    }, 50);
+    //Antes se hacia aca pero el evento no se estaba ejecutando a veces
+    //Por lo que lo hago directamente cuando se carga todo.
+    //generarGraficoMTM(fechas, datos);
 });
 
 $('#modalMaquinaContable').on('hidden.bs.modal', function() {
