@@ -24,10 +24,11 @@ class InformeController extends Controller
 
       return view('Bingo.informe', compact('informe_ros','informe_sfe','informe_mel'));
     }
-    public function generarPlanilla($fecha, $id_casino){
+    public function generarPlanilla($fecha, $id_casino, $valor = ''){
       //obtengo mes y año a partir de la fecha
       $mm = substr($fecha,5,2);
       $aaaa =  substr($fecha,0,4);
+
 
       //obtengo las importaciones para el casino, mes y año dado
       $importaciones = ImportacionBingo::where('id_casino','=',$id_casino)
@@ -85,15 +86,24 @@ class InformeController extends Controller
       //otiene el nombre del mes
       $mes = $this->obtenerMes($mm);
 
+      //si tiene %% los reemplazo por //
+      $valor = str_replace("&", "/", $valor);
+
       //pasa la vista a pdf
-      $view = View::make('Bingo.planillaInforme', compact('resultado_importaciones','sumarecaudado','sumapremiobingo','sumapremiolinea','beneficio','casino','mes'));
+      $view = View::make('Bingo.planillaInforme', compact('resultado_importaciones','sumarecaudado','sumapremiobingo','sumapremiolinea','beneficio','casino','mes','valor'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml($view->render());
       $dompdf->render();
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
 
-      return $dompdf->stream("Sesion-Bingo.pdf", Array('Attachment'=>0));
+      //retorno para descargar
+      // if($valor != ''){
+      //   return $dompdf->stream($casino .'-'. $mm .'-'. $aaaa. '.pdf');
+      // }else{ //retorno apertura de pdf
+        return $dompdf->stream($casino .'-'. $mm .'-'. $aaaa. '.pdf', Array('Attachment'=>0));
+      // }
+
     }
 
     protected function obtenerInforme($id_casino){

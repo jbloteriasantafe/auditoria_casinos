@@ -86,5 +86,8 @@ tr:nth-child(even) {
                   <td class="tablaCampos">{{$beneficio}}</td>
                 </tr>
               </table>
+              <div class="primerEncabezado" style="padding-top: 20px  ">
+                  {{ $valor }}
+              </div>
   </body>
 </html>

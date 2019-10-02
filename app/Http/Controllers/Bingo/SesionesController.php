@@ -439,7 +439,7 @@ class SesionesController extends Controller
       //Validación de los datos
       Validator::make($request->all(), [
             'nro_partida' => 'required|numeric',
-            'hora_jugada' => 'required|date_format:H:i:s',
+            'hora_jugada' => 'required|date_format:H:i',
             'valor_carton' => 'required|numeric',
             'serie_inicio' => 'required|numeric',
             'serie_fin' => 'required|numeric',

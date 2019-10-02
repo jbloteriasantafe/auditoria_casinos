@@ -35,14 +35,14 @@ $('#btn-con-observacion').click(function (e) {
     $('#btn-sin-observacion').hide();
     $('#btn-con-observacion').hide();
     //cambio el texto del mensaje
-    $('#mensajePregunta').text('Por favor, ingrese el valor de corrección para el informe:');
+    $('#mensajePregunta').text('Por favor, ingrese el texto de corrección para el informe:');
     //agergo el campo para el valor de corrección
     $('#btn-generar-con-observacion').attr('data-fecha',$(this).attr('data-fecha'))
                                       .attr('data-casino', $(this).attr('data-casino'))
                                       .show();
     $('#campo-valor').show();
     $('#campo-valor')
-              .append($('<input>')
+              .append($('<textarea>')
                   .attr('placeholder' , '')
                   .attr('id','valor-campo')
                   .attr('type','text')
@@ -54,5 +54,10 @@ $('#btn-con-observacion').click(function (e) {
 
     });
 $('#btn-generar-con-observacion').click(function (e) {
-  window.open('generarPlanillaInforme/' + $(this).attr('data-fecha') +"/"+ $(this).attr('data-casino') + "/" + $('#valor-campo').val(),'_blank');
+  var texto = $('#valor-campo').val();
+
+  var valor= texto.replace(/[/]/g,"&");
+
+  window.open('generarPlanillaInforme/' + $(this).attr('data-fecha') +"/"+ $(this).attr('data-casino') +"/"+ valor,'_blank');
+
   });
