@@ -186,7 +186,7 @@
                     <br>
                     <div class="row">
                       <div class="col-md-12">
-                        <h6>Contadores Tomados en los últimos 5 días:</h6>
+                        <h6>Contadores de las últimas 5 tomas:</h6>
                         <br>
                         <table id="tablaContadoresTomados" class="table">
                           <thead>
@@ -199,6 +199,10 @@
                               <th>CONTADOR 4</th>
                               <th>CONTADOR 5</th>
                               <th>CONTADOR 6</th>
+                              <th>P. CALCULADO ($)</th>
+                              <th>P. IMPORTADO ($)</th>
+                              <th>DIFERENCIA</th>
+                              <th>TIPO NO TOMA</th>
                               <!-- <th>CONTADOR 7</th> -->
                               <!-- <th>CONTADOR 8</th> -->
                               <!-- <th>P. CALCULADO ($)</th>

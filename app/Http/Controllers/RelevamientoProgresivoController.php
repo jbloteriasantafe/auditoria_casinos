@@ -435,6 +435,24 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function guardarRelevamiento(Request $request){
+    //Como no se hace validacion, puede mandar texto, si es texto
+    //Lo pongo como nulo.
+    $detalles = $request->detalles;
+    //Tengo que hacer todo este berenjenal porque 
+    //PHP te hace copias en vez de referencias
+    //Y no pude hacer andar el array con &
+    //Un foreach seria mucho mas facil...
+    for($didx=0;$didx<sizeof($detalles);$didx++){
+      for($n = 0;$n<6;$n++){
+        if(array_key_exists($n,$detalles[$didx]['niveles'])){
+          $aux = $detalles[$didx]['niveles'][$n]['valor'];
+          $value = is_numeric($aux)? $aux : NULL;
+          $detalles[$didx]['niveles'][$n]['valor']=$value;
+        }
+      }
+    }
+    //dump($detalles);
+    $request->merge(['detalles'=>$detalles]);
     $resultado = $this->cargarRelevamiento($request,false);
     if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);

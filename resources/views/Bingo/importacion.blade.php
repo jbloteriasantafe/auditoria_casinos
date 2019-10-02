@@ -1,4 +1,4 @@
-@extends('includes.dashboard')
+  @extends('includes.dashboard')
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
@@ -198,7 +198,7 @@ $casinos = $usuario->casinos;
 
                           <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                                   <div class="col-md-12">
-                                      <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
+                                      <h6 id="msjeError">SE PRODUJO UN ERROR DE CONEXIÓN</h6>
                                       <button id="btn-reintentar" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
                                   </div>
                               </div>
@@ -283,6 +283,7 @@ $casinos = $usuario->casinos;
                       <h3 class="modal-title"> IMPORTAR SESIÓN</h3>
                   </div>
                   <div class="modal-body">
+                      <form id="frmMotivos">
                         <h5 style="padding:10px;font-family:Roboto-Condensed;color:#FF1744 !important;font-size:24px;">ATENCIÓN</h5>
                         <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">YA EXISTE IMPORTACIÓN PARA EL DÍA Y CASINO SELECCIONADO.</h5>
 
@@ -291,8 +292,12 @@ $casinos = $usuario->casinos;
                       </p>
 
                       <p style="font-family:Roboto-Regular;font-size:16px;margin-bottom:20px;">
-                        ¿Desea imortar la sesión de todas formas?
+                        ¿Desea importar la sesión de todas formas? Por favor ingrese el motivo.
                       </p>
+                      <div id="campo-valor">
+                        <input placeholder="" id="motivo-reimportacion" type="text" class="form-control">
+                      </div>
+                      </form>
                   </div>
                   <div class="modal-footer">
                     <button id="btn-guardarIgual" type="button" class="btn btn-successAceptar" value="nuevo">IMPORTAR DE TODAS FORMAS</button>

@@ -762,7 +762,7 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
 });
 
 //BINGO
-//Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
+Route::group(['middleware' => ['tiene_permiso:ver_seccion_sesion_relevamientos']], function () {
   Route::get('bingo','Bingo\SesionesController@index');
   Route::get('bingo/buscarSesion','Bingo\SesionesController@buscarSesion');
   Route::post('bingo/guardarSesion','Bingo\SesionesController@guardarSesion');
@@ -774,7 +774,11 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::post('bingo/modificarCierreSesion','Bingo\SesionesController@modificarCierreSesion');
   Route::post('bingo/modificarSesion','Bingo\SesionesController@modificarSesion');
   Route::get('bingo/generarPlanillaSesion','Bingo\SesionesController@generarPlanillaSesion');
+  Route::get('bingo/generarPlanillaCierreSesion','Bingo\SesionesController@generarPlanillaCierreSesion');
   Route::get('bingo/generarPlanillaRelevamiento','Bingo\SesionesController@generarPlanillaRelevamiento');
+  Route::delete('bingo/eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
+});
+Route::group(['middleware' => ['tiene_permiso:bingo_ver_gestion']], function () {
   Route::get('bingo/gestionBingo','Bingo\GestionController@index');
   Route::get('bingo/buscarPremio','Bingo\GestionController@buscarPremio');
   Route::get('bingo/buscarCanon','Bingo\GestionController@buscarCanon');
@@ -782,23 +786,30 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::post('bingo/guardarCanon','Bingo\GestionController@guardarCanon');
   Route::delete('bingo/eliminarPremio/{id}','Bingo\GestionController@eliminarPremio');
   Route::delete('bingo/eliminarCanon/{id}','Bingo\GestionController@eliminarCanon');
-  Route::get('bingo/importarRelevamiento','Bingo\ImportacionController@index');
-  Route::get('bingo/buscarRelevamiento','Bingo\ImportacionController@buscarRelevamiento');
-  Route::delete('bingo/eliminarImportacion/{id}','Bingo\ImportacionController@eliminarImportacion');
-  Route::post('bingo/guardarImportacion','Bingo\ImportacionController@guardarImportacion');
   Route::get('bingo/obtenerPremio/{id}','Bingo\GestionController@obtenerPremio');
   Route::get('bingo/obtenerCanon/{id}','Bingo\GestionController@obtenerCanon');
   Route::post('bingo/modificarPremio','Bingo\GestionController@modificarPremio');
   Route::post('bingo/modificarCanon','Bingo\GestionController@modificarCanon');
+});
+Route::group(['middleware' => ['tiene_permiso:importar_bingo']], function () {
+  Route::get('bingo/importarRelevamiento','Bingo\ImportacionController@index');
+  Route::get('bingo/buscarRelevamiento','Bingo\ImportacionController@buscarRelevamiento');
+  Route::delete('bingo/eliminarImportacion/{id}','Bingo\ImportacionController@eliminarImportacion');
+  Route::post('bingo/guardarImportacion','Bingo\ImportacionController@guardarImportacion');
   Route::get('bingo/obtenerImportacionCompleta/{id}','Bingo\ImportacionController@obtenerImportacionCompleta');
   Route::get('bingo/obtenerImportacionSimple/{fecha}/{casino}','Bingo\ImportacionController@obtenerImportacionSimple');
+});
+Route::group(['middleware' => ['tiene_permiso:reporte_estado_bingo']], function () {
   Route::get('bingo/reportesEstado','Bingo\ReportesController@reportesEstado');
   Route::get('bingo/buscarEstado','Bingo\ReportesController@buscarEstado');
+});
+Route::group(['middleware' => ['tiene_permiso:reporte_diferencia_bingo']], function () {
   Route::get('bingo/reportesDiferencia','Bingo\ReportesController@reportesDiferencia');
   Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
   Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
   Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
+});
+Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
   Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
   Route::get('bingo/informe','Bingo\InformeController@index');
-  Route::delete('bingo/eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
-//});
+});

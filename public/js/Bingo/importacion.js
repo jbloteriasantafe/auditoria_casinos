@@ -238,6 +238,8 @@ $('#btn-guardar').click(function (e) {
 
     formData.append('id_casino', id_casino);
     formData.append('guarda_igual', $('#guarda_igual').val());
+    formData.append('motivo', $('#motivo-reimportacion').val());
+
     console.log($('#guarda_igual').val());
 
     //Si subió archivo lo guarda
@@ -276,6 +278,8 @@ $('#btn-guardar').click(function (e) {
           $("#tablaResultados").trigger("update");
 
           $('#cuerpoTabla').append(generarFilaTabla(data));
+
+          $('#modalImportacionCargada').modal('hide');
         },
         error: function (data) {
           var response = JSON.parse(data.responseText);
@@ -288,10 +292,22 @@ $('#btn-guardar').click(function (e) {
           $('#modalImportacion #mensajeInvalido').hide();
           $('#modalImportacion #mensajeInformacion').hide();
           $('#modalImportacion #iconoCarga').hide();
+          console.log(response.motivo);
+
+          if(typeof response.motivo !== 'undefined'){
+              mostrarErrorValidacion($('#motivo-reimportacion'),'El campo no puede estar en blanco.' ,true);
+            }
+
+          if(response.archivo_valido !== 'undefined'){
+            $('#msjeError').text('El archivo no corresponde al casino seleccionado.')
+          }
 
           if(response.importacion_cargada != null){
+            $('#frmMotivos').trigger('reset');
             $('#modalImportacionCargada').modal('show');
           }
+
+          // $('#modalImportacion').modal('hide');
           console.log('ERROR!');
           console.log(data);
         }
@@ -303,9 +319,10 @@ $('#btn-guardarIgual').click(function (e) {
   $('#guarda_igual').attr('value', 1);
   var ff = $('#i_eliminar').val();
   var id_casino = $('#id_casino').val();
+  var motivo = $('#motivo-reimportacion ').val();
   idFilaRemover(ff, id_casino);
   $('#btn-guardar').trigger('click');
-  $('#modalImportacionCargada').modal('hide');
+  // $('#modalImportacionCargada').modal('hide');
 });
 
 //si falla la conexión, botón para reintentar
