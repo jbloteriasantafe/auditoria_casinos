@@ -560,15 +560,24 @@ class SesionesController extends Controller
 
       public function eliminarPartida($id){
 
+        //verifico que tenga los permisos necesarios para poder eliminar partida
         $permiso = app(\App\Http\Controllers\UsuarioController::class)->chequearRolFiscalizador();
         if( $permiso == 1){
             return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
         }
-
+        //busco la partida
         $partida = PartidaBingo::findorfail($id);
 
+        //veo si la partida que se está por eliminar es la última
+        $sesion = SesionBingo::findOrFail($partida->id_sesion);
+        $partidas = $sesion->partidasSesion->count();
+        //si es la última, cambio la información en el reporte de estado
+        if($partidas == 1){
+            app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 3);
+        }
+        //elimino la partidas
         $partida->delete();
-
+        
         return ['partida' => $partida];
       }
 

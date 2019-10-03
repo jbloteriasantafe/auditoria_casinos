@@ -392,7 +392,8 @@ function pintarDetalleSesion(importacion, detalle, detalles){
         $('#carton_final').addClass('pintar-red').removeClass('pintar-orange');
       }
     }
-    if(detalles.length != 0){
+
+    if(detalle.length != 1){
       if(detalle[1].valor_carton != detalles[0]){
         $('#valor_carton_f').addClass('pintar-red').removeClass('pintar-orange');
       }
@@ -418,6 +419,9 @@ function pintarDetalleSesion(importacion, detalle, detalles){
         }
       }
     }
+
+
+
   }
 }
 //genera la fila de  detalles si tiene más de uno
@@ -522,33 +526,28 @@ function generarFilaTabla(relevados, importados, estado){
   }
 
   var relevamiento;
-  var cerrada;
-  if(relevados === -1){
-    relevamiento=cerrada='NO';
-  }else{
-    if(relevados.detalles.length != 0) relevamiento = 'SI';
-    else relevamiento = 'NO';
-    if(relevados.sesion.id_usuario_fin === null) cerrada = 'NO';
-    else cerrada = 'SI';
-  }
+  if(estado.relevamiento == null || estado.relevamiento == 0) relevamiento = 'NO';
+  else relevamiento = 'SI';
 
-  var casino;
+  var cerrada;
+  if(estado.sesion_cerrada == null || estado.sesion_cerrada == 0) cerrada = 'NO';
+  else cerrada = 'SI';
+
   var fecha;
   var hora;
-
   if(importados != -1 ){
-    if(importados[0].id_casino == 1) casino = 'Melincue';
-    if(importados[0].id_casino == 2) casino = 'Santa Fe';
-    if(importados[0].id_casino == 3) casino = 'Rosario';
     fecha = importados[0].fecha;
     hora = importados[0].hora_inicio;
   }else if(relevados != -1){
-    if(relevados.sesion.id_casino == 1) casino = 'Melincue';
-    if(relevados.sesion.id_casino == 2) casino = 'Santa Fe';
-    if(relevados.sesion.id_casino == 3) casino = 'Rosario';
     fecha = relevados.sesion.fecha_inicio;
     hora = relevados.sesion.hora_inicio;
   }
+
+  var casino;
+  if(estado.id_casino == 1) casino = 'Melincue';
+  if(estado.id_casino == 2) casino = 'Santa Fe';
+  if(estado.id_casino == 3) casino = 'Rosario';
+
   var visado;
   if(estado.visado === 1){
     visado = 'SI';
