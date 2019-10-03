@@ -116,6 +116,12 @@ class EventualidadController extends Controller
     //desde controlador busca
     public function buscarPorTipoFechaCasinoTurno(Request $request)
     {
+        $usuario = Usuario::find(session('id_usuario'));
+        $casinos = $usuario->casinos;
+        $cas_id = [];
+        foreach($casinos as $cas){
+          $cas_id[] = $cas->id_casino;
+        }
         $reglas = array();
         if (!empty($request->id_tipo_eventualidad) || $request->id_tipo_eventualidad != 0) {
             $reglas[] = ['id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
@@ -129,18 +135,18 @@ class EventualidadController extends Controller
             $reglas[] = ['turno', '=', $request['nro_turno']];
         }
 
-        $eventualidades = DB::unprepared(DB::raw("CREATE TEMPORARY TABLE eventualidades_temp
-                                                          AS (
-                                                              SELECT eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre
-                                                              FROM eventualidad inner join casino on eventualidad.id_casino = casino.id_casino
-                                                                   inner join tipo_eventualidad on tipo_eventualidad.id_tipo_eventualidad = eventualidad.id_tipo_eventualidad
-                                                              );
-                                           "
-        )
-        );
+        $eventualidades = DB::unprepared(DB::raw(
+          "CREATE TEMPORARY TABLE eventualidades_temp
+          AS (
+            SELECT eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre
+            FROM eventualidad inner join casino on eventualidad.id_casino = casino.id_casino
+            inner join tipo_eventualidad on tipo_eventualidad.id_tipo_eventualidad = eventualidad.id_tipo_eventualidad
+          );"
+        ));
 
         if (empty($request->fecha)) {
             $resultados = DB::table('eventualidades_temp')
+                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
                 ->where($reglas)
                 ->orderBy('fecha', 'DESC')
                 ->take(25)
@@ -191,6 +197,7 @@ class EventualidadController extends Controller
                     break;
             }
             $resultados = DB::table('eventualidades_temp')
+                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
                 ->where($reglas)
                 ->whereYear('fecha', '=', $fecha[2])
                 ->whereMonth('fecha', '=', $mes)
@@ -200,14 +207,13 @@ class EventualidadController extends Controller
                 ->get();
         }
         $esControlador = 0;
-        $usuario = Usuario::find(session('id_usuario'));
+
         foreach ($usuario->roles as $rol) {
             if ($rol->descripcion == "CONTROL" || $rol->descripcion == "ADMINISTRADOR" || $rol->descripcion == "SUPERUSUARIO") {
                 $esControlador = 1;
             }
         }
         $tiposEventualidades = TipoEventualidad::all();
-        $casinos = $usuario->casinos;
 
         $query1 = DB::statement(DB::raw("
                                          DROP TABLE eventualidades_temp
