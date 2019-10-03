@@ -911,7 +911,6 @@ $('#btn-minimo').on('click',function(e){
 
             for (var i=0; i<data.apuestas.length; i++) {
               if (id_juego == data.apuestas[i].id_juego_mesa) {
-                console.log("entro al IF padre");
                 $('#apuestaNueva').val(data.apuestas[i].apuesta_minima);
                 $('#cantidadNueva').val(data.apuestas[i].cantidad_requerida);
               }
@@ -924,18 +923,30 @@ $('#btn-minimo').on('click',function(e){
 
 $(document).on('change','#selectCasinoMin', function(data){
     limpiarModificarMin();
-    var id=$(this).val();
+    var id_casino=$(this).val();
     var id_moneda = $('#selectMonedaMin').val();
 
-    $.get('apuestas/obtenerRequerimientos/' + id + '/' + id_moneda, function(data){
-        cargarDatosMin(data);
-        if(data.dolares==null){
-          $('#btn-guardar-minimo').attr('data-dolares','false');
-        }
-        else{
-          $('#btn-guardar-minimo').attr('data-dolares','true');
-        }
-    })
+    $.get('apuestas/obtenerRequerimientos/' + id_casino + '/' + id_moneda, function(data){
+      cargarDatosMin(data);
+
+      $.get('apuestas/obtenerRequerimientos/' + id_casino +'/'+id_moneda, function(data){
+          var id_juego = $('#selectJuegoNuevo').val();
+          for (var i=0; i<data.apuestas.length; i++) {
+            if (id_juego == data.apuestas[i].id_juego_mesa) {
+              $('#apuestaNueva').val(data.apuestas[i].apuesta_minima);
+              $('#cantidadNueva').val(data.apuestas[i].cantidad_requerida);
+            }
+          }
+      })
+
+      if(data.dolares==null){
+        $('#btn-guardar-minimo').attr('data-dolares','false');
+      }
+      else{
+        $('#btn-guardar-minimo').attr('data-dolares','true');
+      }
+
+  })
 })
 
 $(document).on('change','#selectMonedaMin', function(data){
@@ -964,20 +975,18 @@ $(document).on('change','#selectJuegoNuevo', function(data){
       let encontrado = false;
       for (var i=0; i<data.apuestas.length; i++) {
         if (id_juego == data.apuestas[i].id_juego_mesa) {
-          console.log("entro al IFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
           $('#apuestaNueva').val(data.apuestas[i].apuesta_minima);
           $('#cantidadNueva').val(data.apuestas[i].cantidad_requerida);
           encontrado = true;
 
         }
       }
-          console.log("encontrado vale"+encontrado);
+
       if (!encontrado) {
         $('#apuestaNueva').val('');
         $('#cantidadNueva').val('');
       }
   })
-
 
 })
 
@@ -1021,13 +1030,13 @@ $('#btn-guardar-minimo').on('click',function(e){
         var errors = $.parseJSON(data.responseText);
 
         $.each(errors, function (key, val) {
-          if( key == 'modificaciones.0.id_juego' ){
+          if( key == 'modificaciones.id_juego' ){
               mostrarErrorValidacion($('#selectJuegoNuevo'),val[0],true);
             }
-          if( key == 'modificaciones.0.apuesta' ){
+          if( key == 'modificaciones.apuesta_minima' ){
               mostrarErrorValidacion($('#apuestaNueva'),val[0],true);
             }
-          if( key =='modificaciones.0.cantidad' ){
+          if( key =='modificaciones.cantidad_requerida' ){
               mostrarErrorValidacion($('#cantidadNueva'),val[0],true);
             }
         });
