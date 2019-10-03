@@ -301,7 +301,7 @@ Eventualidades ->intervenciones tecnicas
 
 Route::get('eventualidades','EventualidadController@buscarTodoDesdeFiscalizador')->middleware('tiene_permiso:ver_seccion_eventualidades');
 Route::post('eventualidades/buscarPorTipoFechaCasinoTurno','EventualidadController@buscarPorTipoFechaCasinoTurno');
-Route::get('eventualidades/crearEventualidad', 'EventualidadController@crearEventualidad');
+Route::get('eventualidades/crearEventualidad/{id_casino}', 'EventualidadController@crearEventualidad');
 Route::get('eventualidades/verPlanillaVacia/{id}', 'EventualidadController@verPlanillaVacia');
 Route::get('eventualidades/obtenerSectorEnCasino/{id_casino}/{id_sector}','EventualidadController@obtenerSectorEnCasino');
 Route::get('eventualidades/obtenerIslaEnCasino/{id_casino}/{nro_isla}','EventualidadController@obtenerIslaEnCasino');

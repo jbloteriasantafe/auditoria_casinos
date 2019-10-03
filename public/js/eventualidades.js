@@ -24,7 +24,7 @@ var t= $('#tablaResultadosEv tbody > tr .fechaEventualidad');
   $('#agregarSecEv').click(clickAgregarEv);
   $('#agregarIsEv').click(clickAgregarEv);
 
-  $('#B_CasinoEv').val("0");
+  $('#B_CasinoEv')[0].selectedIndex = 0;
   $('#B_TurnoEventualidad').val('0');
   $('#B_TurnoEventualidad').val('0');
   $('#B_fecha_ev').val("");
@@ -79,11 +79,12 @@ $('#B_fecha_ev').on('change', function (e) {
 })
 
 //BOTON NUEVA EVENTUALIDAD
-$('#btn-nueva-eventualidad').click(function(){
-
+$('#btn-nueva-eventualidad').off().click(function(){
+  let casinostr = $('#B_CasinoEv').val();
+  //Si es 'Todos los casinos', seteamos el proximo que viene.
+  if(isNaN(parseInt(casinostr))) casinostr = $('#B_CasinoEv option').eq(1).val();
   //abre pestaña con planilla, creando así la eventualidad
-  window.open('eventualidades/crearEventualidad','_blank');
-
+  window.open('eventualidades/crearEventualidad/'+casinostr,'_blank');
 })
 
 // BOTÓN IMPRIMIR
@@ -93,7 +94,6 @@ $(document).on('click','#btn_imprimirEv',function(e){
 
   //abre una pestaña con planilla de eventualidad vacía
   window.open('eventualidades/verPlanillaVacia/' + id_ev,'_blank');
-
 });
 
 //CIERRA MODAL

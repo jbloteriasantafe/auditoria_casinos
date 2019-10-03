@@ -56,11 +56,10 @@
                 <div class="col-lg-3">
                   <h5>Casino</h5>
                   <select class="form-control" id="B_CasinoEv">
-                    <option value="0" selected>- Seleccione casino -</option>
-                    @foreach ($casinos as $casino)
+                    <option value="">Todos los casinos</option>
+                    @foreach ($casinos as $idx => $casino)
                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                     @endforeach
-                    <!-- <option value=" " >- Todos los movimientos -</option> -->
                   </select>
 
                 </div>
@@ -172,7 +171,7 @@
     <!-- Botón nueva eventualidad -->
   <div class="row">
     <div class="col-lg-12">
-      <a href="" id="btn-nueva-eventualidad" style="text-decoration: none;">
+      <a id="btn-nueva-eventualidad" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
             <div class="backgroundNuevo"></div>
