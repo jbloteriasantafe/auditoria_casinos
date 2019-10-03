@@ -1,10 +1,10 @@
 var aEliminar=0;
 $(document).ready(function(){
 
-var t= $('#tablaResultadosEv tbody > tr .fechaEventualidad');
+  var t= $('#tablaResultadosEv tbody > tr .fechaEventualidad');
 
   $.each(t, function(index, value){
-    console.log($(this));
+    //console.log($(this));
   $(this).text(convertirDate($(this).text()));
   });
 
@@ -25,12 +25,9 @@ var t= $('#tablaResultadosEv tbody > tr .fechaEventualidad');
   $('#agregarIsEv').click(clickAgregarEv);
 
   $('#B_CasinoEv')[0].selectedIndex = 0;
-  $('#B_TurnoEventualidad').val('0');
-  $('#B_TurnoEventualidad').val('0');
   $('#B_fecha_ev').val("");
 
   $('#cargaInforme').on('fileerror', function(event, data, msg) {
-  
     // get message
     alert(msg);
   });
@@ -64,7 +61,7 @@ var t= $('#tablaResultadosEv tbody > tr .fechaEventualidad');
 
 
   });
-
+  $('#btn-buscarEventualidad').click();
 });
 $('#fechaEv').on('change', function (e) {
   $(this).trigger('focusin');
@@ -345,7 +342,7 @@ $('#btn-aceptar-visado').click(function (e){
   console.log('id_eve',id_ev);
   $.get('eventualidades/visado/' + id_ev, function(data){
 
-    if(data==1){
+  if(data==1){
     $('#fiscaToma').prop('disabled', false);
     $('#fechaEv').prop('disabled', false);
     $('#tipoEventualidad').prop('disabled', false);
@@ -355,7 +352,8 @@ $('#btn-aceptar-visado').click(function (e){
     $('#mensajeExito h3').text('VISADO');
     $('#mensajeExito p').text(' ');
     $('#mensajeExito').show();
-    $('#btn-buscarEventualidad').trigger('click');}
+    $('#btn-buscarEventualidad').trigger('click');
+  }
   })
 
 
@@ -539,11 +537,14 @@ $('#btn-buscarEventualidad').click(function(e){
     });
     e.preventDefault();
 
+    let turno = $('#B_TurnoEventualidad').val();
+    turno = turno == ""? 0 : turno;
+
     var formData = {
       id_tipo_eventualidad: $('#B_TipoEventualidad').val(),
       fecha: $('#B_fecha_ev').val(),
       id_casino: $('#B_CasinoEv').val(),
-      nro_turno:$('#B_TurnoEventualidad').val(),
+      nro_turno: turno,
     }
 
     $.ajax({
@@ -557,8 +558,7 @@ $('#btn-buscarEventualidad').click(function(e){
         $('#tablaResultadosEv #cuerpoTablaEv tr').remove();
 
           for (var i = 0; i < data.eventualidades.length; i++) {
-
-              var filaEventualidad = generarFilaTabla(data.eventualidades[i],data.esControlador);
+              let filaEventualidad = generarFilaTabla(data.eventualidades[i],data.esControlador);
               $('#cuerpoTablaEv').append(filaEventualidad);
           }
 
@@ -570,153 +570,121 @@ $('#btn-buscarEventualidad').click(function(e){
 });
 
 //Se generan filas en la tabla principal con las eventualidades encontradas
-function generarFilaTabla(event,controlador){
-
-  var fila = $(document.createElement('tr'));
-  var fecha;
-  var tipo_ev;
-  var turno;
-  var casino;
-  var hora;
-  console.log('event', controlador);
-  tipo_ev=event.descripcion;
-  turno=event.turno;
-  fecha=event.fecha;
-  casino=event.nombre;
-  hora=event.hora;
-  estado=event.id_estado_eventualidad;
-
+function generarFilaTabla(event, controlador) {
+  const fila = $(document.createElement('tr'));
+  const fecha = event.fecha;;
+  const tipo_ev = event.descripcion;;
+  const turno = event.turno;
+  const casino = event.nombre;
+  const hora = event.hora;
+  const estado = event.id_estado_eventualidad;
+  const archivo = event.id_archivo;
+  console.log(event);
 
   fila.attr('id', event.id_eventualidad)
-      .append($('<td>')
+    .append($('<td>')
       .addClass('col-xs-2')
       .text(convertirDate(fecha))
-      )
-      .append($('<td>')
+    )
+    .append($('<td>')
       .addClass('col-xs-1')
       .text(hora)
-      )
-      .append($('<td>')
+    )
+    .append($('<td>')
       .addClass('col-xs-2')
       .text(tipo_ev)
-      )
-      if(estado==4){
-      fila.append($('<td>')
+    )
+  if (estado == 4) {
+    fila.append($('<td>')
       .addClass('col-xs-1')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#4CAF50').css('align','center')))
-      }
-      else{
-        fila.append($('<td>')
-        .addClass('col-xs-1')
-        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350').css('align','center')))
-      }
-      fila.append($('<td>')
-      .addClass('col-xs-2')
-      .addClass('text-align="center"')
-      .text(turno)
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color', '#4CAF50').css('align', 'center')))
+  }
+  else {
+    fila.append($('<td>')
+      .addClass('col-xs-1')
+      .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-times').css('color', '#EF5350').css('align', 'center')))
+  }
+
+  fila.append($('<td>')
+    .addClass('col-xs-2')
+    .addClass('text-align="center"')
+    .text(turno)
+  )
+  .append($('<td>')
+    .addClass('col-xs-2')
+    .text(casino)
+  );
+
+  let td = $('<td>').addClass('col-xs-2').append($('<span>').text(' '))
+  .append($('<button>')
+    .addClass('boton_imprimirEv')
+    .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
+    .append($('<span>').text('IMPRIMIR'))
+    .addClass('btn').addClass('btn-success')
+    .attr('value', event.id_eventualidad).attr('id', 'btn_imprimirEv')
+  );
+
+  if (controlador == 0 && estado == 6) {
+    td
+    .append($('<button>')
+      .addClass('boton_cargarEv')
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
       )
-      .append($('<td>')
-      .addClass('col-xs-2')
-      .text(casino)
+      .append($('<span>').text('CARGAR'))
+      .addClass('btn').addClass('btn-success')
+      .attr('value', event.id_eventualidad)
+      .attr('data-casino', event.id_casino).attr('id', 'btn_cargarEv'))
+
+    .append($('<button>')
+      .addClass('btn btn-danger borrarEventualidad')
+      .append($('<i>').addClass('fa fa-fw fa-trash')
       )
+      .append($('<span>').text('BORRAR'))
+      .addClass('btn').addClass('btn-success')
+      .attr('value', event.id_eventualidad).attr('id', 'btn_borrarEv'));
+  }
 
-      if(controlador == 0 && estado == 6){
+  if (controlador == 1 && estado == 1) {
+    td
+    .append($('<button>')
+      .addClass('btn-validarEventualidad')
+      .append($('<i>').addClass('fa fa-fw fa-check')
+      )
+      .append($('<span>').text('VALIDAR'))
+      .addClass('btn').addClass('btn-success')
+      .attr('value', event.id_eventualidad).attr('id', 'btn_validarEv'));
+  }
+  if (controlador == 1 && estado == 6) {
+    td.append(
+    $('<button>')
+      .addClass('btn btn-danger borrarEventualidad')
+      .append($('<i>').addClass('fa fa-fw fa-trash'))
+      .append($('<span>').text('BORRAR'))
+      .addClass('btn').addClass('btn-success')
+      .attr('value', event.id_eventualidad).attr('id', 'btn_borrarEv'));
+  }
 
-        fila.append($('<td>')
-          .addClass('col-xs-2')
-          .append($('<span>').text(' '))
-          .append($('<button>')
-          .addClass('boton_imprimirEv')
-          .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-          )
-          .append($('<span>').text('IMPRIMIR'))
-          .addClass('btn').addClass('btn-success')
-          .attr('value',event.id_eventualidad).attr('id','btn_imprimirEv'))
+  if (estado == 4) {
+    const deshab = archivo === null;
+    const icono = deshab? "far fa-edit" : "fas fa-edit";
+    let boton = $('<button>')
+    .addClass('btn-verPDF')
+    .append($('<i>').addClass(icono))
+    .append($('<span>').text('VER PDF'))
+    .addClass('btn').addClass('btn-success')
+    .attr('value',event.id_eventualidad)
+    .prop('disabled',deshab);
+    td.append(boton);
+    if(!deshab){
+      boton.click(function(){
+        window.open('eventualidades/leerArchivoEventualidad/' + boton.val(),'_blank');
+      });
+    }
+  }
 
-            .append($('<button>')
-            .addClass('boton_cargarEv')
-            .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload')
-            )
-            .append($('<span>').text('CARGAR'))
-            .addClass('btn').addClass('btn-success')
-            .attr('value',event.id_eventualidad)
-            .attr('data-casino', event.id_casino).attr('id','btn_cargarEv'))
+  fila.append(td);
 
-              .append($('<button>')
-              .addClass('btn btn-danger borrarEventualidad')
-              .append($('<i>').addClass('fa fa-fw fa-trash')
-              )
-              .append($('<span>').text('BORRAR'))
-              .addClass('btn').addClass('btn-success')
-              .attr('value',event.id_eventualidad).attr('id','btn_borrarEv'))
-            )
-        }
 
-      if(controlador==1 && estado==1){
 
-        fila.append($('<td>')
-          .addClass('col-xs-2')
-          .append($('<span>').text(' '))
-          .append($('<button>')
-          .addClass('boton_imprimirEv')
-          .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-          )
-          .append($('<span>').text('IMPRIMIR'))
-          .addClass('btn').addClass('btn-success')
-          .attr('value',event.id_eventualidad).attr('id','btn_imprimirEv'))
-
-            .append($('<button>')
-            .addClass('btn-validarEventualidad')
-            .append($('<i>').addClass('fa fa-fw fa-check')
-            )
-            .append($('<span>').text('VALIDAR'))
-            .addClass('btn').addClass('btn-success')
-            .attr('value',event.id_eventualidad).attr('id','btn_validarEv')))
-      }
-
-      if(controlador == 1 && estado == 6){
-
-                fila.append($('<td>')
-                  .addClass('col-xs-2')
-                  .append($('<span>').text(' '))
-                  .append($('<button>')
-                  .addClass('boton_imprimirEv')
-                  .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-                  )
-                  .append($('<span>').text('IMPRIMIR'))
-                  .addClass('btn').addClass('btn-success')
-                  .attr('value',event.id_eventualidad).attr('id','btn_imprimirEv'))
-
-                  .append($('<button>')
-                  .addClass('btn btn-danger borrarEventualidad')
-                  .append($('<i>').addClass('fa fa-fw fa-trash')
-                  )
-                  .append($('<span>').text('BORRAR'))
-                  .addClass('btn').addClass('btn-success')
-                  .attr('value',event.id_eventualidad).attr('id','btn_borrarEv')))
-      }
-      if(estado!=6 && estado!=1){
-        fila.append($('<td>')
-          .addClass('col-xs-2')
-          .append($('<span>').text(' '))
-          .append($('<button>')
-          .addClass('boton_imprimirEv')
-          .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-          )
-          .append($('<span>').text('IMPRIMIR'))
-          .addClass('btn').addClass('btn-success')
-          .attr('value',event.id_eventualidad).attr('id','btn_imprimirEv')))
-      }
-
-        // .append($('<span>').text(' '))
-        // .append($('<button>')
-        // .addClass('btn-verPDF')
-        // .append($('<i>').addClass('fa fa-fw fa-edit')
-        // )
-        // .append($('<span>').text('VER PDF'))
-        // .addClass('btn').addClass('btn-success')
-        // .attr('value',event.id_eventualidad))
-        // )
-
-    return fila;
+  return fila;
 };

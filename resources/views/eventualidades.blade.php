@@ -66,13 +66,7 @@
 
                 <div class="col-lg-3">
                   <h5>Turno</h5>
-                  <select class="form-control" id="B_TurnoEventualidad">
-                    <option value="0" selected>- Seleccione turno -</option>
-                    @foreach ($turnos as $turno)
-                    <option value="{{$turno->nro_turno}}">{{$turno->nro_turno}}</option>
-                    @endforeach
-                  </select>
-
+                  <input class="form-control" id="B_TurnoEventualidad">
                 </div>
               </div> <!-- row / formulario -->
 
@@ -122,39 +116,6 @@
                 </tr>
               </thead>
               <tbody id="cuerpoTablaEv" style="max-height: 356px;">
-                @foreach($eventualidades as $eventualidad)
-                <tr id="{{$eventualidad->id_eventualidad}}">
-                  <td class="col-xs-2 fechaEventualidad">{{$eventualidad->fecha}}</td>
-                  <td class="col-xs-1 horaEventualidad">{{$eventualidad->hora}}</td>
-                  <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
-                  @if($eventualidad->id_tipo_eventualidad == 4)
-                  <td class="col-xs-1" align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
-                  @else
-                  <td class="col-xs-1" align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
-                  @endif
-                  <td class="col-xs-2" text-align="center">{{$eventualidad->turno}}</td>
-                  <td class="col-xs-2">{{$eventualidad->nombre}}</td>
-                  <td class="col-xs-2">
-
-                    <button id="btn_imprimirEv" class="btn btn-imprimir btn-success" type="button" value="{{$eventualidad->id_eventualidad}}" ><i class="fa fa-fw fa-print"></i></button>
-
-                    <!-- estos if sirven para crear o no ciertos botones s/ el estado o el controlador -->
-                    @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 0))
-                    <button id="btn_cargarEv" class="btn btn-cargar" type="button btn-cargar btn-success" value="{{$eventualidad->id_eventualidad}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
-                    <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
-                    @endif
-
-                    @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 1))
-                    <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
-                    @endif
-
-                    @if(($eventualidad->id_estado_eventualidad == 1) && ($esControlador == 1))
-                    <button id="btn_validarEv" class="btn btn-validar btn-success" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-check"></i></button>
-                    @endif
-
-                  </td>
-                </tr>
-                @endforeach
               </tbody>
             </table>
           </div>

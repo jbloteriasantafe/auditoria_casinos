@@ -310,7 +310,7 @@ Route::get('eventualidades/visualizarEventualidadID/{id_ev}','EventualidadContro
 Route::get('eventualidades/eliminarEventualidad/{id_ev}', 'EventualidadController@eliminarEventualidad');
 Route::get('eventualidades/visado/{id_ev}', 'EventualidadController@validarEventualidad');
 Route::post('eventualidades/buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
-
+Route::get('eventualidades/leerArchivoEventualidad/{id}','EventualidadController@leerArchivoEventualidad');
 
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
