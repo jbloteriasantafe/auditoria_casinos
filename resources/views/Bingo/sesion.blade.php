@@ -210,7 +210,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                 <div class="col-lg-4">
                                   <h5>FECHA INICIO</h5>
                                   <div class='input-group date' id='dtpFechaSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" />
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
@@ -220,8 +220,8 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>HORA INICIO</h5>
-                                  <div class='input-group date' id='dtpHoraSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
-                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                  <div class='input-group date' id='dtpHoraSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii">
+                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" />
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
@@ -311,7 +311,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                 <div class="col-lg-4">
                                   <h5>FECHA CIERRE</h5>
                                   <div class='input-group date' id='dtpFechaCierreSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                      <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);"/>
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
@@ -321,8 +321,8 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>HORA CIERRE</h5>
-                                  <div class='input-group date' id='dtpHoraCierreSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
-                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                  <div class='input-group date' id='dtpHoraCierreSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii">
+                                      <input type='text' class="form-control" placeholder="Hora de sesión" id="horaCierreSesion" autocomplete="off" style="background-color: rgb(255,255,255);"/>
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
@@ -418,8 +418,8 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
 
                                 <div class="col-lg-4">
                                   <h5>HORA DE JUGADA</h5>
-                                  <div class='input-group date' id='dtpHoraJugada' data-date-format="HH:ii:ss" data-link-format="HH:ii:ss">
-                                      <input type='text' class="form-control" placeholder="Hora de partida" id="hora_jugada" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
+                                  <div class='input-group date' id='dtpHoraJugada' data-date-format="HH:ii" data-link-format="HH:ii">
+                                      <input type='text' class="form-control" placeholder="Hora de partida" id="hora_jugada" autocomplete="off" style="background-color: rgb(255,255,255);" />
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>

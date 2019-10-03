@@ -696,6 +696,7 @@ $cas = $usuario['usuario']->casinos;
         </div>
 
         <div class="modal-footer">
+          <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> Hint: si desea modificar más de una apuesta mínima, guarde cada cambio de forma <br>individual. Caso contrario, solo será considerado el último cambio introducido.</span>
           <button type="button" class="btn btn-warningModificar" id="btn-guardar-minimo" value="nuevo" hidden="true">GUARDAR</button>
         </div>
       </div>
