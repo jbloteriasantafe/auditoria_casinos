@@ -516,16 +516,18 @@ class EventualidadController extends Controller
                 }
             }
         }
+
         if (!empty($req['maquinas'])) {
             $evento->maquinas = 1;
             $maqs_enviadas = explode(",", $req['maquinas']);
-            $maquinasbd = Maquina::where('id_casino', $evento->id_casino)
-                ->whereIn('nro_admin', $maqs_enviadas);
-            foreach ($maquinasbd as $maq) {
-                $maquinas[] = $maq->id_maquina;
+
+            foreach($maqs_enviadas as $maq){
+              $maqbd = Maquina::find($maq);
+              if(!is_null($maqbd)){
+                $maquinas[] = $maqbd->id_maquina;
+              }
             }
         }
-
         DB::beginTransaction();
         try {
             $evento->observaciones = $req['observaciones'];

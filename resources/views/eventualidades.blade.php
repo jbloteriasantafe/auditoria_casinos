@@ -321,18 +321,20 @@
                 </table>
               </div>
               <div class="col-xs-12">
-                <table id="tablaCargaCompleta"  class="table table-fixed tablesorter">
-                  <thead>
-                    <tr>
-                      <th class="col-xs-4" text-align="center">Nro Admin </th>
-                      <th class="col-xs-5" text-align="center">Sector</th>
-                      <th class="col-xs-3" text-align="center">Isla</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div class="pre-scrollable">
+                  <table id="tablaCargaCompleta"  class="table table-fixed tablesorter">
+                    <thead>
+                      <tr>
+                        <th class="col-xs-4" text-align="center">Nro Admin </th>
+                        <th class="col-xs-5" text-align="center">Sector</th>
+                        <th class="col-xs-3" text-align="center">Isla</th>
+                      </tr>
+                    </thead>
+                    <tbody>
 
-                  </tbody style="height: 250px;">
-                </table>
+                    </tbody style="height: 250px;">
+                  </table>
+                </div>
               </div>
             </div> <!-- fin row -->
             <div class="row">

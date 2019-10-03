@@ -363,107 +363,91 @@ $('#btn-aceptar-visado').click(function (e){
 
 
 //Botón aceptar para guardar los datos cargados de eventualidad
-$('#btn-aceptar-carga').click(function (e){
+$('#btn-aceptar-carga').click(function (e) {
+  if ($(this).val() != 1) return;
+  const tabla = $('#tablaCargaEvent tbody > tr');
+  const t = $('#modalCargarEventualidad').find('#tipo').val();
+  const id_ev = $('#modalCargarEventualidad').find('#id_event').val();
+  let maquinas = [];
+  let sectores = [];
+  let islas = [];
 
-  if($(this).val()==1){
+  $.each(tabla, function (index, value) {
+    var id = $(this).attr('id');
+    if (t == 1) {
+      maquinas.push(id);
+    }
+    if (t == 2) {
+      sectores.push(id);
+    }
+    if (t == 3) {
+      islas.push(id);
+    }
+  });
 
-      var tabla = $('#tablaCargaEvent tbody > tr');
-      var t= $('#modalCargarEventualidad').find('#tipo').val();
-      var maquinas=[];
-      var sectores=[];
-      var islas=[];
-      var id_ev=$('#modalCargarEventualidad').find('#id_event').val();
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
 
-      $.each(tabla, function(index, value){
-        var id=$(this).attr('id');
-
-        if(t==1){
-          maquinas.push(id);
-        }
-        if(t==2){
-          sectores.push(id);
-        }
-        if(t==3){
-          islas.push(id);
-        }
-      });
-
-      $.ajaxSetup({
-        headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-      })
-          // var formData={
-          //   maquinas: maquinas,
-          //   id_eventualidad: $('#modalCargarEventualidad').find('#id_event').val(),
-          //   id_fiscalizador: $('#fiscaToma').obtenerElementoSeleccionado(),
-          //   observaciones: $('#modalCargarEventualidad').find('#observacionesEv').val(),
-          //   fecha_toma: $('#modalCargarEventualidad').find('#fecha_ejecucionEv').val(),
-          //   sectores: sectores,
-          //
-          // }
-          // formData.file=$('#cargaInforme')[0].files[0];
-          var formData=new FormData();
-          formData.append('id_eventualidad',$('#modalCargarEventualidad').find('#id_event').val());
-          formData.append('id_fiscalizador' , $('#fiscaToma').obtenerElementoSeleccionado());
-          formData.append('observaciones' ,$('#modalCargarEventualidad').find('#observacionesEv').val());
-          formData.append('fecha_toma' , $('#modalCargarEventualidad').find('#fecha_ejecucionEv').val());
-          formData.append('sectores' , sectores);
-          formData.append('islas' , islas);
-          formData.append('maquinas' ,maquinas);
-          if ($('#cargaInforme')[0].files[0] != null) formData.append('file' , $('#cargaInforme')[0].files[0]);
-          formData.append('id_tipo_eventualidad' , $('#modalCargarEventualidad').find('#tipoEventualidad').val());
-          formData.append('seleccion' , $('#select_event').val());
+  let formData = new FormData();
+  formData.append('id_eventualidad', $('#modalCargarEventualidad').find('#id_event').val());
+  formData.append('id_fiscalizador', $('#fiscaToma').obtenerElementoSeleccionado());
+  formData.append('observaciones', $('#modalCargarEventualidad').find('#observacionesEv').val());
+  formData.append('fecha_toma', $('#modalCargarEventualidad').find('#fecha_ejecucionEv').val());
+  formData.append('sectores', sectores);
+  formData.append('islas', islas);
+  formData.append('maquinas', maquinas);
+  if ($('#cargaInforme')[0].files[0] != null) formData.append('file', $('#cargaInforme')[0].files[0]);
+  formData.append('id_tipo_eventualidad', $('#modalCargarEventualidad').find('#tipoEventualidad').val());
+  formData.append('seleccion', $('#select_event').val());
 
 
-          $.ajax({
-              type: "POST",
-              url: 'eventualidades/CargarYGuardarEventualidad',
-              data: formData,
-              dataType: "json",
-              processData: false,
-              contentType:false,
-              cache:false,
+  $.ajax({
+    type: "POST",
+    url: 'eventualidades/CargarYGuardarEventualidad',
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    cache: false,
 
-              success: function (data) {
-                console.log(data);
-                $('#modalCargarEventualidad').modal('hide');
-                $('#select_event').prop('disabled', false);
-                $('#'+id_ev).find('#btn_cargarEv').hide();
-                $('#'+id_ev).find('#btn_borrarEv').hide();
+    success: function (data) {
+      console.log(data);
+      $('#modalCargarEventualidad').modal('hide');
+      $('#select_event').prop('disabled', false);
+      $('#' + id_ev).find('#btn_cargarEv').hide();
+      $('#' + id_ev).find('#btn_borrarEv').hide();
+    },
+    error: function (data) {
+      console.log("error: ", data);
 
-              },
-              error: function (data){
-                console.log("error: ",data);
+      let response = JSON.parse(data.responseText);
 
-                var response = JSON.parse(data.responseText);
-
-                if(typeof response.observaciones !== 'undefined'){
-                  mostrarErrorValidacion($('#observacionesEv'),response.observaciones[0]);
-                }
-                if(typeof response.sectores !== 'undefined'){
-                  mostrarErrorValidacion($('#inputSec'),response.sectores[0]);
-                }
-                if(typeof response.maquinas !== 'undefined'){
-                  mostrarErrorValidacion($('#inputMaqui'),response.maquinas[0]);
-                }
-                if(typeof response.islas !== 'undefined'){
-                  mostrarErrorValidacion($('#inputIs'),response.islas[0]);
-                }
-                if(typeof response.id_fiscalizador !== 'undefined'){
-                  mostrarErrorValidacion($('#fiscaToma'),response.id_fiscalizador[0]);
-                }
-                if(typeof response.fecha_toma !== 'undefined'){
-                  mostrarErrorValidacion($('#fechaEv'),response.fecha_toma[0]);
-                }
-                if(typeof response.id_tipo_eventualidad !== 'undefined'){
-                  mostrarErrorValidacion($('#tipoEventualidad'),response.id_tipo_eventualidad[0]);
-                }
-
-              }
-            }); //fin de ajax
-    } //fin if
-
+      if (typeof response.observaciones !== 'undefined') {
+        mostrarErrorValidacion($('#observacionesEv'), response.observaciones[0]);
+      }
+      if (typeof response.sectores !== 'undefined') {
+        mostrarErrorValidacion($('#inputSec'), response.sectores[0]);
+      }
+      if (typeof response.maquinas !== 'undefined') {
+        mostrarErrorValidacion($('#inputMaqui'), response.maquinas[0]);
+      }
+      if (typeof response.islas !== 'undefined') {
+        mostrarErrorValidacion($('#inputIs'), response.islas[0]);
+      }
+      if (typeof response.id_fiscalizador !== 'undefined') {
+        mostrarErrorValidacion($('#fiscaToma'), response.id_fiscalizador[0]);
+      }
+      if (typeof response.fecha_toma !== 'undefined') {
+        mostrarErrorValidacion($('#fechaEv'), response.fecha_toma[0]);
+      }
+      if (typeof response.id_tipo_eventualidad !== 'undefined') {
+        mostrarErrorValidacion($('#tipoEventualidad'), response.id_tipo_eventualidad[0]);
+      }
+    }
+  }); //fin de ajax
 
 });
 
