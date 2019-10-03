@@ -10,7 +10,7 @@ class Eventualidad extends Model
   protected $connection = 'mysql';
   protected $table = 'eventualidad';
   protected $primaryKey = 'id_eventualidad';
-  protected $visible = array('id_eventualidad','id_archivo','turno', 'fecha_generacion','fecha_toma','sectores','islas','maquinas','observaciones','id_tipo_eventualidad','id_estado_eventualidad');
+  protected $visible = array('id_eventualidad','id_archivo','turno', 'fecha_generacion','fecha_toma','sectores','islas','maquinas','observaciones','id_tipo_eventualidad','id_estado_eventualidad','id_casino');
   public $timestamps = false;
 
   public function casino(){

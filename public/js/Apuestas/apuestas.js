@@ -907,6 +907,15 @@ $('#btn-minimo').on('click',function(e){
 
       $.get('apuestas/obtenerRequerimientos/0/1', function(data){
             cargarDatosMin(data);
+            var id_juego = $('#selectJuegoNuevo').val();
+
+            for (var i=0; i<data.apuestas.length; i++) {
+              if (id_juego == data.apuestas[i].id_juego_mesa) {
+                console.log("entro al IF padre");
+                $('#apuestaNueva').val(data.apuestas[i].apuesta_minima);
+                $('#cantidadNueva').val(data.apuestas[i].cantidad_requerida);
+              }
+            }
       })
       $('#modalMinimo').modal('show');
 
@@ -930,7 +939,6 @@ $(document).on('change','#selectCasinoMin', function(data){
 })
 
 $(document).on('change','#selectMonedaMin', function(data){
-
     limpiarModificarMin();
     var id=$(this).val();
     var id_casino = $('#selectCasinoMin').val();
@@ -946,19 +954,44 @@ $(document).on('change','#selectMonedaMin', function(data){
     })
 })
 
+$(document).on('change','#selectJuegoNuevo', function(data){
+
+  var id_casino = $('#selectCasinoMin').val();
+  var id_moneda = $('#selectMonedaMin').val();
+  var id_juego = $(this).val();
+
+  $.get('apuestas/obtenerRequerimientos/' + id_casino +'/'+id_moneda, function(data){
+      let encontrado = false;
+      for (var i=0; i<data.apuestas.length; i++) {
+        if (id_juego == data.apuestas[i].id_juego_mesa) {
+          console.log("entro al IFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+          $('#apuestaNueva').val(data.apuestas[i].apuesta_minima);
+          $('#cantidadNueva').val(data.apuestas[i].cantidad_requerida);
+          encontrado = true;
+
+        }
+      }
+          console.log("encontrado vale"+encontrado);
+      if (!encontrado) {
+        $('#apuestaNueva').val('');
+        $('#cantidadNueva').val('');
+      }
+  })
+
+
+})
+
 $('#btn-guardar-minimo').on('click',function(e){
 
   e.preventDefault();
 
-  var modificaciones=[];
-  var minimo_pesos={
-    id_moneda:$('#selectMonedaMin').val(),
-    id_juego:$('#selectJuegoNuevo').val(),
-    apuesta:$('#apuestaNueva').val(),
-    cantidad:$('#cantidadNueva').val(),
-    id_casino:$('#selectCasinoMin').val(),
+  var modificaciones={
+    id_casino: $('#selectCasinoMin').val(),
+    id_moneda: $('#selectMonedaMin').val(),
+    id_juego: $('#selectJuegoNuevo').val(),
+    apuesta_minima: $('#apuestaNueva').val(),
+    cantidad_requerida: $('#cantidadNueva').val(),
   };
-  modificaciones.push(minimo_pesos);
 
   var formData= {
     modificaciones:modificaciones
@@ -977,13 +1010,13 @@ $('#btn-guardar-minimo').on('click',function(e){
       dataType: 'json',
 
       success: function (data){
-
         $('#modalMinimo').modal('hide');
         $('#mensajeExito h3').text('ÉXITO');
         $('#mensajeExito p').text('Cambios GUARDADOS. ');
         $('#mensajeExito').show();
         $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
       },
+
       error: function(data){
         var errors = $.parseJSON(data.responseText);
 
@@ -997,9 +1030,9 @@ $('#btn-guardar-minimo').on('click',function(e){
           if( key =='modificaciones.0.cantidad' ){
               mostrarErrorValidacion($('#cantidadNueva'),val[0],true);
             }
-
         });
       }
+
     });
 
 });
@@ -1026,34 +1059,16 @@ $(document).on('click','.btn_borrar_fisca',function(){
   }
 })
 
-
 function cargarDatosMin(data){
-  //var casino=(data.rta.casino.nombre).toUpperCase();
+
   if(data.errores == 'null'){
-
     $('#erroresRequerimientos').hide();
-    $('#selectCasinoMin').val(data.rta.casino.id_casino);
-    $('#selectMonedaMin').val(data.rta.moneda.id_moneda);
-
-    $('#apuestaNueva').val(data.rta.apuesta);
-    $('#cantidadNueva').val(data.rta.cant_mesas);
-
-    if(data.rta.id_juego == 0){//aun no se cargo el minimo
-      $('#selectJuegoNuevo').append($('<option>').val(0).text('Todos los Juegos').append($('</option>')));
-    }
 
     for (var i = 0; i < data.juegos.length; i++) {
-      if(data.rta.id_juego != 0 && data.rta.id_juego != data.juegos[i].id_juego_mesa){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
-      if(data.rta.id_juego != 0 && data.rta.id_juego == data.juegos[i].id_juego_mesa){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).prop('selected',true).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
-      if(data.rta.id_juego == 0){
-        $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
-      }
+      $('#selectJuegoNuevo').append($('<option>').val(data.juegos[i].id_juego_mesa).text(data.juegos[i].nombre_juego).append($('</option>')));
     }
     $('#valoresApMinima').show();
+
   }else{
       $('#valoresApMinima').hide();
       $('#erroresRequerimientos').show();
