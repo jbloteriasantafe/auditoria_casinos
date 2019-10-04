@@ -5,8 +5,8 @@ $(document).ready(function(){
   $('#informes').addClass('subMenu1 collapse in');
 
   $('.tituloSeccionPantalla').text('Informes de BINGO');
-  $('#opcInformesMTM').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#opcInformesMTM').addClass('opcionesSeleccionado');
+  $('#opcInformeBingo').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#opcInformeBingo').addClass('opcionesSeleccionado');
 
 });
 

@@ -913,6 +913,14 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               </li>
                               @endif
 
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_bingos'))
+                              <li>
+                                <div id="opcInformeBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/informe'" href="#" style="cursor: pointer;">
+                                  <span>BINGO</span>
+                                </div>
+                              </li>
+                              @endif
+
                             </ul>
 
                         </li>

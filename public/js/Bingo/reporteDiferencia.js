@@ -267,30 +267,41 @@ function cargarDatosSesion(importaciones,sesion){
     $('#pozo_dotacion_final_d').val(importaciones[i].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
     $('#pozo_extra_final_d').val(importaciones[i].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
   }
-  //si hay datos de sesión, comparo esos datos con los de importación y si son distintos, pinto de rojo
-  //en el caso en que la sesión este abierta, pero no cerrada, pinto de rojo diferencias y de naranja si no existe el dato
+  //si hay datos de sesión, comparo esos datos con los de importación y si son distintos, pinto de rojo o de naranja si no existe comparación
   else{
+    //comparo datos iniciales de pozo dot y pozo extra, si llego hasta acá, existen. Sólo comparo y pinto de rojo si son != o dejo sin pintar si son ==
     if (importaciones[0].pozo_dot != sesion.pozo_dotacion_inicial){
       $('#pozo_dotacion_inicial_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+    }else{
+        $('#pozo_dotacion_inicial_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
     }
     if (importaciones[0].pozo_extra != sesion.pozo_extra_inicial){
       $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+    }else{
+      $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
     }
+
+    //me posiciono en la última ocurrencia de importaciones
     var t = importaciones.length - 1;
-    if(sesion.pozo_dotacion_final == null) {
-      $('#pozo_dotacion_final_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').addClass('pintar-orange').removeClass('pintar-red');
-    }else{
+
+    //si la sesión está cerrada, tengo datos para comparar. Pinto de rojo si son != o dejo sin pintar si son ==
+    if(sesion.id_estado == 2){
       if (importaciones[t].pozo_dot != sesion.pozo_dotacion_final){
-        $('#pozo_dotacion_final_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+        $('#pozo_dotacion_final_d').val(importaciones[t].pozo_dot).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+      }else{
+        $('#pozo_dotacion_final_d').val(importaciones[t].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
       }
-    }
-    if(sesion.pozo_extra_final == null) {
-      $('#pozo_extra_final_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').addClass('pintar-orange').removeClass('pintar-red');
-    }else{
+
       if (importaciones[t].pozo_extra != sesion.pozo_extra_final){
-        $('#pozo_extra_final_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+        $('#pozo_extra_final_d').val(importaciones[t].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange');
+      }else{
+        $('#pozo_extra_final_d').val(importaciones[t].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
       }
+    }else{  //si la sesión no está cerrada, no tengo datos para comparar.Pinto de naranja
+      $('#pozo_dotacion_final_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
+      $('#pozo_extra_final_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
     }
+
 
   }
 }
