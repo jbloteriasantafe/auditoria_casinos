@@ -450,8 +450,7 @@ $('#btn-aceptar-carga').click(function (e) {
 });
 
 //BOTÓN VALIDAR DE CADA FILA
-$(document).on('click','#btn_validarEv',function(e){
-
+$(document).on('click', '#btn_validarEv', function (e) {
   $('#mensajeExito').hide();
   $('#btn-aceptar-carga').hide();
   $('#btn-aceptar-visado').show();
@@ -460,72 +459,75 @@ $(document).on('click','#btn_validarEv',function(e){
   //Cambio el título del modal
   $('#modalCargarEventualidad #myModalLabel').text('VISAR INTERVENCIÓN');
 
-  var id_eventualidad=$(this).val();
+  var id_eventualidad = $(this).val();
   $('#modalCargarEventualidad').find('#id_event').val(id_eventualidad);
 
-  $.get('eventualidades/visualizarEventualidadID/' + id_eventualidad, function(data){
+  $.get('eventualidades/visualizarEventualidadID/' + id_eventualidad, function (data) {
 
-      $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-      $('#modalCargarEventualidad').modal('show');
-      $('#tablaCargaEvent').hide();
-      $('#inputIslaEv').hide();
-      $('#inputMaquinaEv').hide();
-      $('#inputSectorEv').hide();
-      $('#seleccion').hide();
+    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
+    $('#modalCargarEventualidad').modal('show');
+    $('#tablaCargaEvent').hide();
+    $('#inputIslaEv').hide();
+    $('#inputMaquinaEv').hide();
+    $('#inputSectorEv').hide();
+    $('#seleccion').hide();
 
-      //Completo los campos del modal con info del data
-      $('#fiscaToma').val(data.fiscalizador.nombre).prop('disabled', true);
-      $('#fechaEv').val(data.eventualidad.fecha_generacion).prop('disabled', true);
-      $('#tipoEventualidad').val(data.eventualidad.id_tipo_eventualidad).prop('disabled', true);
+    //Completo los campos del modal con info del data
+    $('#fiscaToma').val(data.fiscalizador.nombre).prop('disabled', true);
+    $('#fechaEv').val(data.eventualidad.fecha_generacion).prop('disabled', true);
+    $('#tipoEventualidad').val(data.eventualidad.id_tipo_eventualidad).prop('disabled', true);
 
 
-      var fila = $(document.createElement('tr'));
+    var fila = $(document.createElement('tr'));
 
-      for (var i = 0; i < data.maquinas.length; i++) {
+    for (var i = 0; i < data.maquinas.length; i++) {
 
-        fila.attr('id', data.maquinas[i].id_maquina)
-            .append($('<td>')
-            .addClass('col-xs-4')
-            .text(data.maquinas[i].nro_admin)
-          )
-            .append($('<td>')
-            .addClass('col-xs-5')
-            .text(data.maquinas[i].descripcion)
-            )
-            .append($('<td>')
-            .addClass('col-xs-3')
-            .text(data.maquinas[i].nro_isla)
-            )
-            $('#tablaCargaCompleta tbody').append(fila);
-      }
+      fila.attr('id', data.maquinas[i].id_maquina)
+        .append($('<td>')
+          .addClass('col-xs-4')
+          .text(data.maquinas[i].nro_admin)
+        )
+        .append($('<td>')
+          .addClass('col-xs-5')
+          .text(data.maquinas[i].descripcion)
+        )
+        .append($('<td>')
+          .addClass('col-xs-3')
+          .text(data.maquinas[i].nro_isla)
+        )
+      $('#tablaCargaCompleta tbody').append(fila);
+    }
 
-          $('#observacionesEv').val(data.eventualidad.observaciones).prop('disabled', true);
-          $('#cargaInforme').attr('style', 'display:none');
 
-        //  mostrar el pdf que se recibe en el data
-          $("#cargaInforme").fileinput('destroy').fileinput({
-              language: 'es',
-              showRemove: false,
-              showUpload: false,
-              showCaption: false,
-              showZoom: false,
-              browseClass: "btn btn-primary",
-              previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-              overwriteInitial: true,
-              initialPreviewAsData: true,
-              initialPreview: [
-              data.ruta,
-              ],
-              initialPreviewConfig: [
-                {type:'pdf', caption: '', size: 1, width: "1000px", url: "{$url}", key: 1},
-              ],
-              allowedFileExtensions: ['pdf'],
-          });
-    })
+    $('#observacionesEv').val(data.eventualidad.observaciones).prop('disabled', true);
+    $('#cargaInforme').attr('style', 'display:none');
+
+    //  mostrar el pdf que se recibe en el data
+    $("#cargaInforme").fileinput('destroy').fileinput({
+      language: 'es',
+      showRemove: false,
+      showUpload: false,
+      showCaption: false,
+      showZoom: false,
+      browseClass: "btn btn-primary",
+      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+      overwriteInitial: true,
+      initialPreviewAsData: true,
+      initialPreview: [
+        "http://" + window.location.host + "/eventualidades/leerArchivoEventualidad/" + id_eventualidad,
+      ],
+      initialPreviewConfig: [
+        { type: 'pdf', caption: 'Test', size: 1, width: "1000px", url: "{$url}", key: 1 },
+      ],
+      allowedFileExtensions: ['pdf'],
+    });
+  });
+
 
   $('#modalCargarEventualidad').modal('hide');
 
-  });
+});
+
 
 //Busqueda de eventos
 $('#btn-buscarEventualidad').click(function(e){
@@ -568,15 +570,18 @@ $('#btn-buscarEventualidad').click(function(e){
       }
     });
 });
+function limpiarNull(s){
+  return s === null? '-' : s;
+}
 
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event, controlador) {
   const fila = $(document.createElement('tr'));
-  const fecha = event.fecha;;
-  const tipo_ev = event.descripcion;;
-  const turno = event.turno;
-  const casino = event.nombre;
-  const hora = event.hora;
+  const fecha = limpiarNull(event.fecha);
+  const tipo_ev = limpiarNull(event.descripcion);
+  const turno = limpiarNull(event.turno);
+  const casino = limpiarNull(event.nombre);
+  const hora = limpiarNull(event.hora);
   const estado = event.id_estado_eventualidad;
   const archivo = event.id_archivo;
   console.log(event);
@@ -664,7 +669,7 @@ function generarFilaTabla(event, controlador) {
       .attr('value', event.id_eventualidad).attr('id', 'btn_borrarEv'));
   }
 
-  if (estado == 4) {
+  if (estado != 6) {
     const deshab = archivo === null;
     const icono = deshab? "far fa-edit" : "fas fa-edit";
     let boton = $('<button>')

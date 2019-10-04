@@ -44,30 +44,6 @@ class EventualidadController extends Controller
         return self::$instance;
     }
 
-    // public function buscarTodoDesdeControlador(){
-    //   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    //   foreach ($usuario->casinos as $casino) {
-    //     $casinos[] = $casino->id_casino;
-    //   }
-    //
-    //   $eventualidades = DB::table('eventualidad')
-    //                       ->select('eventualidad.*','tipo_eventualidad.*','casino.*')
-    //                       ->join('tipo_eventualidad','eventualidad.id_tipo_eventualidad','=','tipo_eventualidad.id_tipo_eventualidad')
-    //                       ->join('casino','casino.id_casino','=','eventualidad.id_casino')
-    //                       ->whereIn('casino.id_casino', $casinos)
-    //                       ->orderBy('eventualidad.fecha_generacion','DES')
-    //                       ->get();
-    //
-    //
-    //
-    //   // $eventualidades = Eventualidad::all();
-    //   // $tiposEventualidades = TipoEventualidad::all();
-    //   // $casinos = Casino::all();
-    //   UsuarioController::getInstancia()->agregarSeccionReciente('Eventualidades', 'eventualidades');
-    //
-    //   return view('eventualidades',['eventualidades'=>$eventualidades , 'esControlador' => 0]);//$esControlador]);
-    // }
-
     public function buscarTodoDesdeFiscalizador()
     {
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -131,9 +107,14 @@ class EventualidadController extends Controller
             $reglas[] = ['id_casino', '=', $request['id_casino']];
         }
 
-        if (!empty($request->nro_turno) || $request->nro_turno != 0) {
+        //Si pone '-', buscamos los turnos null osea que se hicieron fuera de turno.
+        $turno_null = false;
+        if (!empty($request->nro_turno) && $request->nro_turno != '-') {
             $reglas[] = ['turno', '=', $request['nro_turno']];
         }
+        else if (!empty($request->nro_turno) && $request->nro_turno == '-'){
+            $turno_null = true;
+        } 
 
         $eventualidades = DB::unprepared(DB::raw(
           "CREATE TEMPORARY TABLE eventualidades_temp
@@ -143,71 +124,28 @@ class EventualidadController extends Controller
             inner join tipo_eventualidad on tipo_eventualidad.id_tipo_eventualidad = eventualidad.id_tipo_eventualidad
           );"
         ));
+        $resultados = DB::table('eventualidades_temp')
+        ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
+        ->where($reglas);
 
-        if (empty($request->fecha)) {
-            $resultados = DB::table('eventualidades_temp')
-                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
-                ->where($reglas)
-                ->orderBy('fecha', 'DESC')
-                ->take(25)
-                ->get();
-
-        } else {
+        if($turno_null){
+            $resultados = $resultados->whereNull('turno');
+        }
+        
+        if(!empty($request->fecha)){
             $fecha = explode(" ", $request->fecha);
-            $mes = null;
-            switch ($fecha[1]) {
-                case 'Enero':
-                    $mes = '01';
-                    break;
-                case 'Febrero':
-                    $mes = '02';
-                    break;
-                case 'Marzo':
-                    $mes = '03';
-                    break;
-                case 'Abril':
-                    $mes = '04';
-                    break;
-                case 'Mayo':
-                    $mes = '05';
-                    break;
-                case 'Junio':
-                    $mes = '06';
-                    break;
-                case 'Julio':
-                    $mes = '07';
-                    break;
-                case 'Agosto':
-                    $mes = '08';
-                    break;
-                case 'Septiembre':
-                    $mes = '09';
-                    break;
-                case 'Octubre':
-                    $mes = '10';
-                    break;
-                case 'Noviembre':
-                    $mes = '11';
-                    break;
-                case 'Diciembre':
-                    $mes = '12';
-                    break;
-                default:
-                    # code...
-                    break;
-            }
-            $resultados = DB::table('eventualidades_temp')
-                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
-                ->where($reglas)
-                ->whereYear('fecha', '=', $fecha[2])
+            $mes = $this->traducirMes($fecha[1]);;
+            $resultados = $resultados->whereYear('fecha', '=', $fecha[2])
                 ->whereMonth('fecha', '=', $mes)
                 ->whereDay('fecha', '=', $fecha[0])
-                ->orderBy('fecha', 'DESC')
-                ->take(25)
-                ->get();
+                ->orderBy('fecha', 'DESC');
         }
-        $esControlador = 0;
 
+        $resultados = $resultados->orderBy('fecha', 'DESC')
+        ->take(25)
+        ->get();
+
+        $esControlador = 0;
         foreach ($usuario->roles as $rol) {
             if ($rol->descripcion == "CONTROL" || $rol->descripcion == "ADMINISTRADOR" || $rol->descripcion == "SUPERUSUARIO") {
                 $esControlador = 1;
@@ -215,14 +153,43 @@ class EventualidadController extends Controller
         }
         $tiposEventualidades = TipoEventualidad::all();
 
-        $query1 = DB::statement(DB::raw("
-                                         DROP TABLE eventualidades_temp
-                                     "));
+        $query1 = DB::statement(DB::raw("DROP TABLE eventualidades_temp"));
 
         return ['eventualidades' => $resultados,
             'esControlador' => $esControlador,
             'tiposEventualidades' => $tiposEventualidades,
             'casinos' => $casinos];
+    }
+
+    private function traducirMes($mes){
+        switch ($mes) {
+            case 'Enero':
+                return '01';
+            case 'Febrero':
+                return '02';
+            case 'Marzo':
+                return '03';
+            case 'Abril':
+                return '04';
+            case 'Mayo':
+                return '05';
+            case 'Junio':
+                return '06';
+            case 'Julio':
+                return '07';
+            case 'Agosto':
+                return '08';
+            case 'Septiembre':
+                return '09';
+            case 'Octubre':
+                return '10';
+            case 'Noviembre':
+                return '11';
+            case 'Diciembre':
+                return '12';
+            default:
+                return null;
+        }
     }
 
     //hacer uno asi similar para sector y para isla
@@ -614,24 +581,9 @@ class EventualidadController extends Controller
             ->get();
         $ev = Eventualidad::find($id_eventualidad);
 
-        if (isset($ev->archivo)) {
-            $data = $ev->archivo->archivo;
-            $pdf = Response::make(base64_decode($data), 200, ['Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $ev->archivo->nombre_archivo . '"']);
-            $ruta = "Eventualidad-" . $ev->tipo_eventualidad->descripcion . "-" . $ev->archivo->nombre_archivo . ".pdf";
-            file_put_contents($ruta, $pdf);
-
-            return ['maquinas' => $resultados,
-                'eventualidad' => $ev,
-                'fiscalizador' => $ev->fiscalizadores->first(),
-                'ruta' => $ruta,
-            ];
-        }
-
         return ['maquinas' => $resultados,
             'eventualidad' => $ev,
-            'fiscalizador' => $ev->fiscalizadores->first(),
-            'pdf' => null,
+            'fiscalizador' => $ev->fiscalizadores->first()
         ];
 
     }
@@ -656,9 +608,14 @@ class EventualidadController extends Controller
 
     public function leerArchivoEventualidad($id)
     {
+        $ucontrol = UsuarioController::getInstancia(); 
+        $user = $ucontrol->quienSoy()['usuario'];
         $file = Eventualidad::find($id);
+        if($file === null) return 0; 
+        if(!$user->usuarioTieneCasino($file->id_casino)) 
+          return 0;
+        
         $data = $file->archivo->archivo;
-        //ver como retornar esto :P
         return Response::make(base64_decode($data), 200, ['Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $file->nombre_archivo . '"']);
     }
@@ -675,19 +632,12 @@ class EventualidadController extends Controller
         //6 Sabado -> se mantiene igual
         if($day_of_week == 0) $day_of_week = 7;
         $this_hour = date("H:i:s");
-        //dump($this_hour);
-        //dump($casino);
         $turnos = Turno::where('id_casino', $casino);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('dia_desde','<=',$day_of_week);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('dia_hasta','>=',$day_of_week);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('entrada','<=',$this_hour);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('salida','>=',$this_hour);
-        //dump($turnos->get()->toArray());
         return $turnos;
-    }
+    }    
 
 }
