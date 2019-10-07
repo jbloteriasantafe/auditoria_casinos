@@ -619,7 +619,7 @@ $cas = $usuario['usuario']->casinos;
           <div class="row" style="text-align:center !important;border-bottom:1px solid #ccc; padding-bottom:10px" >
             <div class="row">
             <div class="col-xs-6">
-              <span display="inline-block" class="col-xs-4" style="width: 15%">
+              <span display="inline-block" class="col-xs-4">
                 <h6 style="font-size:17px;">CASINO:</h6>
               </span>
               <span display="inline" style="padding-left:-35px;text-align:left !important">
@@ -632,7 +632,7 @@ $cas = $usuario['usuario']->casinos;
               </div>
             </div>
             <div class="col-xs-6">
-              <span display="inline-block" class="col-xs-4" style="width: 17%">
+              <span display="inline-block" class="col-xs-4">
                 <h6 style="font-size:17px">MONEDA:</h6>
               </span>
               <span display="inline" style="padding-left:-35px;text-align:left !important">
@@ -695,7 +695,7 @@ $cas = $usuario['usuario']->casinos;
         </div>
 
         <div class="modal-footer">
-          <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> Hint: si desea modificar más de una apuesta mínima, guarde cada cambio de forma <br>individual. Caso contrario, solo será considerado el último cambio introducido.</span>
+          <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> Pista: si desea modificar más de una apuesta mínima, guarde cada cambio de forma <br>individual. Caso contrario, solo será considerado el último cambio introducido.</span>
           <button type="button" class="btn btn-warningModificar" id="btn-guardar-minimo" value="nuevo" hidden="true">GUARDAR</button>
         </div>
       </div>
