@@ -69,6 +69,12 @@ class EventualidadController extends Controller
                                        DROP TABLE eventualidades_temp
                                    "));
 
+        $sectores = DB::table('sector')
+        ->whereIn('sector.id_casino',$casinos)->get();
+        $islas = DB::table('isla')
+        ->join('sector','isla.id_sector','=','sector.id_sector')
+        ->whereIn('sector.id_casino',$casinos)->get();
+
         $turnos = Turno::all();
         $tiposEventualidades = TipoEventualidad::all();
         $casinos = $usuario->casinos;
@@ -79,14 +85,15 @@ class EventualidadController extends Controller
                 $esControlador = 1;
             }
         }
-
         UsuarioController::getInstancia()->agregarSeccionReciente('Eventualidades', 'eventualidades');
 
         return view('eventualidades', ['eventualidades' => $eventualidades,
             'esControlador' => $esControlador,
             'turnos' => $turnos,
             'tiposEventualidades' => $tiposEventualidades,
-            'casinos' => $casinos]);
+            'casinos' => $casinos,
+            'sectores' => $sectores,
+            'islas' => $islas]);
     }
 
     //desde controlador busca
@@ -100,49 +107,61 @@ class EventualidadController extends Controller
         }
         $reglas = array();
         if (!empty($request->id_tipo_eventualidad) || $request->id_tipo_eventualidad != 0) {
-            $reglas[] = ['id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
+            $reglas[] = ['tipo_eventualidad.id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
         }
 
         if (!empty($request->id_casino) || $request->id_casino != 0) {
-            $reglas[] = ['id_casino', '=', $request['id_casino']];
+            $reglas[] = ['casino.id_casino', '=', $request['id_casino']];
         }
 
         //Si pone '-', buscamos los turnos null osea que se hicieron fuera de turno.
         $turno_null = false;
         if (!empty($request->nro_turno) && $request->nro_turno != '-') {
-            $reglas[] = ['turno', '=', $request['nro_turno']];
+            $reglas[] = ['eventualidad.turno', '=', $request['nro_turno']];
         }
         else if (!empty($request->nro_turno) && $request->nro_turno == '-'){
             $turno_null = true;
         } 
 
-        $eventualidades = DB::unprepared(DB::raw(
-          "CREATE TEMPORARY TABLE eventualidades_temp
-          AS (
-            SELECT eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre
-            FROM eventualidad inner join casino on eventualidad.id_casino = casino.id_casino
-            inner join tipo_eventualidad on tipo_eventualidad.id_tipo_eventualidad = eventualidad.id_tipo_eventualidad
-          );"
-        ));
-        $resultados = DB::table('eventualidades_temp')
-        ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
+
+        //Left join pq puede ser que no tenga ninguna maquina.
+        $resultados = DB::table('eventualidad')
+        ->selectRaw('distinct eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre')
+        ->join('tipo_eventualidad','tipo_eventualidad.id_tipo_eventualidad','=','eventualidad.id_tipo_eventualidad')
+        ->join('casino','eventualidad.id_casino','=','casino.id_casino')
+        ->leftJoin('maquina_tiene_eventualidad','maquina_tiene_eventualidad.id_eventualidad','=','eventualidad.id_eventualidad')
+        ->leftJoin('maquina','maquina_tiene_eventualidad.id_maquina','=','maquina.id_maquina')
+        ->leftJoin('isla','maquina.id_isla','=','isla.id_isla');
+  
+        $resultados = $resultados
+        ->whereIn('eventualidad.id_casino',$cas_id)//Me quedo con solo los del casino del user
         ->where($reglas);
 
         if($turno_null){
-            $resultados = $resultados->whereNull('turno');
+            $resultados = $resultados->whereNull('eventualidad.turno');
+        }
+
+        if(!is_null($request->id_sector)){
+            $resultados = $resultados->where('isla.id_sector','=',$request->id_sector);
+        }
+        if(!is_null($request->id_isla)){
+            $resultados = $resultados->where('isla.id_isla','=',$request->id_isla);
+        }
+        if(!is_null($request->nro_admin)){
+            $resultados = $resultados->where('maquina.nro_admin','=',$request->nro_admin);
         }
         
         if(!empty($request->fecha)){
             $fecha = explode(" ", $request->fecha);
             $mes = $this->traducirMes($fecha[1]);;
-            $resultados = $resultados->whereYear('fecha', '=', $fecha[2])
-                ->whereMonth('fecha', '=', $mes)
-                ->whereDay('fecha', '=', $fecha[0])
-                ->orderBy('fecha', 'DESC');
+            $resultados = $resultados->whereYear('eventualidad.fecha_generacion', '=', $fecha[2])
+                ->whereMonth('eventualidad.fecha_generacion', '=', $mes)
+                ->whereDay('eventualidad.fecha_generacion', '=', $fecha[0])
+                ->orderBy('eventualidad.fecha_generacion', 'DESC');
         }
 
         $resultados = $resultados->orderBy('fecha', 'DESC')
-        ->take(25)
+        ->orderBy('hora','desc')
         ->get();
 
         $esControlador = 0;
@@ -152,8 +171,6 @@ class EventualidadController extends Controller
             }
         }
         $tiposEventualidades = TipoEventualidad::all();
-
-        $query1 = DB::statement(DB::raw("DROP TABLE eventualidades_temp"));
 
         return ['eventualidades' => $resultados,
             'esControlador' => $esControlador,
@@ -279,19 +296,18 @@ class EventualidadController extends Controller
         $casino = Casino::find($id_casino);
         if($casino === null) return;
 
-        $rel = new \stdClass();
         $turno = $this->turno($casino->id_casino);
-        if($turno->count() == 0) $rel->nro_turno = null;
-        else $rel->nro_turno = $turno->first()->nro_turno;
+        if($turno->count() == 0) $turno = null;
+        else $turno = $turno->first()->nro_turno;
 
         DB::beginTransaction();
+        $evento = new Eventualidad;
         try{
-          $evento = new Eventualidad;
           $evento->id_tipo_eventualidad = 3; // --- ->no tiene tipo_eventualidad
           $evento->id_estado_eventualidad = 6; //CREADO
           $evento->id_casino = $id_casino;
           $evento->fecha_generacion = date('Y-m-d h:i:s', time());
-          $evento->turno = $rel->nro_turno;
+          $evento->turno = $turno;
           $evento->save();
           DB::commit();
         }
@@ -300,23 +316,7 @@ class EventualidadController extends Controller
           throw $e;
         }
 
-        $rel->casinoCod = $casino->nombre;
-        $rel->maquinas = null;
-        $rel->sectores = null;
-        $rel->islas = null;
-        $rel->tipo_ev_falla_tec = null;
-        $rel->tipo_ev_ambiental = null;
-        $rel->observaciones = null;
-
-        $view = View::make('planillaEventualidades', compact('rel'));
-        $dompdf = new Dompdf();
-        $dompdf->set_paper('A4', 'portrait');
-        $dompdf->loadHtml($view->render());
-        $dompdf->render();
-        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-        $dompdf->getCanvas()->page_text(20, 815, $rel->casinoCod . "/" . $rel->nro_turno, $font, 10, array(0, 0, 0));
-        $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0, 0, 0));
-        return $dompdf->stream('planilla.pdf', array('Attachment' => 0));
+        return $evento->id_eventualidad;
     }
 
     //por si quiere imprimir de nuevo la planilla

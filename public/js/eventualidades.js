@@ -62,6 +62,7 @@ $(document).ready(function(){
 
   });
   $('#btn-buscarEventualidad').click();
+  $('#B_CasinoEv').change();
 });
 $('#fechaEv').on('change', function (e) {
   $(this).trigger('focusin');
@@ -80,8 +81,24 @@ $('#btn-nueva-eventualidad').off().click(function(){
   let casinostr = $('#B_CasinoEv').val();
   //Si es 'Todos los casinos', seteamos el proximo que viene.
   if(isNaN(parseInt(casinostr))) casinostr = $('#B_CasinoEv option').eq(1).val();
-  //abre pestaña con planilla, creando así la eventualidad
-  window.open('eventualidades/crearEventualidad/'+casinostr,'_blank');
+  
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+
+  $.ajax({
+    type: 'GET',
+    url: 'eventualidades/crearEventualidad/'+casinostr,
+    success: function (id_ev) {
+      $('#btn-buscarEventualidad').click();
+      window.open('eventualidades/verPlanillaVacia/' + id_ev,'_blank');
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
 })
 
 // BOTÓN IMPRIMIR
@@ -547,7 +564,10 @@ $('#btn-buscarEventualidad').click(function(e){
       fecha: $('#B_fecha_ev').val(),
       id_casino: $('#B_CasinoEv').val(),
       nro_turno: turno,
-    }
+      id_sector: $('#B_Sector').val(),
+      id_isla: $('#B_Isla').val(),
+      nro_admin: $('#B_Numero').val()
+    };
 
     $.ajax({
       type: 'POST',
@@ -689,7 +709,59 @@ function generarFilaTabla(event, controlador) {
 
   fila.append(td);
 
-
-
   return fila;
 };
+
+$('#B_CasinoEv').change(function(){
+  const t = $(this);
+  const id_casino = t.val();
+  let sector = $("#B_Sector");
+  let isla = $("#B_Isla");
+  let numero = $("#B_Numero");
+  isla.empty();
+  isla.prop('disabled',true);
+  if(id_casino.length == 0){
+    sector.prop('disabled',true);
+    numero.prop('disabled',true);
+    sector.empty();
+    numero.val("");
+    return;
+  }
+  sector.prop('disabled',false);
+  numero.prop('disabled',false);
+
+  const sectores = $('#sectores').find('option[data-id-casino="'+id_casino+'"]');
+  const todos = $('<option>').val('').text('Todos los sectores');
+  sector.empty();
+
+  sector.append(todos); 
+  sectores.each(function(idx,obj){
+    let o = $(obj).clone();
+    o.val(o.attr('data-id-sector'));
+    sector.append(o);
+  });
+});
+
+$('#B_Sector').change(function(){
+  const t = $(this);
+  const id_sector = t.val();
+  let isla = $("#B_Isla");
+  let numero = $("#B_numero");
+
+  numero.prop('disabled',false);
+  if(id_sector.length == 0){
+    isla.prop('disabled',true);
+    isla.empty();
+    return;
+  }
+  isla.prop('disabled',false);
+  const islas = $('#islas').find('option[data-id-sector="'+id_sector+'"]');
+  const todos = $('<option>').val('').text('Todas las islas');
+  isla.empty();
+  isla.append(todos);
+  islas.each(function(idx,obj){
+    let o = $(obj).clone();
+    o.val(o.attr('data-id-isla'));
+    isla.append(o);
+  });
+});

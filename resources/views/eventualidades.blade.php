@@ -12,6 +12,23 @@
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
 
+<datalist id="islas">
+@foreach ($islas as $idx => $i)
+  <option 
+  data-id-isla="{{$i->id_isla}}" 
+  data-id-sector="{{$i->id_sector}}" 
+  data-id-casino="{{$i->id_casino}}">{{$i->nro_isla}}</option>
+@endforeach
+</datalist>
+
+<datalist id="sectores">
+@foreach ($sectores as $idx => $s)
+  <option 
+  data-id-sector="{{$s->id_sector}}" 
+  data-id-casino="{{$s->id_casino}}">{{$s->descripcion}}</option>
+@endforeach
+</datalist>
+
 <div class="col-xl-9">
     <!-- FILTROS -->
     <div class="row">
@@ -73,6 +90,24 @@
               <br>
 
               <div class="row">
+                <div class="col-lg-3">
+                  <h5>Sector</h5>
+                  <select id="B_Sector" class="form-control"></select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Isla</h5>
+                  <select id="B_Isla"  class="form-control"></select>
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Numero</h5>
+                  <input id="B_Numero" class="form-control">
+                </div>
+              </div> <!-- row / formulario -->
+
+              <br>
+
+              <div class="row">
                 <div class="col-md-12">
                   <center>
                     <button id="btn-buscarEventualidad" class="btn btn-infoBuscar" type="button" name="button">
@@ -82,15 +117,12 @@
                 </div>
               </div> <!-- row / botón buscar -->
 
-
-
-
             </div> <!-- panel-body -->
+
           </div> <!-- collapse -->
 
-
-
         </div> <!-- .panel-default -->
+
       </div> <!-- .col-md-12 -->
 
     </div> <!-- .row / FILTROS -->
