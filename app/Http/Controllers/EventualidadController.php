@@ -107,17 +107,17 @@ class EventualidadController extends Controller
         }
         $reglas = array();
         if (!empty($request->id_tipo_eventualidad) || $request->id_tipo_eventualidad != 0) {
-            $reglas[] = ['tipo_eventualidad.id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
+            $reglas[] = ['te.id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
         }
 
         if (!empty($request->id_casino) || $request->id_casino != 0) {
-            $reglas[] = ['casino.id_casino', '=', $request['id_casino']];
+            $reglas[] = ['c.id_casino', '=', $request['id_casino']];
         }
 
         //Si pone '-', buscamos los turnos null osea que se hicieron fuera de turno.
         $turno_null = false;
         if (!empty($request->nro_turno) && $request->nro_turno != '-') {
-            $reglas[] = ['eventualidad.turno', '=', $request['nro_turno']];
+            $reglas[] = ['e.turno', '=', $request['nro_turno']];
         }
         else if (!empty($request->nro_turno) && $request->nro_turno == '-'){
             $turno_null = true;
@@ -125,45 +125,48 @@ class EventualidadController extends Controller
 
 
         //Left join pq puede ser que no tenga ninguna maquina.
-        $resultados = DB::table('eventualidad')
-        ->selectRaw('distinct eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre')
-        ->join('tipo_eventualidad','tipo_eventualidad.id_tipo_eventualidad','=','eventualidad.id_tipo_eventualidad')
-        ->join('casino','eventualidad.id_casino','=','casino.id_casino')
-        ->leftJoin('maquina_tiene_eventualidad','maquina_tiene_eventualidad.id_eventualidad','=','eventualidad.id_eventualidad')
-        ->leftJoin('maquina','maquina_tiene_eventualidad.id_maquina','=','maquina.id_maquina')
-        ->leftJoin('isla','maquina.id_isla','=','isla.id_isla');
+        $resultados = DB::table('eventualidad as e')
+        ->selectRaw('e.*,DATE(e.fecha_generacion) as fecha, TIME(e.fecha_generacion) as hora,te.descripcion,c.nombre')
+        ->join('tipo_eventualidad as te','te.id_tipo_eventualidad','=','e.id_tipo_eventualidad')
+        ->join('casino as c','e.id_casino','=','c.id_casino')
+        ->leftJoin('maquina_tiene_eventualidad as me','me.id_eventualidad','=','e.id_eventualidad')
+        ->leftJoin('maquina as m','me.id_maquina','=','m.id_maquina')
+        ->leftJoin('isla as i','m.id_isla','=','i.id_isla');
   
         $resultados = $resultados
-        ->whereIn('eventualidad.id_casino',$cas_id)//Me quedo con solo los del casino del user
+        ->whereIn('e.id_casino',$cas_id)//Me quedo con solo los del casino del user
         ->where($reglas);
 
         if($turno_null){
-            $resultados = $resultados->whereNull('eventualidad.turno');
+            $resultados = $resultados->whereNull('e.turno');
         }
 
         if(!is_null($request->id_sector)){
-            $resultados = $resultados->where('isla.id_sector','=',$request->id_sector);
+            $resultados = $resultados->where('i.id_sector','=',$request->id_sector);
         }
         if(!is_null($request->id_isla)){
-            $resultados = $resultados->where('isla.id_isla','=',$request->id_isla);
+            $resultados = $resultados->where('i.id_isla','=',$request->id_isla);
         }
         if(!is_null($request->nro_admin)){
-            $resultados = $resultados->where('maquina.nro_admin','=',$request->nro_admin);
+            $resultados = $resultados->where('m.nro_admin','=',$request->nro_admin);
         }
         
         if(!empty($request->fecha)){
             $fecha = explode(" ", $request->fecha);
             $mes = $this->traducirMes($fecha[1]);;
-            $resultados = $resultados->whereYear('eventualidad.fecha_generacion', '=', $fecha[2])
-                ->whereMonth('eventualidad.fecha_generacion', '=', $mes)
-                ->whereDay('eventualidad.fecha_generacion', '=', $fecha[0])
-                ->orderBy('eventualidad.fecha_generacion', 'DESC');
+            $resultados = $resultados->whereYear('e.fecha_generacion', '=', $fecha[2])
+                ->whereMonth('e.fecha_generacion', '=', $mes)
+                ->whereDay('e.fecha_generacion', '=', $fecha[0])
+                ->orderBy('e.fecha_generacion', 'DESC');
         }
 
         $resultados = $resultados->orderBy('fecha', 'DESC')
-        ->orderBy('hora','desc')
-        ->get();
+        ->orderBy('hora','desc');
 
+        //Elimina duplicados con groupby, si lo hacemos con distinct no anda el paginate
+        $resultados_pag = $resultados
+        ->groupBy('e.id_eventualidad')
+        ->paginate($request->page_size);
         $esControlador = 0;
         foreach ($usuario->roles as $rol) {
             if ($rol->descripcion == "CONTROL" || $rol->descripcion == "ADMINISTRADOR" || $rol->descripcion == "SUPERUSUARIO") {
@@ -172,7 +175,7 @@ class EventualidadController extends Controller
         }
         $tiposEventualidades = TipoEventualidad::all();
 
-        return ['eventualidades' => $resultados,
+        return ['eventualidades' => $resultados_pag,
             'esControlador' => $esControlador,
             'tiposEventualidades' => $tiposEventualidades,
             'casinos' => $casinos];

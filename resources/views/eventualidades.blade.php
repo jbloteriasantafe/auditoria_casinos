@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="css/paginacion.css"/>
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
 
@@ -150,6 +151,7 @@
               <tbody id="cuerpoTablaEv" style="max-height: 356px;">
               </tbody>
             </table>
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
           </div>
         </div>
       </div>

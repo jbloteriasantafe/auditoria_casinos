@@ -61,7 +61,10 @@ $(document).ready(function(){
 
 
   });
-  $('#btn-buscarEventualidad').click();
+  //$('#btn-buscarEventualidad').click();
+  clickIndice(null, 
+    $('#herramientasPaginacion').getCurrentPage(), 
+    $('#herramientasPaginacion').getPageSize());
   $('#B_CasinoEv').change();
 });
 $('#fechaEv').on('change', function (e) {
@@ -547,14 +550,24 @@ $(document).on('click', '#btn_validarEv', function (e) {
 
 
 //Busqueda de eventos
-$('#btn-buscarEventualidad').click(function(e){
-
+$('#btn-buscarEventualidad').click(function(e, pagina, page_size){
     $.ajaxSetup({
       headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
     });
+
     e.preventDefault();
+
+    //Fix error cuando librería saca los selectores
+    if (isNaN($('#herramientasPaginacion').getPageSize())) {
+      var size = 10; // por defecto
+    } else {
+      var size = $('#herramientasPaginacion').getPageSize();
+    }
+    page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+    pagina = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
 
     let turno = $('#B_TurnoEventualidad').val();
     turno = turno == ""? 0 : turno;
@@ -566,7 +579,10 @@ $('#btn-buscarEventualidad').click(function(e){
       nro_turno: turno,
       id_sector: $('#B_Sector').val(),
       id_isla: $('#B_Isla').val(),
-      nro_admin: $('#B_Numero').val()
+      nro_admin: $('#B_Numero').val(),
+      page: pagina,
+      sort_by: 'fecha',
+      page_size: page_size
     };
 
     $.ajax({
@@ -575,14 +591,26 @@ $('#btn-buscarEventualidad').click(function(e){
       data: formData,
       dataType: 'json',
 
-      success: function (data) {
-        console.log('success', data);
+      success: function (res) {
+        console.log('success', res);
         $('#tablaResultadosEv #cuerpoTablaEv tr').remove();
-
-          for (var i = 0; i < data.eventualidades.length; i++) {
-              let filaEventualidad = generarFilaTabla(data.eventualidades[i],data.esControlador);
+        $('#herramientasPaginacion').generarTitulo(
+          res.eventualidades.current_page,
+          res.eventualidades.per_page, 
+          res.eventualidades.total, 
+          clickIndice);
+          for (var i = 0; i < res.eventualidades.data.length; i++) {
+              let filaEventualidad = generarFilaTabla(
+                res.eventualidades.data[i],
+                res.esControlador
+              );
               $('#cuerpoTablaEv').append(filaEventualidad);
           }
+        $('#herramientasPaginacion').generarIndices(
+          res.eventualidades.current_page,
+          res.eventualidades.per_page,
+          res.eventualidades.total,
+          clickIndice);
 
       },
       error: function (data) {
@@ -590,6 +618,20 @@ $('#btn-buscarEventualidad').click(function(e){
       }
     });
 });
+
+function clickIndice(e, pageNumber, tam=undefined,total=null) {
+  if (e != null) {
+      e.preventDefault();
+  }
+  console.log(pageNumber,tam,total);
+  var tam = (isNaN(tam)) ? 
+  $('#herramientasPaginacion').getPageSize() 
+  : tam;
+  var columna = $('#tablaResultadosEv .activa').attr('value');
+  var orden = $('#tablaResultadosEv .activa').attr('estado');
+  $('#btn-buscarEventualidad').trigger('click', [pageNumber, tam, columna, orden]);
+}
+
 function limpiarNull(s){
   return s === null? '-' : s;
 }
