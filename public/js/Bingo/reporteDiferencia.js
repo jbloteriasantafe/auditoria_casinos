@@ -370,34 +370,31 @@ function cargarDatosSesion(importaciones,sesion, pozoDotInicial){
 }
 //funcion auxiliar para cargar los detalles de la sesion a partir de importación
 function cargarDetallesSesion(importaciones,detalle){
-  // console.log(importaciones);
-  // $('#valor_carton').val(importaciones[0].valor_carton).attr('disabled','disabled');
-  // $('#serie_inicial').val(importaciones[0].serieA).attr('disabled','disabled');
-  // $('#carton_inicial').val(importaciones[0].carton_inicio_A).attr('disabled','disabled');
-
-  var t = importaciones.length - 1;
-
-  //busco la primer ocurrencia con el mismo valor de carton desde el final.
-  // var c = 0;
-  // for (var i = t; i > 0; i--) {
-  //   if(importaciones[i].valor_carton == importaciones[0].valor_carton && c == 0){
-  //     if(importaciones[i].serieB != 0){
-  //       $('#serie_final').val(importaciones[i].serieB).attr('disabled','disabled');
-  //       $('#carton_final').val(importaciones[i].carton_fin_B).attr('disabled','disabled');
-  //     }else{
-  //       $('#serie_final').val(importaciones[i].serieA).attr('disabled','disabled');
-  //       $('#carton_final').val(importaciones[i].carton_fin_A).attr('disabled','disabled');
-  //     }
-  //     c++;
-  //   }
-  // }
-
   //busco pcurrencias con distinto vaor de cartón, generando un nuevo detalle
   var detalles = [];  //variable para guardar los detalles con distinto valor de cartón
   importaciones.forEach(function(importacion){ //recorro las importaciones
-    // if(importacion.valor_carton != importaciones[0].valor_carton){ //si encuentro una linea de importación con distinto valor de cartón, entro al if
-      //si ya tengo cargado detalles, me fijo que valor_carton del último cargado no coincida con la línea de importación actual
-      if(detalles.length !=0 && detalles[(detalles.length-1)].valor_carton != importacion.valor_carton){
+      //si ya tengo cargado detalles, entro al if
+      if(detalles.length != 0){
+          var existe = 0; //variable auxiliar para saber si existe un valor de cartón con el mismo monto
+          //recorro los detalles cargados, si existe un valor de carton con igual monto, asigno 1 a existe
+          detalles.forEach(function(det){
+            if(det.valor_carton === importacion.valor_carton) existe = 1;
+          });
+          //si no existe un detalle con el mismo valor de carton, entro al if
+          if(existe === 0){
+            //guardo los datos en una variable auxiliar
+            var datos = {
+              valor_carton: importacion.valor_carton,
+              serie_inicio: importacion.serieA,
+              carton_inicio: importacion.carton_inicio_A,
+              serie_fin: null,
+              carton_fin: null,
+            }
+            //meto los datos en el arreglo de detalles
+            detalles.push(datos);
+          }
+      }else if(detalles.length == 0){ //si todavía no tengo detalles agregados, entro al if
+        //guardo los datos en una variable auxiliar
         var datos = {
           valor_carton: importacion.valor_carton,
           serie_inicio: importacion.serieA,
@@ -405,20 +402,12 @@ function cargarDetallesSesion(importaciones,detalle){
           serie_fin: null,
           carton_fin: null,
         }
-        detalles.push(datos);
-      }else if(detalles.length == 0){
-        var datos = {
-          valor_carton: importacion.valor_carton,
-          serie_inicio: importacion.serieA,
-          carton_inicio: importacion.carton_inicio_A,
-          serie_fin: null,
-          carton_fin: null,
-        }
+        //meto los datos en el arreglo de detalles
         detalles.push(datos);
       }
     // }
   });
-
+  var t = importaciones.length - 1; //cantidad de importaciones para recorrer;
 
   if( detalles.length != 0){ //si comenzó a armar un nuevo detalle, busco los valores finales
         detalles.forEach(function(linea){ //por cada linea de detalles
@@ -438,7 +427,6 @@ function cargarDetallesSesion(importaciones,detalle){
         });
       }
 
-
   //llamo a la función para generar la nueva fila.
   for (var i = 0; i < detalles.length; i++){
     $('#terminoDatos2').append(generarFilaDetallesSesion(detalles[i],detalle));
@@ -448,87 +436,9 @@ function cargarDetallesSesion(importaciones,detalle){
     $('#terminoDatos2').append($('<p>').css('color' ,'red')
         .text('*La cantidad de detalles relevados no coincide con los detalles de importados.')
     );}
-    //pintarDetalleSesion(importaciones, detalle, detalles);
 }
-function pintarDetalleSesion(importacion, detalle, detalles){
-  //si no existen datos de detalle,  pinto de naranja
-  if(detalle == undefined){
-      $('#valor_carton').removeClass('pintar-red').addClass('pintar-orange');
-      $('#serie_inicial').removeClass('pintar-red').addClass('pintar-orange');
-      $('#carton_inicial').removeClass('pintar-red').addClass('pintar-orange');
-      $('#serie_final').removeClass('pintar-red').addClass('pintar-orange');
-      $('#carton_final').removeClass('pintar-red').addClass('pintar-orange');
-      // if(detalles.length != 0){
-      for (var i = 0; i<detalles.length; i++){
-        $('#valor_carton_f').removeClass('pintar-red').addClass('pintar-orange');
-        $('#serie_inicial_f').removeClass('pintar-red').addClass('pintar-orange');
-        $('#carton_inicial_f').removeClass('pintar-red').addClass('pintar-orange');
-        $('#serie_final_f').removeClass('pintar-red').addClass('pintar-orange');
-        $('#carton_final_f').removeClass('pintar-red').addClass('pintar-orange');
-      }
-  }
-  //si hay datos de detalle, comparo esos datos con los de importación y si son distintos, pinto de rojo
-  //en el caso en que la sesión este abierta, pero no cerrada, pinto de rojo diferencias y de naranja si no existe el dato
-  else{
-    if(detalle[0].valor_carton != importacion[0].valor_carton){
-        $('#valor_carton').addClass('pintar-red').removeClass('pintar-organge')
-    }
-    if(detalle[0].serie_inicio != importacion[0].serieA){
-        $('#serie_inicial').addClass('pintar-red').removeClass('pintar-orange');
-    }
-    if(detalle[0].carton_inicio != importacion[0].carton_inicio_A){
-        $('#carton_inicial').addClass('pintar-red').removeClass('pintar-orange');
-    }
 
-    if(detalle[0].serie_fin == null){
-        $('#serie_final').addClass('pintar-orange').removeClass('pintar-red');
-
-    }else{
-      if(detalle[0].serie_fin != importacion[0].serieB){
-        $('#serie_final').addClass('pintar-red').removeClass('pintar-orange');
-      }
-    }
-    if(detalle[0].carton_fin == null){
-        $('#carton_final').addClass('pintar-orange').removeClass('pintar-red');
-    }else{
-      if(detalle[0].carton_fin != importacion[0].carton_fin_B){
-        $('#carton_final').addClass('pintar-red').removeClass('pintar-orange');
-      }
-    }
-
-    if(detalle.length != 1){
-      if(detalle[1].valor_carton != detalles[0]){
-        $('#valor_carton_f').addClass('pintar-red').removeClass('pintar-orange');
-      }
-      if(detalle[1].serie_inicio != detalles[1]){
-        $('#serie_inicial_f').addClass('pintar-red').removeClass('pintar-orange');
-      }
-      if(detalle[1].carton_inicio != detalles[3]){
-        $('#carton_inicial_f').addClass('pintar-red').removeClass('pintar-orange');
-      }
-
-      if(detalle[1].serie_fin == null){
-          $('#serie_final_f').addClass('pintar-orange').removeClass('pintar-red');
-      }else{
-        if(detalle[1].serie_fin != detalles[4]){
-          $('#serie_final_f').addClass('pintar-red').removeClass('pintar-orange');
-        }
-      }
-      if(detalle[1].carton_fin == null){
-          $('#carton_final_f').addClass('pintar-orange').removeClass('pintar-red');
-      }else{
-        if(detalle[1].carton_fin != detalles[5]){
-          $('#carton_final_f').addClass('pintar-red').removeClass('pintar-orange');
-        }
-      }
-    }
-
-
-
-  }
-
-}
-//genera la fila de  detalles si tiene más de uno
+//genera la fila de  detalles
 function generarFilaDetallesSesion(detalle, detalles_relevado){
   var fila =
    $(document.createElement('div'))

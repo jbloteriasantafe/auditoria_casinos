@@ -116,7 +116,7 @@ class ReportesController extends Controller{
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){
-                          return $query->orderBy('id_reporte_estado','desc');
+                          return $query->orderBy('fecha_sesion','desc');
                         })
                       ->where($reglas)
                       ->whereIn('casino.id_casino', $casinos)
