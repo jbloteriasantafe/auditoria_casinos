@@ -907,7 +907,6 @@ class LectorCSVController extends Controller
   // se considera la posibilidad que en el archivo no se envien reportes de mtm (diversos motivos)
   // en ese caso se fuerza el valor de producido a cero y se genera un log de las maquinas que no reportaron
   public function importarProducidoRosario($archivoCSV,$fecha,$id_tipo_moneda){
-
     $producido = new Producido;
     $producido->id_casino = 3;
     $producido->validado = 0;
@@ -933,6 +932,9 @@ class LectorCSVController extends Controller
       }
     }
 
+
+    $path = $archivoCSV->getRealPath();
+
     // Dependiendo del archivo a importar, se ignora cierta candidad de lineas
     if ($id_tipo_moneda==1){
       // moneda en pesos
@@ -941,74 +943,151 @@ class LectorCSVController extends Controller
       // moneda en dolares
       $linIgnore=2;
     }
+    {//FORMA NUEVA
+      $skip_next = false;
+      $fd = fopen($path,"r");
+      $arreglo_a_insertar = [];
+      if($fd){
+        $nline = 0;
+        while (($line = fgets($fd)) !== false) {
+          if($linIgnore>=0){
+            $linIgnore--;
+            continue;
+          }
+          if(substr($line,0,5)=="Total"){
+            $skip_next = true;
+            continue;
+          }
+          if($skip_next){
+            $skip_next = false;
+            continue;
+          }
+          if(substr($line,0,9)=="Promedios"){
+            continue;
+          }
+          if(substr($line,0,7)=="Maximos"){
+            continue;
+          }
+          if(substr($line,0,7)=="Minimos"){
+            continue;
+          }
+          $campos = explode(";",$line);
+          if(count($campos)!=5){
+            $errstr = "Error al parsear linea ".($nline+1);
+            return ['errores' => [$errstr]];
+          }
 
-    $path = $archivoCSV->getRealPath();
-    $query = sprintf("LOAD DATA local INFILE '%s'
-                      INTO TABLE producido_temporal
-                      CHARACTER SET latin1
-                      FIELDS TERMINATED BY ';'
-                      OPTIONALLY ENCLOSED BY '\"'
-                      ESCAPED BY '\"'
-                      LINES TERMINATED BY '\\n'
-                      IGNORE %d LINES
-                      (@0,@1,@2,@3,@4)
-                       SET id_producido = '%d',
-                                maquina = SUBSTRING(@1,1,4),
-                                  valor = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2))
-                      ",$path,$linIgnore,$producido->id_producido);
+          $denom = $campos[0]; //No se usa
+          $maquina = substr($campos[1],0,strlen($campos[1])-2);//Le saco los ultimos dos caracteres
+          $ubicacion = $campos[2];//No se usa
+          $periodo = $campos[3];//No se usa
+          $total = trim($campos[4]);//Le saco el fin de linea
+
+          if($maquina == "99990"){
+            continue;//Ignoro maquina especial
+          }
+
+          if($periodo!=$total){
+            //Deberian ser iguales.
+            $errstr = "Error al parsear linea ".($nline+1);
+            $errstr .= "\nPeriodo difiere del total";
+            $errstr .= "\nDenom ".$denom;
+            $errstr .= "\nMaquina ".$maquina;
+            $errstr .= "\nUbicacion ".$ubicacion;
+            $errstr .= "\nPeriodo ".$periodo;
+            $errstr .= "\nTotal ".$total;
+            return ['errores' => [$errstr]];
+          }
+          $total = str_replace('.','',$total); //Le saco el separador de los miles
+          $total = str_replace(',','.',$total); //Cambio la coma por el punto
+          $total = floatval($total);//Parseo el numero
+          $arreglo_a_insertar[] = [
+            "valor" => $total,
+            "maquina"=>$maquina,
+            "id_producido"=>$producido->id_producido,
+            "fecha"=>$fecha
+          ];
+          $nline++;
+        }
+        fclose($fd);
+      }
+      else{
+        return ['errores'=>["Fallo al abrir el archivo ".$path]];
+      }
+
+      DB::table('producido_temporal')->insert($arreglo_a_insertar); 
+    } //FIN FORMA NUEVA
+    
+    /* FORMA VIEJA
+    {
+      $query = sprintf("LOAD DATA local INFILE '%s'
+                        INTO TABLE producido_temporal
+                        CHARACTER SET latin1
+                        FIELDS TERMINATED BY ';'
+                        OPTIONALLY ENCLOSED BY '\"'
+                        ESCAPED BY '\"'
+                        LINES TERMINATED BY '\\n'
+                        IGNORE %d LINES
+                        (@0,@1,@2,@3,@4)
+                        SET id_producido = '%d',
+                                  maquina = SUBSTRING(@1,1,4),
+                                    valor = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2))
+                        ",$path,$linIgnore,$producido->id_producido);
+
+      $pdo->exec($query);
+    }*/
+    
+    $query = sprintf("INSERT INTO detalle_producido (valor,id_maquina,id_producido)
+                      SELECT prod.valor, mtm.id_maquina, prod.id_producido
+                      FROM producido_temporal AS prod
+                      JOIN maquina as mtm on (mtm.nro_admin = prod.maquina and mtm.deleted_at IS NULL and mtm.id_tipo_moneda = '%d')
+                      WHERE prod.id_producido = '%d'
+                      AND mtm.id_casino = 3",$id_tipo_moneda,$producido->id_producido);
 
     $pdo->exec($query);
 
-    $query = sprintf(" INSERT INTO detalle_producido (valor,id_maquina,id_producido)
-                       SELECT prod.valor, mtm.id_maquina, prod.id_producido
-                       FROM producido_temporal AS prod, maquina AS mtm
-                       WHERE prod.id_producido = '%d'
-                         AND prod.maquina = mtm.nro_admin
-                         AND mtm.id_casino = 3
-                         AND mtm.deleted_at IS NULL
-                         AND mtm.id_tipo_moneda = '%d'
-                       ",$producido->id_producido,$id_tipo_moneda);
+    $query = sprintf("DELETE FROM producido_temporal
+                      WHERE id_producido = '%d'",$producido->id_producido);
 
     $pdo->exec($query);
 
-    $query = sprintf(" DELETE FROM producido_temporal
-                       WHERE id_producido = '%d'
-                       ",$producido->id_producido);
-
-    $pdo->exec($query);
-
-    $cantidad_registros = DetalleProducido::where('id_producido','=',$producido->id_producido)->count();
+    $cantidad_registros = DetalleProducido::where('id_producido','=',$producido->id_producido)->distinct()->count();
 
     $pdo=null;
 
-            // implementacion para contemplar los casos en que las mtms no reporten
-        $mtms= Maquina::select("id_maquina","nro_admin")
-                    ->where("id_casino","=",3)
-                    ->where("id_tipo_moneda","=",$id_tipo_moneda)
-                    ->whereNull("deleted_at")
-                    ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
-                    ->get();
-        $cant_mtm_forzadas=0;
-        $id_mtm_forzadas=array();
-        foreach($mtms as $m){
-          $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
-                                ->where("id_producido","=", $producido->id_producido)
-                                ->count();
+    // implementacion para contemplar los casos en que las mtms no reporten
+    $mtms= Maquina::select("id_maquina","nro_admin")
+                ->where("id_casino","=",3)
+                ->where("id_tipo_moneda","=",$id_tipo_moneda)
+                ->whereNull("deleted_at")
+                ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
+                ->get();
 
-          if(!$cant){
-            $daux= new DetalleProducido;
-            $daux->valor=0;
-            $daux->id_maquina=$m->id_maquina;
-            $daux->id_producido=$producido->id_producido;
-            $daux->save();
-            $cant_mtm_forzadas=$cant_mtm_forzadas+1;
-            array_push($id_mtm_forzadas,$m->id_maquina);
-          }
-        }
-        $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
-        $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
-        $producido->save();
-        //fin de implementacion
+    $cant_mtm_forzadas=0;
+    $id_mtm_forzadas=array();
+    foreach($mtms as $m){
+      //Por algun motivo, no se cual, esta devolviendo maquinas que no deberia (con moneda en pesos importando dolares)
+      //Le agrego este chequeo
+      if($m->id_tipo_moneda != $id_tipo_moneda) continue;
+      if($m->id_casino != 3) continue;
+      if(!is_null($m->deleted_at)) continue;
+      if($m->id_estado_maquina == 3) continue;
+      $cant=DetalleProducido::where("id_maquina","=",$m->id_maquina)
+                            ->where("id_producido","=", $producido->id_producido)
+                            ->count();
+      if($cant==0){
+        $daux= new DetalleProducido;
+        $daux->valor=0;
+        $daux->id_maquina=$m->id_maquina;
+        $daux->id_producido=$producido->id_producido;
+        $daux->save();
+        $cant_mtm_forzadas=$cant_mtm_forzadas+1;
+        array_push($id_mtm_forzadas,$m->id_maquina);
+      }
+    }
+    $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
+    $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->save();
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
