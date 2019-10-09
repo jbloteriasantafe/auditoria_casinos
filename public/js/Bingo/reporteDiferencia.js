@@ -199,7 +199,7 @@ $(document).on('click' , '.validar' , function() {
       $.get("obtenerDiferencia/" + id_importacion, function(data){
         $('#modalDetalles .modal-title').text('| DETALLES DIFERENCIA ' + data.importacion[0].fecha);
         //detalles sesion
-        cargarDatosSesion(data.importacion, data.sesion.sesion);
+        cargarDatosSesion(data.importacion, data.sesion.sesion, data.pozoDotInicial);
         cargarDetallesSesion(data.importacion, data.sesion.detalles);
          // console.log(data);
         //genera la tabla con las partidas importadas
@@ -268,10 +268,10 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 //función auxiliar cargar datos de la sesión a partir de importación
-function cargarDatosSesion(importaciones,sesion){
+function cargarDatosSesion(importaciones,sesion, pozoDotInicial){
   //si no existen datos de sesión, cargo los datos desde importación y pinto de naranja
   if(sesion == undefined){
-    $('#pozo_dotacion_inicial_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
+    $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
     $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
     var i = importaciones.length - 1;
     $('#pozo_dotacion_final_d').val(importaciones[i].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
@@ -281,8 +281,8 @@ function cargarDatosSesion(importaciones,sesion){
   else{
 
     //comparo datos iniciales de pozo dot y pozo extra, si llego hasta acá, existen. Sólo comparo y pinto de rojo si son != o dejo sin pintar si son ==
-    if (importaciones[0].pozo_dot != sesion.pozo_dotacion_inicial){
-      $('#pozo_dotacion_inicial_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
+    if (pozoDotInicial != sesion.pozo_dotacion_inicial){
+      $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
         .attr("data-content", sesion.pozo_dotacion_inicial)
         .attr("data-placement" , "top")
         .attr("rel","popover")
@@ -296,7 +296,7 @@ function cargarDatosSesion(importaciones,sesion){
         });
 
     }else{
-        $('#pozo_dotacion_inicial_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
+        $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
         $('.pop-pozo-dot-inicial').popover('disable');
     }
     if (importaciones[0].pozo_extra != sesion.pozo_extra_inicial){
