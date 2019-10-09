@@ -58,7 +58,7 @@ class ImportacionController extends Controller
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){
-                          return $query->orderBy('id_importacion','desc');
+                          return $query->orderBy('fecha','desc');
                         })
                       ->where($reglas)
                       ->whereIn('casino.id_casino', $casinos)

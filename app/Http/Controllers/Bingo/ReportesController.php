@@ -20,6 +20,9 @@ class ReportesController extends Controller{
       //por cada estado, obtener las importaciones y relevamientos(sesiones/partidas)
       $respuesta = $this->obtenerCargados($estados);
 
+      // //obtengo el pozo dotación inicial, último pozo dotación de la sesión anterior
+      // $pozo_dotacion_inicial = $this->obtenerPozoDotacionInicial();
+
       return ['respuesta' => $respuesta, 'estados' => $estados];
       // return $respuesta;
     }
@@ -113,7 +116,7 @@ class ReportesController extends Controller{
                          ->when($sort_by,function($query) use ($sort_by){
                           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                         },function($query){
-                          return $query->orderBy('id_reporte_estado','desc');
+                          return $query->orderBy('fecha_sesion','desc');
                         })
                       ->where($reglas)
                       ->whereIn('casino.id_casino', $casinos)
@@ -145,12 +148,30 @@ class ReportesController extends Controller{
       $sesion = app(\App\Http\Controllers\Bingo\SesionesController::class)
                     ->obtenerSesionFC($importacion[0]->fecha,$importacion[0]->id_casino, 'diferencia');
 
+      //armo las reglas para obtener el reporte de estado de la importación
       $reglas = array();
       $reglas [] =['fecha_sesion','=', $importacion[0]->fecha];
       $reglas [] =['id_casino','=', $importacion[0]->id_casino];
       $reporte = ReporteEstado::where($reglas)->first();
 
-      return ['importacion' => $importacion, 'sesion' => $sesion, 'reporte' => $reporte];
+      //busco la primer ocurrencia que cumpla con la id de casino y con fecha menor
+      $cumple = array();
+      $cumple [] =['fecha','<', $importacion[0]->fecha];
+      $cumple [] =['id_casino','=', $importacion[0]->id_casino];
+      $id_importacion_anterior = ImportacionBingo::where($cumple)->orderBy('fecha','dsc')->first();
+
+      //si existe, busco la primer anterior
+      if($id_importacion_anterior != null){
+        $id_importacion_anterior = $id_importacion_anterior->id_importacion;
+        $importacion_anterior = app(\App\Http\Controllers\Bingo\ImportacionController::class)
+                          ->obtenerImportacionCompleta($id_importacion_anterior);
+        $pozo_dotacion_inicial = $importacion_anterior->last()->pozo_dot;
+
+      }else {
+        $pozo_dotacion_inicial = -1;
+      }
+
+      return ['importacion' => $importacion, 'sesion' => $sesion, 'reporte' => $reporte, 'pozoDotInicial' => $pozo_dotacion_inicial];
     }
 
     //guardar los datos del reporte de diferencia (observaciones + visado)
@@ -167,5 +188,9 @@ class ReportesController extends Controller{
       $reporte->save();
 
       return $request->id_importacion;
+    }
+    //obtiene el último pozo dotación de la sesión anterior para utilizarlo como sesión inicial
+    protected function obtenerPozoDotacionInicial(){
+
     }
   }

@@ -26,9 +26,7 @@ $casinos = $usuario->casinos;
 #cuerpoTabla tr i{
   color: #FF1744
 }
-#terminoDatos, #terminosDatos2{
-  margin-bottom: 15px!important;
-}
+
 .pintar-red{
   color: rgb(239, 83, 80);
 }
@@ -160,39 +158,32 @@ $casinos = $usuario->casinos;
                                           <h5>POZO EXTRA FINAL</h5>
                                           <input id="pozo_extra_final_d" name="pozo_extra_final_d" type="text" class="form-control"  placeholder="" value="">
                                         </div>
-
                                     </div>
-                                      <div id="terminoDatos" class="row" style="margin-bottom: 15px;">
+
+
+                                      <div class="row">
                                         <div class="col-lg-12">
                                         <h6>DETALLES DE LA SESIÓN</h6>
                                         </div>
-
                                         <div class="col-lg-2">
                                           <h5>VALOR CARTON</h5>
-                                          <input id="valor_carton" name="valor_carton" type="text" class="form-control"  placeholder="" value="">
                                         </div>
-
                                         <div class="col-lg-2">
                                           <h5>SERIE INICIAL</h5>
-                                          <input id="serie_inicial" name="serie_inicial" type="text" class="form-control"  placeholder="" value="">
                                         </div>
-
                                         <div class="col-lg-2">
                                           <h5>CARTON INICIAL</h5>
-                                          <input id="carton_inicial" name="carton_inicial" type="text" class="form-control"  placeholder="" value="">
                                         </div>
-
                                         <div class="col-lg-2">
                                           <h5>SERIE FINAL</h5>
-                                          <input id="serie_final" name="serie_final" type="text" class="form-control"  placeholder="" value="">
                                         </div>
-
                                         <div class="col-lg-2">
                                           <h5>CARTON FINAL</h5>
-                                          <input id="carton_final" name="carton_final" type="text" class="form-control"  placeholder="" value="">
                                         </div>
                                       </div>
 
+                                      <div id="terminoDatos2" class="row" style="margin-bottom: 15px;">
+                                      </div>
                                   </div>
                                   <div class="col-lg-12">
                                     <h6>RELEVAMIENTOS CARGADOS VS IMPORTADOS</h6>

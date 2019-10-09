@@ -391,6 +391,9 @@ $('#btn-nuevo').click(function(e){
   $('#btn-agregarTermino').show();
   e.preventDefault();
   $('#casino_nueva').removeAttr('disabled','disabled');
+  $('#fechaInicioNueva').removeAttr('disabled','disabled');
+  $('#input-calendar').show();
+  $('#input-times').show();
   $('#btn-guardar').val("nuevo");
   $('#frmFormula').trigger('reset');
   $('.terminoFormula').remove();
@@ -421,6 +424,9 @@ $(document).on('click','.modificar',function(){
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-warningModificar');
     $('#casino_nueva').attr('disabled','disabled');
+    $('#fechaInicioNueva').attr('disabled','disabled');
+    $('#input-calendar').hide();
+    $('#input-times').hide();
     var id_sesion = $(this).val();
 
     $.get("bingo/obtenerSesion/" + id_sesion, function(data){
@@ -1089,6 +1095,9 @@ $(document).on('click' , '.detallesRel' , function() {
     $('#id_sesion').val($(this).val());
     var id_sesion = $('#id_sesion').val();
 
+    $('#terminoDatos2').remove();
+    $('#terminoDetallesRel').append($('<div>').attr('id', 'terminoDatos2'));
+
 
     $('#modalDetallesRel .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
 
@@ -1124,6 +1133,12 @@ $(document).on('click' , '.detallesRel' , function() {
             $('#accionesResultadoRel').hide();
           }
         })
+        //genera los input con detalles de sesión
+        console.log(data.detalles[0]);
+        for (var i = 0; i < data.detalles.length; i++){
+          console.log(data.detalles[i]);
+            $('#terminoDatos2').append(generarFilaDetallesSesion(data.detalles[i]));
+        }
         //genera la tabla con los relevamientos cargados
         for (var i = 0; i < data.partidas.length; i++){
           $('#cuerpoTablaRel').append(generarFilaTablaRel(data.partidas[i]));
@@ -1136,6 +1151,72 @@ $(document).on('click' , '.detallesRel' , function() {
       });
 
 })
+
+//genera la fila de  detalles
+function generarFilaDetallesSesion(detalle){
+  var fila =
+   $(document.createElement('div'))
+          .addClass('row')
+          .css('padding-top' ,'15px')
+        .append($('<div>')
+              .addClass('col-lg-2')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','valor_carton_f')
+                  .attr('type','text')
+                  .attr('disabled','disabled')
+                  .attr('value', detalle.valor_carton)
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-2')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','serie_inicial_f')
+                  .attr('type','text')
+                  .attr('disabled','disabled')
+                  .attr('value', detalle.serie_inicio)
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-2')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','carton_inicial_f')
+                  .attr('type','text')
+                  .attr('disabled','disabled')
+                  .attr('value', detalle.carton_inicio)
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-2')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','serie_final_f')
+                  .attr('type','text')
+                  .attr('disabled','disabled')
+                  .attr('value', detalle.serie_fin)
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-2')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','carton_final_f')
+                  .attr('type','text')
+                  .attr('disabled','disabled')
+                  .attr('value', detalle.carton_fin)
+                  .addClass('form-control')
+              )
+          )
+
+      return fila;
+
+}
 
 function clickIndice(e,pageNumber,tam){
   if(e != null){

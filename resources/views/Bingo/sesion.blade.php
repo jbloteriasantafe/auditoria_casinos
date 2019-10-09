@@ -1,4 +1,4 @@
-@extends('includes.dashboard')
+  @extends('includes.dashboard')
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
@@ -211,8 +211,8 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                   <h5>FECHA INICIO</h5>
                                   <div class='input-group date' id='dtpFechaSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
                                       <input type='text' class="form-control" placeholder="Fecha de sesión" id="fechaInicioNueva" autocomplete="off" style="background-color: rgb(255,255,255);" />
-                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                      <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
 
                                   <!-- <input type="date" id="fechaInicioNueva" class="form-control" style="padding: 0px!important;"> -->
@@ -569,7 +569,9 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                           <div class="col-lg-12 tab-pane fade in active" id="detalles">
                             <div id="columnaDetallesRel" class="row">
                               <div id="terminoDetallesRel" class="row" style="margin-bottom: 15px;">
-
+                                <div class="col-lg-12">
+                                <h6>DATOS DE LA SESIÓN</h6>
+                                </div>
 
                                 <div class="col-lg-3">
                                   <h5>POZO DOTACIÓN INICIAL</h5>
@@ -590,14 +592,38 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                   <h5>POZO EXTRA FINAL</h5>
                                   <input id="pozo_extra_final_d" name="pozo_extra_final_d" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-                                  <div class="col-lg-12">
-                                  <h6>RELEVAMIENTOS CARGADOS</h6>
-                                </div>
-                                </div>
 
+                                <!-- datos de detalles -->
+                              <div class="row">
+                                <div class="col-lg-12">
+                                <h6>DETALLES DE LA SESIÓN</h6>
+                                </div>
+                                <div class="col-lg-2">
+                                  <h5>VALOR CARTON</h5>
+                                </div>
+                                <div class="col-lg-2">
+                                  <h5>SERIE INICIAL</h5>
+                                </div>
+                                <div class="col-lg-2">
+                                  <h5>CARTON INICIAL</h5>
+                                </div>
+                                <div class="col-lg-2">
+                                  <h5>SERIE FINAL</h5>
+                                </div>
+                                <div class="col-lg-2">
+                                  <h5>CARTON FINAL</h5>
+                                </div>
+                              </div>
+
+                              <div id="terminoDatos2" class="row" style="margin-bottom: 15px;">
+                              </div>
+                              <!-- fin datos de detalles -->
+                                </div>
+                                <div class="col-lg-12">
+                                <h6>RELEVAMIENTOS CARGADOS</h6>
+                              </div>
                           </div>
                           <span id="alerta_sesion" class="alertaSpan"></span>
-
 
                           <div class="panel-body modal-cuerpo">
                             <table id="tablaResultadosRel" class="table table-striped">
