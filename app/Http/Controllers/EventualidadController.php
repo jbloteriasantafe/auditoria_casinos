@@ -44,30 +44,6 @@ class EventualidadController extends Controller
         return self::$instance;
     }
 
-    // public function buscarTodoDesdeControlador(){
-    //   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    //   foreach ($usuario->casinos as $casino) {
-    //     $casinos[] = $casino->id_casino;
-    //   }
-    //
-    //   $eventualidades = DB::table('eventualidad')
-    //                       ->select('eventualidad.*','tipo_eventualidad.*','casino.*')
-    //                       ->join('tipo_eventualidad','eventualidad.id_tipo_eventualidad','=','tipo_eventualidad.id_tipo_eventualidad')
-    //                       ->join('casino','casino.id_casino','=','eventualidad.id_casino')
-    //                       ->whereIn('casino.id_casino', $casinos)
-    //                       ->orderBy('eventualidad.fecha_generacion','DES')
-    //                       ->get();
-    //
-    //
-    //
-    //   // $eventualidades = Eventualidad::all();
-    //   // $tiposEventualidades = TipoEventualidad::all();
-    //   // $casinos = Casino::all();
-    //   UsuarioController::getInstancia()->agregarSeccionReciente('Eventualidades', 'eventualidades');
-    //
-    //   return view('eventualidades',['eventualidades'=>$eventualidades , 'esControlador' => 0]);//$esControlador]);
-    // }
-
     public function buscarTodoDesdeFiscalizador()
     {
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -93,6 +69,12 @@ class EventualidadController extends Controller
                                        DROP TABLE eventualidades_temp
                                    "));
 
+        $sectores = DB::table('sector')
+        ->whereIn('sector.id_casino',$casinos)->get();
+        $islas = DB::table('isla')
+        ->join('sector','isla.id_sector','=','sector.id_sector')
+        ->whereIn('sector.id_casino',$casinos)->get();
+
         $turnos = Turno::all();
         $tiposEventualidades = TipoEventualidad::all();
         $casinos = $usuario->casinos;
@@ -103,14 +85,15 @@ class EventualidadController extends Controller
                 $esControlador = 1;
             }
         }
-
         UsuarioController::getInstancia()->agregarSeccionReciente('Eventualidades', 'eventualidades');
 
         return view('eventualidades', ['eventualidades' => $eventualidades,
             'esControlador' => $esControlador,
             'turnos' => $turnos,
             'tiposEventualidades' => $tiposEventualidades,
-            'casinos' => $casinos]);
+            'casinos' => $casinos,
+            'sectores' => $sectores,
+            'islas' => $islas]);
     }
 
     //desde controlador busca
@@ -124,90 +107,67 @@ class EventualidadController extends Controller
         }
         $reglas = array();
         if (!empty($request->id_tipo_eventualidad) || $request->id_tipo_eventualidad != 0) {
-            $reglas[] = ['id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
+            $reglas[] = ['te.id_tipo_eventualidad', '=', $request['id_tipo_eventualidad']];
         }
 
         if (!empty($request->id_casino) || $request->id_casino != 0) {
-            $reglas[] = ['id_casino', '=', $request['id_casino']];
+            $reglas[] = ['c.id_casino', '=', $request['id_casino']];
         }
 
-        if (!empty($request->nro_turno) || $request->nro_turno != 0) {
-            $reglas[] = ['turno', '=', $request['nro_turno']];
+        //Si pone '-', buscamos los turnos null osea que se hicieron fuera de turno.
+        $turno_null = false;
+        if (!empty($request->nro_turno) && $request->nro_turno != '-') {
+            $reglas[] = ['e.turno', '=', $request['nro_turno']];
+        }
+        else if (!empty($request->nro_turno) && $request->nro_turno == '-'){
+            $turno_null = true;
+        } 
+
+
+        //Left join pq puede ser que no tenga ninguna maquina.
+        $resultados = DB::table('eventualidad as e')
+        ->selectRaw('e.*,DATE(e.fecha_generacion) as fecha, TIME(e.fecha_generacion) as hora,te.descripcion,c.nombre')
+        ->join('tipo_eventualidad as te','te.id_tipo_eventualidad','=','e.id_tipo_eventualidad')
+        ->join('casino as c','e.id_casino','=','c.id_casino')
+        ->leftJoin('maquina_tiene_eventualidad as me','me.id_eventualidad','=','e.id_eventualidad')
+        ->leftJoin('maquina as m','me.id_maquina','=','m.id_maquina')
+        ->leftJoin('isla as i','m.id_isla','=','i.id_isla');
+  
+        $resultados = $resultados
+        ->whereIn('e.id_casino',$cas_id)//Me quedo con solo los del casino del user
+        ->where($reglas);
+
+        if($turno_null){
+            $resultados = $resultados->whereNull('e.turno');
         }
 
-        $eventualidades = DB::unprepared(DB::raw(
-          "CREATE TEMPORARY TABLE eventualidades_temp
-          AS (
-            SELECT eventualidad.*,DATE(eventualidad.fecha_generacion) as fecha, TIME(eventualidad.fecha_generacion) as hora,tipo_eventualidad.descripcion,casino.nombre
-            FROM eventualidad inner join casino on eventualidad.id_casino = casino.id_casino
-            inner join tipo_eventualidad on tipo_eventualidad.id_tipo_eventualidad = eventualidad.id_tipo_eventualidad
-          );"
-        ));
-
-        if (empty($request->fecha)) {
-            $resultados = DB::table('eventualidades_temp')
-                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
-                ->where($reglas)
-                ->orderBy('fecha', 'DESC')
-                ->take(25)
-                ->get();
-
-        } else {
+        if(!is_null($request->id_sector)){
+            $resultados = $resultados->where('i.id_sector','=',$request->id_sector);
+        }
+        if(!is_null($request->id_isla)){
+            $resultados = $resultados->where('i.id_isla','=',$request->id_isla);
+        }
+        if(!is_null($request->nro_admin)){
+            $resultados = $resultados->where('m.nro_admin','=',$request->nro_admin);
+        }
+        
+        if(!empty($request->fecha)){
             $fecha = explode(" ", $request->fecha);
-            $mes = null;
-            switch ($fecha[1]) {
-                case 'Enero':
-                    $mes = '01';
-                    break;
-                case 'Febrero':
-                    $mes = '02';
-                    break;
-                case 'Marzo':
-                    $mes = '03';
-                    break;
-                case 'Abril':
-                    $mes = '04';
-                    break;
-                case 'Mayo':
-                    $mes = '05';
-                    break;
-                case 'Junio':
-                    $mes = '06';
-                    break;
-                case 'Julio':
-                    $mes = '07';
-                    break;
-                case 'Agosto':
-                    $mes = '08';
-                    break;
-                case 'Septiembre':
-                    $mes = '09';
-                    break;
-                case 'Octubre':
-                    $mes = '10';
-                    break;
-                case 'Noviembre':
-                    $mes = '11';
-                    break;
-                case 'Diciembre':
-                    $mes = '12';
-                    break;
-                default:
-                    # code...
-                    break;
-            }
-            $resultados = DB::table('eventualidades_temp')
-                ->whereIn('id_casino',$cas_id)//Me quedo con solo los del casino del user
-                ->where($reglas)
-                ->whereYear('fecha', '=', $fecha[2])
-                ->whereMonth('fecha', '=', $mes)
-                ->whereDay('fecha', '=', $fecha[0])
-                ->orderBy('fecha', 'DESC')
-                ->take(25)
-                ->get();
+            $mes = $this->traducirMes($fecha[1]);;
+            $resultados = $resultados->whereYear('e.fecha_generacion', '=', $fecha[2])
+                ->whereMonth('e.fecha_generacion', '=', $mes)
+                ->whereDay('e.fecha_generacion', '=', $fecha[0])
+                ->orderBy('e.fecha_generacion', 'DESC');
         }
-        $esControlador = 0;
 
+        $resultados = $resultados->orderBy('fecha', 'DESC')
+        ->orderBy('hora','desc');
+
+        //Elimina duplicados con groupby, si lo hacemos con distinct no anda el paginate
+        $resultados_pag = $resultados
+        ->groupBy('e.id_eventualidad')
+        ->paginate($request->page_size);
+        $esControlador = 0;
         foreach ($usuario->roles as $rol) {
             if ($rol->descripcion == "CONTROL" || $rol->descripcion == "ADMINISTRADOR" || $rol->descripcion == "SUPERUSUARIO") {
                 $esControlador = 1;
@@ -215,14 +175,41 @@ class EventualidadController extends Controller
         }
         $tiposEventualidades = TipoEventualidad::all();
 
-        $query1 = DB::statement(DB::raw("
-                                         DROP TABLE eventualidades_temp
-                                     "));
-
-        return ['eventualidades' => $resultados,
+        return ['eventualidades' => $resultados_pag,
             'esControlador' => $esControlador,
             'tiposEventualidades' => $tiposEventualidades,
             'casinos' => $casinos];
+    }
+
+    private function traducirMes($mes){
+        switch ($mes) {
+            case 'Enero':
+                return '01';
+            case 'Febrero':
+                return '02';
+            case 'Marzo':
+                return '03';
+            case 'Abril':
+                return '04';
+            case 'Mayo':
+                return '05';
+            case 'Junio':
+                return '06';
+            case 'Julio':
+                return '07';
+            case 'Agosto':
+                return '08';
+            case 'Septiembre':
+                return '09';
+            case 'Octubre':
+                return '10';
+            case 'Noviembre':
+                return '11';
+            case 'Diciembre':
+                return '12';
+            default:
+                return null;
+        }
     }
 
     //hacer uno asi similar para sector y para isla
@@ -312,19 +299,18 @@ class EventualidadController extends Controller
         $casino = Casino::find($id_casino);
         if($casino === null) return;
 
-        $rel = new \stdClass();
         $turno = $this->turno($casino->id_casino);
-        if($turno->count() == 0) $rel->nro_turno = null;
-        else $rel->nro_turno = $turno->first()->nro_turno;
+        if($turno->count() == 0) $turno = null;
+        else $turno = $turno->first()->nro_turno;
 
         DB::beginTransaction();
+        $evento = new Eventualidad;
         try{
-          $evento = new Eventualidad;
           $evento->id_tipo_eventualidad = 3; // --- ->no tiene tipo_eventualidad
           $evento->id_estado_eventualidad = 6; //CREADO
           $evento->id_casino = $id_casino;
           $evento->fecha_generacion = date('Y-m-d h:i:s', time());
-          $evento->turno = $rel->nro_turno;
+          $evento->turno = $turno;
           $evento->save();
           DB::commit();
         }
@@ -333,23 +319,7 @@ class EventualidadController extends Controller
           throw $e;
         }
 
-        $rel->casinoCod = $casino->nombre;
-        $rel->maquinas = null;
-        $rel->sectores = null;
-        $rel->islas = null;
-        $rel->tipo_ev_falla_tec = null;
-        $rel->tipo_ev_ambiental = null;
-        $rel->observaciones = null;
-
-        $view = View::make('planillaEventualidades', compact('rel'));
-        $dompdf = new Dompdf();
-        $dompdf->set_paper('A4', 'portrait');
-        $dompdf->loadHtml($view->render());
-        $dompdf->render();
-        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-        $dompdf->getCanvas()->page_text(20, 815, $rel->casinoCod . "/" . $rel->nro_turno, $font, 10, array(0, 0, 0));
-        $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0, 0, 0));
-        return $dompdf->stream('planilla.pdf', array('Attachment' => 0));
+        return $evento->id_eventualidad;
     }
 
     //por si quiere imprimir de nuevo la planilla
@@ -614,24 +584,9 @@ class EventualidadController extends Controller
             ->get();
         $ev = Eventualidad::find($id_eventualidad);
 
-        if (isset($ev->archivo)) {
-            $data = $ev->archivo->archivo;
-            $pdf = Response::make(base64_decode($data), 200, ['Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $ev->archivo->nombre_archivo . '"']);
-            $ruta = "Eventualidad-" . $ev->tipo_eventualidad->descripcion . "-" . $ev->archivo->nombre_archivo . ".pdf";
-            file_put_contents($ruta, $pdf);
-
-            return ['maquinas' => $resultados,
-                'eventualidad' => $ev,
-                'fiscalizador' => $ev->fiscalizadores->first(),
-                'ruta' => $ruta,
-            ];
-        }
-
         return ['maquinas' => $resultados,
             'eventualidad' => $ev,
-            'fiscalizador' => $ev->fiscalizadores->first(),
-            'pdf' => null,
+            'fiscalizador' => $ev->fiscalizadores->first()
         ];
 
     }
@@ -656,9 +611,14 @@ class EventualidadController extends Controller
 
     public function leerArchivoEventualidad($id)
     {
+        $ucontrol = UsuarioController::getInstancia(); 
+        $user = $ucontrol->quienSoy()['usuario'];
         $file = Eventualidad::find($id);
+        if($file === null) return 0; 
+        if(!$user->usuarioTieneCasino($file->id_casino)) 
+          return 0;
+        
         $data = $file->archivo->archivo;
-        //ver como retornar esto :P
         return Response::make(base64_decode($data), 200, ['Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $file->nombre_archivo . '"']);
     }
@@ -675,19 +635,12 @@ class EventualidadController extends Controller
         //6 Sabado -> se mantiene igual
         if($day_of_week == 0) $day_of_week = 7;
         $this_hour = date("H:i:s");
-        //dump($this_hour);
-        //dump($casino);
         $turnos = Turno::where('id_casino', $casino);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('dia_desde','<=',$day_of_week);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('dia_hasta','>=',$day_of_week);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('entrada','<=',$this_hour);
-        //dump($turnos->get()->toArray());
         $turnos = $turnos->where('salida','>=',$this_hour);
-        //dump($turnos->get()->toArray());
         return $turnos;
-    }
+    }    
 
 }

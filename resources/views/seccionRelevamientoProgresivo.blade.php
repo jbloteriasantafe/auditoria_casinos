@@ -438,7 +438,7 @@ $niveles = 6;
 
 <!-- MODAL MODIFICAR PARÁMETROS DE PROGRESIVOS -->
 <div class="modal fade" id="modalModificarRelev" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width: 60%" >
+  <div class="modal-dialog modal-lg" style="width: 55%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -450,8 +450,8 @@ $niveles = 6;
           <div class="row" style="text-align:center !important;border-bottom:1px solid #ccc; padding-bottom:10px" >
             <div class="row">
             <div class="col-xs-6">
-              <span display="inline-block" class="col-xs-4">
-                <h6>CASINO:</h6>
+              <span display="inline-block" class="col-xs-4" style="width:15%">
+                <h6 style="font-size:17px;">CASINO:</h6>
               </span>
               <span display="inline" style="padding-left:-35px;text-align:left !important">
                 <div class="col-xs-8">
@@ -465,7 +465,7 @@ $niveles = 6;
           </div>
           </div>
           <br>
-          <div id="valoresParamRelevProgresivos" class="row" style="border-bottom:2px solid #ccc;">
+          <div id="valoresParamRelevProgresivos" class="row">
             <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;" id="req">MODIFICACIONES:</h6>
             <div class="row">
               <div class="col-xs-12">

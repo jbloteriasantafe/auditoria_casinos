@@ -109,7 +109,7 @@ class ABMCApuestaMinimaController extends Controller
     $validator=  Validator::make($request->all(),[
       'modificaciones' =>'required',
       'modificaciones.id_juego' => 'required|exists:juego_mesa,id_juego_mesa',
-      'modificaciones.apuesta_minima' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
+      'modificaciones.apuesta_minima' => 'required|numeric|min:0',
       'modificaciones.cantidad_requerida' =>['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'modificaciones.id_casino' => 'required|exists:casino,id_casino',
       'modificaciones.id_moneda' => 'required|exists:moneda,id_moneda'

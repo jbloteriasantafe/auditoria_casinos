@@ -61,7 +61,11 @@ $(document).ready(function(){
 
 
   });
-  $('#btn-buscarEventualidad').click();
+  //$('#btn-buscarEventualidad').click();
+  clickIndice(null, 
+    $('#herramientasPaginacion').getCurrentPage(), 
+    $('#herramientasPaginacion').getPageSize());
+  $('#B_CasinoEv').change();
 });
 $('#fechaEv').on('change', function (e) {
   $(this).trigger('focusin');
@@ -80,8 +84,24 @@ $('#btn-nueva-eventualidad').off().click(function(){
   let casinostr = $('#B_CasinoEv').val();
   //Si es 'Todos los casinos', seteamos el proximo que viene.
   if(isNaN(parseInt(casinostr))) casinostr = $('#B_CasinoEv option').eq(1).val();
-  //abre pestaña con planilla, creando así la eventualidad
-  window.open('eventualidades/crearEventualidad/'+casinostr,'_blank');
+  
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+
+  $.ajax({
+    type: 'GET',
+    url: 'eventualidades/crearEventualidad/'+casinostr,
+    success: function (id_ev) {
+      $('#btn-buscarEventualidad').click();
+      window.open('eventualidades/verPlanillaVacia/' + id_ev,'_blank');
+    },
+    error: function (data) {
+      console.log(data);
+    }
+  });
 })
 
 // BOTÓN IMPRIMIR
@@ -450,8 +470,7 @@ $('#btn-aceptar-carga').click(function (e) {
 });
 
 //BOTÓN VALIDAR DE CADA FILA
-$(document).on('click','#btn_validarEv',function(e){
-
+$(document).on('click', '#btn_validarEv', function (e) {
   $('#mensajeExito').hide();
   $('#btn-aceptar-carga').hide();
   $('#btn-aceptar-visado').show();
@@ -460,82 +479,95 @@ $(document).on('click','#btn_validarEv',function(e){
   //Cambio el título del modal
   $('#modalCargarEventualidad #myModalLabel').text('VISAR INTERVENCIÓN');
 
-  var id_eventualidad=$(this).val();
+  var id_eventualidad = $(this).val();
   $('#modalCargarEventualidad').find('#id_event').val(id_eventualidad);
 
-  $.get('eventualidades/visualizarEventualidadID/' + id_eventualidad, function(data){
+  $.get('eventualidades/visualizarEventualidadID/' + id_eventualidad, function (data) {
 
-      $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-      $('#modalCargarEventualidad').modal('show');
-      $('#tablaCargaEvent').hide();
-      $('#inputIslaEv').hide();
-      $('#inputMaquinaEv').hide();
-      $('#inputSectorEv').hide();
-      $('#seleccion').hide();
+    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
+    $('#modalCargarEventualidad').modal('show');
+    $('#tablaCargaEvent').hide();
+    $('#inputIslaEv').hide();
+    $('#inputMaquinaEv').hide();
+    $('#inputSectorEv').hide();
+    $('#seleccion').hide();
 
-      //Completo los campos del modal con info del data
-      $('#fiscaToma').val(data.fiscalizador.nombre).prop('disabled', true);
-      $('#fechaEv').val(data.eventualidad.fecha_generacion).prop('disabled', true);
-      $('#tipoEventualidad').val(data.eventualidad.id_tipo_eventualidad).prop('disabled', true);
+    //Completo los campos del modal con info del data
+    $('#fiscaToma').val(data.fiscalizador.nombre).prop('disabled', true);
+    $('#fechaEv').val(data.eventualidad.fecha_generacion).prop('disabled', true);
+    $('#tipoEventualidad').val(data.eventualidad.id_tipo_eventualidad).prop('disabled', true);
 
 
-      var fila = $(document.createElement('tr'));
+    var fila = $(document.createElement('tr'));
 
-      for (var i = 0; i < data.maquinas.length; i++) {
+    for (var i = 0; i < data.maquinas.length; i++) {
 
-        fila.attr('id', data.maquinas[i].id_maquina)
-            .append($('<td>')
-            .addClass('col-xs-4')
-            .text(data.maquinas[i].nro_admin)
-          )
-            .append($('<td>')
-            .addClass('col-xs-5')
-            .text(data.maquinas[i].descripcion)
-            )
-            .append($('<td>')
-            .addClass('col-xs-3')
-            .text(data.maquinas[i].nro_isla)
-            )
-            $('#tablaCargaCompleta tbody').append(fila);
-      }
+      fila.attr('id', data.maquinas[i].id_maquina)
+        .append($('<td>')
+          .addClass('col-xs-4')
+          .text(data.maquinas[i].nro_admin)
+        )
+        .append($('<td>')
+          .addClass('col-xs-5')
+          .text(data.maquinas[i].descripcion)
+        )
+        .append($('<td>')
+          .addClass('col-xs-3')
+          .text(data.maquinas[i].nro_isla)
+        )
+      $('#tablaCargaCompleta tbody').append(fila);
+    }
 
-          $('#observacionesEv').val(data.eventualidad.observaciones).prop('disabled', true);
-          $('#cargaInforme').attr('style', 'display:none');
 
-        //  mostrar el pdf que se recibe en el data
-          $("#cargaInforme").fileinput('destroy').fileinput({
-              language: 'es',
-              showRemove: false,
-              showUpload: false,
-              showCaption: false,
-              showZoom: false,
-              browseClass: "btn btn-primary",
-              previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-              overwriteInitial: true,
-              initialPreviewAsData: true,
-              initialPreview: [
-              data.ruta,
-              ],
-              initialPreviewConfig: [
-                {type:'pdf', caption: '', size: 1, width: "1000px", url: "{$url}", key: 1},
-              ],
-              allowedFileExtensions: ['pdf'],
-          });
-    })
+    $('#observacionesEv').val(data.eventualidad.observaciones).prop('disabled', true);
+    $('#cargaInforme').attr('style', 'display:none');
+
+    //  mostrar el pdf que se recibe en el data
+    $("#cargaInforme").fileinput('destroy').fileinput({
+      language: 'es',
+      showRemove: false,
+      showUpload: false,
+      showCaption: false,
+      showZoom: false,
+      browseClass: "btn btn-primary",
+      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+      overwriteInitial: true,
+      initialPreviewAsData: true,
+      initialPreview: [
+        "http://" + window.location.host + "/eventualidades/leerArchivoEventualidad/" + id_eventualidad,
+      ],
+      initialPreviewConfig: [
+        { type: 'pdf', caption: 'Test', size: 1, width: "1000px", url: "{$url}", key: 1 },
+      ],
+      allowedFileExtensions: ['pdf'],
+    });
+  });
+
 
   $('#modalCargarEventualidad').modal('hide');
 
-  });
+});
+
 
 //Busqueda de eventos
-$('#btn-buscarEventualidad').click(function(e){
-
+$('#btn-buscarEventualidad').click(function(e, pagina, page_size){
     $.ajaxSetup({
       headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
     });
+
     e.preventDefault();
+
+    //Fix error cuando librería saca los selectores
+    if (isNaN($('#herramientasPaginacion').getPageSize())) {
+      var size = 10; // por defecto
+    } else {
+      var size = $('#herramientasPaginacion').getPageSize();
+    }
+    page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+    pagina = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
 
     let turno = $('#B_TurnoEventualidad').val();
     turno = turno == ""? 0 : turno;
@@ -545,7 +577,13 @@ $('#btn-buscarEventualidad').click(function(e){
       fecha: $('#B_fecha_ev').val(),
       id_casino: $('#B_CasinoEv').val(),
       nro_turno: turno,
-    }
+      id_sector: $('#B_Sector').val(),
+      id_isla: $('#B_Isla').val(),
+      nro_admin: $('#B_Numero').val(),
+      page: pagina,
+      sort_by: 'fecha',
+      page_size: page_size
+    };
 
     $.ajax({
       type: 'POST',
@@ -553,14 +591,26 @@ $('#btn-buscarEventualidad').click(function(e){
       data: formData,
       dataType: 'json',
 
-      success: function (data) {
-        console.log('success', data);
+      success: function (res) {
+        console.log('success', res);
         $('#tablaResultadosEv #cuerpoTablaEv tr').remove();
-
-          for (var i = 0; i < data.eventualidades.length; i++) {
-              let filaEventualidad = generarFilaTabla(data.eventualidades[i],data.esControlador);
+        $('#herramientasPaginacion').generarTitulo(
+          res.eventualidades.current_page,
+          res.eventualidades.per_page, 
+          res.eventualidades.total, 
+          clickIndice);
+          for (var i = 0; i < res.eventualidades.data.length; i++) {
+              let filaEventualidad = generarFilaTabla(
+                res.eventualidades.data[i],
+                res.esControlador
+              );
               $('#cuerpoTablaEv').append(filaEventualidad);
           }
+        $('#herramientasPaginacion').generarIndices(
+          res.eventualidades.current_page,
+          res.eventualidades.per_page,
+          res.eventualidades.total,
+          clickIndice);
 
       },
       error: function (data) {
@@ -569,14 +619,31 @@ $('#btn-buscarEventualidad').click(function(e){
     });
 });
 
+function clickIndice(e, pageNumber, tam=undefined,total=null) {
+  if (e != null) {
+      e.preventDefault();
+  }
+  console.log(pageNumber,tam,total);
+  var tam = (isNaN(tam)) ? 
+  $('#herramientasPaginacion').getPageSize() 
+  : tam;
+  var columna = $('#tablaResultadosEv .activa').attr('value');
+  var orden = $('#tablaResultadosEv .activa').attr('estado');
+  $('#btn-buscarEventualidad').trigger('click', [pageNumber, tam, columna, orden]);
+}
+
+function limpiarNull(s){
+  return s === null? '-' : s;
+}
+
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event, controlador) {
   const fila = $(document.createElement('tr'));
-  const fecha = event.fecha;;
-  const tipo_ev = event.descripcion;;
-  const turno = event.turno;
-  const casino = event.nombre;
-  const hora = event.hora;
+  const fecha = limpiarNull(event.fecha);
+  const tipo_ev = limpiarNull(event.descripcion);
+  const turno = limpiarNull(event.turno);
+  const casino = limpiarNull(event.nombre);
+  const hora = limpiarNull(event.hora);
   const estado = event.id_estado_eventualidad;
   const archivo = event.id_archivo;
   console.log(event);
@@ -664,7 +731,7 @@ function generarFilaTabla(event, controlador) {
       .attr('value', event.id_eventualidad).attr('id', 'btn_borrarEv'));
   }
 
-  if (estado == 4) {
+  if (estado != 6) {
     const deshab = archivo === null;
     const icono = deshab? "far fa-edit" : "fas fa-edit";
     let boton = $('<button>')
@@ -684,7 +751,59 @@ function generarFilaTabla(event, controlador) {
 
   fila.append(td);
 
-
-
   return fila;
 };
+
+$('#B_CasinoEv').change(function(){
+  const t = $(this);
+  const id_casino = t.val();
+  let sector = $("#B_Sector");
+  let isla = $("#B_Isla");
+  let numero = $("#B_Numero");
+  isla.empty();
+  isla.prop('disabled',true);
+  if(id_casino.length == 0){
+    sector.prop('disabled',true);
+    numero.prop('disabled',true);
+    sector.empty();
+    numero.val("");
+    return;
+  }
+  sector.prop('disabled',false);
+  numero.prop('disabled',false);
+
+  const sectores = $('#sectores').find('option[data-id-casino="'+id_casino+'"]');
+  const todos = $('<option>').val('').text('Todos los sectores');
+  sector.empty();
+
+  sector.append(todos); 
+  sectores.each(function(idx,obj){
+    let o = $(obj).clone();
+    o.val(o.attr('data-id-sector'));
+    sector.append(o);
+  });
+});
+
+$('#B_Sector').change(function(){
+  const t = $(this);
+  const id_sector = t.val();
+  let isla = $("#B_Isla");
+  let numero = $("#B_numero");
+
+  numero.prop('disabled',false);
+  if(id_sector.length == 0){
+    isla.prop('disabled',true);
+    isla.empty();
+    return;
+  }
+  isla.prop('disabled',false);
+  const islas = $('#islas').find('option[data-id-sector="'+id_sector+'"]');
+  const todos = $('<option>').val('').text('Todas las islas');
+  isla.empty();
+  isla.append(todos);
+  islas.each(function(idx,obj){
+    let o = $(obj).clone();
+    o.val(o.attr('data-id-isla'));
+    isla.append(o);
+  });
+});
