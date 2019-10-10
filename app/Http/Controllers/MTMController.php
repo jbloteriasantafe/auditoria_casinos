@@ -92,11 +92,11 @@ class MTMController extends Controller
 
      // la gestion de juego activo, se contempla solo si la mtm no es multijuego
 
-      if($mtm->juego_activo == null){
-        $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
-        $mtm->save();
-      }
-      $juego_activo = $mtm->juego_activo;
+    if($mtm->juego_activo == null){
+      $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
+      $mtm->save();
+    }
+    $juego_activo = $mtm->juego_activo;
 
 
 
@@ -172,6 +172,7 @@ class MTMController extends Controller
       //$islaa = Isla::find($isla->id_isla);
       //$nro_isla = $islaa->nro_isla;
       return['maquina' => $mtm,
+             'moneda' => (!is_null($mtm->id_tipo_moneda))?$mtm->tipoMoneda:null,
              'tipo_gabinete' => $mtm->tipoGabinete,
              'tipo_maquina' => $mtm->tipoMaquina,
              'estado_maquina' => $mtm->estado_maquina,

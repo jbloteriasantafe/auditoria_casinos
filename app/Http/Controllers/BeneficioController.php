@@ -389,7 +389,6 @@ class BeneficioController extends Controller
                                         ->groupBy('beneficio.valor','beneficio.fecha','beneficio.id_beneficio','producido.id_producido','ajuste_beneficio.valor')
                                         ->orderBy('beneficio.fecha','asc')
                                         ->get();
-
     return $resultados;
   }
 

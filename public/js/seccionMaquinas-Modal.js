@@ -487,6 +487,9 @@ function habilitarControlesMaquina(valor){
   $('#denominacion').prop('readonly',!valor);
   $('#estado').prop('disabled',!valor);
   $('#buscadorExpediente').prop('readonly',!valor);
+  $('#marca_juego').prop('readonly',!valor);
+  $('#tipo_moneda').prop('disabled',!valor);
+  $('#unidad_medida').prop('disabled',!valor);
 }
 
 function ocultarAlertas(){
@@ -590,6 +593,7 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
             )
     }
   }
+  $('#tipo_moneda').val(data.moneda.id_tipo_moneda);
 
   var text=$('#modalMaquina .modal-title').text();
 
