@@ -13,6 +13,7 @@ $(document).ready(function(){
   $('#opcReporteEstadoDiferenciaBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcReporteEstadoDiferenciaBingo').addClass('opcionesSeleccionado');
 
+  //datepicker fecha busqueda
   $('#dtpBuscadorFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -25,7 +26,7 @@ $(document).ready(function(){
     ignoreReadonly: true,
     endDate: '+0d'
   });
-
+  //busca automaticamente
   $('#btn-buscar').trigger('click');
 
 });
@@ -88,7 +89,7 @@ $('#btn-ayuda').click(function(e){
 
 });
 
-//busqueda de reportes
+//búsqueda de reportes
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   $.ajaxSetup({
       headers: {
@@ -112,6 +113,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultadosPremios th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
+  //datos para enviar
   var formData = {
     fecha: $('#buscadorFecha').val(),
     casino: $('#buscadorCasino').val(),
@@ -140,6 +142,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       }
     });
 });
+
 //envia los datos para validar (obsercaciones+cambio de estado)
 $('#btn-finalizarValidacion').click(function(e){
   e.preventDefault();
@@ -148,7 +151,7 @@ $('#btn-finalizarValidacion').click(function(e){
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
         }
     });
-
+    //datos para enviar
     var formData = {
       id_importacion: $('#id_importacion').val(),
       observacion: $('#observacion_validacion').val()
@@ -164,8 +167,8 @@ $('#btn-finalizarValidacion').click(function(e){
 
             $('#mensajeExito p').text('Sesión VISADA existosamente.');
             $('#mensajeExito div').css('background-color','#4DB6AC');
-            $('#cuerpoTabla #' +data +' .no-visado').hide();
-            $('#cuerpoTabla #' +data +' .visado').show();
+            $('#cuerpoTabla #' + data +' .no-visado').hide();
+            $('#cuerpoTabla #' + data +' .visado').show();
             $('#modalDetalles').modal('hide');
             //Mostrar éxito
             $('#mensajeExito').show();
@@ -297,7 +300,7 @@ function cargarDatosSesion(importaciones,sesion, pozoDotInicial){
 
     }else{
         $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
-        $('.pop-pozo-dot-inicial').popover('disable');
+        $('.pop-pozo-dot-inicial-d').popover('disable');
     }
     if (importaciones[0].pozo_extra != sesion.pozo_extra_inicial){
       $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
@@ -407,6 +410,7 @@ function cargarDetallesSesion(importaciones,detalle){
       }
     // }
   });
+
   var t = importaciones.length - 1; //cantidad de importaciones para recorrer;
 
   if( detalles.length != 0){ //si comenzó a armar un nuevo detalle, busco los valores finales
@@ -431,7 +435,7 @@ function cargarDetallesSesion(importaciones,detalle){
   for (var i = 0; i < detalles.length; i++){
     $('#terminoDatos2').append(generarFilaDetallesSesion(detalles[i],detalle));
   }
-
+  //mensaje de aviso si no coincide la cantidad de detalles
   if(detalle == undefined ||  detalles.length != detalle.length){
     $('#terminoDatos2').append($('<p>').css('color' ,'red')
         .text('*La cantidad de detalles relevados no coincide con los detalles de importados.')
@@ -443,62 +447,13 @@ function generarFilaDetallesSesion(detalle, detalles_relevado){
   var fila =
    $(document.createElement('div'))
           .addClass('row')
-          .css('padding-top' ,'15px')
-        .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.valor_carton)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_inicial_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.serie_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_inicial_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.carton_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_final_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.serie_fin)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_final_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.carton_fin)
-                  .addClass('form-control')
-              )
-          )
+          .css('padding-top' ,'15px');
+          //carga de fila de detalles
+          appendFilaDetalleSesion(fila, detalle.valor_carton, 'valor_carton_f');
+          appendFilaDetalleSesion(fila, detalle.serie_inicio, 'serie_inicial_f');
+          appendFilaDetalleSesion(fila, detalle.carton_inicio, 'carton_inicial_f');
+          appendFilaDetalleSesion(fila, detalle.serie_fin, 'serie_final_f');
+          appendFilaDetalleSesion(fila, detalle.carton_fin, 'carton_final_f');
 
           //si no existe dato para comparar, pinto de naranja
           if(detalles_relevado == undefined){
@@ -536,7 +491,6 @@ function generarFilaDetallesSesion(detalle, detalles_relevado){
           }
 
       return fila;
-
 }
 //Generar fila con los datos
 function generarFilaTabla(relevados, importados, estado){
@@ -546,11 +500,7 @@ function generarFilaTabla(relevados, importados, estado){
     id_importacion = 'no_importado';
     importado = 'NO'
   }else{
-    // if(estado.sesion_abierta == 1 && estado.sesion_cerrada != 1){
-    //     id_importacion = 'abierta_no_cerrada';
-    // }else{
     id_importacion = importados[0].id_importacion;
-      // }
     importado = 'SI';
   }
 
@@ -803,4 +753,18 @@ function appendFila(fila, nombre_id, valor){
   .removeClass('pintar-red')
       .text(valor)
   ))
+}
+//append fila detalle sesión
+function appendFilaDetalleSesion(fila, valor, id){
+  fila.append($('<div>')
+      .addClass('col-lg-2')
+      .append($('<input>')
+          .attr('placeholder' , '')
+          .attr('id',id)
+          .attr('type','text')
+          .attr('disabled','disabled')
+          .attr('value', valor)
+          .addClass('form-control')
+      )
+  )
 }
