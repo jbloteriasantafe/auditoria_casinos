@@ -5,7 +5,9 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
+use App\TipoMoneda;
 
+$monedas = TipoMoneda::all();
 $usuario = UsuarioController::getInstancia()->quienSoy();
 
 ?>
@@ -57,7 +59,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <br>
 
                               <div class="row"> <!-- Segunda fila -->
-                                <div class="col-lg-3">
+                                <div class="col-lg-2">
                                   <h5>Casino</h5>
                                   <select class="form-control" id="busqueda_casino">
                                     <option value="0">Todos los casinos</option>
@@ -71,7 +73,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   <h5>Sector</h5>
                                   <select class="form-control" id="busqueda_sector">
                                     <option value="0">Todos los sectores</option>
-
                                   </select>
                                 </div>
                                 <div class="col-lg-2">
@@ -84,6 +85,15 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                     <option value="0">TODOS</option>
                                     <option value="1">ACTIVA</option>
                                     <option value="2">NO ACTIVA</option>
+                                  </select>
+                                </div>
+                                <div class="col-lg-1">
+                                  <h5>MONEDA</h5>
+                                  <select class="form-control" id="busqueda_moneda">
+                                    <option value="">TODAS</option>
+                                    @foreach($monedas as $m)
+                                    <option value="{{$m->id_tipo_moneda}}">{{$m->descripcion}}</option>
+                                    @endforeach
                                   </select>
                                 </div>
                                 <div class="col-lg-2">
