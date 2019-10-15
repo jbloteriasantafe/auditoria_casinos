@@ -525,7 +525,7 @@ class ProgresivoController extends Controller
     })->validate();
 
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($request->id_casino)){
       return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
     }
 
