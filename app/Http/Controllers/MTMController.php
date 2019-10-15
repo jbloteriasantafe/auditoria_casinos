@@ -307,6 +307,9 @@ class MTMController extends Controller
     if(isset($request->nombre_juego)){
       $reglas[]=['juego.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
     }
+    if(isset($request->id_tipo_moneda)){
+      $reglas[]=['maquina.id_tipo_moneda','=',$request->id_tipo_moneda];
+    }
 
     if($request->id_casino==0){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];

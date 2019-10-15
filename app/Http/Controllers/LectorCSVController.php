@@ -876,30 +876,62 @@ class LectorCSVController extends Controller
 
         $pdo->exec($query);
 
+        //Borro la ultima fila porque carga el "Total" como 0,0,0,0
+        $last_id = DB::select("SELECT max(id_contadores_temporal) as max FROM contadores_temporal");
+        $last_id = $last_id[0]->max;
+        DB::table('contadores_temporal')->where('id_contadores_temporal','=',$last_id)->delete();
+
 
         $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario,denominacion_carga)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
                                   ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario, mtm.denominacion
-                           FROM contadores_temporal AS ct RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
+                           FROM contadores_temporal AS ct 
+                           RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
                            WHERE ct.id_contador_horario = '%d'
                              AND ct.maquina = mtm.nro_admin
                              AND mtm.id_casino = 3
                            ",$contador->id_contador_horario);
 
         $pdo->exec($query);
-       // dd(['holis',$contador->id_contador_horario]);
+
+        
+        //Maquinas que no encontro en la BD pero estaban en el archivo de contadores.
+        $no_encontro_q = sprintf(
+        "SELECT largo.maquina as maquina
+        FROM
+          (SELECT distinct
+          ct.maquina
+          FROM contadores_temporal AS ct 
+          LEFT JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d)
+          WHERE ct.id_contador_horario = %d) 
+        as largo
+        LEFT JOIN
+          (SELECT distinct
+          ct.maquina
+          FROM contadores_temporal AS ct 
+          JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d)
+          WHERE ct.id_contador_horario = %d) 
+        as corto on (largo.maquina = corto.maquina)
+        WHERE corto.maquina IS NULL",3,$contador->id_contador_horario,3,$contador->id_contador_horario);
+
+        $no_encontro = DB::select($no_encontro_q);
+
         $query = sprintf(" DELETE FROM contadores_temporal
                            WHERE id_contador_horario = '%d'
                            ",$contador->id_contador_horario);
-
         $pdo->exec($query);
 
         $cantidad_registros = DetalleContadorHorario::where('id_contador_horario','=',$contador->id_contador_horario)->count();
 
         $pdo=null;
 
-
-        return ['id_contador_horario' => $contador->id_contador_horario,'fecha' => $contador->fecha,'casino' => $contador->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => ContadorHorario::find($contador->id_contador_horario)->tipo_moneda->descripcion];
+        return [
+          'id_contador_horario' => $contador->id_contador_horario,
+          'fecha' => $contador->fecha,
+          'casino' => $contador->casino->nombre,
+          'cantidad_registros' => $cantidad_registros,
+          'tipo_moneda' => ContadorHorario::find($contador->id_contador_horario)->tipo_moneda->descripcion,
+          'no_encontro' => $no_encontro];
   }
   // importarProducidoRosario se inserta la informacion en una tabla temporal, formateando lo necesario
   // se consiera el tipo de moneda generar el formato
@@ -1056,12 +1088,14 @@ class LectorCSVController extends Controller
     $pdo=null;
 
     // implementacion para contemplar los casos en que las mtms no reporten
-    $mtms= Maquina::select("id_maquina","nro_admin")
+    /*$mtms= Maquina::select("id_maquina","nro_admin")
                 ->where("id_casino","=",3)
                 ->where("id_tipo_moneda","=",$id_tipo_moneda)
                 ->whereNull("deleted_at")
                 ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
-                ->get();
+                ->get();*/
+    $mtms= Maquina::where(['id_casino','=',3],['id_tipo_moneda','=',$id_tipo_moneda])
+    ->whereNull("deleted_at")->whereIn("id_estado_maquina",[1,2,4,5,6,7]);
 
     $cant_mtm_forzadas=0;
     $id_mtm_forzadas=array();
