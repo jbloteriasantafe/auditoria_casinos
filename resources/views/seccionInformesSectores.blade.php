@@ -48,7 +48,8 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><h4>Casinos</h4></div>
                     <div class="panel-body">
-                        <select id="sel_casinos" class="form-control" list="dataCasinos" size={{count($casinos)}}>
+                    <!-- height 100% para forzar mostrar en resolucines bajas. -->
+                        <select id="sel_casinos" class="form-control" list="dataCasinos" size={{count($casinos)}} style="height: 100%">
                         @foreach($casinos as $c)
                         <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
                         @endforeach
@@ -62,7 +63,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><h4>Sectores</h4></div>
                     <div class="panel-body">
-                        <select id="sel_sectores" class="form-control" size=10>
+                        <select id="sel_sectores" class="form-control" size=10 style="height: 100%">
                         </select>
                     </div>
                 </div>
@@ -73,7 +74,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><h4>Islas</h4></div>
                     <div class="panel-body">
-                        <select id="sel_islas" class="form-control" size=20>
+                        <select id="sel_islas" class="form-control" size=20 style="height: 100%">
                         </select>
                     </div>
                 </div>
@@ -84,7 +85,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><h4>Maquinas</h4></div>
                     <div class="panel-body">
-                        <select id="sel_maquinas" class="form-control" size=20>
+                        <select id="sel_maquinas" class="form-control" size=20 style="height: 100%">
                         </select>
                     </div>
                 </div>
