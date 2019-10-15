@@ -542,6 +542,8 @@ Route::get('informesJuegos',function(){
     return view('seccionInformesJuegos');
 });
 
+Route::get('informeSector','informesController@mostrarInformeSector')->middleware('tiene_permiso:ver_seccion_informesector');
+
 
 Route::get('estadisticas_no_toma','informesController@mostrarEstadisticasNoTomaGenerico');
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');

@@ -470,6 +470,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                       </div>
                                     </li>
                                   @endif
+                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informesector'))
+                                    <li>
+                                      <div id="opcInformesSector" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeSector'" href="#" style="cursor: pointer;">
+                                        <span>Sector</span>
+                                      </div>
+                                    </li>
+                                  @endif
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
                                     <li>
                                       <div id="opcInformesContableMTM" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableMTM'" href="#" style="cursor: pointer;">

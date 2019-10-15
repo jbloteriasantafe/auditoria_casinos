@@ -629,4 +629,39 @@ class informesController extends Controller
 
   }
 
+  public function mostrarInformeSector(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $casinos = $user->casinos;
+    $sectores = [];
+    foreach($casinos as $c){
+        foreach($c->sectores as $s){
+            $sectores[]=$s;
+        }
+    }
+    $islas = [];
+    foreach($sectores as $s){
+        foreach($s->islas as $i){
+            $aux = $i->toArray();
+            $i['id_casino'] = $s->id_casino;
+            $islas[]= $i;
+        }
+    }
+    $maquinas = [];
+    foreach($islas as $i){
+        foreach($i->maquinas as $m){
+            $aux = $m->toArray();
+            $m['id_sector'] = $i->id_sector;
+            $m['estado'] = $m->estado_maquina;
+            $maquinas[] = $m;
+        }
+    }
+    return view('seccionInformesSectores',
+    [
+      'casinos' => $casinos, 
+      'sectores' => $sectores, 
+      'islas' => $islas, 
+      'maquinas' => $maquinas
+    ]);
+  }
+
 }
