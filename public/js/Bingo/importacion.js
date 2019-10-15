@@ -18,10 +18,10 @@
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd',
+    format: 'yyyy-mm',
     pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
+    startView: 3,
+    minView: 3,
     ignoreReadonly: true,
     endDate: '+0d'
   });

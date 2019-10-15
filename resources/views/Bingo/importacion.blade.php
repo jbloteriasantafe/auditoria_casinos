@@ -37,8 +37,8 @@ $casinos = $usuario->casinos;
                                   <div class="col-md-3">
                                     <h5>Fecha de la sesión</h5>
                                     <!-- <div class="form-group"> -->
-                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
-                                           <input type='text' class="form-control" placeholder="Fecha de sesión" id="B_fecharelevamiento"/>
+                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm">
+                                           <input type='text' class="form-control" placeholder="Mes de sesión" id="B_fecharelevamiento"/>
                                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                        </div>

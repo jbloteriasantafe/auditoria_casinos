@@ -39,9 +39,7 @@ class ImportacionController extends Controller
       }
 
       $reglas = array();
-      if(isset($request->fecha)){
-        $reglas[]=['bingo_importacion.fecha', '=', $request->fecha];
-      }
+
       if($request->casino!=0){
         $reglas[]=['casino.id_casino', '=', $request->casino];
       }
@@ -50,6 +48,15 @@ class ImportacionController extends Controller
       $reglas[] = ['bingo_importacion.num_partida','=','1'];
 
       $sort_by = $request->sort_by;
+
+
+      //si la fecha no es null
+      if(isset($request->fecha)){
+        // $reglas[]=['bingo_importacion.fecha', '=', $request->fecha];
+        $ff = explode('-', $request->fecha);
+        $aaaa = $ff[0];
+        $mm = $ff[1];
+
 
       $resultados = DB::table('bingo_importacion')
                          ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
@@ -61,10 +68,26 @@ class ImportacionController extends Controller
                           return $query->orderBy('fecha','desc');
                         })
                       ->where($reglas)
+                      ->whereYear('fecha', '=', $aaaa)
+                      ->whereMonth('fecha','=', $mm)
                       ->whereIn('casino.id_casino', $casinos)
                       // ->orderBy('id_importacion', 'desc')
                       ->paginate($request->page_size);
-
+                    }else{ //si la fecha es null
+                      $resultados = DB::table('bingo_importacion')
+                                         ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
+                                         ->leftJoin('casino' , 'bingo_importacion.id_casino','=','casino.id_casino')
+                                         ->leftJoin('usuario', 'bingo_importacion.id_usuario', '=', 'usuario.id_usuario')
+                                         ->when($sort_by,function($query) use ($sort_by){
+                                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                                        },function($query){
+                                          return $query->orderBy('fecha','desc');
+                                        })
+                                      ->where($reglas)
+                                      ->whereIn('casino.id_casino', $casinos)
+                                      // ->orderBy('id_importacion', 'desc')
+                                      ->paginate($request->page_size);
+                    }
      return $resultados;
     }
 
