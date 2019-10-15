@@ -105,7 +105,7 @@
                           <div class="row">
                             <h5>PRODUCIDO ACUMULADO (ultimos 15 días)</h5>
                               <div class="col-md-12">
-                                  <span class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
+                                  <span id="monedaProducido" class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
                                   <span id="producido" class="infoResaltada">123445</span>
                               </div>
                               <div class="col-md-12">

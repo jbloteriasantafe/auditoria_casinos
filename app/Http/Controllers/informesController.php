@@ -541,6 +541,7 @@ class informesController extends Controller
             'nro_admin' => $maquina->nro_admin  ,
             'marca' => $maquina->marca,
             'casino' => $maquina->casino->nombre,
+            'moneda' => $maquina->tipoMoneda,
             'isla' => ['nro_isla' =>  $maquina->isla->nro_isla , 'codigo' => $maquina->isla->codigo],
             'sector' => $sector,
             'juego' => $juego->nombre_juego,

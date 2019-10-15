@@ -115,6 +115,8 @@ $('#btn-buscarMTM').click(function(e) {
         $('#juego').text(limpiarNull(data.juego));
         $('#denominacion').text(limpiarNull(data.denominacion_juego));
         $('#devolucion').text(limpiarNull(data.porcentaje_devolucion));
+        const moneda = data.moneda != null? limpiarNull(data.moneda.descripcion,'') : '';
+        $('#monedaProducido').text('$' + moneda);
         $('#producido').text(addCommas(data.producido));
         for (var i = 0; i < data.datos.length; i++) {
             fechas.push(data.datos[i].fecha);
