@@ -832,6 +832,34 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
+                          <div class="separadoresMenu">CONTROL AMBIENTAL</div>
+                          <li>
+                            <div id="opcAmbientalmaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('maquinas','iconoMaquinas')
+                              </span>
+                              <span>Máquinas</span>
+                            </div>
+                          </li>
+
+                          <li>
+                            <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevaminetosAmbiental'" href="#" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                @svg('mesa','iconoMesa')
+                              </span>
+                              <span>Mesas de paño</span>
+                            </div>
+                          </li>
+
+                          <li>
+                            <div id="opcAmbientalgeneralidades" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosAmbiental'" href="#" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                @svg('informes','iconoInformes')
+                              </span>
+                              <span>Generalidades</span>
+                            </div>
+                          </li>
+
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                         <li>
                           <div id="" class="opcionesHover"  href="">

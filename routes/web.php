@@ -422,6 +422,16 @@ Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permi
   Route::get('/eliminarRelevamientoProgresivo/{id_relevamiento_progresivo}','RelevamientoProgresivoController@eliminarRelevamientoProgresivo');
 });
 
+
+
+/**************
+RELEVAMIENTOS CONTROL AMBIENTAL
+**************/
+Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','RelevamientoAmbientalController@buscarTodo');
+  Route::post('/crearRelevamiento' , 'RelevamientoAmbientalController@crearRelevamientoAmbientalMaquinas');
+});
+
 /*******************
   Máquinas a pedir
 ********************/
