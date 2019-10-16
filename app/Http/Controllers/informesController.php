@@ -634,33 +634,71 @@ class informesController extends Controller
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
-        foreach($c->sectores as $s){
-            $sectores[]=$s;
-        }
+      foreach($c->sectores as $s){
+          $sectores[]=$s;
+      }
+      $sin_asignar = new \stdClass();
+      //Le asigno como id, el negativo del casino
+      //Como es uno solo por casino, esta garantizado a que sea distinto
+      $sin_asignar->id_sector = -$c->id_casino;
+      $sin_asignar->descripcion = "SIN ASIGNAR";
+      $sin_asignar->id_casino = $c->id_casino;
+      $sin_asignar->cantidad_maquinas = null;
+      $sin_asignar->deleted_at = null;
+      $sectores[]=$sin_asignar;
     }
+    
     $islas = [];
     foreach($sectores as $s){
-        foreach($s->islas as $i){
-            $aux = $i->toArray();
-            $i['id_casino'] = $s->id_casino;
-            $islas[]= $i;
-        }
+      if($s->id_sector < 0){
+        $sin_asignar = new \stdClass();
+        //Idem, el id_sector ya es negativo asi que lo asigno derecho
+        $sin_asignar->id_isla = $s->id_sector;
+        $sin_asignar->nro_isla = -1;
+        $sin_asignar->codigo = "SIN ASIGNAR";
+        $sin_asignar->cantidad_maquinas = null;
+        $sin_asignar->id_casino = $s->id_casino;
+        $sin_asignar->id_sector = $s->id_sector;
+        $sin_asignar->deleted_at = null;
+        $islas[] = $sin_asignar;
+        continue;
+      }
+      foreach($s->islas as $i){
+          $aux = $i->toArray();
+          $i['id_casino'] = $s->id_casino;
+          $islas[]= $i;
+      }
     }
-    $maquinas = [];
-    foreach($islas as $i){
-        foreach($i->maquinas as $m){
-            $m['id_sector'] = $i->id_sector;
-            $m['estado'] = $m->estado_maquina;
-            $maquinas[] = $m;
-        }
+
+    $maquinas = DB::table('maquina as m')
+    ->select('m.*','i.id_sector','estado.descripcion as estado_descripcion')
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->join('isla as i','m.id_isla','=','i.id_isla')
+    ->whereNull('m.deleted_at')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    $columnas_str = "";
+    $columnas = Schema::getColumnListing('maquina');
+    foreach($columnas as $col){
+      if($col != "id_isla"){
+        $columnas_str .= ", m.".$col;
+      }
     }
+    //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
+    $m_sin_asignar = DB::table('maquina as m')
+    ->selectRaw('-(m.id_casino) as id_sector,-(m.id_casino) as id_isla, estado.descripcion as estado_descripcion'.$columnas_str)
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->whereNull('m.id_isla')
+    ->whereNull('m.deleted_at')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    $todas = array_merge($maquinas,$m_sin_asignar);
     return view('seccionInformesSectores',
     [
       'casinos' => $casinos, 
       'sectores' => $sectores, 
       'islas' => $islas, 
-      'maquinas' => $maquinas
+      'maquinas' => $todas
     ]);
   }
-
 }

@@ -37,7 +37,7 @@
     data-id-casino="{{$m->id_casino}}"
     data-id-estado-maquina="{{$m->id_estado_maquina}}"
     style='background: {{get($colores[$m->id_estado_maquina])}}'
-    ><b>{{$m->nro_admin}}</b> <small>{{$m->estado->descripcion}}</small></option>
+    ><b>{{$m->nro_admin}}</b> <small>{{$m->estado_descripcion}}</small></option>
     @endforeach
 </datalist>
 
