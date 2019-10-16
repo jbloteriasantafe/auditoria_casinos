@@ -649,7 +649,6 @@ class informesController extends Controller
     $maquinas = [];
     foreach($islas as $i){
         foreach($i->maquinas as $m){
-            $aux = $m->toArray();
             $m['id_sector'] = $i->id_sector;
             $m['estado'] = $m->estado_maquina;
             $maquinas[] = $m;
