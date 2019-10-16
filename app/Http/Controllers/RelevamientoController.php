@@ -1209,7 +1209,7 @@ class RelevamientoController extends Controller
                                      })
                            ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                            ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
-                           ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
+                           ->leftJoin('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                            ->where('maquina.id_maquina',$maq->id_maquina)
                            ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
                            ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)
