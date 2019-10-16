@@ -1163,8 +1163,11 @@ class RelevamientoController extends Controller
 
     $ret = new \stdClass();
     $ret->casino = $maq->casino->nombre;
-    $ret->sector = $maq->isla->sector->descripcion;
-    $ret->isla = $maq->isla->nro_isla;
+    if(!is_null($maq->isla)){
+      $ret->sector = $maq->isla->sector->descripcion;
+      $ret->isla = $maq->isla->nro_isla;
+    }
+
     $ret->nro_admin = $maq->nro_admin;
 
     $testString = array("SI" => True, "NO" => False, null => null);
