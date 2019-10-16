@@ -138,17 +138,18 @@
                         <div class="col-md-4">
                             <h5>HISTORIAL DE NO TOMAS</h5>
                             <br>
-                            <table id="tablaNoToma" class="table">
-                              <thead>
-                                <tr>
-                                  <th>DÍAS</th>
-                                  <th>MOTIVO</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-
-                              </tbody>
-                            </table>
+                            <div style="height: 350px;overflow: auto;">
+                              <table id="tablaNoToma" class="table">
+                                <thead>
+                                  <tr>
+                                    <th>DÍAS</th>
+                                    <th>MOTIVO</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                              </table>
+                            </div>
                         </div>
                     </div>
 

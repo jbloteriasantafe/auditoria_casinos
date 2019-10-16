@@ -9,8 +9,26 @@
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="css/paginacion.css"/>
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
+
+<datalist id="islas">
+@foreach ($islas as $idx => $i)
+  <option 
+  data-id-isla="{{$i->id_isla}}" 
+  data-id-sector="{{$i->id_sector}}" 
+  data-id-casino="{{$i->id_casino}}">{{$i->nro_isla}}</option>
+@endforeach
+</datalist>
+
+<datalist id="sectores">
+@foreach ($sectores as $idx => $s)
+  <option 
+  data-id-sector="{{$s->id_sector}}" 
+  data-id-casino="{{$s->id_casino}}">{{$s->descripcion}}</option>
+@endforeach
+</datalist>
 
 <div class="col-xl-9">
     <!-- FILTROS -->
@@ -56,24 +74,35 @@
                 <div class="col-lg-3">
                   <h5>Casino</h5>
                   <select class="form-control" id="B_CasinoEv">
-                    <option value="0" selected>- Seleccione casino -</option>
-                    @foreach ($casinos as $casino)
+                    <option value="">Todos los casinos</option>
+                    @foreach ($casinos as $idx => $casino)
                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                     @endforeach
-                    <!-- <option value=" " >- Todos los movimientos -</option> -->
                   </select>
 
                 </div>
 
                 <div class="col-lg-3">
                   <h5>Turno</h5>
-                  <select class="form-control" id="B_TurnoEventualidad">
-                    <option value="0" selected>- Seleccione turno -</option>
-                    @foreach ($turnos as $turno)
-                    <option value="{{$turno->nro_turno}}">{{$turno->nro_turno}}</option>
-                    @endforeach
-                  </select>
+                  <input class="form-control" id="B_TurnoEventualidad">
+                </div>
+              </div> <!-- row / formulario -->
 
+              <br>
+
+              <div class="row">
+                <div class="col-lg-3">
+                  <h5>Sector</h5>
+                  <select id="B_Sector" class="form-control"></select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Isla</h5>
+                  <select id="B_Isla"  class="form-control"></select>
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Numero</h5>
+                  <input id="B_Numero" class="form-control">
                 </div>
               </div> <!-- row / formulario -->
 
@@ -89,15 +118,12 @@
                 </div>
               </div> <!-- row / botón buscar -->
 
-
-
-
             </div> <!-- panel-body -->
+
           </div> <!-- collapse -->
 
-
-
         </div> <!-- .panel-default -->
+
       </div> <!-- .col-md-12 -->
 
     </div> <!-- .row / FILTROS -->
@@ -123,41 +149,9 @@
                 </tr>
               </thead>
               <tbody id="cuerpoTablaEv" style="max-height: 356px;">
-                @foreach($eventualidades as $eventualidad)
-                <tr id="{{$eventualidad->id_eventualidad}}">
-                  <td class="col-xs-2 fechaEventualidad">{{$eventualidad->fecha}}</td>
-                  <td class="col-xs-1 horaEventualidad">{{$eventualidad->hora}}</td>
-                  <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
-                  @if($eventualidad->id_tipo_eventualidad == 4)
-                  <td class="col-xs-1" align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
-                  @else
-                  <td class="col-xs-1" align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
-                  @endif
-                  <td class="col-xs-2" text-align="center">{{$eventualidad->turno}}</td>
-                  <td class="col-xs-2">{{$eventualidad->nombre}}</td>
-                  <td class="col-xs-2">
-
-                    <button id="btn_imprimirEv" class="btn btn-imprimir btn-success" type="button" value="{{$eventualidad->id_eventualidad}}" ><i class="fa fa-fw fa-print"></i></button>
-
-                    <!-- estos if sirven para crear o no ciertos botones s/ el estado o el controlador -->
-                    @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 0))
-                    <button id="btn_cargarEv" class="btn btn-cargar" type="button btn-cargar btn-success" value="{{$eventualidad->id_eventualidad}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
-                    <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
-                    @endif
-
-                    @if(($eventualidad->id_estado_eventualidad == 6) && ($esControlador == 1))
-                    <button id="btn_borrarEv" class="btn btn-borrar btn-danger" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-trash"></i></button>
-                    @endif
-
-                    @if(($eventualidad->id_estado_eventualidad == 1) && ($esControlador == 1))
-                    <button id="btn_validarEv" class="btn btn-validar btn-success" type="button" value="{{$eventualidad->id_eventualidad}}"><i class="fa fa-fw fa-check"></i></button>
-                    @endif
-
-                  </td>
-                </tr>
-                @endforeach
               </tbody>
             </table>
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
           </div>
         </div>
       </div>
@@ -172,7 +166,7 @@
     <!-- Botón nueva eventualidad -->
   <div class="row">
     <div class="col-lg-12">
-      <a href="" id="btn-nueva-eventualidad" style="text-decoration: none;">
+      <a id="btn-nueva-eventualidad" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -322,18 +316,20 @@
                 </table>
               </div>
               <div class="col-xs-12">
-                <table id="tablaCargaCompleta"  class="table table-fixed tablesorter">
-                  <thead>
-                    <tr>
-                      <th class="col-xs-4" text-align="center">Nro Admin </th>
-                      <th class="col-xs-5" text-align="center">Sector</th>
-                      <th class="col-xs-3" text-align="center">Isla</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div class="pre-scrollable">
+                  <table id="tablaCargaCompleta"  class="table table-fixed tablesorter">
+                    <thead>
+                      <tr>
+                        <th class="col-xs-4" text-align="center">Nro Admin </th>
+                        <th class="col-xs-5" text-align="center">Sector</th>
+                        <th class="col-xs-3" text-align="center">Isla</th>
+                      </tr>
+                    </thead>
+                    <tbody>
 
-                  </tbody style="height: 250px;">
-                </table>
+                    </tbody style="height: 250px;">
+                  </table>
+                </div>
               </div>
             </div> <!-- fin row -->
             <div class="row">

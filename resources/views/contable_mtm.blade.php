@@ -6,6 +6,13 @@
 @section('estilos')
   <link rel="stylesheet" href="/css/lista-datos.css">
   <link rel="stylesheet" href="/css/estilosDetallesContables.css">
+  <style>
+  .tooltip-inner{
+    font-size: 100% !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
+  }
+  </style>
 @endsection
 
 @section('contenidoVista')
@@ -81,8 +88,8 @@
                                     <span id="juego" class="infoResaltada">LUCKY LARRYS LOBSTERMANIA</span>
                                 </div>
                                 <div class="col-md-4">
-                                    <h5>DENOMINACIÓN</h5>
-                                    <span id="denominacion" class="infoResaltada">0.1</span>
+                                    <h5>DENOMINACIÓN DE JUEGO</h5>
+                                    <span id="denominacion" class="infoResaltada">0.12</span>
                                 </div>
                                 <div class="col-md-4">
                                     <h5>% DEVOLUCIÓN</h5>
@@ -96,9 +103,9 @@
                     <div class="row" style="border-top: 1px solid #ddd;padding:10px 0px 15px 0px;">
                         <div class="col-md-9" style="text-align:center; border-right: 1px solid #ccc;">
                           <div class="row">
-                            <h5>PRODUCIDO</h5>
+                            <h5>PRODUCIDO ACUMULADO (ultimos 15 días)</h5>
                               <div class="col-md-12">
-                                  <span class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
+                                  <span id="monedaProducido" class="infoResaltada" style="display:inline;position:relative;top:-8px;font-size:20px;">$</span>
                                   <span id="producido" class="infoResaltada">123445</span>
                               </div>
                               <div class="col-md-12">
@@ -156,15 +163,17 @@
                               </div>
                           </div>
                         </div>
-                        <div id="listaMovimientos" class="col-md-3" style="text-align:left;">
-                            <h5>ÚLTIMOS MOVIMIENTOS</h5>
-
+                        <h5>MOVIMIENTOS</h5>
+                        <div id="listaMovimientos" class="col-md-3" style="text-align:left;height: 450px;overflow: auto;">
                             <!-- <div class="lineaTiempo"></div> -->
                             <br><br>
 
                             <div id="mov" class="filaMovimiento" hidden>
                                 <div class="circuloTiempo"></div>
-                                <span class="fecha">12-MAR-2018</span><i class="fa fa-share link"></i>
+                                <span class="fecha">12-MAR-2018</span>
+                                <button class="boton btn btn-link"  data-container="body" data-html="true" data-toggle="tooltip" data-placement="bottom" title="PLACEHOLDER">
+                                <i class="fa fa-share"></i>
+                                </button>
                                 <span class="razon infoResaltada">CAMBIO DE SECTOR</span>
                             </div>
 
@@ -177,7 +186,7 @@
                     <br>
                     <div class="row">
                       <div class="col-md-12">
-                        <h6>Contadores Tomados en los últimos 5 días:</h6>
+                        <h6>Contadores de las últimas 5 tomas:</h6>
                         <br>
                         <table id="tablaContadoresTomados" class="table">
                           <thead>
@@ -190,6 +199,10 @@
                               <th>CONTADOR 4</th>
                               <th>CONTADOR 5</th>
                               <th>CONTADOR 6</th>
+                              <th>P. CALCULADO ($)</th>
+                              <th>P. IMPORTADO ($)</th>
+                              <th>DIFERENCIA</th>
+                              <th>TIPO NO TOMA</th>
                               <!-- <th>CONTADOR 7</th> -->
                               <!-- <th>CONTADOR 8</th> -->
                               <!-- <th>P. CALCULADO ($)</th>

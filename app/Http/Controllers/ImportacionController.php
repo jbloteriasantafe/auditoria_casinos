@@ -413,7 +413,7 @@ class ImportacionController extends Controller
             $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
           }
           if(Producido::where($reglas)->count() > 0){
-            $validator->errors()->add('producido_validado', 'El Producido para esa fecha ya está validado y no se puede reimportar.');
+            //$validator->errors()->add('producido_validado', 'El Producido para esa fecha ya está validado y no se puede reimportar.');
           }
         }
     })->validate();

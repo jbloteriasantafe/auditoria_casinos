@@ -96,8 +96,8 @@ $('.agregarFormula').click(function(){
       }else{
         mostrarErrorValidacion($('#inputFormula'), 'Formato Incorrecto.' , true);
       }
-      
-   
+
+
 });
 
 //Botón para borrar la formula seleccionada

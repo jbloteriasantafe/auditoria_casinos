@@ -24,6 +24,8 @@ class CotizacionController extends Controller
         return DB::table('cotizacion')
                     ->where('fecha','>=',$fecha2 . '%')
                     ->get();
+
+
         //TODO limitar la busqueda con fecha final
     }
 

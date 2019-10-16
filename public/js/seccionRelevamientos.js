@@ -178,7 +178,6 @@ $('#modalRelevamiento #casino').on('change',function(){
 
   $('#modalRelevamiento #sector option').remove();
   $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-
     for (var i = 0; i < data.sectores.length; i++) {
       $('#modalRelevamiento #sector')
           .append($('<option>')
@@ -2400,7 +2399,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-
+console.log(formData);
   $.ajax({
     type: "POST",
     url: 'relevamientos/buscarRelevamientos',

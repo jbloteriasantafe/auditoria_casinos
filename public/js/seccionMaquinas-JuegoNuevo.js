@@ -37,8 +37,8 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-      
-       
+
+
         $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
         $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
@@ -116,9 +116,9 @@ function mostrarJuegos(juegos,juego_activo){
 function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo){
   denominacion = denominacion != null ? denominacion : "-"; // si denomacion vacio hardcodeo guion medio
   porcentaje_devolucion = porcentaje_devolucion != null ? porcentaje_devolucion : "-"; // si denomacion vacio hardcodeo guion medio
- 
-  
-  
+
+
+
   var fila = $('<tr>').attr('id',id_juego);
 
   //Mirar si solo hay un juego cuando se agrega manuealmente, setearlo como activo
@@ -133,12 +133,12 @@ function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje
                                           .text(nombre_juego)
                               )
              );
-             
+
 
     fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(denominacion)
-                             ));                           
+                             ));
   fila.append($('<td>').append($('<span>').addClass('badge')
                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                          .text(porcentaje_devolucion)
@@ -302,7 +302,7 @@ function habilitarControlesJuegos(valor){
 
 function obtenerDatosJuego(){
   var juegos = [];
-
+console.log($('#tablaJuegosActivos'));
   //por cada juego
   $.each($('#tablaJuegosActivos tbody tr') , function(indexMayor){
     var tablas = [];
@@ -332,7 +332,7 @@ function obtenerDatosJuego(){
     }
     if($(this).find('td:eq(0) input').is(':checked')){
       juego.activo=1;
-      
+
     }else{
       juego.activo=0;
     }

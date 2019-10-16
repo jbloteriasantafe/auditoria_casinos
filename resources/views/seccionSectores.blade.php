@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
                   <div class="col-md-12"> <!-- columna TABLA SECTORES -->
                     <div class="panel panel-default">
                       <div class="panel-heading">
-                          <h4 id="tituloTabla" class"nombreTabla">Sectores cargados en el sistema</h4>
+                          <h4 id="tituloTabla" class="nombreTabla">Sectores cargados en el sistema</h4>
                       </div>
                       <div class="panel-body">
                         <table id="tablaSectores" class="table table-fixed tablesorter">

@@ -607,7 +607,7 @@ $cas = $usuario['usuario']->casinos;
 
 <!-- modal para modificar el minimo solicitado -->
 <div class="modal fade" id="modalMinimo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width: 60%" >
+  <div class="modal-dialog modal-lg" style="width: 45%" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -620,7 +620,7 @@ $cas = $usuario['usuario']->casinos;
             <div class="row">
             <div class="col-xs-6">
               <span display="inline-block" class="col-xs-4">
-                <h6>CASINO:</h6>
+                <h6 style="font-size:17px;">CASINO:</h6>
               </span>
               <span display="inline" style="padding-left:-35px;text-align:left !important">
                 <div class="col-xs-8">
@@ -633,7 +633,7 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <div class="col-xs-6">
               <span display="inline-block" class="col-xs-4">
-                <h6>MONEDA:</h6>
+                <h6 style="font-size:17px">MONEDA:</h6>
               </span>
               <span display="inline" style="padding-left:-35px;text-align:left !important">
                 <div class="col-xs-8">
@@ -649,9 +649,8 @@ $cas = $usuario['usuario']->casinos;
           </div>
           </div>
           <br>
-          <div id="valoresApMinima" class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="req">MODIFICACIONES:</h6>
-            <br>
+          <div id="valoresApMinima" class="row">
+            <h6 style="margin-left: 50px;font-size:17px;text-align:center !important;" id="req">MODIFICACIONES:</h6>
             <div class="row">
               <div class="col-xs-12">
                 <div class="row">
@@ -674,7 +673,7 @@ $cas = $usuario['usuario']->casinos;
                 </div>
                 <div class="row">
                   <div class="col-xs-4" display="inline">
-                   <h6 style="font-size:16px">Cant. de Mesas Abiertas:</h6>
+                   <h6 style="font-size:16px">Cantidad de Mesas Abiertas:</h6>
                   </div>
                   <div class="col-xs-8" display="inline" style="text-align:left">
                   <input type="text" class="form-control" id="cantidadNueva" name="" value="">
@@ -696,6 +695,7 @@ $cas = $usuario['usuario']->casinos;
         </div>
 
         <div class="modal-footer">
+          <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> Pista: si desea modificar más de una apuesta mínima, guarde cada cambio de forma <br>individual. Caso contrario, solo será considerado el último cambio introducido.</span>
           <button type="button" class="btn btn-warningModificar" id="btn-guardar-minimo" value="nuevo" hidden="true">GUARDAR</button>
         </div>
       </div>

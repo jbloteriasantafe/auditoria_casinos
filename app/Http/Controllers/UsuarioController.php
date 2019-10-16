@@ -122,7 +122,7 @@ class UsuarioController extends Controller
                          ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                          ->where('usuario_tiene_casino.id_casino','=',$id_casino)
                          ->whereIn('usuario_tiene_rol.id_rol',[3])
-                         ->whereNotIn('usuario.id_usuario',[$id_usuario])
+                        // ->whereNotIn('usuario.id_usuario',[$id_usuario])
                          ->distinct('usuario.id_usuario')
                          ->get();
     return $fiscalizadores;
@@ -588,6 +588,15 @@ class UsuarioController extends Controller
       return 0;
     }
   }
+  public function getCasinos(){
+    $usuario = $this->buscarUsuario(session('id_usuario'));
+    $casinos=array();
+    foreach($usuario['usuario']->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+    return $casinos;
+  }
+
   public function obtenerUsuario(Request $request){
     if($request->session()->has("id_usuario")){
       $id_usuario = $request->session()->get("id_usuario");
@@ -595,6 +604,40 @@ class UsuarioController extends Controller
       return $usuario;
     }
     return null;
+  }
+
+  public function usuarioTieneCasinoCorrespondiente ($id_usuario, $id_casino) {
+    $casinos = DB::table('usuario_tiene_casino')    ->select('id_casino')
+                                                    ->where('usuario_tiene_casino.id_usuario','=',$id_usuario)
+                                                    ->get();
+
+
+    $casinos_array = $casinos->toArray();
+
+    foreach ($casinos_array as $casino) {
+        if ($casino->id_casino == $id_casino) {
+          return true;
+        }
+    }
+
+    return false;
+  }
+
+  public function usuarioEsFiscalizador ($id_usuario) {
+    $roles = DB::table('usuario_tiene_rol') ->select('id_rol')
+                                            ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+                                            ->get();
+
+
+    $roles_array = $roles->toArray();
+
+    foreach ($roles_array as $rol) {
+        if ($rol->id_rol == 3) {
+          return true;
+        }
+    }
+
+    return false;
   }
 
 }

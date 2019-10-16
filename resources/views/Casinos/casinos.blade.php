@@ -323,7 +323,6 @@ use App\Http\Controllers\UsuarioController;
 
             <div class="pestaniaTurnosModif" hidden="true">
               <div class="row">
-                <h5>TURNOS</h5>
                 <table class="table table-sorter" id="tablaTurnosModif">
                   <thead>
                     <th class="col-xs-2"> <h6 style="font-size:16px; text-align:center !important;color:#212121"> Número:</h6></th>

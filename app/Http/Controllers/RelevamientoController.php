@@ -27,7 +27,7 @@ use File;
 use DateTime;
 use App\TipoCantidadMaquinasPorRelevamiento;
 use App\CantidadMaquinasPorRelevamiento;
-
+use ProgresivoController;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -747,6 +747,7 @@ class RelevamientoController extends Controller
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
+
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
     $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
@@ -1032,142 +1033,162 @@ class RelevamientoController extends Controller
 
   public function buscarMaquinasSinRelevamientos(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required_with:id_sector,nro_isla|exists:casino,id_casino',
-        'id_sector' => 'nullable',
+        'id_casino' => 'nullable|numeric|exists:casino,id_casino',
+        'id_sector' => 'required|numeric',
         'nro_isla' => 'nullable|numeric',
-        'fecha_desde' => 'required|date',
+        'fecha_desde' => 'nullable|date',
         'fecha_hasta' => 'nullable|date'
     ], array(), self::$atributos)->after(function($validator){
-      if($validator->getData()['nro_isla'] != null){
-        if($validator->getData()['id_sector'] != 0){
-          $islas = Isla::where([['id_sector',$validator->getData()['id_sector']],['nro_isla',$validator->getData()['nro_isla']]])->count();
-        }else{
-          $islas = Isla::where([['id_casino',$validator->getData()['id_casino']],['nro_isla',$validator->getData()['nro_isla']]])->count();
+      $id_casino = $validator->getData()['id_casino'];
+      $id_sector = $validator->getData()['id_sector'];
+      $nro_isla = $validator->getData()['nro_isla'];
+
+      $userc = UsuarioController::getInstancia();
+      $usuario = $userc->quienSoy()['usuario'];
+      if(!is_null($id_casino)){
+        if(!$usuario->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino');
         }
-        if($islas < 1){
-          $validator->errors()->add('isla_no existente','No existe una isla con ese nro.');
+      }else{
+        if(!$usuario->es_superusuario){
+          $validator->errors()->add('id_casino','Solo un superusuario puede buscar en todos los casinos');
         }
       }
     })->validate();
 
-    $reglas = Array();
-    $reglas2 = Array();
+    $reglas_maquinas = array();
+    $reglas_relevamientos = array();
+    $reglas_relevamientos[] = ['relevamiento.backup','=','0'];
 
-    if($request->id_casino != null){
-        $reglas[] = ['casino.id_casino','=',$request->id_casino];
-        $reglas2[] = ['casino.id_casino','=',$request->id_casino];
+    if(!is_null($request->id_casino)){
+        $reglas_maquinas[] = ['casino.id_casino','=',$request->id_casino];
+        $reglas_relevamientos[] = ['casino.id_casino','=',$request->id_casino];
     }
+
     if($request->id_sector != 0){
-        $reglas[] = ['sector.id_sector','=',$request->id_sector];
-        $reglas2[] = ['sector.id_sector','=',$request->id_sector];
+        $reglas_maquinas[] = ['sector.id_sector','=',$request->id_sector];
+        $reglas_relevamientos[] = ['sector.id_sector','=',$request->id_sector];
     }
-    if($request->nro_isla != null){
-        $reglas[] = ['isla.nro_isla','=',$request->nro_isla];
-        $reglas2[] = ['isla.nro_isla','=',$request->nro_isla];
+
+    if(!is_null($request->nro_isla)){
+        $reglas_maquinas[] = ['isla.nro_isla','=',$request->nro_isla];
     }
-    if($request->fecha_desde != null){
-        $reglas[] = ['relevamiento.fecha','>=',$request->fecha_desde];
+
+    if(!is_null($request->fecha_desde)){
+        $reglas_relevamientos[] = ['relevamiento.fecha','>=',$request->fecha_desde];
     }
-    if($request->fecha_hasta != null){
-        $reglas[] = ['relevamiento.fecha','<=',$request->fecha_hasta];
+
+    if(!is_null($request->fecha_hasta)){
+        $reglas_relevamientos[] = ['relevamiento.fecha','<=',$request->fecha_hasta];
     }
+
     $reglas[] = ['relevamiento.backup','=',0];
 
     $sort_by = $request->sort_by;
 
-    $resultados = DB::table('maquina')->select('maquina.id_maquina as id_maquina','maquina.nro_admin as maquina','casino.nombre as casino',
-                                               'sector.descripcion as sector','isla.nro_isla as isla')
-                                      ->join('isla','maquina.id_isla','=','isla.id_isla')
-                                      ->join('sector','isla.id_sector','=','sector.id_sector')
-                                      ->join('casino','sector.id_casino','=','casino.id_casino')
-                                      ->where($reglas2)
-                                      ->whereNull('maquina.deleted_at')
-                                      ->whereNotIn('maquina.id_maquina',function($q) use ($reglas){
-                                                  $q->select('maquina.id_maquina')
-                                                    ->from('maquina')
-                                                    ->join('isla','maquina.id_isla','=','isla.id_isla')
-                                                    ->join('sector','isla.id_sector','=','sector.id_sector')
-                                                    ->join('casino','sector.id_casino','=','casino.id_casino')
-                                                    ->join('detalle_relevamiento','detalle_relevamiento.id_maquina','=','maquina.id_maquina')
-                                                    ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
-                                                    ->where($reglas);})
-                                      ->when($sort_by,function($q) use ($sort_by){return $q->orderBy($sort_by['columna'],$sort_by['orden']);})
-                                      ->paginate($request->page_size);
+    //Buscamos todas las maquinas CON relevamientos
+    $maq_con_rel = DB::table('detalle_relevamiento')
+    ->select('detalle_relevamiento.id_maquina as id_maquina')
+    ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
+    ->join('sector','relevamiento.id_sector','=','sector.id_sector')
+    ->join('casino','sector.id_casino','=','casino.id_casino')
+    ->where($reglas_relevamientos)
+    ->distinct()
+    ->get();
+
+    $maq_con_rel_arr = array();
+    foreach($maq_con_rel as $m){
+      $maq_con_rel_arr[]=$m->id_maquina;
+    }
+
+    //Ahora buscamos la SIN relevamientos.
+    $resultados = DB::table('maquina')
+    ->select(
+      'maquina.id_maquina as id_maquina',
+      'maquina.nro_admin as maquina',
+      'casino.nombre as casino',
+      'sector.descripcion as sector',
+      'isla.nro_isla as isla'
+    )
+    ->join('isla','maquina.id_isla','=','isla.id_isla')
+    ->join('sector','isla.id_sector','=','sector.id_sector')
+    ->join('casino','sector.id_casino','=','casino.id_casino')
+    ->whereNull('maquina.deleted_at')
+    ->where($reglas_maquinas)
+    ->whereNotIn('maquina.id_maquina',$maq_con_rel_arr)
+    ->when($sort_by,function($q) use ($sort_by){return $q->orderBy($sort_by['columna'],$sort_by['orden']);})
+    ->paginate($request->page_size);
 
     return $resultados;
   }
-/* metodo donde se recalculaba todo, aun no se porque se decidio hacerlo asi , por lo que lo comento y no lo borro
-  public function obtenerUltimosRelevamientosPorMaquina(Request $request){
-    Validator::make($request->all(),[
-        'id_casino' => 'required|exists:casino,id_casino',
-        'nro_admin' => 'required|numeric',
-        'cantidad_relevamientos' => 'required|numeric'
-    ], array(), self::$atributos)->after(function($validator){
-      $maquinas = Maquina::where([['nro_admin',$validator->getData()['nro_admin']],['id_casino',$validator->getData()['id_casino']]])->count();
-      if($maquinas < 1){
-        $validator->errors()->add('nro_admin','No existe una máquina con ese nro admin para ese casino.');
-      }
-    })->validate();
-
-    $maquina = Maquina::where([['nro_admin',$request->nro_admin],['id_casino',$request->id_casino]])->first();
-    $formula = $maquina->formula;
-
-    $maq = new \stdClass();
-    $maq->casino = $maquina->casino->nombre;
-    $maq->sector = $maquina->isla->sector->descripcion;
-    $maq->isla = $maquina->isla->nro_isla;
-    $maq->nro_admin = $maquina->nro_admin;
-
-    $detalles = DB::table('detalle_relevamiento')
-                    ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
-                            'detalle_relevamiento.cont1','detalle_relevamiento.cont2','detalle_relevamiento.cont3','detalle_relevamiento.cont4',
-                            'detalle_relevamiento.cont5','detalle_relevamiento.cont6','detalle_relevamiento.cont7','detalle_relevamiento.cont8',
-                            'detalle_relevamiento.producido_calculado_relevado',
-                            'detalle_contador_horario.coinin','detalle_contador_horario.coinout','detalle_contador_horario.jackpot','detalle_contador_horario.progresivo')
-                     ->join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')
-                     ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
-                     ->join('sector','relevamiento.id_sector','=','sector.id_sector')
-                     ->leftJoin('contador_horario',function ($leftJoin){
-                                 $leftJoin->on('contador_horario.fecha','=','relevamiento.fecha');
-                                 $leftJoin->on('contador_horario.id_casino','=','sector.id_casino');
-                               })
-                     ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
-                     ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
-                     ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
-                     ->where('maquina.id_maquina',$maquina->id_maquina)
-                     ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
-                     ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
-                     //->groupby()
-                     ->distinct('relevamiento.id_relevamiento',
-                               'detalle_relevamiento.id_detalle_relevamiento',
-                               'usuario.id_usuario',
-                               'detalle_contador_horario.id_detalle_contador_horario')
-                     ->orderBy('relevamiento.fecha','desc')
-                     ->take(5)->get();
-    return ['maquina' => $maq,
-            'formula' => $formula,
-            'detalles' => $detalles];
-  }*/
 
   public function obtenerUltimosRelevamientosPorMaquina(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|exists:casino,id_casino',
-        'nro_admin' => 'required|numeric',
-        'cantidad_relevamientos' => 'required|numeric'
+        'id_maquina' => 'required|numeric|exists:maquina,id_maquina',
+        'cantidad_relevamientos' => 'required|numeric|min:1',
+        'tomado' => 'nullable|string',
+        'diferencia' => 'nullable|string',
     ], array(), self::$atributos)->after(function($validator){
-      $maquinas = Maquina::where([['nro_admin',$validator->getData()['nro_admin']],['id_casino',$validator->getData()['id_casino']]])->count();
-      if($maquinas < 1){
-        $validator->errors()->add('nro_admin','No existe una máquina con ese nro admin para ese casino.');
+      $data = $validator->getData();
+      $maq = Maquina::find($data['id_maquina']);
+      //No deberia pasar porque se chequea en el validator.
+      if($maq === null) $validator->errors()->add('id_maquina','No existe esa maquina');
+      else{
+        $userc = UsuarioController::getInstancia();
+        $user = $userc->quienSoy()['usuario'];
+        $casino = $maq->casino;
+        if(!$userc->usuarioTieneCasinoCorrespondiente($user->id_usuario,$casino->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a ese casino');
+        }
+      }
+      if(array_key_exists('tomado',$data)){
+        $tomado = $data['tomado'];
+        if(!is_null($tomado) 
+        && $tomado != 'SI' 
+        && $tomado != 'NO'){
+          $validator->errors()->add('tomado','Tomado invalido');
+        }
+      }
+      if(array_key_exists('diferencia',$data)){
+        $diferencia = $data['diferencia'];
+        if(!is_null($diferencia)
+        && $diferencia != 'SI' 
+        && $diferencia != 'NO'){
+          $validator->errors()->add('diferencia','Diferencia invalido');
+        }
       }
     })->validate();
 
-    $maquina = Maquina::where([['nro_admin',$request->nro_admin],['id_casino',$request->id_casino]])->first();
+    $maq = Maquina::find($request->id_maquina);
 
-    $maq = new \stdClass();
-    $maq->casino = $maquina->casino->nombre;
-    $maq->sector = $maquina->isla->sector->descripcion;
-    $maq->isla = $maquina->isla->nro_isla;
-    $maq->nro_admin = $maquina->nro_admin;
+    $ret = new \stdClass();
+    $ret->casino = $maq->casino->nombre;
+    $ret->sector = $maq->isla->sector->descripcion;
+    $ret->isla = $maq->isla->nro_isla;
+    $ret->nro_admin = $maq->nro_admin;
+
+    $testString = array("SI" => True, "NO" => False, null => null);
+    $tomado = $testString[$request->tomado];
+    $diferencia = $testString[$request->diferencia];
+    $queryFunction = function($query) use ($diferencia,$tomado){
+      if(!is_null($tomado)){
+        if($tomado){
+         $query->whereNull('detalle_relevamiento.id_tipo_causa_no_toma');
+        }
+        else{
+          $query->whereNotNull('detalle_relevamiento.id_tipo_causa_no_toma');
+        }
+      }
+      if(!is_null($diferencia)){
+        $query->whereNotNull('detalle_relevamiento.diferencia');
+        if($diferencia){
+          $query->where('detalle_relevamiento.diferencia','<>','0');
+        }
+        else{
+          $query->where('detalle_relevamiento.diferencia','=','0');
+        }
+      }
+    };
 
     $detalles = DB::table('detalle_relevamiento')
                     ->select('relevamiento.fecha','usuario.nombre','tipo_causa_no_toma.descripcion as tipos_causa_no_toma','detalle_relevamiento.id_detalle_relevamiento',
@@ -1186,18 +1207,46 @@ class RelevamientoController extends Controller
                            ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                            ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
                            ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
-                           ->where('maquina.id_maquina',$maquina->id_maquina)
-                           ->where('detalle_relevamiento.id_maquina',$maquina->id_maquina)
-                           ->where('detalle_contador_horario.id_maquina',$maquina->id_maquina)
+                           ->where('maquina.id_maquina',$maq->id_maquina)
+                           ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
+                           ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)
+                           ->where($queryFunction)
                            //->groupby()
                            ->distinct('relevamiento.id_relevamiento',
                                      'detalle_relevamiento.id_detalle_relevamiento',
                                      'usuario.id_usuario',
                                      'detalle_contador_horario.id_detalle_contador_horario')
                            ->orderBy('relevamiento.fecha','desc')
-                           ->take(5)->get();
-    return ['maquina' => $maq,
+                           ->take($request->cantidad_relevamientos)->get();
+    return ['maquina' => $ret,
             'detalles' => $detalles];
+  }
+
+  public function obtenerUltimosRelevamientosPorMaquinaNroAdmin(Request $request){
+    Validator::make($request->all(),[
+        'id_casino' => 'required|numeric|exists:casino,id_casino',
+        'nro_admin' => 'required|numeric|exists:maquina,nro_admin',
+        'cantidad_relevamientos' => 'required|numeric|min:1'
+    ], array(), self::$atributos)->after(function($validator){
+      $id_casino = $validator->getData()['id_casino'];
+      $nro_admin = $validator->getData()['nro_admin'];
+      $maq = Maquina::where('nro_admin',$nro_admin)
+      ->where('id_casino',$id_casino)
+      ->first();
+      if($maq === null) $validator->errors()->add('id_maquina','No existe esa maquina');
+      else{
+        $userc = UsuarioController::getInstancia();
+        $user = $userc->quienSoy()['usuario'];
+        $casino = $maq->casino;
+        if(!$userc->usuarioTieneCasinoCorrespondiente($user->id_usuario,$casino->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a ese casino');
+        }
+      }
+    })->validate();
+    $maq = Maquina::where('nro_admin',$request->nro_admin)
+    ->where('id_casino',$request->id_casino)->first();
+    $request->merge(['id_maquina'=>$maq->id_maquina]);
+    return $this->obtenerUltimosRelevamientosPorMaquina($request);
   }
 
   public function obtenerCantidadMaquinasPorRelevamiento($id_sector){
@@ -1521,5 +1570,40 @@ class RelevamientoController extends Controller
     }
 
     return $producido;
+  }
+
+  private function datosMaquinasCasino($id_casino = null){
+    $query =
+    "select maq.id_maquina as id_maquina,
+            maq.nro_admin as nro_admin,
+            maq.id_casino as id_casino,
+            cas.codigo as codigo
+    from maquina as maq
+    join casino cas on (maq.id_casino = cas.id_casino)
+    where maq.deleted_at is NULL";
+
+    $parametros = array();
+    if($id_casino != null){
+      $query = $query . " and cas.id_casino = :id_casino";
+      $parametros['id_casino'] = $id_casino;
+    }
+    return DB::select(DB::raw($query),$parametros);
+  }
+
+
+  public function buscarMaquinasPorCasino(Request $request,$id_casino){
+    if($id_casino === null) return array();
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if($id_casino == 0){
+      if($user->es_superusuario) return $this->datosMaquinasCasino();
+      else return array();
+    }
+
+    $casino = Casino::find($id_casino);
+    if($casino === null || !$user->usuarioTieneCasino($id_casino)){
+        return array();
+    }
+
+    return $this->datosMaquinasCasino($casino->id_casino);
   }
 }

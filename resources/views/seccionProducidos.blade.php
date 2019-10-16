@@ -183,7 +183,7 @@ use Illuminate\Http\Request;
         <div class="modal-body" style="font-family: Roboto;">
 
           <div class="row" >
-            <h6 style="padding-left:15px" id="fecha_produccion_validacion"></h6>
+            <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
           </div>
           <div class="row" >
             <div class="col-md-3">

@@ -5,13 +5,24 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
+
+$usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 ?>
 @section('estilos')
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
   <link rel="stylesheet" href="css/paginacion.css">
+  <style>
+  .no_tomado{
+    background-color: rgb(238,238,238);
+  }
+  </style>
 @endsection
 
 @section('contenidoVista')
+<!-- Tiene TODAS las maquinas del casino -->
+<datalist id="maquinas_lista"></datalist>
+<!-- Tiene las que va buscando dinamicamente -->
+<datalist id="maquinas_lista_sub"></datalist>
 
                 <div class="row"> <!-- row principal -->
 
@@ -31,11 +42,12 @@ use Illuminate\Http\Request;
                                       <div class="col-lg-12">
                                         <h5>CASINO</h5>
                                         <select id="b_casinoMaquina" class="form-control">
+                                            @if($usuario->es_superusuario)
                                             <option value="">Todos los casinos</option>
-                                            <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                             @foreach ($usuario['usuario']->casinos as $casino)
-                                             <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                             @endforeach
+                                            @endif
+                                            @foreach ($usuario->casinos as $casino)
+                                            <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                            @endforeach
                                         </select>
                                       </div>
                                     </div><br>
@@ -43,7 +55,7 @@ use Illuminate\Http\Request;
                                     <div class="row">
                                       <div class="col-lg-12">
                                         <h5>NÚMERO ADMIN</h5>
-                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin">
+                                          <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin" list="maquinas_lista_sub" autoComplete="off">
                                         </div>
                                     </div><br>
 
@@ -52,7 +64,31 @@ use Illuminate\Http\Request;
                                           <h5>CANTIDAD DE RELEVAMIENTOS</h5>
                                           <input id="b_cantidad_relevamientos" type="text" class="form-control" value="" placeholder="Cantidad de relevamientos">
                                       </div>
-                                    </div><br><br>
+                                    </div><br>
+
+                                    <div class="row">
+                                      <div class="col-lg-12">
+                                          <h5>Tomado</h5>
+                                          <select id="b_tomado" class="form-control">
+                                            <option value=''>Todos</option>
+                                            <option value='SI'>Tomado</option>
+                                            <option value='NO'>No tomado</option>
+                                          </select>
+                                      </div>
+                                    </div><br>
+
+                                    <div class="row">
+                                      <div class="col-lg-12">
+                                          <h5>Diferencia</h5>
+                                          <select id="b_diferencia" class="form-control">
+                                            <option value=''>Todos</option>
+                                            <option value='NO'>Sin diferencia</option>
+                                            <option value='SI'>Con diferencia</option>
+                                          </select>
+                                      </div>
+                                    </div><br>
+
+
 
                                     <div class="row">
                                       <div class="col-md-12">
@@ -132,16 +168,18 @@ use Illuminate\Http\Request;
                                     <div class="col-lg-4">
                                       <h5>CASINO</h5>
                                       <select id="b_casino" class="form-control" name="">
-                                          <option value="">- Seleccione un casino -</option>
-                                          <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                           @foreach ($usuario['usuario']->casinos as $casino)
-                                           <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                           @endforeach
+                                          @if($usuario->es_superusuario)
+                                          <option value="">Todos los casinos</option>
+                                          @endif
+                                          @foreach ($usuario->casinos as $casino)
+                                          <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                          @endforeach
                                       </select>
                                     </div>
                                     <div class="col-lg-4">
                                       <h5>SECTOR</h5>
                                       <select id="busqueda_sector" class="form-control" name="">
+                                        <option value="0">Todos los sectores</option>
                                         <option value=""></option>
                                       </select>
                                     </div>
@@ -230,22 +268,14 @@ use Illuminate\Http\Request;
                         <div class="row">
                             <div class="col-md-6">
                               <h5>Fecha de inicio</h5>
-                              <div class='input-group date' id='dtpFechaInicio_m' data-link-field="fecha_inicio_m" data-link-format="yyyy-mm-dd">
-                                <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio_m" data-content='Valor de campo <strong>incorrecto</strong>.' data-trigger="manual" data-toggle="popover" data-placement="top"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fecha_inicio_m" value=""/>
-                              </div>
+                              <input type='text' class="form-control" placeholder="Fecha de inicio" id="B_fecha_inicio_m" autocomplete="off" readonly/>
                             </div>
                             <div class="col-md-6">
                               <h5>Fecha de finalización</h5>
-                              <div class='input-group date' id='dtpFechaFin_m' data-link-field="fecha_fin_m" data-link-format="yyyy-mm-dd">
-                                <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin_m"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fecha_fin_m" value=""/>
+                              <div class='input-group date' id='dtpFechaFin_m' data-date-format="yyyy/mm/dd" data-link-format="yyyy/mm/dd">
+                                <input type='text' class="form-control" placeholder="Fecha de finalización" id="B_fecha_fin_m" autocomplete="off"/>
+                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                               </div>
                             </div>
                         </div>

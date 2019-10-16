@@ -92,11 +92,11 @@ class MTMController extends Controller
 
      // la gestion de juego activo, se contempla solo si la mtm no es multijuego
 
-      if($mtm->juego_activo == null){
-        $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
-        $mtm->save();
-      }
-      $juego_activo = $mtm->juego_activo;
+    if($mtm->juego_activo == null){
+      $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
+      $mtm->save();
+    }
+    $juego_activo = $mtm->juego_activo;
 
 
 
@@ -113,7 +113,6 @@ class MTMController extends Controller
       }else{//si no tiene un gli asociado, devuelve id 0
           $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
       }
-      //TODO modificar la obtencion del pack con la tabla pivote
      //JUEGOS DE LA MAQUINA
      $juegos = $mtm->juegos;
      $array = array();
@@ -173,6 +172,7 @@ class MTMController extends Controller
       //$islaa = Isla::find($isla->id_isla);
       //$nro_isla = $islaa->nro_isla;
       return['maquina' => $mtm,
+             'moneda' => (!is_null($mtm->id_tipo_moneda))?$mtm->tipoMoneda:null,
              'tipo_gabinete' => $mtm->tipoGabinete,
              'tipo_maquina' => $mtm->tipoMaquina,
              'estado_maquina' => $mtm->estado_maquina,
@@ -306,6 +306,9 @@ class MTMController extends Controller
     }
     if(isset($request->nombre_juego)){
       $reglas[]=['juego.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
+    }
+    if(isset($request->id_tipo_moneda)){
+      $reglas[]=['maquina.id_tipo_moneda','=',$request->id_tipo_moneda];
     }
 
     if($request->id_casino==0){
