@@ -430,7 +430,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                                                                                             'ver_seccion_gestionar_movimientos','ver_seccion_relevamientos_movimientos',
                                                                                                             'ver_seccion_eventualidades','ver_seccion_eventualidades_MTM',
                                                                                                             'ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                                                                                                            'ver_seccion_informecontable']))
+                                                                                                            'ver_seccion_informecontable','ver_seccion_informesector']))
                         <div class="separadoresMenu">AUDITORÍA</div>
                         <li>
                             <div id="barraMaquinas" class="opcionesHover" data-target="#maquinas" data-toggle="collapse" href="#">
@@ -446,7 +446,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="maquinas">
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                              'ver_seccion_informecontable']))
+                              'ver_seccion_informecontable','ver_seccion_informesector']))
                               <li>
                                 <div class="opcionesHover" data-target="#informesMTM" data-toggle="collapse" href="#">
                                   <span class="flechita">
