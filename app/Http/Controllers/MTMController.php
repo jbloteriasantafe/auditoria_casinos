@@ -281,10 +281,10 @@ class MTMController extends Controller
       if($request->estado_maquina==1){
         $estados=array('1','2');
       }else{
-        $estados=array('4','5','6','7');
+        $estados=array('3','4','5','6','7');
       }
     }else{
-      $estados=array('1','2','4','5','6','7');
+      $estados=array('1','2','3','4','5','6','7');
     }
     if(isset($request->nro_admin)){
       $reglas[]=['maquina.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
