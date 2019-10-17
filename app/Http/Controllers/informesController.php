@@ -635,6 +635,7 @@ class informesController extends Controller
 
   public function mostrarInformeSector(){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Sector' ,'informeSector');
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
