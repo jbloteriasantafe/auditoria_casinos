@@ -542,7 +542,11 @@ class informesController extends Controller
             'marca' => $maquina->marca,
             'casino' => $maquina->casino->nombre,
             'moneda' => $maquina->tipoMoneda,
-            'isla' => ['nro_isla' =>  $maquina->isla->nro_isla , 'codigo' => $maquina->isla->codigo],
+            'isla' => 
+            [
+              'nro_isla' =>  (is_null($maquina->isla))? null: $maquina->isla->nro_isla , 
+              'codigo' => (is_null($maquina->isla))? null: $maquina->isla->codigo
+            ],
             'sector' => $sector,
             'juego' => $juego->nombre_juego,
             'producido' => $suma,

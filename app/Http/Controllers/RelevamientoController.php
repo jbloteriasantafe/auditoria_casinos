@@ -1163,8 +1163,11 @@ class RelevamientoController extends Controller
 
     $ret = new \stdClass();
     $ret->casino = $maq->casino->nombre;
-    $ret->sector = $maq->isla->sector->descripcion;
-    $ret->isla = $maq->isla->nro_isla;
+    if(!is_null($maq->isla)){
+      $ret->sector = $maq->isla->sector->descripcion;
+      $ret->isla = $maq->isla->nro_isla;
+    }
+
     $ret->nro_admin = $maq->nro_admin;
 
     $testString = array("SI" => True, "NO" => False, null => null);
@@ -1206,7 +1209,7 @@ class RelevamientoController extends Controller
                                      })
                            ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                            ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
-                           ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
+                           ->leftJoin('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                            ->where('maquina.id_maquina',$maq->id_maquina)
                            ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
                            ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)
