@@ -493,6 +493,7 @@ Route::post('/layouts/buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTot
 Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
 Route::get('/layouts/generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
 Route::get('/layouts/generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
+Route::post('/layouts/guardarLayoutTotal','LayoutController@guardarLayoutTotal');
 Route::post('/layouts/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
 Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
 Route::get('/layouts/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');

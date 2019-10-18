@@ -147,6 +147,37 @@ use App\Http\Controllers\CasinoController;
 
         </div>  <!-- /#row -->
 
+    <!-- FILA EJEMPLO -->
+    <!-- Necesito crear una tabla por algun motivo sino se rompe el html -->
+    <table><thead><th></th><th></th><th></th><th></th><th></th></thead><tbody> 
+    <tr id="filaEjemplo" style="display: none;">
+      <td class="col-xs-2 fecha">99 Test 9999</td>
+      <td class="col-xs-2 casino">CASINO99</td>
+      <td class="col-xs-2 turno">99</td>
+      <td class="col-xs-3">
+        <i class="fas fa-fw fa-dot-circle icono_estado"></i>
+        <span class="estado">ESTADO99</span>
+      </td>
+      <td class="col-xs-3">
+        <button class="btn btn-info planilla" type="button" value="-1">
+          <i class="far fa-fw fa-file-alt"></i>
+        </button>
+        <span></span>
+        <button class="btn btn-warning carga" type="button" value="-1">
+          <i class="fa fa-fw fa-upload"></i>
+        </button>
+        <span></span>
+        <button class="btn btn-success validar" type="button" value="-1">
+          <i class="fa fa-fw fa-check"></i>
+        </button>
+        <span></span>
+        <button class="btn btn-info imprimir" type="button" value="-1">
+          <i class="fa fa-fw fa-print"></i>
+        </button>
+      </td>
+    </tr>
+    </tbody></table>
+    <!-- END FILA EJEMPLO -->
 
     <!-- Modal layout -->
     <div class="modal fade" id="modalLayoutTotal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -396,7 +427,7 @@ use App\Http\Controllers\CasinoController;
 
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo" style="position:absolute;left:20px;">FINALIZAR RELEVAMIENTO</button>
+                  <button type="button" class="btn btn-warningModificar" id="btn-guardarTemp" value="nuevo" style="position:absolute;left:20px;">GUARDAR TEMPORALMENTE</button>
                   <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">FINALIZAR</button>
                   <button type="button" class="btn btn-default" id="btn-salir">SALIR</button>
                   <div class="mensajeSalida">

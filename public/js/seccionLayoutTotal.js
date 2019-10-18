@@ -339,7 +339,7 @@ $(document).on('click','.carga',function(e){
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
   $('#btn-guardar').hide();
-  $('#btn-finalizar').hide();
+  $('#btn-guardarTemp').hide();
 
 
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
@@ -393,7 +393,7 @@ $(document).on('click','.validar',function(e){
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
   $('#btn-guardar').hide();
-  $('#btn-finalizar').hide();
+  $('#btn-guardarTemp').hide();
 
   $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
 
@@ -484,18 +484,15 @@ $('.selectCasinos').on('change',function(){
   });
 });
 
-//FINALIZAR CARGA RELEVAMIENTO
-$('#btn-guardar').click(function(e){
-  e.preventDefault();
+function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
   });
-
-  var maquinas = [];
+  let maquinas = [];
   $('#tablaCargaControlLayout tbody tr').each(function(){
-    var maquina = {
+    const maquina = {
       id_sector :  $(this).find('.sector').val(),
       nro_isla  : $(this).find('.nro_isla').val(),
       nro_admin : $(this).find('.nro_admin').val(),
@@ -504,84 +501,100 @@ $('#btn-guardar').click(function(e){
       pb : $(this).find('.pb ').is(':checked')  == true ? 1 :  0,
     };
     maquinas.push(maquina);
-  })
-
-  formData= {
+  });
+  const formData = {
     id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
     id_layout_total:   $('#id_layout_total').val(),
     fecha_ejecucion: $('#fecha_ejecucion').val(),
     maquinas: maquinas,
     observacion_fiscalizacion: $('#observacion_carga').val(),
     confirmacion: confirmacion
-  }
-
+  };
+  
   console.log(formData);
   $.ajax({
       type: 'POST',
-      url: 'http://' + window.location.host +'/layouts/cargarLayoutTotal',
+      url: url,
       data: formData,
       dataType: 'json',
-      success: function (resultados) {
-        $('#mensajeExito h3').text('ÉXITO DE CARGA');
-        $('#mensajeExito .cabeceraMensaje').addClass('modificar');
-        $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
-        $('#mensajeExito').show();
+      success: succ,
+      error: err
+  });
+}
 
-        //se puede eliminar, la misma logica lo hace el boton buscar
-        var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-        var tam = $('#tituloTabla').getPageSize();
-        var columna = $('#tablaLayouts .activa').attr('value');
-        var orden = $('#tablaLayouts .activa').attr('estado');
-        $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-        $('#modalCargaControlLayout').modal('hide');
-      },
-      error: function (data) {
-        var response = JSON.parse(data.responseText);
-        var bandera_error_no_aceptable= false;//bandera true ocurrio un error que no necesite ser corregido
-        var bandera_error_aceptable = false;//bandera true si necesito pedir confirmacion
-        if(typeof response.id_fiscalizador_toma !== 'undefined'){
-              mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
-              bandera_error_no_aceptable = true;
+$('#btn-guardarTemp').click(function(e){
+  e.preventDefault();
+  enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
+  function(x){
+    console.log(x);
+    guardado=true;
+  });
+});
 
-        }
+//FINALIZAR CARGA RELEVAMIENTO
+$('#btn-guardar').click(function(e){
+  e.preventDefault();
+  const success = function (resultados) {
+    $('#mensajeExito h3').text('ÉXITO DE CARGA');
+    $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+    $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
+    $('#mensajeExito').show();
 
-        if(typeof response.fecha_ejecucion !== 'undefined'){
-              mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
-              bandera_error_no_aceptable = true;
-        }
-        var i = 0;
+    //se puede eliminar, la misma logica lo hace el boton buscar
+    var pageNumber = $('#herramientasPaginacion').getCurrentPage();
+    var tam = $('#tituloTabla').getPageSize();
+    var columna = $('#tablaLayouts .activa').attr('value');
+    var orden = $('#tablaLayouts .activa').attr('estado');
+    $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+    $('#modalCargaControlLayout').modal('hide');
+  };
 
-        $('#controlLayout tr').each(function(){
-          if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
-            bandera_error_aceptable = true;
-          }
-          i++;
-        })
-        if(bandera_error_aceptable && !bandera_error_no_aceptable){
-          pedirValidacion();
-        }else{
-          $('.mensajeConfirmacion').hide();
-        }
+  const error = function (data) {
+    var response = JSON.parse(data.responseText);
+    var bandera_error_no_aceptable= false;//bandera true ocurrio un error que no necesite ser corregido
+    var bandera_error_aceptable = false;//bandera true si necesito pedir confirmacion
+    if(typeof response.id_fiscalizador_toma !== 'undefined'){
+          mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
+          bandera_error_no_aceptable = true;
+    }
+
+    if(typeof response.fecha_ejecucion !== 'undefined'){
+          mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
+          bandera_error_no_aceptable = true;
+    }
+    var i = 0;
+
+    $('#controlLayout tr').each(function(){
+      if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
+        bandera_error_no_aceptable = true;
       }
-    });
+      if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
+        bandera_error_no_aceptable = true;
+      }
+      if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
+        bandera_error_no_aceptable = true;
+      }
+      if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
+        bandera_error_aceptable = true;
+      }
+      i++;
+    })
+    if(bandera_error_aceptable && !bandera_error_no_aceptable){
+      pedirValidacion();
+    }else{
+      $('.mensajeConfirmacion').hide();
+    }
+  };
 
+  enviarLayout('http://' + window.location.host +'/layouts/cargarLayoutTotal',success,error);
 });
 
 function pedirValidacion(){
@@ -690,6 +703,7 @@ function agregarMaquinaConDiferencia(renglon ,estado){
 function habilitarBotonGuardar(){
   guardado = false;
   $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
 }
 
 // Todo busqueda Busqueda
@@ -775,12 +789,18 @@ function mostrarIconosPorPermisos(){
       data: formData,
       dataType: 'json',
       success: function(data) {
-
         //Para los iconos que no hay permisos: OCULTARLOS!
-        if (!data.ver_planilla_layout_total) $('.planilla').hide();
-        if (!data.carga_layout_total) $('.carga').hide();
-        if (!data.validar_layout_total) $('.validar').hide();
-
+        $('#cuerpoTabla tr').each(function(i,c){
+          let fila = $(c);
+          const estado = fila.find('.estado').text();
+          setearEstado(fila,estado);
+          if(!data.carga_layout_total) $('.carga').hide();
+          if(!data.validar_layout_total){
+            $('#cuerpoTabla .validar').hide();
+            $('#cuerpoTabla .imprimir').hide();
+          } 
+          fila.css('display','');//Lo muestro.
+        });
       },
       error: function(error) {
           console.log(error);
@@ -815,74 +835,62 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+function setearEstado(fila,estado){
+  let icono_estado = fila.find('.icono_estado');
+  let icono_planilla = fila.find('.planilla');
+  let icono_carga = fila.find('.carga');
+  let icono_validacion = fila.find('.validar');
+  let icono_imprimir = fila.find('.imprimir');
+  //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
+  icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
+  fila.find('.estado').text(estado);
+  //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
+  icono_planilla.show();
+  switch (estado) {
+    case 'Generado':
+      icono_estado.addClass('faGenerado');
+      icono_carga.show();
+      icono_validacion.hide();
+      icono_imprimir.hide();
+      break;
+    case 'Cargando':
+      icono_estado.addClass('faCargando');
+      icono_carga.show();
+      icono_validacion.hide();
+      icono_imprimir.hide();
+      break;
+    case 'Finalizado':
+      icono_estado.addClass('faFinalizado');
+      icono_carga.hide();
+      icono_validacion.show();
+      icono_imprimir.show();
+      break;
+    case 'Visado':
+      icono_estado.addClass('faValidado');
+      icono_carga.hide();
+      icono_validacion.hide();
+      icono_imprimir.show();
+      break;
+    default:
+      icono_carga.hide();
+      icono_validacion.hide();
+      icono_imprimir.hide();
+      break;
+  }
+}
+
+//La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
 function generarFilaTabla(layout_total){
-
-    var fila = $(document.createElement('tr'));
-    fila.attr('id', layout_total.id_layout_total)
-        .append($('<td>').addClass('col-xs-2')
-            .text((layout_total.fecha))
-        )
-        .append($('<td>').addClass('col-xs-2')
-            .text(layout_total.casino)
-        )
-        .append($('<td>').addClass('col-xs-2') /* REEMPLAZAR EN TURNO */
-            .text(layout_total.turno)
-        )
-        .append($('<td>').addClass('col-xs-3')
-            .append($('<i>').addClass('fas fa-fw fa-dot-circle'))
-            .append($('<span>').text(layout_total.estado))
-        )
-        .append($('<td>').addClass('col-xs-3')
-            .append($('<button>').addClass('btn btn-info planilla').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-warning carga').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-success validar').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
-            )
-        )
-      var icono_planilla = fila.find('.planilla');
-      var icono_carga = fila.find('.carga');
-      var icono_validacion = fila.find('.validar');
-      var icono_impirmir = fila.find('.imprimir');
-
-      switch (layout_total.estado) {
-          case 'Generado':
-            fila.find('.fa-dot-circle').addClass('faGenerado');
-
-            icono_planilla.show();
-            icono_carga.show();
-            icono_validacion.hide();
-            icono_impirmir.hide();
-            break;
-          case 'Cargando':
-            fila.find('.fa-dot-circle').addClass('faCargando');
-            break;
-          case 'Finalizado':
-            fila.find('.fa-dot-circle').addClass('faFinalizado');
-            icono_validacion.show();
-            icono_impirmir.show();
-            icono_carga.hide();
-            icono_planilla.hide();
-            break;
-          case 'Validado':
-              fila.find('.fa-dot-circle').addClass('faValidado');
-              icono_validacion.hide();
-              icono_impirmir.show();
-              icono_carga.hide();
-              icono_planilla.hide();
-              break;
-          default:break;
-
-      }
+      let fila = $('#filaEjemplo').clone();
+      fila.attr('id',layout_total.id_layout_total);
+      fila.find('.fecha').text(layout_total.fecha);
+      fila.find('.casino').text(layout_total.casino);
+      fila.find('.turno').text(layout_total.turno);
+      fila.find('.planilla').val(layout_total.id_layout_total);
+      fila.find('.carga').val(layout_total.id_layout_total);
+      fila.find('.validar').val(layout_total.id_layout_total);
+      fila.find('.imprimir').val(layout_total.id_layout_total);
+      setearEstado(fila,layout_total.estado);
       return fila;
 }
 

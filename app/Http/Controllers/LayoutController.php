@@ -1163,7 +1163,7 @@ class LayoutController extends Controller
     $casinos = $usuario->casinos;
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Total' , 'layout_total');
-    return view('seccionLayoutTotal', ['casinos' => $casinos , 'estados' => $estados]);
+    return view('seccionLayoutTotal', ['casinos' => $casinos , 'estados' => $estados,'usuario'=>$usuario]);
   }
 
   public function obtenerLayoutTotal($id){
@@ -1373,78 +1373,89 @@ class LayoutController extends Controller
     $headers = array('Content-Type' => 'application/octet-stream',);
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
   }
+
+  public function guardarLayoutTotal(Request $request){
+    return $this->cargarLayoutTotal($request,False);
+  }
   // cargarLayoutTotal se carga el layout total solo con los valores de las mtm
   // consideradas con algun tipo de fallo
-  public function cargarLayoutTotal(Request $request){
-    Validator::make($request->all(),[
-        'id_layout_total' => 'required|exists:layout_total,id_layout_total',
-        'id_fiscalizador_toma' => 'required|exists:usuario,id_usuario',
-        'fecha_ejecucion' => 'required|date|before:tomorrow',
-        //arreglo con las maquinas apagadas
-        'maquinas' => 'nullable' ,
-        'maquinas.*.id_sector' => 'required|string',
-        'maquinas.*.nro_isla' => 'required|exists:isla,nro_isla',
-        'maquinas.*.nro_admin' => 'required|integer',
-        'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
-        'maquinas.*.co' => 'nullable',//codigo
-        'maquinas.*.pb' => 'required|in:1,0',//producido bloqueado
-        'observacion_fiscalizacion' =>  'nullable|string',
-        'confirmacion' => 'required|in:0,1',
+  public function cargarLayoutTotal(Request $request,$cargando=True){
+    if($cargando){
+        Validator::make($request->all(),[
+          'id_layout_total' => 'required|exists:layout_total,id_layout_total',
+          'id_fiscalizador_toma' => 'required|exists:usuario,id_usuario',
+          'fecha_ejecucion' => 'required|date|before:tomorrow',
+          //arreglo con las maquinas apagadas
+          'maquinas' => 'nullable' ,
+          'maquinas.*.id_sector' => 'required|string',
+          'maquinas.*.nro_isla' => 'required|exists:isla,nro_isla',
+          'maquinas.*.nro_admin' => 'required|integer',
+          'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
+          'maquinas.*.co' => 'nullable',//codigo
+          'maquinas.*.pb' => 'required|in:1,0',//producido bloqueado
+          'observacion_fiscalizacion' =>  'nullable|string',
+          'confirmacion' => 'required|in:0,1',
 
-    ], array(), self::$atributos)->after(function($validator){
-        if($validator->getData()['confirmacion'] == 0){
-          $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
-          if(isset($validator->getData()['maquinas'])){
-            $i = 0;
-            foreach ($validator->getData()['maquinas'] as $maquina) {
-              $maquinas =  Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-              ->join('sector' , 'sector.id_sector' ,'=' , 'isla.id_sector')
-              ->where([['maquina.id_casino' , $layout->id_casino] , ['nro_admin' , $maquina['nro_admin']] , ['sector.id_sector', $maquina['id_sector']] , ['isla.nro_isla' , $maquina['nro_isla']] ])
-              ->get();
+      ], array(), self::$atributos)->after(function($validator){
+          if($validator->getData()['confirmacion'] == 0){
+            $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
+            if(isset($validator->getData()['maquinas'])){
+              foreach ($validator->getData()['maquinas'] as $i => $maquina) {
+                $maquinas =  Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
+                ->join('sector' , 'sector.id_sector' ,'=' , 'isla.id_sector')
+                ->where([['maquina.id_casino' , $layout->id_casino] , ['nro_admin' , $maquina['nro_admin']] , ['sector.id_sector', $maquina['id_sector']] , ['isla.nro_isla' , $maquina['nro_isla']] ])
+                ->get();
 
-              if($maquinas->count() != 1){
-                $validator->errors()->add('maquinas.' . $i . '.no_existe' ,'No existe maquina con el numero de administración ' . $maquina['nro_admin'] . ' en la isla y sector elegidos.');
+                if($maquinas->count() != 1){
+                  $validator->errors()->add('maquinas.' . $i . '.no_existe' ,'No existe maquina con el numero de administración ' . $maquina['nro_admin'] . ' en la isla y sector elegidos.');
+                }
               }
-
-              $i++;
             }
+          }
+      })->validate();
+    }
+
+    $layout_total = LayoutTotal::find($request->id_layout_total);
+    $estado = $layout_total->id_estado_relevamiento;
+    if( $estado == 1 || $estado == 2 ){//si el estado es GENERADO o CARGANDO
+      DB::beginTransaction();
+      try{
+        $layout_total->id_usuario_fiscalizador = $request->id_fiscalizador_toma;
+        $layout_total->id_usuario_cargador = session('id_usuario'); //usuario que carga
+        $layout_total->fecha_ejecucion =  $request->fecha_ejecucion;
+        $layout_total->observacion_fiscalizacion =  $request->observacion_fiscalizacion;
+  
+        if(isset($request->maquinas)){
+          foreach ($request->maquinas as $maquina_apagadas) {
+            $detalle  = new DetalleLayoutTotal();
+            $maquina = Maquina::find($maquina_apagadas['id_maquina']);
+            if(is_null($maquina) && !$cargando) continue;//Si esta GUARDANDO, ignoro la maquina
+            $detalle->id_maquina = $maquina->id_maquina;
+            $detalle->descripcion_sector= Sector::find($maquina_apagadas['id_sector'])->descripcion;
+            $detalle->nro_isla = $maquina_apagadas['nro_isla'];
+            $detalle->co = $maquina_apagadas['co'];
+            $detalle->pb = $maquina_apagadas['pb'];
+            $detalle->nro_admin = $maquina_apagadas['nro_admin'];
+            $detalle->id_layout_total = $layout_total->id_layout_total;
+            $detalle->save();
+            //  DISPARAR MOVIEMIENTO - EVENTUALIDAD
           }
         }
 
-    })->validate();
-
-    $bandera= 1; //si se dio todo bien
-    $layout_total = LayoutTotal::find($request->id_layout_total);
-    if($layout_total->id_estado_relevamiento == 1){//si el estado es cargando
-      $layout_total->id_usuario_fiscalizador = $request->id_fiscalizador_toma;
-      $layout_total->id_usuario_cargador = session('id_usuario'); //usuario que carga
-      $layout_total->fecha_ejecucion =  $request->fecha_ejecucion;
-      $layout_total->observacion_fiscalizacion =  $request->observacion_fiscalizacion;
-
-      if(isset($request->maquinas)){
-        foreach ($request->maquinas as $maquina_apagadas) {
-          $detalle  = new DetalleLayoutTotal();
-          $maquina = Maquina::find( $maquina_apagadas['id_maquina']);
-          $detalle->descripcion_sector= Sector::find($maquina_apagadas['id_sector'])->descripcion;
-          $detalle->nro_isla = $maquina_apagadas['nro_isla'];
-          $detalle->co = $maquina_apagadas['co'];
-          $detalle->pb = $maquina_apagadas['pb'];
-          $detalle->nro_admin = $maquina_apagadas['nro_admin'];
-          $detalle->id_maquina = $maquina->id_maquina;
-          $detalle->id_layout_total = $layout_total->id_layout_total;
-          $detalle->save();
-          //  DISPARAR MOVIEMIENTO - EVENTUALIDAD
-        }
+        if(!$cargando) $layout_total->id_estado_relevamiento = 2; 
+        else $layout_total->id_estado_relevamiento = 3; //finalizado la carga
+        $layout_total->save();
       }
-
-      $layout_total->id_estado_relevamiento = 3; //finalizado la carga
-      $layout_total->save();
-      $codigo= 200;//Codigo salió todo bien
-    }else{
-      $codigo= 500;//Código error
+      catch(Exception $e){
+        DB::rollBack();
+        return ['codigo' => 500];
+      }
+      DB::commit();
+      return ['codigo' => 200];
+    } 
+    else{
+      return ['codigo' => 500];
     }
-
-    return ['codigo' => $codigo];
 
   }
 
