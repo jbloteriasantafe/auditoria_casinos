@@ -4,9 +4,11 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\NivelProgresivoObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class NivelProgresivo extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'nivel_progresivo';
   protected $primaryKey = 'id_nivel_progresivo';
@@ -17,7 +19,8 @@ class NivelProgresivo extends Model
   'porc_oculto',
   'porc_visible',
   'maximo',
-  'id_pozo');
+  'id_pozo',
+  'deleted_at');
   public $timestamps = false;
 
   public function pozo(){

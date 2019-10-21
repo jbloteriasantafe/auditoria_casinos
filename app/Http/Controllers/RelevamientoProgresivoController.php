@@ -64,11 +64,11 @@ class RelevamientoProgresivoController extends Controller
 
       $nro_admin_maquinas = substr_replace($nro_admin_maquinas,'',0,1);
 
-      $resultados = DB::table('isla') ->selectRaw('DISTINCT(nro_isla)')
-                                      ->join('maquina','maquina.id_isla','=','isla.id_isla')
-                                      ->whereIn('id_maquina',$id_maquinas_pozo)
-                                      ->orderBy('nro_isla', 'asc')
-                                      ->get();
+      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')
+                                     ->join('maquina','maquina.id_isla','=','isla.id_isla')
+                                     ->whereIn('id_maquina',$id_maquinas_pozo)
+                                     ->orderBy('nro_isla', 'asc')
+                                     ->get();
 
       $i=0;
       $nro_isla='';
@@ -210,6 +210,7 @@ class RelevamientoProgresivoController extends Controller
                                     ->join('isla','maquina.id_isla','=','isla.id_isla')
                                     ->join('sector','isla.id_sector','=','sector.id_sector')
                                     ->where('sector.id_sector','=',$request->id_sector)
+                                    ->whereNull('pozo.deleted_at')
                                     ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();
 
@@ -272,8 +273,8 @@ class RelevamientoProgresivoController extends Controller
       $niveles = array();
       $id_maquinas = array();
 
-      $pozo = Pozo::find($detalle_relevamiento->id_pozo);
-      $progresivo = $pozo->progresivo;
+      $pozo = Pozo::withTrashed()->find($detalle_relevamiento->id_pozo);
+      $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
 
       $x=0;
       $nro_maquinas = "";
@@ -319,7 +320,9 @@ class RelevamientoProgresivoController extends Controller
         'nro_islas' => $nro_islas,
         'flag_isla_unica' => $flag_isla_unica,
         'pozo' => $pozo->descripcion,
-        'pozo_unico' => count($pozo->progresivo->pozos) == 1,
+        //Si venimos de un progresivo borrado, nos va a dar 0 pozos, que le muestre el nombre por si las moscas
+        //No habria forma de saber si era pozo unico o no.
+        'pozo_unico' => count($progresivo->pozos) == 1,
         'progresivo' => $progresivo->nombre,
         'es_individual' => $progresivo->es_individual,
         'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),

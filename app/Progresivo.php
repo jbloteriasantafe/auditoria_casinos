@@ -4,9 +4,11 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\ProgresivoObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Progresivo extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'progresivo';
   protected $primaryKey = 'id_progresivo';
@@ -15,7 +17,9 @@ class Progresivo extends Model
     'nombre',
     'porc_recup',
     'id_casino',
-    'es_individual');
+    'es_individual',
+    'deleted_at'
+  );
   public $timestamps = false;
 
 
