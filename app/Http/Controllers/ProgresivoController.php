@@ -598,7 +598,11 @@ class ProgresivoController extends Controller
     $progresivo = Progresivo::find($id_progresivo);
     if($progresivo === null) return $this->errorOut(['id_progresivo' => 'Progresivo no existe']);
 
-    $progresivo->maquinas()->sync([]);
+    //Como tenemos un SOFT DELETE, si borramos el progresivo y era individual
+    //Cuando hagamos un query no podemos buscarlo si lo restauramos (hay que enlazarlo de vuelta)
+    //En principio no es necesario sacarle las maquinas al progresivo ya que
+    //La maquina nunca va a llegar a un progresivo borrado por maquina->progresivos
+    //$progresivo->maquinas()->sync([]);
 
     foreach($progresivo->pozos as $pozo){
       foreach($pozo->niveles as $nivel){
