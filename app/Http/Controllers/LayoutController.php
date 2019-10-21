@@ -1175,7 +1175,8 @@ class LayoutController extends Controller
             'casino' => $layout_total->casino,
             'sectores' => $layout_total->casino->sectores,
             'usuario_cargador' => $layout_total->usuario_cargador ,
-            'usuario_fiscalizador' => $layout_total->usuario_fiscalizador];
+            'usuario_fiscalizador' => $layout_total->usuario_fiscalizador,
+            'detalles' => $layout_total->detalles];
   }
 
   // crearLayoutTotal crea el relevamiento y los backup
@@ -1425,6 +1426,9 @@ class LayoutController extends Controller
         $layout_total->fecha_ejecucion =  $request->fecha_ejecucion;
         $layout_total->observacion_fiscalizacion =  $request->observacion_fiscalizacion;
   
+        foreach($layout_total->detalles as $d){//Borro los viejos que tenga cargado.
+          $d->delete();
+        }
         if(isset($request->maquinas)){
           foreach ($request->maquinas as $maquina_apagadas) {
             $detalle  = new DetalleLayoutTotal();

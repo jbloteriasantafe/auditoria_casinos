@@ -321,9 +321,17 @@ $('#btn-generar').click(function(e){
 
 });
 
-$(document).on('input' , '#frmCargaControlLayout input' ,function(){
+$(document).on('input' , '#modalCargaControlLayout input' ,function(){
   habilitarBotonGuardar();
-})
+});
+
+$(document).on('input' , '#modalCargaControlLayout textarea' ,function(){
+  habilitarBotonGuardar();
+});
+
+function limpiarNull(s,defecto = ''){
+  return s === null? defecto : s;
+}
 
 $(document).on('click','.carga',function(e){
   e.preventDefault();
@@ -347,9 +355,9 @@ $(document).on('click','.carga',function(e){
       $('#cargaFechaGeneracion').val(data.layout_total.fecha_generacion);
       $('#cargaCasino').val(data.casino.nombre);
       $('#cargaTurno').val(data.layout_total.turno);
-
       $('#fecha').val(data.layout_total.fecha_ejecucion);
       $('#fecha_ejecucion').val(data.layout_total.fecha_ejecucion);
+      $('#observacion_carga').val(data.layout_total.observacion_fiscalizacion);
 
       if (data.usuario_cargador != null) {
           $('#fiscaCarga').val(data.usuario_cargador.nombre);
@@ -368,11 +376,13 @@ $(document).on('click','.carga',function(e){
       if (data.usuario_fiscalizador){
         $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
       }
-
-
       $('#tablaCargaControlLayout tbody tr').remove();
 
-      var tablaCargaRelevamiento = $('#tablaCargaControlLayout tbody');
+      if('detalles' in data){
+        for (var i = 0; i < data.detalles.length; i++) {
+          agregarNivel(data.detalles[i] , $('#controlLayout') ,'carga');
+        }
+      }
 
   });
 
@@ -418,8 +428,6 @@ $(document).on('click','.validar',function(e){
       sectores = data.sectores;
 
       $('#tablaValidarControlLayout tbody tr').remove();
-
-      var tablaCargaRelevamiento = $('#tablaValidarControlLayout tbody');
 
       for (var i = 0; i < data.detalles.length; i++) {
         agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
@@ -525,11 +533,32 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
 $('#btn-guardarTemp').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
-  function(x){
-    console.log(x);
-    guardado=true;
-  });
+    function(x){
+      console.log(x);
+      guardado=true;
+      $('#mensajeExito h3').text('ÉXITO DE CARGA');
+      $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+      $('#mensajeExito p').text("Se ha guardado correctamente el control de Layout Total.");
+      $('#mensajeExito').show();
+      $('#btn-buscar').trigger('click');
+    },
+    function(x){
+      console.log(x);
+      mostrarError('Hubo un problema al guardar.');
+    }
+  );
 });
+
+function mostrarError(mensaje = '') {
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').find('.textoMensaje')
+          .empty()
+          .append('<h2>ERROR</h2>')
+          .append(mensaje);
+      $('#mensajeError').show();
+  }, 500);
+}
 
 //FINALIZAR CARGA RELEVAMIENTO
 $('#btn-guardar').click(function(e){
@@ -539,12 +568,6 @@ $('#btn-guardar').click(function(e){
     $('#mensajeExito .cabeceraMensaje').addClass('modificar');
     $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
     $('#mensajeExito').show();
-
-    //se puede eliminar, la misma logica lo hace el boton buscar
-    var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-    var tam = $('#tituloTabla').getPageSize();
-    var columna = $('#tablaLayouts .activa').attr('value');
-    var orden = $('#tablaLayouts .activa').attr('estado');
     $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
     $('#modalCargaControlLayout').modal('hide');
   };
@@ -716,27 +739,27 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
     e.preventDefault();
 
-      var page_size = (page_size == null || isNaN(page_size) ) ? size : page_size;
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
-      if(sort_by == null){ // limpio las columnas
-        $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-      }
+    var page_size = (page_size == null || isNaN(page_size) ) ? size : page_size;
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    }
 
-      //Fix error cuando librería saca los selectores
-      if(isNaN($('#herramientasPaginacion').getPageSize())){
-        var size = 10; // por defecto
-      }else {
-        var size = $('#herramientasPaginacion').getPageSize();
-      }
+    //Fix error cuando librería saca los selectores
+    if(isNaN($('#herramientasPaginacion').getPageSize())){
+      var size = 10; // por defecto
+    }else {
+      var size = $('#herramientasPaginacion').getPageSize();
+    }
 
-      var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-      // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
-      if(sort_by == null){ // limpio las columnas
-        $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-      }
+    var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    }
 
     var formData = {
       fecha: $('#buscadorFecha').val(),
@@ -926,7 +949,7 @@ $(document).on('click','.borrarNivelLayout',function(){
 });
 
 function agregarNivel(nivel,tabla,funcion){
-
+  console.log(nivel);
   var id_nivel_layout = ((nivel != null) ? nivel.id_nivel_layout: "");
   var sector = ((nivel != null) ? nivel.descripcion_sector: "");
   var nIsla = ((nivel != null) ? nivel.nro_isla: null);
@@ -934,95 +957,90 @@ function agregarNivel(nivel,tabla,funcion){
   var co = ((nivel != null) ? nivel.co: null);
   var pBloq = ((nivel != null) ? nivel.pb : null);
 
-  var editable = funcion == 'carga' ? true : false;
+  var editable = funcion == 'carga';
 
-          tabla.append($('<tr>')
-                  .addClass('NivelLayout')
-                  .attr('id_nivel_layou',id_nivel_layout)
-                  .append($('<td>')
-                  )
-                  .append($('<td>')
-                    .append($('<select>')
-                        .attr('type','text')
-                        .addClass('form-control sector')
-                        .attr('disabled' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                  .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','Isla')
-                        .addClass('form-control nro_isla')
-                        .val(nIsla)
-                        .attr('readonly' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','N° ADMIN')
-                        .addClass('form-control nro_admin')
-                        .val(nAdmin)
-                        .attr('readonly' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','C.0')
-                        .addClass('form-control co')
-                        .val(co)
-                        .attr('readonly' , !editable)
-                    )
-                  )
+  let fila = $('<tr>')
+  .addClass('NivelLayout')
+  .attr('id_nivel_layout',id_nivel_layout);
 
-                .append($('<td>')
-                    .css('text-align' , 'center')
-                    .append($('<input>')
-                    .attr('type','checkbox')
-                    .addClass('pb')
-                    .prop('checked' , pBloq)
-                    .prop('disabled' , !editable)
-                )
-              )
-            )
+  fila.append($('<td>'));
+  fila.append(
+    $('<td>').append(
+      $('<select>').attr('type','text').addClass('form-control sector').attr('disabled' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+          .attr('type','text')
+          .attr('placeholder','Isla')
+          .addClass('form-control nro_isla')
+          .val(nIsla)
+          .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+        .attr('type','text')
+        .attr('placeholder','N° ADMIN')
+        .addClass('form-control nro_admin')
+        .val(nAdmin)
+        .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+        .attr('type','text')
+        .attr('placeholder','C.0')
+        .addClass('form-control co')
+        .val(co)
+        .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .css('text-align' , 'center')
+    .append($('<input>')
+    .attr('type','checkbox')
+    .addClass('pb')
+    .prop('checked' , pBloq)
+    .prop('disabled' , !editable)
+    )
+  );
+  tabla.append(fila);
 
+  if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
 
-            if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
-              $('.nro_admin:last').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
-              $('.nro_admin:last').setearElementoSeleccionado(0,"");
-                $('.NivelLayout:last()',tabla)
-                  .append($('<td>')
-                    .append($('<button>')
-                      .addClass('borrarNivelLayout')
-                      .addClass('btn')
-                      .addClass('btn-danger')
-                      .addClass('borrarFila')
-                      .attr('type','button')
-                      .append($('<i>')
-                        .addClass('fa fa-fw fa-trash')
-                      )
-                  )
-                )
-           }else if(funcion == 'validar'){
-            var boton_gestionar = $('<a>').addClass('btn btn-success pop gestion_maquina')
-                                                  .attr('type' , 'button')
-                                                 .attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina )
-                                                 .attr('target' , '_blank')
-                                                 .attr("data-placement" , "top")
-                                                 .attr('data-trigger','hover')
-                                                 .attr('title','GESTIONAR MÁQUINA')
-                                                 .attr('data-content','Ir a sección máquina')
-                                                 .append($('<i>').addClass('fa fa-fw fa-wrench'));
-            $('.NivelLayout:last()',tabla)
-                    .append($('<td>').append(boton_gestionar));
-            $('.gestion_maquina').popover({
-              html:true
-            });
-          }
+    fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
+    fila.find('.nro_admin').setearElementoSeleccionado(nivel.id_maquina,nAdmin);
+    $(fila).append(
+      $('<td>')
+        .append($('<button>')
+          .addClass('borrarNivelLayout')
+          .addClass('btn')
+          .addClass('btn-danger')
+          .addClass('borrarFila')
+          .attr('type','button')
+          .append($('<i>')
+            .addClass('fa fa-fw fa-trash')
+          )
+      )
+    );
+  }else if(funcion == 'validar'){
+  var boton_gestionar = $('<a>').addClass('btn btn-success pop gestion_maquina')
+                                .attr('type' , 'button')
+                                .attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina )
+                                .attr('target' , '_blank')
+                                .attr("data-placement" , "top")
+                                .attr('data-trigger','hover')
+                                .attr('title','GESTIONAR MÁQUINA')
+                                .attr('data-content','Ir a sección máquina')
+                                .append($('<i>').addClass('fa fa-fw fa-wrench'));
+  
+  $('.NivelLayout:last()',tabla).append($('<td>').append(boton_gestionar));
+  $('.gestion_maquina').popover({html:true});
+}
 
 
-          cargarSectores(sectores ,sector , tabla);
+cargarSectores(sectores ,sector , tabla);
 }
 
 function cargarSectores(sectores, seleccionado , tabla){
@@ -1046,4 +1064,13 @@ function limpiarModal(){
     $('#modalLayoutTotal').find('.modal-footer').children().show();
     $('#modalLayoutTotal').find('.modal-body').children().show()
     $('#controlLayout .NivelLayout').remove();
+    $('#cargaFechaActual').val('');
+    $('#cargaFechaGeneracion').val('');
+    $('#cargaCasino').val('');
+    $('#cargaTurno').val('');
+    $('#fiscaCarga').val('');
+    $('#inputFisca').val('');
+    $('#fecha').val('');
+    $('#observacion_carga').val('');
+    $('#observacion_validar').val('');
 }
