@@ -635,6 +635,7 @@ class informesController extends Controller
 
   public function mostrarInformeSector(){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Sector' ,'informeSector');
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
@@ -644,7 +645,7 @@ class informesController extends Controller
       $sin_asignar = new \stdClass();
       //Le asigno como id, el negativo del casino
       //Como es uno solo por casino, esta garantizado a que sea distinto
-      $sin_asignar->id_sector = -$c->id_casino;
+      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
       $sin_asignar->descripcion = "SIN ASIGNAR";
       $sin_asignar->id_casino = $c->id_casino;
       $sin_asignar->cantidad_maquinas = null;
@@ -653,34 +654,33 @@ class informesController extends Controller
     }
     
     $islas = [];
-    foreach($sectores as $s){
-      if($s->id_sector < 0){
-        $sin_asignar = new \stdClass();
-        //Idem, el id_sector ya es negativo asi que lo asigno derecho
-        $sin_asignar->id_isla = $s->id_sector;
-        $sin_asignar->nro_isla = -1;
-        $sin_asignar->codigo = "SIN ASIGNAR";
-        $sin_asignar->cantidad_maquinas = null;
-        $sin_asignar->id_casino = $s->id_casino;
-        $sin_asignar->id_sector = $s->id_sector;
-        $sin_asignar->deleted_at = null;
-        $islas[] = $sin_asignar;
-        continue;
-      }
-      foreach($s->islas as $i){
-          $aux = $i->toArray();
-          $i['id_casino'] = $s->id_casino;
-          $islas[]= $i;
+    foreach($casinos as $c){
+      $sin_asignar = new \stdClass();
+      //Creo una isla especial para asignar las maquinas sin isla.
+      $sin_asignar->id_isla = "SIN_ISLA_".$c->id_casino;
+      $sin_asignar->nro_isla = "SIN ISLA";
+      $sin_asignar->codigo = "SIN ISLA";
+      $sin_asignar->cantidad_maquinas = null;
+      $sin_asignar->id_casino = $c->id_casino;
+      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
+      $sin_asignar->deleted_at = null;
+      $islas[] = $sin_asignar;
+      foreach($c->islas as $i){
+        $aux = $i->toArray();
+        //Si no tiene sector, lo enlazo con SIN ASIGNAR
+        if(is_null($i->id_sector)) $i->id_sector = "SIN_ASIGNAR_".$c->id_casino;
+        $islas[] = $i;
       }
     }
-
+    $expresion_estado = 'IFNULL(estado.descripcion,"") as estado_descripcion,IF(m.deleted_at is NULL,"0","1") as borrada';
     $maquinas = DB::table('maquina as m')
-    ->select('m.*','i.id_sector','estado.descripcion as estado_descripcion')
+    ->selectRaw('m.*,i.id_sector,'.$expresion_estado)
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->join('isla as i','m.id_isla','=','i.id_isla')
-    ->whereNull('m.deleted_at')
+    ->whereNotNull('i.id_sector')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
+    //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
     $columnas_str = "";
     $columnas = Schema::getColumnListing('maquina');
     foreach($columnas as $col){
@@ -688,15 +688,20 @@ class informesController extends Controller
         $columnas_str .= ", m.".$col;
       }
     }
-    //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
-    $m_sin_asignar = DB::table('maquina as m')
-    ->selectRaw('-(m.id_casino) as id_sector,-(m.id_casino) as id_isla, estado.descripcion as estado_descripcion'.$columnas_str)
+    $m_sin_isla = DB::table('maquina as m')
+    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,CONCAT("SIN_ISLA_",m.id_casino) as id_isla,'.$expresion_estado.$columnas_str)
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->whereNull('m.id_isla')
-    ->whereNull('m.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
-    $todas = array_merge($maquinas,$m_sin_asignar);
+    $m_sin_sector = DB::table('maquina as m')
+    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,m.*,'.$expresion_estado)
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->join('isla as i','m.id_isla','=','i.id_isla')
+    ->whereNull('i.id_sector')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);
     return view('seccionInformesSectores',
     [
       'casinos' => $casinos, 

@@ -4,6 +4,11 @@
 @endsection
 @section('estilos')
   <link rel="stylesheet" href="/css/lista-datos.css">
+  <style>
+  .borrada {
+    text-decoration: line-through;
+  }
+  </style>
 @endsection
 <?php
     function get(&$var, $default="") {
@@ -36,6 +41,9 @@
     data-id-sector="{{$m->id_sector}}" 
     data-id-casino="{{$m->id_casino}}"
     data-id-estado-maquina="{{$m->id_estado_maquina}}"
+    @if ($m->borrada == 1)
+    class="borrada"
+    @endif
     style='background: {{get($colores[$m->id_estado_maquina])}}'
     ><b>{{$m->nro_admin}}</b> <small>{{$m->estado_descripcion}}</small></option>
     @endforeach
