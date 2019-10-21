@@ -47,7 +47,9 @@ class MTMController extends Controller
     'expedientes' => 'Expedientes',
     'notas' => 'Notas',
     'denominacion' => 'Denominación',
-    'id_estado_maquina' => 'Estado de Máquina'];
+    'id_estado_maquina' => 'Estado de Máquina',
+    'id_tipo_moneda' => 'Moneda'
+  ];
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
@@ -679,6 +681,7 @@ class MTMController extends Controller
               'gli_hard.file' => 'nullable',
               'formula.id_formula' => 'required',
               'formula.cuerpoFormula' => 'required',
+              'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
               //table,column,except,idColumn
               //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
               //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',

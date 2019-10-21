@@ -338,6 +338,10 @@ $('#btn-guardar').click(function(e){
             mostrarErrorValidacion($('#tipo_maquina'),response.id_tipo_maquina[0],true);
             $('#error_nav_maquina').show();
           }
+          if(typeof response.id_tipo_moneda !== 'undefined'){
+            mostrarErrorValidacion($('#tipo_moneda'),'Valor incorrecto',true);
+            $('#error_nav_maquina').show();
+          }
           // if(typeof response.id_casino !== 'undefined'){
           //   mostrarErrorValidacion($('#tipo_maquina'),response.id_casino[0],true);
           //   $('#alerta_casinos').text(response.id_casino[0]).show();
@@ -365,8 +369,6 @@ $('#btn-guardar').click(function(e){
             mostrarErrorValidacion($('#modalMaquina #porcentaje_devolucion'),response.porcentaje_devolucion,true);
             $('#error_nav_maquina').show();
           }
-
-
 
           if(typeof response.id_estado_maquina !== 'undefined'){
             $('#estado').addClass('alerta');
@@ -593,7 +595,8 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
             )
     }
   }
-  $('#tipo_moneda').val(data.moneda.id_tipo_moneda);
+
+  $('#tipo_moneda').val(data.moneda != null? data.moneda.id_tipo_moneda: null);
 
   var text=$('#modalMaquina .modal-title').text();
 
