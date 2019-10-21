@@ -424,11 +424,13 @@ Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permi
 
 
 
-/**************
+/******************************
 RELEVAMIENTOS CONTROL AMBIENTAL
-**************/
+******************************/
 Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
   Route::get('/','RelevamientoAmbientalController@buscarTodo');
+  Route::get('/buscarRelevamientosAmbiental','RelevamientoAmbientalController@buscarRelevamientosAmbiental');
+  Route::get('/generarPlanilla/{id_relevamiento_ambiental}','RelevamientoAmbientalController@generarPlanillaAmbiental');
   Route::post('/crearRelevamiento' , 'RelevamientoAmbientalController@crearRelevamientoAmbientalMaquinas');
 });
 

@@ -139,12 +139,6 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                     <td class="col-xs-2 casino">
                       EJEMPLO
                     </td>
-                    <td class="col-xs-2 sector">
-                      SECTOR999
-                    </td>
-                    <td class="col-xs-1 subcontrol">
-                      99
-                    </td>
                     <td class="col-xs-2">
                       <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
                       <span class="textoEstado">EJEMPLO</span>

@@ -28,4 +28,8 @@ class DetalleRelevamientoAmbiental extends Model
   public function turno(){
     return $this->belongsTo('App\Turno','id_turno','id_turno');
   }
+
+  public function cantidades(){
+    return $this->HasMany('App\CantidadPersonas','id_detalle_relevamiento_ambiental','id_detalle_relevamiento_ambiental');
+  }
 }
