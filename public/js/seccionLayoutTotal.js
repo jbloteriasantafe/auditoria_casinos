@@ -5,7 +5,6 @@ var confirmacion = 0 ;
 
 
 $(document).ready(function(){
-
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -71,7 +70,6 @@ $(document).ready(function(){
   $('.mensajeConfirmacion').hide();
   $('#iconoCarga').hide();
   $('#btn-buscar').trigger('click',[1,10,'layout_total.fecha','desc']);
-
 });
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
@@ -321,13 +319,6 @@ $('#btn-generar').click(function(e){
 
 });
 
-$(document).on('input' , '#modalCargaControlLayout input' ,function(){
-  habilitarBotonGuardar();
-});
-
-$(document).on('input' , '#modalCargaControlLayout textarea' ,function(){
-  habilitarBotonGuardar();
-});
 
 function limpiarNull(s,defecto = ''){
   return s === null? defecto : s;
@@ -345,10 +336,8 @@ $(document).on('click','.carga',function(e){
   var id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
 
-  //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
-  $('#btn-guardar').hide();
-  $('#btn-guardarTemp').hide();
-
+  $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
 
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
       $('#cargaFechaActual').val(data.layout_total.fecha);
@@ -723,12 +712,6 @@ function agregarMaquinaConDiferencia(renglon ,estado){
 
 }
 
-function habilitarBotonGuardar(){
-  guardado = false;
-  $('#btn-guardar').show();
-  $('#btn-guardarTemp').show();
-}
-
 // Todo busqueda Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     $.ajaxSetup({
@@ -940,24 +923,31 @@ $(document).on('click','.btn-agregarNivel',function(){
 
 //borrar un nivel de layout
 $(document).on('click','.borrarNivelLayout',function(){
-    // var index = $('#controlLayout').parent().parent().index();
-    //
-    // $('#controlLayout').children().eq(index).remove();
-
     $(this).parent().parent().remove();
+});
 
+$(document).on('input' , '#modalCargaControlLayout input' ,function(){
+  guardado = false;
+});
+  
+$(document).on('input' , '#modalCargaControlLayout textarea' ,function(){
+  guardado = false;
+});
+
+$(document).on('change' , '#modalCargaControlLayout select' ,function(){
+  guardado = false;
 });
 
 function agregarNivel(nivel,tabla,funcion){
   console.log(nivel);
-  var id_nivel_layout = ((nivel != null) ? nivel.id_nivel_layout: "");
-  var sector = ((nivel != null) ? nivel.descripcion_sector: "");
-  var nIsla = ((nivel != null) ? nivel.nro_isla: null);
-  var nAdmin = ((nivel != null) ? nivel.nro_admin: null);
-  var co = ((nivel != null) ? nivel.co: null);
-  var pBloq = ((nivel != null) ? nivel.pb : null);
-
-  var editable = funcion == 'carga';
+  const id_nivel_layout = (nivel != null) ? nivel.id_nivel_layout: "";
+  const sector = (nivel != null) ? nivel.descripcion_sector: "";
+  const nIsla = (nivel != null) ? nivel.nro_isla: null;
+  const nAdmin = (nivel != null) ? nivel.nro_admin: null;
+  const id_maquina = (nivel != null) ? nivel.id_maquina : 0; 
+  const co = (nivel != null) ? nivel.co: null;
+  const pBloq = (nivel != null) ? nivel.pb : null;  
+  const editable = funcion == 'carga';
 
   let fila = $('<tr>')
   .addClass('NivelLayout')
@@ -1008,9 +998,8 @@ function agregarNivel(nivel,tabla,funcion){
   tabla.append(fila);
 
   if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
-
     fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
-    fila.find('.nro_admin').setearElementoSeleccionado(nivel.id_maquina,nAdmin);
+    fila.find('.nro_admin').setearElementoSeleccionado(id_maquina,nAdmin);
     $(fila).append(
       $('<td>')
         .append($('<button>')
