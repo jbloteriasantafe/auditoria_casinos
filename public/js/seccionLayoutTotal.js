@@ -557,7 +557,7 @@ $('#btn-guardar').click(function(e){
     $('#mensajeExito .cabeceraMensaje').addClass('modificar');
     $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
     $('#mensajeExito').show();
-    $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+    $('#btn-buscar').trigger('click');
     $('#modalCargaControlLayout').modal('hide');
   };
 
@@ -804,7 +804,9 @@ function mostrarIconosPorPermisos(){
           if(!data.validar_layout_total){
             $('#cuerpoTabla .validar').hide();
             $('#cuerpoTabla .imprimir').hide();
-          } 
+          }else{
+            $('#cuerpoTabla .imprimir').show();
+          }
           fila.css('display','');//Lo muestro.
         });
       },
@@ -852,35 +854,31 @@ function setearEstado(fila,estado){
   fila.find('.estado').text(estado);
   //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
   icono_planilla.show();
+  icono_imprimir.hide();
+  icono_carga.hide();
+  icono_validacion.hide();
   switch (estado) {
     case 'Generado':
       icono_estado.addClass('faGenerado');
       icono_carga.show();
       icono_validacion.hide();
-      icono_imprimir.hide();
       break;
     case 'Cargando':
       icono_estado.addClass('faCargando');
       icono_carga.show();
       icono_validacion.hide();
-      icono_imprimir.hide();
       break;
     case 'Finalizado':
       icono_estado.addClass('faFinalizado');
       icono_carga.hide();
       icono_validacion.show();
-      icono_imprimir.show();
       break;
     case 'Visado':
       icono_estado.addClass('faValidado');
       icono_carga.hide();
       icono_validacion.hide();
-      icono_imprimir.show();
       break;
     default:
-      icono_carga.hide();
-      icono_validacion.hide();
-      icono_imprimir.hide();
       break;
   }
 }
