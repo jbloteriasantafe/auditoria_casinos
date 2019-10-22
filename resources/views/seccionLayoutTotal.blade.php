@@ -7,6 +7,11 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\CasinoController;
+
+$activas_por_fila = 23;
+$total_usado = 100;
+$porcentaje_por_activa = $total_usado/$activas_por_fila;
+$mitad_porcentaje = $porcentaje_por_activa / 2;
 ?>
 
 @section('estilos')
@@ -17,7 +22,16 @@ use App\Http\Controllers\CasinoController;
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
-
+<style>
+.chico {
+    font-size: 95%;
+}
+.borde {
+  outline-color: gray;
+  outline-style: solid;
+  outline-width: 1px;
+}
+</style>
 @endsection
 
                 <div class="row">
@@ -149,7 +163,7 @@ use App\Http\Controllers\CasinoController;
 
     <!-- FILA EJEMPLO -->
     <!-- Necesito crear una tabla por algun motivo sino se rompe el html -->
-    <table><thead><th></th><th></th><th></th><th></th><th></th></thead><tbody> 
+    <table><thead><tr><th></th><th></th><th></th><th></th><th></th></tr></thead><tbody> 
     <tr id="filaEjemplo" style="display: none;">
       <td class="col-xs-2 fecha">99 Test 9999</td>
       <td class="col-xs-2 casino">CASINO99</td>
@@ -159,19 +173,22 @@ use App\Http\Controllers\CasinoController;
         <span class="estado">ESTADO99</span>
       </td>
       <td class="col-xs-3">
-        <button class="btn btn-info planilla" type="button" value="-1">
+        <button class="btn btn-info planilla" title="PLANILLA RELEVAMIENTO" type="button" value="-1">
           <i class="far fa-fw fa-file-alt"></i>
         </button>
         <span></span>
-        <button class="btn btn-warning carga" type="button" value="-1">
+        <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
           <i class="fa fa-fw fa-upload"></i>
         </button>
+        <button class="btn btn-warning carga_activas" title="CARGAR MAQUINAS OBSERVADAS ACTIVAS" type="button" value="-1">
+          <i class="fa fa-fw fa-calculator "></i>
+        </button>
         <span></span>
-        <button class="btn btn-success validar" type="button" value="-1">
+        <button class="btn btn-success validar" title="VALIDAR RELEVAMIENTO" type="button" value="-1">
           <i class="fa fa-fw fa-check"></i>
         </button>
         <span></span>
-        <button class="btn btn-info imprimir" type="button" value="-1">
+        <button class="btn btn-info imprimir" title="PLANILLA COMPLETADA" type="button" value="-1">
           <i class="fa fa-fw fa-print"></i>
         </button>
       </td>
@@ -598,7 +615,53 @@ use App\Http\Controllers\CasinoController;
               </div>
             </div>
           </div>
-    </div>
+      </div>
+
+    <!-- Modal relevamiento activas -->
+    <div class="modal fade" id="modalCargarActivas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog" style="width:80%;">
+             <div class="modal-content">
+               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
+                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargarCantidad" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <h3 class="modal-title">CARGAR TOTALES</h3>
+                </div>
+
+                <div id="colapsadoCargarActivas" class="collapse in">
+                  <div class="modal-body modalCuerpo">
+                    <div class="zonaEjemplo" hidden>
+                      <hr/>
+                      <h4 class="nombre">NOMBRE ZONA</h4>
+                      <table class="tablaIslas table table-fixed tablesorter">
+                        <thead class="cabezeraTabla">
+                          <tr>
+                            @for ($i=1;$i<=$activas_por_fila;$i++)
+                            <th width="{{$porcentaje_por_activa}}" class="{{$i}}"></th>
+                            @endfor
+                          </tr>
+                        </thead>
+                        <tbody class="cuerpoTabla">
+                          <tr class="filaEjemplo" activas_por_fila="{{$activas_por_fila}}">
+                            <td width="{{$porcentaje_por_activa}}%" class="isla" nro_col="-1">
+                              <div>
+                                <div style="text-align: center;" class="texto" nro_col="-1">-1</div>
+                                <input class="form-control" nro_col="-1"/>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-successAceptar finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> 
+                    <button type="button" class="btn btn-default salir" data-dismiss="modal">SALIR</button>
+                  </div>
+                </div>
+              </div>
+          </div>
+      </div>
+    
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

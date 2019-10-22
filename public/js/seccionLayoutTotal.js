@@ -323,6 +323,40 @@ $('#btn-generar').click(function(e){
 function limpiarNull(s,defecto = ''){
   return s === null? defecto : s;
 }
+$(document).on('click','.carga_activas',function(e){
+  e.preventDefault();
+  console.log($(this).val());
+  const zonaEjemplo = $('#modalCargarActivas .zonaEjemplo').clone().removeClass('zonaEjemplo').show();
+  const islas = [42,29,30,35];
+  for(let i=0;i<islas.length;i++){
+    let zona = zonaEjemplo.clone();
+    let cantidad = islas[i];
+
+    let fila = zona.find('.filaEjemplo').clone().removeClass('filaEjemplo');
+    zona.find('.filaEjemplo').remove();
+    const isla_col = fila.find('.isla').clone();
+    fila.find('.isla').remove();
+
+    const activas_x_fila = fila.attr('activas_por_fila');
+
+    let tr = null;
+    for(let isla=0;isla<cantidad;isla++){
+      if(activas_x_fila%isla == 0 || tr === null){
+        tr = fila.clone();
+        zona.find('.cuerpoTabla').append(tr);
+      }
+      let td = isla_col.clone();
+      td.find('.texto').text(isla+1);
+      td.attr('nro_col',isla+1);
+      td.find('.texto').attr('nro_col',isla+1);
+      td.find('input').attr('nro_col',isla+1);
+      tr.append(td);
+    }
+
+    $('#modalCargarActivas .modalCuerpo').append(zona);
+  }
+  $('#modalCargarActivas').modal('show');
+})
 
 $(document).on('click','.carga',function(e){
   e.preventDefault();
@@ -800,7 +834,10 @@ function mostrarIconosPorPermisos(){
           let fila = $(c);
           const estado = fila.find('.estado').text();
           setearEstado(fila,estado);
-          if(!data.carga_layout_total) $('.carga').hide();
+          if(!data.carga_layout_total){
+            $('#cuerpoTabla .carga').hide();
+            $('#cuerpoTabla .carga_activas')
+          }
           if(!data.validar_layout_total){
             $('#cuerpoTabla .validar').hide();
             $('#cuerpoTabla .imprimir').hide();
@@ -847,6 +884,7 @@ function setearEstado(fila,estado){
   let icono_estado = fila.find('.icono_estado');
   let icono_planilla = fila.find('.planilla');
   let icono_carga = fila.find('.carga');
+  let icono_carga_activas = fila.find('.carga_activas');
   let icono_validacion = fila.find('.validar');
   let icono_imprimir = fila.find('.imprimir');
   //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
@@ -856,27 +894,25 @@ function setearEstado(fila,estado){
   icono_planilla.show();
   icono_imprimir.hide();
   icono_carga.hide();
+  icono_carga_activas.hide();
   icono_validacion.hide();
   switch (estado) {
     case 'Generado':
       icono_estado.addClass('faGenerado');
       icono_carga.show();
-      icono_validacion.hide();
+      icono_carga_activas.show();
       break;
     case 'Cargando':
       icono_estado.addClass('faCargando');
       icono_carga.show();
-      icono_validacion.hide();
+      icono_carga_activas.show();
       break;
     case 'Finalizado':
       icono_estado.addClass('faFinalizado');
-      icono_carga.hide();
       icono_validacion.show();
       break;
     case 'Visado':
       icono_estado.addClass('faValidado');
-      icono_carga.hide();
-      icono_validacion.hide();
       break;
     default:
       break;
@@ -894,6 +930,7 @@ function generarFilaTabla(layout_total){
       fila.find('.carga').val(layout_total.id_layout_total);
       fila.find('.validar').val(layout_total.id_layout_total);
       fila.find('.imprimir').val(layout_total.id_layout_total);
+      fila.find('.carga_activas').val(layout_total.id_layout_total);
       setearEstado(fila,layout_total.estado);
       return fila;
 }
@@ -908,9 +945,7 @@ function generarFilaTabla(layout_total){
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
     $('#alertaArchivo').hide();
-
     window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
-
 });
 
 //Agrega nivel de layout
