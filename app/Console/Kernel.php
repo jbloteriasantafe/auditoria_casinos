@@ -67,29 +67,32 @@ class Kernel extends ConsoleKernel
      $schedule->call(function () use ($impController,
                                       $relevamientoController,
                                       $generarPlanillasController){
-
-         $comando = DB::table('comando_a_ejecutar')
-             ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
-             ->get();
-            foreach ($comando as $c) {
-              switch ($c->nombre_comando) {
-                case 'IDM:calcularDiff':
-                  $impController->calcularDiffIDM();
-                  break;
-                  case 'RAM:sortear':
-                  $relevamientoController->sortearMesasCommand();
-                  break;
-                case 'RelevamientoApuestas:generar':
-                  $generarPlanillasController->generarRelevamientosApuestas();
-                  break;
-                default:
-
-                  break;
-              }
-            }
-     })->everyThirtyMinutes()->runInBackground();
-
-
+      $comando = DB::table('comando_a_ejecutar')
+          ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
+          ->get();
+      echo($comando);
+      foreach ($comando as $c) {
+        switch ($c->nombre_comando) {
+          case 'IDM:calcularDiff':
+            $impController->calcularDiffIDM();
+            echo('Calculardiff');
+            break;
+          case 'RAM:sortear':
+            $relevamientoController->sortearMesasCommand();
+            echo('Pedido sortear mesas realizado.');
+            break;
+          case 'RelevamientoApuestas:generar':
+            $generarPlanillasController->generarRelevamientosApuestas();
+            echo('Pedido generar apuestas realizado.');
+            break;
+          default:
+            break;
+        }
+      }
+     })
+     ->everyThirtyMinutes()
+     ->appendOutputTo('pedidos.log')
+     ->runInBackground();
     }
 
     /**
