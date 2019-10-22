@@ -39,6 +39,7 @@ class Kernel extends ConsoleKernel
       $schedule->command('RAM:sortear')
                //->everyMinute() para pruebas
                ->dailyAt('00:30')
+               ->appendOutputTo('sorteo.log')
                ->runInBackground();
 
       // $schedule->command('RAM:sortear')
@@ -46,14 +47,17 @@ class Kernel extends ConsoleKernel
       //         ->runInBackground();
       $schedule->command('RAM:sortear')
                ->dailyAt('16:30')
+               ->appendOutputTo('sorteo.log')
                ->runInBackground();
 
      $schedule->command('RelevamientoApuestas:generar')
              ->dailyAt('00:45')
+             ->appendOutputTo('sorteoApuestas.log')
              ->runInBackground();
 
      $schedule->command('RelevamientoApuestas:generar')
              ->dailyAt('17:10')
+             ->appendOutputTo('sorteoApuestas.log')
              ->runInBackground();
 
      $impController= new ImportadorController;
