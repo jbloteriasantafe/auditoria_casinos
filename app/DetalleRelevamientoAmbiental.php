@@ -14,6 +14,8 @@ class DetalleRelevamientoAmbiental extends Model
     'id_relevamiento_ambiental',
     'id_sector',
     'id_turno',
+    'tamanio_vector',
+    'vector_personas',
     'total');
   public $timestamps = false;
 

@@ -67,46 +67,109 @@
     <br><br>
 
 
-    <!-- Tabla de control ambiental -->
-    <?php $contador = 0; ?>
-    @foreach ($relevamiento_ambiental->casino->sectores as $sector)
-    <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
-    <table>
-      <thead>
+    <!-- Tabla de control ambiental Melincué-->
+    <!-- Como Melincué tiene un solo sector, creo que es preferible hacer una fila por cada isla,
+    y una columna por turno (la estructura seria la inversa a la de las tablas de Santa Fe)-->
+    @if ($relevamiento_ambiental->casino->id_casino == 1)
+      <table>
+        <thead>
+          <tr>
+            <th class="tablaInicio" style="background-color: #dddddd" width="10px">ISLAS</th>
+            @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+            <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$turno->nro_turno}}</th>
+            @endforeach
+            <th class="tablaInicio" style="background-color: #dddddd" width="10px">TOTAL</th>
+          </tr>
+        </thead>
+        @foreach ($relevamiento_ambiental->casino->sectores[0]->islas as $isla)
         <tr>
-          <th class="tablaInicio" style="background-color: #dddddd" width="10px">T</th>
-          @foreach ($sector->islas as $isla)
-          <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$isla->nro_isla}}</th>
-          @endforeach
-          <th class="tablaInicio" style="background-color: #dddddd" width="30px">TOT. </th>
-        </tr>
-      </thead>
-      @foreach ($relevamiento_ambiental->casino->turnos as $turno)
-      <tr>
-        <td class="tablaInicio" style="background-color: white" width="10px">{{$turno->nro_turno}} </td>
-        @foreach ($detalles as $detalle)
-        @if ($detalle['id_sector'] == $sector->id_sector)
-          @foreach ($detalle['cantidades'] as $cantidad)
-            @if ($cantidad->cantidad_personas != NULL)
-              <td class="tablaInicio" style="background-color: white" width="11px">{{$cantidad->cantidad_personas}}</td>
-            @else
-              <td class="tablaInicio" style="background-color: white" width="11px">25</td>
-            @endif
-          @endforeach
-        @endif
-        @endforeach
-        <td class="tablaInicio" style="background-color: white" width="20px">999</td>
-      </tr>
-      @endforeach
-    </table>
-    <br>
-      <?php $contador++; ?>
-      @if ($contador%3 == 0)
-      <div style="page-break-after:always;"></div>
-      @endif
-    @endforeach
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$isla->nro_isla}} </td>
 
-    <br>
+          @foreach ($detalles as $detalle)
+          @if ($detalle['id_sector'] == $relevamiento_ambiental->casino->sectores[0]->id_sector && $detalle['id_turno'] == $turno->id_turno)
+            @for ($i=0; $i<sizeof($relevamiento_ambiental->casino->turnos); $i++)
+                <td class="tablaInicio" style="background-color: white" width="11px">55</td>
+            @endfor
+          @endif
+          @endforeach
+          <td class="tablaInicio" style="background-color: white" width="20px">999</td>
+        </tr>
+        @endforeach
+      </table>
+
+
+    <!-- Tabla de control ambiental Santa Fe-->
+    @elseif ($relevamiento_ambiental->casino->id_casino == 2)
+      <?php $contador_tablas = 0; ?>
+      @foreach ($relevamiento_ambiental->casino->sectores as $sector)
+      <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
+      <table>
+        <thead>
+          <tr>
+            <th class="tablaInicio" style="background-color: #dddddd" width="10px">T</th>
+            @foreach ($sector->islas as $isla)
+            <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$isla->nro_isla}}</th>
+            @endforeach
+            <th class="tablaInicio" style="background-color: #dddddd" width="30px">TOT. </th>
+          </tr>
+        </thead>
+        @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+        <tr>
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$turno->nro_turno}} </td>
+          @foreach ($detalles as $detalle)
+          @if ($detalle['id_sector'] == $sector->id_sector && $detalle['id_turno'] == $turno->id_turno)
+            @for ($i=0; $i<$detalle['tamanio_vector']; $i++)
+                <td class="tablaInicio" style="background-color: white" width="11px">55</td>
+            @endfor
+          @endif
+          @endforeach
+          <td class="tablaInicio" style="background-color: white" width="20px">999</td>
+        </tr>
+        @endforeach
+      </table>
+      <br>
+        <?php $contador_tablas++; ?>
+        @if ($contador_tablas%3 == 0)
+          <div style="page-break-after:always;"></div>
+        @endif
+      @endforeach
+
+    <!-- Tabla de control ambiental Rosario-->
+    <!-- CONTINUAR -->
+    @else
+      @foreach ($relevamiento_ambiental->casino->sectores as $sector)
+      <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
+      <table>
+        <thead>
+          <tr>
+            <th class="tablaInicio" style="background-color: #dddddd" width="10px">T</th>
+            @foreach ($sector->islas as $isla)
+            <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$isla->nro_isla}}</th>
+            @endforeach
+            <th class="tablaInicio" style="background-color: #dddddd" width="30px">TOT. </th>
+          </tr>
+        </thead>
+        @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+        <tr>
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$turno->nro_turno}} </td>
+          @foreach ($detalles as $detalle)
+          @if ($detalle['id_sector'] == $sector->id_sector && $detalle['id_turno'] == $turno->id_turno)
+            @for ($i=0; $i<$detalle['tamanio_vector']; $i++)
+                <td class="tablaInicio" style="background-color: white" width="11px">55</td>
+            @endfor
+          @endif
+          @endforeach
+          <td class="tablaInicio" style="background-color: white" width="20px">999</td>
+        </tr>
+        @endforeach
+      </table>
+      <br>
+      @endforeach
+
+      
+    @endif
+
+    <br><br>
     <div class="primerEncabezado" style="padding-left: 720px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 

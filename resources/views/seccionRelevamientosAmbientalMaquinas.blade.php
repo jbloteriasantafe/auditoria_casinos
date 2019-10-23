@@ -133,15 +133,11 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class='filaEjemplo' style="display: none;">
-                    <td class="col-xs-2 fecha">
-                      01 Ene 9999
-                    </td>
-                    <td class="col-xs-2 casino">
-                      EJEMPLO
-                    </td>
+                    <td class="col-xs-2 fecha"></td>
+                    <td class="col-xs-2 casino"></td>
                     <td class="col-xs-2">
                       <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
-                      <span class="textoEstado">EJEMPLO</span>
+                      <span class="textoEstado"></span>
                     </td>
                     <td class="col-xs-3 acciones">
                       <button class="btn btn-info planilla" type="button">

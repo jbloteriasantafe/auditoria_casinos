@@ -99,8 +99,9 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
             $('#cuerpoTabla tr').not('.filaEjemplo').remove();
 
             for (var i = 0; i < resultados.data.length; i++) {
-                var fila = generarFilaTabla(resultados.data[i]);
-                $('#cuerpoTabla').append(fila);
+                //var fila = generarFilaTabla(resultados.data[i]);
+                //$('#cuerpoTabla').append(fila);
+                $('#tablaRelevamientos tbody').append(generarFilaTabla(resultados.data[i]));
             }
 
             $('#herramientasPaginacion')
@@ -181,7 +182,7 @@ function generarFilaTabla(relevamiento) {
     let eliminar = fila.find('.eliminar').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'ELIMINAR RELEVAMIENTO', 'data-delay': '{"show":"300", "hide":"100"}' });
     //Se setea el display como table-row por algun motivo :/
     //Lo saco a pata.
-    fila.css('display', '');
+    fila.css('display', 'flow-root');
     //Qué ESTADO e ICONOS mostrar
     cambiarEstadoFila(fila, relevamiento);
 

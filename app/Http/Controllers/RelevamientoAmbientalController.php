@@ -86,16 +86,18 @@ class RelevamientoAmbientalController extends Controller
 
     $turnos = DB::table('turno')->select('id_turno')
                                 ->where('id_casino','=',$request->id_casino)
+                                ->where('deleted_at','=',NULL)
                                 ->get();
 
     $sectores = DB::table('sector')->where('id_casino','=',$request->id_casino)
+                                    ->where('deleted_at','=',NULL)
                                     ->get();;
 
     $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
+                              ->where('deleted_at','=',NULL)
                               ->get();
 
-                              ;
-                              $cont=0;
+    $islotes = DB::table('isla')->where()
      //creo los detalles
      $detalles = array();
      foreach($sectores as $sector){
@@ -105,8 +107,10 @@ class RelevamientoAmbientalController extends Controller
          $detalle = new DetalleRelevamientoAmbiental;
          $detalle->id_turno = $turno->id_turno;
          $detalle->id_sector = $sector->id_sector;
+         $detalle->tamanio_vector = sizeof($islas);
 
          //creo una relacion isla-cantidad de personas para cada detalle
+         /*
          $cantidades = array();
 
          foreach ($islas as $isla) {
@@ -114,13 +118,14 @@ class RelevamientoAmbientalController extends Controller
            $cantidad->id_isla = $isla->id_isla;
            $cantidades[] = $cantidad;
          }
+         */
        $detalles[] = $detalle;
        }
      }
 
      if(!empty($detalles)){
        //creo y guardo el relevamiento de control ambiental
-       DB::transaction(function() use($request,$fiscalizador,$detalles, $cantidades){
+       DB::transaction(function() use($request,$fiscalizador,$detalles){
          $relevamiento_ambiental = new RelevamientoAmbiental;
          $relevamiento_ambiental->nro_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('nro_relevamiento_ambiental') + 1;
          $relevamiento_ambiental->fecha_generacion = $request->fecha_generacion;
@@ -134,14 +139,15 @@ class RelevamientoAmbientalController extends Controller
          //guardo los detalles
          foreach($detalles as $detalle){
             $detalle->id_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('id_relevamiento_ambiental');
-            $detalle->turno =
             $detalle->save();
 
             //guardo las cantidades
+            /*
             foreach ($cantidades as $cantidad) {
               $cantidad->id_detalle_relevamiento_ambiental = DB::table('detalle_relevamiento_ambiental')->max('id_detalle_relevamiento_ambiental');
               $cantidad->save();
             }
+            */
          }
        });
 
@@ -170,9 +176,10 @@ class RelevamientoAmbientalController extends Controller
 
       $detalle = array(
         'id_sector' => $detalle_relevamiento->id_sector,
+        'id_turno' => $detalle_relevamiento->id_turno,
         'nro_turno' => (Turno::find($detalle_relevamiento->id_turno))->nro_turno,
-        'total' => $detalle_relevamiento->total,
-        'cantidades' => $detalle_relevamiento->cantidades
+        'tamanio_vector' => $detalle_relevamiento->tamanio_vector,
+        'total' => $detalle_relevamiento->total
       );
 
       $detalles[] = $detalle;
