@@ -326,33 +326,31 @@ function limpiarNull(s,defecto = ''){
 $(document).on('click','.carga_activas',function(e){
   e.preventDefault();
   console.log($(this).val());
-  const zonaEjemplo = $('#modalCargarActivas .zonaEjemplo').clone().removeClass('zonaEjemplo').show();
+  const zonaEjemplo = $('#zonaEjemplo').clone().attr('id','').show();
+  const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+  const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
+  const activas_x_fila = filaEjemplo.attr('activas_por_fila');
   const islas = [42,29,30,35];
   for(let i=0;i<islas.length;i++){
     let zona = zonaEjemplo.clone();
     let cantidad = islas[i];
 
-    let fila = zona.find('.filaEjemplo').clone().removeClass('filaEjemplo');
-    zona.find('.filaEjemplo').remove();
-    const isla_col = fila.find('.isla').clone();
-    fila.find('.isla').remove();
-
-    const activas_x_fila = fila.attr('activas_por_fila');
-
     let tr = null;
-    for(let isla=0;isla<cantidad;isla++){
-      if(activas_x_fila%isla == 0 || tr === null){
-        tr = fila.clone();
+    let isla=0
+    for(;isla<cantidad;isla++){
+      if(isla%activas_x_fila == 0){
+        tr = filaEjemplo.clone();
         zona.find('.cuerpoTabla').append(tr);
       }
-      let td = isla_col.clone();
-      td.find('.texto').text(isla+1);
+      let td = islaEjemplo.clone();
+      td.find('.textoIsla').text(isla+1);
       td.attr('nro_col',isla+1);
       td.find('.texto').attr('nro_col',isla+1);
-      td.find('input').attr('nro_col',isla+1);
+      td.find('.inputIsla').attr('nro_col',isla+1);
       tr.append(td);
     }
 
+    console.log(zona[0].innerHTML);
     $('#modalCargarActivas .modalCuerpo').append(zona);
   }
   $('#modalCargarActivas').modal('show');

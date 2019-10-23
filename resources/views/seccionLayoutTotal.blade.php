@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\CasinoController;
 
 $activas_por_fila = 23;
-$total_usado = 100;
+$total_usado = 98; //Dejo un poco de espacio en el borde.
 $porcentaje_por_activa = $total_usado/$activas_por_fila;
 $mitad_porcentaje = $porcentaje_por_activa / 2;
 ?>
@@ -27,9 +27,17 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     font-size: 95%;
 }
 .borde {
-  outline-color: gray;
-  outline-style: solid;
-  outline-width: 1px;
+  border-bottom: 1px solid #ddd !important;
+  border-right: 1px solid #ddd !important;
+  border-top: 1px solid #ddd !important;
+  border-left: 1px solid #ddd !important;
+}
+.input-chico {
+  padding: 0px 0px !important;
+  font-size: 12px !important;
+  text-align: center !important;
+  line-height: 1;
+  border-radius: 0px;
 }
 </style>
 @endsection
@@ -628,29 +636,8 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                 </div>
 
                 <div id="colapsadoCargarActivas" class="collapse in">
-                  <div class="modal-body modalCuerpo">
-                    <div class="zonaEjemplo" hidden>
-                      <hr/>
-                      <h4 class="nombre">NOMBRE ZONA</h4>
-                      <table class="tablaIslas table table-fixed tablesorter">
-                        <thead class="cabezeraTabla">
-                          <tr>
-                            @for ($i=1;$i<=$activas_por_fila;$i++)
-                            <th width="{{$porcentaje_por_activa}}" class="{{$i}}"></th>
-                            @endfor
-                          </tr>
-                        </thead>
-                        <tbody class="cuerpoTabla">
-                          <tr class="filaEjemplo" activas_por_fila="{{$activas_por_fila}}">
-                            <td width="{{$porcentaje_por_activa}}%" class="isla" nro_col="-1">
-                              <div>
-                                <div style="text-align: center;" class="texto" nro_col="-1">-1</div>
-                                <input class="form-control" nro_col="-1"/>
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                  <div class="modal-body">
+                    <div class="modalCuerpo" style="overflow: scroll;height: 800px;">
                     </div>
                   </div>
                   <div class="modal-footer">
@@ -661,6 +648,54 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
               </div>
           </div>
       </div>
+
+    <div id="zonaEjemplo" class="zona" hidden>
+      <hr/>
+      <b class="nombre">NOMBRE ZONA</b>
+      <table class="tablaIslas table table-fixed tablesorter">
+        <thead class="cabezeraTabla">
+          <tr>
+            @for ($i=1;$i<=$activas_por_fila;$i++)
+            <th style="text-align: center;width: {{$porcentaje_por_activa}}%" class="{{$i}}"></th>
+            @endfor
+          </tr>
+        </thead>
+        <tbody class="cuerpoTabla">
+        </tbody>
+      </table>
+    </div>
+
+    <div hidden>
+      <table>
+        <thead>
+          <tr></tr>
+        </thead>
+        <tbody>
+          <tr id="filaEjemploActivas" activas_por_fila="{{$activas_por_fila}}"></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div hidden>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="islaEjemploActivas" style="width: {{$porcentaje_por_activa}}%;" class="isla borde" nro_col="-1">
+              <div>
+               <div style="text-align: center;" class="textoIsla" nro_col="-1">-1</div>
+                <input class="form-control inputIsla input-chico" nro_col="-1"/>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
     
 
     <meta name="_token" content="{!! csrf_token() !!}" />
