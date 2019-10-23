@@ -39,6 +39,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   line-height: 1;
   border-radius: 0px;
 }
+.subrayado{
+  border-bottom: 4px solid rgb(255,168,141);
+}
 </style>
 @endsection
 
@@ -348,18 +351,22 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     <div class="modal fade" id="modalCargaControlLayout" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:75%;">
              <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
+               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;padding-bottom: 8px;">
                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
                  <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
+                 <div class="row tabs" style="background-color:#FF6E40;margin: 0px;padding-bottom: 0px;">
+                    <h4 class="col-lg-6 tabActivas" style="text-align: center; color: white;padding: 0px;margin: 0px;">ACTIVAS</h4>
+                    <h4 class="col-lg-6 tabInactivas" style="text-align: center; color: white;padding: 0px;margin: 0px;">INACTIVAS</h4>
+                </div>
                 </div>
 
                 <div  id="colapsadoCargar" class="collapse in">
-
                 <div class="modal-body modalCuerpo">
-
-                  <form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
+                  <div class="cargaActivas row" style="overflow: scroll;height: 800px;">
+                  </div>
+                  <div class="cargaInactivas row"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
 
                           <div class="row">
                             <div class="col-lg-2 col-lg-offset-1">
@@ -448,7 +455,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                           </div>
 
 
-                  </form>
+                  </form></div>
 
                 </div>
                 <div class="modal-footer">

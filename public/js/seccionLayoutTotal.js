@@ -323,9 +323,8 @@ $('#btn-generar').click(function(e){
 function limpiarNull(s,defecto = ''){
   return s === null? defecto : s;
 }
-$(document).on('click','.carga_activas',function(e){
-  e.preventDefault();
-  console.log($(this).val());
+
+function cargarDivActivas(){
   const zonaEjemplo = $('#zonaEjemplo').clone().attr('id','').show();
   const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
   const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
@@ -351,26 +350,11 @@ $(document).on('click','.carga_activas',function(e){
     }
 
     console.log(zona[0].innerHTML);
-    $('#modalCargarActivas .modalCuerpo').append(zona);
+    $('#modalCargaControlLayout .cargaActivas').append(zona);
   }
-  $('#modalCargarActivas').modal('show');
-})
+}
 
-$(document).on('click','.carga',function(e){
-  e.preventDefault();
-  limpiarModal();
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalCargaControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
-
-  var id_layout_total = $(this).val();
-  $('#id_layout_total').val(id_layout_total);
-
-  $('#btn-guardar').show();
-  $('#btn-guardarTemp').show();
-
+function cargarDivInactivas(id_layout_total){
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
       $('#cargaFechaActual').val(data.layout_total.fecha);
       $('#cargaFechaGeneracion').val(data.layout_total.fecha_generacion);
@@ -404,8 +388,43 @@ $(document).on('click','.carga',function(e){
           agregarNivel(data.detalles[i] , $('#controlLayout') ,'carga');
         }
       }
-
   });
+}
+
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  limpiarModal();
+  $('#modalCargaControlLayout .cargaActivas').empty();
+  //ocultar mensaje de salida
+  salida = 0;
+  guardado = true;
+  $('#modalCargaControlLayout .mensajeSalida').hide();
+  $('#mensajeExito').hide();
+
+  var id_layout_total = $(this).val();
+  $('#id_layout_total').val(id_layout_total);
+
+  $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
+
+  let divActivas = $('#modalCargaControlLayout .cargaActivas').hide();
+  let divInactivas = $('#modalCargaControlLayout .cargaInactivas').hide();
+  let tabActivas = $('#modalCargaControlLayout .tabActivas');
+  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+  });
+  cargarDivInactivas(id_layout_total);
+  cargarDivActivas();
 
   $('#modalCargaControlLayout').modal('show');
 });
