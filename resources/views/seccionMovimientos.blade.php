@@ -1148,7 +1148,7 @@
 
                         <div class="col-lg-4">
                           <h5>Moneda</h5>
-                          <select class="form-control" id="juega_progresivo">
+                          <select class="form-control" id="tipo_moneda">
                             @foreach ($monedas as $moneda)
                             <option value="{{$moneda->id_tipo_moneda}}">{{$moneda->descripcion}}</option>
                             @endforeach
