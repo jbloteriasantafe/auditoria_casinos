@@ -6,11 +6,6 @@ use Illuminate\Http\Request;
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
 $cas = $usuario['usuario']->casinos;
-
-//@HACK temporal @TODO remover cuand se pase a todos los casinos
-$tiene_santafe = UsuarioController::getInstancia()
-->usuarioTieneCasinoCorrespondiente($id_usuario,2);
-$ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 ?>
 
 <!DOCTYPE html>
@@ -394,7 +389,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         <!-- FIN GESTIÓN MAQUINAS -->
 
                         <!-- GESTIÓN BINGO -->
-                        @if ($tiene_santafe)
                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion'))
                         <!-- <li>
                             <div id="barraGestionBingo" class="opcionesHover" data-target="#gestionBingo" data-toggle="collapse">
@@ -418,7 +412,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                             </ul>
                         </li> -->
-                        @endif
                         @endif
                         <!-- FIN GESTIÓN BINGO -->
 
@@ -722,7 +715,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             </ul>
                         </li>
 
-@if ($tiene_santafe)
+
                         <li>
                             <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
                               <span class="flechita">
@@ -764,7 +757,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @endif
                             </ul>
                           </li>
-@endif
 
 
 
