@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
 $cas = $usuario['usuario']->casinos;
+
+$ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 ?>
 
 <!DOCTYPE html>
