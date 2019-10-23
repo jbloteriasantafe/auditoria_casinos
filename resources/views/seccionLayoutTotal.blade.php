@@ -191,9 +191,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
           <i class="fa fa-fw fa-upload"></i>
         </button>
-        <button class="btn btn-warning carga_activas" title="CARGAR MAQUINAS OBSERVADAS ACTIVAS" type="button" value="-1">
-          <i class="fa fa-fw fa-calculator "></i>
-        </button>
         <span></span>
         <button class="btn btn-success validar" title="VALIDAR RELEVAMIENTO" type="button" value="-1">
           <i class="fa fa-fw fa-check"></i>
@@ -356,68 +353,61 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                  <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
                  <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
-                 <div class="row tabs" style="background-color:#FF6E40;margin: 0px;padding-bottom: 0px;">
-                    <h4 class="col-lg-6 tabActivas" style="text-align: center; color: white;padding: 0px;margin: 0px;">ACTIVAS</h4>
-                    <h4 class="col-lg-6 tabInactivas" style="text-align: center; color: white;padding: 0px;margin: 0px;">INACTIVAS</h4>
                 </div>
-                </div>
-
                 <div  id="colapsadoCargar" class="collapse in">
                 <div class="modal-body modalCuerpo">
+                <div class="row">
+                    <div class="col-lg-2 col-lg-offset-1">
+                      <h5>FECHA DE LAYOUT</h5>
+                      <input id="cargaFechaActual" type='text' class="form-control" readonly>
+
+                    </div>
+                    <div class="col-lg-2">
+                      <h5>FECHA DE GENERACIÓN</h5>
+                      <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
+
+                    </div>
+                    <div class="col-lg-2">
+                      <h5>CASINO</h5>
+                      <input id="cargaCasino" type='text' class="form-control" readonly>
+                        <span id="alertaCasino" class="alertaSpan"></span>
+                    </div>
+                    <div class="col-lg-2">
+                      <h5>TURNO</h5>
+                      <input id="cargaTurno" type='text' class="form-control" readonly>
+                        <span id="alertaTurno" class="alertaSpan"></span>
+                    </div>
+                  </div>
+                  <br>
+                  <div class="row">
+                    <div class="col-xs-3 col-xs-offset-1">
+                        <h5>FISCALIZADOR CARGA</h5>
+                        <input id="fiscaCarga" type="text"class="form-control" readonly>
+                    </div>
+                    <div class="col-xs-3">
+                        <h5>FISCALIZADOR TOMA</h5>
+                        <!-- prueba -->
+                        <input id="inputFisca" data-fisca="" class="form-control" size="100" type="text" autocomplete="off" />
+
+                    </div>
+                    <div class="col-xs-4">
+                        <h5>FECHA EJECUCIÓN</h5>
+                        <!-- anda -->
+                            <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                                <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" />
+                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                            </div>
+                            <input type="hidden" id="fecha_ejecucion" value=""/>
+                    </div>
+                  </div>
+                  <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
+                    <h4 class="col-lg-6 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                    <h4 class="col-lg-6 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                  </div>
                   <div class="cargaActivas row" style="overflow: scroll;height: 800px;">
                   </div>
                   <div class="cargaInactivas row"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
-
-                          <div class="row">
-                            <div class="col-lg-2 col-lg-offset-1">
-                              <h5>FECHA DE LAYOUT</h5>
-                              <input id="cargaFechaActual" type='text' class="form-control" readonly>
-
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>FECHA DE GENERACIÓN</h5>
-                              <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
-
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>CASINO</h5>
-                              <input id="cargaCasino" type='text' class="form-control" readonly>
-                               <span id="alertaCasino" class="alertaSpan"></span>
-                            </div>
-                            <div class="col-lg-2">
-                              <h5>TURNO</h5>
-                              <input id="cargaTurno" type='text' class="form-control" readonly>
-                               <span id="alertaTurno" class="alertaSpan"></span>
-                            </div>
-                          </div>
-                          <br>
-                          <div class="row">
-                            <div class="col-xs-3 col-xs-offset-1">
-                                <h5>FISCALIZADOR CARGA</h5>
-                                <input id="fiscaCarga" type="text"class="form-control" readonly>
-                            </div>
-                            <div class="col-xs-3">
-                                <h5>FISCALIZADOR TOMA</h5>
-                                <!-- prueba -->
-                               <input id="inputFisca" data-fisca="" class="form-control" size="100" type="text" autocomplete="off" />
-
-                            </div>
-                            <div class="col-xs-4">
-                                <h5>FECHA EJECUCIÓN</h5>
-                                <!-- anda -->
-                                   <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
-                                       <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" />
-                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                   </div>
-                                   <input type="hidden" id="fecha_ejecucion" value=""/>
-                            </div>
-                          </div>
-
-                          <br>
-
-                          <br>
-
                           <div class="row">
                               <div class="col-md-12">
                                   <table id="tablaCargaControlLayout" class="table">
@@ -445,17 +435,14 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                                 </div>
                               </div>
                           </div>
-
-                          <br>
-                          <div class="row">
-                              <div class="col-md-8 col-md-offset-2">
-                                <h5>OBSERVACIONES</h5>
-                                <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
-                              </div>
-                          </div>
-
-
                   </form></div>
+                  <br>
+                  <div class="row">
+                      <div class="col-md-8 col-md-offset-2">
+                        <h5>OBSERVACIONES</h5>
+                        <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
+                      </div>
+                  </div>
 
                 </div>
                 <div class="modal-footer">

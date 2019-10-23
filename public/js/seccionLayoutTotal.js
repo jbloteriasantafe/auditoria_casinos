@@ -324,34 +324,49 @@ function limpiarNull(s,defecto = ''){
   return s === null? defecto : s;
 }
 
-function cargarDivActivas(){
-  const zonaEjemplo = $('#zonaEjemplo').clone().attr('id','').show();
-  const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
-  const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
-  const activas_x_fila = filaEjemplo.attr('activas_por_fila');
-  const islas = [42,29,30,35];
-  for(let i=0;i<islas.length;i++){
-    let zona = zonaEjemplo.clone();
-    let cantidad = islas[i];
-
-    let tr = null;
-    let isla=0
-    for(;isla<cantidad;isla++){
-      if(isla%activas_x_fila == 0){
-        tr = filaEjemplo.clone();
-        zona.find('.cuerpoTabla').append(tr);
-      }
-      let td = islaEjemplo.clone();
-      td.find('.textoIsla').text(isla+1);
-      td.attr('nro_col',isla+1);
-      td.find('.texto').attr('nro_col',isla+1);
-      td.find('.inputIsla').attr('nro_col',isla+1);
-      tr.append(td);
+function cargarDivActivas(id_layout_total){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
     }
+  });
+  $.ajax({
+    type: "GET",
+    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    dataType: 'json',
+    success: function(data){
+      const zonaEjemplo = $('#zonaEjemplo').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
+      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      for(let z = 0;z<data.length;z++){
+        const zona = data[z];
+        let zona_html = zonaEjemplo.clone();
+        zona_html.find('.nombre').text(zona.descripcion);
+        let tr = null;
+        for(let i=0;i<zona.islas.length;i++){
+          const isla = zona.islas[i];
+          if(i%activas_x_fila == 0){
+            tr = filaEjemplo.clone();
+            zona_html.find('.cuerpoTabla').append(tr);
+          }
+          let isla_html = islaEjemplo.clone();
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+          isla_html.attr('nro_col',i);
+          isla_html.find('.texto').attr('nro_col',i);
+          isla_html.find('.inputIsla').attr('nro_col',i);
+          tr.append(isla_html);
+        }
 
-    console.log(zona[0].innerHTML);
-    $('#modalCargaControlLayout .cargaActivas').append(zona);
-  }
+        $('#modalCargaControlLayout .cargaActivas').append(zona_html);
+      }
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+
+ 
 }
 
 function cargarDivInactivas(id_layout_total){
@@ -395,6 +410,7 @@ $(document).on('click','.carga',function(e){
   e.preventDefault();
   limpiarModal();
   $('#modalCargaControlLayout .cargaActivas').empty();
+  $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
@@ -424,7 +440,7 @@ $(document).on('click','.carga',function(e){
     tabActivas.removeClass('subrayado');
   });
   cargarDivInactivas(id_layout_total);
-  cargarDivActivas();
+  cargarDivActivas(id_layout_total);
 
   $('#modalCargaControlLayout').modal('show');
 });
@@ -853,7 +869,6 @@ function mostrarIconosPorPermisos(){
           setearEstado(fila,estado);
           if(!data.carga_layout_total){
             $('#cuerpoTabla .carga').hide();
-            $('#cuerpoTabla .carga_activas')
           }
           if(!data.validar_layout_total){
             $('#cuerpoTabla .validar').hide();
@@ -901,7 +916,6 @@ function setearEstado(fila,estado){
   let icono_estado = fila.find('.icono_estado');
   let icono_planilla = fila.find('.planilla');
   let icono_carga = fila.find('.carga');
-  let icono_carga_activas = fila.find('.carga_activas');
   let icono_validacion = fila.find('.validar');
   let icono_imprimir = fila.find('.imprimir');
   //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
@@ -911,18 +925,15 @@ function setearEstado(fila,estado){
   icono_planilla.show();
   icono_imprimir.hide();
   icono_carga.hide();
-  icono_carga_activas.hide();
   icono_validacion.hide();
   switch (estado) {
     case 'Generado':
       icono_estado.addClass('faGenerado');
       icono_carga.show();
-      icono_carga_activas.show();
       break;
     case 'Cargando':
       icono_estado.addClass('faCargando');
       icono_carga.show();
-      icono_carga_activas.show();
       break;
     case 'Finalizado':
       icono_estado.addClass('faFinalizado');
@@ -947,7 +958,6 @@ function generarFilaTabla(layout_total){
       fila.find('.carga').val(layout_total.id_layout_total);
       fila.find('.validar').val(layout_total.id_layout_total);
       fila.find('.imprimir').val(layout_total.id_layout_total);
-      fila.find('.carga_activas').val(layout_total.id_layout_total);
       setearEstado(fila,layout_total.estado);
       return fila;
 }

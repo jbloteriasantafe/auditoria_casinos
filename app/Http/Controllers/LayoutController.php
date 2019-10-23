@@ -1529,4 +1529,22 @@ class LayoutController extends Controller
     return ['codigo' => 200];
   }
 
+  public function islasLayoutTotal(Request $request,$id_layout_total){
+    $layout = LayoutTotal::find($id_layout_total);
+    if(is_null($layout)){
+      return response()->json([ 'id_layout_total' => ['El layout total no existe.'] ],422);
+    }
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($layout->id_casino)){
+      return response()->json([ 'casino' => ['El usuario no puede acceder a ese casino.'] ],422);
+    }
+    
+    $sectores = Sector::where('id_casino',$layout->id_casino)->get();
+    $sectores_arr = $sectores->toArray();
+    foreach($sectores as $i=>$s){
+      $sectores_arr[$i]['islas']=$s->islas;
+    }
+    return $sectores_arr;
+  }
+
 }

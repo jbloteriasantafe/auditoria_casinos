@@ -500,6 +500,7 @@ Route::get('/layouts/obtenerTotalParaValidar/{id}','LayoutController@obtenerTota
 Route::get('/layouts/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
 Route::post('/layouts/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
 Route::post('/layouts/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
+Route::get('/layouts/islasLayoutTotal/{id_layout_total}','LayoutController@islasLayoutTotal');
 
 /**************
  Estadisticas
