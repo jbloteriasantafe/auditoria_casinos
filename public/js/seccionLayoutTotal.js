@@ -355,6 +355,7 @@ function cargarDivActivas(id_layout_total){
           isla_html.attr('nro_col',i);
           isla_html.find('.texto').attr('nro_col',i);
           isla_html.find('.inputIsla').attr('nro_col',i);
+          isla_html.find('.inputIsla').val(isla.maquinas_observadas);
           tr.append(isla_html);
         }
 
