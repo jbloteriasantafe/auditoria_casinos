@@ -352,9 +352,10 @@ function cargarDivActivas(id_layout_total){
             sector_html.find('.cuerpoTabla').append(tr);
           }
           let isla_html = islaEjemplo.clone();
-          isla_html.find('.textoIsla').text(isla.nro_isla);
+
           isla_html.attr('nro_col',i);
-          isla_html.find('.texto').attr('nro_col',i);
+          isla_html.find('.textoIsla').attr('nro_col',i);
+          isla_html.find('.textoIsla').text(isla.nro_isla);
           isla_html.find('.inputIsla').attr('nro_col',i);
           isla_html.find('.inputIsla').val(isla.maquinas_observadas);
           isla_html.attr('data-id-isla',isla.id_isla);
@@ -484,6 +485,8 @@ $(document).on('click','.validar',function(e){
                         .prop('readonly',true);
       }
 
+      $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
+
       sectores = data.sectores;
 
       $('#tablaValidarControlLayout tbody tr').remove();
@@ -508,8 +511,6 @@ $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal
   $('#inputFisca').val('');
   $('#fiscaCarga').val('');
 
-  //validar
-  $('#frmValidarControlLayout').trigger('reset');
   $('#validarFechaActual').val('');
   $('#validarFechaGeneracion').val('');
   $('#validarCasino').val('');
@@ -1136,4 +1137,5 @@ function limpiarModal(){
     $('#fecha').val('');
     $('#observacion_carga').val('');
     $('#observacion_validar').val('');
+    $('#observacion_carga_validacion').val('');
 }

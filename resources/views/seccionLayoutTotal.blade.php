@@ -346,7 +346,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 
     <!-- Modal cargar layout -->
     <div class="modal fade" id="modalCargaControlLayout" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:75%;">
+          <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;padding-bottom: 8px;">
                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
@@ -468,65 +468,51 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
     </div>
 
-    <!-- Modal validar relevamientos -->
-    <div class="modal fade" id="modalValidarControl" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:94%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">VALIDAR CONTROL LAYOUT</h3>
-                </div>
-
-                <div  id="colapsadoValidar" class="collapse in">
-
+<div class="modal fade" id="modalValidarControl" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:94%;">
+        <div class="modal-content">
+            <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;padding-bottom: 8px;">
+                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3 class="modal-title">VALIDAR CONTROL LAYOUT</h3>
+            </div>
+            <div id="colapsadoValidar" class="collapse in">
                 <div class="modal-body modalCuerpo">
-
-                  <form id="frmValidarControlLayout" name="frmValidarControlLayout" class="form-horizontal" novalidate="">
-
                     <div class="row">
-                      <div class="col-lg-2 col-lg-offset-1">
-                        <h5>FECHA DE LAYOUT</h5>
-                        <input id="validarFechaActual" type='text' class="form-control" readonly>
-
-                      </div>
-                      <div class="col-lg-2">
-                        <h5>FECHA DE GENERACIÓN</h5>
-                        <input id="validarFechaGeneracion" type='text' class="form-control" readonly>
-
-                      </div>
-                      <div class="col-lg-2">
-                        <h5>CASINO</h5>
-                        <input id="validarCasino" type='text' class="form-control" readonly>
-                         <span id="alertaValidarCasino" class="alertaSpan"></span>
-                      </div>
-                      <div class="col-lg-2">
-                        <h5>TURNO</h5>
-                        <input id="validarTurno" type='text' class="form-control" readonly>
-                         <span id="alertaValidarTurno" class="alertaSpan"></span>
-                      </div>
+                        <div class="col-lg-2 col-lg-offset-1">
+                            <h5>FECHA DE LAYOUT</h5>
+                            <input id="validarFechaActual" type='text' class="form-control" readonly>
+                        </div>
+                        <div class="col-lg-2">
+                            <h5>FECHA DE GENERACIÓN</h5>
+                            <input id="validarFechaGeneracion" type='text' class="form-control" readonly>
+                        </div>
+                        <div class="col-lg-2">
+                            <h5>CASINO</h5>
+                            <input id="validarCasino" type='text' class="form-control" readonly>
+                            <span id="alertaValidarCasino" class="alertaSpan"></span>
+                        </div>
+                        <div class="col-lg-2">
+                            <h5>TURNO</h5>
+                            <input id="validarTurno" type='text' class="form-control" readonly>
+                            <span id="alertaValidarTurno" class="alertaSpan"></span>
+                        </div>
                     </div>
-                    <br>
                     <div class="row">
-                      <div class="col-xs-3 col-xs-offset-1">
-                          <h5>FISCALIZADOR CARGA</h5>
-                          <input id="validarFiscaCarga" type="text"class="form-control" readonly>
-                      </div>
-                      <div class="col-xs-3">
-                          <h5>FISCALIZADOR TOMA</h5>
-                          <input id="validarInputFisca" data-fisca="" class="form-control" size="100" type="text" />
-                                                </div>
-                      <div class="col-xs-4">
-                          <h5>FECHA EJECUCIÓN</h5>
-                           <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="validarFechaEjecucion"  readonly="true"/>
-                      </div>
+                        <div class="col-xs-3 col-xs-offset-1">
+                            <h5>FISCALIZADOR CARGA</h5>
+                            <input id="validarFiscaCarga" type="text" class="form-control" readonly>
+                        </div>
+                        <div class="col-xs-3">
+                            <h5>FISCALIZADOR TOMA</h5>
+                            <input id="validarInputFisca" data-fisca="" class="form-control" size="100" type="text" />
+                        </div>
+                        <div class="col-xs-4">
+                            <h5>FECHA EJECUCIÓN</h5>
+                            <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="validarFechaEjecucion" readonly="true" />
+                        </div>
                     </div>
-
-                    <br>
-
-                    <br>
-
                     <div class="row">
                         <div class="col-md-12">
                             <table id="tablaValidarControlLayout" class="table">
@@ -544,38 +530,31 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                                 <tbody id="validarControlLayout">
                                 </tbody>
                             </table>
-                          </div>
-                    </div>
-                    <div id="validar_encabezado_diferencia" class="row" hidden>
-                        <div class="col-md-12">
-                          <h5 >Máquinas con Diferencia</h5>
-                          <div id="maquinas_con_diferencia_validar">
-                          </div>
                         </div>
                     </div>
-
-                    <br>
                     <div class="row">
                         <div class="col-md-8 col-md-offset-2">
-                          <h5>OBSERVACIONES</h5>
-                          <textarea id="observacion_validar" class="form-control" style="resize:vertical;"></textarea>
+                            <h5>OBSERVACIONES FISCALIZADOR</h5>
+                            <textarea id="observacion_carga_validacion" class="form-control" style="resize:vertical;" disabled></textarea>
                         </div>
                     </div>
-
-
-                  </form>
-
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+                            <h5>OBSERVACIONES</h5>
+                            <textarea id="observacion_validar" class="form-control" style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-successAceptar" id="btn-finalizarValidacion" value="nuevo">VALIDAR RELEVAMIENTO</button>
+                        <button type="button" class="btn btn-default" id="btn-salirValidacion" data-dismiss="modal">SALIR</button>
+                        <input type="hidden" id="id_relevamiento" value="0">
+                    </div>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-finalizarValidacion" value="nuevo">VALIDAR RELEVAMIENTO</button>
-                  <button type="button" class="btn btn-default" id="btn-salirValidacion" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_relevamiento" value="0">
-                </div>
-              </div>
             </div>
-          </div>
+        </div>
     </div>
-
+</div>
 
     <!-- Modal planilla relevamientos -->
     <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
