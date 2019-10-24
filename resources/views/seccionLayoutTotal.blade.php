@@ -407,7 +407,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                   </div>
                   <div class="cargaActivas row" style="overflow: scroll;height: 800px;">
                   </div>
-                  <div class="cargaInactivas row"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
+                  <div class="cargaInactivas row" style="overflow: scroll;height: 800px;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
                           <div class="row">
                               <div class="col-md-12">
                                   <table id="tablaCargaControlLayout" class="table">
@@ -643,9 +643,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
       </div>
 
-    <div id="zonaEjemplo" class="zona" hidden>
+    <div id="sectorEjemplo" class="sector" hidden>
       <hr/>
-      <b class="nombre">NOMBRE ZONA</b>
+      <b class="nombre">NOMBRE SECTOR</b>
       <table class="tablaIslas table table-fixed tablesorter">
         <thead class="cabezeraTabla">
           <tr>

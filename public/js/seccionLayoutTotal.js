@@ -335,20 +335,21 @@ function cargarDivActivas(id_layout_total){
     url: 'layouts/islasLayoutTotal/'+id_layout_total,
     dataType: 'json',
     success: function(data){
-      const zonaEjemplo = $('#zonaEjemplo').clone().attr('id','').show();
+      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
       const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
       const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
       const activas_x_fila = filaEjemplo.attr('activas_por_fila');
       for(let z = 0;z<data.length;z++){
-        const zona = data[z];
-        let zona_html = zonaEjemplo.clone();
-        zona_html.find('.nombre').text(zona.descripcion);
+        const sector = data[z];
+        let sector_html = sectorEjemplo.clone();
+        sector_html.find('.nombre').text(sector.descripcion);
+        sector_html.attr('data-id-sector',sector.id_sector);
         let tr = null;
-        for(let i=0;i<zona.islas.length;i++){
-          const isla = zona.islas[i];
+        for(let i=0;i<sector.islas.length;i++){
+          const isla = sector.islas[i];
           if(i%activas_x_fila == 0){
             tr = filaEjemplo.clone();
-            zona_html.find('.cuerpoTabla').append(tr);
+            sector_html.find('.cuerpoTabla').append(tr);
           }
           let isla_html = islaEjemplo.clone();
           isla_html.find('.textoIsla').text(isla.nro_isla);
@@ -356,10 +357,11 @@ function cargarDivActivas(id_layout_total){
           isla_html.find('.texto').attr('nro_col',i);
           isla_html.find('.inputIsla').attr('nro_col',i);
           isla_html.find('.inputIsla').val(isla.maquinas_observadas);
+          isla_html.attr('data-id-isla',isla.id_isla);
           tr.append(isla_html);
         }
 
-        $('#modalCargaControlLayout .cargaActivas').append(zona_html);
+        $('#modalCargaControlLayout .cargaActivas').append(sector_html);
       }
     },
     error: function(data){
@@ -567,13 +569,24 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     };
     maquinas.push(maquina);
   });
+
+  let islas = [];
+  $('#modalCargaControlLayout .isla').each(function(){
+    const t = $(this);
+    islas.push({
+      id_isla: t.attr('data-id-isla'),
+      maquinas_observadas: t.find('.inputIsla').val()
+    });
+  });
+
   const formData = {
     id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
     id_layout_total:   $('#id_layout_total').val(),
     fecha_ejecucion: $('#fecha_ejecucion').val(),
     maquinas: maquinas,
     observacion_fiscalizacion: $('#observacion_carga').val(),
-    confirmacion: confirmacion
+    confirmacion: confirmacion,
+    islas: islas
   };
   
   console.log(formData);

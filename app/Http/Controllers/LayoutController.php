@@ -1416,14 +1416,21 @@ class LayoutController extends Controller
           'maquinas.*.nro_isla' => 'required|exists:isla,nro_isla',
           'maquinas.*.nro_admin' => 'required|integer',
           'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
-          'maquinas.*.co' => 'nullable',//codigo
+          'maquinas.*.co' => 'nullable|string',//codigo
           'maquinas.*.pb' => 'required|in:1,0',//producido bloqueado
           'observacion_fiscalizacion' =>  'nullable|string',
           'confirmacion' => 'required|in:0,1',
-
+          'islas' => 'nullable',
+          'islas.*.id_isla' => 'required|integer|exists:isla,id_isla',
+          'islas.*.maquinas_observadas' => 'nullable|integer|min:0'
       ], array(), self::$atributos)->after(function($validator){
+          $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+          $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
+          if(!$user->usuarioTieneCasino($layout->id_casino)){
+            $validator->errors()->add('Casino no accesible por el usuario.');
+            return;
+          }
           if($validator->getData()['confirmacion'] == 0){
-            $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
             if(isset($validator->getData()['maquinas'])){
               foreach ($validator->getData()['maquinas'] as $i => $maquina) {
                 $maquinas =  Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
@@ -1441,6 +1448,8 @@ class LayoutController extends Controller
     }
 
     $layout_total = LayoutTotal::find($request->id_layout_total);
+    if(is_null($layout_total)) return ['codigo' => 500];
+
     $estado = $layout_total->id_estado_relevamiento;
     if( $estado == 1 || $estado == 2 ){//si el estado es GENERADO o CARGANDO
       DB::beginTransaction();
@@ -1470,13 +1479,27 @@ class LayoutController extends Controller
           }
         }
 
+        if(isset($request->islas)){
+          foreach($request->islas as $i){
+            $lti = LayoutTotalIsla::where([
+              ['id_layout_total','=',$layout_total->id_layout_total],
+              ['id_isla','=',$i['id_isla']]
+            ])->get();
+            if($lti->count() == 0) continue;
+            $lti = $lti->first();
+            $newval = array_key_exists('maquinas_observadas',$i)? $i['maquinas_observadas'] : null;
+            $lti->maquinas_observadas = $newval;
+            $lti->save();
+          }
+        }
+        
         if(!$cargando) $layout_total->id_estado_relevamiento = 2; 
         else $layout_total->id_estado_relevamiento = 3; //finalizado la carga
         $layout_total->save();
       }
       catch(Exception $e){
         DB::rollBack();
-        return ['codigo' => 500];
+        throw $e;
       }
       DB::commit();
       return ['codigo' => 200];
