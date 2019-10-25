@@ -97,17 +97,55 @@ class RelevamientoAmbientalController extends Controller
                               ->where('deleted_at','=',NULL)
                               ->get();
 
-    $islotes = DB::table('isla')->where()
+    if ($request->id_casino == 3) {
+      /* PUEDE SER UTIL ESTO, NO LO BORRO:
+      $query = 'SELECT t1.*
+                          FROM isla t1
+                          INNER JOIN (
+                                      SELECT MIN(id_isla) id_isla, nro_islote
+                                      FROM isla
+                                      GROUP BY nro_islote
+                                    ) t2
+                                    ON t1.id_isla = t2.id_isla
+                                    AND t1.nro_islote = t2.nro_islote
+                         ';
+
+                         */
+      $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
+                                    ->where('id_casino','=',$request->id_casino)
+                                    ->where('nro_islote', '!=', 'NULL')
+                                    ->distinct('nro_islote')
+                                    ->orderBy('nro_islote', 'asc')
+                                    ->get();
+
+    }
+
      //creo los detalles
      $detalles = array();
      foreach($sectores as $sector){
-
        $islas = (Sector::find($sector->id_sector))->islas;
+
+
        foreach ($turnos as $turno) {
+        $contador_islotes=0;
+
          $detalle = new DetalleRelevamientoAmbiental;
          $detalle->id_turno = $turno->id_turno;
          $detalle->id_sector = $sector->id_sector;
-         $detalle->tamanio_vector = sizeof($islas);
+
+
+         foreach($islotes_y_sectores as $elem) {
+           if ($elem->id_sector == $sector->id_sector) {
+             $contador_islotes++;
+           }
+         }
+
+         if ($request->id_casino != 3) {
+           $detalle->tamanio_vector = sizeof($islas);
+         }
+         else {
+           $detalle->tamanio_vector = $contador_islotes;
+         }
 
          //creo una relacion isla-cantidad de personas para cada detalle
          /*
@@ -121,7 +159,9 @@ class RelevamientoAmbientalController extends Controller
          */
        $detalles[] = $detalle;
        }
+       $contador_islotes++;
      }
+
 
      if(!empty($detalles)){
        //creo y guardo el relevamiento de control ambiental
@@ -171,7 +211,6 @@ class RelevamientoAmbientalController extends Controller
   public function crearPlanillaAmbiental($relevamiento_ambiental){
 
     $detalles = array();
-
     foreach ($relevamiento_ambiental->detalles as $detalle_relevamiento) {
 
       $detalle = array(
@@ -185,13 +224,27 @@ class RelevamientoAmbientalController extends Controller
       $detalles[] = $detalle;
     }
 
+    if ($relevamiento_ambiental->casino->id_casino == 3) {
+      $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
+                                    ->where('id_casino','=',$relevamiento_ambiental->casino->id_casino)
+                                    ->where('nro_islote', '!=', 'NULL')
+                                    ->distinct('nro_islote')
+                                    ->orderBy('nro_islote', 'asc')
+                                    ->get();
+    }
+
     $otros_datos = array(
       'casino' => $relevamiento_ambiental->casino->nombre,
       'fiscalizador' => ($relevamiento_ambiental->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_ambiental->id_usuario_fiscalizador)->nombre) : "",
       'estado' => EstadoRelevamiento::find($relevamiento_ambiental->id_estado_relevamiento)->descripcion
     );
 
-    $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos'));
+    if ($relevamiento_ambiental->casino->id_casino != 3) {
+      $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos'));
+    }
+    else {
+      $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos', 'islotes_y_sectores'));
+    }
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());

@@ -100,7 +100,6 @@
 
     <!-- Tabla de control ambiental Santa Fe-->
     @elseif ($relevamiento_ambiental->casino->id_casino == 2)
-      <?php $contador_tablas = 0; ?>
       @foreach ($relevamiento_ambiental->casino->sectores as $sector)
       <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
       <table>
@@ -128,14 +127,12 @@
         @endforeach
       </table>
       <br>
-        <?php $contador_tablas++; ?>
         @if ($contador_tablas%3 == 0)
           <div style="page-break-after:always;"></div>
         @endif
       @endforeach
 
     <!-- Tabla de control ambiental Rosario-->
-    <!-- CONTINUAR -->
     @else
       @foreach ($relevamiento_ambiental->casino->sectores as $sector)
       <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
@@ -143,8 +140,10 @@
         <thead>
           <tr>
             <th class="tablaInicio" style="background-color: #dddddd" width="10px">T</th>
-            @foreach ($sector->islas as $isla)
-            <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$isla->nro_isla}}</th>
+            @foreach ($islotes_y_sectores as $islote_y_sector)
+              @if ($islote_y_sector->id_sector == $sector->id_sector)
+                <th class="tablaInicio" style="background-color: #dddddd" width="11px">{{$islote_y_sector->nro_islote}}</th>
+              @endif
             @endforeach
             <th class="tablaInicio" style="background-color: #dddddd" width="30px">TOT. </th>
           </tr>
@@ -159,14 +158,13 @@
             @endfor
           @endif
           @endforeach
+
           <td class="tablaInicio" style="background-color: white" width="20px">999</td>
         </tr>
         @endforeach
       </table>
       <br>
       @endforeach
-
-      
     @endif
 
     <br><br>
