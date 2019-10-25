@@ -359,8 +359,8 @@ function cargarDivActivas(id_layout_total,done = function (x){return;}){
         }
 
         $('#modalCargaControlLayout .activas').append(sector_html);
-        done();
       }
+      done();
     },
     error: function(data){
       console.log(data);
@@ -457,6 +457,7 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
       const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
       const islaEjemplo = $('#islaEjemploValidar').clone().attr('id','').show();
       const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      if(data.length == 0) $('#modalValidarControl .activas').append('<h4>No hay islas asociadas a este layout total</h4>');
       for(let z = 0;z<data.length;z++){
         const sector = data[z];
         let sector_html = sectorEjemplo.clone();
@@ -476,8 +477,8 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           isla_html.find('.textoIsla');
           isla_html.find('.textoIsla').text(isla.nro_isla);
 
-          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '-';
-          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '-';
+          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
+          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '0';
           isla_html.find('.observado').text(observado);
           isla_html.find('.sistema').text('('+sistema+')');
           isla_html.attr('data-id-isla',isla.id_isla);
@@ -499,8 +500,8 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
         tr.append(suma);
         
         $('#modalValidarControl .activas').append(sector_html);
-        done();
       }
+      done();
     },
     error: function(data){
       console.log(data);
