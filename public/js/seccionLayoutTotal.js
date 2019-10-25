@@ -480,14 +480,15 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
           const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '0';
           isla_html.find('.observado').text(observado);
-          isla_html.find('.sistema').text('('+sistema+')');
+          isla_html.find('.sistema').text(sistema);
           isla_html.attr('data-id-isla',isla.id_isla);
           tr.append(isla_html);
         }
         let suma = islaEjemplo.clone();
+        suma.addClass('total');
         suma.find('.textoIsla').text('TOTAL');
         suma.find('.observado').text(sector.total_observadas);
-        suma.find('.sistema').text('('+sector.total_sistema+')');
+        suma.find('.sistema').text(sector.total_sistema);
         let width = suma.css('width');
         width = parseFloat(width.substr(0,width.length-1))*2;
         suma.css('width',width+'%');
@@ -555,17 +556,38 @@ function cargarDivDiferenciasValidar(){
   const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
   tabla.find('.diferenciasFilaEjemplo').remove();
 
-  $('#modalValidarControl .activas div.sector').each(function(i,c){
+  inactivas = [];
+  $('#modalValidarControl .activas div.sector').each(function(){
     let f = filaEjemplo.clone();
-    f.find('.diferenciasSector').text($(this).find('.nombre').text());
+    const t = $(this);
+    f.find('.diferenciasSector').text(t.find('.nombre').text());
+    f.find('.diferenciasActivas').text(t.find('.total .observado').text());
+    f.find('.diferenciasTotalSistema').text(t.find('.total .sistema').text());
+    const id_sector = t.attr('data-id-sector');
+    f.attr('data-id-sector',id_sector);
+    inactivas[id_sector]['inactivas'] = 0;
+    inactivas[id_sector]['fila'] = f;
     tabla.find('.cuerpoTablaDiferencias').append(f);
   });
+
+  inactivas = [];
+  $('#modalValidarControl .inactivas .NivelLayout').each(function(){
+    const t = $(this);
+    const id_sector = t.find('select').val();
+    console.log(id_sector);
+    inactivas[id_sector]['inactivas']++;
+  });
+
+  inactivas.forEach(function(val,key){
+    val['fila'].find('.diferenciasInactivas').text(val['inactivas']);
+  });
+
   tabla.find('.diferenciasDiferencia').each(function(){
     let t = $(this);
     const diff = parseInt(t.text())!=0;
     t.addClass(diff? 'incorrecto' : 'correcto');
   });
-  
+
   $('#modalValidarControl .diferencias').append(tabla);
 }
 $(document).on('click','.validar',function(e){

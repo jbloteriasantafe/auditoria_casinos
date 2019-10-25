@@ -48,6 +48,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 .incorrecto{
   color: red;
 }
+.sombreado{
+  color: grey;
+}
 </style>
 @endsection
 
@@ -683,7 +686,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
               <div style="text-align: center;" class="textoIsla">-1</div>
               <div style="text-align: center;">
               <span class="observado"></span>
-              <span class="sistema"></span>
+              <span>(<span class="sistema"></span>)</span>
               </div>
             </div>
           </td>
@@ -708,11 +711,11 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     <tbody class="cuerpoTablaDiferencias">
       <tr class="diferenciasFilaEjemplo">
         <td class="diferenciasSector col-lg-2">SECTOR999</td>
-        <td class="diferenciasActivas col-lg-2">100</td>
-        <td class="diferenciasInactivas col-lg-2">100</td>
-        <td class="diferenciasTotal col-lg-2">200</td>
-        <td class="diferenciasTotalSistema col-lg-2">300</td>
-        <td class="diferenciasDiferencia col-lg-2">100</td>
+        <td class="diferenciasActivas col-lg-2">ERROR</td>
+        <td class="diferenciasInactivas col-lg-2">ERROR</td>
+        <td class="diferenciasTotal col-lg-2">ERROR</td>
+        <td class="diferenciasTotalSistema col-lg-2">ERROR</td>
+        <td class="diferenciasDiferencia col-lg-2">ERROR</td>
       </tr>
     </tbody>
   </table>
