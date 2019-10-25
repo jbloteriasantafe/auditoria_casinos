@@ -337,7 +337,7 @@ function cargarDivActivas(id_layout_total,done = function (x){return;}){
     success: function(data){
       const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
       const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
-      const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemplo').clone().attr('id','').show();
       const activas_x_fila = filaEjemplo.attr('activas_por_fila');
       for(let z = 0;z<data.length;z++){
         const sector = data[z];
@@ -412,47 +412,6 @@ function cargarDivInactivas(id_layout_total,done = function (x){return;}){
   });
 }
 
-$(document).on('click','.carga',function(e){
-  e.preventDefault();
-  limpiarModal();
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalCargaControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
-
-  var id_layout_total = $(this).val();
-  $('#id_layout_total').val(id_layout_total);
-
-  $('#btn-guardar').show();
-  $('#btn-guardarTemp').show();
-  let divActivas = $('#modalCargaControlLayout .activas').hide();
-  let divInactivas = $('#modalCargaControlLayout .inactivas').hide();
-  let tabActivas = $('#modalCargaControlLayout .tabActivas');
-  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
-  tabActivas.on('click',function(){
-    divInactivas.hide();
-    divActivas.show();
-    tabActivas.addClass('subrayado');
-    tabInactivas.removeClass('subrayado');
-  });
-  tabInactivas.on('click',function(){
-    divActivas.hide();
-    divInactivas.show();
-    tabInactivas.addClass('subrayado');
-    tabActivas.removeClass('subrayado');
-  });
-
-  //El que termina primero setea la bandera, el segundo muestra el modal.
-  let done = false;
-  const donef = function(){
-    if(done) $('#modalCargaControlLayout').modal('show');
-    else done = true;
-  };
-  cargarDivActivas(id_layout_total,donef);
-  cargarDivInactivas(id_layout_total,donef);
-});
-
 function cargarDivInactivasValidar(id_layout_total,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
 
@@ -500,13 +459,15 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
     success: function(data){
       const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
       const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
-      const islaEjemplo = $('#islaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemploValidar').clone().attr('id','').show();
       const activas_x_fila = filaEjemplo.attr('activas_por_fila');
       for(let z = 0;z<data.length;z++){
         const sector = data[z];
         let sector_html = sectorEjemplo.clone();
         sector_html.find('.nombre').text(sector.descripcion);
         sector_html.attr('data-id-sector',sector.id_sector);
+        let total_observadas = 0;
+        let total_sistema = 0;
         let tr = null;
         for(let i=0;i<sector.islas.length;i++){
           const isla = sector.islas[i];
@@ -519,12 +480,30 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           isla_html.attr('nro',i);
           isla_html.find('.textoIsla').attr('nro',i);
           isla_html.find('.textoIsla').text(isla.nro_isla);
-          isla_html.find('.inputIsla').attr('nro',i).attr('disabled','disabled');
-          isla_html.find('.inputIsla').val(isla.maquinas_observadas);
+          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '-';
+          total_observadas+= (observado === '-')? 0: parseInt(observado);
+          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '-';
+          total_sistema+= (sistema === '-')? 0: parseInt(sistema);
+
+          console.log(total_observadas);
+          isla_html.find('.observado').attr('nro',i).text(observado);
+          isla_html.find('.sistema').attr('nro',i).text('('+sistema+')');
           isla_html.attr('data-id-isla',isla.id_isla);
           tr.append(isla_html);
         }
-
+        let suma = islaEjemplo.clone().attr('nro',sector.islas.length);
+        suma.find('.textoIsla').attr('nro',sector.islas.length).text('TOTAL');
+        suma.find('.observado').attr('nro',sector.islas.length).text(total_observadas);
+        suma.find('.sistema').attr('nro',sector.islas.length).text('('+total_sistema+')');
+        let width = suma.css('width');
+        width = parseFloat(width.substr(0,width.length-1))*2;
+        suma.css('width',width+'%');
+        if(sector.islas.length%activas_x_fila == 0){
+          tr = filaEjemplo.clone();
+          sector_html.find('.cuerpoTabla').append(tr);
+        }
+        tr.append(suma);
+        
         $('#modalValidarControl .activas').append(sector_html);
         done();
       }
@@ -534,6 +513,47 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
     }
   });
 }
+
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  limpiarModal();
+  //ocultar mensaje de salida
+  salida = 0;
+  guardado = true;
+  $('#modalCargaControlLayout .mensajeSalida').hide();
+  $('#mensajeExito').hide();
+
+  var id_layout_total = $(this).val();
+  $('#id_layout_total').val(id_layout_total);
+
+  $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
+  let divActivas = $('#modalCargaControlLayout .activas').hide();
+  let divInactivas = $('#modalCargaControlLayout .inactivas').hide();
+  let tabActivas = $('#modalCargaControlLayout .tabActivas');
+  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+  });
+
+  //El que termina primero setea la bandera, el segundo muestra el modal.
+  let done = false;
+  const donef = function(){
+    if(done) $('#modalCargaControlLayout').modal('show');
+    else done = true;
+  };
+  cargarDivActivas(id_layout_total,donef);
+  cargarDivInactivas(id_layout_total,donef);
+});
 
 $(document).on('click','.validar',function(e){
   e.preventDefault();
