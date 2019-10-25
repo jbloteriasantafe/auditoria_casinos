@@ -88,27 +88,27 @@
 
       @foreach ($detalles_linkeados as $detalle)
       <tr>
-        <td class="tablaInicio" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
+        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
         @if ($detalle['pozo_unico'])
-          <td class="tablaInicio" style="background-color: white" width="130px">{{$detalle['progresivo']}}</td>
+          <td class="tablaProgresivos" style="background-color: white" width="130px">{{$detalle['progresivo']}}</td>
         @else
-          <td class="tablaInicio" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+          <td class="tablaIProgresivos" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
           @for ($i=0; $i<6; $i++)
-            <td class="tablaInicio" style="background-color: white"> - </td>
+            <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
-          <td class="tablaInicio" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
+          <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
         @else
           @for ($i=1; $i<7; $i++)
             @if ($detalle['nivel' . $i] != 0.00)
-              <td class="tablaInicio" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
+              <td class="tablaProgresivos" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
             @else
-              <td class="tablaInicio" style="background-color: #f5f5f5"></td>
+              <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>
             @endif
           @endfor
-          <td class="tablaInicio" style="background-color: white"></td>
+          <td class="tablaProgresivos" style="background-color: white"></td>
         @endif
       </tr>
       @endforeach
@@ -144,29 +144,29 @@
 
       @foreach ($detalles_individuales as $detalle)
       <tr>
-        <td class="tablaInicio" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
-        <td class="tablaInicio" style="background-color: white" width="30px">{{$detalle['nro_maquinas']}} </td>
+        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
+        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_maquinas']}} </td>
 
         @if ($detalle['pozo_unico'])
-          <td class="tablaInicio" style="background-color: white" width="130px">{{$detalle['progresivo']}}</td>
+          <td class="tablaProgresivos" style="background-color: white" width="130px">{{$detalle['progresivo']}}</td>
         @else
-          <td class="tablaInicio" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+          <td class="tablaProgresivos" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
           @for ($i=0; $i<6; $i++)
-            <td class="tablaInicio" style="background-color: white"> - </td>
+            <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
-          <td class="tablaInicio" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
+          <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
         @else
           @for ($i=1; $i<7; $i++)
             @if ($detalle['nivel' . $i] != 0.00)
-              <td class="tablaInicio" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
+              <td class="tablaProgresivos" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
             @else
-              <td class="tablaInicio" style="background-color: #f5f5f5"></td>
+              <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>
             @endif
           @endfor
-          <td class="tablaInicio" style="background-color: white"></td>
+          <td class="tablaProgresivos" style="background-color: white"></td>
         @endif
       </tr>
       @endforeach
