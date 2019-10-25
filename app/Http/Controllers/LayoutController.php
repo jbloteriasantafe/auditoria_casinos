@@ -1588,16 +1588,27 @@ class LayoutController extends Controller
     
     $islas = $layout->islas;
     $sectores = [];
+    $total_observadas = 0;
+    $total_sistema = 0;
     foreach($islas as $i){
-      $sector = $i->sector;
-      $id_sector = $sector->id_sector;
-      if(!array_key_exists($sector->id_sector,$sectores)){
-        $sectores[$id_sector]=$sector->toArray();
+      $i2 = $i->toArray();      
+      $observadas = $i->pivot->maquinas_observadas;
+      $sistema = $i2['cantidad_maquinas'];
+      $i2['maquinas_observadas'] = $observadas;
+
+      $sector_bd = $i->sector;
+      $id_sector = $sector_bd->id_sector;
+      if(!array_key_exists($id_sector,$sectores)){
+        $sectores[$id_sector]=$sector_bd->toArray();
         $sectores[$id_sector]['islas']=[];
+        $sectores[$id_sector]['total_observadas']=0;
+        $sectores[$id_sector]['total_sistema']=0;
       }
-      $i2 = $i->toArray();
-      $i2['maquinas_observadas'] = $i->pivot->maquinas_observadas;
-      $sectores[$id_sector]['islas'][]=$i2;
+
+      $s = &$sectores[$id_sector];
+      $s['islas'][]=$i2;
+      $s['total_observadas']+=(is_null($observadas)? 0 : $observadas);
+      $s['total_sistema']+=(is_null($sistema)? 0: $sistema);
     }
     $ret = [];
     foreach($sectores as $s){

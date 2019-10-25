@@ -352,11 +352,7 @@ function cargarDivActivas(id_layout_total,done = function (x){return;}){
             sector_html.find('.cuerpoTabla').append(tr);
           }
           let isla_html = islaEjemplo.clone();
-
-          isla_html.attr('nro',i);
-          isla_html.find('.textoIsla').attr('nro',i);
           isla_html.find('.textoIsla').text(isla.nro_isla);
-          isla_html.find('.inputIsla').attr('nro',i);
           isla_html.find('.inputIsla').val(isla.maquinas_observadas);
           isla_html.attr('data-id-isla',isla.id_isla);
           tr.append(isla_html);
@@ -477,28 +473,26 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           }
           let isla_html = islaEjemplo.clone();
 
-          isla_html.attr('nro',i);
-          isla_html.find('.textoIsla').attr('nro',i);
+          isla_html.find('.textoIsla');
           isla_html.find('.textoIsla').text(isla.nro_isla);
-          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '-';
-          total_observadas+= (observado === '-')? 0: parseInt(observado);
-          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '-';
-          total_sistema+= (sistema === '-')? 0: parseInt(sistema);
 
-          console.log(total_observadas);
-          isla_html.find('.observado').attr('nro',i).text(observado);
-          isla_html.find('.sistema').attr('nro',i).text('('+sistema+')');
+          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '-';
+          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '-';
+          isla_html.find('.observado').text(observado);
+          isla_html.find('.sistema').text('('+sistema+')');
           isla_html.attr('data-id-isla',isla.id_isla);
           tr.append(isla_html);
         }
-        let suma = islaEjemplo.clone().attr('nro',sector.islas.length);
-        suma.find('.textoIsla').attr('nro',sector.islas.length).text('TOTAL');
-        suma.find('.observado').attr('nro',sector.islas.length).text(total_observadas);
-        suma.find('.sistema').attr('nro',sector.islas.length).text('('+total_sistema+')');
+        let suma = islaEjemplo.clone();
+        suma.find('.textoIsla').text('TOTAL');
+        suma.find('.observado').text(sector.total_observadas);
+        suma.find('.sistema').text('('+sector.total_sistema+')');
         let width = suma.css('width');
         width = parseFloat(width.substr(0,width.length-1))*2;
         suma.css('width',width+'%');
-        if(sector.islas.length%activas_x_fila == 0){
+        //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
+        //Porque ocupa 2 espacios.
+        if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
           tr = filaEjemplo.clone();
           sector_html.find('.cuerpoTabla').append(tr);
         }

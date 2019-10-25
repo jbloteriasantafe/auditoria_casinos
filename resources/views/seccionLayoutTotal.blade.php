@@ -623,7 +623,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         <tr></tr>
       </thead>
       <tbody>
-        <tr id="filaEjemploActivas" activas_por_fila="{{$activas_por_fila}}"></tr>
+        <tr id="filaEjemploActivas" style="display: block;" activas_por_fila="{{$activas_por_fila}}"></tr>
         <tr id="filaEjemplo" style="display: none;">
           <td class="col-xs-2 fecha">99 Test 9999</td>
           <td class="col-xs-2 casino">CASINO99</td>
@@ -663,16 +663,16 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
       </thead>
       <tbody>
         <tr>
-          <td id="islaEjemplo" style="width: {{$porcentaje_por_activa}}%;" class="isla borde" nro="-1">
+          <td id="islaEjemplo" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
             <div>
-              <div style="text-align: center;" class="textoIsla" nro="-1">-1</div>
-              <input class="form-control inputIsla input-chico" nro="-1"/>
+              <div style="text-align: center;" class="textoIsla">-1</div>
+              <input class="form-control inputIsla input-chico"/>
             </div>
           </td>
-          <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde" nro="-1">
+          <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
             <div>
-              <div style="text-align: center;" class="textoIsla" nro="-1">-1</div>
-              <div style="text-align: center;" nro="-1">
+              <div style="text-align: center;" class="textoIsla">-1</div>
+              <div style="text-align: center;">
               <span class="observado"></span>
               <span class="sistema"></span>
               </div>
