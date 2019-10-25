@@ -405,9 +405,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     <h4 class="col-lg-6 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
                     <h4 class="col-lg-6 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
                   </div>
-                  <div class="cargaActivas row" style="overflow: scroll;height: 800px;">
+                  <div class="activas row" style="overflow: scroll;height: 70%;">
                   </div>
-                  <div class="cargaInactivas row" style="overflow: scroll;height: 800px;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
+                  <div class="inactivas row" style="overflow: scroll;height: 70%;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
                           <div class="row">
                               <div class="col-md-12">
                                   <table id="tablaCargaControlLayout" class="table">
@@ -513,24 +513,32 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                             <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="validarFechaEjecucion" readonly="true" />
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table id="tablaValidarControlLayout" class="table">
-                                <thead>
-                                    <tr>
-                                        <th width="3%"></th>
-                                        <th width="17%" style="align:center;">SECTOR</th>
-                                        <th width="16%">ISLA</th>
-                                        <th width="12%">N° ADMIN</th>
-                                        <th width="14%">C.O</th>
-                                        <th width="14%">PROGRESIVO BLOQ</th>
-                                        <th width="18%"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="validarControlLayout">
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
+                      <h4 class="col-lg-6 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                      <h4 class="col-lg-6 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                    </div>
+                    <div class="activas row" style="overflow: scroll;height: 70%;">
+                    </div>
+                    <div class="inactivas row" style="overflow: scroll;height: 70%;">
+                      <div class="row">
+                          <div class="col-md-12">
+                              <table id="tablaValidarControlLayout" class="table">
+                                  <thead>
+                                      <tr>
+                                          <th width="3%"></th>
+                                          <th width="17%" style="align:center;">SECTOR</th>
+                                          <th width="16%">ISLA</th>
+                                          <th width="12%">N° ADMIN</th>
+                                          <th width="14%">C.O</th>
+                                          <th width="14%">PROGRESIVO BLOQ</th>
+                                          <th width="18%"></th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="validarControlLayout">
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
                     </div>
                     <div class="row">
                         <div class="col-md-8 col-md-offset-2">
@@ -610,7 +618,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 
                 <div id="colapsadoCargarActivas" class="collapse in">
                   <div class="modal-body">
-                    <div class="modalCuerpo" style="overflow: scroll;height: 800px;">
+                    <div class="modalCuerpo" style="overflow: scroll;height: 70%;">
                     </div>
                   </div>
                   <div class="modal-footer">
@@ -658,10 +666,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         </thead>
         <tbody>
           <tr>
-            <td id="islaEjemploActivas" style="width: {{$porcentaje_por_activa}}%;" class="isla borde" nro_col="-1">
+            <td id="islaEjemploActivas" style="width: {{$porcentaje_por_activa}}%;" class="isla borde" nro="-1">
               <div>
-               <div style="text-align: center;" class="textoIsla" nro_col="-1">-1</div>
-                <input class="form-control inputIsla input-chico" nro_col="-1"/>
+               <div style="text-align: center;" class="textoIsla" nro="-1">-1</div>
+                <input class="form-control inputIsla input-chico" nro="-1"/>
               </div>
             </td>
           </tr>
