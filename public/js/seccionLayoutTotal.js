@@ -550,6 +550,24 @@ $(document).on('click','.carga',function(e){
   cargarDivInactivas(id_layout_total,donef);
 });
 
+function cargarDivDiferenciasValidar(){
+  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
+  tabla.find('.diferenciasFilaEjemplo').remove();
+
+  $('#modalValidarControl .activas div.sector').each(function(i,c){
+    let f = filaEjemplo.clone();
+    f.find('.diferenciasSector').text($(this).find('.nombre').text());
+    tabla.find('.cuerpoTablaDiferencias').append(f);
+  });
+  tabla.find('.diferenciasDiferencia').each(function(){
+    let t = $(this);
+    const diff = parseInt(t.text())!=0;
+    t.addClass(diff? 'incorrecto' : 'correcto');
+  });
+  
+  $('#modalValidarControl .diferencias').append(tabla);
+}
 $(document).on('click','.validar',function(e){
   e.preventDefault();
   limpiarModal();
@@ -568,25 +586,42 @@ $(document).on('click','.validar',function(e){
 
   let divActivas = $('#modalValidarControl .activas').hide();
   let divInactivas = $('#modalValidarControl .inactivas').hide();
+  let divDiferencias = $('#modalValidarControl .diferencias').hide();
   let tabActivas = $('#modalValidarControl .tabActivas');
   let tabInactivas = $('#modalValidarControl .tabInactivas');
+  let tabDiferencias = $('#modalValidarControl .tabDiferencias');
   tabActivas.on('click',function(){
     divInactivas.hide();
+    divDiferencias.hide();
     divActivas.show();
     tabActivas.addClass('subrayado');
     tabInactivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
   });
   tabInactivas.on('click',function(){
     divActivas.hide();
+    divDiferencias.hide();
     divInactivas.show();
     tabInactivas.addClass('subrayado');
     tabActivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
+  });
+  tabDiferencias.on('click',function(){
+    divActivas.hide();
+    divInactivas.hide();
+    divDiferencias.show();
+    tabDiferencias.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+    tabInactivas.removeClass('subrayado');
   });
   $('#btn-agregarNivel').hide();
   //El que termina primero setea la bandera, el segundo muestra el modal.
   let done = false;
   const donef = function(){
-    if(done) $('#modalValidarControl').modal('show');
+    if(done){
+      cargarDivDiferenciasValidar();
+      $('#modalValidarControl').modal('show');
+    }
     else done = true;
   };
   cargarDivActivasValidar(id_layout_total,donef);
@@ -1231,6 +1266,7 @@ function limpiarModal(){
     $('#observacion_validar').val('');
     $('#observacion_carga_validacion').val('');
     $('.activas').empty();
+    $('.diferencias').empty();
     $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
     $('#modalValidarControl .subrayado').removeClass('subrayado');
 }

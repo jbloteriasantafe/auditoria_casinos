@@ -42,6 +42,12 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 .subrayado{
   border-bottom: 4px solid rgb(255,168,141);
 }
+.correcto{
+  color: green;
+}
+.incorrecto{
+  color: red;
+}
 </style>
 @endsection
 
@@ -482,12 +488,13 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         </div>
                     </div>
                     <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                      <h4 class="col-lg-6 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                      <h4 class="col-lg-6 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabDiferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
                     </div>
-                    <div class="activas row" style="overflow: scroll;height: 70%;">
+                    <div class="activas row" style="overflow: scroll;height: 70%;min-height: 30%;">
                     </div>
-                    <div class="inactivas row" style="overflow: scroll;height: 70%;">
+                    <div class="inactivas row" style="overflow: scroll;height: 70%;min-height: 30%;">
                       <div class="row">
                           <div class="col-md-12">
                               <table id="tablaValidarControlLayout" class="table">
@@ -507,6 +514,8 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                               </table>
                           </div>
                       </div>
+                    </div>
+                    <div class="diferencias row" style="overflow:scroll;height: 70%;min-height: 30%;">
                     </div>
                     <div class="row">
                         <div class="col-md-8 col-md-offset-2">
@@ -682,6 +691,31 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
       </tbody>
     </table>
 
+</div>
+
+<div hidden>
+  <table id="tablaDiferenciasEjemplo" class="table table-fixed tablesorter col-lg-12">
+    <thead>
+      <tr>
+        <th class="col-lg-2">SECTOR</th>
+        <th class="col-lg-2">ACTIVAS</th>
+        <th class="col-lg-2">INACTIVAS</th>
+        <th class="col-lg-2">TOTAL RELEVADO</th>
+        <th class="col-lg-2">TOTAL SISTEMA</th>
+        <th class="col-lg-2">DIFERENCIA</th>
+      </tr>
+    </thead>
+    <tbody class="cuerpoTablaDiferencias">
+      <tr class="diferenciasFilaEjemplo">
+        <td class="diferenciasSector col-lg-2">SECTOR999</td>
+        <td class="diferenciasActivas col-lg-2">100</td>
+        <td class="diferenciasInactivas col-lg-2">100</td>
+        <td class="diferenciasTotal col-lg-2">200</td>
+        <td class="diferenciasTotalSistema col-lg-2">300</td>
+        <td class="diferenciasDiferencia col-lg-2">100</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
     
 
