@@ -480,9 +480,7 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           isla_html.find('.observado').text(observado);
           isla_html.find('.sistema').text(sistema);
           isla_html.attr('data-id-isla',isla.id_isla);
-
-          if(observado == sistema) isla_html.find('.textoIsla').addClass('correcto');
-          else isla_html.find('.textoIsla').addClass('incorrecto');
+          isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
 
           tr.append(isla_html);
         }
@@ -491,6 +489,7 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
         suma.find('.textoIsla').text('TOTAL');
         suma.find('.observado').text(sector.total_observadas);
         suma.find('.sistema').text(sector.total_sistema);
+        suma.find('.textoIsla').addClass(sector.total_observadas == sector.total_sistema? 'correcto': 'incorrecto');
         let width = suma.css('width');
         width = parseFloat(width.substr(0,width.length-1))*2;
         suma.css('width',width+'%');
@@ -554,7 +553,7 @@ $(document).on('click','.carga',function(e){
 });
 
 
-//Esta funcion hace un "post processing" de las otras dos pestañas, 
+//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
 //esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
 function cargarDivDiferenciasValidar(){
   let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
@@ -565,7 +564,7 @@ function cargarDivDiferenciasValidar(){
   //Busco en el div de activas cada sector y le saco la info
   $('#modalValidarControl .activas div.sector').each(function(){
     const t = $(this);
-    const islaTotal = t.find('.total');
+    let islaTotal = t.find('.total');
     const nombre = t.find('.nombre').text();
     const observado = parseInt(islaTotal.find('.observado').text());
     const sistema = parseInt(islaTotal.find('.sistema').text());
@@ -576,6 +575,7 @@ function cargarDivDiferenciasValidar(){
     sectores[id_sector]['activas'] = observado;
     sectores[id_sector]['sistema'] = sistema;
     sectores[id_sector]['inactivas'] = 0;
+    sectores[id_sector]['islaTotal'] = islaTotal;
   });
 
   islas_con_inactivas = [];
@@ -595,7 +595,7 @@ function cargarDivDiferenciasValidar(){
     }
   });
 
-  //Agrego una fila por cada uno.
+  //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
   sectores.forEach(function(val,key){
     const fila = filaEjemplo.clone();
     const nombre = val['nombre'];
@@ -613,8 +613,13 @@ function cargarDivDiferenciasValidar(){
     fila.find('.diferenciasTotalSistema').text(sistema);
     fila.find('.diferenciasDiferencia').text(diff)
     .addClass(diff? 'incorrecto' : 'correcto');
-
     tabla.find('.cuerpoTablaDiferencias').append(fila);
+
+    let islaTotal = val['islaTotal'];
+    islaTotal.find('.textoIsla').removeClass('correcto').removeClass('incorrecto');
+    islaTotal.find('.textoIsla').addClass(diff == 0? 'correcto' : 'incorrecto');
+    if(inactivas != 0) islaTotal.find('.inactivas').text('+'+inactivas);
+    else islaTotal.find('.inactivas').text('');
   });
 
   //Busco la isla correspondiente y le agrego las inactivas
