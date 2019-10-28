@@ -473,8 +473,6 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
             sector_html.find('.cuerpoTabla').append(tr);
           }
           let isla_html = islaEjemplo.clone();
-
-          isla_html.find('.textoIsla');
           isla_html.find('.textoIsla').text(isla.nro_isla);
 
           const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
@@ -482,6 +480,10 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
           isla_html.find('.observado').text(observado);
           isla_html.find('.sistema').text(sistema);
           isla_html.attr('data-id-isla',isla.id_isla);
+
+          if(observado == sistema) isla_html.find('.textoIsla').addClass('correcto');
+          else isla_html.find('.textoIsla').addClass('incorrecto');
+
           tr.append(isla_html);
         }
         let suma = islaEjemplo.clone();
@@ -583,10 +585,14 @@ function cargarDivDiferenciasValidar(){
     const id_sector = t.find('select').val();
     const nro_isla = t.find('.nro_isla').val();
     //console.log("BUSCANDO INACTIVO "+id_sector);
-    sectores[id_sector]['inactivas']++;
-    const init = !(nro_isla in islas_con_inactivas);
-    if(init) islas_con_inactivas[nro_isla] = 1;
-    else islas_con_inactivas[nro_isla]++;
+    //Si es un relevamiento viejo que no tiene asociada islas 
+    //Esto no va a estar seteado por lo que se ignora.
+    if(id_sector in sectores){
+      sectores[id_sector]['inactivas']++;
+      const init = !(nro_isla in islas_con_inactivas);
+      if(init) islas_con_inactivas[nro_isla] = 1;
+      else islas_con_inactivas[nro_isla]++;
+    }
   });
 
   //Agrego una fila por cada uno.
@@ -614,9 +620,18 @@ function cargarDivDiferenciasValidar(){
   //Busco la isla correspondiente y le agrego las inactivas
   $('#modalValidarControl .activas div.sector .isla').each(function(){
     let t = $(this);
-    const nro_isla = parseInt(t.find('.textoIsla').text());
+    let textoIsla = t.find('.textoIsla');
+    const nro_isla = parseInt(textoIsla.text());
     if(nro_isla in islas_con_inactivas){
-      t.find('.inactivas').text('+'+islas_con_inactivas[nro_isla]);
+      //Si la isla tiene inactivas, saco la evaluacion de correcto e incorrecto
+      //y me fijo de vuelta si da con las inactivas
+      textoIsla.removeClass('correcto').removeClass('incorrecto');
+      const observadas = parseInt(t.find('.observado').text());
+      const sistema = parseInt(t.find('.sistema').text());
+      const inactivas = islas_con_inactivas[nro_isla];
+      t.find('.inactivas').text('+'+inactivas);
+      const correcto = sistema == (inactivas+observadas); 
+      textoIsla.addClass(correcto? 'correcto' : 'incorrecto');
     }
   });
 
