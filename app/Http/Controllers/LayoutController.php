@@ -1545,16 +1545,16 @@ class LayoutController extends Controller
 
     })->validate();
 
-    $layout = LayoutTotal::find($request->id_layout_total);
+    $layout_total = LayoutTotal::find($request->id_layout_total);
     $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
     if(!is_null($errors)) return $errors;
-    
-    $layout->observacion_validacion = $request->observacion_validacion;
-    $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->get()[0]->id_estado_relevamiento;
 
-    $layout->save();
+    $layout_total->observacion_validacion = $request->observacion_validacion;
+    $layout_total->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->get()[0]->id_estado_relevamiento;
 
-    return ['layout' => $layout];
+    $layout_total->save();
+
+    return ['layout' => $layout_total];
   }
 
   
