@@ -212,7 +212,7 @@ $("#btn-backup").click(function(){
     id_casino: $('#casinoSinSistema option:selected').val(),
   }
 
-  console.log(formData);
+  //console.log(formData);
 
   $.ajax({
       type: "POST",
@@ -220,7 +220,7 @@ $("#btn-backup").click(function(){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(data);
+        //console.log(data);
 
 
         var pageNumber = $('#herramientasPaginacion').getCurrentPage();
@@ -270,7 +270,7 @@ $('#btn-generar').click(function(e){
       data: formData,
       dataType: 'json',
       beforeSend: function(data){
-        console.log('Empezó');
+        //console.log('Empezó');
         $('#modalLayoutTotal').find('.modal-footer').children().hide();
         $('#modalLayoutTotal').find('.modal-body').children().hide();
 
@@ -792,7 +792,7 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     islas: islas
   };
   
-  console.log(formData);
+  //console.log(formData);
   $.ajax({
       type: 'POST',
       url: url,
@@ -807,7 +807,7 @@ $('#btn-guardarTemp').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
     function(x){
-      console.log(x);
+      //console.log(x);
       guardado=true;
       $('#mensajeExito h3').text('ÉXITO DE CARGA');
       $('#mensajeExito .cabeceraMensaje').addClass('modificar');
@@ -1044,7 +1044,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         data: formData,
         dataType: 'json',
         success: function (resultados) {
-            console.log(resultados);
+            //console.log(resultados);
 
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();

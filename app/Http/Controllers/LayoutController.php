@@ -1168,7 +1168,6 @@ class LayoutController extends Controller
   }
 
   public function obtenerLayoutTotal($id){
-
     $layout_total= LayoutTotal::find($id);
 
     return ['layout_total' => $layout_total ,
@@ -1184,7 +1183,6 @@ class LayoutController extends Controller
   // los ordena segun el casino 
 
   public function crearLayoutTotal(Request $request){
-
     Validator::make($request->all(),[
         'id_casino' => 'required|exists:casino,id_casino',
         'turno' => 'required|numeric|between:1,4'
@@ -1194,7 +1192,11 @@ class LayoutController extends Controller
         if($layouts > 0){
           $validator->errors()->add('layout_en_carga','El control de layout para esa fecha ya está en carga y no se puede reemplazar.');
         }
-
+        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        $id_casino = $validator->getData()['id_casino'];
+        if(!$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a este casino');
+        }
     })->validate();
 
     /*
@@ -1297,7 +1299,6 @@ class LayoutController extends Controller
   }
 
   private function guardarPlanillaLayoutTotal($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total);
     $output = $dompdf->output();
@@ -1309,7 +1310,7 @@ class LayoutController extends Controller
   // crearPlanillaLayoutTotal crea planilla de layout total
   // tiene en cuenta la cantidad de maquinas habilitadas dentro de una isla
   // se guardan los totales y el front decide cuando mostrarlos
-  public function crearPlanillaLayoutTotal($layout_total, $cargado=false){// CREAR Y GUARDAR RELEVAMIENTO
+  private function crearPlanillaLayoutTotal($layout_total, $cargado=false){// CREAR Y GUARDAR RELEVAMIENTO
     $rel= new \stdClass();
     $rel->nro_relevamiento = $layout_total->nro_layout_total;
     $rel->casinoCod = $layout_total->casino->codigo;
@@ -1376,17 +1377,23 @@ class LayoutController extends Controller
   }
 
   public function generarPlanillaLayoutTotales($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total);
+
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
+
     $ruta = "LayoutTotal- '. $layout_total->casino->descripcion  . '-' . $layout_total->fecha . '.pdf";
 
     return $dompdf->stream($ruta, Array('Attachment'=>0));
   }
 
   public function generarPlanillaLayoutTotalesCargado($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
+
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
+
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total, true); // parametro true es porque ya esta cargado, si no mando este es falso pro defecto
     $ruta = "LayoutTotal- '. $layout_total->casino->descripcion  . '-' . $layout_total->fecha . '.pdf";
 
@@ -1394,6 +1401,10 @@ class LayoutController extends Controller
   }
 
   public function descargarLayoutTotalZip($nombre){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->es_administrador && !$user->es_superusuario && !$user->es_fiscalizador){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
     $file = public_path()."/".$nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
@@ -1424,12 +1435,7 @@ class LayoutController extends Controller
           'islas.*.id_isla' => 'required|integer|exists:isla,id_isla',
           'islas.*.maquinas_observadas' => 'nullable|integer|min:0'
       ], array(), self::$atributos)->after(function($validator){
-          $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
           $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
-          if(!$user->usuarioTieneCasino($layout->id_casino)){
-            $validator->errors()->add('Casino no accesible por el usuario.');
-            return;
-          }
           if($validator->getData()['confirmacion'] == 0){
             if(isset($validator->getData()['maquinas'])){
               foreach ($validator->getData()['maquinas'] as $i => $maquina) {
@@ -1448,7 +1454,8 @@ class LayoutController extends Controller
     }
 
     $layout_total = LayoutTotal::find($request->id_layout_total);
-    if(is_null($layout_total)) return ['codigo' => 500];
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
 
     $estado = $layout_total->id_estado_relevamiento;
     if( $estado == 1 || $estado == 2 ){//si el estado es GENERADO o CARGANDO
@@ -1505,13 +1512,15 @@ class LayoutController extends Controller
       return ['codigo' => 200];
     } 
     else{
-      return ['codigo' => 500];
+      return $this->errorOut(['estado' => ['El estado del layout no es correspondiente con la accion']]);
     }
 
   }
 
   public function obtenerTotalParaValidar($id){
     $layout_total= LayoutTotal::find($id);
+    $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
+    if(!is_null($errors)) return $errors;
 
     return ['layout_total' => $layout_total,
             'sectores' => $layout_total->casino->sectores,
@@ -1523,7 +1532,6 @@ class LayoutController extends Controller
 
   // validarLayoutTotal cambia el estado del relevamiento
   public function validarLayoutTotal(Request $request){
-
     Validator::make($request->all(),[
         'observacion_validacion' => 'required|string',
         'id_layout_total' => 'required|exists:layout_total,id_layout_total',
@@ -1538,6 +1546,9 @@ class LayoutController extends Controller
     })->validate();
 
     $layout = LayoutTotal::find($request->id_layout_total);
+    $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
+    if(!is_null($errors)) return $errors;
+    
     $layout->observacion_validacion = $request->observacion_validacion;
     $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->get()[0]->id_estado_relevamiento;
 
@@ -1554,6 +1565,14 @@ class LayoutController extends Controller
         'fecha_generacion' => 'required|date'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($request->id_casino)){
+      return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
+    }
+    if(!$user->es_administrador && !$user->es_superusuario && !$user->es_fiscalizador){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
 
     //Si hay un relevamiento que original para el dia en el cual se quiere usar un backup
     $relevamientos = LayoutTotal::where([['id_casino',$request->id_casino],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();
@@ -1625,6 +1644,23 @@ class LayoutController extends Controller
 
   private function errorOut($map){
     return response()->json($map,422);
+  }
+
+  private function verificarAccesoLayoutTotal($layout_total,$permitir_fiscal = True){
+    if(is_null($layout_total)){
+      return $this->errorOut(['id_layout_total' => ['No existe el layout']]);
+    }
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($layout_total->id_casino)){
+      return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
+    }
+
+    if(!($user->es_administrador || $user->es_superusuario || ($user->es_fiscalizador && $permitir_fiscal))){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
+
+    return null;
   }
 
 }
