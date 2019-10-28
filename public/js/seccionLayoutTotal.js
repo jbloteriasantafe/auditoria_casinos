@@ -551,59 +551,78 @@ $(document).on('click','.carga',function(e){
   cargarDivInactivas(id_layout_total,donef);
 });
 
+
+//Esta funcion hace un "post processing" de las otras dos pestañas, 
+//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
 function cargarDivDiferenciasValidar(){
   let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
   const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
   tabla.find('.diferenciasFilaEjemplo').remove();
 
-  
   sectores = [];
-  //Busco en el div de activas
+  //Busco en el div de activas cada sector y le saco la info
   $('#modalValidarControl .activas div.sector').each(function(){
-    let f = filaEjemplo.clone();
     const t = $(this);
-    const observado = parseInt(t.find('.total .observado').text());
-    const sistema = parseInt(t.find('.total .sistema').text());
-    f.find('.diferenciasSector').text(t.find('.nombre').text());
-    f.find('.diferenciasActivas').text(observado);
-    f.find('.diferenciasTotalSistema').text(sistema);
+    const islaTotal = t.find('.total');
+    const nombre = t.find('.nombre').text();
+    const observado = parseInt(islaTotal.find('.observado').text());
+    const sistema = parseInt(islaTotal.find('.sistema').text());
     const id_sector = t.attr('data-id-sector');
-    f.attr('data-id-sector',id_sector);
     //console.log("AGREGANDO "+id_sector);
     sectores[id_sector] = [];
+    sectores[id_sector]['nombre'] = nombre;
     sectores[id_sector]['activas'] = observado;
     sectores[id_sector]['sistema'] = sistema;
     sectores[id_sector]['inactivas'] = 0;
-    sectores[id_sector]['fila'] = f;
-    tabla.find('.cuerpoTablaDiferencias').append(f);
   });
 
-  //Busco en el div de inactivas
+  islas_con_inactivas = [];
+  //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
   $('#modalValidarControl .inactivas .NivelLayout').each(function(){
     const t = $(this);
     const id_sector = t.find('select').val();
+    const nro_isla = t.find('.nro_isla').val();
     //console.log("BUSCANDO INACTIVO "+id_sector);
     sectores[id_sector]['inactivas']++;
+    const init = !(nro_isla in islas_con_inactivas);
+    if(init) islas_con_inactivas[nro_isla] = 1;
+    else islas_con_inactivas[nro_isla]++;
   });
 
+  //Agrego una fila por cada uno.
   sectores.forEach(function(val,key){
-    const fila = val['fila'];
+    const fila = filaEjemplo.clone();
+    const nombre = val['nombre'];
     const activas = val['activas'];
     const inactivas = val['inactivas'];
     const total_relevado = activas + inactivas;
     const sistema = val['sistema'];
     const diff = Math.abs(sistema - total_relevado);
 
+    fila.attr('data-id-sector',key);
+    fila.find('.diferenciasSector').text(nombre);
     fila.find('.diferenciasActivas').text(activas);
     fila.find('.diferenciasInactivas').text(inactivas);
     fila.find('.diferenciasTotal').text(total_relevado);
     fila.find('.diferenciasTotalSistema').text(sistema);
     fila.find('.diferenciasDiferencia').text(diff)
     .addClass(diff? 'incorrecto' : 'correcto');
+
+    tabla.find('.cuerpoTablaDiferencias').append(fila);
+  });
+
+  //Busco la isla correspondiente y le agrego las inactivas
+  $('#modalValidarControl .activas div.sector .isla').each(function(){
+    let t = $(this);
+    const nro_isla = parseInt(t.find('.textoIsla').text());
+    if(nro_isla in islas_con_inactivas){
+      t.find('.inactivas').text('+'+islas_con_inactivas[nro_isla]);
+    }
   });
 
   $('#modalValidarControl .diferencias').append(tabla);
 }
+
 $(document).on('click','.validar',function(e){
   e.preventDefault();
   limpiarModal();

@@ -681,12 +681,13 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
               <input class="form-control inputIsla input-chico"/>
             </div>
           </td>
-          <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
+          <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde chico ">
             <div>
               <div style="text-align: center;" class="textoIsla">-1</div>
               <div style="text-align: center;">
-              <span class="observado"></span>
-              <span>(<span class="sistema"></span>)</span>
+                <span class="observado"></span>
+                <span class="inactivas incorrecto"></span>
+                <span>(<span class="sistema"></span>)</span>
               </div>
             </div>
           </td>
