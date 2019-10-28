@@ -645,6 +645,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
             <span class="estado">ESTADO99</span>
           </td>
           <td class="col-xs-3">
+            <button class="btn btn-info ver" title="VER LAYOUT TOTAL" type="button" value="-1">
+              <i class="fa fa-fw fa-search-plus"></i>
+            </button>
+            <span></span>
             <button class="btn btn-info planilla" title="PLANILLA RELEVAMIENTO" type="button" value="-1">
               <i class="far fa-fw fa-file-alt"></i>
             </button>

@@ -429,7 +429,13 @@ function cargarDivInactivasValidar(id_layout_total,done = function (x){return;})
                       .prop('readonly',true);
     }
 
-    $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
+    if(data.layout_total.observacion_fiscalizacion != null){
+      $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
+    }
+
+    if(data.layout_total.observacion_validacion != null){
+      $('#observacion_validar').val(data.layout_total.observacion_validacion);
+    }
 
     sectores = data.sectores;
 
@@ -643,16 +649,13 @@ function cargarDivDiferenciasValidar(){
   $('#modalValidarControl .diferencias').append(tabla);
 }
 
-$(document).on('click','.validar',function(e){
-  e.preventDefault();
+function mostrarModalValidacion(id_layout_total,editable = true){
   limpiarModal();
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
   $('#modalValidarControlLayout .mensajeSalida').hide();
   $('#mensajeExito').hide();
-
-  var id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
@@ -695,12 +698,34 @@ $(document).on('click','.validar',function(e){
   const donef = function(){
     if(done){
       cargarDivDiferenciasValidar();
+      if(editable){
+        $('#observacion_validar').attr('disabled','');
+        $('#modalValidarControl .modal-title').text('VALIDAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').show();
+      }
+      else{
+        $('#observacion_validar').attr('disabled','disabled');
+        $('#modalValidarControl .modal-title').text('VISUALIZAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').hide();
+      }
       $('#modalValidarControl').modal('show');
     }
     else done = true;
   };
   cargarDivActivasValidar(id_layout_total,donef);
   cargarDivInactivasValidar(id_layout_total,donef);
+}
+
+$(document).on('click','.validar',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,true);
+});
+
+$(document).on('click','.ver',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,false);
 });
 
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
@@ -1090,6 +1115,7 @@ function mostrarIconosPorPermisos(){
           if(!data.validar_layout_total){
             $('#cuerpoTabla .validar').hide();
             $('#cuerpoTabla .imprimir').hide();
+            $('#cuerpoTabla .ver').hide();
           }else{
             $('#cuerpoTabla .imprimir').show();
           }
@@ -1131,6 +1157,7 @@ function clickIndice(e,pageNumber,tam){
 
 function setearEstado(fila,estado){
   let icono_estado = fila.find('.icono_estado');
+  let icono_ver = fila.find('.ver');
   let icono_planilla = fila.find('.planilla');
   let icono_carga = fila.find('.carga');
   let icono_validacion = fila.find('.validar');
@@ -1139,6 +1166,7 @@ function setearEstado(fila,estado){
   icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
   fila.find('.estado').text(estado);
   //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
+  icono_ver.hide();
   icono_planilla.show();
   icono_imprimir.hide();
   icono_carga.hide();
@@ -1154,10 +1182,12 @@ function setearEstado(fila,estado){
       break;
     case 'Finalizado':
       icono_estado.addClass('faFinalizado');
+      icono_ver.show();
       icono_validacion.show();
       break;
     case 'Visado':
       icono_estado.addClass('faValidado');
+      icono_ver.show();
       break;
     default:
       break;
@@ -1166,17 +1196,18 @@ function setearEstado(fila,estado){
 
 //La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
 function generarFilaTabla(layout_total){
-      let fila = $('#filaEjemplo').clone();
-      fila.attr('id',layout_total.id_layout_total);
-      fila.find('.fecha').text(layout_total.fecha);
-      fila.find('.casino').text(layout_total.casino);
-      fila.find('.turno').text(layout_total.turno);
-      fila.find('.planilla').val(layout_total.id_layout_total);
-      fila.find('.carga').val(layout_total.id_layout_total);
-      fila.find('.validar').val(layout_total.id_layout_total);
-      fila.find('.imprimir').val(layout_total.id_layout_total);
-      setearEstado(fila,layout_total.estado);
-      return fila;
+  let fila = $('#filaEjemplo').clone();
+  fila.attr('id',layout_total.id_layout_total);
+  fila.find('.fecha').text(layout_total.fecha);
+  fila.find('.casino').text(layout_total.casino);
+  fila.find('.turno').text(layout_total.turno);
+  fila.find('.planilla').val(layout_total.id_layout_total);
+  fila.find('.carga').val(layout_total.id_layout_total);
+  fila.find('.validar').val(layout_total.id_layout_total);
+  fila.find('.imprimir').val(layout_total.id_layout_total);
+  fila.find('.ver').val(layout_total.id_layout_total);
+  setearEstado(fila,layout_total.estado);
+  return fila;
 }
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
