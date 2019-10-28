@@ -556,36 +556,50 @@ function cargarDivDiferenciasValidar(){
   const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
   tabla.find('.diferenciasFilaEjemplo').remove();
 
-  inactivas = [];
+  
+  sectores = [];
+  //Busco en el div de activas
   $('#modalValidarControl .activas div.sector').each(function(){
     let f = filaEjemplo.clone();
     const t = $(this);
+    const observado = parseInt(t.find('.total .observado').text());
+    const sistema = parseInt(t.find('.total .sistema').text());
     f.find('.diferenciasSector').text(t.find('.nombre').text());
-    f.find('.diferenciasActivas').text(t.find('.total .observado').text());
-    f.find('.diferenciasTotalSistema').text(t.find('.total .sistema').text());
+    f.find('.diferenciasActivas').text(observado);
+    f.find('.diferenciasTotalSistema').text(sistema);
     const id_sector = t.attr('data-id-sector');
     f.attr('data-id-sector',id_sector);
-    inactivas[id_sector]['inactivas'] = 0;
-    inactivas[id_sector]['fila'] = f;
+    //console.log("AGREGANDO "+id_sector);
+    sectores[id_sector] = [];
+    sectores[id_sector]['activas'] = observado;
+    sectores[id_sector]['sistema'] = sistema;
+    sectores[id_sector]['inactivas'] = 0;
+    sectores[id_sector]['fila'] = f;
     tabla.find('.cuerpoTablaDiferencias').append(f);
   });
 
-  inactivas = [];
+  //Busco en el div de inactivas
   $('#modalValidarControl .inactivas .NivelLayout').each(function(){
     const t = $(this);
     const id_sector = t.find('select').val();
-    console.log(id_sector);
-    inactivas[id_sector]['inactivas']++;
+    //console.log("BUSCANDO INACTIVO "+id_sector);
+    sectores[id_sector]['inactivas']++;
   });
 
-  inactivas.forEach(function(val,key){
-    val['fila'].find('.diferenciasInactivas').text(val['inactivas']);
-  });
+  sectores.forEach(function(val,key){
+    const fila = val['fila'];
+    const activas = val['activas'];
+    const inactivas = val['inactivas'];
+    const total_relevado = activas + inactivas;
+    const sistema = val['sistema'];
+    const diff = Math.abs(sistema - total_relevado);
 
-  tabla.find('.diferenciasDiferencia').each(function(){
-    let t = $(this);
-    const diff = parseInt(t.text())!=0;
-    t.addClass(diff? 'incorrecto' : 'correcto');
+    fila.find('.diferenciasActivas').text(activas);
+    fila.find('.diferenciasInactivas').text(inactivas);
+    fila.find('.diferenciasTotal').text(total_relevado);
+    fila.find('.diferenciasTotalSistema').text(sistema);
+    fila.find('.diferenciasDiferencia').text(diff)
+    .addClass(diff? 'incorrecto' : 'correcto');
   });
 
   $('#modalValidarControl .diferencias').append(tabla);
