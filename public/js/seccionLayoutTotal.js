@@ -558,15 +558,8 @@ $(document).on('click','.carga',function(e){
   cargarDivInactivas(id_layout_total,donef);
 });
 
-
-//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
-//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
-function cargarDivDiferenciasValidar(){
-  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
-  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
-  tabla.find('.diferenciasFilaEjemplo').remove();
-
-  sectores = [];
+function infoSectores(){
+  let sectores = [];
   //Busco en el div de activas cada sector y le saco la info
   $('#modalValidarControl .activas div.sector').each(function(){
     const t = $(this);
@@ -583,6 +576,17 @@ function cargarDivDiferenciasValidar(){
     sectores[id_sector]['inactivas'] = 0;
     sectores[id_sector]['islaTotal'] = islaTotal;
   });
+
+  return sectores;
+}
+//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
+//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
+function cargarDivDiferenciasValidar(){
+  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
+  tabla.find('.diferenciasFilaEjemplo').remove();
+
+  sectores = infoSectores();
 
   islas_con_inactivas = [];
   //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
