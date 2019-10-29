@@ -25,6 +25,7 @@ use App\MaquinaAPedido;
 use App\Isla;
 use App\TipoCausaNoToma;
 use App\PackJuego;
+use App\LayoutTotalIsla;
 /*
   Controllador encargado de crear(o usar backup), modifciar o borrar
   cargar y validar
@@ -1167,7 +1168,6 @@ class LayoutController extends Controller
   }
 
   public function obtenerLayoutTotal($id){
-
     $layout_total= LayoutTotal::find($id);
 
     return ['layout_total' => $layout_total ,
@@ -1183,7 +1183,6 @@ class LayoutController extends Controller
   // los ordena segun el casino 
 
   public function crearLayoutTotal(Request $request){
-
     Validator::make($request->all(),[
         'id_casino' => 'required|exists:casino,id_casino',
         'turno' => 'required|numeric|between:1,4'
@@ -1193,87 +1192,113 @@ class LayoutController extends Controller
         if($layouts > 0){
           $validator->errors()->add('layout_en_carga','El control de layout para esa fecha ya está en carga y no se puede reemplazar.');
         }
-
+        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        $id_casino = $validator->getData()['id_casino'];
+        if(!$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino','El usuario no tiene acceso a este casino');
+        }
     })->validate();
-
-    $fecha_hoy = date("Y-m-d"); // fecha de hoy
-    $id_layouts_viejos = array();
-
-    //me fijo si ya habia generados control layout para el dia de hoy que no sean back up, si hay los borro
-
-    $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy],['turno',$request->turno]])->get();
-
-    foreach($layouts_totales as $unControLayout){
-      $unControLayout->delete();
-    }
-
-    $arregloRutas = array();
-    $layouts_finales = array();
 
     /*
     NUEVO RELEVAMIENTO TOTAL
     */
-    $layout_total = new LayoutTotal;
-    $layout_total->nro_layout_total = DB::table('layout_total')->max('nro_layout_total') + 1;
-    $layout_total->fecha = $fecha_hoy;
+    $nombreZip = null;
+    DB::beginTransaction();
+    try{
+      $fecha_hoy = date("Y-m-d"); // fecha de hoy
+      $id_layouts_viejos = array();
+  
+      //me fijo si ya habia generados control layout para el dia de hoy que no sean back up, si hay los borro
+  
+      $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy],['turno',$request->turno]])->get();
+  
+      foreach($layouts_totales as $unControLayout){
+        $unControLayout->delete();
+      }
+  
+      $arregloRutas = array();
+      $layouts_finales = array();
+      $layout_total = new LayoutTotal;
+      $layout_total->nro_layout_total = DB::table('layout_total')->max('nro_layout_total') + 1;
+      $layout_total->fecha = $fecha_hoy;
 
-    $fecha_hora= date("H:i:s");
-    $layout_total->turno = $request->turno;
-    $layout_total->fecha_generacion = date('Y-m-d h:i:s', time());
-    $fecha_generacion = $layout_total->fecha_generacion;
-    $layout_total->backup = 0;
+      $fecha_hora= date("H:i:s");
+      $layout_total->turno = $request->turno;
+      $layout_total->fecha_generacion = date('Y-m-d h:i:s', time());
+      $fecha_generacion = $layout_total->fecha_generacion;
+      $layout_total->backup = 0;
 
-    $casino = Casino::find($request->id_casino);
+      $casino = Casino::find($request->id_casino);
 
-    $layout_total->casino()->associate($casino->id_casino);
-    $layout_total->estado_relevamiento()->associate(1);
-    $layout_total->save();
-    $layouts_finales [] = $layout_total;
-    $arregloRutas[] = $this->guardarPlanillaLayoutTotal($layout_total->id_layout_total);
+      $layout_total->casino()->associate($casino->id_casino);
+      $layout_total->estado_relevamiento()->associate(1);
+      $layout_total->save();
+      $this->asignarIslas($layout_total);
+      $layouts_finales [] = $layout_total;
+      $arregloRutas[] = $this->guardarPlanillaLayoutTotal($layout_total->id_layout_total);
 
-    /*
-    Generacion backups
-    */
-    $fecha_backup = $fecha_hoy; // Armamos los relevamientos para backup
-    for($i = 1; $i <= self::$cant_dias_backup_relevamiento; $i++){
-        $fecha_backup = date("Y-m-d", strtotime($fecha_backup . " +1 days"));
+      /*
+      Generacion backups
+      */
+      $fecha_backup = $fecha_hoy; // Armamos los relevamientos para backup
+      for($i = 1; $i <= self::$cant_dias_backup_relevamiento; $i++){
+          $fecha_backup = date("Y-m-d", strtotime($fecha_backup . " +1 days"));
 
-        //me fijo si ya habia generados relevamientos backup para ese dia, si hay los borro
-        $relevamientos_back = LayoutTotal::where([['fecha',$fecha_backup],
-                                              ['id_casino',$casino->id_casino],
-                                              ['backup',1],
-                                              ['id_estado_relevamiento',1],
-                                              ['fecha_generacion',$fecha_hoy]])->get();
+          //me fijo si ya habia generados relevamientos backup para ese dia, si hay los borro
+          $relevamientos_back = LayoutTotal::where([['fecha',$fecha_backup],
+                                                ['id_casino',$casino->id_casino],
+                                                ['backup',1],
+                                                ['id_estado_relevamiento',1],
+                                                ['fecha_generacion',$fecha_hoy]])->get();
 
-        foreach($relevamientos_back as $relevamiento){//si estado = 1 no hay diferencias (es decir,no hay detalles)
-          $relevamiento->delete();
-        }
+          foreach($relevamientos_back as $relevamiento){//si estado = 1 no hay diferencias (es decir,no hay detalles)
+            $relevamiento->delete();
+          }
 
-        $layout_backup = new LayoutTotal;
-        $layout_backup->fecha = $fecha_backup;
-        $layout_backup->fecha_generacion = $fecha_generacion;
-        $layout_backup->backup = 1;
-        $layout_backup->turno = $request->turno;
-        $layout_backup->casino()->associate($casino->id_casino);
-        $layout_backup->estado_relevamiento()->associate(1);
-        $layout_backup->save();
+          $layout_backup = new LayoutTotal;
+          $layout_backup->fecha = $fecha_backup;
+          $layout_backup->fecha_generacion = $fecha_generacion;
+          $layout_backup->backup = 1;
+          $layout_backup->turno = $request->turno;
+          $layout_backup->casino()->associate($casino->id_casino);
+          $layout_backup->estado_relevamiento()->associate(1);
+          $layout_backup->save();
+          $this->asignarIslas($layout_backup);
+          $arregloRutas[] = $this->guardarPlanillaLayoutTotal($layout_backup->id_layout_total);
+      }
 
-      $arregloRutas[] = $this->guardarPlanillaLayoutTotal($layout_backup->id_layout_total);
+      // crear zip con backup;  FALTA PLANILLA
+      $nombreZip = 'Planillas-'.$casino->codigo
+                  .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cant_dias_backup_relevamiento." day"))
+                  .'.zip';
+      Zipper::make($nombreZip)->add($arregloRutas)->close();
+      File::delete($arregloRutas);
     }
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
+    }
+    DB::commit();
+    return [ 'url_zip' => '/layouts/descargarLayoutTotalZip/'.$nombreZip];
 
-    // crear zip con backup;  FALTA PLANILLA
-    $nombreZip = 'Planillas-'.$casino->codigo
-                .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cant_dias_backup_relevamiento." day"))
-                .'.zip';
-    Zipper::make($nombreZip)->add($arregloRutas)->close();
-    File::delete($arregloRutas);
-
-    return [  'url_zip' => '/layouts/descargarLayoutTotalZip/'.$nombreZip];
-
+  }
+  //Asigna islas del casino al layout total, usado en la creacion.
+  private function asignarIslas($layout_total){
+    $casino = $layout_total->casino;
+    $sectores = $casino->sectores;
+    foreach($sectores as $s){
+      $islas = $s->islas;
+      foreach($islas as $i){
+        $obs = new LayoutTotalIsla;
+        $obs->id_layout_total = $layout_total->id_layout_total;
+        $obs->id_isla = $i->id_isla;
+        $obs->maquinas_observadas = null;
+        $obs->save();
+      }
+    }
   }
 
   private function guardarPlanillaLayoutTotal($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total);
     $output = $dompdf->output();
@@ -1285,7 +1310,7 @@ class LayoutController extends Controller
   // crearPlanillaLayoutTotal crea planilla de layout total
   // tiene en cuenta la cantidad de maquinas habilitadas dentro de una isla
   // se guardan los totales y el front decide cuando mostrarlos
-  public function crearPlanillaLayoutTotal($layout_total, $cargado=false){// CREAR Y GUARDAR RELEVAMIENTO
+  private function crearPlanillaLayoutTotal($layout_total, $cargado=false){// CREAR Y GUARDAR RELEVAMIENTO
     $rel= new \stdClass();
     $rel->nro_relevamiento = $layout_total->nro_layout_total;
     $rel->casinoCod = $layout_total->casino->codigo;
@@ -1352,17 +1377,23 @@ class LayoutController extends Controller
   }
 
   public function generarPlanillaLayoutTotales($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total);
+
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
+
     $ruta = "LayoutTotal- '. $layout_total->casino->descripcion  . '-' . $layout_total->fecha . '.pdf";
 
     return $dompdf->stream($ruta, Array('Attachment'=>0));
   }
 
   public function generarPlanillaLayoutTotalesCargado($id_layout_total){
-
     $layout_total = LayoutTotal::find($id_layout_total);
+
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
+
     $dompdf = $this->crearPlanillaLayoutTotal($layout_total, true); // parametro true es porque ya esta cargado, si no mando este es falso pro defecto
     $ruta = "LayoutTotal- '. $layout_total->casino->descripcion  . '-' . $layout_total->fecha . '.pdf";
 
@@ -1370,6 +1401,10 @@ class LayoutController extends Controller
   }
 
   public function descargarLayoutTotalZip($nombre){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->es_administrador && !$user->es_superusuario && !$user->es_fiscalizador){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
     $file = public_path()."/".$nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
@@ -1392,14 +1427,16 @@ class LayoutController extends Controller
           'maquinas.*.nro_isla' => 'required|exists:isla,nro_isla',
           'maquinas.*.nro_admin' => 'required|integer',
           'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
-          'maquinas.*.co' => 'nullable',//codigo
+          'maquinas.*.co' => 'nullable|string',//codigo
           'maquinas.*.pb' => 'required|in:1,0',//producido bloqueado
           'observacion_fiscalizacion' =>  'nullable|string',
           'confirmacion' => 'required|in:0,1',
-
+          'islas' => 'nullable',
+          'islas.*.id_isla' => 'required|integer|exists:isla,id_isla',
+          'islas.*.maquinas_observadas' => 'nullable|integer|min:0'
       ], array(), self::$atributos)->after(function($validator){
+          $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
           if($validator->getData()['confirmacion'] == 0){
-            $layout = LayoutTotal::find($validator->getData()['id_layout_total']);
             if(isset($validator->getData()['maquinas'])){
               foreach ($validator->getData()['maquinas'] as $i => $maquina) {
                 $maquinas =  Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
@@ -1417,6 +1454,9 @@ class LayoutController extends Controller
     }
 
     $layout_total = LayoutTotal::find($request->id_layout_total);
+    $error = $this->verificarAccesoLayoutTotal($layout_total);
+    if(!is_null($error)) return $error;
+
     $estado = $layout_total->id_estado_relevamiento;
     if( $estado == 1 || $estado == 2 ){//si el estado es GENERADO o CARGANDO
       DB::beginTransaction();
@@ -1446,25 +1486,41 @@ class LayoutController extends Controller
           }
         }
 
+        if(isset($request->islas)){
+          foreach($request->islas as $i){
+            $lti = LayoutTotalIsla::where([
+              ['id_layout_total','=',$layout_total->id_layout_total],
+              ['id_isla','=',$i['id_isla']]
+            ])->get();
+            if($lti->count() == 0) continue;
+            $lti = $lti->first();
+            $newval = array_key_exists('maquinas_observadas',$i)? $i['maquinas_observadas'] : null;
+            $lti->maquinas_observadas = $newval;
+            $lti->save();
+          }
+        }
+        
         if(!$cargando) $layout_total->id_estado_relevamiento = 2; 
         else $layout_total->id_estado_relevamiento = 3; //finalizado la carga
         $layout_total->save();
       }
       catch(Exception $e){
         DB::rollBack();
-        return ['codigo' => 500];
+        throw $e;
       }
       DB::commit();
       return ['codigo' => 200];
     } 
     else{
-      return ['codigo' => 500];
+      return $this->errorOut(['estado' => ['El estado del layout no es correspondiente con la accion']]);
     }
 
   }
 
   public function obtenerTotalParaValidar($id){
     $layout_total= LayoutTotal::find($id);
+    $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
+    if(!is_null($errors)) return $errors;
 
     return ['layout_total' => $layout_total,
             'sectores' => $layout_total->casino->sectores,
@@ -1476,7 +1532,6 @@ class LayoutController extends Controller
 
   // validarLayoutTotal cambia el estado del relevamiento
   public function validarLayoutTotal(Request $request){
-
     Validator::make($request->all(),[
         'observacion_validacion' => 'required|string',
         'id_layout_total' => 'required|exists:layout_total,id_layout_total',
@@ -1490,13 +1545,16 @@ class LayoutController extends Controller
 
     })->validate();
 
-    $layout = LayoutTotal::find($request->id_layout_total);
-    $layout->observacion_validacion = $request->observacion_validacion;
-    $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->get()[0]->id_estado_relevamiento;
+    $layout_total = LayoutTotal::find($request->id_layout_total);
+    $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
+    if(!is_null($errors)) return $errors;
 
-    $layout->save();
+    $layout_total->observacion_validacion = $request->observacion_validacion;
+    $layout_total->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->get()[0]->id_estado_relevamiento;
 
-    return ['layout' => $layout];
+    $layout_total->save();
+
+    return ['layout' => $layout_total];
   }
 
   
@@ -1507,6 +1565,14 @@ class LayoutController extends Controller
         'fecha_generacion' => 'required|date'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($request->id_casino)){
+      return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
+    }
+    if(!$user->es_administrador && !$user->es_superusuario && !$user->es_fiscalizador){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
 
     //Si hay un relevamiento que original para el dia en el cual se quiere usar un backup
     $relevamientos = LayoutTotal::where([['id_casino',$request->id_casino],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();
@@ -1527,6 +1593,74 @@ class LayoutController extends Controller
     }
     //todo ok
     return ['codigo' => 200];
+  }
+
+  public function islasLayoutTotal(Request $request,$id_layout_total){
+    $layout = LayoutTotal::find($id_layout_total);
+    if(is_null($layout)){
+      return $this->errorOut([ 'id_layout_total' => ['El layout total no existe.'] ]);
+    }
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($layout->id_casino)){
+      return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
+    }
+    
+    $islas = $layout->islas;
+    $sectores = [];
+    $total_observadas = 0;
+    $total_sistema = 0;
+    foreach($islas as $i){
+      $i2 = $i->toArray();      
+      $observadas = $i->pivot->maquinas_observadas;
+      $sistema = $i2['cantidad_maquinas'];
+      $i2['maquinas_observadas'] = $observadas;
+
+      $sector_bd = $i->sector;
+      $id_sector = $sector_bd->id_sector;
+      if(!array_key_exists($id_sector,$sectores)){
+        $sectores[$id_sector]=$sector_bd->toArray();
+        $sectores[$id_sector]['islas']=[];
+        $sectores[$id_sector]['total_observadas']=0;
+        $sectores[$id_sector]['total_sistema']=0;
+      }
+
+      $s = &$sectores[$id_sector];
+      $s['islas'][]=$i2;
+      $s['total_observadas']+=(is_null($observadas)? 0 : $observadas);
+      $s['total_sistema']+=(is_null($sistema)? 0: $sistema);
+    }
+    $ret = [];
+    foreach($sectores as $s){
+      usort($s['islas'],function($a,$b){
+        return $a['nro_isla']<=>$b['nro_isla'];
+      });
+      $ret[]=$s;
+    }
+    usort($ret,function($a,$b){
+      return $a['descripcion']<=>$b['descripcion'];
+    });
+    return $ret;
+  }
+
+  private function errorOut($map){
+    return response()->json($map,422);
+  }
+
+  private function verificarAccesoLayoutTotal($layout_total,$permitir_fiscal = True){
+    if(is_null($layout_total)){
+      return $this->errorOut(['id_layout_total' => ['No existe el layout']]);
+    }
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$user->usuarioTieneCasino($layout_total->id_casino)){
+      return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
+    }
+
+    if(!($user->es_administrador || $user->es_superusuario || ($user->es_fiscalizador && $permitir_fiscal))){
+      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
+    }
+
+    return null;
   }
 
 }
