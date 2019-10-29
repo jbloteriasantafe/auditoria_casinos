@@ -9,6 +9,8 @@ use App\Bingo\PremioBingo;
 
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];;
 $casinos = $usuario->casinos;
+//Supongo que el $casinos[0] esta porque se trae el unico casino que le corresponde a una fisca. Para un superusuario,
+//trae los premios de Melincue porque es el primero de los 3 casinos.
 $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->all();
 ?>
 

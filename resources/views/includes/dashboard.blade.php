@@ -391,29 +391,27 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         <!-- FIN GESTIÓN MAQUINAS -->
 
                         <!-- GESTIÓN BINGO -->
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion'))
-                        <!-- <li>
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion') || $usuario['usuario']->es_superusuario)
+                         <li>
                             <div id="barraGestionBingo" class="opcionesHover" data-target="#gestionBingo" data-toggle="collapse">
                                 <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
-                                <span class="icono" style="padding-bottom: 50px;"> -->
-                                <!--  (falta arroba ) svg('bingos','iconoTableroControl') -->
-                                <!-- </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                    @svg('bingos','iconoTableroControl')
+                               </span>
                                 <span>Bingo</span>
-                            </div> -->
+                            </div>
 
                             <!-- SEGUNDO NIVEL -->
-                            <!-- <ul class="subMenu1 collapse" id="gestionBingo">
-
+                             <ul class="subMenu1 collapse" id="gestionBingo">
                               <li>
                                 <div id="opcGestionarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/gestionBingo'" href="#" style="cursor: pointer;">
-                                  <span>Gestion premios y canon</span>
+                                  <span>Gestión de premios</span>
                                 </div>
                               </li>
-
                             </ul>
-                        </li> -->
+                        </li>
                         @endif
                         <!-- FIN GESTIÓN BINGO -->
 

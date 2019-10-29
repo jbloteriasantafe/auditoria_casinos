@@ -53,14 +53,14 @@ $casinos = $usuario->casinos;
 
 
                       <div class="row"><!-- RESULTADOS BÚSQUEDA -->
-                        <div class="col-md-12">
+                        <div class="col-md-12" style="width: 1300px">
                           <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4>LISTA DE PREMIOS</h4>
                             </div>
                             <div class="panel-body modal-cuerpo">
-                              <table id="tablaResultadosPremios" class="table table-fixed tablesorter">
-                                <thead>
+                              <table id="tablaResultadosPremios" class="table table-fixed tablesorter" >
+                                <thead style="width: 1200px">
                                   <tr>
                                     <th class="col-xs-2" value="nombre_premio" estado="">NOMBRE DE PREMIO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2" value="porcentaje" estado="">PORCENTAJE <i class="fa fa-sort"></i></th>
@@ -70,7 +70,7 @@ $casinos = $usuario->casinos;
                                     <th class="col-xs-2">ACCIONES</th>
                                   </tr>
                                 </thead>
-                                <tbody id="cuerpoTablaPremios" style="height: 370px;">
+                                <tbody id="cuerpoTablaPremios" style="height: 370px; width: 1200px">
 
 
                                 </tbody>
@@ -90,7 +90,7 @@ $casinos = $usuario->casinos;
                   <div class="col-lg-12 col-xl-5">
 
                     <div class="row" style="display: none;"> <!-- fila de FILTROS -->
-                        <div class="col-md-12">
+                        <div class="col-md-12" style="width:1300px">
                           <div class="panel panel-default">
                             <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
                               <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
@@ -115,6 +115,8 @@ $casinos = $usuario->casinos;
 
 
                       <div class="row"><!-- RESULTADOS BÚSQUEDA -->
+
+                        <!--
                         <div class="col-md-12">
                           <div class="panel panel-default">
                             <div class="panel-heading">
@@ -135,11 +137,10 @@ $casinos = $usuario->casinos;
 
                                 </tbody>
                               </table>
-                              <!-- <div id="herramientasPaginacion" class="row zonaPaginacion"></div> -->
                               </div>
                             </div>
                           </div>
-
+                          -->
 
 
                         </div> <!-- Fin del col de los filtros -->
@@ -168,7 +169,9 @@ $casinos = $usuario->casinos;
                       </div>
 
 
-                      <div class="col-lg-6 col-xl-2"><!-- BOTÓN AGREGAR CANON -->
+                      <!-- BOTÓN AGREGAR CANON -->
+                      <!--
+                      <div class="col-lg-6 col-xl-2">
                         <div class="row">
                           <div class="col-md-12">
                             <a href="" id="btn-nuevo-canon" style="text-decoration: none;">
@@ -188,7 +191,7 @@ $casinos = $usuario->casinos;
                            </div>
                           </div>
                       </div>
-
+                      -->
 
 
             </div> <!--/columna row -->
