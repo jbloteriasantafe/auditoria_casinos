@@ -1348,9 +1348,13 @@ class LayoutController extends Controller
 
     //cargado significa que entreo luego que se finalizo, en ese punto solo lo puede ver el administrador
     //mostrar maquinas es una bandera para mostrar en el formulario la cantidad de maquinas
+    $observacion = '';
     if($cargado){
       $maquinas_apagadas = $layout_total->detalles;
       $mostrar_maquinas=true;
+      if(!is_null($layout_total->observacion_validacion)){
+        $observacion = $layout_total->observacion_validacion;
+      }
     }else{
       $maquinas_apagadas = array();
       $mostrar_maquinas=false;
@@ -1375,7 +1379,7 @@ class LayoutController extends Controller
       
       $detalles[] = $det;
     };
-    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas'));
+    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());

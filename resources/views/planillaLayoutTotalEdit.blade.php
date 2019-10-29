@@ -351,13 +351,36 @@ p {
                 </div>
               </div>
               <br>
-              <div style="font-size: 11px; text-decoration: underline;"> Códigos:</div>
-              <div style="font-size: 11px;"><strong>FDS</strong> -> Fuera de servicio.</div>
-              <div style="font-size: 11px;"><strong>MT</strong> -> Módulo tildado.</div>
-              <div style="font-size: 11px;"><strong>FDST</strong> -> Fuera de servicio temporal.</div>
-              <div style="font-size: 11px;"><strong>TM</strong> -> Tareas de mantenimiento.</div>
-              <div style="font-size: 11px;"><strong>FDS</strong> -> No funciona la botonera.</div>
-              <div style="font-size: 11px;"><strong>MA</strong> -> Máquinia apagada.</div>
-              <div style="font-size: 11px;"><strong>TP</strong> -> Trabajo en el plato.</div>
+              <div>
+                <div style="float: left;width: 20%;">
+                  <div style="font-size: 11px; text-decoration: underline;"> Códigos:</div>
+                  <div style="font-size: 11px;"><strong>FDS</strong> -> Fuera de servicio.</div>
+                  <div style="font-size: 11px;"><strong>MT</strong> -> Módulo tildado.</div>
+                  <div style="font-size: 11px;"><strong>FDST</strong> -> Fuera de servicio temporal.</div>
+                  <div style="font-size: 11px;"><strong>TM</strong> -> Tareas de mantenimiento.</div>
+                  <div style="font-size: 11px;"><strong>FDS</strong> -> No funciona la botonera.</div>
+                  <div style="font-size: 11px;"><strong>MA</strong> -> Máquinia apagada.</div>
+                  <div style="font-size: 11px;"><strong>TP</strong> -> Trabajo en el plato.</div>
+                </div>
+                <div style="float: left;width: 45%;">
+                  @if(!is_null($observacion))
+                  <div style="text-decoration: underline;">Observaciones:</div>
+                  <div style="color: #636363; word-wrap: break-word;font-size: 15px;">
+                  {{$observacion}}
+                  </div>
+                  @endif
+                </div>
+                <div style="float: right;width: 30%;">
+                  @if($mostrar_maquinas)
+                  <br>
+                  <br>
+                  <br>
+                  <br>
+                  <p>
+                    Firma y aclaración/s responsable/s.
+                  </p>
+                  @endif
+                </div>
+              </div>
   </body>
 </html>
