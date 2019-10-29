@@ -212,7 +212,7 @@ $("#btn-backup").click(function(){
     id_casino: $('#casinoSinSistema option:selected').val(),
   }
 
-  console.log(formData);
+  //console.log(formData);
 
   $.ajax({
       type: "POST",
@@ -220,7 +220,7 @@ $("#btn-backup").click(function(){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(data);
+        //console.log(data);
 
 
         var pageNumber = $('#herramientasPaginacion').getCurrentPage();
@@ -270,7 +270,7 @@ $('#btn-generar').click(function(e){
       data: formData,
       dataType: 'json',
       beforeSend: function(data){
-        console.log('Empezó');
+        //console.log('Empezó');
         $('#modalLayoutTotal').find('.modal-footer').children().hide();
         $('#modalLayoutTotal').find('.modal-body').children().hide();
 
@@ -324,21 +324,53 @@ function limpiarNull(s,defecto = ''){
   return s === null? defecto : s;
 }
 
-$(document).on('click','.carga',function(e){
-  e.preventDefault();
-  limpiarModal();
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalCargaControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
+function cargarDivActivas(id_layout_total,done = function (x){return;}){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    dataType: 'json',
+    success: function(data){
+      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemplo').clone().attr('id','').show();
+      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      for(let z = 0;z<data.length;z++){
+        const sector = data[z];
+        let sector_html = sectorEjemplo.clone();
+        sector_html.find('.nombre').text(sector.descripcion);
+        sector_html.attr('data-id-sector',sector.id_sector);
+        let tr = null;
+        for(let i=0;i<sector.islas.length;i++){
+          const isla = sector.islas[i];
+          if(i%activas_x_fila == 0){
+            tr = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(tr);
+          }
+          let isla_html = islaEjemplo.clone();
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+          isla_html.find('.inputIsla').val(isla.maquinas_observadas);
+          isla_html.attr('data-id-isla',isla.id_isla);
+          tr.append(isla_html);
+        }
 
-  var id_layout_total = $(this).val();
-  $('#id_layout_total').val(id_layout_total);
+        $('#modalCargaControlLayout .activas').append(sector_html);
+      }
+      done();
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
 
-  $('#btn-guardar').show();
-  $('#btn-guardarTemp').show();
+ 
+}
 
+function cargarDivInactivas(id_layout_total,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
       $('#cargaFechaActual').val(data.layout_total.fecha);
       $('#cargaFechaGeneracion').val(data.layout_total.fecha_generacion);
@@ -372,63 +404,335 @@ $(document).on('click','.carga',function(e){
           agregarNivel(data.detalles[i] , $('#controlLayout') ,'carga');
         }
       }
+      done();
+  });
+}
 
+function cargarDivInactivasValidar(id_layout_total,done = function (x){return;}){
+  $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
+
+    $('#validarFechaActual').val(data.layout_total.fecha);
+    $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
+    $('#validarCasino').val(data.casino);
+    $('#validarTurno').val(data.layout_total.turno);
+
+    $('#fecha').val(data.layout_total.fecha_ejecucion);
+    $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
+
+    if(data.usuario_cargador != null) {
+        $('#validarFiscaCarga').val(data.usuario_cargador.nombre);
+    }
+
+    if(data.usuario_fiscalizador != null) {
+      $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
+                      .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
+                      .prop('readonly',true);
+    }
+
+    if(data.layout_total.observacion_fiscalizacion != null){
+      $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
+    }
+
+    if(data.layout_total.observacion_validacion != null){
+      $('#observacion_validar').val(data.layout_total.observacion_validacion);
+    }
+
+    sectores = data.sectores;
+
+    $('#tablaValidarControlLayout tbody tr').remove();
+
+    for (var i = 0; i < data.detalles.length; i++) {
+      agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
+    }
+    done();
+  });
+}
+
+function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    dataType: 'json',
+    success: function(data){
+      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemploValidar').clone().attr('id','').show();
+      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      if(data.length == 0) $('#modalValidarControl .activas').append('<h4>No hay islas asociadas a este layout total</h4>');
+      for(let z = 0;z<data.length;z++){
+        const sector = data[z];
+        let sector_html = sectorEjemplo.clone();
+        sector_html.find('.nombre').text(sector.descripcion);
+        sector_html.attr('data-id-sector',sector.id_sector);
+        let total_observadas = 0;
+        let total_sistema = 0;
+        let tr = null;
+        for(let i=0;i<sector.islas.length;i++){
+          const isla = sector.islas[i];
+          if(i%activas_x_fila == 0){
+            tr = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(tr);
+          }
+          let isla_html = islaEjemplo.clone();
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+
+          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
+          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '0';
+          isla_html.find('.observado').text(observado);
+          isla_html.find('.sistema').text(sistema);
+          isla_html.attr('data-id-isla',isla.id_isla);
+          isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
+
+          tr.append(isla_html);
+        }
+        let suma = islaEjemplo.clone();
+        suma.addClass('total');
+        suma.find('.textoIsla').text('TOTAL');
+        suma.find('.observado').text(sector.total_observadas);
+        suma.find('.sistema').text(sector.total_sistema);
+        suma.find('.textoIsla').addClass(sector.total_observadas == sector.total_sistema? 'correcto': 'incorrecto');
+        let width = suma.css('width');
+        width = parseFloat(width.substr(0,width.length-1))*2;
+        suma.css('width',width+'%');
+        //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
+        //Porque ocupa 2 espacios.
+        if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
+          tr = filaEjemplo.clone();
+          sector_html.find('.cuerpoTabla').append(tr);
+        }
+        tr.append(suma);
+        
+        $('#modalValidarControl .activas').append(sector_html);
+      }
+      done();
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  limpiarModal();
+  //ocultar mensaje de salida
+  salida = 0;
+  guardado = true;
+  $('#modalCargaControlLayout .mensajeSalida').hide();
+  $('#mensajeExito').hide();
+
+  var id_layout_total = $(this).val();
+  $('#id_layout_total').val(id_layout_total);
+
+  $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
+  let divActivas = $('#modalCargaControlLayout .activas').hide();
+  let divInactivas = $('#modalCargaControlLayout .inactivas').hide();
+  let tabActivas = $('#modalCargaControlLayout .tabActivas');
+  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
   });
 
-  $('#modalCargaControlLayout').modal('show');
+  //El que termina primero setea la bandera, el segundo muestra el modal.
+  let done = false;
+  const donef = function(){
+    if(done) $('#modalCargaControlLayout').modal('show');
+    else done = true;
+  };
+  cargarDivActivas(id_layout_total,donef);
+  cargarDivInactivas(id_layout_total,donef);
 });
 
-$(document).on('click','.validar',function(e){
-  e.preventDefault();
+function infoSectores(){
+  let sectores = [];
+  //Busco en el div de activas cada sector y le saco la info
+  $('#modalValidarControl .activas div.sector').each(function(){
+    const t = $(this);
+    let islaTotal = t.find('.total');
+    const nombre = t.find('.nombre').text();
+    const observado = parseInt(islaTotal.find('.observado').text());
+    const sistema = parseInt(islaTotal.find('.sistema').text());
+    const id_sector = t.attr('data-id-sector');
+    //console.log("AGREGANDO "+id_sector);
+    sectores[id_sector] = [];
+    sectores[id_sector]['nombre'] = nombre;
+    sectores[id_sector]['activas'] = observado;
+    sectores[id_sector]['sistema'] = sistema;
+    sectores[id_sector]['inactivas'] = 0;
+    sectores[id_sector]['islaTotal'] = islaTotal;
+  });
+
+  return sectores;
+}
+//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
+//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
+function cargarDivDiferenciasValidar(){
+  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
+  tabla.find('.diferenciasFilaEjemplo').remove();
+
+  sectores = infoSectores();
+
+  islas_con_inactivas = [];
+  //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
+  $('#modalValidarControl .inactivas .NivelLayout').each(function(){
+    const t = $(this);
+    const id_sector = t.find('select').val();
+    const nro_isla = t.find('.nro_isla').val();
+    //console.log("BUSCANDO INACTIVO "+id_sector);
+    //Si es un relevamiento viejo que no tiene asociada islas 
+    //Esto no va a estar seteado por lo que se ignora.
+    if(id_sector in sectores){
+      sectores[id_sector]['inactivas']++;
+      const init = !(nro_isla in islas_con_inactivas);
+      if(init) islas_con_inactivas[nro_isla] = 1;
+      else islas_con_inactivas[nro_isla]++;
+    }
+  });
+
+  //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
+  sectores.forEach(function(val,key){
+    const fila = filaEjemplo.clone();
+    const nombre = val['nombre'];
+    const activas = val['activas'];
+    const inactivas = val['inactivas'];
+    const total_relevado = activas + inactivas;
+    const sistema = val['sistema'];
+    const diff = Math.abs(sistema - total_relevado);
+
+    fila.attr('data-id-sector',key);
+    fila.find('.diferenciasSector').text(nombre);
+    fila.find('.diferenciasActivas').text(activas);
+    fila.find('.diferenciasInactivas').text(inactivas);
+    fila.find('.diferenciasTotal').text(total_relevado);
+    fila.find('.diferenciasTotalSistema').text(sistema);
+    fila.find('.diferenciasDiferencia').text(diff)
+    .addClass(diff? 'incorrecto' : 'correcto');
+    tabla.find('.cuerpoTablaDiferencias').append(fila);
+
+    let islaTotal = val['islaTotal'];
+    islaTotal.find('.textoIsla').removeClass('correcto').removeClass('incorrecto');
+    islaTotal.find('.textoIsla').addClass(diff == 0? 'correcto' : 'incorrecto');
+    if(inactivas != 0) islaTotal.find('.inactivas').text('+'+inactivas);
+    else islaTotal.find('.inactivas').text('');
+  });
+
+  //Busco la isla correspondiente y le agrego las inactivas
+  $('#modalValidarControl .activas div.sector .isla').each(function(){
+    let t = $(this);
+    let textoIsla = t.find('.textoIsla');
+    const nro_isla = parseInt(textoIsla.text());
+    if(nro_isla in islas_con_inactivas){
+      //Si la isla tiene inactivas, saco la evaluacion de correcto e incorrecto
+      //y me fijo de vuelta si da con las inactivas
+      textoIsla.removeClass('correcto').removeClass('incorrecto');
+      const observadas = parseInt(t.find('.observado').text());
+      const sistema = parseInt(t.find('.sistema').text());
+      const inactivas = islas_con_inactivas[nro_isla];
+      t.find('.inactivas').text('+'+inactivas);
+      const correcto = sistema == (inactivas+observadas); 
+      textoIsla.addClass(correcto? 'correcto' : 'incorrecto');
+    }
+  });
+
+  $('#modalValidarControl .diferencias').append(tabla);
+}
+
+function mostrarModalValidacion(id_layout_total,editable = true){
   limpiarModal();
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
   $('#modalValidarControlLayout .mensajeSalida').hide();
   $('#mensajeExito').hide();
-
-  var id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
   $('#btn-guardar').hide();
   $('#btn-guardarTemp').hide();
 
-  $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
-
-      $('#validarFechaActual').val(data.layout_total.fecha);
-      $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
-      $('#validarCasino').val(data.casino);
-      $('#validarTurno').val(data.layout_total.turno);
-
-      $('#fecha').val(data.layout_total.fecha_ejecucion);
-      $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
-
-      if(data.usuario_cargador != null) {
-          $('#validarFiscaCarga').val(data.usuario_cargador.nombre);
-      }
-
-      if(data.usuario_fiscalizador != null) {
-        $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
-                        .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
-                        .prop('readonly',true);
-      }
-
-      sectores = data.sectores;
-
-      $('#tablaValidarControlLayout tbody tr').remove();
-
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
-      }
+  let divActivas = $('#modalValidarControl .activas').hide();
+  let divInactivas = $('#modalValidarControl .inactivas').hide();
+  let divDiferencias = $('#modalValidarControl .diferencias').hide();
+  let tabActivas = $('#modalValidarControl .tabActivas');
+  let tabInactivas = $('#modalValidarControl .tabInactivas');
+  let tabDiferencias = $('#modalValidarControl .tabDiferencias');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divDiferencias.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
   });
-
-  $('#modalValidarControl').modal('show');
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divDiferencias.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
+  });
+  tabDiferencias.on('click',function(){
+    divActivas.hide();
+    divInactivas.hide();
+    divDiferencias.show();
+    tabDiferencias.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
   $('#btn-agregarNivel').hide();
+  //El que termina primero setea la bandera, el segundo muestra el modal.
+  let done = false;
+  const donef = function(){
+    if(done){
+      cargarDivDiferenciasValidar();
+      if(editable){
+        $('#observacion_validar').attr('disabled','');
+        $('#modalValidarControl .modal-title').text('VALIDAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').show();
+      }
+      else{
+        $('#observacion_validar').attr('disabled','disabled');
+        $('#modalValidarControl .modal-title').text('VISUALIZAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').hide();
+      }
+      $('#modalValidarControl').modal('show');
+    }
+    else done = true;
+  };
+  cargarDivActivasValidar(id_layout_total,donef);
+  cargarDivInactivasValidar(id_layout_total,donef);
+}
+
+$(document).on('click','.validar',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,true);
+});
+
+$(document).on('click','.ver',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,false);
 });
 
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
-
   $('#tecnico').popover('hide');
   $('#fecha').popover('hide');
   $('#frmLayoutTotal').trigger('reset');
@@ -438,8 +742,6 @@ $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal
   $('#inputFisca').val('');
   $('#fiscaCarga').val('');
 
-  //validar
-  $('#frmValidarControlLayout').trigger('reset');
   $('#validarFechaActual').val('');
   $('#validarFechaGeneracion').val('');
   $('#validarCasino').val('');
@@ -499,16 +801,27 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     };
     maquinas.push(maquina);
   });
+
+  let islas = [];
+  $('#modalCargaControlLayout .isla').each(function(){
+    const t = $(this);
+    islas.push({
+      id_isla: t.attr('data-id-isla'),
+      maquinas_observadas: t.find('.inputIsla').val()
+    });
+  });
+
   const formData = {
     id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
     id_layout_total:   $('#id_layout_total').val(),
     fecha_ejecucion: $('#fecha_ejecucion').val(),
     maquinas: maquinas,
     observacion_fiscalizacion: $('#observacion_carga').val(),
-    confirmacion: confirmacion
+    confirmacion: confirmacion,
+    islas: islas
   };
   
-  console.log(formData);
+  //console.log(formData);
   $.ajax({
       type: 'POST',
       url: url,
@@ -523,7 +836,7 @@ $('#btn-guardarTemp').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
     function(x){
-      console.log(x);
+      //console.log(x);
       guardado=true;
       $('#mensajeExito h3').text('ÉXITO DE CARGA');
       $('#mensajeExito .cabeceraMensaje').addClass('modificar');
@@ -549,9 +862,41 @@ function mostrarError(mensaje = '') {
   }, 500);
 }
 
+function verificarFormularioCarga(){
+  let invalidas = [];
+  $('#modalCargaControlLayout .isla input').each(function(){
+    const t = $(this);
+    const val = t.val();
+    const intVal = parseInt(val);
+    if((val.length == 0) 
+    || isNaN(intVal) 
+    || (val.indexOf('.') != -1)
+    || (val.indexOf(',') != -1)
+    || (intVal < 0)){
+      invalidas.push(t);
+      return;
+    }
+  });
+  if(invalidas.length != 0){
+    for(let i = 0;i < invalidas.length;i++){
+      let inv = invalidas[i];
+      mostrarErrorValidacion(inv,"Valor invalido",false);
+    }
+    return "Islas incompletas o con valores invalidos";
+  }
+  return null;
+}
+
 //FINALIZAR CARGA RELEVAMIENTO
 $('#btn-guardar').click(function(e){
   e.preventDefault();
+
+  const mensajes = verificarFormularioCarga();
+  if(mensajes != null){
+    mostrarError(mensajes);
+    return;
+  }
+
   const success = function (resultados) {
     $('#mensajeExito h3').text('ÉXITO DE CARGA');
     $('#mensajeExito .cabeceraMensaje').addClass('modificar');
@@ -760,7 +1105,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         data: formData,
         dataType: 'json',
         success: function (resultados) {
-            console.log(resultados);
+            //console.log(resultados);
 
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();
@@ -800,10 +1145,13 @@ function mostrarIconosPorPermisos(){
           let fila = $(c);
           const estado = fila.find('.estado').text();
           setearEstado(fila,estado);
-          if(!data.carga_layout_total) $('.carga').hide();
+          if(!data.carga_layout_total){
+            $('#cuerpoTabla .carga').hide();
+          }
           if(!data.validar_layout_total){
             $('#cuerpoTabla .validar').hide();
             $('#cuerpoTabla .imprimir').hide();
+            $('#cuerpoTabla .ver').hide();
           }else{
             $('#cuerpoTabla .imprimir').show();
           }
@@ -845,6 +1193,7 @@ function clickIndice(e,pageNumber,tam){
 
 function setearEstado(fila,estado){
   let icono_estado = fila.find('.icono_estado');
+  let icono_ver = fila.find('.ver');
   let icono_planilla = fila.find('.planilla');
   let icono_carga = fila.find('.carga');
   let icono_validacion = fila.find('.validar');
@@ -853,6 +1202,7 @@ function setearEstado(fila,estado){
   icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
   fila.find('.estado').text(estado);
   //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
+  icono_ver.hide();
   icono_planilla.show();
   icono_imprimir.hide();
   icono_carga.hide();
@@ -861,22 +1211,19 @@ function setearEstado(fila,estado){
     case 'Generado':
       icono_estado.addClass('faGenerado');
       icono_carga.show();
-      icono_validacion.hide();
       break;
     case 'Cargando':
       icono_estado.addClass('faCargando');
       icono_carga.show();
-      icono_validacion.hide();
       break;
     case 'Finalizado':
       icono_estado.addClass('faFinalizado');
-      icono_carga.hide();
+      icono_ver.show();
       icono_validacion.show();
       break;
     case 'Visado':
       icono_estado.addClass('faValidado');
-      icono_carga.hide();
-      icono_validacion.hide();
+      icono_ver.show();
       break;
     default:
       break;
@@ -885,17 +1232,18 @@ function setearEstado(fila,estado){
 
 //La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
 function generarFilaTabla(layout_total){
-      let fila = $('#filaEjemplo').clone();
-      fila.attr('id',layout_total.id_layout_total);
-      fila.find('.fecha').text(layout_total.fecha);
-      fila.find('.casino').text(layout_total.casino);
-      fila.find('.turno').text(layout_total.turno);
-      fila.find('.planilla').val(layout_total.id_layout_total);
-      fila.find('.carga').val(layout_total.id_layout_total);
-      fila.find('.validar').val(layout_total.id_layout_total);
-      fila.find('.imprimir').val(layout_total.id_layout_total);
-      setearEstado(fila,layout_total.estado);
-      return fila;
+  let fila = $('#filaEjemplo').clone();
+  fila.attr('id',layout_total.id_layout_total);
+  fila.find('.fecha').text(layout_total.fecha);
+  fila.find('.casino').text(layout_total.casino);
+  fila.find('.turno').text(layout_total.turno);
+  fila.find('.planilla').val(layout_total.id_layout_total);
+  fila.find('.carga').val(layout_total.id_layout_total);
+  fila.find('.validar').val(layout_total.id_layout_total);
+  fila.find('.imprimir').val(layout_total.id_layout_total);
+  fila.find('.ver').val(layout_total.id_layout_total);
+  setearEstado(fila,layout_total.estado);
+  return fila;
 }
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
@@ -908,9 +1256,7 @@ function generarFilaTabla(layout_total){
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
     $('#alertaArchivo').hide();
-
     window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
-
 });
 
 //Agrega nivel de layout
@@ -1060,4 +1406,9 @@ function limpiarModal(){
     $('#fecha').val('');
     $('#observacion_carga').val('');
     $('#observacion_validar').val('');
+    $('#observacion_carga_validacion').val('');
+    $('.activas').empty();
+    $('.diferencias').empty();
+    $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
+    $('#modalValidarControl .subrayado').removeClass('subrayado');
 }

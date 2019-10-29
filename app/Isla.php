@@ -52,6 +52,14 @@ class Isla extends Model
     return $this->belongsTo('App\Casino','id_casino','id_casino');
   }
 
+  public function layouts_totales(){
+    return $this->belongsToMany('App\LayoutTotal','layout_total_isla','id_isla','id_layout_total')->withPivot('maquinas_observadas');
+  }
+
+  public function observaciones_layout_total(){
+    return $this->hasMany('App\LayoutTotalIsla','id_isla','id_isla');
+  }
+
   public static function boot(){
         parent::boot();
         Isla::observe(new IslaObserver());
