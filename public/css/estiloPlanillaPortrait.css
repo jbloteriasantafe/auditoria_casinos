@@ -43,6 +43,10 @@ h2 span {
   font-size: 12px;
   height: inherit;
 }
+.tablaAmbiental{
+  font-size: 12px;
+  height: 22px;
+}
 .tablaCampos{
   font-size: 11px;
 }

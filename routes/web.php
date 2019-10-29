@@ -431,6 +431,7 @@ Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene
   Route::get('/','RelevamientoAmbientalController@buscarTodo');
   Route::get('/buscarRelevamientosAmbiental','RelevamientoAmbientalController@buscarRelevamientosAmbiental');
   Route::get('/generarPlanilla/{id_relevamiento_ambiental}','RelevamientoAmbientalController@generarPlanillaAmbiental');
+  Route::get('/eliminarRelevamientoAmbiental/{id_relevamiento_ambiental}','RelevamientoAmbientalController@eliminarRelevamientoAmbiental');
   Route::post('/crearRelevamiento' , 'RelevamientoAmbientalController@crearRelevamientoAmbientalMaquinas');
 });
 

@@ -225,8 +225,119 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
   </div>
 
 
+  <!-- MODAL CARGAR RELEVAMIENTO -->
+  <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:95%;">
+      <div class="modal-content">
+         <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
+           <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
+          </div>
+
+          <div  id="colapsadoCargar" class="collapse in">
+
+          <div class="modal-body modalCuerpo">
+                    <div class="row">
+                      <div class="col-lg-3">
+                        <h5>FECHA DE GENERACIÓN</h5>
+                        <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
+                      </div>
+                      <div class="col-lg-3">
+                        <h5>CASINO</h5>
+                        <input id="cargaCasino" type='text' class="form-control" readonly>
+                      </div>
+                      <div class="col-md-4">
+                          <h5>FISCALIZADOR CARGA</h5>
+                          <input id="usuario_cargador" type="text"class="form-control" readonly>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-4">
+                          <h5>FISCALIZADOR TOMA</h5>
+                          <input id="usuario_fiscalizador" class="form-control" type="text" autocomplete="off" list="">
+                      </div>
+                      <div class="col-md-4">
+                          <h5>FECHA EJECUCIÓN</h5>
+                             <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
+                                 <input type='text' class="form-control fondoBlanco" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off" readonly/>
+                                 <span class="input-group-addon usables" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                 <span class="input-group-addon usables" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                 <span class="input-group-addon nousables" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                 <span class="input-group-addon nousables" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                             </div>
+                      </div>
+                    </div>
+                    <br><br>
+
+                    <table class="table table-fixed" style="margin-bottom: 0px;">
+                      <thead class="cabeceraTablaPozos">
+                        <th class="col-xs-2 sortable" data-id="nombreTurno">Turno</th>
+                        @for ($i=1;$i<=10;$i++)
+                        <th class="col-xs-1" data-id="isla{{$i}}">{{$i}}</th>
+                        @endfor
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+
+                    <div class="" style="overflow: scroll;height: 500px;">
+                    <table class="table table-fixed tablaPozos">
+                      <tbody class="cuerpoTablaPozos">
+                        <tr class="filaEjemplo" style="display: none">
+                          <td class="col-xs-2 nombreTurno">1</td>
+                          @for ($i=1;$i<=10;$i++)
+                          <td class="col-xs-1">
+                            <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="isla{{$i}}"></input>
+                          </td>
+                          @endfor
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                    <br>
+
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+                          <h5>OBSERVACIONES</h5>
+                          <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+                          <h5>OBSERVACIONES AL VISAR</h5>
+                          <textarea id="observacion_validacion" class="form-control" style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-warningModificar" id="btn-guardar">GUARDAR TEMPORALMENTE</button>
+            <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR</button>
+            <button type="button" class="btn btn-dangerElimina" id="btn-salir">SALIR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
+  <div class="modal" id="mensajeAlerta" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#D50000;">
+                  <h2 class="modal-title"><b>ATENCIÓN</b></h2>
+              </div>
+              <div class="modal-body textoMensaje">
+                  <h4><b>ESTA POR ELIMINAR UN RELEVAMIENTO</b></h4>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger confirmar">CONFIRMAR</button>
+                <button type="button" class="btn btn-secondary cancelar" data-dismiss="modal">CANCELAR</button>
+              </div>
+          </div>
+      </div>
+  </div>
 
 
 

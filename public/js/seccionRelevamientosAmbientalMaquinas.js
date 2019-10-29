@@ -248,10 +248,13 @@ function cambiarEstadoFila(fila, relevamiento) {
     imprimir.click(function() {
         window.open('relevamientosProgresivo/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
     });
+      */
+
     eliminar.click(function() {
         mensajeAlerta(
             //MENSAJES
             ["<h4><b>ESTA POR ELIMINAR UN RELEVAMIENTO</b></h4>"],
+
             //CONFIRMAR
             function() {
                 $.ajaxSetup({
@@ -262,12 +265,12 @@ function cambiarEstadoFila(fila, relevamiento) {
 
                 const id = $(eliminar).val();
                 if (id === null || typeof id === 'undefined') {
-                    throw 'Error al eliminar progresivo id no definido';
+                    throw 'Error al eliminar: ID no definido';
                 }
 
                 $.ajax({
                     type: "GET",
-                    url: 'relevamientosProgresivo/eliminarRelevamientoProgresivo/' + id,
+                    url: 'relevamientosControlAmbiental/eliminarRelevamientoAmbiental/' + id,
                     success: function(data) {
                         console.log(data);
                         $('#mensajeAlerta').hide();
@@ -279,13 +282,97 @@ function cambiarEstadoFila(fila, relevamiento) {
                     }
                 });
             },
+
             //CANCELAR
             function() {
                 $('#mensajeAlerta').hide();
             }
         );
     })
-    */
+
+}
+
+function mensajeAlerta(alertas, callbackConfirmar, callbackCancelar) {
+    $('#mensajeAlerta .textoMensaje').empty();
+    for (let i = 0; i < alertas.length; i++) {
+        $('#mensajeAlerta .textoMensaje').append($(alertas[i]));
+    }
+    $('#mensajeAlerta .confirmar').off().click(callbackConfirmar);
+    $('#mensajeAlerta .cancelar').off().click(callbackCancelar);
+    $('#mensajeAlerta').show();
+}
+
+function cargarRelevamiento(relevamiento) {
+    $('#modalRelevamientoAmbiental .mensajeSalida').hide();
+    $('#id_relevamiento').val(relevamiento.id_relevamiento_ambiental);
+
+    $('#btn-guardar').show().off();
+    $('#btn-finalizar').show().text("FINALIZAR").off();
+
+    $('#modalRelevamientoAmbiental')
+        .find('.modal-header')
+        .attr("style",
+            "font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
+
+    $('#modalRelevamientoAmbiental').
+    find('.modal-title').text('| CARGAR RELEVAMIENTO DE CONTROL AMBIENTAL');
+
+    $('#inputFisca').attr('disabled', false);
+    $('#usuario_fiscalizador').attr('disabled', false);
+    $('#fecha').attr('disabled', false);
+    $('#fecha').addClass('fondoBlanco');
+
+    $('#dtpFecha span.usables').show();
+    $('#dtpFecha span.nousables').hide();
+
+    $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo,
+        function(data) {
+            setearRelevamiento(data, obtenerFila);
+
+            $('#btn-finalizar').click(function() {
+                let err = validarFormulario(data.casino.id_casino);
+                if (err.errores) {
+                    console.log(err.mensajes);
+                    mensajeError(err.mensajes);
+                    return;
+                }
+
+                enviarFormularioCarga(data,
+                    function(data) {
+                        console.log(data);
+                        $('#modalRelevamientoProgresivos').modal('hide');
+                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_progresivo + '"]');
+                        relevamiento.estado = "Finalizado";
+                        cambiarEstadoFila(fila, relevamiento);
+                    },
+                    function(x) {
+                        console.log(x);
+                        let msgs = obtenerMensajesError(x);
+                        mensajeError(msgs);
+                    }
+                );
+            });
+
+            $('#btn-guardar').click(function() {
+                enviarFormularioCarga(data,
+                    function(x) {
+                        console.log(x);
+                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_progresivo + '"]');
+                        relevamiento.estado = "Cargando";
+                        cambiarEstadoFila(fila, relevamiento);
+                    },
+                    function(x) {
+                        console.log(x);
+                    },
+                    "relevamientosProgresivo/guardarRelevamiento"
+                );
+            });
+
+        });
+
+    $('#observacion_carga').removeAttr('disabled');
+    $('#observacion_validacion').parent().hide();
+    $('#modalRelevamientoProgresivos').modal('show');
 }
 
 //ABRIR MODAL DE NUEVO RELEVAMIENTO

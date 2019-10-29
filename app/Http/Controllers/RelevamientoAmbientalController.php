@@ -133,17 +133,16 @@ class RelevamientoAmbientalController extends Controller
          $detalle->id_turno = $turno->id_turno;
          $detalle->id_sector = $sector->id_sector;
 
-
-         foreach($islotes_y_sectores as $elem) {
-           if ($elem->id_sector == $sector->id_sector) {
-             $contador_islotes++;
-           }
-         }
-
          if ($request->id_casino != 3) {
            $detalle->tamanio_vector = sizeof($islas);
          }
          else {
+           foreach($islotes_y_sectores as $elem) {
+             if ($elem->id_sector == $sector->id_sector) {
+               $contador_islotes++;
+             }
+           }
+
            $detalle->tamanio_vector = $contador_islotes;
          }
 
@@ -254,6 +253,32 @@ class RelevamientoAmbientalController extends Controller
     $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf;
+  }
+
+  public function eliminarRelevamientoAmbiental ($id_relevamiento_ambiental) {
+    $usercontroller = UsuarioController::getInstancia();
+    $usuario = $usercontroller->quienSoy()['usuario'];
+    $relevamiento_ambiental = RelevamientoAmbiental::find($id_relevamiento_ambiental);
+    $casino = Casino::find($relevamiento_ambiental->id_casino);
+
+    if($usuario === null || $relevamiento_ambiental === null) return;
+
+    if(!$usercontroller->usuarioTieneCasinoCorrespondiente($usuario->id_usuario, $casino->id_casino)) return;
+
+    DB::transaction(function() use ($id_relevamiento_ambiental){
+
+        //elimino todos los detalles asociados al relevamiento de control ambiental
+      DB::table('detalle_relevamiento_ambiental')
+      ->where('id_relevamiento_ambiental', '=', $id_relevamiento_ambiental)
+      ->delete();
+
+      //finalmente, elimino el relevamiento de control ambiental
+      DB::table('relevamiento_ambiental')
+      ->where('id_relevamiento_ambiental', '=', $id_relevamiento_ambiental)
+      ->delete();
+    });
+
+    return ['codigo' => 200];
   }
 
 }
