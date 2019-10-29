@@ -862,9 +862,41 @@ function mostrarError(mensaje = '') {
   }, 500);
 }
 
+function verificarFormularioCarga(){
+  let invalidas = [];
+  $('#modalCargaControlLayout .isla input').each(function(){
+    const t = $(this);
+    const val = t.val();
+    const intVal = parseInt(val);
+    if((val.length == 0) 
+    || isNaN(intVal) 
+    || (val.indexOf('.') != -1)
+    || (val.indexOf(',') != -1)
+    || (intVal < 0)){
+      invalidas.push(t);
+      return;
+    }
+  });
+  if(invalidas.length != 0){
+    for(let i = 0;i < invalidas.length;i++){
+      let inv = invalidas[i];
+      mostrarErrorValidacion(inv,"Valor invalido",false);
+    }
+    return "Islas incompletas o con valores invalidos";
+  }
+  return null;
+}
+
 //FINALIZAR CARGA RELEVAMIENTO
 $('#btn-guardar').click(function(e){
   e.preventDefault();
+
+  const mensajes = verificarFormularioCarga();
+  if(mensajes != null){
+    mostrarError(mensajes);
+    return;
+  }
+
   const success = function (resultados) {
     $('#mensajeExito h3').text('ÉXITO DE CARGA');
     $('#mensajeExito .cabeceraMensaje').addClass('modificar');
