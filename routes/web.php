@@ -468,7 +468,6 @@ LAYOUT
 Route::get('menu_layout',function(){
     return view('menu_layout');
 });
-Route::get('layout_total','LayoutController@buscarTodoTotal')->middleware('tiene_permiso:ver_seccion_layout_total');
 Route::get('layout_parcial','LayoutController@buscarTodo')->middleware('tiene_permiso:ver_seccion_layout_parcial');
 Route::post('/layouts/crearLayoutParcial','LayoutController@crearLayoutParcial');
 Route::post('/layouts/usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
@@ -488,18 +487,23 @@ Route::post('/layouts/cargarLayoutParcial' , 'LayoutController@cargarLayoutParci
 Route::post('/layouts/validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
 
 //TOTAL
-Route::post('/layouts/crearLayoutTotal','LayoutController@crearLayoutTotal');
-Route::post('/layouts/buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTotales');
-Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
-Route::get('/layouts/generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
-Route::get('/layouts/generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
-Route::post('/layouts/guardarLayoutTotal','LayoutController@guardarLayoutTotal');
-Route::post('/layouts/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
-Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
-Route::get('/layouts/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');
-Route::get('/layouts/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
-Route::post('/layouts/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
-Route::post('/layouts/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
+Route::get('layout_total','LayoutController@buscarTodoTotal')->middleware('tiene_permiso:ver_seccion_layout_total');
+Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_layout_total'], function () {
+  Route::post('/crearLayoutTotal','LayoutController@crearLayoutTotal');
+  Route::post('/buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTotales');
+  Route::get('/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
+  Route::get('/generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
+  Route::get('/generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
+  Route::post('/guardarLayoutTotal','LayoutController@guardarLayoutTotal');
+  Route::post('/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
+  Route::get('/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
+  Route::get('/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');
+  Route::get('/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
+  Route::post('/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
+  Route::post('/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
+  Route::get('/islasLayoutTotal/{id_layout_total}','LayoutController@islasLayoutTotal');
+});
+
 
 /**************
  Estadisticas

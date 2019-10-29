@@ -21,10 +21,6 @@ class LayoutTotal extends Model
 
   }
 
-  public function sector(){
-    return $this->belongsTo('App\Sector','id_sector','id_sector');
-  }
-
   public function estado_relevamiento(){
     return $this->belongsTo('App\EstadoRelevamiento','id_estado_relevamiento','id_estado_relevamiento');
   }
@@ -37,5 +33,12 @@ class LayoutTotal extends Model
     return $this->belongsTo('App\Usuario','id_usuario_fiscalizador','id_usuario');
   }
 
+  public function islas(){
+    return $this->belongsToMany('App\Isla','layout_total_isla','id_layout_total','id_isla')->withPivot('maquinas_observadas');
+  }
+  
+  public function observaciones_islas(){
+    return $this->hasMany('App\LayoutTotalIsla','id_layout_total','id_layout_total');
+  }
 
 }
