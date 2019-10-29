@@ -703,7 +703,7 @@ function mostrarModalValidacion(id_layout_total,editable = true){
     if(done){
       cargarDivDiferenciasValidar();
       if(editable){
-        $('#observacion_validar').attr('disabled','');
+        $('#observacion_validar').removeAttr('disabled');
         $('#modalValidarControl .modal-title').text('VALIDAR CONTROL LAYOUT');
         $('#btn-finalizarValidacion').show();
       }
