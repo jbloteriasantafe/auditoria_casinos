@@ -1286,14 +1286,26 @@ class LayoutController extends Controller
   private function asignarIslas($layout_total){
     $casino = $layout_total->casino;
     $sectores = $casino->sectores;
+    $estados_validos = [1,2,5,7];//Ingreso, Reingreso, Egreso Int Tec, Eventualidad Observada
     foreach($sectores as $s){
       $islas = $s->islas;
       foreach($islas as $i){
-        $obs = new LayoutTotalIsla;
-        $obs->id_layout_total = $layout_total->id_layout_total;
-        $obs->id_isla = $i->id_isla;
-        $obs->maquinas_observadas = null;
-        $obs->save();
+        $maquinas = $i->maquinas;
+        $isla_valida = FALSE;
+        //Si la isla tiene maquinas con un estado "disponible", la agrego para relevar
+        foreach($maquinas as $m){
+          if(in_array($m->id_estado_maquina,$estados_validos)){
+            $isla_valida = TRUE;
+            break;
+          }
+        }
+        if($isla_valida){
+          $obs = new LayoutTotalIsla;
+          $obs->id_layout_total = $layout_total->id_layout_total;
+          $obs->id_isla = $i->id_isla;
+          $obs->maquinas_observadas = null;
+          $obs->save();
+        }
       }
     }
   }
