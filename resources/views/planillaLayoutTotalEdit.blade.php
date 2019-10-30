@@ -57,7 +57,9 @@ p {
 .divTableBody {
 	display: table-row-group;
 }
-
+.chico {
+    font-size: 80%;
+}
 
 </style>
 
@@ -100,15 +102,21 @@ p {
           @if($mostrar_maquinas)
               <div class="divTableRow">
                 @foreach($detalle->islas as $isla)
-                @if($isla->cantidad_maquinas!=0)
+                @if($isla->cantidad_maquinas_y_int_tecnica!=0)
                 @if($pos != 23)
                 <?php $pos += 1; ?>
-                <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
+                <div class="divTableCell" style="width: 4.26%;text-align: center;">
+                  <div>{{$isla->nro_isla}}</div> 
+                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? 0 : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
+                </div>
                 @else
                 <?php $pos = 1; ?>
               </div>
               <div class="divTableRow">
-                <div class="divTableCell">{{$isla->nro_isla}} ({{$isla->cantidad_maquinas}})</div>
+                <div class="divTableCell" style="width: 4.26%;text-align: center;">
+                  <div>{{$isla->nro_isla}}</div> 
+                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? 0 : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
+                </div>
                 @endif
                 @endif
                 @endforeach
@@ -117,15 +125,21 @@ p {
               @else
               <div class="divTableRow">
                   @foreach($detalle->islas as $isla)
-                  @if($isla->cantidad_maquinas!=0)
+                  @if($isla->cantidad_maquinas_y_int_tecnica!=0)
                   @if($pos != 23)
                   <?php $pos += 1; ?>
-                  <div class="divTableCell">{{$isla->nro_isla}} ___</div>
+                  <div class="divTableCell" style="width: 4.26%;text-align: center;">
+                    <div>{{$isla->nro_isla}}</div>
+                    <div>___</div>
+                  </div>
                   @else
                   <?php $pos = 1; ?>
                 </div>
                 <div class="divTableRow">
-                  <div class="divTableCell">{{$isla->nro_isla}} ___</div>
+                  <div class="divTableCell" style="width: 4.26%;text-align: center;">
+                    <div>{{$isla->nro_isla}}</div>
+                    <div>___</div>
+                  </div>
                   @endif
                   @endif
                   @endforeach

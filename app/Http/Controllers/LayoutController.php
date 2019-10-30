@@ -1343,22 +1343,18 @@ class LayoutController extends Controller
     foreach($layout_total->casino->sectores as $sector){
       $det = new \stdClass();
       $det->descripcion = $sector->descripcion;
-      // $islas = array();
-      // foreach ($sector->islas as $isla) {
-      //   $islas[] = $isla->nro_isla;
-      // }
       //si el casino es de rosario lo ordeno por islote e isla
+      $det->islas = $layout_total->islas->where('id_sector',$sector->id_sector);
       if($layout_total->id_casino==3){
-        $det->islas = $sector->islas->sortBy(function($isl,$key){
+        $det->islas = $det->islas->sortBy(function($isl,$key){
           return [$isl->orden,$isl->nro_isla];
         });
-      }else{
-        $det->islas = $sector->islas;
-      };
-      
+      }
+   
       
       $detalles[] = $det;
     };
+    usort($detalles,function($a,$b){return $a->descripcion<=>$b->descripcion;});
     $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
@@ -1597,7 +1593,8 @@ class LayoutController extends Controller
     foreach($sectores as $s){
       $islas = $s->islas;
       foreach($islas as $i){
-        if($i->cantidad_maquinas > 0){
+        //Se agregan para relevar las con int tecnica x pedido del ADM de SFE
+        if($i->cantidad_maquinas_y_int_tecnica > 0){
           $obs = new LayoutTotalIsla;
           $obs->id_layout_total = $layout_total->id_layout_total;
           $obs->id_isla = $i->id_isla;
@@ -1644,9 +1641,18 @@ class LayoutController extends Controller
     }
     $ret = [];
     foreach($sectores as $s){
-      usort($s['islas'],function($a,$b){
-        return $a['nro_isla']<=>$b['nro_isla'];
-      });
+      if($layout->id_casino==3){
+        usort($s['islas'],function($a,$b){
+          if($a['orden'] != $b['orden']) return $a['orden']<=>$b['orden'];
+          return $a['nro_isla']<=>$b['nro_isla'];
+        });
+      }
+      else{
+        usort($s['islas'],function($a,$b){
+          return $a['nro_isla']<=>$b['nro_isla'];
+        });
+      }
+
       $ret[]=$s;
     }
     usort($ret,function($a,$b){
