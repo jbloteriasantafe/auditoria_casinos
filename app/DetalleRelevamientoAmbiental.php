@@ -12,26 +12,24 @@ class DetalleRelevamientoAmbiental extends Model
   protected $visible = array(
     'id_detalle_relevamiento_ambiental',
     'id_relevamiento_ambiental',
-    'id_sector',
-    'id_turno',
-    'tamanio_vector',
-    'vector_personas',
-    'total');
+    'id_isla',
+    'turno1',
+    'turno2',
+    'turno3',
+    'turno4',
+    'turno5',
+    'turno6',
+    'turno7',
+    'turno8'
+    );
   public $timestamps = false;
 
   public function relevamiento_ambiental(){
     return $this->belongsTo('App\RelevamientoAmbiental','id_relevamiento_ambiental','id_relevamiento_ambiental');
   }
 
-  public function sector(){
-    return $this->belongsTo('App\Sector','id_sector','id_sector');
+  public function isla(){
+    return $this->belongsTo('App\Isla','id_isla','id_isla');
   }
-
-  public function turno(){
-    return $this->belongsTo('App\Turno','id_turno','id_turno');
-  }
-
-  public function cantidades(){
-    return $this->HasMany('App\CantidadPersonas','id_detalle_relevamiento_ambiental','id_detalle_relevamiento_ambiental');
-  }
+  
 }

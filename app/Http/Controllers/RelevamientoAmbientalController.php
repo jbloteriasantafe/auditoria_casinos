@@ -39,6 +39,7 @@ class RelevamientoAmbientalController extends Controller
   public function buscarRelevamientosAmbiental(Request $request){
     $reglas = Array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+
     foreach ($usuario->casinos as $casino) {
       $casinos[] = $casino->id_casino;
     }
@@ -98,19 +99,6 @@ class RelevamientoAmbientalController extends Controller
                               ->get();
 
     if ($request->id_casino == 3) {
-      /* PUEDE SER UTIL ESTO, NO LO BORRO:
-      $query = 'SELECT t1.*
-                          FROM isla t1
-                          INNER JOIN (
-                                      SELECT MIN(id_isla) id_isla, nro_islote
-                                      FROM isla
-                                      GROUP BY nro_islote
-                                    ) t2
-                                    ON t1.id_isla = t2.id_isla
-                                    AND t1.nro_islote = t2.nro_islote
-                         ';
-
-                         */
       $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
                                     ->where('id_casino','=',$request->id_casino)
                                     ->where('nro_islote', '!=', 'NULL')
@@ -122,44 +110,20 @@ class RelevamientoAmbientalController extends Controller
 
      //creo los detalles
      $detalles = array();
-     foreach($sectores as $sector){
-       $islas = (Sector::find($sector->id_sector))->islas;
+     foreach($islas as $isla){
 
+       $detalle = new DetalleRelevamientoAmbiental;
 
-       foreach ($turnos as $turno) {
-        $contador_islotes=0;
-
-         $detalle = new DetalleRelevamientoAmbiental;
-         $detalle->id_turno = $turno->id_turno;
-         $detalle->id_sector = $sector->id_sector;
-
-         if ($request->id_casino != 3) {
-           $detalle->tamanio_vector = sizeof($islas);
-         }
-         else {
-           foreach($islotes_y_sectores as $elem) {
-             if ($elem->id_sector == $sector->id_sector) {
-               $contador_islotes++;
-             }
-           }
-
-           $detalle->tamanio_vector = $contador_islotes;
-         }
-
-         //creo una relacion isla-cantidad de personas para cada detalle
-         /*
-         $cantidades = array();
-
-         foreach ($islas as $isla) {
-           $cantidad = new CantidadPersonas;
-           $cantidad->id_isla = $isla->id_isla;
-           $cantidades[] = $cantidad;
-         }
-         */
-       $detalles[] = $detalle;
+       if ($request->id_casino != 3) {
+         $detalle->id_isla = $isla->id_isla;
        }
-       $contador_islotes++;
+       else {
+         //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas.
+       }
+
+       $detalles[] = $detalle;
      }
+
 
 
      if(!empty($detalles)){
@@ -196,7 +160,6 @@ class RelevamientoAmbientalController extends Controller
 
     return ['codigo' => 200];
   }
-
 
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
     $rel = RelevamientoAmbiental::find($id_relevamiento_ambiental);
@@ -279,6 +242,22 @@ class RelevamientoAmbientalController extends Controller
     });
 
     return ['codigo' => 200];
+  }
+
+  public function obtenerRelevamiento($id_relevamiento_ambiental) {
+    $relevamiento = RelevamientoAmbiental::findOrFail($id_relevamiento_ambiental);
+    $detalles = $relevamiento->detalles;
+    $casino = $relevamiento->casino;
+
+    foreach ($relevamiento->detalles as $detalle) {
+      //ALGO.
+    }
+
+    return ['detalles' => $detalles,
+            'relevamiento' => $relevamiento,
+            'casino' => $casino,
+            'usuario_cargador' => $relevamiento->usuario_cargador,
+            'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador];
   }
 
 }

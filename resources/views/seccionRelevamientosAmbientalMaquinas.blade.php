@@ -271,7 +271,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                     <br><br>
 
                     <table class="table table-fixed" style="margin-bottom: 0px;">
-                      <thead class="cabeceraTablaPozos">
+                      <thead class="cabeceraTablaPersonas">
                         <th class="col-xs-2 sortable" data-id="nombreTurno">Turno</th>
                         @for ($i=1;$i<=10;$i++)
                         <th class="col-xs-1" data-id="isla{{$i}}">{{$i}}</th>
@@ -282,7 +282,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
                     <div class="" style="overflow: scroll;height: 500px;">
                     <table class="table table-fixed tablaPozos">
-                      <tbody class="cuerpoTablaPozos">
+                      <tbody class="cuerpoTablaPersonas">
                         <tr class="filaEjemplo" style="display: none">
                           <td class="col-xs-2 nombreTurno">1</td>
                           @for ($i=1;$i<=10;$i++)

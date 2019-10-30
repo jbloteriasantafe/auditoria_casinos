@@ -371,8 +371,37 @@ function cargarRelevamiento(relevamiento) {
         });
 
     $('#observacion_carga').removeAttr('disabled');
-    $('#observacion_validacion').parent().hide();
-    $('#modalRelevamientoProgresivos').modal('show');
+    // $('#observacion_validacion').parent().hide();
+    $('#modalRelevamientoAmbiental').modal('show');
+}
+
+function setearRelevamiento(data, filaCallback) {
+    //Limpio los campos
+    $('#modalRelevamientoAmbiental input').val('');
+    $('#modalRelevamientoAmbiental select').val(-1);
+    $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr').not('.filaEjemplo').remove();
+    $('#usuario_fiscalizador').attr('list', 'datalist' + data.casino.id_casino);
+
+    $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
+    $('#cargaCasino').val(data.casino.nombre);
+    $('#fiscaCarga').val(data.relevamiento.id_usuario_cargador);
+    $('#fecha').val(data.relevamiento.fecha_ejecucion);
+
+    if (data.usuario_cargador != null)
+        $('#usuario_cargador').val(data.usuario_cargador.nombre);
+
+    if (data.usuario_fiscalizador != null)
+        $('#usuario_fiscalizador').val(data.usuario_fiscalizador.nombre);
+
+    $('#observacion_carga').val('');
+    if (data.relevamiento.observacion_carga != null) {
+        $('#observacion_carga').val(data.relevamiento.observacion_carga);
+    }
+
+    let tabla = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas');
+    for (let i = 0; i < data.detalles.length; i++) {
+        tabla.append(filaCallback(data.detalles[i]));
+    }
 }
 
 //ABRIR MODAL DE NUEVO RELEVAMIENTO

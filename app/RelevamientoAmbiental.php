@@ -18,7 +18,8 @@ class RelevamientoAmbiental extends Model
     'id_usuario_fiscalizador',
     'id_usuario_cargador',
     'id_estado_relevamiento',
-    'id_tipo_relev_ambiental');
+    'id_tipo_relev_ambiental',
+    'observacion_carga');
   public $timestamps = false;
 
   public function casino(){

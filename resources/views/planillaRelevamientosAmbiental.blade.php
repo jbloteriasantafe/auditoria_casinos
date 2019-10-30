@@ -135,7 +135,7 @@
       </table>
       <?php $contador_tablas++; ?>
       <br>
-        @if ($contador_tablas%2 == 0)
+        @if ($contador_tablas%2 == 0 && $contador_tablas != 4)
           <div style="page-break-after:always;"></div>
         @endif
       @endforeach
@@ -189,7 +189,15 @@
       @endforeach
     @endif
 
+
     <br><br>
+    @if ($relevamiento_ambiental->observacion_carga != NULL)
+      <div class="primerEncabezado">Observaciones de carga:</div>
+      <div style="color: #9c9c9c; ">
+        {{$relevamiento_ambiental->observacion_carga}}
+      </div><br><br>
+    @endif
+
     <div class="primerEncabezado" style="padding-left: 720px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 
