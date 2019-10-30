@@ -1213,6 +1213,9 @@ class LayoutController extends Controller
       $layouts_totales = LayoutTotal::where([['backup',0] ,['id_estado_relevamiento',1],['id_casino',$request->id_casino],['fecha',$fecha_hoy],['turno',$request->turno]])->get();
   
       foreach($layouts_totales as $unControLayout){
+        foreach($unControLayout->observaciones_islas as $obs){
+          $obs->delete();
+        }
         $unControLayout->delete();
       }
   
@@ -1252,6 +1255,9 @@ class LayoutController extends Controller
                                                 ['fecha_generacion',$fecha_hoy]])->get();
 
           foreach($relevamientos_back as $relevamiento){//si estado = 1 no hay diferencias (es decir,no hay detalles)
+            foreach($relevamiento->observaciones_islas as $obs){
+              $obs->delete();
+            }
             $relevamiento->delete();
           }
 
@@ -1282,33 +1288,7 @@ class LayoutController extends Controller
     return [ 'url_zip' => '/layouts/descargarLayoutTotalZip/'.$nombreZip];
 
   }
-  //Asigna islas del casino al layout total, usado en la creacion.
-  private function asignarIslas($layout_total){
-    $casino = $layout_total->casino;
-    $sectores = $casino->sectores;
-    $estados_validos = [1,2,5,7];//Ingreso, Reingreso, Egreso Int Tec, Eventualidad Observada
-    foreach($sectores as $s){
-      $islas = $s->islas;
-      foreach($islas as $i){
-        $maquinas = $i->maquinas;
-        $isla_valida = FALSE;
-        //Si la isla tiene maquinas con un estado "disponible", la agrego para relevar
-        foreach($maquinas as $m){
-          if(in_array($m->id_estado_maquina,$estados_validos)){
-            $isla_valida = TRUE;
-            break;
-          }
-        }
-        if($isla_valida){
-          $obs = new LayoutTotalIsla;
-          $obs->id_layout_total = $layout_total->id_layout_total;
-          $obs->id_isla = $i->id_isla;
-          $obs->maquinas_observadas = null;
-          $obs->save();
-        }
-      }
-    }
-  }
+
 
   private function guardarPlanillaLayoutTotal($id_layout_total){
     $layout_total = LayoutTotal::find($id_layout_total);
@@ -1348,9 +1328,13 @@ class LayoutController extends Controller
 
     //cargado significa que entreo luego que se finalizo, en ese punto solo lo puede ver el administrador
     //mostrar maquinas es una bandera para mostrar en el formulario la cantidad de maquinas
+    $observacion = '';
     if($cargado){
       $maquinas_apagadas = $layout_total->detalles;
       $mostrar_maquinas=true;
+      if(!is_null($layout_total->observacion_validacion)){
+        $observacion = $layout_total->observacion_validacion;
+      }
     }else{
       $maquinas_apagadas = array();
       $mostrar_maquinas=false;
@@ -1359,23 +1343,19 @@ class LayoutController extends Controller
     foreach($layout_total->casino->sectores as $sector){
       $det = new \stdClass();
       $det->descripcion = $sector->descripcion;
-      // $islas = array();
-      // foreach ($sector->islas as $isla) {
-      //   $islas[] = $isla->nro_isla;
-      // }
       //si el casino es de rosario lo ordeno por islote e isla
+      $det->islas = $layout_total->islas->where('id_sector',$sector->id_sector);
       if($layout_total->id_casino==3){
-        $det->islas = $sector->islas->sortBy(function($isl,$key){
+        $det->islas = $det->islas->sortBy(function($isl,$key){
           return [$isl->orden,$isl->nro_isla];
         });
-      }else{
-        $det->islas = $sector->islas;
-      };
-      
+      }
+   
       
       $detalles[] = $det;
     };
-    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas'));
+    usort($detalles,function($a,$b){return $a->descripcion<=>$b->descripcion;});
+    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
@@ -1606,6 +1586,24 @@ class LayoutController extends Controller
     //todo ok
     return ['codigo' => 200];
   }
+  //Asigna islas del casino al layout total, usado en la creacion.
+  private function asignarIslas($layout_total){
+    $casino = $layout_total->casino;
+    $sectores = $casino->sectores;
+    foreach($sectores as $s){
+      $islas = $s->islas;
+      foreach($islas as $i){
+        //Se agregan para relevar las con int tecnica x pedido del ADM de SFE
+        if($i->cantidad_maquinas_y_int_tecnica > 0){
+          $obs = new LayoutTotalIsla;
+          $obs->id_layout_total = $layout_total->id_layout_total;
+          $obs->id_isla = $i->id_isla;
+          $obs->maquinas_observadas = null;
+          $obs->save();
+        }
+      }
+    }
+  }
 
   public function islasLayoutTotal(Request $request,$id_layout_total){
     $layout = LayoutTotal::find($id_layout_total);
@@ -1643,9 +1641,18 @@ class LayoutController extends Controller
     }
     $ret = [];
     foreach($sectores as $s){
-      usort($s['islas'],function($a,$b){
-        return $a['nro_isla']<=>$b['nro_isla'];
-      });
+      if($layout->id_casino==3){
+        usort($s['islas'],function($a,$b){
+          if($a['orden'] != $b['orden']) return $a['orden']<=>$b['orden'];
+          return $a['nro_isla']<=>$b['nro_isla'];
+        });
+      }
+      else{
+        usort($s['islas'],function($a,$b){
+          return $a['nro_isla']<=>$b['nro_isla'];
+        });
+      }
+
       $ret[]=$s;
     }
     usort($ret,function($a,$b){
