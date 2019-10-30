@@ -42,7 +42,12 @@ p {
 .divTableCell, .divTableHead {
 	border: 1px solid #999999;
 	display: table-cell;
-	padding: 3px 6px;
+	padding: 0px;
+}
+.divTableCell2, .divTableHead2 {
+	border: 1px solid #999999;
+	display: table-cell;
+  padding: 3px 6px;
 }
 .divTableHeading {
 	background-color: #EEE;
@@ -107,7 +112,7 @@ p {
                 <?php $pos += 1; ?>
                 <div class="divTableCell" style="width: 4.26%;text-align: center;">
                   <div>{{$isla->nro_isla}}</div> 
-                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? 0 : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
+                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? '_' : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
                 </div>
                 @else
                 <?php $pos = 1; ?>
@@ -115,7 +120,7 @@ p {
               <div class="divTableRow">
                 <div class="divTableCell" style="width: 4.26%;text-align: center;">
                   <div>{{$isla->nro_isla}}</div> 
-                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? 0 : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
+                  <div class="chico">{{is_null($isla->pivot->maquinas_observadas)? '_' : $isla->pivot->maquinas_observadas}} ({{$isla->cantidad_maquinas}})</div>
                 </div>
                 @endif
                 @endif
@@ -123,7 +128,7 @@ p {
               </div>
 
               @else
-              <div class="divTableRow">
+              <div class="divTableRow" style="margin: 0px;">
                   @foreach($detalle->islas as $isla)
                   @if($isla->cantidad_maquinas_y_int_tecnica!=0)
                   @if($pos != 23)
@@ -172,53 +177,53 @@ p {
               <div class="divTable">
                 <div class="divTableBody">
                   <div class="divTableRow">
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       SECTOR
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       ISLA
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       N° ADMIN
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       C.O(*)
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       P.B(**)
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       SECTOR
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       ISLA
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       N° ADMIN
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       C.O(*)
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       P.B(**)
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       SECTOR
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       ISLA
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       N° ADMIN
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       C.O(*)
                     </div>
-                    <div class="divTableCell" style="background-color: #dddddd;">
+                    <div class="divTableCell2" style="background-color: #dddddd;">
                       P.B(**)
                     </div>
                   </div>
@@ -226,98 +231,98 @@ p {
                   @for($k=0; $k<ceil(count($maquinas_apagadas)/ 3) ; $k++)
                   <div class="divTableRow">
                     @if(isset($maquinas_apagadas[$k]))
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k]->descripcion_sector}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k]->nro_isla}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k]->nro_admin}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k]->co}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       <?php echo $maquinas_apagadas[$k]->pb == 0 ? '' : 'X';  ?>
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
                     @else
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
                     @endif
 
                     @if(isset($maquinas_apagadas[$k+1]))
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+1]->descripcion_sector}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+1]->nro_isla}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+1]->nro_admin}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+1]->co}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       <?php echo $maquinas_apagadas[$k+1]->pb == 0 ? '' : 'X';  ?>
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
                     @else
 
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
                     @endif
 
                     @if(isset($maquinas_apagadas[$k+2]))
-                    <div class="divTableCell" style="padding-top: 18px;">
+                    <div class="divTableCell2" style="padding-top: 18px;">
                       {{$maquinas_apagadas[$k+2]->descripcion_sector}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+2]->nro_isla}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+2]->nro_admin}}
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                       {{$maquinas_apagadas[$k+2]->co}}
                     </div>
                     <div class="divTableCell">
                       <?php echo $maquinas_apagadas[$k+2]->pb == 0 ? '' : 'X';?>
                     </div>
                     @else
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
                     @endif
                   </div>
@@ -326,39 +331,39 @@ p {
 
                   @for($i=0; $i<(17 -$k) ; $i++)
                   <div class="divTableRow">
-                    <div class="divTableCell" style="padding-top: 18px;">
+                    <div class="divTableCell2" style="padding-top: 18px;">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell" style="border: none;">
+                    <div class="divTableCell2" style="border: none;">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
-                    <div class="divTableCell">
+                    <div class="divTableCell2">
                     </div>
                   </div>
                   @endfor
