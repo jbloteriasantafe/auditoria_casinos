@@ -1358,8 +1358,11 @@ class LayoutController extends Controller
           return [$isl->orden,$isl->nro_isla];
         });
       }
-   
-      
+      else{
+        $det->islas = $det->islas->sortBy(function($isl,$key){
+          return [$isl->nro_isla];
+        });
+      }
       $detalles[] = $det;
     };
     usort($detalles,function($a,$b){return $a->descripcion<=>$b->descripcion;});
