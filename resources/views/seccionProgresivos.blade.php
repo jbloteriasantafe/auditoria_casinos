@@ -71,7 +71,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                   <div class="col-xs-12">
                     <center>
                       <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVO PROGRESIVO</h4>
+                      <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
                     </center>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>Buscar individuales</h4>
+            <h4>Buscar/modificar individuales</h4>
           </div>
           <div class="">
             <div class="panel-body">
@@ -122,7 +122,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           <div class="col-md-12">
             <div class="panel panel-default">
               <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+                <h4>Filtros de búsqueda linkeados <i class="fa fa-fw fa-angle-down"></i></h4>
               </div>
               <div id="collapseFiltros" class="panel-collapse collapse">
                 <div class="panel-body">
@@ -162,7 +162,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
       <div class="col-md-12">
         <div class="panel panel-default">
         <div class="panel-heading">
-          <h4>ÚLTIMOS PROGRESIVOS</h4>
+          <h4>ÚLTIMOS PROGRESIVOS LINKEADOS</h4>
         </div>
         <div class="panel-body">
         <table id="tablaResultados" class="table table-fixed tablesorter">
@@ -209,7 +209,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
       <div class="modal-header" style="background: #5cb85c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO</h3>
+        <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO LINKEADO</h3>
       </div>
       <div  id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">

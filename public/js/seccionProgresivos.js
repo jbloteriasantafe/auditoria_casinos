@@ -137,7 +137,7 @@ $('#btn-nuevo').click(function(e) {
     $('#btn-guardar').val("nuevo");
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-successAceptar');
-    $('.modal-title').text('| NUEVO PROGRESIVO');
+    $('.modal-title').text('| NUEVO PROGRESIVO LINKEADO');
     $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
     $('#modalProgresivo').modal('show');
     mostrarProgresivo({ id_progresivo: -1, nombre: '', porc_recup: 0 }, [], [], true);
@@ -1018,6 +1018,7 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
     limpiarErrores();
     $('#modalProgresivo_casino').attr('disabled', progresivo.id_progresivo != -1);
     $('#modalProgresivo_casino').val(progresivo.id_casino);
+    $('#modalProgresivo_casino').find('option')[0].selected = true;
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
     $('#nombre_progresivo').attr('disabled', !editable);
