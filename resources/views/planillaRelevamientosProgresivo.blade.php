@@ -30,7 +30,16 @@
     z-index:1;
   }
 
-  .cell_bg{
+  .cell_bg_1{
+    position:absolute; 
+    width:100%; 
+    height:100%; 
+    z-index:0; 
+    color: rgb(180,180,180);
+    text-align:right;
+    font-size: 50%;
+  }
+  .cell_bg_2{
     position:absolute; 
     width:100%; 
     height:100%; 
@@ -124,13 +133,13 @@
           <div class="cell_fg">
           {{$detalle['nivel' . $i]}}
           </div>
-          <div class="cell_bg">
+          <div class="cell_bg_1">
           {{$detalle['nombre_nivel' . $i]}}
           </div>
         </td>
             @else
         <td class="tablaProgresivos" style="background-color: #f5f5f5">
-          <div class="cell_bg">
+          <div class="cell_bg_2">
             {{$detalle['nombre_nivel' . $i]}}
            </div>
         </td>
