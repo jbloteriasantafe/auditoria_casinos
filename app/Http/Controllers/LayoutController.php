@@ -1345,6 +1345,14 @@ class LayoutController extends Controller
       $det->descripcion = $sector->descripcion;
       //si el casino es de rosario lo ordeno por islote e isla
       $det->islas = $layout_total->islas->where('id_sector',$sector->id_sector);
+      //Si es un layout viejo, no tiene islas asociadas, les devuelvo todas las del sector nomas.
+      if(count($det->islas)==0){
+        $det->islas = $sector->islas;
+        foreach($det->islas as &$i){
+          $i->pivot = new \stdClass();
+          $i->pivot->maquinas_observadas = NULL;
+        }
+      }
       if($layout_total->id_casino==3){
         $det->islas = $det->islas->sortBy(function($isl,$key){
           return [$isl->orden,$isl->nro_isla];
