@@ -275,6 +275,7 @@ class RelevamientoProgresivoController extends Controller
 
       $pozo = Pozo::withTrashed()->find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
+      $niveles = $pozo->niveles()->get();
 
       $x=0;
       $nro_maquinas = "";
@@ -315,6 +316,13 @@ class RelevamientoProgresivoController extends Controller
         $causa_no_toma_progresivo = -1;
       }
 
+      $nombre_nivel = [];
+      foreach($niveles as $n){
+        if(isset($n->nro_nivel)){
+          $nombre_nivel[$n->nro_nivel]=isset($n->nombre_nivel)? $n->nombre_nivel : '';
+        }
+      }
+
       $detalle = array(
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
@@ -331,6 +339,12 @@ class RelevamientoProgresivoController extends Controller
         'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
         'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
         'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'nombre_nivel1' => isset($nombre_nivel[1])? $nombre_nivel[1] : '',
+        'nombre_nivel2' => isset($nombre_nivel[2])? $nombre_nivel[2] : '',
+        'nombre_nivel3' => isset($nombre_nivel[3])? $nombre_nivel[3] : '',
+        'nombre_nivel4' => isset($nombre_nivel[4])? $nombre_nivel[4] : '',
+        'nombre_nivel5' => isset($nombre_nivel[5])? $nombre_nivel[5] : '',
+        'nombre_nivel6' => isset($nombre_nivel[6])? $nombre_nivel[6] : '',
         'causa_no_toma_progresivo' => $causa_no_toma_progresivo
       );
 
