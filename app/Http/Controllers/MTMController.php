@@ -860,8 +860,16 @@ class MTMController extends Controller
         //los juegos se gestionand desde aca solo si la mtm no es multi-juego
         if($MTM->id_pack==null){
           $juego_viejo = $MTM->juego_activo;
+
+          $abreviaturas = [];//Ver mas abajo para que sirve esto.
+          foreach($MTM->juegos as $unJuego){
+            $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
+          }
+
           $MTM->juegos()->detach();
+          
           foreach ($request->juego as $unJuego){
+            $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
             if($unJuego['id_juego']==0){// 0 es juego nuevo
               $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);
 
@@ -892,10 +900,30 @@ class MTMController extends Controller
             }
         }
 
-        if($juego_viejo->id_juego != $juegoActivo->id_juego){//comparo juego activo viejo con juego activo nuevo
+        // Medio un Hack pero me fijo si lo que me mando no es un abreviatura
+        // - Si no es, lo regenero de vuelta si hubo un cambio de juego
+        // - Si es customizado, me fijo si es vacio y lo genero, sino lo meto directo nomas.
+        // Habria que en realidad poner un flag en el frontend si generar o no 
+        // Un marca_juego en base a un checkbox
+        $nuevo_marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
+        $es_nuevo = $juego_viejo->id_juego != $juegoActivo->id_juego;
+        $no_es_customizado = in_array($request->marca_juego,$abreviaturas);
+        // El segundo caso en el OR es por que hay juegos activos que tienen mal seteado el MARCA JUEGO
+        // Ejemplo
+        // Marca Juego: IGT - Jungle Riches
+        // Juegos:
+        // - Scarab (activo)
+        // - Jungle Riches
+        // En este caso $no_es_customizado = true pero $es_nuevo = false
+        // Por lo que nunca se setea, hay que agregarle el segundo chequeo de resguardo.
+        // De paso, tambien creo que sirve si cambiamos la marca de la maquina, aunque lo logea mal.
+        if(($es_nuevo || $nuevo_marca_juego != $MTM->marca_juego) && $no_es_customizado){
           $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
           $tipo_movimiento = 7;
           $razon .= "Cambió el juego. ";
+        }
+        else if(!$no_es_customizado){
+          $MTM->marca_juego = $request->marca_juego == ""? $nuevo_marca_juego : $request->marca_juego;
         }
         $MTM->id_juego = $juegoActivo->id_juego;
         }
@@ -920,9 +948,6 @@ class MTMController extends Controller
         $MTM->nro_admin = $request->nro_admin;
         $MTM->marca = $request->marca;
         $MTM->modelo = $request->modelo;
-        if($request->marca_juego != ""){ //si viene en blanco
-          $MTM->marca_juego = $request->marca_juego;
-        }
         $MTM->id_unidad_medida = $request->id_unidad_medida;
         $MTM->id_tipo_moneda = $request->id_tipo_moneda;
         $MTM->nro_serie = $request->nro_serie;
