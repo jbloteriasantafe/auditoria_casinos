@@ -898,31 +898,51 @@ class MTMController extends Controller
         }
       }
 
-      // Medio un Hack pero me fijo si lo que me mando no es un abreviatura
-      // - Si no es, lo regenero de vuelta si hubo un cambio de juego
-      // - Si es customizado, me fijo si es vacio y lo genero, sino lo meto directo nomas.
-      // Habria que en realidad poner un flag en el frontend si generar o no 
-      // Un marca_juego en base a un checkbox
-      $nuevo_marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
-      $es_nuevo = $juego_viejo->id_juego != $juegoActivo->id_juego;
-      $no_es_customizado = in_array($request->marca_juego,$abreviaturas);
-      // El segundo caso en el OR es por que hay juegos activos que tienen mal seteado el MARCA JUEGO
-      // Ejemplo
-      // Marca Juego: IGT - Jungle Riches
-      // Juegos:
-      // - Scarab (activo)
-      // - Jungle Riches
-      // En este caso $no_es_customizado = true pero $es_nuevo = false
-      // Por lo que nunca se setea, hay que agregarle el segundo chequeo de resguardo.
-      // De paso, tambien creo que sirve si cambiamos la marca de la maquina, aunque lo logea mal.
-      if(($es_nuevo || $nuevo_marca_juego != $MTM->marca_juego) && $no_es_customizado){
-        $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
+      if($juego_viejo->id_juego != $juegoActivo->id_juego){
         $tipo_movimiento = 7;
         $razon .= "Cambió el juego. ";
       }
-      else if(!$no_es_customizado){
-        $MTM->marca_juego = $request->marca_juego == ""? $nuevo_marca_juego : $request->marca_juego;
+
+      // NO SIMPLIFICAR CON LO DE ARRIBA HABIA CASOS ESPECIALES QUE NO SE TENIAN EN CUENTA!!
+      $marca_juego_generado = $this->abreviarMarca($request->marca) . ' - ' . $juegoActivo->nombre_juego;
+      $es_nuevo = $marca_juego_generado != $MTM->marca_juego;
+      $es_customizado = !in_array($request->marca_juego,$abreviaturas);
+      // Casos que se dan
+      // Cambio de JUEGO ACTIVO sin cambiar el marca juego
+      // Por ejemplo si: 
+      //  Marca juego: IGT - Scarab
+      //  Juegos:
+      //   - Scarab (activo)
+      //   - Jungle Riches
+      // Y lo cambiamos a 
+      //  Marca juego: IGT - Scarab
+      //  Juegos:
+      //   - Scarab 
+      //   - Jungle Riches (activo)
+      // El comporamiento deseado es que se cambie el MARCA JUEGO
+      // Pero si tenemos un MARCA JUEGO custom elegido por el usuario ej
+      //  Marca juego: Minguito!
+      //  Juegos:
+      //   - Scarab (activo)
+      //   - Jungle Riches 
+      // Y lo cambiamos a
+      //  Marca juego: Minguito!
+      //  Juegos:
+      //   - Scarab 
+      //   - Jungle Riches (activo)
+      // NO! queremos que cambie
+      // La excepcion a la regla es que sea la cadena vacia!
+      // Ya se que se puede simplificar en un solo IF pero queda mas claro asi.
+      if($es_nuevo && !$es_customizado){
+        $MTM->marca_juego = $marca_juego_generado;
       }
+      else if($es_customizado && $request->marca_juego == ""){
+        $MTM->marca_juego = $marca_juego_generado;
+      }
+      else if($es_customizado){
+        $MTM->marca_juego = $request->marca_juego;
+      }
+           
       $MTM->id_juego = $juegoActivo->id_juego;
     }
 
