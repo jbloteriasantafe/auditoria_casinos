@@ -598,7 +598,7 @@ function infoSectores(){
 //esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
 function cargarDivDiferenciasValidar(){
   let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
-  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone().removeClass('diferenciasFilaEjemplo');
   tabla.find('.diferenciasFilaEjemplo').remove();
 
   sectores = infoSectores();
@@ -621,20 +621,30 @@ function cargarDivDiferenciasValidar(){
   });
 
   //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
+  let total_activas = 0;
+  let total_inactivas = 0;
+  let total_relevadas = 0;
+  let total_sistema = 0;
+  let total_diff = 0;
   sectores.forEach(function(val,key){
     const fila = filaEjemplo.clone();
     const nombre = val['nombre'];
     const activas = val['activas'];
+    total_activas += activas;
     const inactivas = val['inactivas'];
-    const total_relevado = activas + inactivas;
+    total_inactivas += inactivas;
+    const relevado = activas + inactivas;
+    total_relevadas += relevado;
     const sistema = val['sistema'];
-    const diff = Math.abs(sistema - total_relevado);
+    total_sistema += sistema;
+    const diff = Math.abs(sistema - relevado);
+    total_diff += diff;
 
     fila.attr('data-id-sector',key);
     fila.find('.diferenciasSector').text(nombre);
     fila.find('.diferenciasActivas').text(activas);
     fila.find('.diferenciasInactivas').text(inactivas);
-    fila.find('.diferenciasTotal').text(total_relevado);
+    fila.find('.diferenciasTotal').text(relevado);
     fila.find('.diferenciasTotalSistema').text(sistema);
     fila.find('.diferenciasDiferencia').text(diff)
     .addClass(diff? 'incorrecto' : 'correcto');
@@ -646,6 +656,20 @@ function cargarDivDiferenciasValidar(){
     if(inactivas != 0) islaTotal.find('.inactivas').text('+'+inactivas);
     else islaTotal.find('.inactivas').text('');
   });
+
+  {
+    const fila = filaEjemplo.clone();
+    fila.attr('data-id-sector',-1);
+    fila.find('.diferenciasSector').text('').addClass('borde_superior');
+    fila.find('.diferenciasActivas').text(total_activas).addClass('borde_superior');
+    fila.find('.diferenciasInactivas').text(total_inactivas).addClass('borde_superior');
+    fila.find('.diferenciasTotal').text(total_relevadas).addClass('borde_superior');
+    fila.find('.diferenciasTotalSistema').text(total_sistema).addClass('borde_superior');
+    fila.find('.diferenciasDiferencia').text(total_diff)
+    .addClass(total_diff? 'incorrecto' : 'correcto').addClass('borde_superior');
+    tabla.find('.cuerpoTablaDiferencias').append(fila);
+  }
+
 
   //Busco la isla correspondiente y le agrego las inactivas
   $('#modalValidarControl .activas div.sector .isla').each(function(){

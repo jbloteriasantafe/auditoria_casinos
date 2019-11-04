@@ -51,6 +51,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 .sombreado{
   color: grey;
 }
+.borde_superior {
+  border-top: solid 1px black !important;
+}
 </style>
 @endsection
 
