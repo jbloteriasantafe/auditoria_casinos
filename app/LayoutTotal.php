@@ -3,6 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\LayoutTotalIsla;
+use DB;
 
 class LayoutTotal extends Model
 {
@@ -11,6 +13,25 @@ class LayoutTotal extends Model
   protected $primaryKey = 'id_layout_total';
   protected $visible = array('id_layout_total', 'nro_layout_total' ,'fecha','fecha_generacion','fecha_ejecucion', 'backup', 'id_casino','turno' ,'id_estado_relevamiento' , 'observacion_fiscalizacion' , 'observacion_validacion');
   public $timestamps = false;
+  protected $appends = array('total_activas','total_inactivas');
+
+  public function getTotalActivasAttribute(){
+    $activas = DB::table('layout_total_isla')
+    ->selectRaw('SUM(IFNULL(layout_total_isla.maquinas_observadas,0)) as total')
+    ->where('layout_total_isla.id_layout_total','=',$this->id_layout_total)
+    ->groupBy('layout_total_isla.id_layout_total')
+    ->get()->first();
+    return is_null($activas)? 0 : $activas->total;
+  }
+
+  public function getTotalInactivasAttribute(){
+    $inactivas = DB::table('detalle_layout_total')
+    ->selectRaw('COUNT(id_detalle_layout_total) as total')
+    ->where('detalle_layout_total.id_layout_total','=',$this->id_layout_total)
+    ->groupBy('detalle_layout_total.id_layout_total')
+    ->get()->first();
+    return is_null($inactivas)? 0 : $inactivas->total;
+  }
 
   public function detalles(){
     return $this->hasMany('App\DetalleLayoutTotal','id_layout_total','id_layout_total');

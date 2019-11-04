@@ -1311,6 +1311,8 @@ class LayoutController extends Controller
     $rel->fecha = $layout_total->fecha;
     $rel->fecha_ejecucion = ($layout_total->fecha_ejecucion != null) ? $layout_total->fecha_ejecucion : $layout_total->fecha;
     $rel->fecha_generacion = $layout_total->fecha_generacion;
+    $rel->total_activas = $layout_total->total_activas;
+    $rel->total_inactivas = $layout_total->total_inactivas;
 
     $año = substr($rel->fecha,0,4);
     $mes = substr($rel->fecha,5,2);
@@ -1331,13 +1333,13 @@ class LayoutController extends Controller
     $observacion = '';
     if($cargado){
       $maquinas_apagadas = $layout_total->detalles;
-      $mostrar_maquinas=true;
+      $mostrar_maquinas  = true;
       if(!is_null($layout_total->observacion_validacion)){
         $observacion = $layout_total->observacion_validacion;
       }
     }else{
       $maquinas_apagadas = array();
-      $mostrar_maquinas=false;
+      $mostrar_maquinas  = false;
     }
 
     foreach($layout_total->casino->sectores as $sector){
@@ -1526,6 +1528,8 @@ class LayoutController extends Controller
     if(!is_null($errors)) return $errors;
 
     return ['layout_total' => $layout_total,
+            'total_activas' => $layout_total->total_activas,
+            'total_inactivas' => $layout_total->total_inactivas,
             'sectores' => $layout_total->casino->sectores,
             'casino' => $layout_total->casino->nombre,
             'usuario_cargador' => $layout_total->usuario_cargador ,

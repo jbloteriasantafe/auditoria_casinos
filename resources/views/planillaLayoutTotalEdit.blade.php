@@ -81,6 +81,10 @@ p {
     <link href="css/estiloPlanillaLandscape.css" rel="stylesheet">
   </head>
   <body>
+  <?php 
+  $hoy = date('j-m-y / H:i');
+  $ejec = date('j-m-y / H:i',strtotime($rel->fecha_ejecucion));
+  ?>
 
 
         <div class="encabezadoImg">
@@ -90,11 +94,17 @@ p {
 
         <div class="camposTab titulo" style="top: -16px; right:386px;">TURNO</div>
         <div class="camposInfo" style="top: -16px; right:255px;"></span>{{$rel->turno}}</div>
-        <div class="camposTab titulo" style="top: 0px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="top: 0px; right:201px;"></span><?php $hoy = date('j-m-y / H:i');
-        print_r($hoy); ?></div>
-        <div class="camposTab titulo" style="top: 16px; right:199px;">HORA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
-        <div class="camposTab titulo" style="top: 32px; right:159px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; __</div>
+        <div class="camposTab titulo" style="top: 0px; right:325px;">FECHA PLANILLA</div>
+        <div class="camposInfo" style="top: 0px; right:201px;"></span>{{$hoy}}</div>
+        @if($mostrar_maquinas)
+        <div class="camposTab titulo" style="top: 16px; right:294px;">FECHA DE EJECUCIÓN</div>
+        <div class="camposInfo" style="top: 16px; right: 201px;">{{$ejec}}</div>
+        <div class="camposTab titulo" style="top: 32px; right:202px;">CANT. TOTAL DE MÁQ. OBSERVADAS:</div>
+        <div class="camposInfo" style="top: 32px;right: 170px;">{{$rel->total_activas}}</div>
+        @else
+        <div class="camposTab titulo" style="top: 16px; right:194px;">FECHA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
+        <div class="camposTab titulo" style="top: 32px; right:170px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+        @endif
 
         <div class="primerEncabezado"><b>Lista de control de Islas verificadas </b><i>(Ingresar total de máquinas observadas por isla)</i>:</div>
         <br>
@@ -167,11 +177,17 @@ p {
 
         <div class="camposTab titulo" style="top: -16px; right:386px;">TURNO</div>
         <div class="camposInfo" style="top: -16px; right:255px;"></span>{{$rel->turno}}</div>
-        <div class="camposTab titulo" style="top: 0px; right:324px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="top: 0px; right:201px;"></span><?php $hoy = date('j-m-y / H:i');
-        print_r($hoy); ?></div>
-        <div class="camposTab titulo" style="top: 16px; right:199px;">HORA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
-        <div class="camposTab titulo" style="top: 32px; right:159px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; __</div>
+        <div class="camposTab titulo" style="top: 0px; right:325px;">FECHA PLANILLA</div>
+        <div class="camposInfo" style="top: 0px; right:201px;"></span>{{$hoy}}</div>
+        @if($mostrar_maquinas)
+        <div class="camposTab titulo" style="top: 16px; right:294px;">FECHA DE EJECUCIÓN</div>
+        <div class="camposInfo" style="top: 16px; right: 201px;">{{$ejec}}</div>
+        <div class="camposTab titulo" style="top: 32px; right:202px;">CANT. TOTAL DE MÁQ. OBSERVADAS:</div>
+        <div class="camposInfo" style="top: 32px;right: 170px;">{{$rel->total_activas}}</div>
+        @else
+        <div class="camposTab titulo" style="top: 16px; right:194px;">FECHA DE EJECUCIÓN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
+        <div class="camposTab titulo" style="top: 32px; right:170px;">CANT. TOTAL DE MÁQ. OBSERVADAS: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+        @endif
 
 
               <div class="divTable">

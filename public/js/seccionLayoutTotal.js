@@ -360,6 +360,17 @@ function cargarDivActivas(id_layout_total,done = function (x){return;}){
 
         $('#modalCargaControlLayout .activas').append(sector_html);
       }
+      const inputs = $('#modalCargaControlLayout .activas input');
+      let total_activas = $('#modalCargaControlLayout .total_activas');
+      inputs.change(function(){
+        let total = 0;
+        inputs.each(function(i,input){
+          const val = parseInt($(input).val());
+          total += (isNaN(val)? 0 : val);
+        });
+        total_activas.val(total);
+      });
+      $(inputs[0]).change(); //Trigger change para que se actualize.
       done();
     },
     error: function(data){
@@ -427,6 +438,10 @@ function cargarDivInactivasValidar(id_layout_total,done = function (x){return;})
       $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
                       .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
                       .prop('readonly',true);
+    }
+
+    if(data.total_activas != null){
+      $('#modalValidarControl .total_activas').val(data.total_activas);
     }
 
     if(data.layout_total.observacion_fiscalizacion != null){
@@ -1411,4 +1426,5 @@ function limpiarModal(){
     $('.diferencias').empty();
     $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
     $('#modalValidarControl .subrayado').removeClass('subrayado');
+    $('.total_activas').val('');
 }
