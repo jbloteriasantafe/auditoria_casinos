@@ -531,12 +531,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     <div class="diferencias row" style="overflow:scroll;height: 70%;min-height: 30%;">
                     </div>
                     <div class="row">
-                      <span class="col-md-8 col-md-offset-2">
-                        <h5>CANTIDAD TOTAL DE MÁQUINAS ACTIVAS:</h5>
-                        <input class="total_activas" disabled>
-                      </span>
-                    </div>
-                    <div class="row">
                         <div class="col-md-8 col-md-offset-2">
                             <h5>OBSERVACIONES FISCALIZADOR</h5>
                             <textarea id="observacion_carga_validacion" class="form-control" style="resize:vertical;" disabled></textarea>

@@ -440,10 +440,6 @@ function cargarDivInactivasValidar(id_layout_total,done = function (x){return;})
                       .prop('readonly',true);
     }
 
-    if(data.total_activas != null){
-      $('#modalValidarControl .total_activas').val(data.total_activas);
-    }
-
     if(data.layout_total.observacion_fiscalizacion != null){
       $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
     }
@@ -1450,5 +1446,5 @@ function limpiarModal(){
     $('.diferencias').empty();
     $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
     $('#modalValidarControl .subrayado').removeClass('subrayado');
-    $('.total_activas').val('');
+    $('modalCargaControlLayout .total_activas').val('');
 }
