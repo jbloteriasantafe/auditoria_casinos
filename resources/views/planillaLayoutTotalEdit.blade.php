@@ -83,7 +83,8 @@ p {
   <body>
   <?php 
   $hoy = date('j-m-y / H:i');
-  $ejec = date('j-m-y / H:i',strtotime($rel->fecha_ejecucion));
+  if(!is_null($rel->fecha_ejecucion)) $ejec = date('j-m-y / H:i',strtotime($rel->fecha_ejecucion));
+  else $ejec = '&nbsp; -&nbsp; &nbsp; -&nbsp; &nbsp;  / &nbsp; &nbsp; :&nbsp; &nbsp;';
   ?>
 
 

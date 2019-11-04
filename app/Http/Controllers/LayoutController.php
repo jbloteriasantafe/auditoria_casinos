@@ -1309,7 +1309,7 @@ class LayoutController extends Controller
     $rel->casinoNom = $layout_total->casino->nombre;
     $rel->turno = $layout_total->turno;
     $rel->fecha = $layout_total->fecha;
-    $rel->fecha_ejecucion = ($layout_total->fecha_ejecucion != null) ? $layout_total->fecha_ejecucion : $layout_total->fecha;
+    $rel->fecha_ejecucion = $layout_total->fecha_ejecucion;
     $rel->fecha_generacion = $layout_total->fecha_generacion;
     $rel->total_activas = $layout_total->total_activas;
     $rel->total_inactivas = $layout_total->total_inactivas;
