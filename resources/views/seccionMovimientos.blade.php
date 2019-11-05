@@ -553,8 +553,8 @@
                   <tr>
                     <th class="col-xs-2" >MTM A MODIFICAR</th>
                     <th id="segunda_columna" class="col-xs-3"></th>
-                    <th id="tercer_columna" class="col-xs-3"></th> 
-                    <th id="cuarta_columna" class="col-xs-3"></th> 
+                    <th id="tercer_columna" class="col-xs-3"></th>
+                    <th id="cuarta_columna" class="col-xs-3"></th>
                     <th class="col-xs-1" >
                       <button id="btn-borrarTodo" type="button" name="button" class="btn btn-default" style="border-radius:0px;">
                           BORRAR TODOS
@@ -759,17 +759,18 @@
                     <input id="macMov" type="text" class="form-control" readonly="readonly">
                     <br>
                   </div> <!-- mac -->
-                  <div class="col-lg-4">
-                    <h5>ISLA</h5>
-                    <input id="islaRelevadaMov" type="text" value="" class="form-control">
-                    <br>
-                  </div>
 
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>
                     <input id="sectorRelevadoMov" type="text" value="" class="form-control">
                     <br>
                   </div> <!-- SECTOR -->
+
+                  <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaMov" type="text" value="" class="form-control">
+                    <br>
+                  </div>
                 </div> <!-- segundo row -->
 
                 <div class="row">
@@ -1147,7 +1148,7 @@
 
                         <div class="col-lg-4">
                           <h5>Moneda</h5>
-                          <select class="form-control" id="juega_progresivo">
+                          <select class="form-control" id="tipo_moneda">
                             @foreach ($monedas as $moneda)
                             <option value="{{$moneda->id_tipo_moneda}}">{{$moneda->descripcion}}</option>
                             @endforeach

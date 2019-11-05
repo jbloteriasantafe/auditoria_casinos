@@ -158,11 +158,13 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                           @elseif($visitada->ruta == 'disposiciones')
                                             <a href="expedientes"><i class="fa fa-share fa-2x"></i>@svg('expedientes','iconoExpedientes')</a>
                                           @elseif($visitada->ruta == 'informeEstadoParque')
-                                            <a href="informeEstadoParque"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
+                                            <a href="informeEstadoParque"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'estadisticas_relevamientos')
-                                            <a href="estadisticas_relevamientos"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
+                                            <a href="estadisticas_relevamientos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'informeContableMTM')
-                                            <a href="informeContableMTM"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
+                                            <a href="informeContableMTM"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
+                                          @elseif($visitada->ruta == 'informeSector')
+                                            <a href="informeSector"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'relevamientosProgresivo')
                                             <a href="relevamientosProgresivo"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'maquinas')
@@ -215,6 +217,16 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="interanuales"><i class="fa fa-share fa-2x"></i>@svg('tablero_control','iconoTableroModif')</a>
                                           @elseif($visitada->ruta == 'informesMTM')
                                             <a href="informesMTM"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'bingo')
+                                            <a href="bingo"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'diferencia-bingo')
+                                            <a href="bingo/reportesDiferencia"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'estado-bingo')
+                                            <a href="bingo/reportesEstado"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'importacion-bingo')
+                                            <a href="bingo/importarRelevamiento"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
+                                          @elseif($visitada->ruta == 'informe-bingo')
+                                            <a href="bingo/informe"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>  
                                           @endif
                                           <h6>{{$visitada->seccion}}</h6>
                                   </div>

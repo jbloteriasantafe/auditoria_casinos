@@ -152,6 +152,25 @@ footer
                       @endforeach
                       </tbody>
                     </table>
+                    <br>
+                    <br>
+
+                    <!-- tabla POZO ACUMULADO -->
+                    <table>
+                      <tbody>
+                        <tr>
+                          <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="2">POZO ACUMULADO</th>
+                        </tr>
+                        <tr>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA/S</th>
+                          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">POZO ACUMULADO</th>
+                        </tr>
+                        <tr>
+                          <td class=" tablaInicio" style="height: 10px; background-color: white; border-color: gray;"></td>
+                          <td class=" tablaInicio" style="height: 10px; background-color: white; border-color: gray;"></td>
+                        </tr>
+                      </tbody>
+                    </table>
 
                     @foreach($rel->paginas as $p)
                     <div style="page-break-after:always;"></div>

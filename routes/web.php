@@ -48,28 +48,42 @@ Route::get('logActividades/obtenerLogActividad/{id}','LogController@obtenerLogAc
 /***********
 Progresivos
 ***********/
-Route::get('progresivos','ProgresivoController@buscarTodos')->middleware('tiene_permiso:ver_seccion_progresivos');
-Route::post('progresivos/buscarProgresivos','ProgresivoController@buscarProgresivos');
-Route::get('progresivos/obtenerProgresivo/{id}','ProgresivoController@obtenerProgresivo');
-Route::get('progresivos/obtenerProgresivoPorIdMaquina/{id_maquina}','ProgresivoController@obtenerProgresivoPorIdMaquina');
-Route::delete('progresivos/eliminarProgresivo/{id}','ProgresivoController@eliminarProgresivo');
-Route::post('progresivos/guardarProgresivo','ProgresivoController@guardarProgresivo');
-Route::post('progresivos/modificarProgresivo','ProgresivoController@modificarProgresivo');
-Route::get('progresivos/buscarProgresivoPorNombreYTipo/{busqueda}','ProgresivoController@buscarProgresivoPorNombreYTipo');
-Route::get('progresivos/buscarProgresivoLinkeadoPorNombre/{busqueda}','ProgresivoController@buscarProgresivoLinkeadoPorNombre');
+
+Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_seccion_progresivos'], function () {
+  Route::get('/','ProgresivoController@buscarTodos');
+  Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
+  Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
+  Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
+    Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
+  Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
+  Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
+  Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
+  Route::post('/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
+  Route::post('/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
+  Route::post('/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
+  Route::post('/modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
+
+  //Carga los progresivos desde las tablas progresivos_melinque, etc
+  //En principio habria que borrar las tablas una vez cargadas
+  //Por las dudas.
+  Route::get('/cargarProgresivos',"ProgresivoController@cargarProgresivos");
+});
 /***********
 Casinos
 ***********/
-Route::get('casinos','CasinoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_casinos');
-Route::get('casinos/obtenerCasino/{id?}','CasinoController@obtenerCasino');
-Route::post('casinos/guardarCasino','CasinoController@guardarCasino');
-Route::get('/casinos/obtenerTurno/{id}','CasinoController@obtenerTurno');
-Route::post('casinos/modificarCasino','CasinoController@modificarCasino');
-Route::delete('casinos/eliminarCasino/{id}','CasinoController@eliminarCasino');
-Route::get('casinos/get', 'CasinoController@getAll');
-Route::get('casinos/getCasinos', 'CasinoController@getParaUsuario');
-Route::get('casinos/getMeses/{id_casino}', 'CasinoController@meses');
-Route::get('casinos/getFichas','CasinoController@getFichas');
+Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_casinos'], function () {
+  Route::get('/','CasinoController@buscarTodo');
+  Route::get('/obtenerCasino/{id?}','CasinoController@obtenerCasino');
+  Route::post('/guardarCasino','CasinoController@guardarCasino');
+  Route::get('/obtenerTurno/{id}','CasinoController@obtenerTurno');
+  Route::post('/modificarCasino','CasinoController@modificarCasino');
+  Route::delete('/eliminarCasino/{id}','CasinoController@eliminarCasino');
+  Route::get('/get', 'CasinoController@getAll');
+  Route::get('/getCasinos', 'CasinoController@getParaUsuario');
+  Route::get('/getMeses/{id_casino}', 'CasinoController@meses');
+  Route::get('/getFichas','CasinoController@getFichas');
+});
+
 
 
 /***********
@@ -194,23 +208,29 @@ Route::delete('formulas/eliminarFormula/{id}','FormulaController@eliminarFormula
 /***********
 Seccion MTM
 ************/
-Route::get('maquinas','MTMController@buscarTodo')->middleware('tiene_permiso:ver_seccion_maquinas');
-Route::get('maquinas/{id}','MTMController@buscarTodo');
-Route::post('maquinas/guardarMaquina', 'MTMController@guardarMaquina');
-Route::post('maquinas/modificarMaquina', 'MTMController@modificarMaquina');
-Route::post('maquinas/buscarMaquinas', 'MTMController@buscarMaquinas');
-Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
-Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
-Route::get('/maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
-Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
-Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
-Route::delete('maquinas/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
-Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
-// Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
-Route::post('maquinas/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
-Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
-Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
+Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_maquinas'], function () {
+  Route::get('/','MTMController@buscarTodo');
+  Route::get('/{id}','MTMController@buscarTodo');
+  Route::post('/guardarMaquina', 'MTMController@guardarMaquina');
+  Route::post('/modificarMaquina', 'MTMController@modificarMaquina');
+  Route::post('/buscarMaquinas', 'MTMController@buscarMaquinas');
+  Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
+  // Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+  Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
+});
+//Lo necesitan los auditores
 Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
+//Estos por si las moscas lo pongo ... Son todos GET por lo menos
+//Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
+Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+Route::get('maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
+Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
+Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
+Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
+Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
+
 
 /**********
 Islas
@@ -281,7 +301,7 @@ Eventualidades ->intervenciones tecnicas
 
 Route::get('eventualidades','EventualidadController@buscarTodoDesdeFiscalizador')->middleware('tiene_permiso:ver_seccion_eventualidades');
 Route::post('eventualidades/buscarPorTipoFechaCasinoTurno','EventualidadController@buscarPorTipoFechaCasinoTurno');
-Route::get('eventualidades/crearEventualidad', 'EventualidadController@crearEventualidad');
+Route::get('eventualidades/crearEventualidad/{id_casino}', 'EventualidadController@crearEventualidad');
 Route::get('eventualidades/verPlanillaVacia/{id}', 'EventualidadController@verPlanillaVacia');
 Route::get('eventualidades/obtenerSectorEnCasino/{id_casino}/{id_sector}','EventualidadController@obtenerSectorEnCasino');
 Route::get('eventualidades/obtenerIslaEnCasino/{id_casino}/{nro_isla}','EventualidadController@obtenerIslaEnCasino');
@@ -290,7 +310,7 @@ Route::get('eventualidades/visualizarEventualidadID/{id_ev}','EventualidadContro
 Route::get('eventualidades/eliminarEventualidad/{id_ev}', 'EventualidadController@eliminarEventualidad');
 Route::get('eventualidades/visado/{id_ev}', 'EventualidadController@validarEventualidad');
 Route::post('eventualidades/buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
-
+Route::get('eventualidades/leerArchivoEventualidad/{id}','EventualidadController@leerArchivoEventualidad');
 
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -390,13 +410,17 @@ Route::get('obtenerFechaActual',function(){
 /**************
 RELEVAMIENTO PROGRESIVO
 **************/
-Route::get('relevamientosProgresivo','RelevamientoProgresivoController@buscarTodo'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::get('relevamientosProgresivo/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos'); //->middleware('tiene_permiso:ver_seccion_relevamientos')
-Route::post('relevamientosProgresivo/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
-Route::post('relevamientosProgresivo/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
-Route::post('relevamientosProgresivo/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
-Route::get('relevamientosProgresivo/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
-Route::get('relevamientosProgresivo/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','RelevamientoProgresivoController@buscarTodo');
+  Route::get('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos');
+  Route::post('/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
+  Route::post('/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
+  Route::post('/guardarRelevamiento','RelevamientoProgresivoController@guardarRelevamiento');
+  Route::post('/validarRelevamiento','RelevamientoProgresivoController@validarRelevamiento');
+  Route::get('/obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
+  Route::get('/generarPlanilla/{id_relevamiento_progresivo}','RelevamientoProgresivoController@generarPlanillaProgresivos');
+  Route::get('/eliminarRelevamientoProgresivo/{id_relevamiento_progresivo}','RelevamientoProgresivoController@eliminarRelevamientoProgresivo');
+});
 
 /*******************
   Máquinas a pedir
@@ -423,9 +447,10 @@ Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@a
 Route::get('estadisticas_relevamientos','MaquinaAPedidoController@buscarTodoInforme' )->middleware('tiene_permiso:ver_seccion_estadisticas_relevamientos');
 Route::post('estadisticas_relevamientos/guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
 Route::post('estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
+Route::post('estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquinaNroAdmin','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
 Route::post('estadisticas_relevamientos/buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
 Route::get('estadisticas_relevamientos/obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
-
+Route::get('estadisticas_relevamientos/buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
 /**********
  Beneficios
 ***********/
@@ -443,7 +468,6 @@ LAYOUT
 Route::get('menu_layout',function(){
     return view('menu_layout');
 });
-Route::get('layout_total','LayoutController@buscarTodoTotal')->middleware('tiene_permiso:ver_seccion_layout_total');
 Route::get('layout_parcial','LayoutController@buscarTodo')->middleware('tiene_permiso:ver_seccion_layout_parcial');
 Route::post('/layouts/crearLayoutParcial','LayoutController@crearLayoutParcial');
 Route::post('/layouts/usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
@@ -463,17 +487,23 @@ Route::post('/layouts/cargarLayoutParcial' , 'LayoutController@cargarLayoutParci
 Route::post('/layouts/validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
 
 //TOTAL
-Route::post('/layouts/crearLayoutTotal','LayoutController@crearLayoutTotal');
-Route::post('/layouts/buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTotales');
-Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
-Route::get('/layouts/generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
-Route::get('/layouts/generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
-Route::post('/layouts/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
-Route::get('/layouts/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
-Route::get('/layouts/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');
-Route::get('/layouts/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
-Route::post('/layouts/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
-Route::post('/layouts/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
+Route::get('layout_total','LayoutController@buscarTodoTotal')->middleware('tiene_permiso:ver_seccion_layout_total');
+Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_layout_total'], function () {
+  Route::post('/crearLayoutTotal','LayoutController@crearLayoutTotal');
+  Route::post('/buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTotales');
+  Route::get('/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
+  Route::get('/generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
+  Route::get('/generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
+  Route::post('/guardarLayoutTotal','LayoutController@guardarLayoutTotal');
+  Route::post('/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
+  Route::get('/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
+  Route::get('/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');
+  Route::get('/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
+  Route::post('/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
+  Route::post('/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
+  Route::get('/islasLayoutTotal/{id_layout_total}','LayoutController@islasLayoutTotal');
+});
+
 
 /**************
  Estadisticas
@@ -517,11 +547,12 @@ Route::get('informesJuegos',function(){
     return view('seccionInformesJuegos');
 });
 
+Route::get('informeSector','informesController@mostrarInformeSector')->middleware('tiene_permiso:ver_seccion_informesector');
+
 
 Route::get('estadisticas_no_toma','informesController@mostrarEstadisticasNoTomaGenerico');
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 Route::get('estadisticas_no_toma/obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
-
 
 /************************
 Prueba Juegos y Progresivos
@@ -673,7 +704,7 @@ Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\Info
 
 //importaciones
 Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+Route::post('+/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
 Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
 Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
@@ -735,4 +766,57 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () 
   Route::post('solicitudImagenes/sorteoFechasMesas', 'Mesas\Bunker\ABMCImgBunkerController@altaImgsBunker');
   Route::post('solicitudImagenes/guardar','Mesas\Bunker\ABMCImgBunkerController@cargar');
   Route::get('/solicitudImagenes','Mesas\Bunker\ABMCImgBunkerController@index');
+});
+
+//BINGO
+Route::group(['middleware' => ['tiene_permiso:ver_seccion_sesion_relevamientos']], function () {
+  Route::get('bingo','Bingo\SesionesController@index');
+  Route::get('bingo/buscarSesion','Bingo\SesionesController@buscarSesion');
+  Route::post('bingo/guardarSesion','Bingo\SesionesController@guardarSesion');
+  Route::delete('bingo/eliminarSesion/{id}','Bingo\SesionesController@eliminarSesion');
+  Route::get('bingo/obtenerSesion/{id}','Bingo\SesionesController@obtenerSesion');
+  Route::post('bingo/guardarCierreSesion','Bingo\SesionesController@guardarCierreSesion');
+  Route::post('bingo/guardarRelevamiento','Bingo\SesionesController@guardarRelevamiento');
+  Route::post('bingo/reAbrirSesion/{id}','Bingo\SesionesController@reAbrirSesion');
+  Route::post('bingo/modificarCierreSesion','Bingo\SesionesController@modificarCierreSesion');
+  Route::post('bingo/modificarSesion','Bingo\SesionesController@modificarSesion');
+  Route::get('bingo/generarPlanillaSesion','Bingo\SesionesController@generarPlanillaSesion');
+  Route::get('bingo/generarPlanillaCierreSesion','Bingo\SesionesController@generarPlanillaCierreSesion');
+  Route::get('bingo/generarPlanillaRelevamiento','Bingo\SesionesController@generarPlanillaRelevamiento');
+  Route::delete('bingo/eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
+});
+Route::group(['middleware' => ['tiene_permiso:bingo_ver_gestion']], function () {
+  Route::get('bingo/gestionBingo','Bingo\GestionController@index');
+  Route::get('bingo/buscarPremio','Bingo\GestionController@buscarPremio');
+  Route::get('bingo/buscarCanon','Bingo\GestionController@buscarCanon');
+  Route::post('bingo/guardarPremio','Bingo\GestionController@guardarPremio');
+  Route::post('bingo/guardarCanon','Bingo\GestionController@guardarCanon');
+  Route::delete('bingo/eliminarPremio/{id}','Bingo\GestionController@eliminarPremio');
+  Route::delete('bingo/eliminarCanon/{id}','Bingo\GestionController@eliminarCanon');
+  Route::get('bingo/obtenerPremio/{id}','Bingo\GestionController@obtenerPremio');
+  Route::get('bingo/obtenerCanon/{id}','Bingo\GestionController@obtenerCanon');
+  Route::post('bingo/modificarPremio','Bingo\GestionController@modificarPremio');
+  Route::post('bingo/modificarCanon','Bingo\GestionController@modificarCanon');
+});
+Route::group(['middleware' => ['tiene_permiso:importar_bingo']], function () {
+  Route::get('bingo/importarRelevamiento','Bingo\ImportacionController@index');
+  Route::get('bingo/buscarRelevamiento','Bingo\ImportacionController@buscarRelevamiento');
+  Route::delete('bingo/eliminarImportacion/{id}','Bingo\ImportacionController@eliminarImportacion');
+  Route::post('bingo/guardarImportacion','Bingo\ImportacionController@guardarImportacion');
+  Route::get('bingo/obtenerImportacionCompleta/{id}','Bingo\ImportacionController@obtenerImportacionCompleta');
+  Route::get('bingo/obtenerImportacionSimple/{fecha}/{casino}','Bingo\ImportacionController@obtenerImportacionSimple');
+});
+Route::group(['middleware' => ['tiene_permiso:reporte_estado_bingo']], function () {
+  Route::get('bingo/reportesEstado','Bingo\ReportesController@reportesEstado');
+  Route::get('bingo/buscarEstado','Bingo\ReportesController@buscarEstado');
+});
+Route::group(['middleware' => ['tiene_permiso:reporte_diferencia_bingo']], function () {
+  Route::get('bingo/reportesDiferencia','Bingo\ReportesController@reportesDiferencia');
+  Route::get('bingo/buscarReportesDiferencia','Bingo\ReportesController@buscarReportesDiferencia');
+  Route::get('bingo/obtenerDiferencia/{id}','Bingo\ReportesController@obtenerDiferencia');
+  Route::post('bingo/guardarReporteDiferencia','Bingo\ReportesController@guardarReporteDiferencia');
+});
+Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
+  Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
+  Route::get('bingo/informe','Bingo\InformeController@index');
 });

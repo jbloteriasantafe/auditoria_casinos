@@ -882,7 +882,7 @@ $('#btn-guardarProducido').on('click',function(e){
 
           text=data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados'
           if(data.cant_mtm_forzadas){
-            text=text+ '<br>' + data.cant_mtm_forzadas +' Máquinas no reportaron' 
+            text=text+ '<br>' + data.cant_mtm_forzadas +' Máquinas no reportaron'
           }
 
           $('#mensajeExito p').html(text);
@@ -890,6 +890,11 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#mensajeExito').show();
         },
         error: function (data) {
+          //alerta de error si el archivo ya se encuentra cargado y validado.
+          var response = JSON.parse(data.responseText);
+          if(response.producido_validado !== 'undefined'){
+            $('#mensajeError h6').text('El Producido para esa fecha ya está validado y no se puede reimportar.')
+          }
           //Mostrar: mensajeError
           $('#modalImportacionProducidos #mensajeError').show();
           //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
@@ -898,6 +903,8 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#modalImportacionProducidos #mensajeInvalido').hide();
           $('#modalImportacionProducidos #mensajeInformacion').hide();
           $('#modalImportacionProducidos #iconoCarga').hide();
+
+
           console.log('ERROR!');
           console.log(data);
         }

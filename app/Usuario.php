@@ -17,7 +17,7 @@ class Usuario extends Model
     protected $primaryKey = 'id_usuario';
     protected $visible = array('id_usuario','user_name','nombre','email', 'dni' ,'ultimos_visitados');
     protected $hidden = array('imagen','password','token');
-    protected $appends = array('es_superusuario','es_controlador','elimina_cya');
+    protected $appends = array('es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador');
 
     //en cierres y aperturas de mesas
     public function getEliminaCyaAttribute(){
@@ -34,6 +34,22 @@ class Usuario extends Model
 
     public function getEsSuperusuarioAttribute(){
       if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
+    public function getEsAdministradorAttribute(){
+      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',2)->get()) > 0){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
+    public function getEsFiscalizadorAttribute(){
+      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',3)->get()) > 0){
         return true;
       }else{
         return false;
@@ -143,7 +159,5 @@ class Usuario extends Model
     public function getId(){
       return $this->id_usuario;
     }
-
-
 
 }

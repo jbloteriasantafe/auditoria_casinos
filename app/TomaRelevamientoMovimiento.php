@@ -20,7 +20,7 @@ class TomaRelevamientoMovimiento extends Model
                             'cant_lineas', 'porcentaje_devolucion', 'denominacion',
                              'cant_creditos', 'observaciones','nro_admnin',
                              'modelo', 'nro_serie','nro_isla','marca',
-                             'nro_isla_relevada','descripcion_sector_relevado','toma_reingreso');
+                             'descripcion_sector_relevado','nro_isla_relevada','toma_reingreso');
   public $timestamps = false;
 
   public function relevamiento_movimiento(){

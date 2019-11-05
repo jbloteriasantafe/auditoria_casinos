@@ -142,16 +142,16 @@
 
                       <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
 
-                      @if($eventualidad->id_estado_movimiento == 6 && $esControlador == 0)
+                      @if($eventualidad->id_estado_movimiento == 6 && ($esControlador == 0 || $esSuperUsuario))
                       <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
-                      @if($eventualidad->id_estado_movimiento == 1  && $esControlador == 1)
+                      @if($eventualidad->id_estado_movimiento == 1  && ($esControlador == 1 || $esSuperUsuario))
                       <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-check"></i></button>
                       @endif
 
-                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1))
+                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1 || $esSuperUsuario)))
                       <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
                       @endif
 
@@ -301,7 +301,9 @@
       </div> <!-- modal header -->
 
       <div  id="colapsado" class="collapse in">
-        <div class="row"> <!-- PRIMER FILA-->
+          <div class="modal-body" style="font-family: Roboto;">
+            <div class="row"> <!-- PRIMER FILA-->
+
           <div class="col-md-3">
             <h5>Fiscalizador Toma: </h5>
             <div class="row"> <!-- row 2 -->
@@ -322,9 +324,9 @@
 
           <div class="col-md-3">
             <h5>Fiscalizador Carga: </h5>
-            <div class="row"> <!-- row 3 -->
+          <div class="input-group lista-datos-group">
               <input id="fiscaCargaEv" type="text"class="form-control">
-            </div> <!-- fin row 3 -->
+            </div>
           </div>
 
           <div class="col-md-3">
@@ -338,7 +340,7 @@
           </div>
 
           <br>
-
+          </div>
         </div> <!-- FIN PRIMER FILA-->
 
         <div class="modal-body" style="font-family: Roboto;">
@@ -366,9 +368,9 @@
 
                   <div class="col-lg-4">
                     <h5>N° Admin</h5>
-                    <div class="row"> <!-- row 3 -->
+                  <div class="input-group lista-datos-group">
                       <input id="inputAdmin" type="text"class="form-control">
-                    </div> <!-- fin row 3 -->
+                    </div>
                   </div>
 
                   <div class="col-lg-4">
@@ -408,16 +410,15 @@
 
                 <div class="row">
                   <div class="col-lg-4">
+                    <h5>SECTOR</h5>
+                    <input id="sectorRelevadoEv" type="text" value="" class="form-control">
+                    <br>
+                  </div>
+                  <div class="col-lg-4">
                     <h5>ISLA</h5>
                     <input id="islaRelevadaEv" type="text" value="" class="form-control">
                     <br>
                   </div>
-
-                  <div class="col-lg-4">
-                    <h5>SECTOR</h5>
-                    <input id="sectorRelevadoEv" type="text" value="" class="form-control">
-                    <br>
-                  </div> <!-- SECTOR -->
                 </div>
 
                 <div class="row"> <!-- TERCER ROW DE DETALLE -->
@@ -733,7 +734,7 @@
                                       <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
                                     </div>
 
-                                    @if($esControlador == 1)
+                                    @if($esControlador == 1 || $esSuperUsuario)
                                       <div class="col-lg-12">
                                         <h6>OBSERVACIONES ADMIN:</h6>
                                         <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>

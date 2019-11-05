@@ -19,10 +19,13 @@ class CotizacionController extends Controller
 
 
     public function obtenerCotizaciones($fecha){
-        
+        $fecha2 = date("Y-m", strtotime("$fecha - 2 month"));
+
         return DB::table('cotizacion')
-                    ->where('fecha','>=',$fecha . '%')
+                    ->where('fecha','>=',$fecha2 . '%')
                     ->get();
+
+
         //TODO limitar la busqueda con fecha final
     }
 
@@ -45,9 +48,9 @@ class CotizacionController extends Controller
 
 
 
-        
+
         return "OK";
 
     }
-    
+
 }

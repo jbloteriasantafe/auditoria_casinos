@@ -1,3 +1,6 @@
+ <?php
+use App\Http\Controllers\UsuarioController;
+?>
 @extends('includes.dashboard')
 
 @section('headerLogo')
@@ -18,6 +21,7 @@
 <div class="col-xl-3">
   <div class="row">
     <div class="col-md-12">
+      @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
       <a href="" id="btn-nuevo" dusk="btn-nuevo" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/casinos_white.png"><center>
@@ -32,6 +36,7 @@
               </div>
           </div>
         </a>
+        @endif
     </div>
   </div>
 </div>
@@ -270,16 +275,25 @@
               <input type="text" class="form-control" id="nombreModif" name="nombre" placeholder="Nombre del casino" value="">
             </div>
             <div class="col-xs-3">
+              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
               <h5>CÓDIGO *</h5>
               <input type="text" class="form-control" id="codigoModif" name="codigo" placeholder="Código del casino" value="">
+              @else
+              <input type="text" class="form-control" id="codigoModif" name="codigo" placeholder="Código del casino" value="" disabled="" style="display: none;">
+              @endif
             </div>
             <div class="col-xs-3">
+              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
               <h5>% SORTEO MESAS *</h5>
-              <input type="text" class="form-control" id="porcentajeModif" name="sorteo" placeholder="Porcentaje del casino" value="">
+              <input type="text" class="form-control" id="porcentajeModif" name="sorteo" placeholder="Porcentaje del casino" value=""/>
               <span class="help-block" style="color: #0D47A1 !important;margin-top:5px !important; font-size:12px !important;padding-left:5px !important">
                 <i>*Solicitud de imágenes Búnker.</i></span>
+              @else
+              <input type="text" class="form-control" id="porcentajeModif" name="sorteo" placeholder="Porcentaje del casino" value="" disabled="" style="display: none;"/>
+              @endif
             </div>
             <div class="col-xs-3">
+              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
               <h5>FECHA INICIO *</h5>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaIni' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd" >
@@ -288,6 +302,15 @@
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
+              @else
+              <div class="form-group" disabled="" style="display: none;">
+                <div class='input-group date' id='dtpFechaIni' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd" >
+                  <input type='text' class="form-control" id="finicioModif" placeholder="aaaa-mm-dd" value=" " disabled=""/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              @endif
               </div>
             </div>
           <br>
@@ -300,7 +323,6 @@
 
             <div class="pestaniaTurnosModif" hidden="true">
               <div class="row">
-                <h5>TURNOS</h5>
                 <table class="table table-sorter" id="tablaTurnosModif">
                   <thead>
                     <th class="col-xs-2"> <h6 style="font-size:16px; text-align:center !important;color:#212121"> Número:</h6></th>
@@ -407,6 +429,17 @@
 <script src="/js/locales/es.js" type="text/javascript"></script>
 <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
+<script>
+var override_mostrar_dolares = false;
+var estilo_viejo = $('#p_dolares_modif').css('display');
+
+@if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+override_mostrar_dolares = true;
+@endif
+
+</script>
 <script src="js/Casinos/casinos.js" charset="utf-8"></script>
+
+
 
 @endsection

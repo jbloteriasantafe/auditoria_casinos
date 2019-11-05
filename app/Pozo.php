@@ -3,28 +3,36 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Observers\PozoObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Pozo extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'pozo';
   protected $primaryKey = 'id_pozo';
-  protected $visible = array('id_pozo','descripcion');
+  protected $visible = array('id_pozo','descripcion','id_progresivo','deleted_at');
   public $timestamps = false;
 
-  public function niveles_progresivo(){
-    return $this->belongsToMany('App\NivelProgresivo','pozo_tiene_nivel_progresivo','id_pozo','id_nivel_progresivo')->withPivot('base');
+  public function progresivo(){
+    return $this->belongsTo('App\Progresivo','id_progresivo','id_progresivo');
   }
 
-  public function formatearBase($niveles){
-      foreach ($niveles as $nivel){
-        $nivel->base = ($nivel->pivot->base != null  ? $nivel->pivot->base : $nivel->base);
-      }
-      return $niveles;
+  public function niveles(){
+    return $this->hasMany('App\NivelProgresivo','id_pozo','id_pozo');
   }
 
-  public function maquinas(){
-    return $this->hasMany('App\Maquina' , 'id_pozo' , 'id_pozo' );
+  public static function boot(){
+    parent::boot();
+    Pozo::observe(new PozoObserver());
   }
 
+  public function getTableName(){
+    return $this->table;
+  }
+  public function getId(){
+    return $this->id_pozo;
+  }
 }

@@ -139,51 +139,63 @@ $('#btn-guardar').on('click',function(e){
 
     turnos.push(turno);
   });
+
   var fichasNuevas=[];
   var fichasPesos=[];
-
-  $('#tablaFichas input:checked').each(function(e){
-    if($(this).val() != 0){
-      fichasPesos.push({
-                        id_ficha:$(this).val(),
-                      });
-    }
-    else{
-      var newF=$(this).parent().parent().find('.valorF').val();
-      fichasNuevas.push({
-                          valor_ficha: newF,
-                          id_moneda: 1,
-                        });
-    }
-  })
-
   var fichasDolares=[];
 
-  $('#tablaFichasDol input:checked').each(function(e){
-    if($(this).val() != 0){
-      fichasDolares.push({
-                          id_ficha:$(this).val(),
+  var listaFichasPesos = $('#tablaFichas input:checked');
+  for(var i = 0;i<listaFichasPesos.length;i++){
+    var elemento = listaFichasPesos[i];
+    var id = $(elemento).parent().parent()[0].id
+    if(id !== ""){
+      fichasPesos.push({
+                          id_ficha:id,
                           });
     }
     else{
-      var newF=$(this).parent().parent().find('.valorDol').val();
+      var val = $(elemento).parent().parent()
+      .children(".valorF")
+      .children(".valorFinput").val();
       fichasNuevas.push({
-                          valor_ficha: newF,
-                          id_moneda: 2,
-                        });
+                      valor_ficha: val,
+                      id_moneda: 1,
+                      });
+
     }
-  })
+  }
+  var listaFichasDolares = $('#tablaFichasDol input:checked');
+  for(var i = 0;i<listaFichasDolares.length;i++){
+    var elemento = listaFichasDolares[i];
+    var id = $(elemento).parent().parent()[0].id
+    if(id !== ""){
+      fichasDolares.push({
+                          id_ficha:id,
+                          });
+    }
+    else{
+      var val = $(elemento).parent().parent()
+      .children(".valorDol")
+      .children(".valorDolinput").val();
+      fichasNuevas.push({
+                      valor_ficha: val,
+                      id_moneda: 2,
+                      });
+
+    }
+  }
 
   var formData = {
     nombre: $('#nombre').val(),
     codigo: $('#codigo').val(),
-    turnos: turnos,
-    fichas_pesos: fichasPesos,
-    fichas_dolares: fichasDolares,
+    turnos:turnos,
+    fichas_dolares:fichasDolares,
+    fichas_pesos:fichasPesos,
     fichas_nuevas: fichasNuevas,
     porcentaje_sorteo_mesas: $('#porcentaje_sorteo_mesas').val(),
     fecha_inicio:$('#fecha_inicio').val()
   }
+
   //var id_casino = $('#id_casino').val();
 
   $.ajax({
@@ -205,6 +217,7 @@ $('#btn-guardar').on('click',function(e){
 
       },
       error: function(data){
+        console.log(data);
         $('#btn-guardar').prop('disabled',false);
 
         var errors = $.parseJSON(data.responseText).errors;
@@ -304,26 +317,25 @@ $("ul.pestaniasTFM li").click(function() {
       $('.pestaniaPesosModif').show();
       $('.pestaniaTurnosModif').hide();
       $('.pestaniaDolaresModif').hide();
-
     }
     if(activeTab == '#fdolaresModif'){
-
       $('#p_dolares_modif').show();
       $('.pestaniaDolaresModif').show();
       $('.pestaniaTurnosModif').hide();
       $('.pestaniaPesosModif').hide();
-
     }
     if(activeTab == '#fturnosModif'){
       $('#p_turnos_modif').show();
       $('.pestaniaTurnosModif').show();
       $('.pestaniaPesosModif').hide();
       $('.pestaniaDolaresModif').hide();
-
     }
+
     $(activeTab).fadeIn(); //Fade in the active ID content
     return false;
 });
+
+
 
 
 $(document).on('click','.modificarCasino',function(e){
@@ -332,6 +344,8 @@ $(document).on('click','.modificarCasino',function(e){
   limpiarModificar();
   $('#btn-preModificar').val($(this).val());
   $('#btn-modificarCas').val($(this).val());
+
+
 
   $('#modalPreModificar').modal('show');
 });
@@ -364,6 +378,16 @@ $('#btn-preModificar').on('click',function(e){
           $('#finicioModif').val(data.casino.fecha_inicio);
           $('#finicioModif').prop('disabled',true);
           $('#porcentajeModif').val(data.casino.porcentaje_sorteo_mesas);
+
+          if($('#nombreModif').val() === "Melincué" || $('#nombreModif').val() === "Santa Fe"){
+            $('#p_dolares_modif').css('display','none');
+          }
+          else{
+            $('#p_dolares_modif').css('display',estilo_viejo);
+          }
+          if(override_mostrar_dolares){
+            $('#p_dolares_modif').css('display',estilo_viejo);
+          }
 
           var fk = data.fichas;
           Object.keys(fk).forEach(key => {
@@ -547,38 +571,48 @@ $('#btn-modificarCas').on('click',function(e){
 
   var fichasNuevas=[];
   var fichasPesos=[];
-
-  $('#tablaFichasModif input:checked').each(function(e){
-    if($(this).val() != 0){
-      fichasPesos.push({
-                          id_ficha:$(this).val(),
-                          });
-    }
-    else{
-      var newF=$(this).parent().parent().find('.valorF').val();
-      fichasNuevas.push({
-                          valor_ficha: newF,
-                          id_moneda: 1,
-                        });
-    }
-  })
-
   var fichasDolares=[];
 
-  $('#tablaFichasDolModif input:checked').each(function(e){
-    if($(this).val() != 0){
-      fichasDolares.push({
-                          id_ficha:$(this).val(),
+  var listaFichasPesos = $('#tablaFichasModif input:checked');
+  for(var i = 0;i<listaFichasPesos.length;i++){
+    var elemento = listaFichasPesos[i];
+    var id = $(elemento).parent().parent()[0].id
+    if(id !== ""){
+      fichasPesos.push({
+                          id_ficha:id,
                           });
     }
     else{
-      var newF=$(this).parent().parent().find('.valorDol').val();
+      var val = $(elemento).parent().parent()
+      .children(".valorF")
+      .children(".valorFinput").val();
       fichasNuevas.push({
-                          valor_ficha: newF,
-                          id_moneda: 2,
-                        });
+                      valor_ficha: val,
+                      id_moneda: 1,
+                      });
+
     }
-  })
+  }
+  var listaFichasDolares = $('#tablaFichasDolModif input:checked');
+  for(var i = 0;i<listaFichasDolares.length;i++){
+    var elemento = listaFichasDolares[i];
+    var id = $(elemento).parent().parent()[0].id
+    if(id !== ""){
+      fichasDolares.push({
+                          id_ficha:id,
+                          });
+    }
+    else{
+      var val = $(elemento).parent().parent()
+      .children(".valorDol")
+      .children(".valorDolinput").val();
+      fichasNuevas.push({
+                      valor_ficha: val,
+                      id_moneda: 2,
+                      });
+
+    }
+  }
 
   var formData = {
     id_casino: $(this).val(),
@@ -589,7 +623,6 @@ $('#btn-modificarCas').on('click',function(e){
     fichas_nuevas: fichasNuevas,
     porcentaje_sorteo_mesas: $('#porcentajeModif').val(),
   }
-  //var id_casino = $('#id_casino').val();
 
   $.ajax({
       type: "POST",
@@ -609,6 +642,7 @@ $('#btn-modificarCas').on('click',function(e){
 
       },
       error: function(data){
+        console.log(data);
         $('#btn-modificarCas').prop('disabled',false);
 
         var errors = $.parseJSON(data.responseText).errors;
@@ -653,9 +687,16 @@ $('#modalModificarCasino').on('hide', function () {
 $(document).on('click','.agregarFPesos',function(){
   var fila=$('#moldeFicha').clone();
   fila.removeAttr('id');
+  fila.addClass('filaPesos');
   fila.find('.valorF').append($('<input>').addClass('form-control valorFinput').css('cssText','text-align:center !important').attr('placeholder','Ingrese el Valor '));
   fila.find('.utilizar').val(0);
-  fila.append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-trash').css('cssText','padding-left:10px').addClass('removeFicha').css('font-size','16px')));
+  fila.append($('<td>')
+  .addClass('col-xs-2')
+  .append($('<i>')
+  .addClass('fa fa-fw fa-trash')
+  .css('cssText','padding-left:10px')
+  .addClass('removeFicha')
+  .css('font-size','16px')));
 
   fila.css('display','');
   $('#dd').css('display','block');
@@ -667,7 +708,15 @@ $(document).on('click','.agregarFPesos',function(){
 $(document).on('click','.agregarFDolares',function(){
   var fila=$('#moldeFichaDol').clone();
   fila.removeAttr('id');
-  fila.find('.valorDol').append($('<input>').addClass('form-control valorFinput').css('cssText','text-align:center !important').attr('placeholder','Ingrese el Valor '));
+  fila.addClass('filaDolares')
+  .addClass('filaAgregada');
+  fila.find('.valorDol')
+  .append($('<input>')
+  .addClass('form-control valorDolinput')
+  .css('cssText','text-align:center !important')
+  .attr('placeholder','Ingrese el Valor '));
+
+
   fila.find('.utilizarDol').val(0);
   fila.append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-trash').css('cssText','padding-left:10px').addClass('removeFicha').css('font-size','16px')));
 
@@ -680,7 +729,14 @@ $(document).on('click','.agregarFDolares',function(){
 $(document).on('click','.agregarFPesosModif',function(){
   var fila=$('#moldeFicha').clone();
   fila.removeAttr('id');
-  fila.find('.valorF').append($('<input>').addClass('form-control valorFinput').css('cssText','text-align:center !important').attr('placeholder','Ingrese el Valor '));
+  fila.addClass('filaPesos')
+  .addClass('filaAgregada');
+
+  fila.find('.valorF')
+  .append($('<input>')
+  .addClass('form-control valorFinput')
+  .css('cssText','text-align:center !important')
+  .attr('placeholder','Ingrese el Valor '));
   fila.find('.utilizar').val(0);
   fila.append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-trash').css('cssText','padding-left:10px').addClass('removeFicha').css('font-size','16px')));
 
@@ -692,7 +748,13 @@ $(document).on('click','.agregarFPesosModif',function(){
 $(document).on('click','.agregarFDolaresModif',function(){
   var fila=$('#moldeFichaDol').clone();
   fila.removeAttr('id');
-  fila.find('.valorDol').append($('<input>').addClass('form-control valorDolinput').css('cssText','text-align:center !important').attr('placeholder','Ingrese el Valor '));
+  fila.addClass('filaDolares')
+  .addClass('filaAgregada');
+
+  fila.find('.valorDol')
+  .append($('<input>')
+  .addClass('form-control valorDolinput')
+  .css('cssText','text-align:center !important').attr('placeholder','Ingrese el Valor '));
   fila.find('.utilizarDol').val(0);
   fila.append($('<td>').addClass('col-xs-2').append($('<i>').addClass('fa fa-fw fa-trash').css('cssText','padding-left:10px').addClass('removeFicha').css('font-size','16px')));
 
@@ -715,6 +777,7 @@ function cargarFichas(data){
 
     fila.removeAttr('id');
     fila.attr('id',data.id_ficha);
+    fila.addClass('filaPesos');
     fila.find('.valorF').text(data.valor_ficha);
     fila.find('.utilizar').val(data.id_ficha);
 
@@ -727,6 +790,7 @@ function cargarFichas(data){
 
     filaDol.removeAttr('id');
     filaDol.attr('id',data.id_ficha);
+    filaDol.addClass('filaDolares');
     filaDol.find('.valorDol').text(data.valor_ficha);
     filaDol.find('.utilizarDol').val(data.id_ficha);
 

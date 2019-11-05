@@ -16,7 +16,9 @@ use App\DetalleRelevamiento;
 use App\EstadoMaquina;
 use App\Cotizacion;
 use App\Isla;
+use App\TipoCausaNoToma;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class informesController extends Controller
 {
@@ -460,13 +462,55 @@ class informesController extends Controller
     $maquina = Maquina::find($id_maquina);
     $sector = isset($maquina->isla->sector) ? $sector = $maquina->isla->sector->descripcion : $sector = "-";
     $fecha= date('Y-m-d');//hoy
+    //No tiene sentido mostrar el producido del dia de hoy porque siempre se carga
+    //Con un delay de un dia, empezamos desde ayer.
+    $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days')); 
     $fin = true;
     $i= 0;
     $suma = 0;
     $datos = $arreglo = array();
-    $logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
-                        ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->take(5)->get();
+    
+    //Hay logs repetidos con ids distintos por algun motivo...
+    //Los agrupamos, para eso necesitamos cada campo, menos el id_log_maquina
+    //Antes se hacia asi y  retornaba duplicados! no cambiar 
+    //Sin saber esto
+    /*$logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
+    ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->get();*/
+    
+    $columnas_str = "";
+    $columnas = Schema::getColumnListing('log_maquina');
+    foreach($columnas as $col){
+      if($col != "id_log_maquina"){
+        $columnas_str .= ", l.".$col;
+      }
+    }
+    $columnas = Schema::getColumnListing('tipo_movimiento');
+    foreach($columnas as $col){
+      $columnas_str .= ", t.".$col;
+    }
 
+    $query="SELECT 
+    GROUP_CONCAT(DISTINCT(l.id_log_maquina) separator '/') as ids_logs_maquinas
+    "
+    .
+    $columnas_str
+    .
+    "
+    from log_maquina l
+    join tipo_movimiento t on (l.id_tipo_movimiento = t.id_tipo_movimiento)
+    where l.id_maquina = :id_maquina
+    GROUP BY
+    " 
+    .
+    substr($columnas_str,1)//saco la coma
+    ."
+    order by l.fecha desc";
+    
+    //dump($query);
+    
+    $parametros = ['id_maquina' => $id_maquina];
+    $logs = DB::select(DB::raw($query),$parametros);
+            
     while($fin){
       $estado = $this->checkEstadoMaquina($fecha, $maquina->id_maquina);
       $aux= new \stdClass();
@@ -483,27 +527,34 @@ class informesController extends Controller
     }
     $fechax = Carbon::now()->format('Y-m-d');
     $detalles_5 = DB::table('detalle_relevamiento')
-                              ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
-                                  ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
-                                      ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
-                                      ->where('maquina.id_maquina','=',$id_maquina)
-                                      ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
-                                      ->orderBy('relevamiento.fecha_carga','desc')
-                                      ->take(5)->get();
+    ->select('detalle_relevamiento.*','maquina.nro_admin','relevamiento.*')
+    ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
+    ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
+    ->where('maquina.id_maquina','=',$id_maquina)
+    ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
+    ->orderBy('relevamiento.fecha_carga','desc')
+    ->take(5)->get();
 
+    $juego = $maquina->juego_activo;
     return ['arreglo' => array_reverse($arreglo),
             'datos' => array_reverse($datos),
             'nro_admin' => $maquina->nro_admin  ,
             'marca' => $maquina->marca,
             'casino' => $maquina->casino->nombre,
-            'isla' => ['nro_isla' =>  $maquina->isla->nro_isla , 'codigo' => $maquina->isla->codigo],
+            'moneda' => $maquina->tipoMoneda,
+            'isla' => 
+            [
+              'nro_isla' =>  (is_null($maquina->isla))? null: $maquina->isla->nro_isla , 
+              'codigo' => (is_null($maquina->isla))? null: $maquina->isla->codigo
+            ],
             'sector' => $sector,
-            'juego' => $maquina->juego_activo->nombre_juego,
+            'juego' => $juego->nombre_juego,
             'producido' => $suma,
             'movimientos' => $logs,
-            'denominacion' => $maquina->denominacion,
-            'porcentaje_devolucion' => $maquina->porcentaje_devolucion,
+            'denominacion_juego' => $maquina->obtenerDenominacion(),
+            'porcentaje_devolucion' => $maquina->obtenerPorcentajeDevolucion(),
             'relevamientos' => $detalles_5,
+            'tipos_causa_no_toma' => TipoCausaNoToma::all()
             ];
   }
 
@@ -582,4 +633,81 @@ class informesController extends Controller
 
   }
 
+  public function mostrarInformeSector(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informe Sector' ,'informeSector');
+    $casinos = $user->casinos;
+    $sectores = [];
+    foreach($casinos as $c){
+      foreach($c->sectores as $s){
+          $sectores[]=$s;
+      }
+      $sin_asignar = new \stdClass();
+      //Le asigno como id, el negativo del casino
+      //Como es uno solo por casino, esta garantizado a que sea distinto
+      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
+      $sin_asignar->descripcion = "SIN ASIGNAR";
+      $sin_asignar->id_casino = $c->id_casino;
+      $sin_asignar->cantidad_maquinas = null;
+      $sin_asignar->deleted_at = null;
+      $sectores[]=$sin_asignar;
+    }
+    
+    $islas = [];
+    foreach($casinos as $c){
+      $sin_asignar = new \stdClass();
+      //Creo una isla especial para asignar las maquinas sin isla.
+      $sin_asignar->id_isla = "SIN_ISLA_".$c->id_casino;
+      $sin_asignar->nro_isla = "SIN ISLA";
+      $sin_asignar->codigo = "SIN ISLA";
+      $sin_asignar->cantidad_maquinas = null;
+      $sin_asignar->id_casino = $c->id_casino;
+      $sin_asignar->id_sector = "SIN_ASIGNAR_".$c->id_casino;
+      $sin_asignar->deleted_at = null;
+      $islas[] = $sin_asignar;
+      foreach($c->islas as $i){
+        $aux = $i->toArray();
+        //Si no tiene sector, lo enlazo con SIN ASIGNAR
+        if(is_null($i->id_sector)) $i->id_sector = "SIN_ASIGNAR_".$c->id_casino;
+        $islas[] = $i;
+      }
+    }
+    $expresion_estado = 'IFNULL(estado.descripcion,"") as estado_descripcion,IF(m.deleted_at is NULL,"0","1") as borrada';
+    $maquinas = DB::table('maquina as m')
+    ->selectRaw('m.*,i.id_sector,'.$expresion_estado)
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->join('isla as i','m.id_isla','=','i.id_isla')
+    ->whereNotNull('i.id_sector')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
+    $columnas_str = "";
+    $columnas = Schema::getColumnListing('maquina');
+    foreach($columnas as $col){
+      if($col != "id_isla"){
+        $columnas_str .= ", m.".$col;
+      }
+    }
+    $m_sin_isla = DB::table('maquina as m')
+    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,CONCAT("SIN_ISLA_",m.id_casino) as id_isla,'.$expresion_estado.$columnas_str)
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->whereNull('m.id_isla')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    $m_sin_sector = DB::table('maquina as m')
+    ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,m.*,'.$expresion_estado)
+    ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
+    ->join('isla as i','m.id_isla','=','i.id_isla')
+    ->whereNull('i.id_sector')
+    ->orderBy('m.nro_admin','asc')->get()->toArray();
+
+    $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);
+    return view('seccionInformesSectores',
+    [
+      'casinos' => $casinos, 
+      'sectores' => $sectores, 
+      'islas' => $islas, 
+      'maquinas' => $todas
+    ]);
+  }
 }

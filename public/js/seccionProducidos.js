@@ -189,7 +189,12 @@ $(document).on('click','.carga',function(e){
   var tr_html =$(this).parent().parent();
 
   var id_producidos =$(this).val();
-  
+  const moneda = tr_html.find('.tipo_moneda').text();
+  const fecha_prod = tr_html.find('.fecha_producido').text();
+  const casino = tr_html.find('.casino').text();
+  $('#descripcion_validacion').text(casino+' - '+fecha_prod+' - $'+moneda);
+
+
   $('#modalCargaProducidos #id_producido').val(id_producidos);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
   $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
@@ -201,8 +206,7 @@ $(document).on('click','.carga',function(e){
 
     // fin pruebas
     if(data.validado.estaValidado == 0){
-
-      $('#fecha_produccion_validacion').text('FECHA DE PRODUCCIÓN: ' + data.fecha_produccion);
+      $('#descripcion_validacion').text(casino+' - '+data.fecha_produccion+' - $'+data.moneda.descripcion);
 
       for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
@@ -492,6 +496,7 @@ function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
   $('#data-detalle-inicial').val("");
   $('#observacionesAjuste option').not('.default1').remove();
   $('#observacionesAjuste').val(0);
+  $('#descripcion_validacion').text('');
 
 }
 
@@ -591,8 +596,8 @@ function agregarFilaTabla(producido, casino){
   // no se pueden seguir cargando producios, pero si se deja la marca que no se visaron
    //if(producido.cerrado.length == 0 && producido.validado.length == 0 && producido.producido.validado == 0){
     if(producido.cerrado.length == 0 && producido.producido.validado == 0){
-    var tr = $('<tr>').append($('<td>').addClass('col-xs-2').text(producido.casino.nombre))
-                      .append($('<td>').addClass('col-xs-2').text(producido.producido.fecha))
+    var tr = $('<tr>').append($('<td>').addClass('col-xs-2 casino').text(producido.casino.nombre))
+                      .append($('<td>').addClass('col-xs-2 fecha_producido').text(producido.producido.fecha))
                       .append($('<td>').addClass('col-xs-2 tipo_moneda').text(producido.tipo_moneda.descripcion))
                       .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_validado).css('color', color_validado)))
                       .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_ini).css('color', color_cont_ini)))
@@ -614,8 +619,8 @@ function agregarFilaTabla(producido, casino){
   }
 
   else{
-  var tr = $('<tr>').append($('<td>').addClass('col-xs-2').text(producido.casino.nombre))
-                    .append($('<td>').addClass('col-xs-2').text(producido.producido.fecha))
+  var tr = $('<tr>').append($('<td>').addClass('col-xs-2 casino').text(producido.casino.nombre))
+                    .append($('<td>').addClass('col-xs-2 fecha_producido').text(producido.producido.fecha))
                     .append($('<td>').addClass('col-xs-2 tipo_moneda').text(producido.tipo_moneda.descripcion))
                     .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_validado).css('color', color_validado)))
                     .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_ini).css('color', color_cont_ini)))

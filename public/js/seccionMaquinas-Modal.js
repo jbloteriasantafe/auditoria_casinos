@@ -1,5 +1,6 @@
 var casino_global;//id casino de la maquina
 
+
 $(document).ready(function(){
   //seteo al inicio el buscador de marca en el modal
   $('#marca').generarDataList("maquinas/buscarMarcas",'marcas','id_marca','marca',1,false);
@@ -100,6 +101,7 @@ $('.agregarExpediente').click(function(){
   });
 
 });
+
 // CREAR MÁQUINA
 $('#btn-guardar').click(function(e){
   $.ajaxSetup({
@@ -108,6 +110,7 @@ $('#btn-guardar').click(function(e){
       }
   });
 
+
   var juegos = obtenerDatosJuego();
   var progresivo =  progresivo_global ;
   var gli_soft = obtenerDatosGliSoft();
@@ -115,7 +118,7 @@ $('#btn-guardar').click(function(e){
   var formula = obtenerDatosFormula();
 
   console.log('form',formula);
-  
+
   var isla = obtenerDatosIsla();
 
   var state = $('#btn-guardar').val();
@@ -185,7 +188,7 @@ $('#btn-guardar').click(function(e){
 
     }
   }
-
+  console.log("DATOS DEL PROGRESIVO GLOBAL"+progresivo);
   if(typeof(progresivo) != 'undefined'){
     //DATOS DE SECCION PROGRESIVOS
     formData.append('progresivo[id_progresivo]' , progresivo['id_progresivo']);
@@ -335,6 +338,10 @@ $('#btn-guardar').click(function(e){
             mostrarErrorValidacion($('#tipo_maquina'),response.id_tipo_maquina[0],true);
             $('#error_nav_maquina').show();
           }
+          if(typeof response.id_tipo_moneda !== 'undefined'){
+            mostrarErrorValidacion($('#tipo_moneda'),'Valor incorrecto',true);
+            $('#error_nav_maquina').show();
+          }
           // if(typeof response.id_casino !== 'undefined'){
           //   mostrarErrorValidacion($('#tipo_maquina'),response.id_casino[0],true);
           //   $('#alerta_casinos').text(response.id_casino[0]).show();
@@ -362,8 +369,6 @@ $('#btn-guardar').click(function(e){
             mostrarErrorValidacion($('#modalMaquina #porcentaje_devolucion'),response.porcentaje_devolucion,true);
             $('#error_nav_maquina').show();
           }
-
-
 
           if(typeof response.id_estado_maquina !== 'undefined'){
             $('#estado').addClass('alerta');
@@ -484,6 +489,9 @@ function habilitarControlesMaquina(valor){
   $('#denominacion').prop('readonly',!valor);
   $('#estado').prop('disabled',!valor);
   $('#buscadorExpediente').prop('readonly',!valor);
+  $('#marca_juego').prop('readonly',!valor);
+  $('#tipo_moneda').prop('disabled',!valor);
+  $('#unidad_medida').prop('disabled',!valor);
 }
 
 function ocultarAlertas(){
@@ -516,10 +524,11 @@ function habilitarControles(valor){
 }
 
 function mostrarMaquina(data, accion){// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
+      console.log("entra al function mostrar maq");
   if(data.maquina.id_pack==null){
     $('#navPaqueteJuegos').attr('hidden',true);
     $('#navJuego').attr('hidden',false);
-  }else{  
+  }else{
     // gestiona paquete de juegos
     $('#tablaMtmJuegoPack tbody').empty();
 
@@ -532,8 +541,8 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
                     agregarJuegosPackMtm(data.juego_pack_mtm.juegos[i]);
                 }
 
-              } 
-    
+              }
+
     $('#navPaqueteJuegos').attr('hidden',false);
     $('#navJuego').attr('hidden',true);
   }
@@ -543,8 +552,8 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
   }else{
     $('#juega_progresivo_m').val("SI");
   }
- 
-  
+
+
 
   $('#nro_admin').val(data.maquina.nro_admin);
   $('#marca').val(data.maquina.marca);
@@ -587,8 +596,10 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
     }
   }
 
+  $('#tipo_moneda').val(data.moneda != null? data.moneda.id_tipo_moneda: null);
+
   var text=$('#modalMaquina .modal-title').text();
-    
+
   //Datos pesataña isla
   console.log(data.isla);
   if(data.isla != null){//si no tiene isla asociada, puede pasar al modifcar isla
@@ -601,10 +612,11 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
    $('#modalMaquina .modal-title').text(text);
   }
 
+
   mostrarJuegos(data.juegos,data.juego_activo);
 
-
-  data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
+  mostrarProgresivo(data.progresivo, data.id_casino);
+  //data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
   data.gli_soft != null ? mostrarGliSoft(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;
   data.formula != null ? mostrarFormula(data.formula) : null;
@@ -614,11 +626,11 @@ function agregarJuegosPackMtm(juego){
   den =juego.denominacion!=null ? juego.denominacion : "-" ;
   dev =juego.porcentaje_devolucion!=null ? juego.porcentaje_devolucion : "-" ;
   var fila = $('<tr>').attr('id',juego.id_juego);
-  
+
   fila.append($('<td>').append($('<input>')
                   .attr('type','checkbox')
                   .attr('disabled',true)
-                 
+
                   .prop('checked', juego.habilitado)));
 
 
@@ -626,13 +638,13 @@ function agregarJuegosPackMtm(juego){
                                           .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
                                           .text(juego.nombre_juego)
                               )
-             );       
- 
+             );
+
   fila.append($('<td>').text(den));
 
   fila.append($('<td>').text(dev));
-  
-  
+
+
 
 
 

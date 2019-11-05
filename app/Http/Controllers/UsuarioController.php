@@ -122,7 +122,7 @@ class UsuarioController extends Controller
                          ->join('usuario_tiene_casino','usuario.id_usuario','=','usuario_tiene_casino.id_usuario')
                          ->where('usuario_tiene_casino.id_casino','=',$id_casino)
                          ->whereIn('usuario_tiene_rol.id_rol',[3])
-                         ->whereNotIn('usuario.id_usuario',[$id_usuario])
+                        // ->whereNotIn('usuario.id_usuario',[$id_usuario])
                          ->distinct('usuario.id_usuario')
                          ->get();
     return $fiscalizadores;
@@ -308,20 +308,40 @@ class UsuarioController extends Controller
       $cas[]=$cass->id_casino;
     }
 
-    $resultados=DB::table('usuario')
-                    ->select('usuario.*')
-                    ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
-                    ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
-                    ->whereIn('casino.id_casino',$cas)
-                    ->distinct('id_usuario')
-                    ->whereNull('usuario.deleted_at')
-                    ->orderBy('user_name','asc')
+
+    $resultado = DB::table('usuario_tiene_rol')
+                    ->whereIn('id_rol',[1])
+                    ->where('id_usuario','=',$user->id_usuario)
                     ->get();
+
+    if(count($resultado) > 0){ //usuario es superusuario
+      //le dejo ver todos los usuarios
+      $resultados=DB::table('usuario')
+                        ->select('usuario.*')
+                        ->distinct('id_usuario')
+                        ->whereNull('usuario.deleted_at')
+                        ->orderBy('user_name','asc')
+                        ->get();
+    }
+    else{
+      $resultados=DB::table('usuario')
+                        ->select('usuario.*')
+                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_usuario','=','usuario.id_usuario')
+                        ->join('casino','casino.id_casino','=','usuario_tiene_casino.id_casino')
+                        ->whereIn('casino.id_casino',$cas)
+                        ->distinct('id_usuario')
+                        ->whereNull('usuario.deleted_at')
+                        ->orderBy('user_name','asc')
+                        ->get();
+    }
+
     $rolController= RolController::getInstancia();
+
     $resultado = DB::table('usuario_tiene_rol')
                     ->whereIn('id_rol',[2])
                     ->where('id_usuario','=',$user->id_usuario)
                     ->get();
+
     if(count($resultado) > 0){//el usuario es administrador
       $casinos=Casino::whereIn('id_casino',$cas)->get();
       $roles = Rol::whereNotIn('id_rol',[1,5,6])->get();
@@ -329,7 +349,6 @@ class UsuarioController extends Controller
       $casinos=Casino::all();
       $roles=Rol::all();
     }
-
 
     $this->agregarSeccionReciente('Usuarios' ,'usuarios');
     return view('seccionUsuarios',  ['usuarios' => $resultados , 'roles' => $roles , 'casinos' => $casinos]);
@@ -568,6 +587,57 @@ class UsuarioController extends Controller
     }else{
       return 0;
     }
+  }
+  public function getCasinos(){
+    $usuario = $this->buscarUsuario(session('id_usuario'));
+    $casinos=array();
+    foreach($usuario['usuario']->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+    return $casinos;
+  }
+
+  public function obtenerUsuario(Request $request){
+    if($request->session()->has("id_usuario")){
+      $id_usuario = $request->session()->get("id_usuario");
+      $usuario = Usuario::find($id_usuario);
+      return $usuario;
+    }
+    return null;
+  }
+
+  public function usuarioTieneCasinoCorrespondiente ($id_usuario, $id_casino) {
+    $casinos = DB::table('usuario_tiene_casino')    ->select('id_casino')
+                                                    ->where('usuario_tiene_casino.id_usuario','=',$id_usuario)
+                                                    ->get();
+
+
+    $casinos_array = $casinos->toArray();
+
+    foreach ($casinos_array as $casino) {
+        if ($casino->id_casino == $id_casino) {
+          return true;
+        }
+    }
+
+    return false;
+  }
+
+  public function usuarioEsFiscalizador ($id_usuario) {
+    $roles = DB::table('usuario_tiene_rol') ->select('id_rol')
+                                            ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+                                            ->get();
+
+
+    $roles_array = $roles->toArray();
+
+    foreach ($roles_array as $rol) {
+        if ($rol->id_rol == 3) {
+          return true;
+        }
+    }
+
+    return false;
   }
 
 }

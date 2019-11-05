@@ -10,7 +10,7 @@ class Casino extends Model
   protected $connection = 'mysql';
   protected $table = 'casino';
   protected $primaryKey = 'id_casino';
-  protected $visible = array('id_casino','nombre','codigo','fecha_inicio','porcentaje_sorteo_mesas');
+  protected $visible = array('id_casino','nombre','codigo','fecha_inicio','porcentaje_sorteo_mesas','minimo_relevamiento_progresivo');
   public $timestamps = false;
 
   public function turnos(){
@@ -46,6 +46,9 @@ class Casino extends Model
   public function sectores(){
     return $this->HasMany('App\Sector','id_casino','id_casino');
   }
+  public function islas(){
+    return $this->hasMany('App\Isla','id_casino','id_casino');
+  }
   public function beneficios(){
     return $this->HasMany('App\Beneficio','id_casino','id_casino');
   }
@@ -61,19 +64,35 @@ class Casino extends Model
   }
 
   public function mesas(){
-  return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
+    return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
+  }
+
+  public function meses(){
+    return $this->hasMany('App\MesCasino','id_casino','id_casino');
+  }
+
+  public function detalles_informe_final_mesas(){
+    return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
+  }
+
+  public function fichas(){
+    return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
+  }
+
+  public function progresivos(){
+    return $this->hasMany('App\Progresivo','id_casino','id_casino');
+  }
+
+  public function maquinas(){
+    return $this->hasMany('App\Maquina','id_casino','id_casino');
+  }
+
+public function sesionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
 }
 
-public function meses(){
-  return $this->hasMany('App\MesCasino','id_casino','id_casino');
-}
-
-public function detalles_informe_final_mesas(){
-  return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
-}
-
-public function fichas(){
-  return $this->hasMany('App\Mesas\FichaTieneCasino','id_casino','id_casino');
+public function importancionesBingo(){
+return $this->hasMany('App\Bingo\SesionBingo','id_casino','id_casino');
 }
 
   public static function boot(){

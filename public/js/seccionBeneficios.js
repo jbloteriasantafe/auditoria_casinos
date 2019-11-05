@@ -198,7 +198,7 @@ function generarFilaModal(beneficio){
   if(!beneficio.id_producido){
     boolProducido=true
   }
-  
+
   console.log(beneficio);
 
   var diferencia = beneficio.diferencia;
@@ -547,7 +547,7 @@ $(document).on('click','#btn-validar-si',function(e){
         $('#mensajeExito div').css('background-color','#6dc7be');
         $('#mensajeExito').show();
         $('#btn-buscar').trigger('click');
-        
+
 
       },
       error: function (data) {
@@ -595,7 +595,7 @@ $('#btn-cotizacion').on('click', function(e){
   //inicio calendario
   $('#calendarioInicioBeneficio').fullCalendar({  // assign calendar
     locale: 'es',
-    
+
     backgroundColor: "#f00",
     eventTextColor:'yellow',
 
@@ -626,7 +626,6 @@ $('#btn-cotizacion').on('click', function(e){
 
 
 
-
     events: function(start, end, timezone, callback) {
       $.ajax({
         url: 'cotizacion/obtenerCotizaciones/'+ start.format('YYYY-MM'),
@@ -650,7 +649,7 @@ $('#btn-cotizacion').on('click', function(e){
       $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
       $('#valorCotizacion').val("");
       $('#valorCotizacion').focus();
-      
+
     },
 
 
@@ -679,8 +678,8 @@ $('#guardarCotizacion').on('click',function(){
       $('#labelCotizacion').attr("data-fecha","");
       $('#valorCotizacion').val("");
     }
-  
-  
+
+
   });
 
 });

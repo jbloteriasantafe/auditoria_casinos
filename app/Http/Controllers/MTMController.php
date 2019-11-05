@@ -47,7 +47,9 @@ class MTMController extends Controller
     'expedientes' => 'Expedientes',
     'notas' => 'Notas',
     'denominacion' => 'Denominación',
-    'id_estado_maquina' => 'Estado de Máquina'];
+    'id_estado_maquina' => 'Estado de Máquina',
+    'id_tipo_moneda' => 'Moneda'
+  ];
 
   public static function getInstancia() {
     if (!isset(self::$instance)) {
@@ -91,14 +93,14 @@ class MTMController extends Controller
      $mtm=Maquina::find($id);
 
      // la gestion de juego activo, se contempla solo si la mtm no es multijuego
-     
-      if($mtm->juego_activo == null){
-        $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
-        $mtm->save();
-      }
-      $juego_activo = $mtm->juego_activo;
-     
-     
+
+    if($mtm->juego_activo == null){
+      $mtm->juego_activo()->associate($mtm->juegos[0]->id_juego);
+      $mtm->save();
+    }
+    $juego_activo = $mtm->juego_activo;
+
+
 
      //OBTENGO EL GLI
      if($mtm->gliSoft != null){//si existe lo mando.
@@ -113,7 +115,6 @@ class MTMController extends Controller
       }else{//si no tiene un gli asociado, devuelve id 0
           $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
       }
-      //TODO modificar la obtencion del pack con la tabla pivote
      //JUEGOS DE LA MAQUINA
      $juegos = $mtm->juegos;
      $array = array();
@@ -173,6 +174,7 @@ class MTMController extends Controller
       //$islaa = Isla::find($isla->id_isla);
       //$nro_isla = $islaa->nro_isla;
       return['maquina' => $mtm,
+             'moneda' => (!is_null($mtm->id_tipo_moneda))?$mtm->tipoMoneda:null,
              'tipo_gabinete' => $mtm->tipoGabinete,
              'tipo_maquina' => $mtm->tipoMaquina,
              'estado_maquina' => $mtm->estado_maquina,
@@ -281,10 +283,10 @@ class MTMController extends Controller
       if($request->estado_maquina==1){
         $estados=array('1','2');
       }else{
-        $estados=array('4','5','6','7');
+        $estados=array('3','4','5','6','7');
       }
     }else{
-      $estados=array('1','2','4','5','6','7');
+      $estados=array('1','2','3','4','5','6','7');
     }
     if(isset($request->nro_admin)){
       $reglas[]=['maquina.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
@@ -306,6 +308,9 @@ class MTMController extends Controller
     }
     if(isset($request->nombre_juego)){
       $reglas[]=['juego.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
+    }
+    if(isset($request->id_tipo_moneda)){
+      $reglas[]=['maquina.id_tipo_moneda','=',$request->id_tipo_moneda];
     }
 
     if($request->id_casino==0){
@@ -549,10 +554,10 @@ class MTMController extends Controller
               $juegoActivo=$juego;
               $MTM->juego_activo()->associate($juego->id_juego);
             }
-             
+
             $id_pack_juego=null;
-            
-            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]; 
+
+            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego];
           }
         }
         if(isset($gli_soft)){
@@ -589,7 +594,7 @@ class MTMController extends Controller
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
 
     $MTM->juegos()->sync($juegos_finales);
-    
+
 
     //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
     switch ($request->id_progresivo) {
@@ -631,333 +636,373 @@ class MTMController extends Controller
   }
 
   public function modificarMaquina(Request $request){
-        Validator::make($request->all(), [
-              //nro admin es unico por casino, auqnue entre SF y ME no se repiten.
-              //['required','alpha_dash',Rule::unique('maquina')->where(function($query){$query->where('id_casino',$request->id_casino);})]
-              //CHECKEAR CORRESPONDENCIA ISLA->PROGRESIVO
-              //CHECKEAR CORRESPONDENCIA JUEGO-> PROGRESIVO. EN LO POSIBLE EN LA VISTA ADEMAS DE ACA TAMBIEN
-              'id_maquina' => 'required' ,
-              'nro_admin' => ['required ','integer','max:999999'],
-              'marca'=> 'required|max:45',
-              'modelo' => 'required|max:60',
-              'mac' => 'nullable|max:100',
-              'id_unidad_medida' => 'nullable|max:45',
-              'nro_serie'=>  'nullable|alpha_dash',
-              'marca_juego' => 'nullable|max:100',
-              //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-              'id_tipo_gabinete'=> 'required', //exists:tipo_gabinete,id_tipo_gabinete
-              'id_tipo_maquina' => 'required', // exists:tipo_maquina,id_tipo_maquina
-              'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
-              'id_sector' => 'required|exists:sector,id_sector',
-              'id_isla'  => 'required',
-              'nro_isla' => 'required',// validacion en after, ver is nro y casino se corresponden
-              'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-              'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
-              'expedientes' =>  'required_if:notas,null',
-              'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
-              'notas' => 'required_if:expedientes,null',
-              'notas.*.id_nota' => 'required|exists:nota,id_nota',
-              'juego' => 'array|required',
-              'juego.*.id_juego' => 'required', //validar que es id valido
-              'juego.*.nombre_juego' => 'required',
-              'juego.*.activo' => 'in:1,0',
-              'juego.*.tabla.*.id_tabla' => 'nullable',
-              'juego.*.tabla.*.nombre_tabla' => 'required',
-              'id_progresivo' => 'nullable',
-              'nombre_progresivo' => 'nullable',
-              'id_tipo' => 'nullable',
-              'gli_soft' => 'required',
-              'gli_soft.id_gli_soft' => 'required',
-              'gli_soft.nro_certificado' => 'required_if:gli_soft.id_gli_soft,0|max:45',
-              'gli_soft.observaciones' => 'nullable|max:300',
-              'gli_soft.file' => 'nullable',
-              'gli_hard.id_gli_hard' => 'nullable',
-              'gli_hard.nro_certificado' => 'required_if:gli_hard.id_gli_hard,0|max:45',
-              'gli_hard.file' => 'nullable',
-              'formula.id_formula' => 'required',
-              'formula.cuerpoFormula' => 'required',
-              //table,column,except,idColumn
-              //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
-              //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
-          ],array(),self::$atributos)->after(function($validator){
-            //validacion isla
-            $reglas = array();
-            $reglas[] = ['nro_isla' , '=' , $validator->getData()['nro_isla']];
-            $reglas[] = ['id_casino' , '=' , $validator->getData()['id_casino']];
-            if($validator->getData()['codigo'] != ''){
-              $reglas[] = ['codigo' , '=' , $validator->getData()['codigo']];
-            }
+    Validator::make($request->all(), [
+          //nro admin es unico por casino, auqnue entre SF y ME no se repiten.
+          //['required','alpha_dash',Rule::unique('maquina')->where(function($query){$query->where('id_casino',$request->id_casino);})]
+          //CHECKEAR CORRESPONDENCIA ISLA->PROGRESIVO
+          //CHECKEAR CORRESPONDENCIA JUEGO-> PROGRESIVO. EN LO POSIBLE EN LA VISTA ADEMAS DE ACA TAMBIEN
+          'id_maquina' => 'required' ,
+          'nro_admin' => ['required ','integer','max:999999'],
+          'marca'=> 'required|max:45',
+          'modelo' => 'required|max:60',
+          'mac' => 'nullable|max:100',
+          'id_unidad_medida' => 'nullable|max:45',
+          'nro_serie'=>  'nullable|alpha_dash',
+          'marca_juego' => 'nullable|max:100',
+          //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+          'id_tipo_gabinete'=> 'required', //exists:tipo_gabinete,id_tipo_gabinete
+          'id_tipo_maquina' => 'required', // exists:tipo_maquina,id_tipo_maquina
+          'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
+          'id_sector' => 'required|exists:sector,id_sector',
+          'id_isla'  => 'required',
+          'nro_isla' => 'required',// validacion en after, ver is nro y casino se corresponden
+          'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+          'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
+          'expedientes' =>  'required_if:notas,null',
+          'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
+          'notas' => 'required_if:expedientes,null',
+          'notas.*.id_nota' => 'required|exists:nota,id_nota',
+          'juego' => 'array|required',
+          'juego.*.id_juego' => 'required', //validar que es id valido
+          'juego.*.nombre_juego' => 'required',
+          'juego.*.activo' => 'in:1,0',
+          'juego.*.tabla.*.id_tabla' => 'nullable',
+          'juego.*.tabla.*.nombre_tabla' => 'required',
+          'id_progresivo' => 'nullable',
+          'nombre_progresivo' => 'nullable',
+          'id_tipo' => 'nullable',
+          'gli_soft' => 'required',
+          'gli_soft.id_gli_soft' => 'required',
+          'gli_soft.nro_certificado' => 'required_if:gli_soft.id_gli_soft,0|max:45',
+          'gli_soft.observaciones' => 'nullable|max:300',
+          'gli_soft.file' => 'nullable',
+          'gli_hard.id_gli_hard' => 'nullable',
+          'gli_hard.nro_certificado' => 'required_if:gli_hard.id_gli_hard,0|max:45',
+          'gli_hard.file' => 'nullable',
+          'formula.id_formula' => 'required',
+          'formula.cuerpoFormula' => 'required',
+          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
+          //table,column,except,idColumn
+          //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
+          //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
+      ],array(),self::$atributos)->after(function($validator){
+        //validacion isla
+        $reglas = array();
+        $reglas[] = ['nro_isla' , '=' , $validator->getData()['nro_isla']];
+        $reglas[] = ['id_casino' , '=' , $validator->getData()['id_casino']];
+        if($validator->getData()['codigo'] != ''){
+          $reglas[] = ['codigo' , '=' , $validator->getData()['codigo']];
+        }
 
-            if($validator->getData()['id_isla'] != 0){
-              $reglas[] = ['id_isla' , '<>' , $validator->getData()['id_isla']];
-            }
+        if($validator->getData()['id_isla'] != 0){
+          $reglas[] = ['id_isla' , '<>' , $validator->getData()['id_isla']];
+        }
 
-            $isla_db = Isla::where($reglas)->get();
+        $isla_db = Isla::where($reglas)->get();
 
-            if($isla_db->count() > 1){
-              $validator->errors()->add('nro_isla', 'Se encontró un error con la base de datos.(Más de una isla con mismo nro)');
-            }
-            //validacion maquina
-            if($validator->getData()['id_casino'] != 3){//santa fe y melincue
-              $casinos = [1,2];
-              $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                                 ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
-                                 ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                                      ->where('maquina.nro_admin' , $validator->getData()['nro_admin'])
-                                      ->whereIn('casino.id_casino' ,$casinos )
-                                 ->get();
+        if($isla_db->count() > 1){
+          $validator->errors()->add('nro_isla', 'Se encontró un error con la base de datos.(Más de una isla con mismo nro)');
+        }
+        //validacion maquina
+        if($validator->getData()['id_casino'] != 3){//santa fe y melincue
+          $casinos = [1,2];
+          $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
+                              ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
+                              ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
+                                  ->where('maquina.nro_admin' , $validator->getData()['nro_admin'])
+                                  ->whereIn('casino.id_casino' ,$casinos )
+                              ->get();
 
-            }else{//si la maquina es de rosario
-              $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                                 ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
-                                 ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                                      ->where('maquina.nro_admin' , $validator->getData()['nro_admin'] )
-                                          ->where('maquina.id_casino' , '=',3)
-                                 ->get();
+        }else{//si la maquina es de rosario
+          $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
+                              ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
+                              ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
+                                  ->where('maquina.nro_admin' , $validator->getData()['nro_admin'] )
+                                      ->where('maquina.id_casino' , '=',3)
+                              ->get();
 
-            }
+        }
 
-            if(count($maquina) == 1){//si al modificar maquina, no cambio nro admin deberia haber una maquina y ser la misma.
-              if($maquina[0]->id_maquina != $validator->getData()['id_maquina']){
-                $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
-              }
-            }else if(count($maquina) > 1){
-              $validator->errors()->add('DB', 'El número de administración ya está tomado.');
-            }
+        if(count($maquina) == 1){//si al modificar maquina, no cambio nro admin deberia haber una maquina y ser la misma.
+          if($maquina[0]->id_maquina != $validator->getData()['id_maquina']){
+            $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
+          }
+        }else if(count($maquina) > 1){
+          $validator->errors()->add('DB', 'El número de administración ya está tomado.');
+        }
 
-          })->sometimes('gli_hard.file','mimes:pdf',function($input){
-          return $input['gli_hard.file'] != null;
-          })->sometimes('gli_hard.id_gli_hard','exists:gli_hard,id_gli_hard',function($input){
-          return $input['gli_hard.id_gli_hard'] != null && $input['gli_hard.id_gli_hard'] != 0;
-        })->validate();// FIN VALIDACION-----------
+      })->sometimes('gli_hard.file','mimes:pdf',function($input){
+      return $input['gli_hard.file'] != null;
+      })->sometimes('gli_hard.id_gli_hard','exists:gli_hard,id_gli_hard',function($input){
+      return $input['gli_hard.id_gli_hard'] != null && $input['gli_hard.id_gli_hard'] != 0;
+    })->validate();// FIN VALIDACION-----------
 
-        $tipo_movimiento = NULL;
-        $formula=null;
+    $tipo_movimiento = NULL;
+    $formula=null;
 
-        //SI EXISTE FORMULA LA BUSCA SI NO CREA
-        switch ($request->formula['id_formula']){
-          case 'undefined':break;
-          case '':break;
-          case 0:
-            //el 0 es una bandera, una formula generica que se asigna al dar de alta una maquinia sin determinar formula
-            //buscaba con "formula" en el json pero era "cuerpoFormula"
-            $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
-            break;
+    //SI EXISTE FORMULA LA BUSCA SI NO CREA
+    switch ($request->formula['id_formula']){
+      case 'undefined':break;
+      case '':break;
+      case 0:
+        //el 0 es una bandera, una formula generica que se asigna al dar de alta una maquinia sin determinar formula
+        //buscaba con "formula" en el json pero era "cuerpoFormula"
+        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
+        break;
+      default:
+        $formula=Formula::find($request->formula['id_formula']);
+        break;
+    }
+
+    //ISLA
+    if($request->id_isla == 0){ //si estoy creando una isla, valido
+      //si estoy creando y pasó la validacion,
+      $unaIsla= new Isla();
+      $unaIsla->nro_isla = $request->nro_isla;
+      $unaIsla->codigo = $request->codigo;
+      $unaIsla->id_casino = $request->id_casino;
+      $unaIsla->id_sector = $request->id_sector;
+
+      $unaIsla = IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
+    }else if( $request->modificado == 1){
+      $unaIsla= new Isla();
+      $unaIsla->nro_isla = $request->nro_isla;
+      $unaIsla->codigo = $request->codigo;
+      $unaIsla->id_sector = $request->id_sector;
+      $unaIsla->id_casino = $request->id_casino;
+      //modifica isla creada
+      $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
+    }else {//estoy usando una isla ya creada (sin modificar)
+      $unaIsla= Isla::find($request->id_isla);
+    }
+
+
+    //GLISOFT:     SI EXISTE GLISOFT LA BUSCA SI NO CREA
+    switch ($request->gli_soft['id_gli_soft']){
+      case 0:
+        $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
+        break;
+      default:
+        $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
+        break;
+    }
+
+    //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
+    switch ($request->gli_hard['id_gli_hard']){
+      case 'undefined':break;
+      case '':break;
+      case 0:
+        $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
+        break;
+      default:
+        $gli_hard=GliHardController::find($request->gli_hard['id_gli_hard']);
+        break;
+    }
+
+    $i=0;
+
+    $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
+    $MTM= Maquina::find($request->id_maquina);
+    //CONDICIONES ANTERIORES
+
+    /*
+      Checkeo de cambios
+    */
+    //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
+    //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
+    if(is_null($MTM->id_estado_maquina)){
+      $MTM->id_estado_maquina=$request->id_estado_maquina;
+    }elseif($MTM->id_estado_maquina != $request->id_estado_maquina){
+      $razon .= "Cambió el estado. ";
+      switch($request->id_estado_maquina){
+        case 1:
+          $tipo_movimiento = 1;
+          break;
+        case 2:
+          $tipo_movimiento = 3;
+          break;
+        case 3:
+          $tipo_movimiento = 2;
+          break;
+        case 4:
+          $tipo_movimiento = 2;
+          break;
+        case 5:
+          $tipo_movimiento = 2;
+          break;
           default:
-            $formula=Formula::find($request->formula['id_formula']);
             break;
-        }
+      }
+    }
 
-        //ISLA
-        if($request->id_isla == 0){ //si estoy creando una isla, valido
-          //si estoy creando y pasó la validacion,
-          $unaIsla= new Isla();
-          $unaIsla->nro_isla = $request->nro_isla;
-          $unaIsla->codigo = $request->codigo;
-          $unaIsla->id_casino = $request->id_casino;
-          $unaIsla->id_sector = $request->id_sector;
+    // if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
+    //   $tipo_movimiento = 6;
+    //   $razon .= "Cambió el % de devolución. ";
+    // }
 
-          $unaIsla = IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
-        }else if( $request->modificado == 1){
-          $unaIsla= new Isla();
-          $unaIsla->nro_isla = $request->nro_isla;
-          $unaIsla->codigo = $request->codigo;
-          $unaIsla->id_sector = $request->id_sector;
-          $unaIsla->id_casino = $request->id_casino;
-          //modifica isla creada
-          $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
-        }else {//estoy usando una isla ya creada (sin modificar)
-          $unaIsla= Isla::find($request->id_isla);
-        }
+    if($MTM->denominacion != $request->denominacion){
+        $tipo_movimiento = 5;
+        $razon .= "Cambió la denominacion. ";
+    }
 
+    if($MTM->id_isla != $unaIsla->id_isla){
+      $tipo_movimiento = 4;
+      $razon .= "Cambió la isla. ";
+    }
 
-        //GLISOFT:     SI EXISTE GLISOFT LA BUSCA SI NO CREA
-        switch ($request->gli_soft['id_gli_soft']){
-          case 0:
-            $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
-            break;
-          default:
-            $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
-            break;
-        }
+    /*
+      ACTUALIZACION DE DATOS
+    */
+    //JUEGOS
+    //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
+    //los juegos se gestionand desde aca solo si la mtm no es multi-juego
+    if($MTM->id_pack==null){
+      $juego_viejo = $MTM->juego_activo;
 
-        //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
-        switch ($request->gli_hard['id_gli_hard']){
-          case 'undefined':break;
-          case '':break;
-          case 0:
-            $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
-            break;
-          default:
-            $gli_hard=GliHardController::find($request->gli_hard['id_gli_hard']);
-            break;
-        }
+      $abreviaturas = [];//Ver mas abajo para que sirve esto.
+      foreach($MTM->juegos as $unJuego){
+        $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
+      }
 
-        $i=0;
+      $MTM->juegos()->detach();
+      
+      foreach ($request->juego as $unJuego){
+        $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
+        if($unJuego['id_juego']==0){// 0 es juego nuevo
+          $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);
 
-        $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
-        $MTM= Maquina::find($request->id_maquina);
-        //CONDICIONES ANTERIORES
-        
+          if($unJuego['activo']==1){ // asociar juego activo
+              $juegoActivo=$juego;
+              $MTM->juego_activo()->associate($juego->id_juego);
+          }
+          $denominacion = $unJuego['denominacion'] == "-" ? null : $unJuego['denominacion'];
+          $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]]);
+          // $juegos_finales[] = ($juego->id_juego);
+        }else{
+          if($unJuego['id_juego']>=1){
+            $juego=Juego::find($unJuego['id_juego']);
+            if($unJuego['activo']==1){// asociar juego activo
+              $juegoActivo=$juego;
+              $MTM->juego_activo()->associate($juego->id_juego);
+            }
+            // la gestion de pack se quita del modal mtm
+            $id_pack_juego=null;
 
-
-        /*
-          Checkeo de cambios
-        */
-        //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
-        //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
-        if(is_null($MTM->id_estado_maquina)){
-          $MTM->id_estado_maquina=$request->id_estado_maquina;
-        }elseif($MTM->id_estado_maquina != $request->id_estado_maquina){
-          $razon .= "Cambió el estado. ";
-          switch($request->id_estado_maquina){
-            case 1:
-              $tipo_movimiento = 1;
-              break;
-            case 2:
-              $tipo_movimiento = 3;
-              break;
-            case 3:
-              $tipo_movimiento = 2;
-              break;
-            case 4:
-              $tipo_movimiento = 2;
-              break;
-            case 5:
-              $tipo_movimiento = 2;
-              break;
-              default:
-                break;
+            $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
+            // $juegos_finales[] = ($juego->id_juego);
           }
         }
-
-        // if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
-        //   $tipo_movimiento = 6;
-        //   $razon .= "Cambió el % de devolución. ";
-        // }
-
-        if($MTM->denominacion != $request->denominacion){
-            $tipo_movimiento = 5;
-            $razon .= "Cambió la denominacion. ";
+        if(isset($gli_soft)){
+          $juego->gliSoft()->associate($gli_soft);
+          $juego->save();
         }
+      }
 
-        if($MTM->id_isla != $unaIsla->id_isla){
-          $tipo_movimiento = 4;
-          $razon .= "Cambió la isla. ";
-        }
+      if($juego_viejo->id_juego != $juegoActivo->id_juego){
+        $tipo_movimiento = 7;
+        $razon .= "Cambió el juego. ";
+      }
 
-        /*
-          ACTUALIZACION DE DATOS
-        */
-        //JUEGOS
-        //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
-        //los juegos se gestionand desde aca solo si la mtm no es multi-juego
-        if($MTM->id_pack==null){
-          $juego_viejo = $MTM->juego_activo;
-          $MTM->juegos()->detach();
-          foreach ($request->juego as $unJuego){
-            if($unJuego['id_juego']==0){// 0 es juego nuevo
-              $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);
+      // NO SIMPLIFICAR CON LO DE ARRIBA HABIA CASOS ESPECIALES QUE NO SE TENIAN EN CUENTA!!
+      $marca_juego_generado = $this->abreviarMarca($request->marca) . ' - ' . $juegoActivo->nombre_juego;
+      $es_nuevo = $marca_juego_generado != $MTM->marca_juego;
+      $es_customizado = !in_array($request->marca_juego,$abreviaturas);
+      // Casos que se dan
+      // Cambio de JUEGO ACTIVO sin cambiar el marca juego
+      // Por ejemplo si: 
+      //  Marca juego: IGT - Scarab
+      //  Juegos:
+      //   - Scarab (activo)
+      //   - Jungle Riches
+      // Y lo cambiamos a 
+      //  Marca juego: IGT - Scarab
+      //  Juegos:
+      //   - Scarab 
+      //   - Jungle Riches (activo)
+      // El comporamiento deseado es que se cambie el MARCA JUEGO
+      // Pero si tenemos un MARCA JUEGO custom elegido por el usuario ej
+      //  Marca juego: Minguito!
+      //  Juegos:
+      //   - Scarab (activo)
+      //   - Jungle Riches 
+      // Y lo cambiamos a
+      //  Marca juego: Minguito!
+      //  Juegos:
+      //   - Scarab 
+      //   - Jungle Riches (activo)
+      // NO! queremos que cambie
+      // La excepcion a la regla es que sea la cadena vacia!
+      // Ya se que se puede simplificar en un solo IF pero queda mas claro asi.
+      if($es_nuevo && !$es_customizado){
+        $MTM->marca_juego = $marca_juego_generado;
+      }
+      else if($es_customizado && $request->marca_juego == ""){
+        $MTM->marca_juego = $marca_juego_generado;
+      }
+      else if($es_customizado){
+        $MTM->marca_juego = $request->marca_juego;
+      }
+           
+      $MTM->id_juego = $juegoActivo->id_juego;
+    }
 
-              if($unJuego['activo']==1){ // asociar juego activo
-                  $juegoActivo=$juego;
-                  $MTM->juego_activo()->associate($juego->id_juego);
-              }
-              $denominacion = $unJuego['denominacion'] == "-" ? null : $unJuego['denominacion'];
-              $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]]);
-              // $juegos_finales[] = ($juego->id_juego);
-            }else{
-              if($unJuego['id_juego']>=1){
-                $juego=Juego::find($unJuego['id_juego']);
-                if($unJuego['activo']==1){// asociar juego activo
-                  $juegoActivo=$juego;
-                  $MTM->juego_activo()->associate($juego->id_juego);
-                }
-                // la gestion de pack se quita del modal mtm
-                $id_pack_juego=null;
-                
-                $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
-                // $juegos_finales[] = ($juego->id_juego);
-              }
-            }
-            if(isset($gli_soft)){
-              $juego->gliSoft()->associate($gli_soft);
-              $juego->save();
-            }
-        }
+    // $MTM->juegos()->sync($juegos_finales);
+    $MTM->gliSoft()->dissociate();
 
-        if($juego_viejo->id_juego != $juegoActivo->id_juego){//comparo juego activo viejo con juego activo nuevo
-          $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
-          $tipo_movimiento = 7;
-          $razon .= "Cambió el juego. ";
-        }
-        $MTM->id_juego = $juegoActivo->id_juego;
-        }
-        
+    switch ($request->gli_soft['id_gli_soft']){
+      case 'undefined':break;
+      case '':break;
+      case 0:
+        $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+        break;
+      default:
+        $gli = GliSoft::find($gli_soft->id_gli_soft);
+        $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+        break;
+    }
 
+    $MTM->nro_admin = $request->nro_admin;
+    $MTM->marca = $request->marca;
+    $MTM->modelo = $request->modelo;
+    $MTM->id_unidad_medida = $request->id_unidad_medida;
+    $MTM->id_tipo_moneda = $request->id_tipo_moneda;
+    $MTM->nro_serie = $request->nro_serie;
+    $MTM->mac = $request->mac;
+    $MTM->formula()->associate($formula);
+    $MTM->denominacion = $request->denominacion;
+    $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
+    $MTM->id_isla=$unaIsla->id_isla;
+    $MTM->id_casino=$unaIsla->id_casino;
 
-        // $MTM->juegos()->sync($juegos_finales);
-        $MTM->gliSoft()->dissociate();
+    //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
+    $MTM->save();
+    if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
+    if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
+    $MTM->estado_maquina()->associate($request->id_estado_maquina);
 
-        switch ($request->gli_soft['id_gli_soft']){
-          case 'undefined':break;
-          case '':break;
-          case 0:
-            $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
-            break;
-          default:
-            $gli = GliSoft::find($gli_soft->id_gli_soft);
-            $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
-            break;
-        }
+    if(!empty($request->expedientes)) $MTM->expedientes()->sync($request->expedientes);
 
-        $MTM->nro_admin = $request->nro_admin;
-        $MTM->marca = $request->marca;
-        $MTM->modelo = $request->modelo;
-        if($request->marca_juego != ""){ //si viene en blanco
-          $MTM->marca_juego = $request->marca_juego;
-        }
-        $MTM->id_unidad_medida = $request->id_unidad_medida;
-        $MTM->id_tipo_moneda = $request->id_tipo_moneda;
-        $MTM->nro_serie = $request->nro_serie;
-        $MTM->mac = $request->mac;
-        $MTM->formula()->associate($formula);
-        $MTM->denominacion = $request->denominacion;
-        $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
-        $MTM->id_isla=$unaIsla->id_isla;
-        $MTM->id_casino=$unaIsla->id_casino;
-        
-        //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
-        $MTM->save();
-        if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
-        if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
-        $MTM->estado_maquina()->associate($request->id_estado_maquina);
+    if(!empty($request->notas))$MTM->notas()->sync($request->notas);
 
-        if(!empty($request->expedientes)) $MTM->expedientes()->sync($request->expedientes);
+    //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
+    if($request->progresivo['id_progresivo'] != -1){ // 0 nuevo progresivo , > 0 nuevo progresivo, -1 sin progresivo
+      switch ($request->progresivo['id_progresivo']) {
+        case 'undefined':break;
+        case '':break;
+        case 0:
+        $progresivo= ProgresivoController::getInstancia()->guardarProgresivo_gestionarMaquina($request->progresivo,$MTM);
+        break;
+        default:
+        $progresivo= ProgresivoController::getInstancia()->modificarProgresivo_gestionarMaquina($request->progresivo,$MTM);
+        break;
+      }
+    }
 
-        if(!empty($request->notas))$MTM->notas()->sync($request->notas);
+    LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,$tipo_movimiento);//tipo mov
 
-        //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
-        if($request->progresivo['id_progresivo'] != -1){ // 0 nuevo progresivo , > 0 nuevo progresivo, -1 sin progresivo
-          switch ($request->progresivo['id_progresivo']) {
-            case 'undefined':break;
-            case '':break;
-            case 0:
-            $progresivo= ProgresivoController::getInstancia()->guardarProgresivo_gestionarMaquina($request->progresivo,$MTM);
-            break;
-            default:
-            $progresivo= ProgresivoController::getInstancia()->modificarProgresivo_gestionarMaquina($request->progresivo,$MTM);
-            break;
-          }
-        }
+    $MTM->save();
 
-
-        LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,$tipo_movimiento);//tipo mov
-
-        $MTM->save();
-
-        return ['maquina' => $MTM];
-
+    return ['maquina' => $MTM];
   }
   //ELIMINA LOGICAMENTE LA MAQUINA. deleted_at != null
   public function eliminarMTM($id){
@@ -1176,7 +1221,7 @@ class MTMController extends Controller
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
-  
+
   // modificarDenominacionJuego cambia la denominacion del juego activo de la mtm
   public function modificarDenominacionJuego( $denominacion, $id_maquina){
     $m = Maquina::find($id_maquina);
@@ -1184,7 +1229,7 @@ class MTMController extends Controller
     DB:: table('maquina_tiene_juego')
       ->Where([ ['id_maquina','=',$id_maquina],['id_juego','=',$id_juego_activo] ])
       ->Update(['denominacion' => $denominacion]);
-      
+
     $razon = "Se cambió denominacio al juego activo";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $m;
@@ -1296,7 +1341,7 @@ class MTMController extends Controller
       ->Update(['porcentaje_devolucion' => $porcentaje_devolucion]);
     $razon = "Se modificó el procentaje de devolución del juego activo";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,null);
-    
+
     return $m;
   }
 
@@ -1393,7 +1438,6 @@ class MTMController extends Controller
       return ['tipo' => $maquina->tipoMoneda];
   }
 
-  
+
 
 }
-
