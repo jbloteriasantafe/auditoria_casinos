@@ -242,7 +242,9 @@ class ExpedienteController extends Controller
         'notas_asociadas.*.fecha'=>'required|date',
         'notas_asociadas.*.identificacion'=>'required',
         'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento'
+        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
+        'tablaNotas' => 'nullable|array',
+        'tablaNotas.*' => 'required|integer|exists:nota,id_nota'
     ], array(), self::$atributos)->after(function ($validator){
 
       $expediente=Expediente::find($validator->getData()['id_expediente']);
@@ -283,41 +285,22 @@ class ExpedienteController extends Controller
     $expediente->anexo = $request->anexo;
     $expediente->nro_cuerpos = $request->nro_cuerpos;
     $expediente->casinos()->detach();
-    // $cass = explode(",",$request['casinos']);
-    // foreach ($request['casinos'] as $id_casino) {
-    //   $expediente->casino()->attach($id_casino);
-    // }
 
     $expediente->casinos()->sync($request['casinos']);
     $expediente->save();
 
-    //chequeo que no haya eliminado movimientos
-    //recibe un movimiento existente
-    // $logs = $expediente->log_movimientos;
-    // if(!empty($logs))
-    // {
-    //   foreach ($logs as $log) {
-    //     if(!$this->existeLogMovimiento($log,$request['movimientos_existentes'])){//chequea que exista el LogMovimiento en el request
-    //       $bool = LogMovimientoController::getInstancia()->eliminarMovimientoExpediente($log->id_log_movimiento);
-    //       if(!$bool){//no se eliminó
-    //           return ['expediente' => $expediente , 'casino' => $expediente->casino];
-    //       }
-    //     }
-    //   }
-    // }
-
     //tablaNotas contiene todas las notas que existian - o sea con // ID
-    if(!empty($request->tablaNotas)){
+    {
       $listita = array();
-      foreach ($request->tablaNotas as $tn) {
-        if(ctype_digit($tn)){
-          $listita[] = $tn;
+      if(isset($request->tablaNotas)){
+        foreach ($request->tablaNotas as $tn) {
+          if(ctype_digit($tn)){
+            $listita[] = $tn;
+          }
         }
       }
       Nota::whereNotIn('id_nota',$listita)
             ->where('id_expediente',$expediente->id_expediente)
-            ->whereNull('id_log_movimiento')
-            ->whereNull('id_tipo_movimiento')
             ->delete();
     }
 
@@ -357,33 +340,7 @@ class ExpedienteController extends Controller
       }
     }
 
-    // if(!empty($expediente->resolucion)
-    // &&(
-    //   empty($request->resolucion)
-    //   ||(
-    //     !empty($request->resolucion)
-    //     && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
-    //     || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
-    //     )
-    //   )){
-    //     ResolucionController::getInstancia()->eliminarResolucion($expediente->resolucion->id_resolucion);
-    //   }
-    // if(!empty($request->resolucion) && !empty($request->resolucion['nro_resolucion'] && !empty($request->resolucion['nro_resolucion_anio']))
-    // &&(
-    //   empty($expediente->resolucion)
-    //   ||(
-    //     !empty($expediente->resolucion)
-    //     && ($expediente->resolucion->nro_resolucion != $request->resolucion['nro_resolucion']
-    //     || $expediente->resolucion->nro_resolucion_anio != $request->resolucion['nro_resolucion_anio'])
-    //     )
-    //   )){
-    //   ResolucionController::getInstancia()->guardarResolucion($request->resolucion,$expediente->id_expediente);
-    // }
-
-
     ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
-
-
 
     $expediente = Expediente::find($request->id_expediente);
 

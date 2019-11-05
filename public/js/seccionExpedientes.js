@@ -711,7 +711,7 @@ $('#btn-guardar').click(function (e) {
     console.log('notas',notas);
     var notas_asociadas = obtenerNotasMov();
     var tablaNotas=[];
-    var tabla= $('#tablaNotasCreadas tbody > tr');
+    var tabla= $('#tablaNotasCreadas tbody > tr').not('#moldeFilaNota');
 
     $.each(tabla, function(index, value){
       console.log(value.id);
@@ -1344,10 +1344,10 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
   var j = 0;
 
   for (i; i < notas.length; i++) {
-      agregarNotaSinMovimiento(notas[i]);
+      agregarNota(notas[i],false);
   }
   for (j; j < notasConMovimientos.length; j++) {
-      agregarNotaConMovimiento(notasConMovimientos[j]);
+      agregarNota(notasConMovimientos[j],true);
   }
 
 
@@ -1361,7 +1361,7 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
 
 }
 
-function agregarNotaSinMovimiento(nota) {
+function agregarNota(nota,conMovimiento) {
   var fila = $('#moldeFilaNota').clone();
 
   fila.show();
@@ -1372,29 +1372,8 @@ function agregarNotaSinMovimiento(nota) {
 
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
-  fila.find('.movimiento').text('-');
+  fila.find('.movimiento').text(conMovimiento? nota.movimiento: '-');
   fila.find('.detalle').text(nota.detalle);
-
-  // fila.find('.detalleNota').text(nota.detalle);
-
-  $('#tablaNotasCreadas tbody').append(fila);
-}
-
-function agregarNotaConMovimiento(nota) {
-  var fila = $('#moldeFilaNota').clone();
-
-  fila.show();
-  fila.removeAttr('moldeFilaNota');
-
-  fila.attr('id',nota.id_nota);
-  fila.find('.borrarNotaCargada').attr('id',nota.id_nota).prop('disabled', true);
-
-  fila.find('.identificacion').text(nota.identificacion);
-  fila.find('.fecha').text(convertirDate(nota.fecha));
-  fila.find('.movimiento').text(nota.movimiento);
-  fila.find('.detalle').text(nota.detalle);
-
-  // fila.find('.detalleNota').text(nota.detalle);
 
   $('#tablaNotasCreadas tbody').append(fila);
 }
