@@ -314,14 +314,12 @@ class ExpedienteController extends Controller
       }
     }
 
-
     //notas para asociar
     if(!empty($request->notas_asociadas)){
       foreach ($request->notas_asociadas as $nota){
         NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
       }
     }
-
 
     $disposiciones = $expediente->disposiciones;
     if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
@@ -331,6 +329,7 @@ class ExpedienteController extends Controller
         }
       }
     }
+    
     if(!empty($request->disposiciones)){
       foreach($request->disposiciones as $disposicion){
         if(!$this->existeDisposicion($disposicion,$expediente->disposiciones)
