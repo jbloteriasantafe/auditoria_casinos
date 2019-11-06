@@ -902,7 +902,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="listaSoftMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                             <div class="row">
                                 <div class="col-md-12">
-                                  <h6>GLI SOFTWARE ACTIVO</h6>
+                                  <h6>CERTIFICADOS</h6>
 
                                   <!-- Tabla de todos los gli soft en la máquina -->
                                   <table id="tablaSoftActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -920,16 +920,13 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                         </td>
                                         <td class="nombre_archivo_activo"></td>
                                         <td>
-                                          <button type="button" class="btn btn-danger borrarSoft" name="button">
-                                            <i class="fa fa-fw fa-trash"></i>
-                                          </button>
+                                          <span class="nombre_juego_gli"></span>
                                         </td>
                                       </tr>
                                     </tbody>
                                   </table>
 
                                   <div class="zona-file" hidden>
-                                    <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
                                   </div>
 
                                   <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
@@ -1029,7 +1026,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   </table>
 
                                   <div class="zona-file" hidden>
-                                    <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
                                   </div>
 
                                   <p id="noexiste_hard" style="display:block;margin-top:30px; margin-bottom:20px;">

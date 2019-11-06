@@ -301,9 +301,12 @@ function habilitarControlesGliSoft(valor){
 
 function mostrarGliSofts(gli_softs){
   $('#tablaSoftActivo tr').not('#datosGLISoft').remove();
+  $('#listaSoftMaquina .zona-file').empty();
   for(let i = 0;i<gli_softs.length;i++){
     mostrarGliSoft(gli_softs[i]);
   }
+  //Ajusto el borde de la parte de archivos.
+  $('#listaSoftMaquina .zona-file').css('height',(340*gli_softs.length)+'px');
 }
 
 function mostrarGliSoft(gli_soft){
@@ -317,6 +320,9 @@ function mostrarGliSoft(gli_soft){
 
     fila.find('.nro_certificado_activo').text(gli_soft.nro_archivo);
     fila.find('.nombre_archivo_activo').text(gli_soft.nombre_archivo);
+    fila.find('.nombre_juego_gli').text(gli_soft.juego? gli_soft.juego : '-');
+    if(gli_soft.activo) fila.css('background-color','rgb(245,245,255)');
+
     $('#tablaSoftActivo tbody').append(fila);
 
     $('#listaSoftMaquina').attr('data-agregado','true');

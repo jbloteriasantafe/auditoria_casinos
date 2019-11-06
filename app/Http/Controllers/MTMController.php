@@ -115,7 +115,10 @@ class MTMController extends Controller
           'id' => $gli->id_gli_soft,
           'nro_archivo' => $gli->nro_archivo,
           'observaciones' => $gli->observaciones ,
-          'nombre_archivo' =>$nombre_archivo
+          'nombre_archivo' =>$nombre_archivo,
+          'juego' => $j->nombre_juego,
+          'id_juego' => $j->id_juego,
+          'activo' => $j->id_juego == $juego_activo->id_juego
         ];
       }
       //si no tiene un gli asociado, devuelve id 0
@@ -676,14 +679,6 @@ class MTMController extends Controller
           'id_progresivo' => 'nullable',
           'nombre_progresivo' => 'nullable',
           'id_tipo' => 'nullable',
-          'gli_soft' => 'required',
-          'gli_soft.id_gli_soft' => 'required',
-          'gli_soft.nro_certificado' => 'required_if:gli_soft.id_gli_soft,0|max:45',
-          'gli_soft.observaciones' => 'nullable|max:300',
-          'gli_soft.file' => 'nullable',
-          'gli_hard.id_gli_hard' => 'nullable',
-          'gli_hard.nro_certificado' => 'required_if:gli_hard.id_gli_hard,0|max:45',
-          'gli_hard.file' => 'nullable',
           'formula.id_formula' => 'required',
           'formula.cuerpoFormula' => 'required',
           'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
@@ -781,17 +776,6 @@ class MTMController extends Controller
       $unaIsla= Isla::find($request->id_isla);
     }
 
-
-    //GLISOFT:     SI EXISTE GLISOFT LA BUSCA SI NO CREA
-    switch ($request->gli_soft['id_gli_soft']){
-      case 0:
-        $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
-        break;
-      default:
-        $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
-        break;
-    }
-
     //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
     switch ($request->gli_hard['id_gli_hard']){
       case 'undefined':break;
@@ -839,11 +823,6 @@ class MTMController extends Controller
             break;
       }
     }
-
-    // if($MTM->porcentaje_devolucion != $request->porcentaje_devolucion){
-    //   $tipo_movimiento = 6;
-    //   $razon .= "Cambió el % de devolución. ";
-    // }
 
     if($MTM->denominacion != $request->denominacion){
         $tipo_movimiento = 5;
@@ -897,10 +876,6 @@ class MTMController extends Controller
             // $juegos_finales[] = ($juego->id_juego);
           }
         }
-        if(isset($gli_soft)){
-          $juego->gliSoftOld()->associate($gli_soft);
-          $juego->save();
-        }
       }
 
       if($juego_viejo->id_juego != $juegoActivo->id_juego){
@@ -951,21 +926,6 @@ class MTMController extends Controller
       $MTM->id_juego = $juegoActivo->id_juego;
     }
 
-    // $MTM->juegos()->sync($juegos_finales);
-    $MTM->gliSoftOld()->dissociate();
-
-    switch ($request->gli_soft['id_gli_soft']){
-      case 'undefined':break;
-      case '':break;
-      case 0:
-        $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
-        break;
-      default:
-        $gli = GliSoft::find($gli_soft->id_gli_soft);
-        $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
-        break;
-    }
-
     $MTM->nro_admin = $request->nro_admin;
     $MTM->marca = $request->marca;
     $MTM->modelo = $request->modelo;
@@ -979,7 +939,6 @@ class MTMController extends Controller
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_casino=$unaIsla->id_casino;
 
-    //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
     $MTM->save();
     if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
     if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
