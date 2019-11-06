@@ -914,11 +914,11 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      <tr id="datosGLISoft" data-id="" data-codigo="" data-observaciones="">
+                                      <tr id="datosGLISoft" data-id="" data-codigo="" data-observaciones="" hidden>
                                         <td>
-                                          <span id="nro_certificado_activo" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
+                                          <span class="badge nro_certificado_activo" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
                                         </td>
-                                        <td id="nombre_archivo_activo"></td>
+                                        <td class="nombre_archivo_activo"></td>
                                         <td>
                                           <button type="button" class="btn btn-danger borrarSoft" name="button">
                                             <i class="fa fa-fw fa-trash"></i>

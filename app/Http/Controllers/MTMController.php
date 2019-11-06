@@ -100,23 +100,28 @@ class MTMController extends Controller
     }
     $juego_activo = $mtm->juego_activo;
 
-
-
-     //OBTENGO EL GLI
-     if($mtm->gliSoft != null){//si existe lo mando.
-
-          if($mtm->gliSoft->archivo != null){
-            $nombre_archivo=$mtm->gliSoft->archivo->nombre_archivo;
-          }else{
-              $nombre_archivo='';
-          }
-          $gli_soft = ['id' => $mtm->gliSoft->id_gli_soft,'nro_archivo' => $mtm->gliSoft->nro_archivo,'observaciones' => $mtm->gliSoft->observaciones ,'nombre_archivo' =>$nombre_archivo];
-
-      }else{//si no tiene un gli asociado, devuelve id 0
-          $gli_soft = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
+    //JUEGOS DE LA MAQUINA
+    $juegos = $mtm->juegos;
+    //OBTENGO EL GLI
+    $gli_soft = [];
+    foreach($juegos as $j){
+      foreach($j->gliSoft as $gli){
+        if($gli->archivo != null){
+          $nombre_archivo=$gli->archivo->nombre_archivo;
+        }else{
+          $nombre_archivo='';
+        }
+        $gli_soft[] = [
+          'id' => $gli->id_gli_soft,
+          'nro_archivo' => $gli->nro_archivo,
+          'observaciones' => $gli->observaciones ,
+          'nombre_archivo' =>$nombre_archivo
+        ];
       }
-     //JUEGOS DE LA MAQUINA
-     $juegos = $mtm->juegos;
+      //si no tiene un gli asociado, devuelve id 0
+      if(count($gli_soft)==0) $gli_soft[] = ['id' => 0 , 'nro_archivo' => '-' , 'nombre_archivo' => ''];
+    }
+      
      $array = array();
      foreach ($juegos as $un_juego){//Creo una lista con los juegos no activos
          $return_juego = new \stdClass();
@@ -561,13 +566,13 @@ class MTMController extends Controller
           }
         }
         if(isset($gli_soft)){
-          $juego->gliSoft()->associate($gli_soft);
+          $juego->agregarGliSofts([$gli_soft],false);
           $juego->save();
         }
     }
 
     if(isset($gli_soft)){
-      $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+      $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
     }
     if(isset($gli_hard)){
       $MTM->gliHard()->associate($gli_hard->id_gli_hard);
@@ -893,7 +898,7 @@ class MTMController extends Controller
           }
         }
         if(isset($gli_soft)){
-          $juego->gliSoft()->associate($gli_soft);
+          $juego->gliSoftOld()->associate($gli_soft);
           $juego->save();
         }
       }
@@ -947,17 +952,17 @@ class MTMController extends Controller
     }
 
     // $MTM->juegos()->sync($juegos_finales);
-    $MTM->gliSoft()->dissociate();
+    $MTM->gliSoftOld()->dissociate();
 
     switch ($request->gli_soft['id_gli_soft']){
       case 'undefined':break;
       case '':break;
       case 0:
-        $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+        $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
         break;
       default:
         $gli = GliSoft::find($gli_soft->id_gli_soft);
-        $MTM->gliSoft()->associate($gli_soft->id_gli_soft);
+        $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
         break;
     }
 
@@ -1008,7 +1013,8 @@ class MTMController extends Controller
   public function eliminarMTM($id){
     $MTM=Maquina::find($id);
     $MTM->formula()->dissociate();
-    $MTM->gliSoft()->dissociate();
+    $MTM->gliSoftOld()->dissociate();
+    $MTM->setearGliSofts([]);
     $MTM->gliHard()->dissociate();
     // $MTM->isla()->dissociate();
     // $MTM->tipoMaquina()->dissociate();

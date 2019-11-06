@@ -299,16 +299,25 @@ function habilitarControlesGliSoft(valor){
   }
 }
 
+function mostrarGliSofts(gli_softs){
+  $('#tablaSoftActivo tr').not('#datosGLISoft').remove();
+  for(let i = 0;i<gli_softs.length;i++){
+    mostrarGliSoft(gli_softs[i]);
+  }
+}
+
 function mostrarGliSoft(gli_soft){
   if(gli_soft.id != 0){
     $('#tablaSoftActivo').show();
+    let fila = $('#datosGLISoft').hide().clone().show().attr('id','');
 
-    $('#datosGLISoft').attr('data-id',gli_soft.id);
-    $('#datosGLISoft').attr('data-codigo',gli_soft.nro_archivo);
-    $('#datosGLISoft').attr('data-observaciones',gli_soft.observaciones);
+    fila.attr('data-id',gli_soft.id);
+    fila.attr('data-codigo',gli_soft.nro_archivo);
+    fila.attr('data-observaciones',gli_soft.observaciones);
 
-    $('#nro_certificado_activo').text(gli_soft.nro_archivo);
-    $('#nombre_archivo_activo').text(gli_soft.nombre_archivo);
+    fila.find('.nro_certificado_activo').text(gli_soft.nro_archivo);
+    fila.find('.nombre_archivo_activo').text(gli_soft.nombre_archivo);
+    $('#tablaSoftActivo tbody').append(fila);
 
     $('#listaSoftMaquina').attr('data-agregado','true');
 

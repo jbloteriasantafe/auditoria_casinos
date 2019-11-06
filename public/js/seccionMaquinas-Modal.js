@@ -617,7 +617,7 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
 
   mostrarProgresivo(data.progresivo, data.id_casino);
   //data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
-  data.gli_soft != null ? mostrarGliSoft(data.gli_soft) : null;
+  data.gli_soft != null ? mostrarGliSofts(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;
   data.formula != null ? mostrarFormula(data.formula) : null;
 }

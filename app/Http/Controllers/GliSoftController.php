@@ -105,12 +105,12 @@ class GliSoftController extends Controller
         }
       }
     }
-    $GLI->save();
-
-    if(!empty($request->juegos)){
+    if(isset($request->juegos)){
       $juegos=explode("," , $request->juegos);
       JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
     }
+
+    $GLI->save();
 
     //obtengo solo el nombre del archivo para devolverlo a la vista
     if(!empty($GLI->archivo)){
@@ -213,7 +213,6 @@ class GliSoftController extends Controller
       }
 
 
-      $GLI->save();
 
       $JuegoController=JuegoController::getInstancia();
       $JuegoController->desasociarGLI($GLI->id_gli_soft);
@@ -221,6 +220,8 @@ class GliSoftController extends Controller
         $juegos=explode("," , $request->juegos);
         $JuegoController->asociarGLI($juegos , $GLI->id_gli_soft);
       }
+
+      $GLI->save();
 
       if(!empty($request->file)){
           if($GLI->archivo != null){
@@ -298,9 +299,10 @@ class GliSoftController extends Controller
     $GLI=GliSoft::find($id);
     $juegos=$GLI->juegos;
     foreach($juegos as $juego){
-      $juego->GliSoft()->dissociate();
+      $juego->gliSoftOld()->dissociate();
       $juego->save();
     }
+    $GLI->setearJuegos([]);
 
     $archivo=$GLI->archivo;
     $GLI->archivo()->dissociate();

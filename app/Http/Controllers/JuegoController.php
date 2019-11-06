@@ -258,6 +258,7 @@ class JuegoController extends Controller
     if ($casRestantes==0){
       $juego->delete();
     }
+    $juego->setearGliSofts([]);
     return ['juego' => $juego];
   }
 
@@ -330,19 +331,28 @@ class JuegoController extends Controller
   }
 
   public function desasociarGLI($id_gli_soft){
-     $juegos=GliSoft::find($id_gli_soft)->juegos;
-      foreach ($juegos as $juego) {
-        $juego->GliSoft()->dissociate();
-        $juego->save();
-      }
+    $GLI = GliSoft::find($id_gli_soft);
+    if($GLI===null) return;
+    $juegos=$GLI->juegos;
+    foreach ($juegos as $juego) {
+      $juego->gliSoftOld()->dissociate();
+      $juego->save();
+    }
+    $GLI->setearJuegos([]);
   }
 
   public function asociarGLI($listaJuegos , $id_gli_soft){
     foreach ($listaJuegos as $id_juego) {
        $juego=Juego::find($id_juego);
-       $juego->GliSoft()->associate($id_gli_soft);
+       $juego->gliSoftOld()->associate($id_gli_soft);
        $juego->save();
-      }
+    }
+    $GLI = GliSoft::find($id_gli_soft);
+    if($GLI != null){
+      $GLI->setearJuegos([]);
+      $GLI->setearJuegos($listaJuegos,true);
+      $GLI->save();
+    }
   }
 
   public function obtenerTablasDePago($id){
