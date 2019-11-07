@@ -995,18 +995,6 @@
                           <a href="" id="navJuego"><h4>JUEGOS</h4></a>
                     </div>
                     <div width="10%">
-                          <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
-                          <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
-                    </div>
-                    <div width="10%">
-                          <i id="error_nav_soft" class="fa fa-times" style="color:#F44336;"></i>
-                          <a href="" id="navSoft"><h4>GLI SOFT</h4></a>
-                    </div>
-                    <div width="10%">
-                          <i id="error_nav_hard" class="fa fa-times" style="color:red; display:none;"></i>
-                          <a href="" id="navHard"><h4>GLI HARD</h4></a>
-                    </div>
-                    <div width="10%">
                           <i id="error_nav_formula" class="fa fa-times" style="color:red; display:none;"></i>
                           <a href="" id="navFormula"><h4>FÓRMULA</h4></a>
                     </div>

@@ -984,7 +984,6 @@ class MTMController extends Controller
     $MTM=Maquina::find($id);
     $MTM->formula()->dissociate();
     $MTM->gliSoftOld()->dissociate();
-    $MTM->setearGliSofts([]);
     $MTM->gliHard()->dissociate();
     // $MTM->isla()->dissociate();
     // $MTM->tipoMaquina()->dissociate();
