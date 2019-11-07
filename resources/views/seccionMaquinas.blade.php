@@ -931,62 +931,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
                                 </div>
                             </div>
-
-                        </div>
-
-
-                        <!-- CREAR O BUSCAR GLI soft-->
-                        <div id="agregarSoft" style="cursor:pointer;" data-toggle="collapse" data-target="#softPlegado">
-                            <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                                <div class="col-md-12">
-                                    <h6>AGREGAR GLI SOFTWARE<i class="fa fa-fw fa-angle-down"></i></h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="softPlegado" class="collapse">
-                            <br>
-                            <div class="row" style="padding-bottom: 15px;">
-                                <div class="col-md-4 col-md-offset-1">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Código de Certificado</h5>
-                                            <input id="inputSoft" data-software=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Software"/>
-                                            <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" /> -->
-                                            <!-- <datalist id="soft"> </datalist> -->
-                                            <!-- <span id="alerta_codigo_soft" class="alertaSpan"></span> -->
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Observaciones</h5>
-                                            <textarea id="observaciones" class="form-control" rows="10" style="resize:none; height:80px;" placeholder="Observaciones"></textarea>
-                                            <span id="alerta_observaciones" class="alertaSpan"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Archivo</h5>
-                                    <div class="zona-file">
-                                        <input id="cargaArchivoSoft" data-borrado="false" type="file">
-                                    </div>
-                                    <span id="alerta_archivoSoft" class="alertaSpan"></span>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button id="btn-cancelarSoft" class="btn btn-danger" type="button" name="button">
-                                        <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
-                                    </button>
-                                    <button id="btn-crearSoft" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-plus"></i> CREAR GLI SOFTWARE
-                                    </button>
-                                    <button id="btn-agregarSoftLista" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR GLI SOFTWARE
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                       </div> <!-- / PASO 4 | soft -->
 
