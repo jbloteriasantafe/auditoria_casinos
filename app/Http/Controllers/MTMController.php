@@ -527,12 +527,16 @@ class MTMController extends Controller
         break;
     }
 
-    //SI EXISTE GLIHARD BUSCA, SI NO CREA
+    //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
+    $gli_hard = null;
     switch ($request->gli_hard['id_gli_hard']){
       case 'undefined':break;
       case '':break;
+      case null: break;
+      case "null": break;
       case 0:
-        $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
+        $gli_hard=GliHardController::getInstancia()
+        ->guardarNuevoGliHard($request->gli_hard['nro_certificado'],null,$request->gli_hard['file']);
         break;
       default:
         $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
@@ -594,6 +598,7 @@ class MTMController extends Controller
     $MTM->juega_progresivo = $request->juega_progresivo;
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_juego=$juegoActivo->id_juego;
+    $MTM->id_tipo_moneda = $request->id_tipo_moneda;
     //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
@@ -985,11 +990,6 @@ class MTMController extends Controller
     $MTM->formula()->dissociate();
     $MTM->gliSoftOld()->dissociate();
     $MTM->gliHard()->dissociate();
-    // $MTM->isla()->dissociate();
-    // $MTM->tipoMaquina()->dissociate();
-    // $MTM->casino()->dissociate();
-    //$MTM->expedientes()->detach();
-    //$MTM->notas()->detach();
     $MTM->estado_maquina()->associate(3);
     $razon = "La maquina se eliminó definitivamente.";
     LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,2);//tipo mov EGRESO
@@ -1014,8 +1014,6 @@ class MTMController extends Controller
         $resultados = DB::table('maquina')
         ->select('maquina.id_maquina','maquina.nro_admin','maquina.marca','maquina.modelo')
           ->where('maquina.nro_admin','like', $busqueda.'%')
-          // ->orWhere('maquina.marca','like', $busqueda.'%')
-          // ->orWhere('maquina.modelo','like', $busqueda.'%')
           ->whereIn('maquina.id_casino' , $casinos)
           ->get();
     }
@@ -1023,17 +1021,6 @@ class MTMController extends Controller
     return ['resultados' => $resultados];
   }
 
-  // //buscar maquinas para asignar al movimiento, el casino lo obtiene del expediente
-  // public function buscarMaquinaPorNumeroYCasino($busqueda , $casino ){
-  //     $resultados = DB::table('maquina')
-  //     ->select('maquina.id_maquina','maquina.nro_admin')
-  //       ->where('maquina.nro_admin','like','%'.$busqueda.'%')
-  //       ->where('maquina.id_casino' , $casino)
-  //       ->take(25)
-  //       ->get();
-  //
-  //   return ['resultados' => $resultados];
-  // }
   public function validarMaquinaTemporal($maquinaTemp,$id_casino){
       Validator::make([
           'nro_admin' => $maquinaTemp->nro_admin,
