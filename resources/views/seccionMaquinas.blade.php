@@ -918,16 +918,15 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                         <td>
                                           <span class="badge nro_certificado_activo" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
                                         </td>
-                                        <td class="nombre_archivo_activo"></td>
+                                        <td>
+                                          <a class="nombre_archivo_activo" href="/glisofts/pdf/" target="_blank" rel="noopener noreferrer"></a>
+                                        </td>
                                         <td>
                                           <span class="nombre_juego_gli"></span>
                                         </td>
                                       </tr>
                                     </tbody>
                                   </table>
-
-                                  <div class="zona-file" hidden>
-                                  </div>
 
                                   <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
                                 </div>

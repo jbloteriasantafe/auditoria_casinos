@@ -113,7 +113,6 @@ $('#btn-guardar').click(function(e){
 
   var juegos = obtenerDatosJuego();
   var progresivo =  progresivo_global ;
-  var gli_soft = obtenerDatosGliSoft();
   var gli_hard = obtenerDatosGliHard();
   var formula = obtenerDatosFormula();
 
@@ -213,16 +212,12 @@ $('#btn-guardar').click(function(e){
   }else{
     formData.append('progresivo[id_progresivo]', -1);
   }
-  //DATOS DE SECCION GLI SOFT
-  formData.append('gli_soft[id_gli_soft]', gli_soft['id_gli_soft']);
-  formData.append('gli_soft[nro_certificado]', gli_soft['nro_certificado']);
-  formData.append('gli_soft[observaciones]', gli_soft['observaciones']);
-  formData.append('gli_soft[file]', gli_soft['file']);
 
   //DATOS SECCION GLI HARD
   formData.append('gli_hard[id_gli_hard]', gli_hard['id_gli_hard']);
   formData.append('gli_hard[nro_certificado]', gli_hard['nro_certificado']);
   formData.append('gli_hard[file]', gli_hard['file']);
+  formData.append('gli_hard[nombre_archivo]', gli_hard['nombre_archivo']);
 
   //DATOS SECCION FORMULA
   formData.append('formula[id_formula]', formula['id_formula']);

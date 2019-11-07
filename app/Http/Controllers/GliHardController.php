@@ -132,6 +132,15 @@ class GliHardController extends Controller
       return ['glihard' => $GLI, 'nombre_archivo' => $nombre_archivo];
   }
 
+  public function guardarNuevoGliHard($nro_certificado,$expedientes,$file){
+    $request = new Request;
+    $request->merge(['nro_certificado'=>$nro_certificado]);
+    $request->merge(['expedientes'=>$expedientes]);
+    $request->merge(['file'=>$file]);
+    dump($request->all());
+    return $this->guardarGliHard($request)['glihard'];
+  }
+
   public function modificarGliHard(Request $request){
 
       Validator::make($request->all(), [

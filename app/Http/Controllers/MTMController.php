@@ -18,6 +18,7 @@ use App\Juego;
 use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\GliSoft;
+use App\GliHard;
 use App\PackJuego;
 
 class MTMController extends Controller
@@ -685,6 +686,11 @@ class MTMController extends Controller
           //table,column,except,idColumn
           //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
           //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
+          'gli_hard' => 'nullable',
+          'gli_hard.*.id_gli_hard' => 'nullable|integer',
+          'gli_hard.*.nro_certificado' => 'nullable|alpha_dash',
+          'gli_hard.*.expedientes' => 'nullable',
+          'gli_hard.*.file' => 'sometimes|mimes:pdf'
       ],array(),self::$atributos)->after(function($validator){
         //validacion isla
         $reglas = array();
@@ -777,14 +783,18 @@ class MTMController extends Controller
     }
 
     //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
+    $gli_hard = null;
     switch ($request->gli_hard['id_gli_hard']){
       case 'undefined':break;
       case '':break;
+      case null: break;
+      case "null": break;
       case 0:
-        $gli_hard=GliHardController::getInstancia()->guardarGliHard_gestionarMaquina($request->gli_soft['id_gli_soft']);
+        $gli_hard=GliHardController::getInstancia()
+        ->guardarNuevoGliHard($request->gli_hard['nro_certificado'],null,$request->gli_hard['file']);
         break;
       default:
-        $gli_hard=GliHardController::find($request->gli_hard['id_gli_hard']);
+        $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
         break;
     }
 
@@ -938,6 +948,7 @@ class MTMController extends Controller
     $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_casino=$unaIsla->id_casino;
+    $MTM->id_gli_hard = is_null($gli_hard)? null: $gli_hard->id_gli_hard;
 
     $MTM->save();
     if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);

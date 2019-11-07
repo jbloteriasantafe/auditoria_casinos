@@ -301,12 +301,9 @@ function habilitarControlesGliSoft(valor){
 
 function mostrarGliSofts(gli_softs){
   $('#tablaSoftActivo tr').not('#datosGLISoft').remove();
-  $('#listaSoftMaquina .zona-file').empty();
   for(let i = 0;i<gli_softs.length;i++){
     mostrarGliSoft(gli_softs[i]);
   }
-  //Ajusto el borde de la parte de archivos.
-  $('#listaSoftMaquina .zona-file').css('height',(340*gli_softs.length)+'px');
 }
 
 function mostrarGliSoft(gli_soft){
@@ -320,49 +317,14 @@ function mostrarGliSoft(gli_soft){
 
     fila.find('.nro_certificado_activo').text(gli_soft.nro_archivo);
     fila.find('.nombre_archivo_activo').text(gli_soft.nombre_archivo);
+    const link = 'http://' + window.location.host + "/glisofts/pdf/" + gli_soft.id;
+    fila.find('.nombre_archivo_activo').attr('href',link);
     fila.find('.nombre_juego_gli').text(gli_soft.juego? gli_soft.juego : '-');
     if(gli_soft.activo) fila.css('background-color','rgb(245,245,255)');
 
     $('#tablaSoftActivo tbody').append(fila);
 
     $('#listaSoftMaquina').attr('data-agregado','true');
-
-    var archivo = $('#listaSoftMaquina .zona-file');
-    archivo.append($('<input>').attr('id','muestraArchivoSoft').attr('type','file'));
-    archivo.show();
-
-    $('#listaSoftMaquina .zona-file').css('height','340px');
-
-    if(gli_soft.nombre_archivo!=''){
-      //Carga el fileinput con el PDF cargado
-      $("#muestraArchivoSoft").fileinput('destroy').fileinput({
-        language: 'es',
-        showRemove: false,
-        showUpload: false,
-        showCaption: false,
-        showZoom: false,
-        browseClass: "btn btn-primary",
-        previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-        overwriteInitial: true,
-        initialPreviewAsData: true,
-        initialPreview: [
-          'http://' + window.location.host + "/glisofts/pdf/" + gli_soft.id,
-        ],
-        initialPreviewConfig: [
-          {type:'pdf', caption: gli_soft.nombre_archivo, size: 329892, width: "100%", url: "{$url}", key: 1},
-        ],
-        previewZoomSettings: {pdf: {width: "100%", height: "100%", 'min-height': "480px"}},
-        allowedFileExtensions: ['pdf'],
-      });
-
-      $('#listaSoftMaquina .fileinput-remove').remove();
-      $('#listaSoftMaquina .btn-file').remove();
-      $('#listaSoftMaquina .file-preview').css('position','relative').css('top','-15px').css('left','7px');
-    }
-    else {
-      $('#listaSoftMaquina .zona-file').hide();
-    }
-
 
     //Ocultar la sección para agregar o crear Hard
     $('#agregarSoft').hide();
