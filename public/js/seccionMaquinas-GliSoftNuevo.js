@@ -6,12 +6,7 @@ $(document).ready(function(){
 
 /* FUNCIONES COMUNES EN TODAS LAS SECCIONES */
 function limpiarModalGliSoft(){
-    $('#frmGliSoft').trigger('reset');
-    $('#softPlegado').removeClass('in');
-    $('#agregarSoft').show();
     $('#tablaSoftActivo tr').not('#datosGLISoft').remove();
-    $('.borrarSoft').trigger('click');
-    $('#softActivo').remove();
 }
 
 function ocultarAlertasGliSoft(){
@@ -27,6 +22,10 @@ function habilitarControlesGliSoft(valor){
 function mostrarGliSofts(gli_softs){
   for(let i = 0;i<gli_softs.length;i++){
     mostrarGliSoft(gli_softs[i]);
+  }
+  if($('#tablaSoftActivo tr').not('#datosGLISoft').length == 0){
+    $('#tablaSoftActivo').hide();
+    $('#noexiste_soft').show();
   }
 }
 

@@ -8,7 +8,7 @@ $(document).ready(function(){
 
   $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
 
-  $('.tituloSeccionPantalla').text('GLI Software');
+  $('.tituloSeccionPantalla').text('Certificados de Software');
   $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcGliSoft').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGliSoft').addClass('opcionesSeleccionado');
@@ -281,7 +281,7 @@ $(document).on('click','.detalle',function(){
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
 
-  $('.modal-title').text('| GLI SOFTWARE');
+  $('.modal-title').text('| CERTIFICADO DE SOFTWARE');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
@@ -295,7 +295,7 @@ $('#btn-nuevo').click(function(e){
     $('#mensajeExito').hide();
 
     //Modificar los colores del modal
-    $('.modal-title').text('| NUEVO GLI SOFTWARE');
+    $('.modal-title').text('| NUEVO CERTIFICADO DE SOFTWARE');
     $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
     //Limpiar los inputs
@@ -353,7 +353,7 @@ $(document).on('click','.modificarGLI',function(){
     $('#mensajeExito').hide();
 
     //Modificar los colores del modal
-    $('.modal-title').text('| MODIFICAR GLI SOFTWARE');
+    $('.modal-title').text('| MODIFICAR CERTIFICADO SOFTWARE');
     $('.modal-header').attr('style','background: #ff9d2d','color: #000;');
 
     $('#id_gli').val($(this).val());
@@ -569,8 +569,8 @@ $('#btn-guardar').click(function (e){
 
             $('#mensajeExito h3').text('ÉXITO DE CARGA');
 
-            if (estado == 'nuevo') $('#mensajeExito p').text('El GLI fue CREADO correctamente.');
-            else $('#mensajeExito p').text('El GLI fue MODIFICADO correctamente.');
+            if (estado == 'nuevo') $('#mensajeExito p').text('El certificado fue CREADO correctamente.');
+            else $('#mensajeExito p').text('El certificado fue MODIFICADO correctamente.');
 
             $('#modalGLI').modal('hide');
             $('#mensajeExito').show();

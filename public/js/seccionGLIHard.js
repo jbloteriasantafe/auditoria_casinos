@@ -8,7 +8,7 @@ $(document).ready(function(){
 
   $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
 
-  $('.tituloSeccionPantalla').text('GLI Hardware');
+  $('.tituloSeccionPantalla').text('Certificados de Hardware');
   $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcGliHard').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGliHard').addClass('opcionesSeleccionado');
@@ -86,7 +86,7 @@ function limpiarModalGLIHard() {
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
 
-  $('.modal-title').text('| GLI HARDWARE');
+  $('.modal-title').text('| CERTIFICADO DE HARDWARE');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
@@ -100,7 +100,7 @@ $('#btn-nuevo').click(function(e){
     limpiarModalGLIHard();
 
     //Modificar los colores del modal
-      $('.modal-title').text('| NUEVO GLI HARDWARE');
+      $('.modal-title').text('| NUEVO CERTIFICADO DE HARDWARE');
       $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
       $('#btn-guardar').removeClass();
       $('#btn-guardar').addClass('btn').addClass('btn-successAceptar');
@@ -153,7 +153,7 @@ $(document).on('click','.modificar',function(){
       var id = $(this).val();
 
   //Modificar los colores del modal
-    $('.modal-title').text('| MODIFICAR GLI HARDWARE');
+    $('.modal-title').text('| MODIFICAR CERTIFICADO DE HARDWARE');
     $('.modal-header').attr('style','background: #ff9d2d');
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn').addClass('btn-warningModificar');

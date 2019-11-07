@@ -366,14 +366,14 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
                                   <li>
                                     <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
-                                      <span>GLI Software</span>
+                                      <span>Certificados Software</span>
                                     </div>
                                   </li>
                                   @endif
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glihard'))
                                   <li>
                                     <div id="opcGliHard" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoHard'" href="#" style="cursor: pointer;">
-                                      <span>GLI Hardware</span>
+                                      <span>Certificados Hardware</span>
                                     </div>
                                   </li>
                                   @endif

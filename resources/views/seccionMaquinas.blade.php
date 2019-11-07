@@ -211,11 +211,11 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                         <div width="10%">
                               <i id="error_nav_soft" class="fa fa-times" style="color:#F44336;"></i>
-                              <a href="" id="navSoft"><h4>GLI SOFT</h4></a>
+                              <a href="" id="navSoft"><h4>CERTIFICADOS SOFT</h4></a>
                         </div>
                         <div width="10%">
                               <i id="error_nav_hard" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navHard"><h4>GLI HARD</h4></a>
+                              <a href="" id="navHard"><h4>CERTIFICADOS HARD</h4></a>
                         </div>
                         <div width="10%">
                               <i id="error_nav_formula" class="fa fa-times" style="color:red;"></i>
@@ -377,7 +377,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                               <div class="row">
                                 <div class="col-xs-12">
-                                  <h5>Expedientes del GLI SOFT</h5>
+                                  <h5>Expedientes del CERTIFICADO SOFT</h5>
                                   <ul id="listaExpedientes">
                                     <li class="row">
                                       <div class="col-xs-7">
@@ -928,7 +928,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                     </tbody>
                                   </table>
 
-                                  <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
+                                  <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no posee certificados de Software.</p>
                                 </div>
                             </div>
                         </div>
@@ -941,7 +941,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="listaHardMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                             <div class="row">
                                 <div class="col-md-12">
-                                  <h6>GLI HARDWARE ACTIVO</h6>
+                                  <h6>CERTIFICADO HARDWARE ACTIVO</h6>
 
                                   <!-- Tabla de todos los gli hard en la máquina -->
                                   <table id="tablaHardActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -972,7 +972,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   </div>
 
                                   <p id="noexiste_hard" style="display:block;margin-top:30px; margin-bottom:20px;">
-                                    <i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Hardware.</p>
+                                    <i class="fa fa-times aviso"></i> La máquina no posee un certificado de Hardware.</p>
                                 </div>
                             </div>
 
@@ -982,7 +982,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="agregarHard" style="cursor:pointer;" data-toggle="collapse" data-target="#hardPlegado">
                             <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                                 <div class="col-md-12">
-                                    <h6>AGREGAR GLI HARDWARE<i class="fa fa-fw fa-angle-down"></i></h6>
+                                    <h6>AGREGAR CERTIFICADO HARDWARE<i class="fa fa-fw fa-angle-down"></i></h6>
                                 </div>
                             </div>
                         </div>
@@ -993,7 +993,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                 <div class="col-md-4 col-md-offset-1">
                                     <h5>Código de Certificado</h5>
                                     <!-- <input id="inputHard" data-hard="" class="form-control" type="text" list="hard" autocomplete="off" placeholder="Código de certificado"/> -->
-                                    <input id="inputHard" class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Hardware"/>
+                                    <input id="inputHard" class="form-control" type="text" autocomplete="off" placeholder="Buscar Certificado de Hardware"/>
                                 </div>
                                 <div class="col-md-6">
                                     <h5>Archivo</h5>
@@ -1010,10 +1010,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                         <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
                                     </button>
                                     <button id="btn-crearHard" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-plus"></i> CREAR GLI HARDWARE
+                                        <i class="fa fa-fw fa-plus"></i> CREAR CERTIFICADO HARDWARE
                                     </button>
                                     <button id="btn-agregarHardLista" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR GLI HARDWARE
+                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO HARDWARE
                                     </button>
                                 </div>
                             </div>

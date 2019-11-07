@@ -75,7 +75,7 @@ $id_usuario = session('id_usuario');
                     <div class="col-md-12">
                       <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h4>Certificados GLI Software Registrados en el Sistema</h4>
+                            <h4>Certificados de Software Registrados en el Sistema</h4>
                         </div>
                         <div class="panel-body">
                           <table id="tablaGliSofts" class="table table-fixed tablesorter">
@@ -109,7 +109,7 @@ $id_usuario = session('id_usuario');
                         <div class="col-xs-12">
                           <center>
                               <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">NUEVO GLI SOFTWARE</h4>
+                              <h4 class="txtNuevo">NUEVO CERTIFICADO SOFTWARE</h4>
                           </center>
                         </div>
                     </div>
@@ -120,8 +120,8 @@ $id_usuario = session('id_usuario');
             <div class="col-xl-12 col-lg-4">
               <a href="certificadoHard" style="text-decoration:none;">
                   <div class="tarjetaSeccionMenor" align="center">
-                    <h2 class="tituloFondoMenor">GLIHARD</h2>
-                    <h2 class="tituloSeccionMenor">GLI HARDWARE</h2>
+                    <h2 class="tituloFondoMenor">CERTIFICADO HARD</h2>
+                    <h2 class="tituloSeccionMenor">CERTIFICADO HARDWARE</h2>
                     <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/hardware_white.png" alt="">
                   </div>
               </a>
@@ -168,7 +168,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-header modalNuevo">
             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-            <h3 class="modal-title"> | NUEVO CERTIFICADO GLI</h3>
+            <h3 class="modal-title"> | NUEVO CERTIFICADO SOFTWARE</h3>
           </div>
 
         <div id="colapsado" class="collapse in">
@@ -204,7 +204,7 @@ $id_usuario = session('id_usuario');
                         <!-- tabla de expedientes -->
                         <div class="row">
                             <div class="col-md-12">
-                                <h6>EXPEDIENTES DEL GLI HARDWARE</h6>
+                                <h6>EXPEDIENTES DEL CERTIFICADO SOFTWARE</h6>
                                 <table id="tablaExpedientesSoft" class="table">
                                   <thead>
                                       <th class="col-xs-9">N° DE CERTIFICADO</th>
@@ -296,7 +296,7 @@ $id_usuario = session('id_usuario');
             <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
           </div>
           <div class="modal-body franjaRojaModal">
-            <strong><p>¿Seguro desea eliminar el GLI Software?</p></strong>
+            <strong><p>¿Seguro desea eliminar el Certificado de Software?</p></strong>
           </div>
           <div class="modal-footer">
             <button id="boton-eliminarGLI" type="button" class="btn btn-dangerEliminar">ELIMINAR</button>
@@ -311,13 +311,13 @@ $id_usuario = session('id_usuario');
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| GLI SOFTWARE</h3>
+  <h3 class="modal-title" style="color: #fff;">| CERTIFICADO DE SOFTWARE</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de Gli Software</h5>
+    <h5>Tarjeta de Certificado de Software</h5>
     <p>
-      Admite la carga de los respectivos .pdf de gli software, asociados a expedientes y juegos que corresponda.
+      Admite la carga de los respectivos .pdf de certificados de software, asociados a expedientes y juegos que corresponda.
     </p>
   </div>
   @endsection
