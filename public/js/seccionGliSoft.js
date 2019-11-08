@@ -30,18 +30,15 @@ $('#btn-minimizar').click(function(){
 
 /* TODOS LOS EVENTOS DE BUSCAR JUEGOS */
 $('#btn-agregarJuego').click(function(e){
-    var id_juego = $('#inputJuego').obtenerElementoSeleccionado();
-    if(!existeEnDataList(id_juego)){
-      if (id_juego != 0) {
-        $.get('juegos/obtenerJuego/' + id_juego , function(data){
-          //Agregar la fila a la tabla
-          agregarFilaJuego(data.juego, data.tablasDePago);
-          //Limpiar el input para seguir buscando expedientes
-          $('#inputJuego').setearElementoSeleccionado(0, '');
-        });
-      }
-    }else {
-      $('#inputJuego').setearElementoSeleccionado(0, '');
+    const id_juego = obtenerIdDatalist($('#inputJuego').val(),$('#datalistJuegos'));
+    if(esUndefined(id_juego)){
+      $('#inputJuego').val('');
+    }
+    else{
+      $.get('juegos/obtenerJuego/' + id_juego , function(data){
+        agregarFilaJuego(data.juego, data.tablasDePago);
+        $('#inputJuego').val('');
+      });
     }
 });
 
@@ -148,7 +145,7 @@ $(document).on('click','.detalle',function(){
     })
     $('#cuerpoTablaDePago tr').remove();
     $('#modalGLI').modal('show');
-    $('.btn-default').text('SALIR');
+    $('.modal-footer .cancelar').text('SALIR');
 
     //limpia la tabla de juegos
     $('#tablaJuegos tbody').empty();
@@ -201,72 +198,10 @@ $(document).on('click','.detalle',function(){
         });
       }
 
-      //crear src y setearlo al input file.
-      // var objurl = window.URL.createObjectURL(new Blob([data.archivo.archivo]));
-      //  var objurl2 = window.URL.createObjectURL(data.archivo.archivo);
-      //codigo no funciona en IE
-      // var file = new File([new Blob([data.archivo.archivo])], "sistemaAuditoria.pdf", {type: "application/pdf"});
-      // var objurl = window.URL.createObjectURL(file);
-      // console.log(objurl);
-       //Cargar los juegos
        for (var i = 0; i < data.juegos.length; i++) {
         console.log(data.juegos[i]);
         agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
       }
-/* esto no estaba funcionando, al aprecer la idea era cargar lo juegos, pero ya habia funciones para realizar esa accion
-    $.each(data.juegos, function(index, juego){
-      $.get('juegos/obtenerTablasDePago/' + juego.id_juego , function(data_juego){
-        $('#listaJuegos')
-        .append($('<li>')
-        .attr("id", juego.id_juego)
-        .css('list-style' , 'none')
-        .append($('<div>')
-        .addClass('col-xs-4')
-        .append($('<p>')
-        .text(juego.nombre_juego)
-      )
-    )
-    .append($('<div>')
-    .addClass('col-xs-4')
-    .append($('<p>')
-    .text(juego.cod_identificacion)
-  )
-  )
-  .append($('<div>')
-  .addClass('col-xs-2')
-  .append($('<p>')
-  .text(juego.nro_niv_progresivos)
-  )
-  )
-  );
-
-  //renglon por tabla de pago
-  for (var i = 0; i < data_juego.tablasDePago.length; i++) {
-    $('#cuerpoTablaDePago')
-    .append($('<tr>')
-    .attr("data-juego", juego.id_juego)
-    .append($('<td>')
-    .addClass('col-xs-2')
-    .text(data_juego.tablasDePago[i].codigo)
-  )
-  .append($('<td>')
-  .addClass('col-xs-2')
-  .text(data_juego.tablasDePago[i].porc_devolucion_min)
-  )
-  .append($('<td>')
-  .addClass('col-xs-3')
-  .text(data_juego.tablasDePago[i].porc_devolucion_max)
-  )
-  .append($('<td>')
-  .addClass('col-xs-3')
-  .text(data_juego.tablasDePago[i].denominacion_base)
-  )
-  )
-  }
-
-  })
-  })
-  */
   })
 
   $('#inputExpediente').prop('readonly' , true);
@@ -274,8 +209,6 @@ $(document).on('click','.detalle',function(){
   $('#nroCertificado').prop('readonly' , true);
   $('#observaciones').prop('readonly' , true);
   $('#cargaArchivo').prop('disabled' , true);
-
-
 });
 
 $('#btn-ayuda').click(function(e){
@@ -315,7 +248,7 @@ $('#btn-nuevo').click(function(e){
     $('#btn-guardar').text('ACEPTAR');
     $('#btn-guardar').show();
     $('#btn-guardar').val("nuevo");
-    $('.modal-footer .btn-default').text('CANCELAR');
+    $('.modal-footer .cancelar').text('CANCELAR');
 
     //Limpiar tablas
     $('#tablaJuegos tbody').empty();
@@ -323,10 +256,10 @@ $('#btn-nuevo').click(function(e){
 
     //Preparar los datalist
     $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-    $('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
+    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
 
     $('#inputExpediente').setearElementoSeleccionado(0,"");
-    $('#inputJuego').setearElementoSeleccionado(0,"");
+    //$('#inputJuego').setearElementoSeleccionado(0,"");
 
     //Inicializa el fileinput para cargar los PDF
     $("#cargaArchivo").fileinput('destroy').fileinput({
@@ -380,10 +313,10 @@ $(document).on('click','.modificarGLI',function(){
 
     //Preparar los datalist
     $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-    $('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
+    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
 
     $('#inputExpediente').setearElementoSeleccionado(0,"");
-    $('#inputJuego').setearElementoSeleccionado(0,"");
+    //$('#inputJuego').setearElementoSeleccionado(0,"");
 
     //obtenerGli
     var id = $(this).val();
@@ -637,6 +570,16 @@ $(document).on('click','#tablaGliSofts thead tr th[value]',function(e){
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
+function obtenerIdDatalist(value,datalist){
+  let id = null;
+  if(value != null && value.length != 0){
+    id = datalist.find('option[value="'+value+'"]').attr('data-id');
+  } 
+  return id;
+}
+function esUndefined(value){
+  return typeof value === 'undefined';
+}
 
 /* BÚSQUEDA */
 function clickIndice(e,pageNumber,tam){
@@ -649,7 +592,11 @@ function clickIndice(e,pageNumber,tam){
   $('#buscarCertificado').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-$('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
+$('#buscarCertificado').click(function(e,
+  pagina=1,
+  page_size=$('#herramientasPaginacion').getPageSize(),
+  columna=$('#tablaGliSofts .activa').attr('value'),
+  orden=$('#tablaGliSofts .activa').attr('estado')){
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -658,27 +605,24 @@ $('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
 
   e.preventDefault();
 
-  var page_size = (page_size != null) ? page_size : 10;
-  var page_number = (pagina != null) ? pagina : 1;
-  var sort_by = (columna != null) ? {columna,orden} : null;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaGliHard th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  if(page_size != null){
+
+  }
+  else if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    page_size = $('#herramientasPaginacion').getPageSize();
+  }
+  else{
+    page_size = 10;
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaGliHard .activa').attr('value'),orden: $('#tablaGliHard .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaGliHard th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
+
+  const id_juego = obtenerIdDatalist($('#inputJuegoBuscador').val(),$('#datalistJuegos'));
 
   var formData = {
     nro_exp_org:$('#nro_exp_org').val(),
@@ -687,6 +631,9 @@ $('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
     casino:$('#sel1').val(),
     certificado: $('#nro_certificado').val(),
     nombre_archivo: $('#nombre_archivo').val(),
+    //Si es undefined es pq escribio cualquier fruta
+    //Le mando -1 para que me no me devuelva nada
+    id_juego: esUndefined(id_juego)? -1 : id_juego,
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,

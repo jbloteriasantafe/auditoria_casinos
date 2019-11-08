@@ -350,7 +350,8 @@ class JuegoController extends Controller
     $GLI = GliSoft::find($id_gli_soft);
     if($GLI != null){
       $GLI->setearJuegos([]);
-      $GLI->setearJuegos($listaJuegos,true);
+      //Por si manda varias veces el mismo juego lo filtro
+      $GLI->setearJuegos(array_unique($listaJuegos),true);
       $GLI->save();
     }
   }

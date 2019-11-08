@@ -9,6 +9,7 @@ use App\GliSoft;
 use App\Archivo;
 use App\Casino;
 use Illuminate\Support\Facades\DB;
+use App\Juego;
 
 use Validator;
 
@@ -34,7 +35,19 @@ class GliSoftController extends Controller
       $glisofts=GliSoft::all();
       $casinos=Casino::all();
       UsuarioController::getInstancia()->agregarSeccionReciente('GLI Software' , 'certificadoSoft');
-      return view('seccionGLISoft' , ['glis' => $glisofts,'casinos' => $casinos]);
+      //Ordenar por nombre ascendiente ignorando mayusculas
+      $juegos = Juego::all()->sortBy("nombre_juego",SORT_NATURAL|SORT_FLAG_CASE); 
+      //Hay juegos con el mismo nombre, les doy uno unico
+      $juegosarr = [];
+      foreach($juegos as $j){
+        $nombre = $j->nombre_juego;
+        if(!isset($juegosarr[$nombre])){
+          $juegosarr[$nombre] = [];
+        }
+        $juegosarr[$nombre][] = $j;
+      }
+      //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
+      return view('seccionGLISoft' , ['glis' => $glisofts,'casinos' => $casinos,'juegos' => $juegosarr]);
   }
 
   public function obtenerGliSoft($id){
@@ -154,17 +167,20 @@ class GliSoftController extends Controller
     if(!empty($request->nombre_archivo)){
       $reglas[]=['archivo.nombre_archivo' , 'like' , '%' . $request->nombre_archivo . '%' ];
     }
+    if(isset($request->id_juego)){
+      $reglas[]=['juego_glisoft.id_juego' , '=' , $request->id_juego];
+    }
     $sort_by = $request->sort_by;
     $resultados=DB::table('gli_soft')
     ->select('gli_soft.*', 'archivo.nombre_archivo')
     ->leftJoin('archivo' , 'archivo.id_archivo' , '=' , 'gli_soft.id_archivo')
-    ->where($reglas)
-    //->groupBy('gli_soft.id_gli_soft')
+    ->leftJoin('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
     ->when($sort_by,function($query) use ($sort_by){
-                       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                   })
-
-       ->paginate($request->page_size);
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->where($reglas);
+    //Elimino duplicados y pagino.
+    $resultados = $resultados->groupBy('gli_soft.id_gli_soft')->paginate($request->page_size);
 
     foreach ($resultados as $index => $resultado) {
       $gli = GliSoft::find($resultado->id_gli_soft);
