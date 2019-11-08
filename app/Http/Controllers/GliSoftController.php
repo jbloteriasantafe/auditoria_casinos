@@ -319,6 +319,7 @@ class GliSoftController extends Controller
       $juego->save();
     }
     $GLI->setearJuegos([]);
+    $GLI->expedientes()->sync([]);
 
     $archivo=$GLI->archivo;
     $GLI->archivo()->dissociate();

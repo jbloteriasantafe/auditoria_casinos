@@ -144,7 +144,6 @@ $(document).on('click','.detalle',function(){
       $(this).remove();
     })
     $('#cuerpoTablaDePago tr').remove();
-    $('#modalGLI').modal('show');
     $('.modal-footer .cancelar').text('SALIR');
 
     //limpia la tabla de juegos
@@ -202,6 +201,9 @@ $(document).on('click','.detalle',function(){
         console.log(data.juegos[i]);
         agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
       }
+      $('.borrarJuego').prop('disabled',true);
+      $('.borrarExpediente').prop('disabled',true);
+      $('#modalGLI').modal('show');
   })
 
   $('#inputExpediente').prop('readonly' , true);
@@ -380,10 +382,10 @@ $(document).on('click','.modificarGLI',function(){
           agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
         }
 
+        $('.borrarJuego').prop('disabled',false);
+        $('.borrarExpediente').prop('disabled',false);
+        $('#modalGLI').modal('show');
     });
-
-    //Abir el modal
-    $('#modalGLI').modal('show');
 });
 
 //Borrar GLI
