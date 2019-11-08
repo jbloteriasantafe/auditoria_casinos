@@ -64,19 +64,19 @@
         <td class="tablaInicio" style="background-color: white">{{$otros_datos['estado']}}</td>
       </tr>
     </table>
-    <br><br>
+    <br>
 
 
     <!-- Tabla de control ambiental Melincué-->
-    <!-- Como Melincué tiene un solo sector, creo que es preferible hacer una fila por cada isla,
-    y una columna por turno (la estructura seria la inversa a la de las tablas de Santa Fe)-->
     @if ($relevamiento_ambiental->casino->id_casino == 1)
+      <?php $total_turno1=0; $total_turno2=0; $total_turno3=0; $total_turno4=0; $total_turno5=0; $total_turno6=0; $total_turno7=0; $total_turno8=0;
+      $turnos_size = sizeof($relevamiento_ambiental->casino->turnos);
+      ?>
       <table>
         <thead>
           <tr>
             <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">ISLAS</th>
             <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{sizeof($relevamiento_ambiental->casino->turnos)}}">TURNOS</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px" rowspan="2">TOTAL</th>
           </tr>
           <tr>
             @foreach ($relevamiento_ambiental->casino->turnos as $turno)
@@ -84,108 +84,232 @@
             @endforeach
           </tr>
         </thead>
-        @foreach ($relevamiento_ambiental->casino->sectores[0]->islas as $isla)
+        @foreach ($detalles as $detalle)
         <tr>
-          <td class="tablaAmbiental" style="background-color: white" width="10px">{{$isla->nro_isla}} </td>
-
-          @foreach ($detalles as $detalle)
-          @if ($detalle['id_sector'] == $relevamiento_ambiental->casino->sectores[0]->id_sector && $detalle['id_turno'] == $turno->id_turno)
-            @for ($i=0; $i<sizeof($relevamiento_ambiental->casino->turnos); $i++)
-                <td class="tablaAmbiental" style="background-color: white" width="11px">55</td>
-            @endfor
+          <td class="tablaAmbiental" style="background-color: white" width="10px">{{$detalle['nro_isla']}} </td>
+          @if ($detalle['turno1'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno1']}}</td> <?php $total_turno1+=$detalle['turno1']; ?>
+          @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
           @endif
-          @endforeach
-          <td class="tablaAmbiental" style="background-color: white" width="20px">999</td>
+          @if ($detalle['turno2'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno2']}}</td> <?php $total_turno2+=$detalle['turno2']; ?>
+          @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno3'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno3']}}</td> <?php $total_turno3+=$detalle['turno3']; ?>
+          @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno4'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno4']}}</td> <?php $total_turno4+=$detalle['turno4']; ?>
+          @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno5'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno5']}}</td> <?php $total_turno5+=$detalle['turno5']; ?>
+          @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno6'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno6']}}</td> <?php $total_turno6+=$detalle['turno6']; ?>
+          @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno7'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno7']}}</td> <?php $total_turno7+=$detalle['turno7']; ?>
+          @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($detalle['turno8'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno8']}}</td> <?php $total_turno8+=$detalle['turno8']; ?>
+          @elseif ($turnos_size >= 8) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$turnos_size}}</td>
+          @endif
         </tr>
         @endforeach
+        <tr>
+          <td class="tablaAmbiental" style="background-color: #e6e6e6"><b>TOTAL</b></td>
+          @if ($total_turno1>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno1}}</td>
+          @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno2>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno2}}</td>
+          @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno3>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno3}}</td>
+          @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno4>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno4}}</td>
+          @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno5>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno5}}</td>
+          @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno6>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno6}}</td>
+          @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno7>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno7}}</td>
+          @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+          @if ($total_turno8>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno8}}</td>
+          @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+          @endif
+        </tr>
       </table>
 
 
     <!-- Tabla de control ambiental Santa Fe-->
     @elseif ($relevamiento_ambiental->casino->id_casino == 2)
-      <?php $contador_tablas=0; ?>
       @foreach ($relevamiento_ambiental->casino->sectores as $sector)
+      <?php $total_turno1=0; $total_turno2=0; $total_turno3=0; $total_turno4=0; $total_turno5=0; $total_turno6=0; $total_turno7=0; $total_turno8=0;
+      $turnos_size = sizeof($relevamiento_ambiental->casino->turnos);
+      ?>
       <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
       <table>
         <thead>
           <tr>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">T</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{sizeof($sector->islas)}}">ISLAS</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px" rowspan="2">TOTAL</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">ISLAS</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{sizeof($relevamiento_ambiental->casino->turnos)}}">TURNOS</th>
           </tr>
           <tr>
-            @foreach ($sector->islas as $isla)
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">{{$isla->nro_isla}}</th>
+            @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+            <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">{{$turno->nro_turno}}</th>
             @endforeach
           </tr>
         </thead>
-        @foreach ($relevamiento_ambiental->casino->turnos as $turno)
-        <tr>
-          <td class="tablaAmbiental" style="background-color: white" width="10px">{{$turno->nro_turno}} </td>
-          @foreach ($detalles as $detalle)
-          @if ($detalle['id_sector'] == $sector->id_sector && $detalle['id_turno'] == $turno->id_turno)
-            @for ($i=0; $i<$detalle['tamanio_vector']; $i++)
-                <td class="tablaAmbiental" style="background-color: white" width="11px">55</td>
-            @endfor
+        @foreach ($detalles as $detalle)
+          @if ($detalle['id_sector'] == $sector->id_sector)
+            <tr>
+              <td class="tablaAmbiental" style="background-color: white" width="10px">{{$detalle['nro_isla']}} </td>
+              @if ($detalle['turno1'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno1']}}</td> <?php $total_turno1+=$detalle['turno1']; ?>
+              @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno2'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno2']}}</td> <?php $total_turno2+=$detalle['turno2']; ?>
+              @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno3'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno3']}}</td> <?php $total_turno3+=$detalle['turno3']; ?>
+              @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno4'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno4']}}</td> <?php $total_turno4+=$detalle['turno4']; ?>
+              @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno5'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno5']}}</td> <?php $total_turno5+=$detalle['turno5']; ?>
+              @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno6'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno6']}}</td> <?php $total_turno6+=$detalle['turno6']; ?>
+              @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno7'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno7']}}</td> <?php $total_turno7+=$detalle['turno7']; ?>
+              @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno8'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno8']}}</td> <?php $total_turno8+=$detalle['turno8']; ?>
+              @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+            </tr>
           @endif
-          @endforeach
-          <td class="tablaAmbiental" style="background-color: white" width="20px">999</td>
-        </tr>
         @endforeach
+            <tr>
+              <td class="tablaAmbiental" style="background-color: #e6e6e6"><b>TOTAL</b></td>
+              @if ($total_turno1>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno1}}</td>
+              @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno2>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno2}}</td>
+              @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno3>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno3}}</td>
+              @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno4>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno4}}</td>
+              @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno5>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno5}}</td>
+              @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno6>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno6}}</td>
+              @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno7>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno7}}</td>
+              @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno8>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno8}}</td>
+              @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+            </tr>
       </table>
-      <?php $contador_tablas++; ?>
-      <br>
-        @if ($contador_tablas%2 == 0 && $contador_tablas != 4)
-          <div style="page-break-after:always;"></div>
-        @endif
+      <br><br>
       @endforeach
+
 
     <!-- Tabla de control ambiental Rosario-->
     @else
       <?php $contador_tablas=0; ?>
       @foreach ($relevamiento_ambiental->casino->sectores as $sector)
-      <?php $contador_colspan=0; ?>
+      <?php $total_turno1=0; $total_turno2=0; $total_turno3=0; $total_turno4=0; $total_turno5=0; $total_turno6=0; $total_turno7=0; $total_turno8=0;
+      $turnos_size = sizeof($relevamiento_ambiental->casino->turnos);
+      $contador_colspan=0;
+      ?>
       <div class="primerEncabezado">Sector de control ambiental: {{$sector->descripcion}}</div>
       <table>
         <thead>
           <tr>
-            @foreach ($islotes_y_sectores as $islote_y_sector)
-              @if ($islote_y_sector->id_sector == $sector->id_sector)
-                <?php $contador_colspan++; ?>
-              @endif
-            @endforeach
-            <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2">TURNO</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$contador_colspan}}">ISLOTES</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2">TOTAL</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">ISLOTES</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{sizeof($relevamiento_ambiental->casino->turnos)}}">TURNOS</th>
           </tr>
           <tr>
-            @foreach ($islotes_y_sectores as $islote_y_sector)
-              @if ($islote_y_sector->id_sector == $sector->id_sector)
-                <th class="tablaInicio" style="background-color: #e6e6e6">{{$islote_y_sector->nro_islote}}</th>
-              @endif
+            @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+            <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">{{$turno->nro_turno}}</th>
             @endforeach
           </tr>
         </thead>
-        @foreach ($relevamiento_ambiental->casino->turnos as $turno)
-        <tr>
-          <td class="tablaAmbiental" style="background-color: white">{{$turno->nro_turno}} </td>
-          @foreach ($detalles as $detalle)
-          @if ($detalle['id_sector'] == $sector->id_sector && $detalle['id_turno'] == $turno->id_turno)
-            @for ($i=0; $i<$detalle['tamanio_vector']; $i++)
-                <td class="tablaAmbiental" style="background-color: white">55</td>
-            @endfor
+        @foreach ($detalles as $detalle)
+          @if ($detalle['id_sector'] == $sector->id_sector)
+            <tr>
+              <td class="tablaAmbiental" style="background-color: white" width="10px">{{$detalle['nro_islote']}} </td>
+              @if ($detalle['turno1'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno1']}}</td> <?php $total_turno1+=$detalle['turno1']; ?>
+              @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno2'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno2']}}</td> <?php $total_turno2+=$detalle['turno2']; ?>
+              @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno3'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno3']}}</td> <?php $total_turno3+=$detalle['turno3']; ?>
+              @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno4'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno4']}}</td> <?php $total_turno4+=$detalle['turno4']; ?>
+              @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno5'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno5']}}</td> <?php $total_turno5+=$detalle['turno5']; ?>
+              @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno6'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno6']}}</td> <?php $total_turno6+=$detalle['turno6']; ?>
+              @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno7'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno7']}}</td> <?php $total_turno7+=$detalle['turno7']; ?>
+              @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($detalle['turno8'] != NULL) <td class="tablaAmbiental" style="background-color: white" width="11px">{{$detalle['turno8']}}</td> <?php $total_turno8+=$detalle['turno8']; ?>
+              @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+            </tr>
           @endif
-          @endforeach
-
-          <td class="tablaAmbiental" style="background-color: white">999</td>
-        </tr>
         @endforeach
+            <tr>
+              <td class="tablaAmbiental" style="background-color: #e6e6e6"><b>TOTAL</b></td>
+              @if ($total_turno1>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno1}}</td>
+              @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno2>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno2}}</td>
+              @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno3>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno3}}</td>
+              @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno4>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno4}}</td>
+              @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno5>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno5}}</td>
+              @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno6>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno6}}</td>
+              @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno7>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno7}}</td>
+              @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+              @if ($total_turno8>0) <td class="tablaAmbiental" style="background-color: #e6e6e6">{{$total_turno8}}</td>
+              @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white" width="11px"></td>
+              @endif
+            </tr>
+        <?php $contador_tablas++; ?>
       </table>
-      <?php $contador_tablas++; ?>
       <br>
-        @if ($contador_tablas%3 == 0)
-          <div style="page-break-after:always;"></div>
-        @endif
+      @if ($contador_tablas == 2)
+        <div style="page-break-after:always;"></div>
+      @endif
       @endforeach
     @endif
 

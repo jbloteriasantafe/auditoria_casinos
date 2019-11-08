@@ -305,17 +305,16 @@ function mensajeAlerta(alertas, callbackConfirmar, callbackCancelar) {
 function cargarRelevamiento(relevamiento) {
     $('#modalRelevamientoAmbiental .mensajeSalida').hide();
     $('#id_relevamiento').val(relevamiento.id_relevamiento_ambiental);
-
     $('#btn-guardar').show().off();
     $('#btn-finalizar').show().text("FINALIZAR").off();
 
     $('#modalRelevamientoAmbiental')
         .find('.modal-header')
-        .attr("style",
-            "font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
+        .attr("style","font-family:'Roboto-Black';color:white;background-color:#FF6E40;");
 
     $('#modalRelevamientoAmbiental').
-    find('.modal-title').text('| CARGAR RELEVAMIENTO DE CONTROL AMBIENTAL');
+      find('.modal-title')
+      .text('| CARGAR RELEVAMIENTO DE CONTROL AMBIENTAL');
 
     $('#inputFisca').attr('disabled', false);
     $('#usuario_fiscalizador').attr('disabled', false);
@@ -325,8 +324,9 @@ function cargarRelevamiento(relevamiento) {
     $('#dtpFecha span.usables').show();
     $('#dtpFecha span.nousables').hide();
 
-    $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo,
+    $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
+            hidearTurnosInnecesarios(data.cantidad_turnos);
             setearRelevamiento(data, obtenerFila);
 
             $('#btn-finalizar').click(function() {
@@ -340,8 +340,8 @@ function cargarRelevamiento(relevamiento) {
                 enviarFormularioCarga(data,
                     function(data) {
                         console.log(data);
-                        $('#modalRelevamientoProgresivos').modal('hide');
-                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_progresivo + '"]');
+                        $('#modalRelevamientoAmbiental').modal('hide');
+                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Finalizado";
                         cambiarEstadoFila(fila, relevamiento);
                     },
@@ -349,7 +349,8 @@ function cargarRelevamiento(relevamiento) {
                         console.log(x);
                         let msgs = obtenerMensajesError(x);
                         mensajeError(msgs);
-                    }
+                    },
+                    "relevamientosControlAmbiental/cargarRelevamiento"
                 );
             });
 
@@ -357,6 +358,7 @@ function cargarRelevamiento(relevamiento) {
                 enviarFormularioCarga(data,
                     function(x) {
                         console.log(x);
+                        $('#modalRelevamientoAmbiental').modal('hide');
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_progresivo + '"]');
                         relevamiento.estado = "Cargando";
                         cambiarEstadoFila(fila, relevamiento);
@@ -364,19 +366,20 @@ function cargarRelevamiento(relevamiento) {
                     function(x) {
                         console.log(x);
                     },
-                    "relevamientosProgresivo/guardarRelevamiento"
+                    "relevamientosControlAmbiental/guardarTemporalmenteRelevamiento"
                 );
             });
 
         });
 
     $('#observacion_carga').removeAttr('disabled');
-    // $('#observacion_validacion').parent().hide();
+    $('#observacion_validacion').parent().hide();
     $('#modalRelevamientoAmbiental').modal('show');
 }
 
 function setearRelevamiento(data, filaCallback) {
     //Limpio los campos
+    console.log(data.casino.id_casino);
     $('#modalRelevamientoAmbiental input').val('');
     $('#modalRelevamientoAmbiental select').val(-1);
     $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr').not('.filaEjemplo').remove();
@@ -403,6 +406,213 @@ function setearRelevamiento(data, filaCallback) {
         tabla.append(filaCallback(data.detalles[i]));
     }
 }
+
+function obtenerFila(detalle) {
+    let fila = $('#modalRelevamientoAmbiental .filaEjemplo').not('.validacion')
+                  .clone().removeClass('filaEjemplo').show().css('display', '');
+
+    fila.find('.nroIslaIslote').text(detalle.nro_isla_o_islote);
+    fila.attr('data-id', detalle.id_detalle_relevamiento_ambiental);
+
+    for (let i=1; i<=detalle.cantidad_turnos; i++) {
+      fila.append($('<td>')
+          .addClass('col-xs-1')
+          .css('width','90px')
+          .css('display','inline-block')
+          .append($('<input>')
+              .addClass('turno'+i)
+              .addClass('form-control')
+              .attr('min',0)
+              .attr('data-toggle','tooltip')
+              .attr('data-placement','down')
+              .attr('title','turno'+i)
+            )
+          )
+    }
+
+    if (detalle.turno1 != null) {
+      fila.find('.turno1')
+          .val(detalle.turno1)
+    }
+    if (detalle.turno2 != null) {
+      fila.find('.turno2')
+          .val(detalle.turno2)
+    }
+    if (detalle.turno3 != null) {
+      fila.find('.turno3')
+          .val(detalle.turno3)
+    }
+    if (detalle.turno4 != null) {
+      fila.find('.turno4')
+          .val(detalle.turno4)
+    }
+    if (detalle.turno5 != null) {
+      fila.find('.turno5')
+          .val(detalle.turno5)
+    }
+    if (detalle.turno6 != null) {
+      fila.find('.turno6')
+          .val(detalle.turno6)
+    }
+    if (detalle.turno7 != null) {
+      fila.find('.turno7')
+          .val(detalle.turno7)
+    }
+    if (detalle.turno8 != null) {
+      fila.find('.turno8')
+          .val(detalle.turno8)
+    }
+
+    //fila.find('input').off().change(sacarAlerta);
+    //fila.find('input:not([data-id])').attr('disabled', true);
+    return fila;
+}
+
+function enviarFormularioCarga(relevamiento,
+    succ = function(data) { console.log(data); },
+    err = function(data) { console.log(data); },
+    url) {
+
+    let id_usuario_fisca = $('#usuario_fiscalizador').val().trim() == '' ? null : obtenerIdFiscalizador(relevamiento.casino.id_casino, $('#usuario_fiscalizador').val());
+
+    let formData = {
+        id_relevamiento_ambiental: relevamiento.relevamiento.id_relevamiento_ambiental,
+        fecha_ejecucion: $('#fecha').val(),
+        id_casino: relevamiento.casino.id_casino,
+        id_usuario_fiscalizador: id_usuario_fisca,
+        observaciones: $('#observacion_carga').val(),
+        detalles: []
+    };
+
+    let filas = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr').not('.filaEjemplo');
+
+    for (let i = 0; i < filas.length; i++) {
+        let fila = $(filas[i]);
+        let id_detalle_relevamiento_ambiental = fila.attr('data-id');
+        let personasTurnos = [];
+
+        fila.find('input:not([disabled])')
+            .each(function(idx, c) {
+                let valor = $(c).val();
+                personasTurnos.push({
+                    valor: valor,
+                });
+            });
+
+        formData.detalles.push({
+            id_detalle_relevamiento_ambiental: id_detalle_relevamiento_ambiental,
+            personasTurnos: personasTurnos
+        });
+
+    }
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        dataType: 'json',
+        success: succ,
+        error: err
+    });
+}
+
+function hidearTurnosInnecesarios (cant) {
+  let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
+
+  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6 || cant==7) {
+    row_th.find('#t8').hide();
+  }
+  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6) {
+    row_th.find('#t7').hide();
+  }
+  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5) {
+    row_th.find('#t6').hide();
+  }
+  if (cant==1 || cant==2 || cant==3 || cant==4) {
+    row_th.find('#t5').hide();
+  }
+  if (cant==1 || cant==2 || cant==3) {
+    row_th.find('#t4').hide();
+  }
+  if (cant==1 || cant==2) {
+    row_th.find('#t3').hide();
+  }
+  if (cant==1) {
+    row_th.find('#t2').hide();
+  }
+}
+
+function obtenerIdFiscalizador(id_casino, str) {
+    let f = $('#datalist' + id_casino).find('option:contains("' + str + '")');
+    if (f.length == 0) return null;
+    else return f.attr('data-id');
+}
+
+function validarFormulario(id_casino) {
+    let errores = false;
+    let mensajes = [];
+    let fisca = $('#usuario_fiscalizador').val();
+    if (fisca == "" ||
+        obtenerIdFiscalizador(id_casino, fisca) === null) {
+        errores = true;
+        mensajes.push("Ingrese un fiscalizador");
+        $('#usuario_fiscalizador').addClass('alerta');
+    }
+
+    let fecha = $('#fecha').val();
+    if (fecha == "") {
+        errores = true;
+        mensajes.push("Ingrese una fecha de ejecución");
+        $('#fecha').addClass('alerta');
+    }
+
+    let filas = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr')
+        .not('.filaEjemplo');
+    let inputs = filas.find('input:not([disabled])');
+    let hay_vacio = false;
+
+    for (let i = 0; i < inputs.length; i++) {
+        let input = $(inputs[i]);
+        if (input === null || input.val() == "" || input < 0) {
+          errores = true;
+          hay_vacio = true;
+          input.addClass('alerta');
+        }
+    }
+    if (hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar o con valores invalidos");
+    return { errores: errores, mensajes: mensajes };
+}
+
+function mensajeError(errores) {
+    $('#mensajeError .textoMensaje').empty();
+    for (let i = 0; i < errores.length; i++) {
+        $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
+    }
+    $('#mensajeError').hide();
+    setTimeout(function() {
+        $('#mensajeError').show();
+    }, 250);
+}
+
+$('#btn-salir').click(function() {
+    let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
+    row_th.find('#t1').show();
+    row_th.find('#t2').show();
+    row_th.find('#t3').show();
+    row_th.find('#t4').show();
+    row_th.find('#t5').show();
+    row_th.find('#t6').show();
+    row_th.find('#t7').show();
+    row_th.find('#t8').show();
+
+    $('#modalRelevamientoAmbiental').modal('hide');
+});
 
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevo').click(function(e) {

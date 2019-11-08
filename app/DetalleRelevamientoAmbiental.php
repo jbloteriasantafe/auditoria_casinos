@@ -13,6 +13,7 @@ class DetalleRelevamientoAmbiental extends Model
     'id_detalle_relevamiento_ambiental',
     'id_relevamiento_ambiental',
     'id_isla',
+    'nro_islote',
     'turno1',
     'turno2',
     'turno3',
@@ -31,5 +32,5 @@ class DetalleRelevamientoAmbiental extends Model
   public function isla(){
     return $this->belongsTo('App\Isla','id_isla','id_isla');
   }
-  
+
 }

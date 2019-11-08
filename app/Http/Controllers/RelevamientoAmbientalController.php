@@ -13,6 +13,7 @@ use App\RelevamientoAmbiental;
 use App\DetalleRelevamientoAmbiental;
 use App\CantidadPersonas;
 use App\Turno;
+use App\Usuario;
 use Validator;
 use View;
 use Dompdf\Dompdf;
@@ -27,11 +28,13 @@ class RelevamientoAmbientalController extends Controller
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $casinos = $usuario->casinos;
       $estados = EstadoRelevamiento::all();
+      $fiscalizadores = $this->obtenerFiscalizadores($casinos,$usuario);
       UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Control Ambiental' , 'relevamientosControlAmbiental');
 
       return view('seccionRelevamientosAmbientalMaquinas',
       [ 'casinos' => $casinos,
-        'estados' => $estados
+        'estados' => $estados,
+        "fiscalizadores" => $fiscalizadores
       ]
       )->render();
   }
@@ -85,6 +88,7 @@ class RelevamientoAmbientalController extends Controller
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
+    /*
     $turnos = DB::table('turno')->select('id_turno')
                                 ->where('id_casino','=',$request->id_casino)
                                 ->where('deleted_at','=',NULL)
@@ -93,38 +97,45 @@ class RelevamientoAmbientalController extends Controller
     $sectores = DB::table('sector')->where('id_casino','=',$request->id_casino)
                                     ->where('deleted_at','=',NULL)
                                     ->get();;
+    */
 
-    $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
-                              ->where('deleted_at','=',NULL)
-                              ->get();
+    if ($request->id_casino != 3) {
+      $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
+                                ->where('id_sector', '!=', NULL)
+                                ->where('deleted_at','=',NULL)
+                                //@TODO borrar la liena de abajo despues de hacer las pruebas correspondientes
+                                ->take(4)
+                                ->orderBy('nro_isla', 'asc')
+                                ->get();
 
-    if ($request->id_casino == 3) {
+
+      //creo los detalles
+      $detalles = array();
+      foreach($islas as $isla){
+        $detalle = new DetalleRelevamientoAmbiental;
+        $detalle->id_isla = $isla->id_isla;
+
+        $detalles[] = $detalle;
+      }
+    }
+    else {
       $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
                                     ->where('id_casino','=',$request->id_casino)
-                                    ->where('nro_islote', '!=', 'NULL')
+                                    ->where('nro_islote', '!=', NULL)
+                                    ->where('id_sector', '!=', NULL)
                                     ->distinct('nro_islote')
                                     ->orderBy('nro_islote', 'asc')
                                     ->get();
 
+        //creo los detalles
+        foreach($islotes_y_sectores as $islote_y_sector){
+          $detalle = new DetalleRelevamientoAmbiental;
+          //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas
+          $detalle->nro_islote = $islote_y_sector->nro_islote;
+
+          $detalles[] = $detalle;
+        }
     }
-
-     //creo los detalles
-     $detalles = array();
-     foreach($islas as $isla){
-
-       $detalle = new DetalleRelevamientoAmbiental;
-
-       if ($request->id_casino != 3) {
-         $detalle->id_isla = $isla->id_isla;
-       }
-       else {
-         //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas.
-       }
-
-       $detalles[] = $detalle;
-     }
-
-
 
      if(!empty($detalles)){
        //creo y guardo el relevamiento de control ambiental
@@ -144,18 +155,11 @@ class RelevamientoAmbientalController extends Controller
             $detalle->id_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('id_relevamiento_ambiental');
             $detalle->save();
 
-            //guardo las cantidades
-            /*
-            foreach ($cantidades as $cantidad) {
-              $cantidad->id_detalle_relevamiento_ambiental = DB::table('detalle_relevamiento_ambiental')->max('id_detalle_relevamiento_ambiental');
-              $cantidad->save();
-            }
-            */
          }
        });
 
       }else{
-       return ['codigo' => 500]; //error, no existen islas para relevar.
+       return ['codigo' => 500]; //error, no existen islas o islotes para relevar.
      }
 
     return ['codigo' => 200];
@@ -173,26 +177,62 @@ class RelevamientoAmbientalController extends Controller
   public function crearPlanillaAmbiental($relevamiento_ambiental){
 
     $detalles = array();
-    foreach ($relevamiento_ambiental->detalles as $detalle_relevamiento) {
 
-      $detalle = array(
-        'id_sector' => $detalle_relevamiento->id_sector,
-        'id_turno' => $detalle_relevamiento->id_turno,
-        'nro_turno' => (Turno::find($detalle_relevamiento->id_turno))->nro_turno,
-        'tamanio_vector' => $detalle_relevamiento->tamanio_vector,
-        'total' => $detalle_relevamiento->total
-      );
+    if ($relevamiento_ambiental->id_casino !=3) {
+      foreach ($relevamiento_ambiental->detalles as $det) {
+        $isla = Isla::find($det->id_isla);
+        $id_sector = $isla->sector->id_sector;
+        $nro_isla = $isla->nro_isla;
 
-      $detalles[] = $detalle;
+        $detalle = array(
+          'id_sector' => $id_sector,
+          'id_isla' => $det->id_isla,
+          'nro_isla' => $nro_isla,
+          'turno1' => $det->turno1,
+          'turno2' => $det->turno2,
+          'turno3' => $det->turno3,
+          'turno4' => $det->turno4,
+          'turno5' => $det->turno5,
+          'turno6' => $det->turno6,
+          'turno7' => $det->turno7,
+          'turno8' => $det->turno8
+        );
+
+        $detalles[] = $detalle;
+      }
     }
-
-    if ($relevamiento_ambiental->casino->id_casino == 3) {
+    else {
       $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
                                     ->where('id_casino','=',$relevamiento_ambiental->casino->id_casino)
-                                    ->where('nro_islote', '!=', 'NULL')
+                                    ->where('nro_islote', '!=', NULL)
                                     ->distinct('nro_islote')
                                     ->orderBy('nro_islote', 'asc')
                                     ->get();
+
+      foreach ($relevamiento_ambiental->detalles as $det) {
+
+        foreach ($islotes_y_sectores as $islote_y_sector) {
+          if ($det->nro_islote == $islote_y_sector->nro_islote) {
+            $id_sector = $islote_y_sector->id_sector;
+            break;
+          }
+        }
+
+        $detalle = array(
+          'id_sector' => $id_sector,
+          'nro_islote' => $det->nro_islote,
+          'turno1' => $det->turno1,
+          'turno2' => $det->turno2,
+          'turno3' => $det->turno3,
+          'turno4' => $det->turno4,
+          'turno5' => $det->turno5,
+          'turno6' => $det->turno6,
+          'turno7' => $det->turno7,
+          'turno8' => $det->turno8
+        );
+
+        $detalles[] = $detalle;
+      }
     }
 
     $otros_datos = array(
@@ -201,12 +241,7 @@ class RelevamientoAmbientalController extends Controller
       'estado' => EstadoRelevamiento::find($relevamiento_ambiental->id_estado_relevamiento)->descripcion
     );
 
-    if ($relevamiento_ambiental->casino->id_casino != 3) {
-      $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos'));
-    }
-    else {
-      $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos', 'islotes_y_sectores'));
-    }
+    $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'otros_datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
@@ -216,6 +251,104 @@ class RelevamientoAmbientalController extends Controller
     $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf;
+  }
+
+  public function cargarRelevamiento(Request $request,$validar = true){
+    if($validar){
+      Validator::make($request->all(),[
+          'id_relevamiento_ambiental' => 'required|exists:relevamiento_ambiental,id_relevamiento_ambiental',
+          'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
+          'id_casino' => 'required|exists:casino,id_casino',
+          'fiscalizador' => 'exists:usuario,id_usuario',
+          'fecha_ejecucion' => 'required',
+          'observaciones' => 'nullable|string',
+          'detalles.*' => 'nullable|array',
+          'detalles.*.id_detalle_relevamiento_ambiental' => 'required|numeric',
+          'detalles.*.personasTurnos' => 'nullable|array',
+          'detalles.*.personasTurnos.*' => 'nullable',
+          'detalles.*.personasTurnos.*.valor'=> 'required|numeric|min:0'
+      ], array(
+        'detalles.*.personasTurnos.*.valor.numeric' => 'El valor de un nivel no es numerico.'
+      ), self::$atributos)->after(function($validator){
+        $relevamiento = RelevamientoAmbiental::find($validator->getData()['id_relevamiento_ambiental']);
+        $controller = UsuarioController::getInstancia();
+
+        if($validator->getData()['fecha_ejecucion'] < $relevamiento->fecha_generacion){
+          $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
+        }
+        if(!$controller->usuarioTieneCasinoCorrespondiente($validator->getData()['id_usuario_fiscalizador'], $validator->getData()['id_casino'])) {
+            $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
+        }
+        if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
+            $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
+        }
+        if(strlen($validator->getData()['observaciones'])>200){
+          $validator->errors()->add('error_observaciones', 'La observacion supera los 200 caracteres');
+        }
+      })->validate();
+    }
+
+    DB::transaction(function() use($request){
+      $rel = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
+      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
+      $rel->fecha_ejecucion = $request->fecha_ejecucion;
+      $rel->estado_relevamiento()->associate(3); // id_estado finalizado
+      $rel->observacion_carga = $request->observaciones;
+      $rel->save();
+
+      foreach($request->detalles as $detalle) {
+        $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
+
+        $unDetalle->turno1 = array_key_exists(0, $detalle['personasTurnos']) ? $detalle['personasTurnos'][0]['valor'] : NULL;
+        $unDetalle->turno2 = array_key_exists(1, $detalle['personasTurnos']) ? $detalle['personasTurnos'][1]['valor'] : NULL;
+        $unDetalle->turno3 = array_key_exists(2, $detalle['personasTurnos']) ? $detalle['personasTurnos'][2]['valor'] : NULL;
+        $unDetalle->turno4 = array_key_exists(3, $detalle['personasTurnos']) ? $detalle['personasTurnos'][3]['valor'] : NULL;
+        $unDetalle->turno5 = array_key_exists(4, $detalle['personasTurnos']) ? $detalle['personasTurnos'][4]['valor'] : NULL;
+        $unDetalle->turno6 = array_key_exists(5, $detalle['personasTurnos']) ? $detalle['personasTurnos'][5]['valor'] : NULL;
+        $unDetalle->turno7 = array_key_exists(6, $detalle['personasTurnos']) ? $detalle['personasTurnos'][6]['valor'] : NULL;
+        $unDetalle->turno8 = array_key_exists(7, $detalle['personasTurnos']) ? $detalle['personasTurnos'][7]['valor'] : NULL;
+        $unDetalle->save();
+      }
+    });
+
+    return ['codigo' => 200];
+  }
+
+  public function guardarTemporalmenteRelevamiento(Request $request){
+
+    DB::transaction(function() use($request){
+      $rel = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
+      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
+      $rel->fecha_ejecucion = $request->fecha_ejecucion;
+      $rel->estado_relevamiento()->associate(2); // id_estado cargando
+      $rel->observacion_carga = $request->observaciones;
+      $rel->save();
+
+      foreach($request->detalles as $detalle) {
+        $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
+
+        $unDetalle->turno1 = array_key_exists(0, $detalle['personasTurnos']) && $detalle['personasTurnos'][0] != NULL && is_numeric($detalle['personasTurnos'][0]['valor']) ?
+          $detalle['personasTurnos'][0]['valor'] : NULL;
+        $unDetalle->turno2 = array_key_exists(1, $detalle['personasTurnos']) && $detalle['personasTurnos'][1] != NULL && is_numeric($detalle['personasTurnos'][1]['valor']) ?
+          $detalle['personasTurnos'][1]['valor'] : NULL;
+        $unDetalle->turno3 = array_key_exists(2, $detalle['personasTurnos']) && $detalle['personasTurnos'][2] != NULL && is_numeric($detalle['personasTurnos'][2]['valor']) ?
+          $detalle['personasTurnos'][2]['valor'] : NULL;
+        $unDetalle->turno4 = array_key_exists(3, $detalle['personasTurnos']) && $detalle['personasTurnos'][3] != NULL && is_numeric($detalle['personasTurnos'][3]['valor']) ?
+          $detalle['personasTurnos'][3]['valor'] : NULL;
+        $unDetalle->turno5 = array_key_exists(4, $detalle['personasTurnos']) && $detalle['personasTurnos'][4] != NULL && is_numeric($detalle['personasTurnos'][4]['valor']) ?
+          $detalle['personasTurnos'][4]['valor'] : NULL;
+        $unDetalle->turno6 = array_key_exists(5, $detalle['personasTurnos']) && $detalle['personasTurnos'][5] != NULL && is_numeric($detalle['personasTurnos'][5]['valor']) ?
+          $detalle['personasTurnos'][5]['valor'] : NULL;
+        $unDetalle->turno7 = array_key_exists(6, $detalle['personasTurnos']) && $detalle['personasTurnos'][6] != NULL && is_numeric($detalle['personasTurnos'][6]['valor']) ?
+          $detalle['personasTurnos'][6]['valor'] : NULL;
+        $unDetalle->turno8 = array_key_exists(7, $detalle['personasTurnos']) && $detalle['personasTurnos'][7] != NULL && is_numeric($detalle['personasTurnos'][7]['valor'])
+          ? $detalle['personasTurnos'][7]['valor'] : NULL;
+
+        $unDetalle->save();
+      }
+    });
+
+    return ['codigo' => 200];
   }
 
   public function eliminarRelevamientoAmbiental ($id_relevamiento_ambiental) {
@@ -246,18 +379,60 @@ class RelevamientoAmbientalController extends Controller
 
   public function obtenerRelevamiento($id_relevamiento_ambiental) {
     $relevamiento = RelevamientoAmbiental::findOrFail($id_relevamiento_ambiental);
-    $detalles = $relevamiento->detalles;
+    $detalles = array();
     $casino = $relevamiento->casino;
+    $cantidad_turnos = sizeof($casino->turnos);
 
     foreach ($relevamiento->detalles as $detalle) {
-      //ALGO.
+      $d = new \stdClass;
+
+      if ($relevamiento->casino->id_casino==3) {
+        $d->nro_isla_o_islote = $detalle->nro_islote;
+      }
+      else {
+        $d->nro_isla_o_islote = (Isla::find($detalle->id_isla))->nro_isla;
+      }
+
+      $d->id_detalle_relevamiento_ambiental = $detalle->id_detalle_relevamiento_ambiental;
+      $d->cantidad_turnos = sizeof($casino->turnos);
+      $d->turno1 = $detalle->turno1;
+      $d->turno2 = $detalle->turno2;
+      $d->turno3 = $detalle->turno3;
+      $d->turno4 = $detalle->turno4;
+      $d->turno5 = $detalle->turno5;
+      $d->turno6 = $detalle->turno6;
+      $d->turno7 = $detalle->turno7;
+      $d->turno8 = $detalle->turno8;
+
+      $detalles[]=$d;
     }
 
     return ['detalles' => $detalles,
             'relevamiento' => $relevamiento,
             'casino' => $casino,
+            'cantidad_turnos' => $cantidad_turnos,
             'usuario_cargador' => $relevamiento->usuario_cargador,
             'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador];
+  }
+
+  private function obtenerFiscalizadores($casinos,$user){
+    $controller = UsuarioController::getInstancia();
+    $fiscalizadores = array();
+
+    foreach($casinos as $c){
+      $cas = array();
+      $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
+
+      foreach($fs as $f){
+        $cas[] = array(
+                      'id_usuario' => $f->id_usuario,
+                      'nombre' => $f->nombre
+                      );
+      }
+      $fiscalizadores[$c->id_casino] = $cas;
+    }
+
+    return $fiscalizadores;
   }
 
 }

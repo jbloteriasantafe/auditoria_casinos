@@ -13,6 +13,7 @@ $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario;
 $puede_eliminar = $user->es_administrador || $user->es_superusuario;
 $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
+$cant_turnos = sizeof($casinos[0]->turnos);
 ?>
 
 @section('estilos')
@@ -29,6 +30,14 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
   }
 </style>
 @endsection
+
+@foreach ($casinos as $casino)
+  <datalist id="datalist{{$casino->id_casino}}">
+    @foreach($fiscalizadores[$casino->id_casino] as $u)
+      <option data-id="{{$u['id_usuario']}}">{{$u['nombre']}}</option>
+    @endforeach
+  </datalist>
+@endforeach
 
 <div class="row">
   <div class="col-xl-3">
@@ -227,7 +236,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
   <!-- MODAL CARGAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width:95%;">
+    <div class="modal-dialog" style="width:50%;">
       <div class="modal-content">
          <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
            <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -257,7 +266,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                           <h5>FISCALIZADOR TOMA</h5>
                           <input id="usuario_fiscalizador" class="form-control" type="text" autocomplete="off" list="">
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-4" >
                           <h5>FECHA EJECUCIÓN</h5>
                              <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
                                  <input type='text' class="form-control fondoBlanco" placeholder="Fecha de ejecución del control" id="fecha" autocomplete="off" readonly/>
@@ -270,26 +279,27 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                     </div>
                     <br><br>
 
-                    <table class="table table-fixed" style="margin-bottom: 0px;">
+                    <table class="table" id="tablaPersonas" style="margin-bottom: 0px; border-bottom: 0px">
                       <thead class="cabeceraTablaPersonas">
-                        <th class="col-xs-2 sortable" data-id="nombreTurno">Turno</th>
-                        @for ($i=1;$i<=10;$i++)
-                        <th class="col-xs-1" data-id="isla{{$i}}">{{$i}}</th>
-                        @endfor
+                        <th class="col-xs-2 sortable" data-id="islaIslote" style="width:110px; display: inline-block">ISLA/ISLOTE</th>
+                        <th id="t1" style="width:90px; display: inline-block">TURNO 1</th>
+                        <th id="t2" style="width:90px; display: inline-block">TURNO 2</th>
+                        <th id="t3" style="width:90px; display: inline-block;">TURNO 3</th>
+                        <th id="t4" style="width:90px; display: inline-block">TURNO 4</th>
+                        <th id="t5" style="width:90px; display: inline-block">TURNO 5</th>
+                        <th id="t6" style="width:90px; display: inline-block">TURNO 6</th>
+                        <th id="t7" style="width:90px; display: inline-block">TURNO 7</th>
+                        <th id="t8" style="width:90px; display: inline-block">TURNO 8</th>
                       </thead>
                       <tbody></tbody>
                     </table>
 
-                    <div class="" style="overflow: scroll;height: 500px;">
-                    <table class="table table-fixed tablaPozos">
+                    <div class="" style="overflow: scroll; height: 500px;">
+                    <table class="table tablaPozos">
                       <tbody class="cuerpoTablaPersonas">
                         <tr class="filaEjemplo" style="display: none">
-                          <td class="col-xs-2 nombreTurno">1</td>
-                          @for ($i=1;$i<=10;$i++)
-                          <td class="col-xs-1">
-                            <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="isla{{$i}}"></input>
-                          </td>
-                          @endfor
+                          <td class="col-xs-2 nroIslaIslote" style="width:110px; height:52px: display: inline-block">X</td>
+
                         </tr>
                       </tbody>
                     </table>
