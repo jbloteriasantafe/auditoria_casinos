@@ -176,9 +176,11 @@ class GliHardController extends Controller
       }else{
           if($request->borrado == "true"){
             $archivoAnterior=$GLI->archivo;
-            $GLI->archivo()->dissociate();
-            $GLI->save();
-            $archivoAnterior->delete();
+            if(!is_null($archivoAnterior)){
+              $GLI->archivo()->dissociate();
+              $GLI->save();
+              $archivoAnterior->delete();
+            }
           }
       }
       if(!empty($request->expedientes)){
