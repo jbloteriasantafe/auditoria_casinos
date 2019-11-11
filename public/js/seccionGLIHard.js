@@ -66,7 +66,8 @@ $(document).on('click','.borrarExpediente',function(){
 
 function limpiarModalGLIHard() {
   $('#nroCertificado').val('');
-  $('#cargaArchivo').val('');
+  $("#cargaArchivo").val('');
+  $("#cargaArchivo").fileinput('destroy');
   $('#tablaExpedientesHard tbody tr').remove();
 }
 
@@ -86,14 +87,31 @@ $('#btn-nuevo').click(function(e){
 
     limpiarModalGLIHard();
 
+    $('#cargaArchivo').removeAttr('disabled');
+    //El div padre se setea en disabled por algun motivo y lo deja gris al boton
+    //Tengo que hacer esto.
+    $('#cargaArchivo').parent().removeAttr('disabled');
+    $("#cargaArchivo").fileinput({
+      language: 'es',
+      showRemove: false,
+      showUpload: false,
+      showCaption: false,
+      showZoom: false,
+      browseClass: "btn btn-primary",
+      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+      overwriteInitial: false,
+      initialPreviewAsData: true,
+      dropZoneEnabled: true,
+      allowedFileExtensions: ['pdf']
+    });
     //Modificar los colores del modal
-      $('.modal-title').text('| NUEVO CERTIFICADO DE HARDWARE');
-      $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-      $('#btn-guardar').removeClass();
-      $('#btn-guardar').addClass('btn').addClass('btn-successAceptar');
-      $('#btn-guardar').text('ACEPTAR');
-      $('#btn-guardar').show();
-      // $('.btn-default').text('CANCELAR');
+    $('.modal-title').text('| NUEVO CERTIFICADO DE HARDWARE');
+    $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+    $('#btn-guardar').removeClass();
+    $('#btn-guardar').addClass('btn').addClass('btn-successAceptar');
+    $('#btn-guardar').text('ACEPTAR');
+    $('#btn-guardar').show();
+    // $('.btn-default').text('CANCELAR');
 
     $('#inputExpediente').prop('readonly',false);
     $('#nroCertificado').prop('readonly',false)
@@ -102,26 +120,8 @@ $('#btn-nuevo').click(function(e){
     $('#frmGLI').trigger('reset');
     $('#listaExpedientes').empty();
     //$('#alertaNombre').hide(); Esconder los alertas!
-
-
     $('#inputExpediente').generarDataList("expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
-
-    //Inicializa el fileinput para cargar los PDF
-    $("#cargaArchivo").fileinput('destroy').fileinput({
-        language: 'es',
-        showRemove: false,
-        showUpload: false,
-        showCaption: false,
-        showZoom: false,
-        browseClass: "btn btn-primary",
-        previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-        overwriteInitial: false,
-        initialPreviewAsData: true,
-        dropZoneEnabled: true,
-        allowedFileExtensions: ['pdf']
-    });
-
     $('#modalGLI').modal('show');
 });
 
@@ -137,10 +137,14 @@ $('#cargaArchivo').on('fileselect', function(event) {
 
 $(document).on('click','.modificar',function(){
   limpiarModalGLIHard();
-      var id = $(this).val();
+  var id = $(this).val();
 
+  $('#cargaArchivo').removeAttr('disabled');
+  //El div padre se setea en disabled por algun motivo y lo deja gris al boton
+  //Tengo que hacer esto.
+  $('#cargaArchivo').parent().removeAttr('disabled');
+  $('.modal-title').text('| MODIFICAR CERTIFICADO DE HARDWARE');
   //Modificar los colores del modal
-    $('.modal-title').text('| MODIFICAR CERTIFICADO DE HARDWARE');
     $('.modal-header').attr('style','background: #ff9d2d');
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn').addClass('btn-warningModificar');
@@ -148,7 +152,7 @@ $(document).on('click','.modificar',function(){
     $('#btn-guardar').text('ACEPTAR');
     $('#id_gli').val(id);
 
-    // $('.btn-default').text('CANCELAR');
+  // $('.btn-default').text('CANCELAR');
 
   //Resetear formulario para llevar los datos
     $('input').prop('readonly',false);
@@ -208,18 +212,6 @@ $(document).on('click','.modificar',function(){
         //Cargar los expedientes asociados
         for (var i = 0; i < data.expedientes.length; i++) {
           agregarFilaExpediente(data.expedientes[i]);
-
-          // $('#tablaExpedientesHard')
-          //   .append($('<li>')
-          //        .text(data.expedientes[i].nro_exp_org+'-'+data.expedientes[i].nro_exp_interno + '-' + data.expedientes[i].nro_exp_control)
-          //        .val(data.expedientes[i].id_expediente)
-          //        .append($('<button>')
-          //             .addClass('btn').addClass('btn-danger').addClass('btn-xs').addClass('borrarExpediente')
-          //             .append($('<i>')
-          //                 .addClass('fa').addClass('fa-times')
-          //             )
-          //        )
-          //   )
         }
 
   });
@@ -233,6 +225,7 @@ $(document).on('click','.modificar',function(){
 $(document).on('click','.detalle',function(){
   //Modificar los colores del modal
     limpiarModalGLIHard();
+    $('#cargaArchivo').attr('disabled','disabled');
     $('.modal-title').text('| VER MÁS');
     $('.modal-header').attr('style','background: #4FC3F7');
     // $('#btn-guardar').removeClass('btn-success');
@@ -246,7 +239,6 @@ $(document).on('click','.detalle',function(){
     $('#frmGLI').trigger('reset');
     $('#modalGLI').modal('show');
     $('#btn-guardar').val("modificar");
-    $('#listaExpedientes').empty();
 
     $('.modal-footer .btn-default').text('SALIR');
 
@@ -274,15 +266,11 @@ $(document).on('click','.detalle',function(){
           allowedFileExtensions: ['pdf'],
       });
 
+      //Cargar los expedientes asociados
       for (var i = 0; i < data.expedientes.length; i++) {
-
-        $('#listaExpedientes')
-          .append($('<li>')
-               .text(data.expedientes[i].nro_exp_org+'-'+data.expedientes[i].nro_exp_interno + '-' + data.expedientes[i].nro_exp_control)
-               .val(data.expedientes[i].id_expediente)
-
-          )
+        agregarFilaExpediente(data.expedientes[i]);
       }
+      $('#tablaExpedientesHard tbody tr button').attr('disabled','disabled')
 
   })
 
@@ -562,92 +550,3 @@ function generarFilaTabla(certificado){
           )
         return fila;
 }
-
-//Vieja
-// $('#buscarCertificado').click(function(e){
-//   var formData={
-//     nro_exp_org:$('#nro_exp_org').val(),
-//     nro_exp_interno:$('#nro_exp_interno').val(),
-//     nro_exp_control:$('#nro_exp_control').val(),
-//     casino:$('#sel1').val(),
-//     certificado: $('#nro_certificado').val(),
-//     nombre_archivo: $('#nombre_archivo').val(),
-//   }
-//
-//   $.ajaxSetup({
-//       headers: {
-//           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-//       }
-//   });
-//
-//   $.ajax({
-//       type: "post",
-//       url: 'glihards/buscarGliHard',
-//       data: formData,
-//       dataType: 'json',
-//       success: function (data) {
-//           console.log(data);
-//           $('#cuerpoTabla').empty();
-//           var resultado='';
-//           for (var i = 0; i < data.resultados.length; i++) {
-//             var nombre_archivo;
-//             data.resultados[i].nombre_archivo != null ? nombre_archivo=data.resultados[i].nombre_archivo : nombre_archivo='-';
-//
-//                         $('#cuerpoTabla')
-//                               .append($('<tr>')
-//                               .attr("id" ,data.resultados[i].id_gli_hard )
-//                               .append($('<td>')
-//
-//                                   .text(data.resultados[i].nro_archivo)
-//                               )
-//                               .append($('<td>')
-//                                         .text(nombre_archivo)
-//                               )
-//
-//                               .append($('<td>')
-//                                   .append($('<button>')
-//                                   .attr('type','button')
-//
-//                                       .append($('<i>')
-//                                           .addClass('fa').addClass('fa-search-plus')
-//                                       )
-//                                       .append($('<span>').text(' VER MÁS'))
-//                                       .addClass('btn').addClass('btn-info').addClass('detalle')
-//                                       .attr('value',data.resultados[i].id_gli_hard)
-//                                   )
-//                                   .append($('<span>').text(' '))
-//                                   .append($('<button>')
-//                                   .attr('type','button')
-//                                       .append($('<i>')
-//                                           .addClass('fa').addClass('fa-pencil')
-//                                       )
-//                                       .append($('<span>').text(' MODIFICAR'))
-//                                       .addClass('btn').addClass('btn-warning').addClass('modificar')
-//                                       .attr('value',data.resultados[i].id_gli_hard)
-//                                   )
-//                                   .append($('<span>').text(' '))
-//                                   .append($('<button>')
-//                                   .attr('type','button')
-//                                       .append($('<i>')
-//                                           .addClass('fa')
-//                                           .addClass('fa-trash')
-//                                       )
-//                                       .append($('<span>').text(' ELIMINAR'))
-//                                       .addClass('btn').addClass('btn-danger').addClass('eliminar')
-//                                       .attr('value',data.resultados[i].id_gli_hard)
-//                                   )
-//                               )
-//                           )
-//
-//           }
-//
-//           $("#tablaGliHard").trigger("update");
-//           $("#tablaGliHard th").removeClass('headerSortDown').removeClass('headerSortUp').children('i').removeClass().addClass('fa').addClass('fa-sort');
-//
-//         },
-//       error: function (data) {
-//           var response = JSON.parse(data.responseText);
-//           console.log('Error:', data);
-//       }
-//   });
-// });
