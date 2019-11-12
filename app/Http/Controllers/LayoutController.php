@@ -1701,9 +1701,11 @@ class LayoutController extends Controller
     $layout = LayoutTotal::find($id_layout_total);
     $error = $this->verificarAccesoLayoutTotal($layout,False);
     if(!is_null($error)) return $error;
-    LayoutTotalIsla::where('id_layout_total',$id_layout_total)->delete();
-    DetalleLayoutTotal::where('id_layout_total',$id_layout_total)->delete();
-    $layout->delete();
+    DB::transaction(function() use($layout){
+      LayoutTotalIsla::where('id_layout_total',$layout->id_layout_total)->delete();
+      DetalleLayoutTotal::where('id_layout_total',$layout->id_layout_total)->delete();
+      $layout->delete();
+    });
     return 200;
   }
 
