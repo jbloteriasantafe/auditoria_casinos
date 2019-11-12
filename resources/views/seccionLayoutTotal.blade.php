@@ -674,6 +674,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
             <button class="btn btn-info imprimir" title="PLANILLA COMPLETADA" type="button" value="-1">
               <i class="fa fa-fw fa-print"></i>
             </button>
+            <button class="btn btn-info eliminar" title="ELIMINAR LAYOUT TOTAL" type="button" value="-1">
+              <i class="fa fa-fw fa-trash"></i>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -734,6 +737,33 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
       </tr>
     </tbody>
   </table>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+      </div>
+
+      <div class="modal-body" style="color:#fff; background-color:#EF5350;">
+        <form id="frmEliminar" name="frmEliminarLayout" class="form-horizontal" novalidate="">
+          <div class="form-group error ">
+            <div class="col-xs-12">
+              <strong>¿Seguro desea eliminar el LAYOUT?</strong>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="-1" data-dismiss="modal">ELIMINAR</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+      </div>
+    </div>
+  </div>
 </div>
     
 

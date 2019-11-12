@@ -126,8 +126,8 @@ $('#btn-minimizarValidar').click(function(){
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
 
-  $('.modal-title').text('| LAYOUT TOTAL');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
+  $('#modalAyuda .modal-title').text('| LAYOUT TOTAL');
+  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
 
@@ -137,7 +137,7 @@ $('#btn-ayuda').click(function(e){
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalLayoutTotal .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutTotal').modal('show');
 
   $.get("obtenerFechaActual", function(data){
@@ -195,7 +195,7 @@ $('#btn-finalizarValidacion').click(function(e){
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalLayoutSinSistema .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutSinSistema').modal('show');
 })
 
@@ -767,6 +767,29 @@ $(document).on('click','.ver',function(e){
   mostrarModalValidacion(id_layout_total,false);
 });
 
+$(document).on('click','.eliminar',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  $('#modalEliminar').modal('show');
+  $('#btn-eliminarModal').off().on('click', function() {
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      })
+      $.ajax({
+          type: "DELETE",
+          url: "layouts/eliminarLayoutTotal/" + id_layout_total,
+          success: function (data) {
+            $('#btn-buscar').trigger('click');
+          },
+          error: function (data) {
+            console.log('Error: ', data);
+          }
+      })
+  });
+});
+
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
   $('#tecnico').popover('hide');
   $('#fecha').popover('hide');
@@ -1189,6 +1212,7 @@ function mostrarIconosPorPermisos(){
             $('#cuerpoTabla .ver').hide();
           }else{
             $('#cuerpoTabla .imprimir').show();
+            $('#cuerpoTabla .eliminar').show();
           }
           fila.css('display','');//Lo muestro.
         });
@@ -1233,6 +1257,7 @@ function setearEstado(fila,estado){
   let icono_carga = fila.find('.carga');
   let icono_validacion = fila.find('.validar');
   let icono_imprimir = fila.find('.imprimir');
+  let icono_eliminar = fila.find('.eliminar')
   //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
   icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
   fila.find('.estado').text(estado);
@@ -1242,6 +1267,7 @@ function setearEstado(fila,estado){
   icono_imprimir.hide();
   icono_carga.hide();
   icono_validacion.hide();
+  icono_eliminar.hide();
   switch (estado) {
     case 'Generado':
       icono_estado.addClass('faGenerado');
@@ -1277,6 +1303,7 @@ function generarFilaTabla(layout_total){
   fila.find('.validar').val(layout_total.id_layout_total);
   fila.find('.imprimir').val(layout_total.id_layout_total);
   fila.find('.ver').val(layout_total.id_layout_total);
+  fila.find('.eliminar').val(layout_total.id_layout_total);
   setearEstado(fila,layout_total.estado);
   return fila;
 }

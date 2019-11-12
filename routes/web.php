@@ -502,6 +502,7 @@ Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_l
   Route::post('/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
   Route::post('/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');
   Route::get('/islasLayoutTotal/{id_layout_total}','LayoutController@islasLayoutTotal');
+  Route::delete('/eliminarLayoutTotal/{id_layout_total}','LayoutController@eliminarLayoutTotal');
 });
 
 

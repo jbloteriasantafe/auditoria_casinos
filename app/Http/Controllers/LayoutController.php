@@ -1697,4 +1697,14 @@ class LayoutController extends Controller
     return null;
   }
 
+  public function eliminarLayoutTotal($id_layout_total){
+    $layout = LayoutTotal::find($id_layout_total);
+    $error = $this->verificarAccesoLayoutTotal($layout,False);
+    if(!is_null($error)) return $error;
+    LayoutTotalIsla::where('id_layout_total',$id_layout_total)->delete();
+    DetalleLayoutTotal::where('id_layout_total',$id_layout_total)->delete();
+    $layout->delete();
+    return 200;
+  }
+
 }
