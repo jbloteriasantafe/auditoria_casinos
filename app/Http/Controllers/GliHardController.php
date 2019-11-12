@@ -29,7 +29,7 @@ class GliHardController extends Controller
   public function buscarTodo(){
       $glihard=GliHard::all();
       $casinos=Casino::all();
-      UsuarioController::getInstancia()->agregarSeccionReciente('GLI Hard' , 'certificadoHard');
+      UsuarioController::getInstancia()->agregarSeccionReciente('Certificados Hardware' , 'certificadoHard');
 
       return view('seccionGLIHard' , ['glis' => $glihard, 'casinos' =>$casinos ]);
   }

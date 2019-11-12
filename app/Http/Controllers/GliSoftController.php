@@ -34,7 +34,7 @@ class GliSoftController extends Controller
   public function buscarTodo(){
       $glisofts=GliSoft::all();
       $casinos=Casino::all();
-      UsuarioController::getInstancia()->agregarSeccionReciente('GLI Software' , 'certificadoSoft');
+      UsuarioController::getInstancia()->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
       //Ordenar por nombre ascendiente ignorando mayusculas
       $juegos = Juego::all()->sortBy("nombre_juego",SORT_NATURAL|SORT_FLAG_CASE); 
       //Hay juegos con el mismo nombre, les doy uno unico
