@@ -185,30 +185,30 @@ footer
                     <table style="padding-left:50px;">
                       <tbody>
                         <tr>
-                          <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
-                          <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
-                          <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
+                          <th class="tablaInicio" style="width:11.726349922%; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                          <th class="tablaInicio" style="width:9.155716904%; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
+                          <th class="tablaInicio" style="width:48.994290145%; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
                           <!--Si es de Rosario le damos el nmesa + urs + ars. Sino le damos solo nmesa. -->
                           @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-                          <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
-                          <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
-                          <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
+                          <th class="tablaInicio" style="width:16.735318076%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          <th class="tablaInicio" style="width:6.69412723%; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
+                          <th class="tablaInicio" style="width:6.69412723%; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
                           @else
-                          <th class="tablaInicio" style="width:180px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          <th class="tablaInicio" style="width:30.123572536%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                           @endif
                         </tr>
                         <tr>
-                          <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
+                          <td class="tablaInicio" style="width:11.726349922%; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
                             <?php $hoy = date('j-m-y'); print_r($hoy); ?>
                           </td>
-                          <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
-                          <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:9.155716904%; text-align:center; background-color:white; border-color: gray;">__:__</td>
+                          <td class="tablaInicio" style="width:48.994290145%; background-color:white; border-color: gray;"></td>
                           @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-                          <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
-                          <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
-                          <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:16.735318076%; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:6.69412723%; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:6.69412723%; background-color:white; border-color: gray;"></td>
                           @else
-                          <td class="tablaInicio" style="width:180px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:30.123572536%; background-color:white; border-color: gray;"></td>
                           @endif
                         </tr>
                       </tbody>
@@ -217,13 +217,13 @@ footer
                     <table style="padding-left:50px;">
                       <tbody>
                         <tr>
-                          <th class="tablaInicio" style="width:100px; text-align:center;background-color: #dddddd; border-color: gray;">VALOR FICHA</th>
-                          <th class="tablaInicio" style="width:480px; text-align:center; background-color: #dddddd; border-color: gray;">CANTIDAD</th>
+                          <th class="tablaInicio" style="width:20.882066826%; text-align:center;background-color: #dddddd; border-color: gray;">VALOR FICHA</th>
+                          <th class="tablaInicio" style="width:79.117862681%; text-align:center; background-color: #dddddd; border-color: gray;">CANTIDAD</th>
                         </tr>
                         @foreach($rel->fichas as $ficha)
                         <tr>
-                          <td class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">{{$ficha->valor_ficha}}</td>
-                          <td class="tablaInicio" style="width:480px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:20.882066826%; text-align:center; background-color: #dddddd; border-color: gray;">{{$ficha->valor_ficha}}</td>
+                          <td class="tablaInicio" style="width:79.117862681%; background-color:white; border-color: gray;"></td>
                         </tr>
                         @endforeach
                       </tbody>
@@ -245,29 +245,29 @@ footer
                     <table style="padding-left:50px;">
                       <tbody>
                         <tr>
-                          <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
-                          <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
-                          <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
+                          <th class="tablaInicio" style="width:11.726349922%; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
+                          <th class="tablaInicio" style="width:9.155716904%; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
+                          <th class="tablaInicio" style="width:48.994290145%; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
                           @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-                          <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
-                          <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
-                          <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
+                          <th class="tablaInicio" style="width:16.735318076%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          <th class="tablaInicio" style="width:6.69412723%; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
+                          <th class="tablaInicio" style="width:6.69412723%; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
                           @else
-                          <th class="tablaInicio" style="width:180px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          <th class="tablaInicio" style="width:30.123572536%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                           @endif
                         </tr>
                         <tr>
-                          <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
+                          <td class="tablaInicio" style="width:11.726349922%; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
                             <?php $hoy = date('j-m-y'); print_r($hoy); ?>
                           </td>
-                          <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
-                          <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:9.155716904%; text-align:center; background-color:white; border-color: gray;">__:__</td>
+                          <td class="tablaInicio" style="width:48.994290145%; background-color:white; border-color: gray;"></td>
                           @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-                          <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
-                          <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
-                          <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:16.735318076%; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:6.69412723%; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:6.69412723%; background-color:white; border-color: gray;"></td>
                           @else
-                          <td class="tablaInicio" style="width:180px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:30.123572536% background-color:white; border-color: gray;"></td>
                           @endif
                         </tr>
                       </tbody>
@@ -276,13 +276,13 @@ footer
                     <table style="padding-left:50px;">
                       <tbody>
                         <tr>
-                          <th class="tablaInicio" style="width:100px; text-align:center;background-color: #dddddd; border-color: gray;">VALOR FICHA</th>
-                          <th class="tablaInicio" style="width:480px; text-align:center; background-color: #dddddd; border-color: gray;">CANTIDAD</th>
+                          <th class="tablaInicio" style="width:20.882066826%; text-align:center;background-color: #dddddd; border-color: gray;">VALOR FICHA</th>
+                          <th class="tablaInicio" style="width:79.117862681%; text-align:center; background-color: #dddddd; border-color: gray;">CANTIDAD</th>
                         </tr>
                         @foreach($rel->fichas as $ficha)
                         <tr>
-                          <td class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">{{$ficha->valor_ficha}}</td>
-                          <td class="tablaInicio" style="width:480px; background-color:white; border-color: gray;"></td>
+                          <td class="tablaInicio" style="width:20.882066826%; text-align:center; background-color: #dddddd; border-color: gray;">{{$ficha->valor_ficha}}</td>
+                          <td class="tablaInicio" style="width:79.117862681%; background-color:white; border-color: gray;"></td>
                         </tr>
                         @endforeach
                       </tbody>
