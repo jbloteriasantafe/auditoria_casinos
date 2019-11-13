@@ -96,7 +96,7 @@ class ExpedienteController extends Controller
 
     return ['expediente' => $expediente,
             'casinos' => $expediente->casinos,
-            'resolucion' => $expediente->resolucion,
+            'resolucion' => $expediente->resoluciones,
             'disposiciones' => $disposiciones,
             'notas' => $notas,
             'notasConMovimientos' =>$notasMovimiento
@@ -183,7 +183,7 @@ class ExpedienteController extends Controller
 
     if(!empty($request->resolucion)){
       foreach($request->resolucion as $res){
-        ResolucionController::getInstancia()->guardarResolucion($res->resolucion,$expediente->id_expediente);
+        ResolucionController::getInstancia()->guardarResolucion($res,$expediente->id_expediente);
       }
 
     }
@@ -299,9 +299,9 @@ class ExpedienteController extends Controller
           }
         }
       }
-      Nota::whereNotIn('id_nota',$listita)
+      $notas_a_eliminar = Nota::whereNotIn('id_nota',$listita)
             ->where('id_expediente',$expediente->id_expediente)
-            ->delete();
+            ->where('es_disposicion',0)->delete();
     }
 
     //chequeo si recibe notas y movimientos nuevos
@@ -415,8 +415,11 @@ class ExpedienteController extends Controller
       }
     }
 
-    if(!empty($expediente->resolucion)){
-      ResolucionController::getInstancia()->eliminarResolucion($expediente->resolucion->id_resolucion);
+    $resoluciones = $expediente->resoluciones;
+    if(!empty($resoluciones)){
+      foreach($resoluciones as $resolucion){
+        ResolucionController::getInstancia()->eliminarResolucion($resolucion->id_resolucion);
+      }
     }
 
     $disposiciones = $expediente->disposiciones;
