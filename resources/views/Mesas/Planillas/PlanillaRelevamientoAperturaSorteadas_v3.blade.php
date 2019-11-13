@@ -188,9 +188,14 @@ footer
                           <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
                           <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
                           <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
+                          <!--Si es de Rosario le damos el nmesa + urs + ars. Sino le damos solo nmesa. -->
+                          @if($rel->id_casino == 3 || $rel->casino == "Rosario")
                           <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                           <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
                           <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
+                          @else
+                          <th class="tablaInicio" style="width:180px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          @endif
                         </tr>
                         <tr>
                           <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
@@ -198,9 +203,13 @@ footer
                           </td>
                           <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
                           <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
+                          @if($rel->id_casino == 3 || $rel->casino == "Rosario")
                           <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
                           <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
                           <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
+                          @else
+                          <td class="tablaInicio" style="width:180px; background-color:white; border-color: gray;"></td>
+                          @endif
                         </tr>
                       </tbody>
                     </table>
@@ -239,9 +248,13 @@ footer
                           <th class="tablaInicio" style="width:48px; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
                           <th class="tablaInicio" style="width:50px; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
                           <th class="tablaInicio" style="width:297px; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
+                          @if($rel->id_casino == 3 || $rel->casino == "Rosario")
                           <th class="tablaInicio" style="width:100px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
                           <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
                           <th class="tablaInicio" style="width:40px; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
+                          @else
+                          <th class="tablaInicio" style="width:180px; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+                          @endif
                         </tr>
                         <tr>
                           <td class="tablaInicio" style="width:48px; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
@@ -249,9 +262,13 @@ footer
                           </td>
                           <td class="tablaInicio" style="width:50px; text-align:center; background-color:white; border-color: gray;">__:__</td>
                           <td class="tablaInicio" style="width:297px; background-color:white; border-color: gray;"></td>
+                          @if($rel->id_casino == 3 || $rel->casino == "Rosario")
                           <td class="tablaInicio" style="width:100px; background-color:white; border-color: gray;"></td>
                           <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
                           <td class="tablaInicio" style="width:40px; background-color:white; border-color: gray;"></td>
+                          @else
+                          <td class="tablaInicio" style="width:180px; background-color:white; border-color: gray;"></td>
+                          @endif
                         </tr>
                       </tbody>
                     </table>
