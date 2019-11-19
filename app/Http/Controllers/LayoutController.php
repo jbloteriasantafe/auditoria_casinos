@@ -1649,10 +1649,9 @@ class LayoutController extends Controller
         $sectores[$id_sector]['total_sistema']=0;
       }
 
-      $s = &$sectores[$id_sector];
-      $s['islas'][]=$i2;
-      $s['total_observadas']+=(is_null($observadas)? 0 : $observadas);
-      $s['total_sistema']+=(is_null($sistema)? 0: $sistema);
+      $sectores[$id_sector]['islas'][]=$i2;
+      $sectores[$id_sector]['total_observadas']+=(is_null($observadas)? 0 : $observadas);
+      $sectores[$id_sector]['total_sistema']+=(is_null($sistema)? 0: $sistema);
     }
     $ret = [];
     foreach($sectores as $s){

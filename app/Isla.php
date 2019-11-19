@@ -15,7 +15,7 @@ class Isla extends Model
   protected $connection = 'mysql';
   protected $table = 'isla';
   protected $primaryKey = 'id_isla';
-  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at','orden');
+  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at','orden','id_sector');
   public $timestamps = false;
   protected $appends = array('cantidad_maquinas','cantidad_maquinas_y_int_tecnica');
 
