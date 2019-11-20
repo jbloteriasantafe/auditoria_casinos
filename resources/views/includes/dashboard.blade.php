@@ -832,33 +832,64 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
-                          <div class="separadoresMenu">CONTROL AMBIENTAL</div>
+                      <div class="separadoresMenu">CONTROL AMBIENTAL</div>
+                      <li>
+                        <div id="barraRelevamientosAmbiental" class="opcionesHover" data-target="#relevamientoAmbiental" data-toggle="collapse" href="#">
+                          <span class="flechita">
+                              <i class="fa fa-angle-right"></i>
+                            </span>
+                            <span class="icono" style="padding-bottom: 50px;">
+                              @svg('tablero_control','iconoTableroControl')
+                            </span>
+                            <span>Relevamientos</span>
+                        </div>
+
+                        <!-- SEGUNDO NIVEL -->
+                        <ul class="subMenu1 collapse" id="relevamientoAmbiental">
                           <li>
                             <div id="opcAmbientalmaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('maquinas','iconoMaquinas')
-                              </span>
                               <span>Máquinas</span>
                             </div>
                           </li>
 
                           <li>
-                            <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevaminetosAmbiental'" href="#" style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 56px;">
-                                @svg('mesa','iconoMesa')
-                              </span>
+                            <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
                               <span>Mesas de paño</span>
+                            </div>
+                          </li>
+                        </ul>
+
+                      </li>
+
+
+                      <li>
+                        <div id="barraInformesAmbiental" class="opcionesHover" data-target="#informeAmbiental" data-toggle="collapse" href="#">
+                          <span class="flechita">
+                              <i class="fa fa-angle-right"></i>
+                            </span>
+                            <span class="icono" style="padding-bottom: 50px;">
+                              @svg('tablero_control','iconoTableroControl')
+                            </span>
+                            <span>Informes</span>
+                        </div>
+
+                        <!-- SEGUNDO NIVEL -->
+                        <ul class="subMenu1 collapse" id="informeAmbiental">
+                          <li>
+                            <div id="opcInformeDiarioAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
+                              <span>Diarios</span>
                             </div>
                           </li>
 
                           <li>
-                            <div id="opcAmbientalgeneralidades" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosAmbiental'" href="#" style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 56px;">
-                                @svg('informes','iconoInformes')
-                              </span>
-                              <span>Generalidades</span>
+                            <div id="opcInformeMensualAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" href="#" style="cursor: pointer;">
+                              <span>Mensuales</span>
                             </div>
                           </li>
+                        </ul>
+
+                      </li>
+
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                         <li>

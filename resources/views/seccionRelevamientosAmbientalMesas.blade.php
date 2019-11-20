@@ -8,16 +8,12 @@
 <?php
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario;
 $puede_eliminar = $user->es_administrador || $user->es_superusuario;
 $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 $cant_turnos = sizeof($casinos[0]->turnos);
-$climas = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['climas'];
-$temperaturas = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['temperaturas'];
-$eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['eventos'];
 ?>
 
 @section('estilos')
@@ -57,7 +53,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                         <div class="col-xs-12">
                           <center>
                             <h5 class="txtLogo">+</h5>
-                            <h4 class="txtNuevo">GENERAR RELEVAMIENTO DE CONTROL AMBIENTAL EN MÁQUINAS</h4>
+                            <h4 class="txtNuevo">GENERAR RELEVAMIENTO DE CONTROL AMBIENTAL EN MESAS</h4>
                           </center>
                         </div>
                     </div>
@@ -192,7 +188,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
              <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO RELEVAMIENTO DE CONTROL AMBIENTAL DE MÁQUINAS</h3>
+               <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO RELEVAMIENTO DE CONTROL AMBIENTAL DE MESAS</h3>
               </div>
 
               <div  id="colapsadoCrear" class="collapse in">
@@ -281,65 +277,11 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                              </div>
                       </div>
                     </div>
-                    <br>
-
-                    <div class="row" id="rowClima">
-                      <h5>CONDICIONES CLIMÁTICAS</h5>
-                      @for ($i=1; $i<=8; $i++)
-                      <div class="col-md-3">
-                          <?php $selectId = "climaTurno" . $i;
-                                $hId = "hClimaTurno" . $i; ?>
-                          <h5 id="{{$hId}}">TURNO {{$i}}</h5>
-                          <select id="{{$selectId}}" class="form-control" name="" style="float:right !important">
-                             <option id="-1" value="-1"> - Seleccione un clima - </option>
-                             @foreach ($climas as $clima)
-                             <option id="{{$clima->id_clima}}" value="{{$clima->id_clima}}">{{$clima->descripcion}}</option>
-                             @endforeach
-                          </select>
-                      </div>
-                      @endfor
-                    </div>
-                    <br><br>
-
-                    <div class="row" id="rowTemperatura">
-                      <h5>CONDICIONES DE TEMPERATURA</h5>
-                      @for ($i=1; $i<=8; $i++)
-                      <div class="col-md-3">
-                          <?php $selectId = "temperaturaTurno" . $i;
-                                $hId = "hTemperaturaTurno" . $i; ?>
-                          <h5 id="{{$hId}}">TURNO {{$i}}</h5>
-                          <select id="{{$selectId}}" class="form-control" name="" style="float:right !important">
-                            <option id="-1" value="-1"> - Seleccione una temperatura - </option>
-                             @foreach ($temperaturas as $temperatura)
-                             <option id="{{$temperatura->id_temperatura}}" value="{{$temperatura->id_temperatura}}">{{$temperatura->descripcion}}</option>
-                             @endforeach
-                          </select>
-                      </div>
-                      @endfor
-                    </div>
-                    <br><br>
-
-                    <div class="row" id="rowEvento">
-                      <h5>EVENTOS</h5>
-                      @for ($i=1; $i<=8; $i++)
-                      <div class="col-md-3">
-                          <?php $selectId = "eventoTurno" . $i;
-                                $hId = "hEventoTurno" . $i; ?>
-                          <h5 id="{{$hId}}">TURNO {{$i}}</h5>
-                          <select id="{{$selectId}}" class="form-control" name="" style="float:right !important">
-                            <option id="-1" value="-1"> - Seleccione un evento - </option>
-                             @foreach ($eventos as $evento)
-                             <option id="{{$evento->id_evento_control_ambiental}}" value="{{$evento->id_evento_control_ambiental}}">{{$evento->descripcion}}</option>
-                             @endforeach
-                          </select>
-                      </div>
-                      @endfor
-                    </div>
                     <br><br>
 
                     <table class="table" id="tablaPersonas" style="margin-bottom: 0px; border-bottom: 0px">
                       <thead class="cabeceraTablaPersonas">
-                        <th class="col-xs-2 sortable" data-id="islaIslote" style="width:110px; display: inline-block">ISLA/ISLOTE</th>
+                        <th class="col-xs-2 sortable" data-id="mesa" style="width:110px; display: inline-block">MESA</th>
                         <th id="t1" style="width:90px; display: inline-block">TURNO 1</th>
                         <th id="t2" style="width:90px; display: inline-block">TURNO 2</th>
                         <th id="t3" style="width:90px; display: inline-block">TURNO 3</th>
@@ -356,7 +298,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                     <table class="table tablaPozos">
                       <tbody class="cuerpoTablaPersonas">
                         <tr class="filaEjemplo" style="display: none">
-                          <td class="col-xs-2 nroIslaIslote" style="width:110px; height:52px: display: inline-block">X</td>
+                          <td class="col-xs-2 mesa" style="width:110px; height:52px: display: inline-block">X</td>
 
                         </tr>
                       </tbody>
@@ -408,8 +350,6 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
   </div>
 
 
-
-
 </div>
 
 
@@ -436,7 +376,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionRelevamientosAmbientalMaquinas.js" charset="utf-8"></script>
+<script src="js/seccionRelevamientosAmbientalMesas.js" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

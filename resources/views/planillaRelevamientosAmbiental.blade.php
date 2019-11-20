@@ -312,9 +312,56 @@
       @endif
       @endforeach
     @endif
-
-
     <br><br>
+
+
+    <!-- Tabla de detalles de generalidades-->
+    <div class="primerEncabezado">Detalles de generalidades:</div>
+    <table>
+      <thead>
+        <tr>
+            <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2" width="120px">GENERALIDADES</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{sizeof($relevamiento_ambiental->casino->turnos)}}">TURNOS</th>
+        </tr>
+        <tr>
+          @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+          <th class="tablaInicio" style="background-color: #e6e6e6">{{$turno->nro_turno}}</th>
+          @endforeach
+        </tr>
+      </thead>
+        @foreach ($generalidades as $g)
+        <tr>
+          <td class="tablaInicio" style="background-color: #e6e6e6" width="120px"><b>{{$g['tipo_generalidad']}}</b></td>
+          @if ($g['turno1'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno1']}}</td>
+          @elseif ($turnos_size >=1) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno2'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno2']}}</td>
+          @elseif ($turnos_size >=2) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno3'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno3']}}</td>
+          @elseif ($turnos_size >=3) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno4'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno4']}}</td>
+          @elseif ($turnos_size >=4) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno5'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno5']}}</td>
+          @elseif ($turnos_size >=5) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno6'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno6']}}</td>
+          @elseif ($turnos_size >=6) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno7'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno7']}}</td>
+          @elseif ($turnos_size >=7) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+          @if ($g['turno8'] != null) <td class="tablaAmbiental" style="background-color: white">{{$g['turno8']}}</td>
+          @elseif ($turnos_size >=8) <td class="tablaAmbiental" style="background-color: white"></td>
+          @endif
+        </tr>
+        @endforeach
+    </table>
+    <br><br>
+
+
     @if ($relevamiento_ambiental->observacion_carga != NULL)
       <div class="primerEncabezado">Observaciones de carga:</div>
       <div style="color: #9c9c9c; ">
@@ -322,7 +369,7 @@
       </div><br><br>
     @endif
 
-    <div class="primerEncabezado" style="padding-left: 720px;"><p style="width: 250px; padding-left: 60px;">Firma y aclaración/s responsable/s.</p></div>
+    <div class="primerEncabezado" style="padding-left: 460px;"><p style="width: 250px; padding-left: 50px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 
 </html>

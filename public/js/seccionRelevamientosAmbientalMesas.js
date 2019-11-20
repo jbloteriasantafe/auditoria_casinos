@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    $('.tituloSeccionPantalla').text('Relevamientos de control ambiental - Máquinas');
+    $('.tituloSeccionPantalla').text('Relevamientos de control ambiental - Mesas');
     $('#opcRelevamientosProgresivos').attr('style', 'border-left: 6px solid #673AB7; background-color: #131836;');
     $('#iconoCarga').hide();
 
@@ -86,7 +86,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
 
     $.ajax({
         type: 'GET',
-        url: 'http://' + window.location.host + '/relevamientosControlAmbiental/buscarRelevamientosAmbiental',
+        url: 'http://' + window.location.host + '/relevamientosControlAmbientalMesas/buscarRelevamientosAmbiental',
         data: formData,
         dataType: 'json',
         success: function(resultados) {
@@ -233,13 +233,12 @@ function cambiarEstadoFila(fila, relevamiento) {
     }
 
     planilla.click(function() {
-        window.open('relevamientosControlAmbiental/generarPlanilla/' + relevamiento.id_relevamiento_ambiental, '_blank');
+        window.open('relevamientosControlAmbientalMesas/generarPlanilla/' + relevamiento.id_relevamiento_ambiental, '_blank');
     });
 
     imprimir.click(function() {
-        window.open('relevamientosControlAmbiental/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
+        window.open('relevamientosControlAmbientalMesas/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
     });
-
 
     eliminar.click(function() {
         mensajeAlerta(
@@ -261,7 +260,7 @@ function cambiarEstadoFila(fila, relevamiento) {
 
                 $.ajax({
                     type: "GET",
-                    url: 'relevamientosControlAmbiental/eliminarRelevamientoAmbiental/' + id,
+                    url: 'relevamientosControlAmbientalMesas/eliminarRelevamientoAmbiental/' + id,
                     success: function(data) {
                         console.log(data);
                         $('#mensajeAlerta').hide();
@@ -315,7 +314,7 @@ function cargarRelevamiento(relevamiento) {
     $('#dtpFecha span.usables').show();
     $('#dtpFecha span.nousables').hide();
 
-    $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
+    $.get('relevamientosControlAmbientalMesas/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
             hidearTurnosInnecesarios(data.cantidad_turnos);
             setearRelevamiento(data, obtenerFila);
@@ -341,7 +340,7 @@ function cargarRelevamiento(relevamiento) {
                         let msgs = obtenerMensajesError(x);
                         mensajeError(msgs);
                     },
-                    "relevamientosControlAmbiental/cargarRelevamiento"
+                    "relevamientosControlAmbientalMesas/cargarRelevamiento"
                 );
             });
 
@@ -350,14 +349,14 @@ function cargarRelevamiento(relevamiento) {
                     function(x) {
                         console.log(x);
                         $('#modalRelevamientoAmbiental').modal('hide');
-                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
+                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_progresivo + '"]');
                         relevamiento.estado = "Cargando";
                         cambiarEstadoFila(fila, relevamiento);
                     },
                     function(x) {
                         console.log(x);
                     },
-                    "relevamientosControlAmbiental/guardarTemporalmenteRelevamiento"
+                    "relevamientosControlAmbientalMesas/guardarTemporalmenteRelevamiento"
                 );
             });
 
@@ -381,10 +380,6 @@ function setearRelevamiento(data, filaCallback) {
     $('#fiscaCarga').val(data.relevamiento.id_usuario_cargador);
     $('#fecha').val(data.relevamiento.fecha_ejecucion);
 
-    $('#rowClima').attr('data-id',data.generalidades[0].id_dato_generalidad);
-    $('#rowTemperatura').attr('data-id',data.generalidades[1].id_dato_generalidad);
-    $('#rowEvento').attr('data-id',data.generalidades[2].id_dato_generalidad);
-
     if (data.usuario_cargador != null)
         $('#usuario_cargador').val(data.usuario_cargador.nombre);
 
@@ -396,10 +391,6 @@ function setearRelevamiento(data, filaCallback) {
         $('#observacion_carga').val(data.relevamiento.observacion_carga);
     }
 
-    setearFilaGeneralidad(data.generalidades[0]);
-    setearFilaGeneralidad(data.generalidades[1]);
-    setearFilaGeneralidad(data.generalidades[2]);
-
     let tabla = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas');
     for (let i = 0; i < data.detalles.length; i++) {
         tabla.append(filaCallback(data.detalles[i]));
@@ -410,9 +401,8 @@ function obtenerFila(detalle) {
     let fila = $('#modalRelevamientoAmbiental .filaEjemplo').not('.validacion')
                   .clone().removeClass('filaEjemplo').show().css('display', '');
 
-    fila.find('.nroIslaIslote').text(detalle.nro_isla_o_islote);
+    fila.find('.mesa').text(detalle.nombre);
     fila.attr('data-id', detalle.id_detalle_relevamiento_ambiental);
-
     for (let i=1; i<=detalle.cantidad_turnos; i++) {
       fila.append($('<td>')
           .addClass('col-xs-1')
@@ -465,66 +455,12 @@ function obtenerFila(detalle) {
     return fila;
 }
 
-function setearFilaGeneralidad (generalidad) {
-  let x;
-  let modal = $('#modalRelevamientoAmbiental');
-
-  if (generalidad.tipo_generalidad == 'clima') {
-    x = 'climaTurno';
-  }
-  else if (generalidad.tipo_generalidad == 'temperatura'){
-    x = 'temperaturaTurno';
-  } else {
-   x = 'eventoTurno';
- }
-
- if (generalidad.turno1 != null) {
-   modal.find('#'+x+'1')
-       .val(generalidad.turno1)
- }
- if (generalidad.turno2 != null) {
-   modal.find('#'+x+'2')
-       .val(generalidad.turno2)
- }
- if (generalidad.turno3 != null) {
-   modal.find('#'+x+'3')
-       .val(generalidad.turno3)
- }
- if (generalidad.turno4 != null) {
-   modal.find('#'+x+'4')
-       .val(generalidad.turno4)
- }
- if (generalidad.turno5 != null) {
-   modal.find('#'+x+'5')
-       .val(generalidad.turno5)
- }
- if (generalidad.turno6 != null) {
-   modal.find('#'+x+'6')
-       .val(generalidad.turno6)
- }
- if (generalidad.turno7 != null) {
-   modal.find('#'+x+'7')
-       .val(generalidad.turno7)
- }
- if (generalidad.turno8 != null) {
-   modal.find('#'+x+'8')
-       .val(generalidad.turno8)
- }
-
-}
-
 function enviarFormularioCarga(relevamiento,
     succ = function(data) { console.log(data); },
     err = function(data) { console.log(data); },
     url) {
 
     let id_usuario_fisca = $('#usuario_fiscalizador').val().trim() == '' ? null : obtenerIdFiscalizador(relevamiento.casino.id_casino, $('#usuario_fiscalizador').val());
-    let datosClima = [];
-    let datosTemperatura = [];
-    let datosEvento = [];
-    let selectsC = $('#rowClima').find('select:visible');
-    let selectsT = $('#rowTemperatura').find('select:visible');
-    let selectsE = $('#rowEvento').find('select:visible');
 
     let formData = {
         id_relevamiento_ambiental: relevamiento.relevamiento.id_relevamiento_ambiental,
@@ -532,8 +468,7 @@ function enviarFormularioCarga(relevamiento,
         id_casino: relevamiento.casino.id_casino,
         id_usuario_fiscalizador: id_usuario_fisca,
         observaciones: $('#observacion_carga').val(),
-        detalles: [],
-        generalidades: []
+        detalles: []
     };
 
     let filas = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr').not('.filaEjemplo');
@@ -555,46 +490,8 @@ function enviarFormularioCarga(relevamiento,
             id_detalle_relevamiento_ambiental: id_detalle_relevamiento_ambiental,
             personasTurnos: personasTurnos
         });
+
     }
-
-    for (let i=0; i<selectsC.length; i++) {
-      let valor = selectsC[i].value;
-      datosClima.push({
-          valor: valor,
-      });
-    }
-
-    formData.generalidades.push({
-      id_dato_generalidad: $('#rowClima').attr('data-id'),
-      tipo: 'clima',
-      datos: datosClima
-    });
-
-    for (let i=0; i<selectsT.length; i++) {
-      let valor = selectsT[i].value;
-      datosTemperatura.push({
-          valor: valor,
-      });
-    }
-
-    formData.generalidades.push({
-      id_dato_generalidad: $('#rowTemperatura').attr('data-id'),
-      tipo: 'temperatura',
-      datos: datosTemperatura
-    });
-
-    for (let i=0; i<selectsE.length; i++) {
-      let valor = selectsE[i].value;
-      datosEvento.push({
-          valor: valor,
-      });
-    }
-
-    formData.generalidades.push({
-      id_dato_generalidad: $('#rowEvento').attr('data-id'),
-      tipo: 'evento',
-      datos: datosEvento
-    });
 
     $.ajaxSetup({
         headers: {
@@ -617,43 +514,25 @@ function hidearTurnosInnecesarios (cant) {
 
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6 || cant==7) {
     row_th.find('#t8').hide();
-    hidearGeneralidadesInnecesarias(8);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6) {
     row_th.find('#t7').hide();
-    hidearGeneralidadesInnecesarias(7);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5) {
     row_th.find('#t6').hide();
-    hidearGeneralidadesInnecesarias(6);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4) {
     row_th.find('#t5').hide();
-    hidearGeneralidadesInnecesarias(5);
   }
   if (cant==1 || cant==2 || cant==3) {
     row_th.find('#t4').hide();
-    hidearGeneralidadesInnecesarias(4);
   }
   if (cant==1 || cant==2) {
     row_th.find('#t3').hide();
-    hidearGeneralidadesInnecesarias(3);
   }
   if (cant==1) {
     row_th.find('#t2').hide();
-    hidearGeneralidadesInnecesarias(2);
   }
-}
-
-function hidearGeneralidadesInnecesarias (cant) {
-  let modal = $('#modalRelevamientoAmbiental');
-
-  modal.find('#climaTurno' + cant).hide();
-  modal.find('#hClimaTurno' + cant).hide();
-  modal.find('#temperaturaTurno' + cant).hide();
-  modal.find('#hTemperaturaTurno' + cant).hide();
-  modal.find('#eventoTurno' + cant).hide();
-  modal.find('#hEventoTurno' + cant).hide();
 }
 
 function obtenerIdFiscalizador(id_casino, str) {
@@ -693,39 +572,7 @@ function validarFormulario(id_casino) {
           input.addClass('alerta');
         }
     }
-
-    let hay_vacio_generalidades = false;
-    let selectsC = $('#rowClima').find('select:visible');
-    let selectsT = $('#rowTemperatura').find('select:visible');
-    let selectsE = $('#rowEvento').find('select:visible');
-
-    for (let i=0; i<selectsC.length; i++) {
-      if (selectsC[i].value  == -1) {
-        hay_vacio_generalidades=true;
-        break;
-      }
-    }
-
-    if (!hay_vacio_generalidades) {
-      for (let i=0; i<selectsT.length; i++) {
-        if (selectsT[i].value  == -1) {
-          hay_vacio_generalidades=true;
-          break;
-        }
-      }
-    }
-
-    if (!hay_vacio_generalidades) {
-      for (let i=0; i<selectsE.length; i++) {
-        if (selectsE[i].value  == -1) {
-          hay_vacio_generalidades=true;
-          break;
-        }
-      }
-    }
-
     if (hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar o con valores invalidos");
-    if (hay_vacio_generalidades) mensajes.push("Tiene al menos un detalle de generalidad sin ingresar");
     return { errores: errores, mensajes: mensajes };
 }
 
@@ -742,8 +589,6 @@ function mensajeError(errores) {
 
 $('#btn-salir').click(function() {
     let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
-    let modal = $('#modalRelevamientoAmbiental');
-
     row_th.find('#t1').show();
     row_th.find('#t2').show();
     row_th.find('#t3').show();
@@ -753,22 +598,13 @@ $('#btn-salir').click(function() {
     row_th.find('#t7').show();
     row_th.find('#t8').show();
 
-    for (let i = 1; i <= 8; i++) {
-      modal.find('#climaTurno' + i).show();
-      modal.find('#hClimaTurno' + i).show();
-      modal.find('#temperaturaTurno' + i).show();
-      modal.find('#hTemperaturaTurno' + i).show();
-      modal.find('#eventoTurno' + i).show();
-      modal.find('#hEventoTurno' + i).show();
-    }
-
     $('#modalRelevamientoAmbiental').modal('hide');
 });
 
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevo').click(function(e) {
     e.preventDefault();
-    $('.modal-title').text('| NUEVO RELEVAMIENTO DE CONTROL AMBIENTAL - MÁQUINAS');
+    $('.modal-title').text('| NUEVO RELEVAMIENTO DE CONTROL AMBIENTAL - MESAS');
     $('#modalRelevamiento .modalNuevo').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
     $('#modalRelevamiento').modal('show');
 });
@@ -790,7 +626,7 @@ $('#btn-generar').click(function(e) {
 
     $.ajax({
         type: "POST",
-        url: 'relevamientosControlAmbiental/crearRelevamiento',
+        url: 'relevamientosControlAmbientalMesas/crearRelevamiento',
         data: formData,
         dataType: 'json',
         success: function(data) {

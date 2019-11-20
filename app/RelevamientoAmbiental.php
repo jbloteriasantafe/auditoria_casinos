@@ -41,4 +41,8 @@ class RelevamientoAmbiental extends Model
   public function detalles(){
     return $this->HasMany('App\DetalleRelevamientoAmbiental','id_relevamiento_ambiental','id_relevamiento_ambiental');
   }
+
+  public function generalidades(){
+    return $this->HasMany('App\DatoGeneralidad','id_relevamiento_ambiental','id_relevamiento_ambiental');
+  }
 }

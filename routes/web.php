@@ -438,6 +438,17 @@ Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene
   Route::post('/guardarTemporalmenteRelevamiento','RelevamientoAmbientalController@guardarTemporalmenteRelevamiento');
 });
 
+Route::group(['prefix' => 'relevamientosControlAmbientalMesas','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','RelevamientoAmbientalMesasController@buscarTodo');
+  Route::get('/buscarRelevamientosAmbiental','RelevamientoAmbientalMesasController@buscarRelevamientosAmbiental');
+  Route::get('/generarPlanilla/{id_relevamiento_ambiental}','RelevamientoAmbientalMesasController@generarPlanillaAmbiental');
+  Route::get('/eliminarRelevamientoAmbiental/{id_relevamiento_ambiental}','RelevamientoAmbientalMesasController@eliminarRelevamientoAmbiental');
+  Route::get('/obtenerRelevamiento/{id}','RelevamientoAmbientalMesasController@obtenerRelevamiento');
+  Route::post('/crearRelevamiento' , 'RelevamientoAmbientalMesasController@crearRelevamientoAmbientalMesas');
+  Route::post('/cargarRelevamiento','RelevamientoAmbientalMesasController@cargarRelevamiento');
+  Route::post('/guardarTemporalmenteRelevamiento','RelevamientoAmbientalMesasController@guardarTemporalmenteRelevamiento');
+});
+
 /*******************
   Máquinas a pedir
 ********************/
