@@ -546,25 +546,14 @@ class LectorCSVController extends Controller
     $cont_temporal = DB::table('contadores_temporal')->where('id_contador_horario','=',$contador->id_contador_horario)->first();
     $contador->fecha = date('Y-m-d' , strtotime($cont_temporal->fecha  . ' + 1 days'));
     $contador->save();
-    //se esta volviendo a validar, algo que se hizo en importacion controller, se anula ya que esto lo verifica el controlador superior
-    /*
-    $contador_cerrado = ContadorHorario::where([['id_casino','=',$casino],['fecha','=',$contador->fecha],['cerrado','=',1]])->count();
-    if($contador_cerrado > 0){
-      $query = sprintf(" DELETE FROM contadores_temporal WHERE id_contador_horario = '%d'",$contador->id_contador_horario);
-      $pdo->exec($query);
-      $contador->delete();
-      Validator::make($contador_cerrado,[
-          'contador_cerrado' => 'required|integer',
-      ], array(), self::$atributos)->after(function($validator){
-          if($validator->getData()['contador_cerrado'] > 0){
-              $validator->errors()->add('contador_cerrado','El Contador para esa fecha ya está cerrado y no se puede reimportar.');
-          }
-      })->validate();
-    }*/
 
     $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario],['id_casino','=',$casino],['fecha','=',$contador->fecha]])->get();
+    //Me fijo si el contador viejo estaba cerrado, para reimportarlo correctamente sino se bugea 
+    //La parte de producidos (no deja ajustar el producido)
+    $viejo_cerrado = false;
     if($contadores != null){
       foreach($contadores as $cont){
+        $viejo_cerrado = $viejo_cerrado || ($cont->cerrado == 1);
         $query = sprintf(" DELETE FROM detalle_contador_horario
                            WHERE id_contador_horario = '%d'
                            ",$cont->id_contador_horario);
@@ -576,6 +565,8 @@ class LectorCSVController extends Controller
         $pdo->exec($query);
       }
     }
+    $contador->cerrado = $viejo_cerrado? 1 : 0;
+    $contador->save();
     //obtener mtm e ir insertando en detalle contador horario
 
     //cambiar sentencia para actualizar los campos de contadores donde la mtm y el id contador sean iguales
@@ -842,19 +833,25 @@ class LectorCSVController extends Controller
                                                            ,['id_casino','=',3]
                                                            ,['fecha','=',$contador->fecha]
                                                            ,['id_tipo_moneda','=',$contador->id_tipo_moneda]])->get();
+        //Me fijo si el contador viejo estaba cerrado, para reimportarlo correctamente sino se bugea 
+        //La parte de producidos (no deja ajustar el producido)                                                       
+        $viejo_cerrado = false;
         if($contadores != null){
           foreach($contadores as $cont){
+            $viejo_cerrado = $viejo_cerrado || ($cont->cerrado == 1);
             $query = sprintf(" DELETE FROM detalle_contador_horario
-                               WHERE id_contador_horario = '%d'
-                               ",$cont->id_contador_horario);
+                              WHERE id_contador_horario = '%d'
+                              ",$cont->id_contador_horario);
             $pdo->exec($query);
 
             $query = sprintf(" DELETE FROM contador_horario
-                               WHERE id_contador_horario = '%d'
-                               ",$cont->id_contador_horario);
+                              WHERE id_contador_horario = '%d'
+                              ",$cont->id_contador_horario);
             $pdo->exec($query);
           }
         }
+        $contador->cerrado = $viejo_cerrado? 1 : 0;
+        $contador->save();
 
         $path = $archivoCSV->getRealPath();
 
