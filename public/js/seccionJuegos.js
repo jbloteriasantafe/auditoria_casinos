@@ -82,7 +82,6 @@ $('#btn-nuevo').click(function(e){
   $('#alertaTabla').remove();
   $('#modalJuego').modal('show');
   $('#boton-salir').text('CANCELAR');
-  $('#cod_inp').hide();
 
   //Agregar el boton para guardar
   $('#btn-guardar').css('display','inline-block');
@@ -747,3 +746,7 @@ function mostrarJuego(juego, tablas, maquinas){
   } 
   
 }
+
+$('#btn-agregarCertificado').click(function(){
+  $('#listaSoft').append($('#soft_mod').clone().show().addClass('copia'));
+});

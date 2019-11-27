@@ -11,9 +11,7 @@
 @section('contenidoVista')
 
 <?php
-use App\Http\Controllers\UsuarioController;
 setlocale(LC_TIME, 'es_ES.UTF-8');
-$id_usuario = session('id_usuario');
 ?>
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
@@ -62,7 +60,7 @@ $id_usuario = session('id_usuario');
                                   <tr>
                                     <th class="col-xs-3" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="certificados" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-3" value="" estado="">ACCIONES</th>
                                   </tr>
                                 </thead>
@@ -173,14 +171,15 @@ $id_usuario = session('id_usuario');
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                     </div>
-                      <div class="col-md-3" id="cod_inp">
-                          <h5>Código de Certificado</h5>
-                          <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />
-                      </div>
                   </div>
                   <div class="row">
                     <div class="col-md-12">
-                      <h5>Certificados Software</h5>
+                      <span>
+                        <h5 style="display:inline;">Certificados Software</h5>
+                        <button style="display:inline;" id="btn-agregarCertificado" class="btn btn-success borrarFila" type="button">
+                          <i class="fa fa-fw fa-link"></i>
+                        </button>
+                      </span>
                       <div id="listaSoft" class="pre-scrollable" style="max-height: 100px;">
                         <div id="soft_mod" class="row col-md-12" hidden>
                           <div class="col-md-12" style="border-bottom: rgb(204, 204, 204) 1px solid;">

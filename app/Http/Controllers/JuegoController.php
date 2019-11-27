@@ -32,15 +32,22 @@ class JuegoController extends Controller
 
   public function buscarTodo(){
     $uc = UsuarioController::getInstancia();
-    $casinos = Casino::all();
     $uc->agregarSeccionReciente('Juegos','juegos');
+    $usuario = $uc->quienSoy()['usuario'];
+    $casinos = $usuario->casinos;
     return view('seccionJuegos' , ['casinos' => $casinos]);
   }
 
   public function obtenerJuego($id){
     $juego = Juego::find($id);
+    $casinosUser = Usuario::find(session('id_usuario'))->casinos;
+    $reglaCasinos=array();
+    foreach($casinosUser as $casino){
+      $reglaCasinos [] = $casino->id_casino;
+    }
+
     $maquinas= array();
-    foreach ($juego->maquinas_juegos as $key => $mtm) {
+    foreach ($juego->maquinas_juegos->whereIn('id_casino',$reglaCasinos) as $key => $mtm) {
       $maquina = new \stdClass();
       $maquina->id_maquina = $mtm->id_maquina;
       $maquina->id_casino = $mtm->id_casino;
@@ -49,13 +56,6 @@ class JuegoController extends Controller
       $maquina->denominacion = $mtm->pivot->denominacion;
       $maquinas[] = $maquina;
     }
-    $casinos=$juego->casinos;
-
-    $casinosUser = Usuario::find(session('id_usuario'))->casinos;
-        $reglaCasinos=array();
-        foreach($casinosUser as $casino){
-          $reglaCasinos [] = $casino->id_casino;
-         }
 
     $packJuego=DB::table('pack_juego')
                   ->select('pack_juego.*')
@@ -71,7 +71,6 @@ class JuegoController extends Controller
     return ['juego' => $juego ,
             'tablasDePago' => $tabla,
             'maquinas' => $maquinas,
-            'casinos'=>$casinos,
             'pack'=>$packJuego,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id)];
   }
