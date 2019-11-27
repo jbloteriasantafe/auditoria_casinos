@@ -645,7 +645,7 @@ function crearFilaJuego(juego){
   var progresivos;
   var codigo;
   juego.nro_niv_progresivos == null ? progresivos = '-' : progresivos= juego.nro_niv_progresivos;
-  juego.cod_identificacion == null ?  codigo = '-' :   codigo= juego.cod_identificacion;
+  juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
 
 

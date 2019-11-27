@@ -308,22 +308,20 @@ class JuegoController extends Controller
     if(!empty($request->nombreJuego) ){
       $reglas[]=['juego.nombre_juego', 'like' , '%' . $request->nombreJuego  .'%'];
     }
-    if(!empty($request->codigoId)){
-      $reglas[]=['gli_soft.nro_archivo', 'like' , '%' . $request->codigoId  .'%'];
-    }
+ 
     if(!empty($request->cod_Juego)){
       $reglas[]=['juego.cod_juego', 'like' , '%' . $request->cod_Juego  .'%'];
     }
 
-     foreach($casinos as $casino){
+    foreach($casinos as $casino){
       $reglaCasinos [] = $casino->id_casino;
-     }
+    }
     
-
     $sort_by = $request->sort_by;
 
     $resultados=DB::table('juego')
                   ->select('juego.*')
+                  ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(gli_soft.nro_archivo, '-')) separator ', ') as certificados")
                   ->leftjoin('juego_glisoft as jgl','jgl.id_juego','=','juego.id_juego')
                   ->leftjoin('gli_soft','gli_soft.id_gli_soft','=','jgl.id_gli_soft')
                   ->leftjoin('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
@@ -331,10 +329,29 @@ class JuegoController extends Controller
                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                               })
                   ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
-                  ->where($reglas)
-                  ->groupBy('juego.id_juego');
-                    
-    return $resultados->paginate($request->page_size);
+                  ->where($reglas);
+    
+    if(!empty($request->codigoId)){
+      if(trim($request->codigoId) == '-'){//Si me envia un gion, significa sin certificado
+        $resultados = $resultados->whereNull('gli_soft.id_gli_soft');
+      }
+      else {
+        $codigos = explode(',',$request->codigoId);
+        foreach($codigos as &$c) $c = trim($c);
+
+        $resultados = $resultados->where(function ($query) use ($codigos){
+          foreach($codigos as $idx => $c){
+            if($idx == 0) $query->where('gli_soft.nro_archivo','like','%'.$c.'%');
+            else $query->orWhere('gli_soft.nro_archivo','like','%'.$c.'%');
+          }
+        });
+
+      }
+    }
+
+    $resultados = $resultados->groupBy('juego.id_juego');
+    $resultados = $resultados->paginate($request->page_size);
+    return $resultados;
   }
 
   public function desasociarGLI($id_gli_soft){
