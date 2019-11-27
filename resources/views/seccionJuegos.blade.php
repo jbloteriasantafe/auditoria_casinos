@@ -178,6 +178,19 @@ $id_usuario = session('id_usuario');
                           <input id="inputCodigo" data-codigo="" class="form-control" type="text" readonly="true" />
                       </div>
                   </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5>Certificados Software</h5>
+                      <div id="listaSoft" class="pre-scrollable" style="max-height: 100px;">
+                        <div id="soft_mod" class="row col-md-12" hidden>
+                          <div class="col-md-12" style="border-bottom: rgb(204, 204, 204) 1px solid;">
+                            <span class="col-md-6 codigo">CODIGOCERTIFICADO</span>
+                            <a class="col-md-6 link" href="glisofts/pdf/" class="col-md-6"  target="_blank" rel="noopener noreferrer">nombre_archivo.pdf</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <br>
                   <div class="row" style="padding-bottom: 15px;">
                       <div id="tablas_de_pago" class="col-md-12">
@@ -185,7 +198,7 @@ $id_usuario = session('id_usuario');
                           <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
                             <i class="fa fa-fw fa-plus"></i>
                           </button>
-                          <div id="tablas_pago" style="margin-top:15px;">
+                          <div id="tablas_pago" class="pre-scrollable" style="margin-top:15px;max-height: 150px;">
                           </div>
                       </div>
                   </div>
@@ -194,7 +207,7 @@ $id_usuario = session('id_usuario');
                       <h5>Vincular Máquinas  <button style="display:inline;" id="btn-agregarMaquina" class="btn btn-success borrarFila" type="button">
                         <i class="fa fa-fw fa-link"></i>
                       </button></h5>
-                        <div id="listaMaquinas" class="">
+                        <div id="listaMaquinas" class="pre-scrollable" style="min-height: 400px;">
                           <style media="screen">
                               .my-group .form-control{
                                   width:25%;
@@ -204,7 +217,7 @@ $id_usuario = session('id_usuario');
                               }
                           </style>
 
-                          <div id="maquina_mod" class="row">
+                          <div id="maquina_mod" class="row col-md-12">
                             <div class="col-md-10">
                               <div class="input-group my-group">
                                 <select class="selectCasinos selectpicker form-control" name="">
@@ -222,6 +235,7 @@ $id_usuario = session('id_usuario');
                               <button class="btn btn-danger borrarFila borrarJuego"><i class="fa fa-fw fa-trash"></i></button>
                             </div>
                           </div>
+                        
                         </div>
                     </div><!-- col-md-12 -->
 

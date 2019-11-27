@@ -135,7 +135,6 @@ $(document).on('click','.detalle', function(){
       //   $('#tablas_de_pago').append('<tr>').text(data.tablasDePago[i].codigo);
       // }
       $('#btn-guardar').val("modificar");
-      $('#modalJuego').modal('show');
 
 
       $('#nombre_juego').prop('readonly',true);
@@ -148,21 +147,36 @@ $(document).on('click','.detalle', function(){
       $('#cod_identificacion').removeClass('alerta');
       $('#nro_niv_progresivos').removeClass('alerta');
 
-         for (var i = 0; i < data.tablasDePago.length; i++) {
-           $('#btn-agregarTablaDePago').trigger('click');
-           $('#tablas_pago input:last').val(data.tablasDePago[i].codigo).attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
-           $('#borrarTablaPago').css('display','none');
+      for (var i = 0; i < data.tablasDePago.length; i++) {
+        $('#btn-agregarTablaDePago').trigger('click');
+        $('#tablas_pago input:last').val(data.tablasDePago[i].codigo).attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
+        
+      }
+      $('.borrarTablaPago').hide();
+      for (var i = 0; i < data.maquinas.length; i++) {
+        agregarRenglonMaquina();
+        var div = $('.copia:last');
+        div.attr('data-id' ,data.maquinas[i].id_maquina);
+        div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true);
+        div.find('.nro_admin').val(data.maquinas[i].nro_admin).prop('readonly',true);
+        div.find('.denominacion').val(data.maquinas[i].denominacion).prop('readonly',true);
+        div.find('.porcentaje').val(data.maquinas[i].porcentaje_devolucion).prop('readonly',true);
+      }
 
-         }
-         for (var i = 0; i < data.maquinas.length; i++) {
-           agregarRenglonMaquina();
-           var div = $('.copia:last');
-           div.attr('data-id' ,data.maquinas[i].id_maquina);
-           div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true);
-           div.find('.nro_admin').val(data.maquinas[i].nro_admin).prop('readonly',true);
-           div.find('.denominacion').val(data.maquinas[i].denominacion).prop('readonly',true);
-           div.find('.porcentaje').val(data.maquinas[i].porcentaje_devolucion).prop('readonly',true);
-         }
+      let listaSoft = $('#listaSoft');
+      listaSoft.find('.copia').remove();
+      const filaCert = $('#soft_mod');
+      for(var i = 0; i < data.certificadoSoft.length; i++){
+        const c = data.certificadoSoft[i];
+        let nueva_fila = filaCert.clone().show().addClass('copia');
+        nueva_fila.attr('data-id',c.certificado.id_gli_soft);
+        nueva_fila.find('.codigo').text(c.certificado.nro_archivo);
+        nueva_fila.find('.link').text(c.archivo);
+        nueva_fila.find('.link').attr('href','glisofts/pdf/'+c.certificado.id_gli_soft);
+        listaSoft.append(nueva_fila);
+      }
+
+      $('#modalJuego').modal('show');
 
   });
 
@@ -235,7 +249,9 @@ $(document).on('click' , '.borrarJuego' , function(){
 $('#btn-agregarTablaDePago').click(function(){
     $('#tablas_pago')
         .append($('<div>').addClass('row')
-                          .css('margin-bottom','15px')
+                          .addClass('col-md-12')
+                          .css('padding-top','2px')
+                          .css('padding-bottom','2px')
                           .append($('<div>')
                             .addClass('col-xs-10')
                             .append($('<input>').attr('data-id' , 0).addClass('form-control'))
@@ -243,18 +259,18 @@ $('#btn-agregarTablaDePago').click(function(){
                           .append($('<div>')
                               .addClass('col-xs-2')
                               .append($('<button>')
-                                  .addClass('btn').addClass('btn-danger').addClass('borrarFila').attr('id','borrarTablaPago').css('display','block')
+                                  .addClass('btn').addClass('btn-danger').addClass('borrarFila').addClass('borrarTablaPago').css('display','block')
                                   .append($('<i>')
                                       .addClass('fa fa-fw fa-trash')
                                   )
                               )
                           )
 
-                ).append($('<br>'))
+                )
 });
 
 //borrar Tabla de Pago
-$(document).on('click' , '#borrarTablaPago' , function(){
+$(document).on('click' , '.borrarTablaPago' , function(){
   var fila = $(this).parent().parent();
   fila.next().remove(); //Remueve el salto de linea
   fila.remove();

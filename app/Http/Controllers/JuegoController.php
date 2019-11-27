@@ -68,7 +68,12 @@ class JuegoController extends Controller
 
     $tabla = TablaPago::where('id_juego', '=', $id)->get();
 
-    return ['juego' => $juego , 'tablasDePago' => $tabla, 'maquinas' => $maquinas, 'casinos'=>$casinos,'pack'=>$packJuego ];
+    return ['juego' => $juego ,
+            'tablasDePago' => $tabla,
+            'maquinas' => $maquinas,
+            'casinos'=>$casinos,
+            'pack'=>$packJuego,
+            'certificadoSoft' => $this->obtenerCertificadosSoft($id)];
   }
 
   public function encontrarOCrear($juego){
@@ -318,16 +323,18 @@ class JuegoController extends Controller
     $sort_by = $request->sort_by;
 
     $resultados=DB::table('juego')
-                  ->distinct()
                   ->select('juego.*')
-                  ->leftJoin('gli_soft','gli_soft.id_gli_soft','=','juego.id_gli_soft')
+                  ->leftjoin('juego_glisoft as jgl','jgl.id_juego','=','juego.id_juego')
+                  ->leftjoin('gli_soft','gli_soft.id_gli_soft','=','jgl.id_gli_soft')
                   ->leftjoin('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
                   ->when($sort_by,function($query) use ($sort_by){
                                   return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                               })
                   ->wherein('casino_tiene_juego.id_casino',$reglaCasinos)
-                  ->where($reglas)->paginate($request->page_size);
-    return $resultados;
+                  ->where($reglas)
+                  ->groupBy('juego.id_juego');
+                    
+    return $resultados->paginate($request->page_size);
   }
 
   public function desasociarGLI($id_gli_soft){
@@ -363,6 +370,20 @@ class JuegoController extends Controller
   }else{
     return['tablasDePago' => null];
   }
+  }
+
+  public function obtenerCertificadosSoft($id){
+    $juego=Juego::find($id);
+    if($juego != null){
+      $certificados = $juego->gliSoft;
+      $ret = [];
+      foreach($certificados as $c){
+        $nombre_archivo = is_null($c->archivo)? null : $c->archivo->nombre_archivo;
+        $ret[] = ['certificado' => $c, 'archivo' => $nombre_archivo];
+      } 
+      return $ret;
+    }
+    return ['certificadosSoft' => null];
   }
 
 }
