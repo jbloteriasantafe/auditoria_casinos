@@ -861,34 +861,15 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                       </li>
 
-
                       <li>
-                        <div id="barraInformesAmbiental" class="opcionesHover" data-target="#informeAmbiental" data-toggle="collapse" href="#">
-                          <span class="flechita">
-                              <i class="fa fa-angle-right"></i>
-                            </span>
-                            <span class="icono" style="padding-bottom: 50px;">
-                              @svg('tablero_control','iconoTableroControl')
-                            </span>
-                            <span>Informes</span>
+                        <div id="opcInformeControlAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                          <span class="icono" style="padding-bottom: 56px;">
+                              @svg('informes','iconoInformes')
+                          </span>
+                          <span>Informes</span>
                         </div>
-
-                        <!-- SEGUNDO NIVEL -->
-                        <ul class="subMenu1 collapse" id="informeAmbiental">
-                          <li>
-                            <div id="opcInformeDiarioAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
-                              <span>Diarios</span>
-                            </div>
-                          </li>
-
-                          <li>
-                            <div id="opcInformeMensualAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" href="#" style="cursor: pointer;">
-                              <span>Mensuales</span>
-                            </div>
-                          </li>
-                        </ul>
-
                       </li>
+
 
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>

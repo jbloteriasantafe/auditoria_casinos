@@ -1,6 +1,5 @@
 $(document).ready(function() {
     $('.tituloSeccionPantalla').text('Relevamientos de control ambiental - Máquinas');
-    $('#opcRelevamientosProgresivos').attr('style', 'border-left: 6px solid #673AB7; background-color: #131836;');
     $('#iconoCarga').hide();
 
     $('#dtpBuscadorFecha').datetimepicker({
@@ -180,6 +179,139 @@ function generarFilaTabla(relevamiento) {
     return fila;
 }
 
+function validarRelevamiento(relevamiento) {
+    $('#id_relevamiento').val(relevamiento.id_relevamiento_ambiental);
+    $('#modalRelevamientoAmbiental .mensajeSalida').hide();
+
+    $('#btn-guardar').hide();
+    $('#btn-finalizar').show().text("VISAR").off();
+
+    $('#modalRelevamientoAmbiental')
+        .find('.modal-header')
+        .attr('style',
+            "font-family:'Roboto-Black';color:white;background-color:#69F0AE;");
+    $('#modalRelevamientoAmbiental').
+    find('.modal-title').text('| VALIDAR RELEVAMIENTO DE CEONTROL AMBIENTAL');
+
+    $('#usuario_fiscalizador').attr('disabled', true);
+    $('#fecha').attr('disabled', true);
+    $('#fecha').removeClass('fondoBlanco');
+
+    $('#dtpFecha span.nousables').show();
+    $('#dtpFecha span.usables').hide();
+
+    $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
+        function(data) {
+            hidearTurnosInnecesarios(data.cantidad_turnos);
+            desactivarGeneralidades(data.cantidad_turnos);
+            setearRelevamiento(data, obtenerFilaValidacion);
+
+            $('#btn-finalizar').click(function() {
+                enviarFormularioValidacion(relevamiento.id_relevamiento_ambiental,
+                    function(x) {
+                        console.log(x);
+                        $('#modalRelevamientoAmbiental').modal('hide');
+                        let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
+                        relevamiento.estado = "Visado";
+                        cambiarEstadoFila(fila, relevamiento);
+                    },
+                    function(x) {
+                        console.log(x);
+                        let msgs = obtenerMensajesError(x);
+                        mensajeError(msgs);
+                    });
+            });
+        });
+
+    $('#observacion_carga').attr('disabled', true);
+    $('#observacion_validacion').parent().show();
+    $('#modalRelevamientoAmbiental').modal('show');
+}
+
+function obtenerFilaValidacion(detalle) {
+  let fila = $('#modalRelevamientoAmbiental .filaEjemplo').not('.validacion')
+                .clone().removeClass('filaEjemplo').show().css('display', '');
+
+  fila.find('.nroIslaIslote').text(detalle.nro_isla_o_islote);
+  fila.attr('data-id', detalle.id_detalle_relevamiento_ambiental);
+
+  for (let i=1; i<=detalle.cantidad_turnos; i++) {
+    fila.append($('<td>')
+        .addClass('col-xs-1')
+        .css('width','90px')
+        .css('display','inline-block')
+        .append($('<input>')
+            .addClass('turno'+i)
+            .addClass('form-control')
+            .attr('min',0)
+            .attr('data-toggle','tooltip')
+            .attr('data-placement','down')
+            .attr('title','turno'+i)
+            .attr('disabled','true')
+          )
+        )
+  }
+
+  if (detalle.turno1 != null) {
+    fila.find('.turno1')
+        .val(detalle.turno1)
+  }
+  if (detalle.turno2 != null) {
+    fila.find('.turno2')
+        .val(detalle.turno2)
+  }
+  if (detalle.turno3 != null) {
+    fila.find('.turno3')
+        .val(detalle.turno3)
+  }
+  if (detalle.turno4 != null) {
+    fila.find('.turno4')
+        .val(detalle.turno4)
+  }
+  if (detalle.turno5 != null) {
+    fila.find('.turno5')
+        .val(detalle.turno5)
+  }
+  if (detalle.turno6 != null) {
+    fila.find('.turno6')
+        .val(detalle.turno6)
+  }
+  if (detalle.turno7 != null) {
+    fila.find('.turno7')
+        .val(detalle.turno7)
+  }
+  if (detalle.turno8 != null) {
+    fila.find('.turno8')
+        .val(detalle.turno8)
+  }
+
+  return fila;
+}
+
+function enviarFormularioValidacion(id_relevamiento, succ = function(x) { console.log(x); }, err = function(x) { console.log(x); }) {
+    let url = "relevamientosControlAmbiental/validarRelevamiento";
+
+    let formData = {
+        id_relevamiento_ambiental: id_relevamiento,
+        observacion_validacion: $('#observacion_validacion').val()
+    };
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        dataType: 'json',
+        success: succ,
+        error: err
+    });
+}
+
 function cambiarEstadoFila(fila, relevamiento) {
     let planilla = fila.find('.planilla').off();
     let carga = fila.find('.carga').off();
@@ -237,7 +369,7 @@ function cambiarEstadoFila(fila, relevamiento) {
     });
 
     imprimir.click(function() {
-        window.open('relevamientosControlAmbiental/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
+        window.open('relevamientosControlAmbiental/generarPlanilla/' + relevamiento.id_relevamiento_ambiental, '_blank');
     });
 
 
@@ -614,25 +746,31 @@ function enviarFormularioCarga(relevamiento,
 
 function hidearTurnosInnecesarios (cant) {
   let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
+  let modal = $('#modalRelevamientoAmbiental .modal-dialog');
 
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6 || cant==7) {
     row_th.find('#t8').hide();
+    modal.css('width','45%');
     hidearGeneralidadesInnecesarias(8);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6) {
     row_th.find('#t7').hide();
+    modal.css('width','45%');
     hidearGeneralidadesInnecesarias(7);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5) {
     row_th.find('#t6').hide();
+    modal.css('width','45%');
     hidearGeneralidadesInnecesarias(6);
   }
   if (cant==1 || cant==2 || cant==3 || cant==4) {
     row_th.find('#t5').hide();
+    modal.css('width','45%');
     hidearGeneralidadesInnecesarias(5);
   }
   if (cant==1 || cant==2 || cant==3) {
     row_th.find('#t4').hide();
+    modal.css('width','45%');
     hidearGeneralidadesInnecesarias(4);
   }
   if (cant==1 || cant==2) {
@@ -654,6 +792,14 @@ function hidearGeneralidadesInnecesarias (cant) {
   modal.find('#hTemperaturaTurno' + cant).hide();
   modal.find('#eventoTurno' + cant).hide();
   modal.find('#hEventoTurno' + cant).hide();
+}
+
+function desactivarGeneralidades(cantidad_turnos) {
+  for (let i=1; i<=cantidad_turnos; i++) {
+    $('#rowClima #climaTurno'+i).attr('disabled','true');
+    $('#rowTemperatura #temperaturaTurno'+i).attr('disabled','true');
+    $('#rowEvento #eventoTurno'+i).attr('disabled','true');
+  }
 }
 
 function obtenerIdFiscalizador(id_casino, str) {
@@ -810,4 +956,86 @@ $('#btn-generar').click(function(e) {
         }
     });
 
+});
+
+//Generar el relevamiento de backup
+$('#btn-backup').click(function(e){
+
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+
+  e.preventDefault();
+
+  var formData = {
+    fecha: $('#fechaRelSinSistema_date').val(),
+    fecha_generacion: $('#fechaGeneracion_date').val(),
+    id_casino: $('#casinoSinSistema').val(),
+  }
+
+  console.log(formData);
+
+  $.ajax({
+      type: "POST",
+      url: 'relevamientosControlAmbiental/usarRelevamientoBackUp',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        console.log(data);
+            $('#btn-buscar').trigger('click');
+            $('#modalRelSinSistema').modal('hide');
+
+      },
+      error: function (data) {
+        console.log('ERROR!');
+        console.log(data);
+
+        var response = JSON.parse(data.responseText);
+
+        if(typeof response.fecha !== 'undefined') {
+          mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
+        }
+
+        if(typeof response.fecha_generacion !== 'undefined') {
+          mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
+        }
+
+      }
+  });
+
+});
+
+//RELEVAMIENTO SIN SISTEMA
+$('#btn-relevamientoSinSistema').click(function(e) {
+  e.preventDefault();
+  $('.modal-title').text('| RELEVAMIENTO SIN SISTEMA');
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+
+  $('#fechaGeneracion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+    ignoreReadonly: true,
+  });
+
+  $('#fechaRelSinSistema').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+    ignoreReadonly: true,
+  });
+
+  $('#modalRelSinSistema').modal('show');
 });

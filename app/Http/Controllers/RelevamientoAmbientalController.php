@@ -131,8 +131,6 @@ class RelevamientoAmbientalController extends Controller
         }
     }
 
-
-
      if(!empty($detalles)){
        //creo y guardo el relevamiento de control ambiental
        DB::transaction(function() use($request,$fiscalizador,$detalles){
@@ -176,13 +174,46 @@ class RelevamientoAmbientalController extends Controller
     return ['codigo' => 200];
   }
 
+  public function usarRelevamientoBackUp(Request $request){
+    dd("CONTINUAR CUANDO LOS REQS SEAN CLAROS");
+    Validator::make($request->all(),[
+        'id_sector' => 'required|exists:sector,id_sector',
+        'fecha' => 'required|date',
+        'fecha_generacion' => 'required|date'
+    ], array(), self::$atributos)->after(function($validator){
+    })->validate();
+
+    $relevamientos = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();
+    if($relevamientos != null){
+      foreach($relevamientos as $relevamiento){
+        $relevamiento->backup = 1;
+        $relevamiento->save();
+      }
+    }
+
+    $rel_backup = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',1]])->whereDate('fecha_generacion','=',$request->fecha_generacion)->first();
+    $fecha = $rel_backup->fecha;
+    $id_casino = $rel_backup->sector->casino->id_casino;
+    foreach($rel_backup->detalles as $detalle){
+      $detalle->producido_importado = $this->calcularProducido($fecha,$id_casino,$detalle->id_maquina);
+      $detalle->save();
+    }
+    $rel_backup->backup = 0;
+    $rel_backup->save();
+
+    return ['id_relevamiento' => $rel_backup->id_relevamiento,
+            'fecha' => $rel_backup->fecha,
+            'casino' => $rel_backup->sector->casino->nombre,
+            'sector' => $rel_backup->sector->descripcion,
+            'estado' => $rel_backup->estado_relevamiento->descripcion];
+  }
+
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
     $rel = RelevamientoAmbiental::find($id_relevamiento_ambiental);
 
     $dompdf = $this->crearPlanillaAmbiental($rel);
 
     return $dompdf->stream("Relevamiento_Control_Ambiental_" . $rel->casino->id_casino . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-
   }
 
   public function crearPlanillaAmbiental($relevamiento_ambiental){
@@ -246,9 +277,7 @@ class RelevamientoAmbientalController extends Controller
       }
     }
 
-
     foreach ($relevamiento_ambiental->generalidades as $generalidad) {
-
       $g = array(
           'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad),
           'turno1' => $generalidad->turno1 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno1, $generalidad->tipo_generalidad) : NULL,
@@ -263,9 +292,6 @@ class RelevamientoAmbientalController extends Controller
 
       $generalidades[] = $g;
     }
-
-
-
 
     $otros_datos = array(
       'casino' => $relevamiento_ambiental->casino->nombre,
@@ -411,6 +437,44 @@ class RelevamientoAmbientalController extends Controller
         $unDatoGeneralidad->turno8 = array_key_exists(7, $generalidad['datos']) && $generalidad['datos'][7]['valor'] != -1? $generalidad['datos'][7]['valor'] : NULL;
 
         $unDatoGeneralidad->save();
+      }
+    });
+
+    return ['codigo' => 200];
+  }
+
+  public function validarRelevamiento(Request $request){
+    Validator::make($request->all(),[
+        'id_relevamiento_ambiental' => 'required|exists:relevamiento_ambiental,id_relevamiento_ambiental',
+        'observacion_validacion' => 'nullable|string',
+    ], array(), self::$atributos)->after(function($validator){
+      $relevamiento_ambiental_mtm = RelevamientoAmbiental::find($validator->getData()['id_relevamiento_ambiental']);
+      if($relevamiento_ambiental_mtm->id_estado_relevamiento != 3){
+        $validator->errors()->add('error_estado_relevamiento','El relevamiento debe estar finalizado para validar.');
+      }
+      if(strlen($validator->getData()['observacion_validacion'])>200){
+        $validator->errors()->add('error_observacion_validacion', 'La observacion supera los 200 caracteres');
+      }
+    })->validate();
+
+    DB::transaction(function() use($request){
+      $relevamiento_ambiental_mtm = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
+      $relevamiento_ambiental_mtm->observacion_validacion = $request->observacion_validacion;
+      $relevamiento_ambiental_mtm->estado_relevamiento()->associate(4);
+      $relevamiento_ambiental_mtm->save();
+
+      //como el relevamiento de control ambiental MTM para la fecha ya esta visado en este punto,
+      //si el relevamiento de control ambiental de mesas de la fecha tambien esta visado,
+      //entonces es posible generar un informe diario:
+      $relevamiento_ambiental_mesas = DB::table('relevamiento_ambiental')
+                                      ->where('id_tipo_relev_ambiental', '=', 1) //relevamientos de control ambiental mesas
+                                      ->where('id_casino','=',$relevamiento_ambiental_mtm->id_casino) //mismo casino
+                                      ->where('id_estado_relevamiento','=', 4) //estado visado
+                                      ->where('fecha_generacion','=', $relevamiento_ambiental_mtm->fecha_generacion) //fechas coincidentes
+                                      ->get();
+
+      if ($relevamiento_ambiental_mesas->first() != NULL) {
+        InformeControlAmbientalController::getInstancia()->crearInformeControlAmbiental($relevamiento_ambiental_mtm, $relevamiento_ambiental_mesas->first());
       }
     });
 

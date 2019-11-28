@@ -369,6 +369,13 @@
       </div><br><br>
     @endif
 
+    @if ($relevamiento_ambiental->observacion_validacion != NULL)
+      <div class="primerEncabezado">Observaciones de validacion:</div>
+      <div style="color: #9c9c9c; ">
+        {{$relevamiento_ambiental->observacion_validacion}}
+      </div><br><br>
+    @endif
+
     <div class="primerEncabezado" style="padding-left: 460px;"><p style="width: 250px; padding-left: 50px;">Firma y aclaración/s responsable/s.</p></div>
   </body>
 

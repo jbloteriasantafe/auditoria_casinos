@@ -436,6 +436,8 @@ Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene
   Route::post('/crearRelevamiento' , 'RelevamientoAmbientalController@crearRelevamientoAmbientalMaquinas');
   Route::post('/cargarRelevamiento','RelevamientoAmbientalController@cargarRelevamiento');
   Route::post('/guardarTemporalmenteRelevamiento','RelevamientoAmbientalController@guardarTemporalmenteRelevamiento');
+  Route::post('/validarRelevamiento','RelevamientoAmbientalController@validarRelevamiento');
+  Route::post('/usarRelevamientoBackUp', 'RelevamientoAmbientalController@usarRelevamientoBackUp');
 });
 
 Route::group(['prefix' => 'relevamientosControlAmbientalMesas','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
@@ -447,6 +449,17 @@ Route::group(['prefix' => 'relevamientosControlAmbientalMesas','middleware' => '
   Route::post('/crearRelevamiento' , 'RelevamientoAmbientalMesasController@crearRelevamientoAmbientalMesas');
   Route::post('/cargarRelevamiento','RelevamientoAmbientalMesasController@cargarRelevamiento');
   Route::post('/guardarTemporalmenteRelevamiento','RelevamientoAmbientalMesasController@guardarTemporalmenteRelevamiento');
+  Route::post('/validarRelevamiento','RelevamientoAmbientalMesasController@validarRelevamiento');
+  Route::post('/usarRelevamientoBackUp', 'RelevamientoAmbientalMesasController@usarRelevamientoBackUp');
+});
+
+/******************************
+INFORME CONTROL AMBIENTAL
+******************************/
+Route::group(['prefix' => 'informeControlAmbiental','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
+  Route::get('/','InformeControlAmbientalController@buscarTodo');
+  Route::get('/buscarInformesControlAmbiental','InformeControlAmbientalController@buscarInformesControlAmbiental');
+  Route::get('/imprimir/{id}','InformeControlAmbientalController@imprimir');
 });
 
 /*******************

@@ -133,6 +133,10 @@ class RelevamientoAmbientalMesasController extends Controller
     return ['codigo' => 200];
   }
 
+  public function usarRelevamientoBackUp(Request $request){
+    dd("CONTINUAR CUANDO LOS REQS SEAN CLAROS");
+  }
+
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
     $rel = RelevamientoAmbiental::find($id_relevamiento_ambiental);
 
@@ -199,6 +203,44 @@ class RelevamientoAmbientalMesasController extends Controller
     $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf;
+  }
+
+  public function validarRelevamiento(Request $request){
+    Validator::make($request->all(),[
+        'id_relevamiento_ambiental' => 'required|exists:relevamiento_ambiental,id_relevamiento_ambiental',
+        'observacion_validacion' => 'nullable|string',
+    ], array(), self::$atributos)->after(function($validator){
+      $relevamiento_ambiental_mesas = RelevamientoAmbiental::find($validator->getData()['id_relevamiento_ambiental']);
+      if($relevamiento_ambiental_mesas->id_estado_relevamiento != 3){
+        $validator->errors()->add('error_estado_relevamiento','El relevamiento debe estar finalizado para validar.');
+      }
+      if(strlen($validator->getData()['observacion_validacion'])>200){
+        $validator->errors()->add('error_observacion_validacion', 'La observacion supera los 200 caracteres');
+      }
+    })->validate();
+
+    DB::transaction(function() use($request){
+      $relevamiento_ambiental_mesas = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
+      $relevamiento_ambiental_mesas->observacion_validacion = $request->observacion_validacion;
+      $relevamiento_ambiental_mesas->estado_relevamiento()->associate(4);
+      $relevamiento_ambiental_mesas->save();
+
+      //como el relevamiento de control ambiental de mesas para la fecha ya esta visado en este punto,
+      //si el relevamiento de control ambiental de MTM de la fecha tambien esta visado,
+      //entonces es posible generar un informe diario:
+      $relevamiento_ambiental_mtm = DB::table('relevamiento_ambiental')
+                                      ->where('id_tipo_relev_ambiental', '=', 0) //relevamientos de control ambiental MTM
+                                      ->where('id_casino','=',$relevamiento_ambiental_mesas->id_casino) //mismo casino
+                                      ->where('id_estado_relevamiento','=', 4) //estado visado
+                                      ->where('fecha_generacion','=', $relevamiento_ambiental_mesas->fecha_generacion) //fechas coincidentes
+                                      ->get();
+
+      if ($relevamiento_ambiental_mtm->first() != NULL)
+        InformeControlAmbientalController::getInstancia()->crearInformeControlAmbiental($relevamiento_ambiental_mtm->first(), $relevamiento_ambiental_mesas);
+    });
+
+
+    return ['codigo' => 200];
   }
 
   public function eliminarRelevamientoAmbiental ($id_relevamiento_ambiental) {

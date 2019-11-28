@@ -60,6 +60,24 @@ $cant_turnos = sizeof($casinos[0]->turnos);
                 </div>
               </a>
         </div>
+
+        <div class="col-xl-12 col-md-4">
+         <a href="" id="btn-relevamientoSinSistema" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/relevamientos_sin_sistema_white.png"><center>
+              <div class="backgroundNuevo"></div>
+              <div class="row">
+                  <div class="col-xs-12">
+                    <center>
+                        <h5 class="txtLogo">+</h5>
+                        <h4 class="txtNuevo">RELEVAMIENTOS SIN SISTEMA</h4>
+                    </center>
+                  </div>
+              </div>
+          </div>
+         </a>
+        </div>
+
       </div>
     </div><!-- row botones -->
 
@@ -183,7 +201,7 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
   <!--MODAL CREAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog" style="width:38%">
            <div class="modal-content">
              <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -194,26 +212,29 @@ $cant_turnos = sizeof($casinos[0]->turnos);
               <div  id="colapsadoCrear" class="collapse in">
 
               <div class="modal-body modalCuerpo">
+                    <div class="row">
+                      <div class="col-xs-6">
+                        <h5>FECHA DE RELEVAMIENTO</h5>
                         <div class='input-group date' id='fechaRelevamientoDiv' data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
                             <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fechaRelevamientoInput" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
                             <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                             <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                         </div>
-
                         <br>
-                        <div class="row">
-                          <div class="col-xs-6">
-                            <h5>CASINO</h5>
-                            <select id="casino" class="form-control" name="" style="float:right !important">
-                                <option value="">- Seleccione un casino -</option>
-                                <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))?>
-                                 @foreach ($usuario['usuario']->casinos as $casino)
-                                 <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                 @endforeach
-                            </select>
-                            <br> <span id="alertaCasino" class="alertaSpan"></span>
-                          </div>
-                        </div>
+                      </div>
+
+                      <div class="col-xs-6">
+                        <h5>CASINO</h5>
+                        <select id="casino" class="form-control" name="" style="float:right !important">
+                            <option value="">- Seleccione un casino -</option>
+                            <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))?>
+                             @foreach ($usuario['usuario']->casinos as $casino)
+                             <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                             @endforeach
+                        </select>
+                        <br> <span id="alertaCasino" class="alertaSpan"></span>
+                      </div>
+                    </div>
 
                 <div id="iconoCarga" class="sk-folding-cube">
                   <div class="sk-cube1 sk-cube"></div>
@@ -233,6 +254,72 @@ $cant_turnos = sizeof($casinos[0]->turnos);
         </div>
   </div>
 
+
+  <!-- MODAL RELEVAMIENTOS SIN SISTEMA -->
+  <div class="modal fade" id="modalRelSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+           <div class="modal-content">
+             <div class="modal-header modalNuevo">
+               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+               <button id="btn-minimizarSinSistema" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+               <h3 class="modal-title">RELEVAMIENTO SIN SISTEMA</h3>
+              </div>
+
+              <div  id="colapsadoSinSistema" class="collapse in">
+
+                <div class="modal-body modalCuerpo">
+
+                <form id="frmRelSinSistema" name="frmRelSinSistema" class="form-horizontal" novalidate="">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <h5>FECHA DE RELEVAMIENTO</h5>
+                            <div class='input-group date' id='fechaRelSinSistema' data-link-field="fechaRelSinSistema_date" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                                <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                            </div>
+                            <input type="hidden" id="fechaRelSinSistema_date" value=""/>
+                            <br>
+                          </div>
+
+                          <div class="col-md-6">
+                            <h5>FECHA DE GENERACIÓN</h5>
+                            <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracion_date" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                                <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                            </div>
+                            <input type="hidden" id="fechaGeneracion_date" value=""/>
+                            <br>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-6">
+                            <h5>CASINO</h5>
+                            <select id="casinoSinSistema" class="form-control" name="">
+                                <option value="">- Seleccione un casino -</option>
+                                <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
+                                 @foreach ($usuario['usuario']->casinos as $casino)
+                                 <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                                 @endforeach
+                            </select>
+                            <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>
+                          </div>
+                        </div>
+                </form>
+
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                  <input type="hidden" id="id_casino" name="id_casino" value="0">
+                </div>
+
+            </div>
+          </div>
+        </div>
+  </div>
 
   <!-- MODAL CARGAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
