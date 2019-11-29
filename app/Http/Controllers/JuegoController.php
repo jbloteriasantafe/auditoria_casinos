@@ -133,7 +133,7 @@ class JuegoController extends Controller
     $casinos = Usuario::find(session('id_usuario'))->casinos;
     $reglaCasinos=array();
     foreach($casinos as $casino){
-    $reglaCasinos [] = $casino->id_casino;
+      $reglaCasinos[] = $casino->id_casino;
     }
     $juego->casinos()->syncWithoutDetaching($reglaCasinos);
 
@@ -201,33 +201,53 @@ class JuegoController extends Controller
     })->validate();
 
     $juego = Juego::find($request->id_juego);
-    $juego->nombre_juego= $request->nombre_juego;
-    if($request->cod_juego!=null){
-      $juego->cod_juego= $request->cod_juego;
-    }
-    
-    //$juego->cod_identificacion= $request->cod_identificacion;
-    $juego->save();
 
-    if(isset($request->tabla_pago)){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $ids_casinos = [];
+    foreach($usuario->casinos as $c){
+      $ids_casinos[] = $c->id_casino;
+    }
+
+    $maquinas_accesibles = $juego->maquinas_juegos()
+    ->whereIn('id_casino',$ids_casinos)->get();
+
+    DB::transaction(function() use($request,$maquinas_accesibles,$juego){
+      $juego->nombre_juego= $request->nombre_juego;
+      if($request->cod_juego!=null){
+        $juego->cod_juego= $request->cod_juego;
+      }
+      
+      $juego->save();
+
+      //Le saco las tablas de pago
       foreach ($juego->tablasPago as $tabla) {
         $tabla->delete();
       };
-      foreach ($request->tabla_pago as $key => $tabla) {
-        TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
-      };
-    }
-    if(isset($request->maquinas)){
-      $juego->maquinas_juegos()->detach();
-      foreach ($request->maquinas as $maquina){
-        if ($maquina['id_maquina'] == 0) {
-          $mtm = Maquina::where([['id_casino' , $maquina['id_casino']],['nro_admin', $maquina['nro_admin']]])->first();
-        }else {
-          $mtm = Maquina::find($maquina['id_maquina']);
-        }
-        $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+
+      //Seteo las enviadas
+      if(isset($request->tabla_pago)){
+        foreach ($request->tabla_pago as $key => $tabla) {
+          TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
+        };
       }
-    }
+
+      //Al juego le saco las maquinas a las que puede acceder el usuario
+      foreach($maquinas_accesibles as $mtm){
+        $mtm->juegos()->detach($juego->id_juego);
+      }
+      
+      if(isset($request->maquinas)){
+        //Agrego las que me mande
+        foreach ($request->maquinas as $maquina){
+          if ($maquina['id_maquina'] == 0) {
+            $mtm = Maquina::where([['id_casino' , $maquina['id_casino']],['nro_admin', $maquina['nro_admin']]])->first();
+          }else {
+            $mtm = Maquina::find($maquina['id_maquina']);
+          }
+          $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+        }
+      }  
+    });
 
     return ['juego' => $juego];
   }
