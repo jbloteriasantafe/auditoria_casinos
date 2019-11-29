@@ -124,37 +124,41 @@ class JuegoController extends Controller
       'id_progresivo' => 'nullable',
     ], array(), self::$atributos)->validate();
 
-    $juego = new Juego;
-    $juego->nombre_juego = $request->nombre_juego;
-    $juego->cod_juego = $request->cod_juego;
-    //$juego->cod_identificacion= $request->cod_identificacion;
-    $juego->save();  
-    // asocio el nuevo juego con los casinos seleccionados
+
     $casinos = Usuario::find(session('id_usuario'))->casinos;
     $reglaCasinos=array();
     foreach($casinos as $casino){
       $reglaCasinos[] = $casino->id_casino;
     }
-    $juego->casinos()->syncWithoutDetaching($reglaCasinos);
 
-    if(isset($request->maquinas)){
-      foreach ($request->maquinas as $maquina) {
-        if($maquina['id_maquina'] == 0){
-          $mtm = Maquina::where([['id_casino' , $maquina['id_casino']] , ['nro_admin' , $maquina['nro_admin']]])->first();
-        }else {
-          $mtm = Maquina::find($maquina['id_maquina']);
-        }
-        if($mtm != null){
-          $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+    $juego = new Juego;
+    DB::transaction(function() use($juego,$reglaCasinos,$request){
+      $juego->nombre_juego = $request->nombre_juego;
+      $juego->cod_juego = $request->cod_juego;
+      $juego->save();
+      
+      // asocio el nuevo juego con los casinos seleccionados  
+      $juego->casinos()->syncWithoutDetaching($reglaCasinos);
+  
+      if(isset($request->maquinas)){
+        foreach ($request->maquinas as $maquina) {
+          if($maquina['id_maquina'] == 0){
+            $mtm = Maquina::where([['id_casino' , $maquina['id_casino']] , ['nro_admin' , $maquina['nro_admin']]])->first();
+          }else {
+            $mtm = Maquina::find($maquina['id_maquina']);
+          }
+          if($mtm != null){
+            $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+          }
         }
       }
-    }
-
-    if(!empty($request->tabla_pago)){
-      foreach ($request->tabla_pago as $tabla){
-        TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
+  
+      if(!empty($request->tabla_pago)){
+        foreach ($request->tabla_pago as $tabla){
+          TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
+        }
       }
-    }
+    });
 
     return ['juego' => $juego];
   }
@@ -200,13 +204,20 @@ class JuegoController extends Controller
 
     })->validate();
 
+
     $juego = Juego::find($request->id_juego);
+
+    if(is_null($juego)) return $this->errorOut(['id_juego' => ['No existe el juego.']]);
 
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ids_casinos = [];
     foreach($usuario->casinos as $c){
       $ids_casinos[] = $c->id_casino;
     }
+
+    //Me fijo si existe entrada alguna de los casinos del usuario con ese juego
+    $acceso = $juego->casinos()->whereIn('casino.id_casino',$ids_casinos)->count();
+    if($acceso == 0) return $this->errorOut(['acceso' => ['El usuario no puede acceder a ese juego.']]);
 
     $maquinas_accesibles = $juego->maquinas_juegos()
     ->whereIn('id_casino',$ids_casinos)->get();
@@ -264,25 +275,29 @@ class JuegoController extends Controller
   }
 
   public function eliminarJuego($id){
-    // quiuto de la tabla relacion 
     $casinos = Usuario::find(session('id_usuario'))->casinos;
     $reglaCasinos=array();
     foreach($casinos as $casino){
-    $reglaCasinos [] = $casino->id_casino;
+      $reglaCasinos [] = $casino->id_casino;
     }
     
-
     $juego = Juego::find($id);
-    foreach ($juego->tablasPago as $tabla) {
-      TablaPagoController::getInstancia()->eliminarTablaPago($tabla->id_tabla_pago);
-    }
-    $juego->casinos()->detach($reglaCasinos);
-    // solo si no queda asociado a nigun casino se puede eliminar el juego
-    $casRestantes= DB::table('casino_tiene_juego')->where('casino_tiene_juego.id_juego','=',$juego->id_juego)->count();
-    if ($casRestantes==0){
-      $juego->delete();
-    }
-    $juego->setearGliSofts([]);
+    if(is_null($juego)) return ['juego' => null];
+
+    DB::transaction(function() use($juego,$reglaCasinos){
+      $juego->casinos()->detach($reglaCasinos);
+      // @TODO: Si tuvieramos GLISOFT por casino, podriamos detachearlo aca nomas
+      // Solo si no queda asociado a ningun casino se puede eliminar el juego
+      $casRestantes= DB::table('casino_tiene_juego')->where('casino_tiene_juego.id_juego','=',$juego->id_juego)->count();
+      if ($casRestantes==0){
+        foreach ($juego->tablasPago as $tabla) {
+          TablaPagoController::getInstancia()->eliminarTablaPago($tabla->id_tabla_pago);
+        }        
+        $juego->setearGliSofts([]);
+        $juego->delete();
+      }
+    });
+
     return ['juego' => $juego];
   }
 
@@ -422,4 +437,7 @@ class JuegoController extends Controller
     return ['certificadosSoft' => null];
   }
 
+  private function errorOut($map){
+    return response()->json($map,422);
+  }
 }

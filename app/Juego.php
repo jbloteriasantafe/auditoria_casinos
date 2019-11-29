@@ -43,7 +43,7 @@ class Juego extends Model
 
     $this->gliSoft()->syncWithoutDetaching($arr);
   }
-  public function setearGliSofts($jarray,$ids=False){
+  public function setearGliSofts($garray,$ids=False){
     $arr = [];
     if(!$ids){
       foreach($garray as $g) $arr[] = $g->id_gli_soft;

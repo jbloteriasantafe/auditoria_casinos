@@ -170,8 +170,14 @@ $(document).on('click','.detalle', function(){
         let nueva_fila = filaCert.clone().show().addClass('copia');
         nueva_fila.attr('data-id',c.certificado.id_gli_soft);
         nueva_fila.find('.codigo').text(c.certificado.nro_archivo);
-        nueva_fila.find('.link').text(c.archivo);
-        nueva_fila.find('.link').attr('href','glisofts/pdf/'+c.certificado.id_gli_soft);
+        if(c.archivo === null){
+          nueva_fila.find('.link').text('SIN ARCHIVO');
+          nueva_fila.find('.link').removeAttr('href').css('color','rgb(183,51,122)');
+        }
+        else{
+          nueva_fila.find('.link').text(c.archivo);
+          nueva_fila.find('.link').attr('href','glisofts/pdf/'+c.certificado.id_gli_soft);
+        }
         listaSoft.append(nueva_fila);
       }
 
