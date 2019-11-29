@@ -13,6 +13,13 @@
 <?php
 setlocale(LC_TIME, 'es_ES.UTF-8');
 ?>
+@foreach($maquinas_casinos as $id_casino => $maquinas)
+  <datalist id="datalistMaquinas{{$id_casino}}">
+    @foreach($maquinas as $m)
+    <option data-id="{{$m['id_maquina']}}">{{$m['nro_admin']}}</option>
+    @endforeach
+  </datalist>
+@endforeach
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
                     <div class="row"> <!-- fila de FILTROS -->
@@ -180,11 +187,23 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                           <i class="fa fa-fw fa-link"></i>
                         </button>
                       </span>
-                      <div id="listaSoft" class="pre-scrollable" style="max-height: 100px;">
+                      <div id="listaSoft" class="pre-scrollable" style="max-height: 150px;">
                         <div id="soft_mod" class="row col-md-12" hidden>
                           <div class="col-md-12" style="border-bottom: rgb(204, 204, 204) 1px solid;">
                             <span class="col-md-6 codigo">CODIGOCERTIFICADO</span>
                             <a class="col-md-6 link" href="glisofts/pdf/" class="col-md-6"  target="_blank" rel="noopener noreferrer">nombre_archivo.pdf</a>
+                          </div>
+                        </div>
+                        <div id="soft_input_mod" class="row col-md-12" hidden>
+                          <div class="col-md-12">
+                            <div class="col-md-10">
+                              <input class="codigo form-control" value="">
+                            </div>
+                            <div class="col-md-2">
+                              <button class="btn borrarFila borrarCertificado">
+                                <i class="fa fa-fw fa-trash"></i>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -206,28 +225,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       <h5>Vincular Máquinas  <button style="display:inline;" id="btn-agregarMaquina" class="btn btn-success borrarFila" type="button">
                         <i class="fa fa-fw fa-link"></i>
                       </button></h5>
-                        <div id="listaMaquinas" class="pre-scrollable" style="min-height: 400px;">
-                          <style media="screen">
-                              .my-group .form-control{
-                                  width:25%;
-                              }
-                              .my-group{
-                                margin-bottom: 10px !important;
-                              }
-                          </style>
-
-                          <div id="maquina_mod" class="row col-md-12">
+                        <div id="listaMaquinas" class="pre-scrollable" style="min-height: 350px;">
+                          <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;">
                             <div class="col-md-10">
-                              <div class="input-group my-group">
-                                <select class="selectCasinos selectpicker form-control" name="">
+                              <div class="input-group">
+                                <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">
                                   @foreach($casinos as $casino)
                                   <option value="{{$casino->id_casino}}">{{$casino->codigo}}</option>
                                   @endforeach
                                 </select>
 
-                                <input type="text" class="form-control nro_admin" name="snpid" placeholder="Nro Admin">
-                                <input type="text" class="form-control denominacion" name="snpid" placeholder="Denominación">
-                                <input type="text" class="form-control porcentaje" name="snpid" placeholder="% Devolución">
+                                <input type="text" class="form-control nro_admin" name="snpid" placeholder="Nro Admin" style="width: 25%;">
+                                <input type="text" class="form-control denominacion" name="snpid" placeholder="Denominación" style="width: 25%;">
+                                <input type="text" class="form-control porcentaje" name="snpid" placeholder="% Devolución" style="width: 25%;">
                               </div>
                             </div>
                             <div class="col-md-2">

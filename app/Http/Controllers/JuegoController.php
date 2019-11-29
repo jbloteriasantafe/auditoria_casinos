@@ -35,7 +35,9 @@ class JuegoController extends Controller
     $uc->agregarSeccionReciente('Juegos','juegos');
     $usuario = $uc->quienSoy()['usuario'];
     $casinos = $usuario->casinos;
-    return view('seccionJuegos' , ['casinos' => $casinos]);
+    $maquinas_casinos = [];
+    foreach($casinos as $c) $maquinas_casinos[$c->id_casino] = $c->maquinas->toArray();
+    return view('seccionJuegos' , ['casinos' => $casinos,'maquinas_casinos' => $maquinas_casinos]);
   }
 
   public function obtenerJuego($id){

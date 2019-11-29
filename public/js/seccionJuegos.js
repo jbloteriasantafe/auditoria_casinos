@@ -129,10 +129,6 @@ $(document).on('click','.detalle', function(){
       $('#inputCodigoJuego').val(data.juego.cod_juego).prop('readonly',true);
       $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
 
-      // for (var i = 0; i < data.tablasDePago.length; i++) {
-      //   $('#tablas_de_pago').append('<tr>').text('TABLAS DE PAGO');
-      //   $('#tablas_de_pago').append('<tr>').text(data.tablasDePago[i].codigo);
-      // }
       $('#btn-guardar').val("modificar");
 
 
@@ -153,10 +149,9 @@ $(document).on('click','.detalle', function(){
       }
       $('.borrarTablaPago').hide();
       for (var i = 0; i < data.maquinas.length; i++) {
-        agregarRenglonMaquina();
-        var div = $('.copia:last');
+        var div = agregarRenglonMaquina();
         div.attr('data-id' ,data.maquinas[i].id_maquina);
-        div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true);
+        div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true).trigger('change');
         div.find('.nro_admin').val(data.maquinas[i].nro_admin).prop('readonly',true);
         div.find('.denominacion').val(data.maquinas[i].denominacion).prop('readonly',true);
         div.find('.porcentaje').val(data.maquinas[i].porcentaje_devolucion).prop('readonly',true);
@@ -228,7 +223,7 @@ $(document).on('click','.modificar',function(){
     $('#id_juego').val(id_juego);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego, data.tablasDePago , data.maquinas);
+      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft);
 
     });
 
@@ -243,11 +238,18 @@ function agregarRenglonMaquina(){
   var renglon = modelo.clone();
   renglon.addClass('copia').removeAttr('id').show();
   $('#listaMaquinas').append(renglon);
-  //  $('.copia:last').css('margin-bottom' , '10px');
+  renglon.trigger('change');
+  return renglon;
 };
 
 $(document).on('click' , '.borrarJuego' , function(){
     $(this).parent().parent().remove();
+})
+$(document).on('change','.selectCasinos',function(){
+    const t  = $(this);
+    const id_casino = t.val();
+    const fila = t.parent();
+    fila.find('.nro_admin').attr('list','datalistMaquinas'+id_casino);
 })
 
 //agregar Tabla DE Pago
@@ -277,7 +279,11 @@ $('#btn-agregarTablaDePago').click(function(){
 //borrar Tabla de Pago
 $(document).on('click' , '.borrarTablaPago' , function(){
   var fila = $(this).parent().parent();
-  fila.next().remove(); //Remueve el salto de linea
+  fila.remove();
+});
+
+$(document).on('click' , '.borrarCertificado' , function(){
+  var fila = $(this).parent().parent();
   fila.remove();
 });
 
@@ -457,10 +463,6 @@ $('#btn-guardar').click(function (e) {
             if(typeof response.cod_identificacion !== 'undefined'){
               mostrarErrorValidacion($('#inputCodigo'),response.cod_identificacion,false);
             }
-
-
-            // if(typeof response.nro_niv_progresivos !== 'undefined'){
-            //   mostrarErrorValidacion($('#tablas_pago'),response.nro_niv_progresivos,false);            }
 
             var i=0;
             var error=' ';
@@ -653,53 +655,51 @@ function crearFilaJuego(juego){
   juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
 
-
-                    fila.attr('id',juego.id_juego)
-                    .append($('<td>')
-                        .addClass('col-xs-3')
-                        .text(juego.nombre_juego)
-                    )
-                    .append($('<td>')
-                        .addClass('col-xs-3')
-                        .text(codigojuego)
-                    )
-                    .append($('<td>')
-                        .addClass('col-xs-3')
-                        .text(codigo)
-                    )
-
-                    .append($('<td>')
-                        .addClass('col-xs-3')
-                        .append($('<button>')
-                            .append($('<i>')
-                                .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-                            )
-                            .append($('<span>').text(' VER MÁS'))
-                            .addClass('btn').addClass('btn-info').addClass('detalle')
-                            .val(juego.id_juego)
-                        )
-                        .append($('<span>').text(' '))
-                        .append($('<button>')
-                            .append($('<i>')
-                                .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-                            )
-                            .append($('<span>').text(' MODIFICAR'))
-                            .addClass('btn').addClass('btn-warning').addClass('modificar')
-                            .val(juego.id_juego)
-                        )
-                        .append($('<span>').text(' '))
-                        .append($('<button>')
-                            .append($('<i>')
-                                .addClass('fa')
-                                .addClass('fa-fw')
-                                .addClass('fa-trash-alt')
-                            )
-                            .append($('<span>').text(' ELIMINAR'))
-                            .addClass('btn').addClass('btn-danger').addClass('eliminar')
-                            .val(juego.id_juego)
-                        )
-                    )
-        return fila;
+  fila.attr('id',juego.id_juego)
+  .append($('<td>')
+      .addClass('col-xs-3')
+      .text(juego.nombre_juego)
+  )
+  .append($('<td>')
+      .addClass('col-xs-3')
+      .text(codigojuego)
+  )
+  .append($('<td>')
+      .addClass('col-xs-3')
+      .text(codigo)
+  )
+  .append($('<td>')
+      .addClass('col-xs-3')
+      .append($('<button>')
+          .append($('<i>')
+              .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+          )
+          .append($('<span>').text(' VER MÁS'))
+          .addClass('btn').addClass('btn-info').addClass('detalle')
+          .val(juego.id_juego)
+      )
+      .append($('<span>').text(' '))
+      .append($('<button>')
+          .append($('<i>')
+              .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
+          )
+          .append($('<span>').text(' MODIFICAR'))
+          .addClass('btn').addClass('btn-warning').addClass('modificar')
+          .val(juego.id_juego)
+      )
+      .append($('<span>').text(' '))
+      .append($('<button>')
+          .append($('<i>')
+              .addClass('fa')
+              .addClass('fa-fw')
+              .addClass('fa-trash-alt')
+          )
+          .append($('<span>').text(' ELIMINAR'))
+          .addClass('btn').addClass('btn-danger').addClass('eliminar')
+          .val(juego.id_juego)
+      )
+  )
+  return fila;
 }
 
 function tiene_letras(texto){
@@ -727,7 +727,7 @@ function habilitarControles(valor){
 }
 
 
-function mostrarJuego(juego, tablas, maquinas){
+function mostrarJuego(juego, tablas, maquinas,certificados){
   $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);;
   $('#inputCodigo').val(juego.cod_identificacion);
@@ -742,17 +742,30 @@ function mostrarJuego(juego, tablas, maquinas){
 
   }
   for (var i = 0; i < maquinas.length; i++) {
-    agregarRenglonMaquina();
-    var div = $('.copia:last');
+    var div = agregarRenglonMaquina();
     div.attr('data-id' ,maquinas[i].id_maquina);
-    div.find('.selectCasinos').val(maquinas[i].id_casino);
+    div.find('.selectCasinos').val(maquinas[i].id_casino).trigger('change');
     div.find('.nro_admin').val(maquinas[i].nro_admin);
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
   } 
-  
+  for (var i = 0; i < certificados.length; i++){
+    let fila = agregarRenglonCertificado();
+    const cert = certificados[i].certificado;
+    fila.find('.codigo').val(cert.nro_archivo)
+    .attr('data-id',cert.id_gli_soft);
+  }
+}
+
+function agregarRenglonCertificado(){
+  let fila =  $('#soft_input_mod').clone().show()
+  .css('padding-top','2px')
+  .css('padding-bottom','2px')
+  .addClass('copia');
+  $('#listaSoft').append(fila);
+  return fila;
 }
 
 $('#btn-agregarCertificado').click(function(){
-  $('#listaSoft').append($('#soft_mod').clone().show().addClass('copia'));
+  agregarRenglonCertificado();
 });
