@@ -60,7 +60,6 @@ $('#btn-ayuda').click(function(e){
 
 //Mostrar modal para agregar nuevo Juego
 $('#btn-nuevo').click(function(e){
-
   e.preventDefault();
   $('#mensajeExito').hide();
 
@@ -80,7 +79,6 @@ $('#btn-nuevo').click(function(e){
   $('#alertaNiveles').hide();
   $('#alertaTablas').hide();
   $('#alertaTabla').remove();
-  $('#modalJuego').modal('show');
   $('#boton-salir').text('CANCELAR');
 
   //Agregar el boton para guardar
@@ -89,8 +87,10 @@ $('#btn-nuevo').click(function(e){
   $('#tablaPagosEncabezado').hide();
   $('#btn-agregarTablaDePago').show();
 
-  $('#nombre_juego').prop('readonly',false);
-  $('#cod_identificacion').prop('readonly',false);
+  $('.borrarFila').show();
+  $('#inputJuego').prop('readonly',false);
+  $('#inputCodigoJuego').prop('readonly',false);
+  $('#btn-agregarCertificado').show();
   $('#nro_niv_progresivos').prop('readonly',false);
   $('#tabla_pago').prop('readonly',false);
   $('#inputProgresivo').prop('readonly',false);
@@ -101,6 +101,8 @@ $('#btn-nuevo').click(function(e){
 
   $('#agregarProgresivo').hide();
   $('#cancelarProgresivo').hide();
+
+  $('#modalJuego').modal('show');
 });
 
 //Muestra el modal con todos los datos del JUEGO
@@ -159,21 +161,11 @@ $(document).on('click','.detalle', function(){
 
       let listaSoft = $('#listaSoft');
       listaSoft.find('.copia').remove();
-      const filaCert = $('#soft_mod');
       for(var i = 0; i < data.certificadoSoft.length; i++){
         const c = data.certificadoSoft[i];
-        let nueva_fila = filaCert.clone().show().addClass('copia');
+        let nueva_fila = agregarRenglonCertificado();
         nueva_fila.attr('data-id',c.certificado.id_gli_soft);
-        nueva_fila.find('.codigo').text(c.certificado.nro_archivo);
-        if(c.archivo === null){
-          nueva_fila.find('.link').text('SIN ARCHIVO');
-          nueva_fila.find('.link').removeAttr('href').css('color','rgb(183,51,122)');
-        }
-        else{
-          nueva_fila.find('.link').text(c.archivo);
-          nueva_fila.find('.link').attr('href','glisofts/pdf/'+c.certificado.id_gli_soft);
-        }
-        listaSoft.append(nueva_fila);
+        nueva_fila.find('.codigo').val(c.certificado.nro_archivo).attr('readonly',true);
       }
 
       $('#modalJuego').modal('show');
@@ -287,17 +279,22 @@ $(document).on('click' , '.borrarCertificado' , function(){
   fila.remove();
 });
 
-$(document).on('click', '.verCertificado', function(){
-  let t = $(this);
-  const input = t.parent().parent().find('.codigo');
-  const val = input.val();
-  const found = $('#datalistCertificados option:contains("'+val+'")');
-  if(found.length == 1){//Si encontre uno 
-    const cert = $(found[0]);
-    if(cert.val() == val){//es el mismo valor 
-      window.open('certificadoSoft/' + cert.attr('data-id'),'_blank');
+function obtenerIdCertificado(nro_archivo){
+  const found = $('#datalistCertificados option:contains("'+nro_archivo+'")');
+  let cert = null;
+  for(let i = 0;i<found.length;i++){
+    if(found[i].textContent == nro_archivo){
+      cert = found[i].getAttribute('data-id');
+      break;
     }
   }
+  return cert;
+}
+
+$(document).on('click', '.verCertificado', function(){
+  const input = $(this).parent().parent().find('.codigo');
+  const id = obtenerIdCertificado(input.val());
+  if(id!=null) window.open('certificadoSoft/' + id,'_blank');
 });
 
 /* busqueda de usuarios */
@@ -435,6 +432,13 @@ $('#btn-guardar').click(function (e) {
       tablas.push(tabla)
     })
 
+    let certificados = [];
+    $('#listaSoft .copia').each(function(){
+      const texto = $(this).find('.codigo').val();
+      const cert = obtenerIdCertificado(texto);
+      if(cert != null) certificados.push(cert);
+    });
+
     var state = $('#btn-guardar').val();
     var type = "POST";
     var url = 'juegos/guardarJuego';
@@ -446,6 +450,7 @@ $('#btn-guardar').click(function (e) {
       cod_juego:$('#inputCodigoJuego').val(),
       tabla_pago: tablas,
       maquinas: maquinas,
+      certificados: certificados,
     }
 
     if (state == "modificar") {
@@ -742,17 +747,13 @@ function habilitarControles(valor){
 
 function mostrarJuego(juego, tablas, maquinas,certificados){
   $('#modalJuego').modal('show');
-  $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);;
+  $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);
   $('#inputCodigo').val(juego.cod_identificacion);
-  $('#inputCodigoJuego').val(juego.cod_juego).prop('readonly',false);;
+  $('#inputCodigoJuego').val(juego.cod_juego).prop('readonly',false);
 
   for (var i = 0; i < tablas.length; i++) {
     $('#btn-agregarTablaDePago').trigger('click');
     $('#tablas_pago input:last').val(tablas[i].codigo).attr('data-id' , tablas[i].id_tabla_pago);
-
-    console.log('dd',tablas);
-    console.log($('#tablas_pago'));
-
   }
   for (var i = 0; i < maquinas.length; i++) {
     var div = agregarRenglonMaquina();
@@ -771,10 +772,12 @@ function mostrarJuego(juego, tablas, maquinas,certificados){
 }
 
 function agregarRenglonCertificado(){
-  let fila =  $('#soft_input_mod').clone().show()
+  let fila =  $('#soft_mod').clone().show()
   .css('padding-top','2px')
   .css('padding-bottom','2px')
-  .addClass('copia');
+  .addClass('copia')
+  .removeAttr('id');
+  
   $('#listaSoft').append(fila);
   return fila;
 }

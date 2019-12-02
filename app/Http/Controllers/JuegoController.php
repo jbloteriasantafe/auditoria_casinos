@@ -127,6 +127,8 @@ class JuegoController extends Controller
       'maquinas.*.id_maquina' => 'required',
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
+      'certificados.*' => 'nullable',
+      'certificados.*.id_gli_soft' => 'nullable',
       'id_progresivo' => 'nullable',
     ], array(), self::$atributos)->validate();
 
@@ -163,6 +165,13 @@ class JuegoController extends Controller
         foreach ($request->tabla_pago as $tabla){
           TablaPagoController::getInstancia()->guardarTablaPago($tabla,$juego->id_juego);
         }
+      }
+
+      foreach($juego->gliSoft as $gli){
+        $juego->gliSoft()->detach($gli->id_gli_soft);
+      }
+      if(isset($request->certificados)){
+        $juego->setearGliSofts($request->certificados,True);
       }
     });
 
@@ -201,6 +210,8 @@ class JuegoController extends Controller
       'maquinas.*.id_maquina' => 'required',
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
+      'certificados.*' => 'nullable',
+      'certificados.*.id_gli_soft' => 'nullable',
       'id_progresivo' => 'nullable',
     ], array(), self::$atributos)->after(function ($validator) {
 
@@ -263,7 +274,14 @@ class JuegoController extends Controller
           }
           $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
         }
-      }  
+      }
+      
+      foreach($juego->gliSoft as $gli){
+        $juego->gliSoft()->detach($gli->id_gli_soft);
+      }
+      if(isset($request->certificados)){
+        $juego->setearGliSofts($request->certificados,True);
+      }
     });
 
     return ['juego' => $juego];
@@ -286,11 +304,17 @@ class JuegoController extends Controller
     foreach($casinos as $casino){
       $reglaCasinos [] = $casino->id_casino;
     }
-    
+
     $juego = Juego::find($id);
     if(is_null($juego)) return ['juego' => null];
 
-    DB::transaction(function() use($juego,$reglaCasinos){
+    $maquinas_accesibles = $juego->maquinas_juegos()
+    ->whereIn('id_casino',$reglaCasinos)->get();
+
+    DB::transaction(function() use($juego,$reglaCasinos,$maquinas_accesibles){
+      foreach($maquinas_accesibles as $mtm){
+        $mtm->juegos()->detach($juego->id_juego);
+      }
       $juego->casinos()->detach($reglaCasinos);
       // @TODO: Si tuvieramos GLISOFT por casino, podriamos detachearlo aca nomas
       // Solo si no queda asociado a ningun casino se puede eliminar el juego

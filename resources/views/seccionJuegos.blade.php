@@ -194,18 +194,12 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </span>
                       <div id="listaSoft" class="pre-scrollable" style="max-height: 150px;">
                         <div id="soft_mod" class="row col-md-12" hidden>
-                          <div class="col-md-12" style="border-bottom: rgb(204, 204, 204) 1px solid;">
-                            <span class="col-md-6 codigo">CODIGOCERTIFICADO</span>
-                            <a class="col-md-6 link" href="certificadoSoft/pdf/" class="col-md-6"  target="_blank" rel="noopener noreferrer">nombre_archivo.pdf</a>
-                          </div>
-                        </div>
-                        <div id="soft_input_mod" class="row col-md-12" hidden>
                           <div class="col-md-12">
                             <div class="col-md-10">
                               <input class="codigo form-control" value="" list="datalistCertificados">
                             </div>
                             <div class="col-md-1">
-                              <button class="btn borrarFila verCertificado">
+                              <button class="btn btn-link verCertificado">
                                 <i class="fa fa-fw fa-search"></i>
                               </button>
                             </div>
