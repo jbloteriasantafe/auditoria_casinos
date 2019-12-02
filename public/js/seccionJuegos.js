@@ -685,6 +685,7 @@ function crearFilaJuego(juego){
   .append($('<td>')
       .addClass('col-xs-3')
       .text(codigo)
+      .attr('title',codigo)
   )
   .append($('<td>')
       .addClass('col-xs-3')
