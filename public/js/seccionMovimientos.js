@@ -82,7 +82,7 @@ $('#inputSoft').bind('input', function() {
         console.log('Hay más de 3 caracteres en el input');
 
         //Si el string del input es más largo que 2 caracteres busca en la BD
-        $.get("glisofts/buscarGliSoftsPorNroArchivo/" + inputGli, function(data){
+        $.get("certificadoSoft/buscarGliSoftsPorNroArchivo/" + inputGli, function(data){
             console.log('Hizo el get');
             console.log(data);
 

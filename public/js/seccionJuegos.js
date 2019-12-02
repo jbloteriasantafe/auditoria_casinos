@@ -238,7 +238,7 @@ function agregarRenglonMaquina(){
   var renglon = modelo.clone();
   renglon.addClass('copia').removeAttr('id').show();
   $('#listaMaquinas').append(renglon);
-  renglon.trigger('change');
+  renglon.find('select').trigger('change');
   return renglon;
 };
 
@@ -285,6 +285,19 @@ $(document).on('click' , '.borrarTablaPago' , function(){
 $(document).on('click' , '.borrarCertificado' , function(){
   var fila = $(this).parent().parent();
   fila.remove();
+});
+
+$(document).on('click', '.verCertificado', function(){
+  let t = $(this);
+  const input = t.parent().parent().find('.codigo');
+  const val = input.val();
+  const found = $('#datalistCertificados option:contains("'+val+'")');
+  if(found.length == 1){//Si encontre uno 
+    const cert = $(found[0]);
+    if(cert.val() == val){//es el mismo valor 
+      window.open('certificadoSoft/' + cert.attr('data-id'),'_blank');
+    }
+  }
 });
 
 /* busqueda de usuarios */

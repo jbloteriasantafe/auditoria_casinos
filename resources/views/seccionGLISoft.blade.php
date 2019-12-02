@@ -4,10 +4,10 @@
 @endsection
 
 @section('estilos')
-<link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
-<link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
+<link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
-<link rel="stylesheet" href="css/paginacion.css">
+<link rel="stylesheet" href="/css/paginacion.css">
 @endsection
 
 <?php
@@ -47,7 +47,7 @@ $id_usuario = session('id_usuario');
                             <div class="row">
                               <div class="col-md-3">
                                 <h5>Código de Certificado</h5>
-                                <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado">
+                                <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado" value="{{$codigo_defecto_busqueda}}">
                               </div>
                               <div class="col-md-3">
                                 <h5>Nombre Archivo</h5>
@@ -136,7 +136,7 @@ $id_usuario = session('id_usuario');
               </div>
           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glihard'))
             <div class="col-xl-12 col-lg-4">
-              <a href="certificadoHard" style="text-decoration:none;">
+              <a href="/certificadoHard" style="text-decoration:none;">
                   <div class="tarjetaSeccionMenor" align="center">
                     <h2 class="tituloFondoMenor">CERTIFICADO HARD</h2>
                     <h2 class="tituloSeccionMenor">CERTIFICADO HARDWARE</h2>
@@ -154,7 +154,7 @@ $id_usuario = session('id_usuario');
           @endif
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
               <div class="col-xl-12 col-lg-4">
-                <a href="expedientes" style="text-decoration:none;">
+                <a href="/expedientes" style="text-decoration:none;">
                     <div class="tarjetaSeccionMenor" align="center">
                       <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
                       <h2 class="tituloSeccionMenor">EXPEDIENTES</h2>
@@ -348,14 +348,14 @@ $id_usuario = session('id_usuario');
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
 
-    <script src="js/seccionGliSoft.js"></script>
+    <script src="/js/seccionGliSoft.js"></script>
 
     <!-- Custom input Bootstrap -->
-    <script src="js/fileinput.min.js" type="text/javascript"></script>
-    <script src="js/locales/es.js" type="text/javascript"></script>
+    <script src="/js/fileinput.min.js" type="text/javascript"></script>
+    <script src="/js/locales/es.js" type="text/javascript"></script>
     <script src="/themes/explorer/theme.js" type="text/javascript"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
-    <script src="js/paginacion.js" charset="utf-8"></script>
+    <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <script type="text/javascript">
 

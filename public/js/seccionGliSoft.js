@@ -35,7 +35,7 @@ $('#btn-agregarJuego').click(function(e){
       $('#inputJuego').val('');
     }
     else{
-      $.get('juegos/obtenerJuego/' + id_juego , function(data){
+      $.get('/juegos/obtenerJuego/' + id_juego , function(data){
         agregarFilaJuego(data.juego, data.tablasDePago);
         $('#inputJuego').val('');
       });
@@ -100,7 +100,7 @@ $('#btn-agregarExpediente').click(function(e){
     var id_expediente = $('#inputExpediente').obtenerElementoSeleccionado();
 
     if (id_expediente != 0) {
-      $.get('expedientes/obtenerExpediente/' + id_expediente , function(data){
+      $.get('/expedientes/obtenerExpediente/' + id_expediente , function(data){
         //Agregar la fila a la tabla
         agregarFilaExpediente(data.expediente);
         //Limpiar el input para seguir buscando expedientes
@@ -152,7 +152,7 @@ $(document).on('click','.detalle',function(){
     //obtenerGli
     var id=$(this).val();
 
-    $.get("glisofts/obtenerGliSoft/" + id , function(data){
+    $.get("obtenerGliSoft/" + id , function(data){
 
       $('#nroCertificado').val(data.glisoft.nro_archivo);
       $('#observaciones').val(data.glisoft.observaciones);
@@ -188,7 +188,7 @@ $(document).on('click','.detalle',function(){
           overwriteInitial: true,
           initialPreviewAsData: true,
           initialPreview: [
-            "http://" + window.location.host + "/glisofts/pdf/" + id,
+            "http://" + window.location.host + "/certificadoSoft/pdf/" + id,
           ],
           initialPreviewConfig: [
             {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -325,7 +325,7 @@ $(document).on('click','.modificarGLI',function(){
 
     $('#cargaArchivo').attr('data-borrado','false');
 
-    $.get("glisofts/obtenerGliSoft/" +id , function(data){
+    $.get("obtenerGliSoft/" +id , function(data){
         console.log(data);
 
         $('#nroCertificado').val(data.glisoft.nro_archivo);
@@ -362,7 +362,7 @@ $(document).on('click','.modificarGLI',function(){
               overwriteInitial: true,
               initialPreviewAsData: true,
               initialPreview: [
-                "http://" + window.location.host +"/glisofts/pdf/" + id,
+                "http://" + window.location.host +"/certificadoSoft/pdf/" + id,
               ],
               initialPreviewConfig: [
                 {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -417,7 +417,7 @@ $('#boton-eliminarGLI').click(function (e) {
 
     $.ajax({
       type: "DELETE",
-      url: "glisofts/eliminarGliSoft/" + id_gli ,
+      url: "eliminarGliSoft/" + id_gli ,
       success: function (data) {
         $('#cuerpoTabla #' + id_gli).remove();
         $("#tablaGliSofts").trigger("update");
@@ -462,7 +462,7 @@ $('#btn-guardar').click(function (e){
 
     if(estado=='nuevo'){
       //seteo de la ruta y del contenido del formulario
-      var url="glisofts/guardarGliSoft";
+      var url="guardarGliSoft";
       var formData=new FormData();
       formData.append('nro_certificado',$('#nroCertificado').val());
       formData.append('observaciones' , $('#observaciones').val());
@@ -475,7 +475,7 @@ $('#btn-guardar').click(function (e){
     }else{
       //ver si puede ser mas de un casino, por ahora es un checkbox
       var id=$('#id_gli').val();
-      var url="glisofts/modificarGliSoft";
+      var url="modificarGliSoft";
       var formData=new FormData();
       formData.append('id_gli_soft' , $('#id_gli').val());
       formData.append('nro_certificado',$('#nroCertificado').val());
@@ -643,7 +643,7 @@ $('#buscarCertificado').click(function(e,
 
     $.ajax({
       type: "post",
-      url: 'glisoft/buscarGliSoft',
+      url: 'buscarGliSoft',
       data: formData,
       dataType: 'json',
       success: function (data) {

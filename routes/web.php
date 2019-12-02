@@ -175,14 +175,20 @@ Route::delete('notas/eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
  /***********
     GLI soft
  ************/
- Route::get('certificadoSoft','GliSoftController@buscarTodo')->middleware('tiene_permiso:ver_seccion_glisoft');
- Route::post('glisofts/guardarGliSoft','GliSoftController@guardarGliSoft');
- Route::get('glisofts/pdf/{id}','GliSoftController@leerArchivoGliSoft');
- Route::get('glisofts/obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');
- Route::delete('glisofts/eliminarGliSoft/{id}','GliSoftController@eliminarGLI');
- Route::post('glisoft/buscarGliSoft','GliSoftController@buscarGliSofts');
- Route::post('glisofts/modificarGliSoft','GliSoftController@modificarGliSoft');
- Route::get('glisofts/buscarGliSoftsPorNroArchivo/{nro_archivo}','GliSoftController@buscarGliSoftsPorNroArchivo');
+Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
+  Route::get('',function(){//@HACK Trate de redireccionarlo a / solo pero no funcionaba
+    return Redirect::to('certificadoSoft/_');
+  });
+  Route::get('/{id?}','GliSoftController@buscarTodo');
+  Route::post('/guardarGliSoft','GliSoftController@guardarGliSoft');
+  Route::get('/pdf/{id}','GliSoftController@leerArchivoGliSoft');
+  Route::get('/obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');
+  Route::delete('/eliminarGliSoft/{id}','GliSoftController@eliminarGLI');
+  Route::post('/buscarGliSoft','GliSoftController@buscarGliSofts');
+  Route::post('/modificarGliSoft','GliSoftController@modificarGliSoft');
+});
+//Lo dejo afuera sin permisos porque se usa en otro modulo, Movimientos...
+Route::get('certificadoSoft/buscarGliSoftsPorNroArchivo/{nro_archivo}','GliSoftController@buscarGliSoftsPorNroArchivo');
 /***********
 GliHards
 ***********/

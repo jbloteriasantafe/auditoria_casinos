@@ -31,7 +31,7 @@ class GliSoftController extends Controller
       return self::$instance;
   }
 
-  public function buscarTodo(){
+  public function buscarTodo($id = null){
       $glisofts=GliSoft::all();
       $casinos=Casino::all();
       UsuarioController::getInstancia()->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
@@ -46,8 +46,13 @@ class GliSoftController extends Controller
         }
         $juegosarr[$nombre][] = $j;
       }
+      $codigo_defecto_busqueda = '';
+      if(!is_null($id)){
+        $gli_defecto = GliSoft::find($id);
+        if(!is_null($gli_defecto)) $codigo_defecto_busqueda = $gli_defecto->nro_archivo;
+      }
       //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
-      return view('seccionGLISoft' , ['glis' => $glisofts,'casinos' => $casinos,'juegos' => $juegosarr]);
+      return view('seccionGLISoft' , ['glis' => $glisofts,'casinos' => $casinos,'juegos' => $juegosarr,'codigo_defecto_busqueda' => $codigo_defecto_busqueda]);
   }
 
   public function obtenerGliSoft($id){

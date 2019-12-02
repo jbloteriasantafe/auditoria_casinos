@@ -37,7 +37,11 @@ class JuegoController extends Controller
     $casinos = $usuario->casinos;
     $maquinas_casinos = [];
     foreach($casinos as $c) $maquinas_casinos[$c->id_casino] = $c->maquinas->toArray();
-    return view('seccionJuegos' , ['casinos' => $casinos,'maquinas_casinos' => $maquinas_casinos]);
+    return view('seccionJuegos' , 
+    ['casinos' => $casinos,
+     'maquinas_casinos' => $maquinas_casinos,
+     'certificados' => GliSoft::all()
+    ]);
   }
 
   public function obtenerJuego($id){

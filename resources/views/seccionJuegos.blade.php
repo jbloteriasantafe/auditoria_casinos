@@ -20,6 +20,11 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     @endforeach
   </datalist>
 @endforeach
+<datalist id="datalistCertificados">
+@foreach($certificados as $cert)
+<option data-id="{{$cert->id_gli_soft}}">{{$cert->nro_archivo}}</option>
+@endforeach
+</datalist>
               <div class="row">
                   <div class="col-lg-12 col-xl-9">
                     <div class="row"> <!-- fila de FILTROS -->
@@ -191,15 +196,20 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <div id="soft_mod" class="row col-md-12" hidden>
                           <div class="col-md-12" style="border-bottom: rgb(204, 204, 204) 1px solid;">
                             <span class="col-md-6 codigo">CODIGOCERTIFICADO</span>
-                            <a class="col-md-6 link" href="glisofts/pdf/" class="col-md-6"  target="_blank" rel="noopener noreferrer">nombre_archivo.pdf</a>
+                            <a class="col-md-6 link" href="certificadoSoft/pdf/" class="col-md-6"  target="_blank" rel="noopener noreferrer">nombre_archivo.pdf</a>
                           </div>
                         </div>
                         <div id="soft_input_mod" class="row col-md-12" hidden>
                           <div class="col-md-12">
                             <div class="col-md-10">
-                              <input class="codigo form-control" value="">
+                              <input class="codigo form-control" value="" list="datalistCertificados">
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
+                              <button class="btn borrarFila verCertificado">
+                                <i class="fa fa-fw fa-search"></i>
+                              </button>
+                            </div>
+                            <div class="col-md-1">
                               <button class="btn borrarFila borrarCertificado">
                                 <i class="fa fa-fw fa-trash"></i>
                               </button>
