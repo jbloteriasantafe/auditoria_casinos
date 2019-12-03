@@ -182,17 +182,20 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       <div class="col-md-3">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
-                    </div>
+                      </div>
+                      <div class="col-md-3">
+                        <h5>Casinos</h5>
+                        <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
+                        </select>
+                      </div>
                   </div>
-                  <div class="row">
+                  <div class="row" style="padding-bottom: 15px;">
                     <div class="col-md-12">
-                      <span>
-                        <h5 style="display:inline;">Certificados Software</h5>
-                        <button style="display:inline;" id="btn-agregarCertificado" class="btn btn-success borrarFila" type="button">
-                          <i class="fa fa-fw fa-link"></i>
-                        </button>
-                      </span>
-                      <div id="listaSoft" class="pre-scrollable" style="max-height: 150px;">
+                      <h5 style="display:inline;">Certificados Software</h5>
+                      <button style="display:inline;" id="btn-agregarCertificado" class="btn btn-success borrarFila" type="button">
+                        <i class="fa fa-fw fa-link"></i>
+                      </button>
+                      <div id="listaSoft" class="pre-scrollable" style="margin-top:15px;max-height: 150px;">
                         <div id="soft_mod" class="row col-md-12" hidden>
                           <div class="col-md-10">
                             <input class="codigo form-control" value="" list="datalistCertificados">
@@ -233,7 +236,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                               <div class="input-group">
                                 <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">
                                   @foreach($casinos as $casino)
-                                  <option value="{{$casino->id_casino}}">{{$casino->codigo}}</option>
+                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                   @endforeach
                                 </select>
 

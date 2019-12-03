@@ -102,6 +102,13 @@ $('#btn-nuevo').click(function(e){
   $('#agregarProgresivo').hide();
   $('#cancelarProgresivo').hide();
 
+  let casinos = [];
+  $('#maquina_mod .selectCasinos option').each(function(){
+    const t = $(this);
+    casinos.push({id_casino: t.val(), nombre: t.text()});
+  });
+  cargarCasinosJuego(casinos);
+
   $('#modalJuego').modal('show');
 });
 
@@ -130,10 +137,7 @@ $(document).on('click','.detalle', function(){
       $('#inputCodigo').val(data.juego.cod_identificacion);
       $('#inputCodigoJuego').val(data.juego.cod_juego).prop('readonly',true);
       $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
-
       $('#btn-guardar').val("modificar");
-
-
       $('#nombre_juego').prop('readonly',true);
       $('#cod_identificacion').prop('readonly',true);
       $('#nro_niv_progresivos').prop('readonly',true);
@@ -146,8 +150,8 @@ $(document).on('click','.detalle', function(){
 
       for (var i = 0; i < data.tablasDePago.length; i++) {
         $('#btn-agregarTablaDePago').trigger('click');
-        $('#tablas_pago input:last').val(data.tablasDePago[i].codigo).attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
-        
+        $('#tablas_pago input:last').val(data.tablasDePago[i].codigo)
+        .attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
       }
       $('.borrarTablaPago').hide();
       for (var i = 0; i < data.maquinas.length; i++) {
@@ -167,6 +171,8 @@ $(document).on('click','.detalle', function(){
         nueva_fila.attr('data-id',c.certificado.id_gli_soft);
         nueva_fila.find('.codigo').val(c.certificado.nro_archivo).attr('readonly',true);
       }
+
+      cargarCasinosJuego(data.casinosJuego);
 
       $('#modalJuego').modal('show');
 
@@ -194,6 +200,16 @@ $('.modal').on('hidden.bs.modal', function() {
   $('#tablas_pago').empty();
 })
 
+function cargarCasinosJuego(casinos){
+  let selectCasinosJuego = $('#selectCasinosJuego');
+  selectCasinosJuego.empty();
+  selectCasinosJuego.attr('size',Math.max(casinos.length,2));
+  for(var i = 0;i < casinos.length; i++){
+    const c = casinos[i];
+    selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
+  }
+}
+
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
 
@@ -215,7 +231,7 @@ $(document).on('click','.modificar',function(){
     $('#id_juego').val(id_juego);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft);
+      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
 
     });
 
@@ -745,7 +761,7 @@ function habilitarControles(valor){
 }
 
 
-function mostrarJuego(juego, tablas, maquinas,certificados){
+function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
   $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);
   $('#inputCodigo').val(juego.cod_identificacion);
@@ -769,6 +785,8 @@ function mostrarJuego(juego, tablas, maquinas,certificados){
     fila.find('.codigo').val(cert.nro_archivo)
     .attr('data-id',cert.id_gli_soft);
   }
+
+  cargarCasinosJuego(casinos);
 }
 
 function agregarRenglonCertificado(){

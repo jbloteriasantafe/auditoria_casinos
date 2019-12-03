@@ -78,7 +78,8 @@ class JuegoController extends Controller
             'tablasDePago' => $tabla,
             'maquinas' => $maquinas,
             'pack'=>$packJuego,
-            'certificadoSoft' => $this->obtenerCertificadosSoft($id)];
+            'certificadoSoft' => $this->obtenerCertificadosSoft($id),
+            'casinosJuego' => $juego->casinos];
   }
 
   public function encontrarOCrear($juego){
