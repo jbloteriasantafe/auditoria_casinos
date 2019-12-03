@@ -231,7 +231,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <i class="fa fa-fw fa-link"></i>
                       </button></h5>
                         <div id="listaMaquinas" class="pre-scrollable" style="min-height: 350px;">
-                          <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;">
+                          <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
                             <div class="col-md-10">
                               <div class="input-group">
                                 <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">

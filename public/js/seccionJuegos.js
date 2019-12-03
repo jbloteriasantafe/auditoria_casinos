@@ -1,24 +1,9 @@
-var letras="abcdefghyjklmnñopqrstuvwxyz";
-
 $(document).ready(function(){
-
-  $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
-  $('#gestionarMTM').removeClass();
-  $('#gestionarMTM').addClass('subMenu2 collapse in');
-
-  $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
-
   $('.tituloSeccionPantalla').text('Juegos');
-  $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcJuegos').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcJuegos').addClass('opcionesSeleccionado');
-
   //click forzado
   $('#btn-buscar').trigger('click');
-
-  $('#maquina_mod').hide(); //maquina modelo, se clona
 })
 
 //enter en buscador
@@ -50,12 +35,9 @@ $('#btn-minimizar').click(function(){
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
   $('.modal-title').text('| JUEGOS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
 
 //Mostrar modal para agregar nuevo Juego
@@ -65,43 +47,26 @@ $('#btn-nuevo').click(function(e){
 
   $('.modal-title').text(' | NUEVO JUEGO');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-
   $('#btn-guardar').removeClass('btn-warningModificar');
   $('#btn-guardar').addClass('btn-successAceptar');
   $('#btn-guardar').text('ACEPTAR');
-
-  $('#columna > .alertaSpan').remove();
   $('#btn-guardar').val("nuevo");
+  $('#btn-guardar').css('display','inline-block');
   $('#frmJuego').trigger('reset');
-  $('#columna > #unaTablaDePago').remove();
-  $('#alertaNombre').hide();
-  $('#alertaCodigo').hide();
-  $('#alertaNiveles').hide();
-  $('#alertaTablas').hide();
-  $('#alertaTabla').remove();
   $('#boton-salir').text('CANCELAR');
 
-  //Agregar el boton para guardar
-  $('#btn-guardar').css('display','inline-block');
-  $('#btn-agregarMaquina').show();
-  $('#tablaPagosEncabezado').hide();
-  $('#btn-agregarTablaDePago').show();
-
-  $('.borrarFila').show();
-  $('#inputJuego').prop('readonly',false);
-  $('#inputCodigoJuego').prop('readonly',false);
-  $('#btn-agregarCertificado').show();
-  $('#tabla_pago').prop('readonly',false);
-
-  $('#nombre_juego').removeClass('alerta');
-  $('#cod_identificacion').removeClass('alerta');
-
+  const juego = {nombre_juego: "", cod_juego: ""};
+  const tablas = [];
+  const maquinas = [];
+  const certificados = [];
   let casinos = [];
   $('#maquina_mod .selectCasinos option').each(function(){
     const t = $(this);
     casinos.push({id_casino: t.val(), nombre: t.text()});
   });
-  cargarCasinosJuego(casinos);
+
+  mostrarJuego(juego,tablas,maquinas,certificados,casinos);
+  habilitarControles(true);
 
   $('#modalJuego').modal('show');
 });
@@ -112,35 +77,19 @@ $(document).on('click','.detalle', function(){
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
   $('#boton-salir').show();
-  $('#columna > .alertaSpan').remove();
-  $('#columna > #unaTablaDePago').remove();
-  $('#btn-agregarTablaDePago').hide();
-  $('#btn-agregarMaquina').hide();
-  $('.borrarFila').hide();
   $('#boton-salir').text('SALIR');
+  $('#btn-guardar').val("modificar");
 
   var id_juego = $(this).val();
 
   $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
-
-      $('#btn-guardar').val("modificar");
       $('#id_juego').val(data.juego.id_juego);
-      $('.borrarTablaPago').hide();
-      $('#modalJuego .copia input').prop('readonly',true);
-      $('#modalJuego .copia select').attr('disabled',true);
-      $('#inputJuego').prop('readonly',true);
-      $('#inputCodigoJuego').prop('readonly',true);
-
+      habilitarControles(false);
       $('#modalJuego').modal('show');
 
   });
-
-    $('#alertaNombre').hide();
-    $('#alertaCodigo').hide();
-    $('#alertaNiveles').hide();
 
     //Remover el boton para guardar
     $('#btn-guardar').css('display','none');
@@ -152,7 +101,6 @@ $('.modal').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('inputJuego'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
-  $('#inputCodigo').val('');
   $('#inputJuego').val('');
   $('#inputCodigoJuego').val('');
   $('.copia').remove();
@@ -175,17 +123,13 @@ $(document).on('click','.modificar',function(){
     ocultarErrorValidacion($('#inputCodigo'));
     ocultarErrorValidacion($('#inputCodigoJuego'));
     ocultarErrorValidacion($('#tablas_pago'));
-    //se restrablece los botones despues de salir del ver detalle
-    $('#btn-agregarTablaDePago').show();
-    $('#btn-agregarMaquina').show();
-    $('.borrarFila').show();
-
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('MODIFICAR JUEGO');
     $('#modalJuego .modal-header').attr('style','background: #ff9d2d');
     $('#btn-guardar').val('modificar').show();
     $('#id_juego').val(id_juego);
+    habilitarControles(true);
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
@@ -500,41 +444,32 @@ $('#btn-guardar').click(function (e) {
 $('#nombre_juego').focusout(function(){
   if ($(this).val() == ''){
       $(this).addClass('alerta');
-      $('#alertaNombre').text('Este campo no puede estar en blanco.');
-      $('#alertaNombre').show();
   }
 });
 
 $('#nombre_juego').focusin(function(){
   $(this).removeClass('alerta');
-  $('#alertaNombre').hide();
 });
 
 
 $(document).on('focusout','.inputTabla', function(){
   if ($(this).val() == '' || tiene_letras($(this).val())){
       $(this).addClass('alerta');
-      var alerta='<span id="alertaTabla" class="alertaSpan">Tabla de pago no debe estar vacía; y los campos Base, %Dev.min y %Dev.max deben ser números</span>';
-      $('#columna').append(alerta);
   }
 });
 
 $(document).on('focusin','.inputTabla', function(){
   $(this).removeClass('alerta');
-  $('#alertaTabla').remove();
 });
 
 $(document).on('focusout','.inputCodigo', function(){
   if ($(this).val() == '' ){
       $(this).addClass('alerta');
-      var alerta='<span id="alertaTabla" class="alertaSpan">Tabla de pago no debe estar vacía; y los campos Base, %Dev.min y %Dev.max deben ser números</span>';
-      $('#columna').append(alerta);
   }
 });
 
 $(document).on('focusin','.inputCodigo', function(){
   $(this).removeClass('alerta');
-  $('#alertaTabla').remove();
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
@@ -612,6 +547,7 @@ function crearFilaJuego(juego){
 }
 
 function tiene_letras(texto){
+   const letras="abcdefghyjklmnñopqrstuvwxyz";
    texto = texto.toLowerCase();
    for(i=0; i<texto.length; i++){
       if (letras.indexOf(texto.charAt(i),0)!=-1){
@@ -631,14 +567,31 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-function habilitarControles(valor){
-
+function habilitarControles(habilitado){
+  $('#inputJuego').prop('readonly',!habilitado);
+  $('#inputCodigoJuego').prop('readonly',!habilitado);
+  if(habilitado){
+    $('.borrarTablaPago').show();
+    $('#btn-agregarMaquina').show();
+    $('#btn-agregarTablaDePago').show();
+    $('.borrarFila').show();
+    $('#btn-agregarCertificado').show();
+  }
+  else{
+    $('.borrarTablaPago').hide();
+    $('#btn-agregarMaquina').hide();
+    $('#btn-agregarTablaDePago').hide();
+    $('.borrarFila').hide();
+    $('#btn-agregarCertificado').hide();
+  }
+  $('#modalJuego .copia input').prop('readonly',!habilitado);
+  $('#modalJuego .copia select').attr('disabled',!habilitado);
 }
 
 
 function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
-  $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);
-  $('#inputCodigoJuego').val(juego.cod_juego).prop('readonly',false);
+  $('#inputJuego').val(juego.nombre_juego);
+  $('#inputCodigoJuego').val(juego.cod_juego);
 
   for (var i = 0; i < tablas.length; i++) {
     let fila = agregarRenglonTablaDePago();
