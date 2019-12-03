@@ -194,20 +194,18 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </span>
                       <div id="listaSoft" class="pre-scrollable" style="max-height: 150px;">
                         <div id="soft_mod" class="row col-md-12" hidden>
-                          <div class="col-md-12">
-                            <div class="col-md-10">
-                              <input class="codigo form-control" value="" list="datalistCertificados">
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn btn-link verCertificado">
-                                <i class="fa fa-fw fa-search"></i>
-                              </button>
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn borrarFila borrarCertificado">
-                                <i class="fa fa-fw fa-trash"></i>
-                              </button>
-                            </div>
+                          <div class="col-md-10">
+                            <input class="codigo form-control" value="" list="datalistCertificados">
+                          </div>
+                          <div class="col-md-1">
+                            <button class="btn btn-link verCertificado">
+                              <i class="fa fa-fw fa-search"></i>
+                            </button>
+                          </div>
+                          <div class="col-md-1">
+                            <button class="btn borrarFila borrarCertificado">
+                              <i class="fa fa-fw fa-trash"></i>
+                            </button>
                           </div>
                         </div>
                       </div>
