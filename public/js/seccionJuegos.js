@@ -306,10 +306,30 @@ function obtenerIdCertificado(nro_archivo){
   }
   return cert;
 }
+function obtenerIdMaquina(id_casino,nro_admin){
+  const found = $('#datalistMaquinas'+id_casino+' option:contains('+nro_admin+')');
+  let maq = null;
+  for(let i = 0;i<found.length;i++){
+    if(found[i].textContent == nro_admin){
+      maq = found[i].getAttribute('data-id');
+      break;
+    }
+  }
+  return maq;
+}
 
 $(document).on('click', '.verCertificado', function(){
   const input = $(this).parent().parent().find('.codigo');
-  if(input.length>0) window.open('certificadoSoft/' + input.val(),'_blank');
+  const val = input.val();
+  if(obtenerIdCertificado(val) != null) window.open('certificadoSoft/' + val,'_blank');
+});
+
+$(document).on('click','.verMaquina',function(){
+  const fila = $(this).parent().parent();
+  const id_casino = fila.find('.selectCasinos').val();
+  const nro_admin = fila.find('.nro_admin').val();
+  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
+  if(id_maquina != null) window.open('maquinas/' + id_maquina,'_blank');
 });
 
 /* busqueda de usuarios */

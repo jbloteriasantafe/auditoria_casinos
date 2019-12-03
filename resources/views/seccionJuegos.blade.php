@@ -245,7 +245,12 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                 <input type="text" class="form-control porcentaje" name="snpid" placeholder="% Devolución" style="width: 25%;">
                               </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
+                              <button class="btn btn-link verMaquina">
+                                <i class="fa fa-fw fa-search"></i>
+                              </button>
+                            </div>
+                            <div class="col-md-1">
                               <button class="btn btn-danger borrarFila borrarJuego"><i class="fa fa-fw fa-trash"></i></button>
                             </div>
                           </div>

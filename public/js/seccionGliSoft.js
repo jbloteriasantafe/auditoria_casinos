@@ -1,3 +1,6 @@
+//Esta variable dice si hay que abrir el primer resultado
+//Se usa cuando se entra por la url
+let abrir_modal = false;
 $(document).ready(function(){
 
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -13,6 +16,12 @@ $(document).ready(function(){
   $('#opcGliSoft').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGliSoft').addClass('opcionesSeleccionado');
 
+
+  const url = window.location.pathname.split("/");
+  //El codigo por el que se busca ya se setea por la view
+  //Solo seteamos por javascript que se abra el modal
+  if(url.length >= 3) abrir_modal = true;
+  
   $('#buscarCertificado').trigger('click');
 });
 
@@ -657,6 +666,11 @@ $('#buscarCertificado').click(function(e,
         for (var i = 0; i < data.resultados.data.length; i++) {
           var filaCertificado = generarFilaTabla(data.resultados.data[i]);
           $('#cuerpoTabla').append(filaCertificado);
+        }
+
+        if(abrir_modal){//Si entro por la url le abro el primer resultado
+          $('#tablaGliSofts tbody tr').eq(0).find('.detalle').trigger('click');
+          abrir_modal = false;
         }
       },
       error: function (data) {
