@@ -18,6 +18,7 @@ use App\DatoGeneralidad;
 use App\Clima;
 use App\Temperatura;
 use App\EventoControlAmbiental;
+use App\InformeControlAmbiental;
 use Validator;
 use View;
 use Dompdf\Dompdf;
@@ -75,7 +76,7 @@ class RelevamientoAmbientalController extends Controller
                   })
       ->where($reglas)
       ->where('id_tipo_relev_ambiental' , '=', 0)
-      //->where('backup' , '=', 0)
+      ->whereIn('casino.id_casino' , $casinos)
       ->paginate($request->page_size);
 
     return $resultados;
@@ -141,7 +142,6 @@ class RelevamientoAmbientalController extends Controller
          $relevamiento_ambiental->id_estado_relevamiento = 1;
          $relevamiento_ambiental->id_tipo_relev_ambiental = 0;
          $relevamiento_ambiental->id_usuario_cargador = $fiscalizador->id_usuario;
-         //$relevamiento_ambiental->backup = 0;
          $relevamiento_ambiental->save();
 
          //guardo los detalles
@@ -172,40 +172,6 @@ class RelevamientoAmbientalController extends Controller
      }
 
     return ['codigo' => 200];
-  }
-
-  public function usarRelevamientoBackUp(Request $request){
-    dd("CONTINUAR CUANDO LOS REQS SEAN CLAROS");
-    Validator::make($request->all(),[
-        'id_sector' => 'required|exists:sector,id_sector',
-        'fecha' => 'required|date',
-        'fecha_generacion' => 'required|date'
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
-
-    $relevamientos = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();
-    if($relevamientos != null){
-      foreach($relevamientos as $relevamiento){
-        $relevamiento->backup = 1;
-        $relevamiento->save();
-      }
-    }
-
-    $rel_backup = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',1]])->whereDate('fecha_generacion','=',$request->fecha_generacion)->first();
-    $fecha = $rel_backup->fecha;
-    $id_casino = $rel_backup->sector->casino->id_casino;
-    foreach($rel_backup->detalles as $detalle){
-      $detalle->producido_importado = $this->calcularProducido($fecha,$id_casino,$detalle->id_maquina);
-      $detalle->save();
-    }
-    $rel_backup->backup = 0;
-    $rel_backup->save();
-
-    return ['id_relevamiento' => $rel_backup->id_relevamiento,
-            'fecha' => $rel_backup->fecha,
-            'casino' => $rel_backup->sector->casino->nombre,
-            'sector' => $rel_backup->sector->descripcion,
-            'estado' => $rel_backup->estado_relevamiento->descripcion];
   }
 
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
@@ -486,12 +452,24 @@ class RelevamientoAmbientalController extends Controller
     $usuario = $usercontroller->quienSoy()['usuario'];
     $relevamiento_ambiental = RelevamientoAmbiental::find($id_relevamiento_ambiental);
     $casino = Casino::find($relevamiento_ambiental->id_casino);
+    $estado = $relevamiento_ambiental->id_estado_relevamiento;
 
     if($usuario === null || $relevamiento_ambiental === null) return;
 
     if(!$usercontroller->usuarioTieneCasinoCorrespondiente($usuario->id_usuario, $casino->id_casino)) return;
 
-    DB::transaction(function() use ($id_relevamiento_ambiental){
+    DB::transaction(function() use ($id_relevamiento_ambiental, $estado){
+      //si se trata de un relevamiento visado (estado = 4), me fijo si hay un informe generado asociado.
+      //Si hay, primero elimino ese informe.
+      if ($estado == 4) {
+        $informe = InformeControlAmbiental::where([['id_relevamiento_ambiental_maquinas', $id_relevamiento_ambiental]])->first();
+
+        if (sizeof($informe) == 1) {
+          DB::table('informe_control_ambiental')
+          ->where('id_informe_control_ambiental', '=', $informe->id_informe_control_ambiental)
+          ->delete();
+        }
+      }
 
       //elimino todos los detalles asociados al relevamiento de control ambiental
       DB::table('detalle_relevamiento_ambiental')

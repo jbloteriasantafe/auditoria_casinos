@@ -202,14 +202,15 @@ function validarRelevamiento(relevamiento) {
 
     $.get('relevamientosControlAmbientalMesas/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
-            hidearTurnosInnecesarios(data.cantidad_turnos);
             setearRelevamiento(data, obtenerFilaValidacion);
 
             $('#btn-finalizar').click(function() {
                 enviarFormularioValidacion(relevamiento.id_relevamiento_ambiental,
                     function(x) {
                         console.log(x);
+
                         $('#modalRelevamientoAmbiental').modal('hide');
+                        $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Visado";
                         cambiarEstadoFila(fila, relevamiento);
@@ -237,7 +238,7 @@ function obtenerFilaValidacion(detalle) {
   for (let i=1; i<=detalle.cantidad_turnos; i++) {
     fila.append($('<td>')
         .addClass('col-xs-1')
-        .css('width','90px')
+        .css('width','120px')
         .css('display','inline-block')
         .append($('<input>')
             .addClass('turno'+i)
@@ -447,7 +448,6 @@ function cargarRelevamiento(relevamiento) {
 
     $.get('relevamientosControlAmbientalMesas/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
-            hidearTurnosInnecesarios(data.cantidad_turnos);
             setearRelevamiento(data, obtenerFila);
 
             $('#btn-finalizar').click(function() {
@@ -462,6 +462,7 @@ function cargarRelevamiento(relevamiento) {
                     function(data) {
                         console.log(data);
                         $('#modalRelevamientoAmbiental').modal('hide');
+                        $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Finalizado";
                         cambiarEstadoFila(fila, relevamiento);
@@ -498,13 +499,15 @@ function cargarRelevamiento(relevamiento) {
     $('#modalRelevamientoAmbiental').modal('show');
 }
 
-function setearRelevamiento(data, filaCallback) {
+function setearRelevamiento(data, filaCallback, esValidacion) {
+    let row_th = $('#tablaPersonas .cabeceraTablaPersonas');
     //Limpio los campos
     console.log(data.casino.id_casino);
     $('#modalRelevamientoAmbiental input').val('');
     $('#modalRelevamientoAmbiental select').val(-1);
     $('#modalRelevamientoAmbiental .cuerpoTablaPersonas tr').not('.filaEjemplo').remove();
     $('#usuario_fiscalizador').attr('list', 'datalist' + data.casino.id_casino);
+    $('#tipo_control_ambiental').val("Mesas de paño");
 
     $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
     $('#cargaCasino').val(data.casino.nombre);
@@ -522,6 +525,23 @@ function setearRelevamiento(data, filaCallback) {
         $('#observacion_carga').val(data.relevamiento.observacion_carga);
     }
 
+    row_th.append($('<th>')
+      .addClass('sortable')
+      .attr('data-id','mesa')
+      .css('width','120px')
+      .css('display','inline-block')
+      .text('MESA')
+    );
+
+    for (let i=1; i<=data.cantidad_turnos; i++) {
+      row_th.append($('<th>')
+          .attr('id','t'+i)
+          .css('width','120px')
+          .css('display','inline-block')
+          .text('TURNO '+i)
+      );
+    }
+
     let tabla = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas');
     for (let i = 0; i < data.detalles.length; i++) {
         tabla.append(filaCallback(data.detalles[i]));
@@ -537,7 +557,7 @@ function obtenerFila(detalle) {
     for (let i=1; i<=detalle.cantidad_turnos; i++) {
       fila.append($('<td>')
           .addClass('col-xs-1')
-          .css('width','90px')
+          .css('width','120px')
           .css('display','inline-block')
           .append($('<input>')
               .addClass('turno'+i)
@@ -640,32 +660,6 @@ function enviarFormularioCarga(relevamiento,
     });
 }
 
-function hidearTurnosInnecesarios (cant) {
-  let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
-
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6 || cant==7) {
-    row_th.find('#t8').hide();
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6) {
-    row_th.find('#t7').hide();
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5) {
-    row_th.find('#t6').hide();
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4) {
-    row_th.find('#t5').hide();
-  }
-  if (cant==1 || cant==2 || cant==3) {
-    row_th.find('#t4').hide();
-  }
-  if (cant==1 || cant==2) {
-    row_th.find('#t3').hide();
-  }
-  if (cant==1) {
-    row_th.find('#t2').hide();
-  }
-}
-
 function obtenerIdFiscalizador(id_casino, str) {
     let f = $('#datalist' + id_casino).find('option:contains("' + str + '")');
     if (f.length == 0) return null;
@@ -719,16 +713,7 @@ function mensajeError(errores) {
 }
 
 $('#btn-salir').click(function() {
-    let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
-    row_th.find('#t1').show();
-    row_th.find('#t2').show();
-    row_th.find('#t3').show();
-    row_th.find('#t4').show();
-    row_th.find('#t5').show();
-    row_th.find('#t6').show();
-    row_th.find('#t7').show();
-    row_th.find('#t8').show();
-
+    $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
     $('#modalRelevamientoAmbiental').modal('hide');
 });
 
@@ -777,86 +762,4 @@ $('#btn-generar').click(function(e) {
         }
     });
 
-});
-
-//Generar el relevamiento de backup
-$('#btn-backup').click(function(e){
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  e.preventDefault();
-
-  var formData = {
-    fecha: $('#fechaRelSinSistema_date').val(),
-    fecha_generacion: $('#fechaGeneracion_date').val(),
-    id_casino: $('#casinoSinSistema').val(),
-  }
-
-  console.log(formData);
-
-  $.ajax({
-      type: "POST",
-      url: 'relevamientosControlAmbientalMesas/usarRelevamientoBackUp',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
-            $('#btn-buscar').trigger('click');
-            $('#modalRelSinSistema').modal('hide');
-
-      },
-      error: function (data) {
-        console.log('ERROR!');
-        console.log(data);
-
-        var response = JSON.parse(data.responseText);
-
-        if(typeof response.fecha !== 'undefined') {
-          mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
-        }
-
-        if(typeof response.fecha_generacion !== 'undefined') {
-          mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
-        }
-
-      }
-  });
-
-});
-
-//RELEVAMIENTO SIN SISTEMA
-$('#btn-relevamientoSinSistema').click(function(e) {
-  e.preventDefault();
-  $('.modal-title').text('| RELEVAMIENTO SIN SISTEMA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-
-  $('#fechaGeneracion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#fechaRelSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#modalRelSinSistema').modal('show');
 });

@@ -202,8 +202,7 @@ function validarRelevamiento(relevamiento) {
 
     $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
-            hidearTurnosInnecesarios(data.cantidad_turnos);
-            desactivarGeneralidades(data.cantidad_turnos);
+            $('#segundoRow').after('<br>');
             setearRelevamiento(data, obtenerFilaValidacion);
 
             $('#btn-finalizar').click(function() {
@@ -211,6 +210,11 @@ function validarRelevamiento(relevamiento) {
                     function(x) {
                         console.log(x);
                         $('#modalRelevamientoAmbiental').modal('hide');
+                        $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
+                        $('#rowClima').children().remove();
+                        $('#rowTemperatura').children().remove();
+                        $('#rowEvento').children().remove();
+                        $("br").remove();
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Visado";
                         cambiarEstadoFila(fila, relevamiento);
@@ -237,8 +241,8 @@ function obtenerFilaValidacion(detalle) {
 
   for (let i=1; i<=detalle.cantidad_turnos; i++) {
     fila.append($('<td>')
-        .addClass('col-xs-1')
-        .css('width','90px')
+        .addClass('col-sm-1')
+        .css('width','120px')
         .css('display','inline-block')
         .append($('<input>')
             .addClass('turno'+i)
@@ -449,7 +453,7 @@ function cargarRelevamiento(relevamiento) {
 
     $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
-            hidearTurnosInnecesarios(data.cantidad_turnos);
+            crearSelectsGeneralidades(data.cantidad_turnos);
             setearRelevamiento(data, obtenerFila);
 
             $('#btn-finalizar').click(function() {
@@ -464,6 +468,11 @@ function cargarRelevamiento(relevamiento) {
                     function(data) {
                         console.log(data);
                         $('#modalRelevamientoAmbiental').modal('hide');
+                        $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
+                        $('#rowClima').children().remove();
+                        $('#rowTemperatura').children().remove();
+                        $('#rowEvento').children().remove();
+                        $("br").remove();
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Finalizado";
                         cambiarEstadoFila(fila, relevamiento);
@@ -481,6 +490,10 @@ function cargarRelevamiento(relevamiento) {
                 enviarFormularioCarga(data,
                     function(x) {
                         console.log(x);
+                        $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
+                        $('#rowClima').children().remove();
+                        $('#rowTemperatura').children().remove();
+                        $('#rowEvento').children().remove();
                         $('#modalRelevamientoAmbiental').modal('hide');
                         let fila = $('#cuerpoTabla tr[data-id="' + relevamiento.id_relevamiento_ambiental + '"]');
                         relevamiento.estado = "Cargando";
@@ -501,6 +514,8 @@ function cargarRelevamiento(relevamiento) {
 }
 
 function setearRelevamiento(data, filaCallback) {
+    let row_th = $('#tablaPersonas .cabeceraTablaPersonas');
+
     //Limpio los campos
     console.log(data.casino.id_casino);
     $('#modalRelevamientoAmbiental input').val('');
@@ -512,6 +527,7 @@ function setearRelevamiento(data, filaCallback) {
     $('#cargaCasino').val(data.casino.nombre);
     $('#fiscaCarga').val(data.relevamiento.id_usuario_cargador);
     $('#fecha').val(data.relevamiento.fecha_ejecucion);
+    $('#tipo_control_ambiental').val("Máquinas tragamonedas");
 
     $('#rowClima').attr('data-id',data.generalidades[0].id_dato_generalidad);
     $('#rowTemperatura').attr('data-id',data.generalidades[1].id_dato_generalidad);
@@ -532,6 +548,23 @@ function setearRelevamiento(data, filaCallback) {
     setearFilaGeneralidad(data.generalidades[1]);
     setearFilaGeneralidad(data.generalidades[2]);
 
+    row_th.append($('<th>')
+      .addClass('sortable')
+      .attr('data-id','islaIslote')
+      .css('width','120px')
+      .css('display','inline-block')
+      .text('ISLA/ISLOTE')
+    );
+
+    for (let i=1; i<=data.cantidad_turnos; i++) {
+      row_th.append($('<th>')
+          .attr('id','t'+i)
+          .css('width','120px')
+          .css('display','inline-block')
+          .text('TURNO '+i)
+      );
+    }
+
     let tabla = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas');
     for (let i = 0; i < data.detalles.length; i++) {
         tabla.append(filaCallback(data.detalles[i]));
@@ -548,7 +581,7 @@ function obtenerFila(detalle) {
     for (let i=1; i<=detalle.cantidad_turnos; i++) {
       fila.append($('<td>')
           .addClass('col-xs-1')
-          .css('width','90px')
+          .css('width','120px')
           .css('display','inline-block')
           .append($('<input>')
               .addClass('turno'+i)
@@ -611,36 +644,36 @@ function setearFilaGeneralidad (generalidad) {
  }
 
  if (generalidad.turno1 != null) {
-   modal.find('#'+x+'1')
-       .val(generalidad.turno1)
+   $('#'+x+'1')
+       .val(2);
  }
  if (generalidad.turno2 != null) {
    modal.find('#'+x+'2')
-       .val(generalidad.turno2)
+       .val(generalidad.turno2);
  }
  if (generalidad.turno3 != null) {
    modal.find('#'+x+'3')
-       .val(generalidad.turno3)
+       .val(generalidad.turno3);
  }
  if (generalidad.turno4 != null) {
    modal.find('#'+x+'4')
-       .val(generalidad.turno4)
+       .val(generalidad.turno4);
  }
  if (generalidad.turno5 != null) {
    modal.find('#'+x+'5')
-       .val(generalidad.turno5)
+       .val(generalidad.turno5);
  }
  if (generalidad.turno6 != null) {
    modal.find('#'+x+'6')
-       .val(generalidad.turno6)
+       .val(generalidad.turno6);
  }
  if (generalidad.turno7 != null) {
    modal.find('#'+x+'7')
-       .val(generalidad.turno7)
+       .val(generalidad.turno7);
  }
  if (generalidad.turno8 != null) {
    modal.find('#'+x+'8')
-       .val(generalidad.turno8)
+       .val(generalidad.turno8);
  }
 
 }
@@ -744,54 +777,108 @@ function enviarFormularioCarga(relevamiento,
     });
 }
 
-function hidearTurnosInnecesarios (cant) {
-  let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
+function crearSelectsGeneralidades (cant) {
+  let row_th = $('#tablaPersonas .cabeceraTablaPersonas');
   let modal = $('#modalRelevamientoAmbiental .modal-dialog');
 
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6 || cant==7) {
-    row_th.find('#t8').hide();
-    modal.css('width','45%');
-    hidearGeneralidadesInnecesarias(8);
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5 || cant==6) {
-    row_th.find('#t7').hide();
-    modal.css('width','45%');
-    hidearGeneralidadesInnecesarias(7);
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4 || cant==5) {
-    row_th.find('#t6').hide();
-    modal.css('width','45%');
-    hidearGeneralidadesInnecesarias(6);
-  }
-  if (cant==1 || cant==2 || cant==3 || cant==4) {
-    row_th.find('#t5').hide();
-    modal.css('width','45%');
-    hidearGeneralidadesInnecesarias(5);
-  }
-  if (cant==1 || cant==2 || cant==3) {
-    row_th.find('#t4').hide();
-    modal.css('width','45%');
-    hidearGeneralidadesInnecesarias(4);
-  }
-  if (cant==1 || cant==2) {
-    row_th.find('#t3').hide();
-    hidearGeneralidadesInnecesarias(3);
-  }
-  if (cant==1) {
-    row_th.find('#t2').hide();
-    hidearGeneralidadesInnecesarias(2);
-  }
-}
+  $.get('relevamientosControlAmbiental/obtenerGeneralidades/', function(data) {
 
-function hidearGeneralidadesInnecesarias (cant) {
-  let modal = $('#modalRelevamientoAmbiental');
+        $('#rowClima').append($('<h5>').text('CONDICIONES CLIMÁTICAS'));
+        $('#rowTemperatura').append($('<h5>').text('CONDICIONES DE TEMPERATURA'));
+        $('#rowEvento').append($('<h5>').text('EVENTOS'));
 
-  modal.find('#climaTurno' + cant).hide();
-  modal.find('#hClimaTurno' + cant).hide();
-  modal.find('#temperaturaTurno' + cant).hide();
-  modal.find('#hTemperaturaTurno' + cant).hide();
-  modal.find('#eventoTurno' + cant).hide();
-  modal.find('#hEventoTurno' + cant).hide();
+        $('#segundoRow').after($('<br>'));
+
+        //agrego, para cada turno, un select de climas, temperaturas y eventos:
+        for (let i=1; i<=cant; i++) {
+          $('#rowClima').append($('<div>')
+              .addClass('col-md-3')
+              .append($('<h5>').attr('id','hClimaTurno'+i).text('TURNO '+i))
+              .append($('<select>')
+                .attr('id','climaTurno'+i)
+                .addClass('form-control')
+                .css('float','right')
+              )
+            );
+
+          $('#rowTemperatura').append($('<div>')
+              .addClass('col-md-3')
+              .append($('<h5>').attr('id','hTemperaturaTurno'+i).text('TURNO '+i))
+              .append($('<select>')
+                .attr('id','temperaturaTurno'+i)
+                .addClass('form-control')
+                .css('float','right')
+              )
+            );
+
+          $('#rowEvento').append($('<div>')
+              .addClass('col-md-3')
+              .append($('<h5>').attr('id','hEventoTurno'+i).text('TURNO '+i))
+              .append($('<select>')
+                .attr('id','eventoTurno'+i)
+                .addClass('form-control')
+                .css('float','right')
+              )
+            );
+        }
+
+        $('#rowClima').after($('<br>')).after($('<br>'));
+        $('#rowTemperatura').after($('<br>')).after($('<br>'));
+        $('#rowEvento').after($('<br>')).after($('<br>'));
+
+        //a cada select creado le agrego las options
+        for (let i=1; i<=cant; i++) {
+
+          $('#climaTurno'+i).append($('<option>')
+              .attr('id','-1')
+              .attr('value','-1')
+              .val(-1)
+              .text(' - Seleccione un clima - ')
+          )
+
+          for (let j=0; j<data.climas.length; j++) {
+            $('#climaTurno'+i).append($('<option>')
+                .attr('id',data.climas[j].id_clima)
+                .attr('value',data.climas[j].id_clima)
+                .val(data.climas[j].id_clima)
+                .text(data.climas[j].descripcion)
+              );
+          }
+
+          $('#temperaturaTurno'+i).append($('<option>')
+              .attr('id','-1')
+              .attr('value','-1')
+              .val(-1)
+              .text(' - Seleccione una temperatura - ')
+          )
+
+          for (let j=0; j<data.temperaturas.length; j++) {
+            $('#temperaturaTurno'+i).append($('<option>')
+                .attr('id',data.temperaturas[j].id_temperatura)
+                .attr('value',data.temperaturas[j].id_temperatura)
+                .val(data.temperaturas[j].id_temperatura)
+                .text(data.temperaturas[j].descripcion)
+              );
+          }
+
+          $('#eventoTurno'+i).append($('<option>')
+              .attr('id','-1')
+              .attr('value','-1')
+              .val(-1)
+              .text(' - Seleccione un evento - ')
+          )
+
+          for (let j=0; j<data.eventos.length; j++) {
+            $('#eventoTurno'+i).append($('<option>')
+                .attr('id',data.eventos[j].id_evento_control_ambiental)
+                .attr('value',data.eventos[j].id_evento_control_ambiental)
+                .val(data.eventos[j].id_evento_control_ambiental)
+                .text(data.eventos[j].descripcion)
+              );
+          }
+        }
+
+      });
 }
 
 function desactivarGeneralidades(cantidad_turnos) {
@@ -887,27 +974,11 @@ function mensajeError(errores) {
 }
 
 $('#btn-salir').click(function() {
-    let row_th = $('#modalRelevamientoAmbiental #tablaPersonas .cabeceraTablaPersonas tr');
-    let modal = $('#modalRelevamientoAmbiental');
-
-    row_th.find('#t1').show();
-    row_th.find('#t2').show();
-    row_th.find('#t3').show();
-    row_th.find('#t4').show();
-    row_th.find('#t5').show();
-    row_th.find('#t6').show();
-    row_th.find('#t7').show();
-    row_th.find('#t8').show();
-
-    for (let i = 1; i <= 8; i++) {
-      modal.find('#climaTurno' + i).show();
-      modal.find('#hClimaTurno' + i).show();
-      modal.find('#temperaturaTurno' + i).show();
-      modal.find('#hTemperaturaTurno' + i).show();
-      modal.find('#eventoTurno' + i).show();
-      modal.find('#hEventoTurno' + i).show();
-    }
-
+    $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
+    $('#rowClima').children().remove();
+    $('#rowTemperatura').children().remove();
+    $('#rowEvento').children().remove();
+    $("br").remove();
     $('#modalRelevamientoAmbiental').modal('hide');
 });
 
@@ -956,86 +1027,4 @@ $('#btn-generar').click(function(e) {
         }
     });
 
-});
-
-//Generar el relevamiento de backup
-$('#btn-backup').click(function(e){
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  e.preventDefault();
-
-  var formData = {
-    fecha: $('#fechaRelSinSistema_date').val(),
-    fecha_generacion: $('#fechaGeneracion_date').val(),
-    id_casino: $('#casinoSinSistema').val(),
-  }
-
-  console.log(formData);
-
-  $.ajax({
-      type: "POST",
-      url: 'relevamientosControlAmbiental/usarRelevamientoBackUp',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
-            $('#btn-buscar').trigger('click');
-            $('#modalRelSinSistema').modal('hide');
-
-      },
-      error: function (data) {
-        console.log('ERROR!');
-        console.log(data);
-
-        var response = JSON.parse(data.responseText);
-
-        if(typeof response.fecha !== 'undefined') {
-          mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
-        }
-
-        if(typeof response.fecha_generacion !== 'undefined') {
-          mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
-        }
-
-      }
-  });
-
-});
-
-//RELEVAMIENTO SIN SISTEMA
-$('#btn-relevamientoSinSistema').click(function(e) {
-  e.preventDefault();
-  $('.modal-title').text('| RELEVAMIENTO SIN SISTEMA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-
-  $('#fechaGeneracion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#fechaRelSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#modalRelSinSistema').modal('show');
 });

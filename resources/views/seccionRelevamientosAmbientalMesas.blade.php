@@ -61,23 +61,6 @@ $cant_turnos = sizeof($casinos[0]->turnos);
               </a>
         </div>
 
-        <div class="col-xl-12 col-md-4">
-         <a href="" id="btn-relevamientoSinSistema" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo">
-              <center><img class="imgNuevo" src="/img/logos/relevamientos_sin_sistema_white.png"><center>
-              <div class="backgroundNuevo"></div>
-              <div class="row">
-                  <div class="col-xs-12">
-                    <center>
-                        <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">RELEVAMIENTOS SIN SISTEMA</h4>
-                    </center>
-                  </div>
-              </div>
-          </div>
-         </a>
-        </div>
-
       </div>
     </div><!-- row botones -->
 
@@ -113,12 +96,6 @@ $cant_turnos = sizeof($casinos[0]->turnos);
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <h5>Sector</h5>
-                            <select id="buscadorSector" class="form-control selectSector" name="">
-                                <option value="0">-Todos los sectores-</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
                             <h5>Estado Relevamiento</h5>
                             <select id="buscadorEstado" class="form-control selectSector" name="">
                                 <option value="0">-Todos los estados-</option>
@@ -127,11 +104,10 @@ $cant_turnos = sizeof($casinos[0]->turnos);
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="row">
-                      <center>
-                        <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                      </center>
+                        <div class="col-md-3">
+                            <h5>Búsqueda</h5>
+                            <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                        </div>
                     </div>
                     <br>
                   </div>
@@ -152,17 +128,17 @@ $cant_turnos = sizeof($casinos[0]->turnos);
               <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-2 activa" value="relevamiento_ambiental.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
-                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3 activa" value="relevamiento_ambiental.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                    <th class="col-xs-3" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-3">ACCIÓN </th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class='filaEjemplo' style="display: none;">
-                    <td class="col-xs-2 fecha"></td>
-                    <td class="col-xs-2 casino"></td>
-                    <td class="col-xs-2">
+                    <td class="col-xs-3 fecha"></td>
+                    <td class="col-xs-3 casino"></td>
+                    <td class="col-xs-3">
                       <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
                       <span class="textoEstado"></span>
                     </td>
@@ -323,7 +299,7 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
   <!-- MODAL CARGAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width:50%;">
+    <div class="modal-dialog" style="width:45%;">
       <div class="modal-content">
          <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
            <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -334,11 +310,11 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
           <div class="modal-body modalCuerpo">
                     <div class="row">
-                      <div class="col-lg-3">
+                      <div class="col-md-4">
                         <h5>FECHA DE GENERACIÓN</h5>
                         <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
                       </div>
-                      <div class="col-lg-3">
+                      <div class="col-md-4">
                         <h5>CASINO</h5>
                         <input id="cargaCasino" type='text' class="form-control" readonly>
                       </div>
@@ -349,6 +325,10 @@ $cant_turnos = sizeof($casinos[0]->turnos);
                     </div>
 
                     <div class="row">
+                      <div class="col-md-4">
+                          <h5>TIPO DE CONTROL AMBIENTAL</h5>
+                          <input id="tipo_control_ambiental" type="text"class="form-control" readonly>
+                      </div>
                       <div class="col-md-4">
                           <h5>FISCALIZADOR TOMA</h5>
                           <input id="usuario_fiscalizador" class="form-control" type="text" autocomplete="off" list="">
@@ -368,15 +348,7 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
                     <table class="table" id="tablaPersonas" style="margin-bottom: 0px; border-bottom: 0px">
                       <thead class="cabeceraTablaPersonas">
-                        <th class="col-xs-2 sortable" data-id="mesa" style="width:110px; display: inline-block">MESA</th>
-                        <th id="t1" style="width:90px; display: inline-block">TURNO 1</th>
-                        <th id="t2" style="width:90px; display: inline-block">TURNO 2</th>
-                        <th id="t3" style="width:90px; display: inline-block">TURNO 3</th>
-                        <th id="t4" style="width:90px; display: inline-block">TURNO 4</th>
-                        <th id="t5" style="width:90px; display: inline-block">TURNO 5</th>
-                        <th id="t6" style="width:90px; display: inline-block">TURNO 6</th>
-                        <th id="t7" style="width:90px; display: inline-block">TURNO 7</th>
-                        <th id="t8" style="width:90px; display: inline-block">TURNO 8</th>
+
                       </thead>
                       <tbody></tbody>
                     </table>

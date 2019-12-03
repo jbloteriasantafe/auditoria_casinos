@@ -832,43 +832,50 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
-                      <div class="separadoresMenu">CONTROL AMBIENTAL</div>
-                      <li>
-                        <div id="barraRelevamientosAmbiental" class="opcionesHover" data-target="#relevamientoAmbiental" data-toggle="collapse" href="#">
-                          <span class="flechita">
-                              <i class="fa fa-angle-right"></i>
+                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_control_ambiental')
+                          || AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informes_control_ambiental'))
+                        <div class="separadoresMenu">CONTROL AMBIENTAL</div>
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_control_ambiental'))
+                        <li>
+                          <div id="barraRelevamientosAmbiental" class="opcionesHover" data-target="#relevamientoAmbiental" data-toggle="collapse" href="#">
+                            <span class="flechita">
+                                <i class="fa fa-angle-right"></i>
+                              </span>
+                              <span class="icono" style="padding-bottom: 50px;">
+                                @svg('tablero_control','iconoTableroControl')
+                              </span>
+                              <span>Relevamientos</span>
+                          </div>
+
+                          <!-- SEGUNDO NIVEL -->
+                          <ul class="subMenu1 collapse" id="relevamientoAmbiental">
+                            <li>
+                              <div id="opcAmbientalmaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
+                                <span>Máquinas</span>
+                              </div>
+                            </li>
+
+                            <li>
+                              <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
+                                <span>Mesas de paño</span>
+                              </div>
+                            </li>
+                          </ul>
+
+                        </li>
+                        @endif
+
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informes_control_ambiental'))
+                        <li>
+                          <div id="opcInformeControlAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                            <span class="icono" style="padding-bottom: 56px;">
+                                @svg('informes','iconoInformes')
                             </span>
-                            <span class="icono" style="padding-bottom: 50px;">
-                              @svg('tablero_control','iconoTableroControl')
-                            </span>
-                            <span>Relevamientos</span>
-                        </div>
-
-                        <!-- SEGUNDO NIVEL -->
-                        <ul class="subMenu1 collapse" id="relevamientoAmbiental">
-                          <li>
-                            <div id="opcAmbientalmaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
-                              <span>Máquinas</span>
-                            </div>
-                          </li>
-
-                          <li>
-                            <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
-                              <span>Mesas de paño</span>
-                            </div>
-                          </li>
-                        </ul>
-
-                      </li>
-
-                      <li>
-                        <div id="opcInformeControlAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
-                          <span class="icono" style="padding-bottom: 56px;">
-                              @svg('informes','iconoInformes')
-                          </span>
-                          <span>Informes</span>
-                        </div>
-                      </li>
+                            <span>Informes</span>
+                          </div>
+                        </li>
+                        @endif
+                      @endif
 
 
 

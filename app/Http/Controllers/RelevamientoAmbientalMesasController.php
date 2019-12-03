@@ -14,6 +14,7 @@ use App\DetalleRelevamientoAmbiental;
 use App\CantidadPersonas;
 use App\Turno;
 use App\Usuario;
+use App\InformeControlAmbiental;
 use App\Mesas\Mesa;
 use Validator;
 use View;
@@ -72,7 +73,7 @@ class RelevamientoAmbientalMesasController extends Controller
                   })
       ->where($reglas)
       ->where('id_tipo_relev_ambiental' , '=', 1)
-      //->where('backup' , '=', 0)
+      ->whereIn('casino.id_casino' , $casinos)
       ->paginate($request->page_size);
 
     return $resultados;
@@ -116,7 +117,6 @@ class RelevamientoAmbientalMesasController extends Controller
          $relevamiento_ambiental->id_estado_relevamiento = 1;
          $relevamiento_ambiental->id_tipo_relev_ambiental = 1;
          $relevamiento_ambiental->id_usuario_cargador = $fiscalizador->id_usuario;
-         //$relevamiento_ambiental->backup = 0;
          $relevamiento_ambiental->save();
 
          //guardo los detalles
@@ -131,10 +131,6 @@ class RelevamientoAmbientalMesasController extends Controller
      }
 
     return ['codigo' => 200];
-  }
-
-  public function usarRelevamientoBackUp(Request $request){
-    dd("CONTINUAR CUANDO LOS REQS SEAN CLAROS");
   }
 
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
@@ -248,12 +244,24 @@ class RelevamientoAmbientalMesasController extends Controller
     $usuario = $usercontroller->quienSoy()['usuario'];
     $relevamiento_ambiental = RelevamientoAmbiental::find($id_relevamiento_ambiental);
     $casino = Casino::find($relevamiento_ambiental->id_casino);
+    $estado = $relevamiento_ambiental->id_estado_relevamiento;
 
     if($usuario === null || $relevamiento_ambiental === null) return;
 
     if(!$usercontroller->usuarioTieneCasinoCorrespondiente($usuario->id_usuario, $casino->id_casino)) return;
 
-    DB::transaction(function() use ($id_relevamiento_ambiental) {
+    DB::transaction(function() use ($id_relevamiento_ambiental, $estado) {
+      //si se trata de un relevamiento visado (estado = 4), me fijo si hay un informe generado asociado.
+      //Si hay, primero elimino ese informe.
+      if ($estado == 4) {
+        $informe = InformeControlAmbiental::where([['id_relevamiento_ambiental_mesas', $id_relevamiento_ambiental]])->first();
+
+        if (sizeof($informe) == 1) {
+          DB::table('informe_control_ambiental')
+          ->where('id_informe_control_ambiental', '=', $informe->id_informe_control_ambiental)
+          ->delete();
+        }
+      }
 
         //elimino todos los detalles asociados al relevamiento de control ambiental
       DB::table('detalle_relevamiento_ambiental')

@@ -91,13 +91,20 @@ class InformeControlAmbientalController extends Controller
     $casino = Casino::find($informe->id_casino);
 
     $detalles_informe_mtm = array();
-    $detalles_informe_maq = array();
+    $detalles_informe_mesas = array();
     $distribuciones_globales_mtm = array();
+    $distribuciones_globales_mesas = array();
 
     $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
                           ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
                           ->join('sector','sector.id_sector','=','isla.id_sector')
                           ->where('id_relevamiento_ambiental','=', $informe->id_relevamiento_ambiental_maquinas)
+                          ->get();
+
+    $detalles_relevamientos_mesas = DB::table('detalle_relevamiento_ambiental')
+                          ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','detalle_relevamiento_ambiental.id_mesa_de_panio')
+                          ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
+                          ->where('id_relevamiento_ambiental','=', $informe->id_relevamiento_ambiental_mesas)
                           ->get();
 
     //creo un detalle MTM por cada sector:
@@ -110,15 +117,6 @@ class InformeControlAmbientalController extends Controller
       //creo un array totales y porcentajes de sector por cada turno existente:
       for ($i=1; $i<=sizeof($casino->turnos); $i++) {
         $total = 0;
-
-        if      ($i==1) $turno = 'turno1';
-        else if ($i==2) $turno = 'turno2';
-        else if ($i==3) $turno = 'turno3';
-        else if ($i==4) $turno = 'turno4';
-        else if ($i==5) $turno = 'turno5';
-        else if ($i==6) $turno = 'turno6';
-        else if ($i==7) $turno = 'turno7';
-        else            $turno = 'turno8';
 
         foreach ($detalles_relevamientos_mtm as $d) {
           if ($d->id_sector == $sector->id_sector) {
@@ -138,7 +136,7 @@ class InformeControlAmbientalController extends Controller
         $totalizador_sector += $total;
         //creo un item de totales_sector y lo añado al array:
         $t = array(
-          'turno' => $turno,
+          'turno' => 'turno'.$i,
           'total' => $total
         );
         $totales_sector[] = $t;
@@ -155,8 +153,9 @@ class InformeControlAmbientalController extends Controller
 
       //genero un detalle MTM:
       $detalle_informe_mtm = array(
+        'sector_nombre' => $sector->descripcion,
+        'porcentajes_sector' => $porcentajes_sector,
         'totales_sector' => $totales_sector,
-        '$porcentajes_sector' => $porcentajes_sector,
         'flag_hay_detalles_sectores' => $flag_hay_detalles_sector
       );
 
@@ -164,34 +163,130 @@ class InformeControlAmbientalController extends Controller
       $detalles_informe_mtm[] = $detalle_informe_mtm;
     }
 
+    //creo un array de distribuciones globales mtm:
     for ($i=1; $i<=sizeof($casino->turnos); $i++) {
       $distribucion = 0;
-
-      foreach ($totales_sector as $t) {
-        for ($i=0; $i<sizeof($t); $i++) {
-        //  if ($t[$i]['turno'] == 'turno' . $i+1)
-        //    $distribucion += $t['total'];
+      foreach ($detalles_informe_mtm as $d) {
+        foreach ($d['totales_sector'] as $t) {
+          if ($t['turno'] == 'turno'.$i) {
+            $distribucion += $t['total'];
+          }
         }
       }
 
       $dist = array(
-        'turno' => 'turno' . $i,
+        'turno' => 'turno'.$i,
         'distribucion' => $distribucion
       );
-
       $distribuciones_globales_mtm[] = $dist;
     }
 
-    //dd(sizeof($totales_sector));
-    dd($distribuciones_globales_mtm);
+    //creo un detalle de mesas por cada sector:
+    foreach ($casino->sectores_mesas as $sector) {
+      $flag_hay_detalles_sector = 0;
+      $totalizador_sector = 0;
+      $totales_sector = array();
+      $porcentajes_sector = array();
 
+      //creo un array totales y porcentajes de sector por cada turno existente:
+      for ($i=1; $i<=sizeof($casino->turnos); $i++) {
+        $total = 0;
+
+        foreach ($detalles_relevamientos_mesas as $d) {
+          if ($d->id_sector_mesas == $sector->id_sector_mesas) {
+            if      ($i==1) $total += $d->turno1;
+            else if ($i==2) $total += $d->turno2;
+            else if ($i==3) $total += $d->turno3;
+            else if ($i==4) $total += $d->turno4;
+            else if ($i==5) $total += $d->turno5;
+            else if ($i==6) $total += $d->turno6;
+            else if ($i==7) $total += $d->turno7;
+            else            $total += $d->turno8;
+
+            $flag_hay_detalles_sector = 1;
+          }
+        }
+
+        $totalizador_sector += $total;
+        //creo un item de totales_sector y lo añado al array:
+        $t = array(
+          'turno' => 'turno'.$i,
+          'total' => $total
+        );
+        $totales_sector[] = $t;
+      }
+
+      foreach ($totales_sector as $t) {
+        //creo un item de porcentajes_sector y lo añado al array:
+        $p = array(
+          'turno' => $t['turno'],
+          'porcentaje' => ($flag_hay_detalles_sector) ? number_format($t['total']*100 / $totalizador_sector ,2) : 0 //división por cero
+        );
+        $porcentajes_sector[] = $p;
+      }
+
+      //genero un detalle Maquina:
+      $detalle_informe_mesas = array(
+        'sector_nombre' => $sector->descripcion,
+        'porcentajes_sector' => $porcentajes_sector,
+        'totales_sector' => $totales_sector,
+        'flag_hay_detalles_sectores' => $flag_hay_detalles_sector
+      );
+
+      //añado el detalle MTM al array de detalles:
+      $detalles_informe_mesas[] = $detalle_informe_mesas;
+    }
+
+    //creo un array de distribuciones globales de maquinas
+    for ($i=1; $i<=sizeof($casino->turnos); $i++) {
+      $distribucion = 0;
+      foreach ($detalles_informe_mesas as $d) {
+        foreach ($d['totales_sector'] as $t) {
+          if ($t['turno'] == 'turno'.$i) {
+            $distribucion += $t['total'];
+          }
+        }
+      }
+
+      $dist = array(
+        'turno' => 'turno'.$i,
+        'distribucion' => $distribucion
+      );
+      $distribuciones_globales_mesas[] = $dist;
+    }
+
+
+    //creo un array de totales absolutos
+    $totales_absolutos = array();
+    for ($i=1; $i<=sizeof($casino->turnos); $i++) {
+      $total_absoluto = 0;
+      foreach ($detalles_informe_mtm as $d) {
+        foreach ($d['totales_sector'] as $t) {
+          if ($t['turno'] == 'turno'.$i) {
+            $total_absoluto += $t['total'];
+          }
+        }
+      }
+
+      foreach ($detalles_informe_mesas as $d) {
+        foreach ($d['totales_sector'] as $t) {
+          if ($t['turno'] == 'turno'.$i) {
+            $total_absoluto += $t['total'];
+          }
+        }
+      }
+
+      array_push($totales_absolutos, $total_absoluto);
+    }
 
     $otros_datos = array(
       'fecha_produccion' => date("d-m-Y", strtotime($informe->fecha)),
-      'cantidad_turnos' => sizeof($casino->turnos)
+      'cantidad_turnos' => sizeof($casino->turnos),
+      'casino' => $casino,
+      'totales_absolutos' => $totales_absolutos
     );
 
-    $view = view('planillaInformesControlAmbiental', compact(['$detalles_informe_mtm','$detalles_informe_maq','otros_datos']));
+    $view = view('planillaInformesControlAmbiental', compact(['detalles_informe_mtm','detalles_informe_mesas', 'distribuciones_globales_mtm', 'distribuciones_globales_mesas', 'otros_datos']));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);
