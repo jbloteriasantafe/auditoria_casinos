@@ -91,16 +91,10 @@ $('#btn-nuevo').click(function(e){
   $('#inputJuego').prop('readonly',false);
   $('#inputCodigoJuego').prop('readonly',false);
   $('#btn-agregarCertificado').show();
-  $('#nro_niv_progresivos').prop('readonly',false);
   $('#tabla_pago').prop('readonly',false);
-  $('#inputProgresivo').prop('readonly',false);
 
   $('#nombre_juego').removeClass('alerta');
   $('#cod_identificacion').removeClass('alerta');
-  $('#nro_niv_progresivos').removeClass('alerta');
-
-  $('#agregarProgresivo').hide();
-  $('#cancelarProgresivo').hide();
 
   let casinos = [];
   $('#maquina_mod .selectCasinos option').each(function(){
@@ -114,7 +108,6 @@ $('#btn-nuevo').click(function(e){
 
 //Muestra el modal con todos los datos del JUEGO
 $(document).on('click','.detalle', function(){
-
   $('.modal-title').text('| VER MÁS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -124,55 +117,22 @@ $(document).on('click','.detalle', function(){
   $('#btn-agregarTablaDePago').hide();
   $('#btn-agregarMaquina').hide();
   $('.borrarFila').hide();
-  $('#agregarProgresivo').hide();
-
   $('#boton-salir').text('SALIR');
 
   var id_juego = $(this).val();
 
   $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
-      $('#id_juego').val(data.juego.id_juego);
-      $('#inputJuego').val(data.juego.nombre_juego).prop('readonly',true);
-      $('#inputCodigo').val(data.juego.cod_identificacion);
-      $('#inputCodigoJuego').val(data.juego.cod_juego).prop('readonly',true);
-      $('#nro_niv_progresivos').val(data.juego.nro_niv_progresivos);
+
+      mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
+
       $('#btn-guardar').val("modificar");
-      $('#nombre_juego').prop('readonly',true);
-      $('#cod_identificacion').prop('readonly',true);
-      $('#nro_niv_progresivos').prop('readonly',true);
-      $('#tabla_pago').prop('readonly',true);
-      $('#inputProgresivo').prop('readonly',true);
-
-      $('#nombre_juego').removeClass('alerta');
-      $('#cod_identificacion').removeClass('alerta');
-      $('#nro_niv_progresivos').removeClass('alerta');
-
-      for (var i = 0; i < data.tablasDePago.length; i++) {
-        $('#btn-agregarTablaDePago').trigger('click');
-        $('#tablas_pago input:last').val(data.tablasDePago[i].codigo)
-        .attr('data-id' , data.tablasDePago[i].id_tabla_pago).prop('disabled',true);
-      }
+      $('#id_juego').val(data.juego.id_juego);
       $('.borrarTablaPago').hide();
-      for (var i = 0; i < data.maquinas.length; i++) {
-        var div = agregarRenglonMaquina();
-        div.attr('data-id' ,data.maquinas[i].id_maquina);
-        div.find('.selectCasinos').val(data.maquinas[i].id_casino).prop('disabled',true).trigger('change');
-        div.find('.nro_admin').val(data.maquinas[i].nro_admin).prop('readonly',true);
-        div.find('.denominacion').val(data.maquinas[i].denominacion).prop('readonly',true);
-        div.find('.porcentaje').val(data.maquinas[i].porcentaje_devolucion).prop('readonly',true);
-      }
-
-      let listaSoft = $('#listaSoft');
-      listaSoft.find('.copia').remove();
-      for(var i = 0; i < data.certificadoSoft.length; i++){
-        const c = data.certificadoSoft[i];
-        let nueva_fila = agregarRenglonCertificado();
-        nueva_fila.attr('data-id',c.certificado.id_gli_soft);
-        nueva_fila.find('.codigo').val(c.certificado.nro_archivo).attr('readonly',true);
-      }
-
-      cargarCasinosJuego(data.casinosJuego);
+      $('#modalJuego .copia input').prop('readonly',true);
+      $('#modalJuego .copia select').attr('disabled',true);
+      $('#inputJuego').prop('readonly',true);
+      $('#inputCodigoJuego').prop('readonly',true);
 
       $('#modalJuego').modal('show');
 
@@ -181,7 +141,6 @@ $(document).on('click','.detalle', function(){
     $('#alertaNombre').hide();
     $('#alertaCodigo').hide();
     $('#alertaNiveles').hide();
-    $('#cancelarProgresivo').hide();
 
     //Remover el boton para guardar
     $('#btn-guardar').css('display','none');
@@ -212,7 +171,6 @@ function cargarCasinosJuego(casinos){
 
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
-
     ocultarErrorValidacion($('#inputJuego'));
     ocultarErrorValidacion($('#inputCodigo'));
     ocultarErrorValidacion($('#inputCodigoJuego'));
@@ -221,7 +179,6 @@ $(document).on('click','.modificar',function(){
     $('#btn-agregarTablaDePago').show();
     $('#btn-agregarMaquina').show();
     $('.borrarFila').show();
-    $('#agregarProgresivo').show();
 
     var id_juego = $(this).val();
     //Modificar los colores del modal
@@ -232,7 +189,7 @@ $(document).on('click','.modificar',function(){
     $.get("juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
-
+      $('#modalJuego').modal('show');
     });
 
 });
@@ -262,27 +219,32 @@ $(document).on('change','.selectCasinos',function(){
 
 //agregar Tabla DE Pago
 $('#btn-agregarTablaDePago').click(function(){
-    $('#tablas_pago')
-        .append($('<div>').addClass('row')
-                          .addClass('col-md-12')
-                          .css('padding-top','2px')
-                          .css('padding-bottom','2px')
-                          .append($('<div>')
-                            .addClass('col-xs-10')
-                            .append($('<input>').attr('data-id' , 0).addClass('form-control'))
-                          )
-                          .append($('<div>')
-                              .addClass('col-xs-2')
-                              .append($('<button>')
-                                  .addClass('btn').addClass('btn-danger').addClass('borrarFila').addClass('borrarTablaPago').css('display','block')
-                                  .append($('<i>')
-                                      .addClass('fa fa-fw fa-trash')
-                                  )
-                              )
-                          )
-
-                )
+  agregarRenglonTablaDePago();
 });
+
+function agregarRenglonTablaDePago(){
+  let fila = $('<div>').addClass('row').addClass('col-md-12').addClass('copia')
+  .css('padding-top','2px').css('padding-bottom','2px');
+
+  let input = $('<div>').addClass('col-xs-10')
+  .append(
+    $('<input>').attr('data-id' , 0).addClass('form-control')
+  );
+  let boton_borrar = $('<div>').addClass('col-xs-2')
+  .append(
+    $('<button>').addClass('btn').addClass('btn-danger').addClass('borrarFila')
+    .addClass('borrarTablaPago').css('display','block')
+    .append(
+      $('<i>').addClass('fa fa-fw fa-trash')
+    )
+  );
+
+  fila.append(input);
+  fila.append(boton_borrar);
+
+  $('#tablas_pago').append(fila);
+  return fila;
+}
 
 //borrar Tabla de Pago
 $(document).on('click' , '.borrarTablaPago' , function(){
@@ -359,7 +321,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     nombreJuego: $('#buscadorNombre').val(),
     cod_Juego: $('#buscadorCodigoJuego').val(),
     codigoId: $('#buscadorCodigo').val(),
-    nombre_progresivo: $('#buscadorProgresivos').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
@@ -549,18 +510,6 @@ $('#nombre_juego').focusin(function(){
   $('#alertaNombre').hide();
 });
 
-$('#nro_niv_progresivos').focusout(function(){
-  if ($(this).val() == ''){
-      $(this).addClass('alerta');
-      $('#alertaNiveles').text('El campo Niveles de Progresivo debe ser un entero.');
-      $('#alertaNiveles').show();
-  }
-});
-
-$('#nro_niv_progresivos').focusin(function(){
-  $(this).removeClass('alerta');
-  $('#alertaNiveles').hide();
-});
 
 $(document).on('focusout','.inputTabla', function(){
   if ($(this).val() == '' || tiene_letras($(this).val())){
@@ -588,60 +537,6 @@ $(document).on('focusin','.inputCodigo', function(){
   $('#alertaTabla').remove();
 });
 
-//Evento de tipeo en el input
-$('#inputProgresivo').bind('input', function() {
-    datalist = $('#datalistProgresivos');
-    //Lo escrito en el input
-    var inputProgresivo = $(this).val();
-
-    if (inputProgresivo.length > 0){
-      $('#cancelarProgresivo').hide();
-
-    }
-    else {
-      $('#crearProgresivo').css('display' , 'none');
-      $('#cancelarProgresivo').hide();
-
-    }
-
-    if(inputProgresivo.length <= 1) {
-      datalist.empty();
-    }
-
-    if(inputProgresivo.length == 2) {
-      buscarProgresivo(inputProgresivo);
-    }
-
-    if(inputProgresivo.length >= 2) {
-      revisarDatalistProgresivo(inputProgresivo);
-    }
-
-    if(inputProgresivo.length==0){
-      $('#agregarProgresivo').hide();
-      $('#crearProgresivo').hide();
-      $('#cancelarProgresivo').hide();
-    }
-});
-
-//Agregar Progresivo ya existente
-$('#agregarProgresivo').click(function(){
-      $('#muestraProgresivos p').text($('#inputProgresivo').val());
-      //Crear un item de la lista
-      $('#buscadorProgresivos div').hide();
-      $('#muestraProgresivos').hide();
-});
-
-$('#cancelarProgresivo').click(function(){
-    $(this).hide();
-    $('#inputProgresivo').val('');
-    $('#agregarProgresivo').hide();
-});
-
-$('#borrarProgresivo').click(function(){
-    $('#buscadorProgresivos div').show();
-    $('#muestraProgresivos').hide();
-});
-
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   $('#tablaResultados th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
@@ -660,51 +555,11 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
 });
 
 /***********FUNCIONES****************/
-function buscarProgresivo(input){
-  datalist = $('#datalistProgresivos');
-  //Si el string del input es más largo que 2 caracteres busca en la BD
-  $.get("progresivos/buscarProgresivoPorNombreYTipo/" + input, function(data){
-
-      //Recorre el arreglo de los progresivos que vienen de la BASE
-      $.each(data.resultados, function(index, progresivo) {
-                          datalist.append($('<option>')
-                    .text(progresivo.nombre_progresivo + " (" + progresivo.tipo_progresivo + ")")
-                    .attr('id',progresivo.id_progresivo)
-          );
-      });
-  });
-
-
-}
-
-function revisarDatalistProgresivo(inputProgresivo){
-  //me fijo si lo que escribio existe o seleccionó
-  $('#datalistProgresivos option').each(function(){
-    console.log($(this));
-    console.log(inputProgresivo);
-       if($(this).val() === inputProgresivo){
-          // datalist.empty();
-         $('#inputProgresivo').attr('data-progresivo',$(this).attr('id'));
-        //  $('#inputHard').prop('readonly', true);
-         $('#agregarProgresivo').hide();
-         $('#cancelarProgresivo').hide();
-      }
-      else{
-        $('#agregarProgresivo').hide();
-        $('#cancelarProgresivo').hide();
-
-        $('#inputHard').val(inputProgresivo);
-        $('#inputHard').attr('data-hard','');
-      }
-  });
-}
 
 function crearFilaJuego(juego){
   var fila = $(document.createElement('tr'));
 
-  var progresivos;
   var codigo;
-  juego.nro_niv_progresivos == null ? progresivos = '-' : progresivos= juego.nro_niv_progresivos;
   juego.certificados == null ?  codigo = '-' :   codigo= juego.certificados;
   juego.cod_juego == null ?  codigojuego = '-' :   codigojuego= juego.cod_juego;
 
@@ -782,15 +637,16 @@ function habilitarControles(valor){
 
 
 function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
-  $('#modalJuego').modal('show');
   $('#inputJuego').val(juego.nombre_juego).prop('readonly',false);
-  $('#inputCodigo').val(juego.cod_identificacion);
   $('#inputCodigoJuego').val(juego.cod_juego).prop('readonly',false);
 
   for (var i = 0; i < tablas.length; i++) {
-    $('#btn-agregarTablaDePago').trigger('click');
-    $('#tablas_pago input:last').val(tablas[i].codigo).attr('data-id' , tablas[i].id_tabla_pago);
+    let fila = agregarRenglonTablaDePago();
+    fila.find('input').val(tablas[i].codigo)
+    .attr('data-id' , tablas[i].id_tabla_pago);
+    fila.attr('data-id' , tablas[i].id_tabla_pago);
   }
+
   for (var i = 0; i < maquinas.length; i++) {
     var div = agregarRenglonMaquina();
     div.attr('data-id' ,maquinas[i].id_maquina);
