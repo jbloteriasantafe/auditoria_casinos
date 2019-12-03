@@ -31,13 +31,22 @@ class GliSoftController extends Controller
       return self::$instance;
   }
 
-  public function buscarTodo($id = null){
+  public function buscarTodo($buscar = null){
       $glisofts=GliSoft::all();
-      $casinos=Casino::all();
-      UsuarioController::getInstancia()->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
+      $uc = UsuarioController::getInstancia();
+      $uc->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
+      $user = $uc->quienSoy()['usuario'];
+      $casinos_ids = [];
+      foreach($user->casinos as $c){
+        $casinos_ids[] = $c->id_casino;
+      }
       //Ordenar por nombre ascendiente ignorando mayusculas
-      $juegos = Juego::all()->sortBy("nombre_juego",SORT_NATURAL|SORT_FLAG_CASE); 
-      //Hay juegos con el mismo nombre, les doy uno unico
+      $juegos = DB::table('juego')->select('juego.*')
+      ->join('casino_tiene_juego as cj','juego.id_juego','=','cj.id_juego')
+      ->whereIn('cj.id_casino',$casinos_ids)
+      ->orderBy('juego.nombre_juego','ASC')
+      ->get();
+      //Hay juegos con el mismo nombre, los agrupo
       $juegosarr = [];
       foreach($juegos as $j){
         $nombre = $j->nombre_juego;
@@ -47,12 +56,15 @@ class GliSoftController extends Controller
         $juegosarr[$nombre][] = $j;
       }
       $codigo_defecto_busqueda = '';
-      if(!is_null($id)){
-        $gli_defecto = GliSoft::find($id);
-        if(!is_null($gli_defecto)) $codigo_defecto_busqueda = $gli_defecto->nro_archivo;
+      if(!is_null($buscar)){
+        $codigo_defecto_busqueda = $buscar;
       }
       //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
-      return view('seccionGLISoft' , ['glis' => $glisofts,'casinos' => $casinos,'juegos' => $juegosarr,'codigo_defecto_busqueda' => $codigo_defecto_busqueda]);
+      return view('seccionGLISoft' , 
+      ['glis' => $glisofts,
+      'casinos' => $user->casinos,
+      'juegos' => $juegosarr,
+      'codigo_defecto_busqueda' => $codigo_defecto_busqueda])->render();
   }
 
   public function obtenerGliSoft($id){

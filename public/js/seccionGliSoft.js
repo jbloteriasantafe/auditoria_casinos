@@ -152,7 +152,7 @@ $(document).on('click','.detalle',function(){
     //obtenerGli
     var id=$(this).val();
 
-    $.get("obtenerGliSoft/" + id , function(data){
+    $.get("/certificadoSoft/obtenerGliSoft/" + id , function(data){
 
       $('#nroCertificado').val(data.glisoft.nro_archivo);
       $('#observaciones').val(data.glisoft.observaciones);
@@ -325,7 +325,7 @@ $(document).on('click','.modificarGLI',function(){
 
     $('#cargaArchivo').attr('data-borrado','false');
 
-    $.get("obtenerGliSoft/" +id , function(data){
+    $.get("/certificadoSoft/obtenerGliSoft/" +id , function(data){
         console.log(data);
 
         $('#nroCertificado').val(data.glisoft.nro_archivo);
@@ -417,7 +417,7 @@ $('#boton-eliminarGLI').click(function (e) {
 
     $.ajax({
       type: "DELETE",
-      url: "eliminarGliSoft/" + id_gli ,
+      url: "/certificadoSoft/eliminarGliSoft/" + id_gli ,
       success: function (data) {
         $('#cuerpoTabla #' + id_gli).remove();
         $("#tablaGliSofts").trigger("update");
@@ -493,7 +493,7 @@ $('#btn-guardar').click(function (e){
 
     $.ajax({
         type: "POST",
-        url: url,
+        url: "/certificadoSoft/"+url,
         data: formData,
         dataType: "json",
         processData: false,
@@ -643,7 +643,7 @@ $('#buscarCertificado').click(function(e,
 
     $.ajax({
       type: "post",
-      url: 'buscarGliSoft',
+      url: '/certificadoSoft/buscarGliSoft',
       data: formData,
       dataType: 'json',
       success: function (data) {

@@ -293,8 +293,7 @@ function obtenerIdCertificado(nro_archivo){
 
 $(document).on('click', '.verCertificado', function(){
   const input = $(this).parent().parent().find('.codigo');
-  const id = obtenerIdCertificado(input.val());
-  if(id!=null) window.open('certificadoSoft/' + id,'_blank');
+  if(input.length>0) window.open('certificadoSoft/' + input.val(),'_blank');
 });
 
 /* busqueda de usuarios */
