@@ -52,7 +52,6 @@ $('#btn-nuevo').click(function(e){
   $('#btn-guardar').text('ACEPTAR');
   $('#btn-guardar').val("nuevo");
   $('#btn-guardar').css('display','inline-block');
-  $('#frmJuego').trigger('reset');
   $('#boton-salir').text('CANCELAR');
 
   const juego = {nombre_juego: "", cod_juego: ""};
@@ -78,7 +77,8 @@ $(document).on('click','.detalle', function(){
   $('#boton-cancelar').hide();
   $('#boton-salir').show();
   $('#boton-salir').text('SALIR');
-  $('#btn-guardar').val("modificar");
+  //Remover el boton para guardar
+  $('#btn-guardar').css('display','none');
 
   var id_juego = $(this).val();
 
@@ -88,17 +88,11 @@ $(document).on('click','.detalle', function(){
       $('#id_juego').val(data.juego.id_juego);
       habilitarControles(false);
       $('#modalJuego').modal('show');
-
   });
-
-    //Remover el boton para guardar
-    $('#btn-guardar').css('display','none');
-
 });
 
 $('.modal').on('hidden.bs.modal', function() {
-  ocultarErrorValidacion($('#inputCodigo'));
-  ocultarErrorValidacion($('inputJuego'));
+  ocultarErrorValidacion($('#inputJuego'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
   $('#inputJuego').val('');
@@ -111,7 +105,7 @@ function cargarCasinosJuego(casinos){
   let selectCasinosJuego = $('#selectCasinosJuego');
   selectCasinosJuego.empty();
   selectCasinosJuego.attr('size',Math.max(casinos.length,2));
-  for(var i = 0;i < casinos.length; i++){
+  for(let i = 0;i < casinos.length; i++){
     const c = casinos[i];
     selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
   }
@@ -120,7 +114,6 @@ function cargarCasinosJuego(casinos){
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
     ocultarErrorValidacion($('#inputJuego'));
-    ocultarErrorValidacion($('#inputCodigo'));
     ocultarErrorValidacion($('#inputCodigoJuego'));
     ocultarErrorValidacion($('#tablas_pago'));
     var id_juego = $(this).val();
@@ -152,14 +145,26 @@ function agregarRenglonMaquina(){
 };
 
 $(document).on('click' , '.borrarJuego' , function(){
-    $(this).parent().parent().remove();
+  $(this).parent().parent().remove();
 })
 $(document).on('change','.selectCasinos',function(){
-    const t  = $(this);
-    const id_casino = t.val();
-    const fila = t.parent();
-    fila.find('.nro_admin').attr('list','datalistMaquinas'+id_casino);
+  const t  = $(this);
+  const fila = t.parent().parent().parent();
+  const id_casino = t.val();
+  const nro_admin = fila.find('.nro_admin').attr('list','datalistMaquinas'+id_casino).val();
+  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
+  if(id_maquina != null) fila.attr('data-id',id_maquina);
+  else fila.removeAttr('data-id');
 })
+$(document).on('change','.copia input.nro_admin',function(){
+  const t = $(this);
+  const fila = t.parent().parent().parent();
+  const id_casino = fila.find('.selectCasinos').val();
+  const nro_admin = t.val();
+  const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
+  if(id_maquina != null) fila.attr('data-id',id_maquina);
+  else fila.removeAttr('data-id');
+});
 
 //agregar Tabla DE Pago
 $('#btn-agregarTablaDePago').click(function(){
@@ -170,21 +175,13 @@ function agregarRenglonTablaDePago(){
   let fila = $('<div>').addClass('row').addClass('col-md-12').addClass('copia')
   .css('padding-top','2px').css('padding-bottom','2px');
 
-  let input = $('<div>').addClass('col-xs-10')
-  .append(
-    $('<input>').attr('data-id' , 0).addClass('form-control')
-  );
-  let boton_borrar = $('<div>').addClass('col-xs-2')
-  .append(
-    $('<button>').addClass('btn').addClass('btn-danger').addClass('borrarFila')
-    .addClass('borrarTablaPago').css('display','block')
-    .append(
-      $('<i>').addClass('fa fa-fw fa-trash')
-    )
-  );
+  let input = $('<input>').attr('data-id' , 0).addClass('form-control');
+  let boton_borrar = $('<button>').addClass('btn').addClass('btn-danger')
+  .addClass('borrarFila').addClass('borrarTablaPago').css('display','block')
+  .append($('<i>').addClass('fa fa-fw fa-trash'));
 
-  fila.append(input);
-  fila.append(boton_borrar);
+  fila.append($('<div>').addClass('col-xs-10').append(input));
+  fila.append($('<div>').addClass('col-xs-2').append(boton_borrar));
 
   $('#tablas_pago').append(fila);
   return fila;
@@ -313,7 +310,7 @@ $(document).on('click','.eliminar',function(){
     var id_juego = $(this).val();
     $('#btn-eliminarModal').val(id_juego);
     $('#modalEliminar').modal('show');
-    $('#mensajeEliminar').text('¿Seguro que desea eliminar el juego "' + $(this).parent().parent().find('td:first').text()+'"?');
+    $('#mensajeEliminar').text('¿Seguro que desea eliminar el juego "' + $(this).parent().parent().find('.nombre_juego').text()+'"?');
 });
 
 $('#btn-eliminarModal').click(function (e) {
@@ -409,7 +406,6 @@ $('#btn-guardar').click(function (e) {
             $('#mensajeExito h3').text('ÉXITO');
             $('#mensajeExito p').text(' ');
             $('#mensajeExito').show();
-
         },
         error: function (data) {
             var response = JSON.parse(data.responseText);
@@ -501,14 +497,17 @@ function crearFilaJuego(juego){
   fila.attr('id',juego.id_juego)
   .append($('<td>')
       .addClass('col-xs-3')
+      .addClass('nombre_juego')
       .text(juego.nombre_juego)
   )
   .append($('<td>')
       .addClass('col-xs-3')
+      .addClass('codigo_juego')
       .text(codigojuego)
   )
   .append($('<td>')
       .addClass('col-xs-3')
+      .addClass('codigo_certif')
       .text(codigo)
       .attr('title',codigo)
   )
@@ -604,7 +603,7 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     var div = agregarRenglonMaquina();
     div.attr('data-id' ,maquinas[i].id_maquina);
     div.find('.selectCasinos').val(maquinas[i].id_casino).trigger('change');
-    div.find('.nro_admin').val(maquinas[i].nro_admin);
+    div.find('.nro_admin').val(maquinas[i].nro_admin).trigger('change');
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
   } 
