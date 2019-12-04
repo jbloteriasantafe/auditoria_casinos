@@ -342,6 +342,9 @@ function parseError(response){
   else if(response == 'validation.required'){
     return 'El valor es obligatorio.'
   }
+  else if(response == 'validation.max.string'){
+    return 'El valor es muy largo.'
+  }
   else{
     return null;
   }

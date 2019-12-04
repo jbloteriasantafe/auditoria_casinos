@@ -94,59 +94,48 @@ class JuegoController extends Controller
         return $juegoNuevo;
   }
 
-  public function validarJuegoTemporal(Request $request){
-
-    Validator::make($request->all() , [
-      'id_juego' => 'nullable|integer|exists:juego,id_juego',
-      'nombre_juego' => 'required',
-      'id_tabla_pago' => 'nullable|integer|exists:juego,id_juego',
-      'codigo_tabla_pago' => 'required',
-    ])->after(function ($validator) {
-        if($validator->getData()['id_juego'] != 0){
-         $res= Juego::where('id_juego' , '=' ,$validator->getData()['id_juego'])->get();
-         if($res[0]->nombre_juego !=  $validator->getData()['nombre_juego']){
-           $validator->errors()->add('nombre_juego','El nombre del Juego ya está tomado');
-         }
-        }else{
-
-        }
-    })->validate();
-
-  }
-
   public function guardarJuego(Request $request){
+    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
+    $ids_casinos=array();
+    foreach($casinos as $casino){
+      $ids_casinos[] = $casino->id_casino;
+    }
     Validator::make($request->all(), [
-      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
-      'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
+      'nombre_juego' => 'required|max:100',
+      'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
-      'cod_juego' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
       'tabla_pago.*.codigo' => 'required',
       'maquinas.*' => 'nullable',
-      'maquinas.*.nro_admin' => 'required',
-      'maquinas.*.id_maquina' => 'required',
+      'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
+      'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
+      'maquinas.*.id_maquina' => 'required|integer',
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'id_progresivo' => 'nullable',
-    ], array(), self::$atributos)->validate();
-
-
-    $casinos = Usuario::find(session('id_usuario'))->casinos;
-    $reglaCasinos=array();
-    foreach($casinos as $casino){
-      $reglaCasinos[] = $casino->id_casino;
-    }
+    ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos) {
+      $data = $validator->getData();
+      $nombre_juego = $data['nombre_juego'];
+      //El nombre del juego es unico POR LOS QUE ACCEDE EL ADMINISTRADOR
+      $juegos_mismo_nombre = DB::table('juego as j')
+      ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+      ->whereIn('cj.id_casino',$ids_casinos)
+      ->where('j.nombre_juego',$nombre_juego);
+      if($juegos_mismo_nombre->count() > 0){
+        $validator->errors()->add('nombre_juego', 'validation.unique');
+      }
+    })->validate();
 
     $juego = new Juego;
-    DB::transaction(function() use($juego,$reglaCasinos,$request){
+    DB::transaction(function() use($juego,$ids_casinos,$request){
       $juego->nombre_juego = $request->nombre_juego;
       $juego->cod_juego = $request->cod_juego;
       $juego->save();
       
-      // asocio el nuevo juego con los casinos seleccionados  
-      $juego->casinos()->syncWithoutDetaching($reglaCasinos);
+      // asocio el nuevo juego con los casinos del usuario 
+      $juego->casinos()->syncWithoutDetaching($ids_casinos);
   
       if(isset($request->maquinas)){
         foreach ($request->maquinas as $maquina) {
@@ -198,38 +187,51 @@ class JuegoController extends Controller
   }
 
   public function modificarJuego(Request $request){
-
-    Validator::make($request->all(), [
-      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
-      'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
-      'tabla_pago.*' => 'nullable',
-      'tabla_pago.*.id_tabla_pago' => 'nullable',
-      'tabla_pago.*.codigo' => 'required',
-      'maquinas.*' => 'nullable',
-      'maquinas.*.nro_admin' => 'required',
-      'maquinas.*.id_maquina' => 'required',
-      'maquinas.*.denominacion' => 'nullable',
-      'maquinas.*.porcentaje' => 'nullable',
-      'certificados.*' => 'nullable',
-      'certificados.*.id_gli_soft' => 'nullable',
-      'id_progresivo' => 'nullable',
-    ], array(), self::$atributos)->after(function ($validator) {
-    })->validate();
-
-
-    $juego = Juego::find($request->id_juego);
-
-    if(is_null($juego)) return $this->errorOut(['id_juego' => ['No existe el juego.']]);
-
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ids_casinos = [];
     foreach($usuario->casinos as $c){
       $ids_casinos[] = $c->id_casino;
     }
+    Validator::make($request->all(), [
+      'id_juego' => 'required|integer|exists:juego,id_juego',
+      'nombre_juego' => 'required|max:100',
+      'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
+      'tabla_pago.*' => 'nullable',
+      'tabla_pago.*.id_tabla_pago' => 'nullable',
+      'tabla_pago.*.codigo' => 'required',
+      'maquinas.*' => 'nullable',
+      'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
+      'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
+      'maquinas.*.id_maquina' => 'required|integer',
+      'maquinas.*.denominacion' => 'nullable',
+      'maquinas.*.porcentaje' => 'nullable',
+      'certificados.*' => 'nullable',
+      'certificados.*.id_gli_soft' => 'nullable',
+      'id_progresivo' => 'nullable',
+    ], array(), self::$atributos)->after(function ($validator) use ($ids_casinos){
+      $data = $validator->getData();
+      $id_juego = $data['id_juego'];
+      //Que el usuario tenga acceso a ese juego
+      $acceso = DB::table('casino_tiene_juego')
+      ->whereIn('id_casino',$ids_casinos)
+      ->where('id_juego',$id_juego)->count();
+      if($acceso == 0) $validator->errors()->add('id_juego', 'El usuario no puede acceder a este juego');
 
-    //Me fijo si existe entrada alguna de los casinos del usuario con ese juego
-    $acceso = $juego->casinos()->whereIn('casino.id_casino',$ids_casinos)->count();
-    if($acceso == 0) return $this->errorOut(['acceso' => ['El usuario no puede acceder a ese juego.']]);
+      $nombre_juego = $data['nombre_juego'];
+      //El nombre del juego es unico POR LOS QUE ACCEDE EL ADMINISTRADOR
+      //Si no es unico, que sea el mismo juego
+      $juegos_mismo_nombre = DB::table('juego as j')
+      ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+      ->whereIn('cj.id_casino',$ids_casinos)
+      ->where('j.nombre_juego',$nombre_juego);
+      if($juegos_mismo_nombre->count() > 0
+      && $juegos_mismo_nombre->where('j.id_juego',$id_juego)->count() == 0){
+        $validator->errors()->add('nombre_juego', 'validation.unique');
+      }
+    })->validate();
+
+
+    $juego = Juego::find($request->id_juego);
 
     $maquinas_accesibles = $juego->maquinas_juegos()
     ->whereIn('id_casino',$ids_casinos)->get();
@@ -280,17 +282,6 @@ class JuegoController extends Controller
     });
 
     return ['juego' => $juego];
-  }
-
-  private function existeTablaPago($id,$tablas){
-    $result = false;
-    for($i = 0;$i<count($tablas);$i++){
-      if($id == $tablas[$i]['id_tabla_pago']){
-        $result = true;
-        break;
-      }
-    }
-    return $result;
   }
 
   public function eliminarJuego($id){
