@@ -115,9 +115,8 @@ class JuegoController extends Controller
   }
 
   public function guardarJuego(Request $request){
-      //nombre de la var en js, para unique nombre de la tabla, nombre del campo que debe ser unico
     Validator::make($request->all(), [
-      //'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
+      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
       'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:juego,cod_identificacion','max:100'],
       'tabla_pago.*' => 'nullable',
       'cod_juego' => 'nullable',
@@ -201,7 +200,7 @@ class JuegoController extends Controller
   public function modificarJuego(Request $request){
 
     Validator::make($request->all(), [
-      'nombre_juego' => 'required|max:100',
+      'nombre_juego' => 'required|unique:juego,nombre_juego|max:100',
       'cod_identificacion' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
       'tabla_pago.*.id_tabla_pago' => 'nullable',
@@ -215,11 +214,6 @@ class JuegoController extends Controller
       'certificados.*.id_gli_soft' => 'nullable',
       'id_progresivo' => 'nullable',
     ], array(), self::$atributos)->after(function ($validator) {
-
-        if($validator->getData()['id_juego'] != 0){
-
-        }
-
     })->validate();
 
 

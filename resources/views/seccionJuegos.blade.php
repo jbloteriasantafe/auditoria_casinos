@@ -71,7 +71,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                 <thead>
                                   <tr>
                                     <th class="col-xs-3" value="juego.nombre_juego" estado="">NOMBRE DEL JUEGO  <i class="fa fa-sort"></i></th>
-                                    <th class="col-xs-3" value="juego.cod_identificacion" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-3" value="juego.cod_juego" estado="">CÓDIGO DEL JUEGO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-3" value="certificados" estado="">CÓDIGO DEL CERTIFICADO  <i class="fa fa-sort"></i></th>
                                     <th class="col-xs-3" value="" estado="">ACCIONES</th>
                                   </tr>

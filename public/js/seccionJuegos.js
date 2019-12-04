@@ -43,8 +43,9 @@ $('#btn-ayuda').click(function(e){
 //Mostrar modal para agregar nuevo Juego
 $('#btn-nuevo').click(function(e){
   e.preventDefault();
+  ocultarErrorValidacion($('#inputJuego'));
+  ocultarErrorValidacion($('#inputCodigoJuego'));
   $('#mensajeExito').hide();
-
   $('.modal-title').text(' | NUEVO JUEGO');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
   $('#btn-guardar').removeClass('btn-warningModificar');
@@ -72,6 +73,8 @@ $('#btn-nuevo').click(function(e){
 
 //Muestra el modal con todos los datos del JUEGO
 $(document).on('click','.detalle', function(){
+  ocultarErrorValidacion($('#inputJuego'));
+  ocultarErrorValidacion($('#inputCodigoJuego'));
   $('.modal-title').text('| VER MÁS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #FFF');
   $('#boton-cancelar').hide();
@@ -93,6 +96,7 @@ $(document).on('click','.detalle', function(){
 
 $('.modal').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('#inputJuego'));
+  ocultarErrorValidacion($('#inputCodigoJuego'));
   $('#btn-guardar').val('');
   $('#id_juego').val(0);
   $('#inputJuego').val('');
@@ -100,22 +104,17 @@ $('.modal').on('hidden.bs.modal', function() {
   $('.copia').remove();
   $('#tablas_pago').empty();
 })
-
-function cargarCasinosJuego(casinos){
-  let selectCasinosJuego = $('#selectCasinosJuego');
-  selectCasinosJuego.empty();
-  selectCasinosJuego.attr('size',Math.max(casinos.length,2));
-  for(let i = 0;i < casinos.length; i++){
-    const c = casinos[i];
-    selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
-  }
-}
+$('#inputJuego').mouseleave(function(){
+  ocultarErrorValidacion($('#inputJuego'));
+});
+$('#inputCodigoJuego').mouseleave(function(){
+  ocultarErrorValidacion($('#inputJuego'));
+});
 
 //Mostrar modal con los datos del Juego cargado
 $(document).on('click','.modificar',function(){
     ocultarErrorValidacion($('#inputJuego'));
     ocultarErrorValidacion($('#inputCodigoJuego'));
-    ocultarErrorValidacion($('#tablas_pago'));
     var id_juego = $(this).val();
     //Modificar los colores del modal
     $('#modalJuego .modal-title').text('MODIFICAR JUEGO');
@@ -336,6 +335,18 @@ $('#btn-eliminarModal').click(function (e) {
     });
 });
 
+function parseError(response){
+  if(response == 'validation.unique'){
+    return 'El valor tiene que ser único y ya existe el mismo.';
+  }
+  else if(response == 'validation.required'){
+    return 'El valor es obligatorio.'
+  }
+  else{
+    return null;
+  }
+}
+
 //Crear nuevo Juego / actualizar si existe
 $('#btn-guardar').click(function (e) {
   $('#mensajeExito').hide();
@@ -411,11 +422,11 @@ $('#btn-guardar').click(function (e) {
             var response = JSON.parse(data.responseText);
 
             if(typeof response.nombre_juego !== 'undefined'){
-              mostrarErrorValidacion($('#inputJuego'),response.nombre_juego,false);
+              mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
             }
 
             if(typeof response.cod_identificacion !== 'undefined'){
-              mostrarErrorValidacion($('#inputCodigo'),response.cod_identificacion,false);
+              mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
             }
 
             var i=0;
@@ -434,38 +445,6 @@ $('#btn-guardar').click(function (e) {
 
         }
     });
-});
-
-/** EVENTOS PARA VALIDAR LOS CAMPOS ***/
-$('#nombre_juego').focusout(function(){
-  if ($(this).val() == ''){
-      $(this).addClass('alerta');
-  }
-});
-
-$('#nombre_juego').focusin(function(){
-  $(this).removeClass('alerta');
-});
-
-
-$(document).on('focusout','.inputTabla', function(){
-  if ($(this).val() == '' || tiene_letras($(this).val())){
-      $(this).addClass('alerta');
-  }
-});
-
-$(document).on('focusin','.inputTabla', function(){
-  $(this).removeClass('alerta');
-});
-
-$(document).on('focusout','.inputCodigo', function(){
-  if ($(this).val() == '' ){
-      $(this).addClass('alerta');
-  }
-});
-
-$(document).on('focusin','.inputCodigo', function(){
-  $(this).removeClass('alerta');
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
@@ -545,17 +524,6 @@ function crearFilaJuego(juego){
   return fila;
 }
 
-function tiene_letras(texto){
-   const letras="abcdefghyjklmnñopqrstuvwxyz";
-   texto = texto.toLowerCase();
-   for(i=0; i<texto.length; i++){
-      if (letras.indexOf(texto.charAt(i),0)!=-1){
-         return 1;
-      }
-   }
-   return 0;
-}
-
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
@@ -614,7 +582,13 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     .attr('data-id',cert.id_gli_soft);
   }
 
-  cargarCasinosJuego(casinos);
+  let selectCasinosJuego = $('#selectCasinosJuego');
+  selectCasinosJuego.empty();
+  selectCasinosJuego.attr('size',Math.max(casinos.length,2));
+  for(let i = 0;i < casinos.length; i++){
+    const c = casinos[i];
+    selectCasinosJuego.append($('<option disabled>').val(c.id_casino).text(c.nombre));
+  }
 }
 
 function agregarRenglonCertificado(){
