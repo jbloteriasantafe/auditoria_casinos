@@ -114,8 +114,6 @@ class RelevamientoAmbientalController extends Controller
                                     ->where('id_casino','=',$request->id_casino)
                                     ->where('nro_islote', '!=', NULL)
                                     ->where('id_sector', '!=', NULL)
-                                    //@TODO borrar la liena de abajo despues de hacer las pruebas correspondientes
-                                    ->take(2)
                                     ->distinct('nro_islote')
                                     ->orderBy('nro_islote', 'asc')
                                     ->get();
