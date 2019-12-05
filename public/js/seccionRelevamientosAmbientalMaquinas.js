@@ -203,6 +203,7 @@ function validarRelevamiento(relevamiento) {
     $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
             $('#segundoRow').after('<br>');
+            crearSelectsGeneralidades(data.cantidad_turnos, data.generalidades);
             setearRelevamiento(data, obtenerFilaValidacion);
 
             $('#btn-finalizar').click(function() {
@@ -256,38 +257,14 @@ function obtenerFilaValidacion(detalle) {
         )
   }
 
-  if (detalle.turno1 != null) {
-    fila.find('.turno1')
-        .val(detalle.turno1)
-  }
-  if (detalle.turno2 != null) {
-    fila.find('.turno2')
-        .val(detalle.turno2)
-  }
-  if (detalle.turno3 != null) {
-    fila.find('.turno3')
-        .val(detalle.turno3)
-  }
-  if (detalle.turno4 != null) {
-    fila.find('.turno4')
-        .val(detalle.turno4)
-  }
-  if (detalle.turno5 != null) {
-    fila.find('.turno5')
-        .val(detalle.turno5)
-  }
-  if (detalle.turno6 != null) {
-    fila.find('.turno6')
-        .val(detalle.turno6)
-  }
-  if (detalle.turno7 != null) {
-    fila.find('.turno7')
-        .val(detalle.turno7)
-  }
-  if (detalle.turno8 != null) {
-    fila.find('.turno8')
-        .val(detalle.turno8)
-  }
+  if (detalle.turno1 != null) fila.find('.turno1').val(detalle.turno1);
+  if (detalle.turno2 != null) fila.find('.turno2').val(detalle.turno2);
+  if (detalle.turno3 != null) fila.find('.turno3').val(detalle.turno3);
+  if (detalle.turno4 != null) fila.find('.turno4').val(detalle.turno4);
+  if (detalle.turno5 != null) fila.find('.turno5').val(detalle.turno5);
+  if (detalle.turno6 != null) fila.find('.turno6').val(detalle.turno6);
+  if (detalle.turno7 != null) fila.find('.turno7').val(detalle.turno7);
+  if (detalle.turno8 != null) fila.find('.turno8').val(detalle.turno8);
 
   return fila;
 }
@@ -453,7 +430,7 @@ function cargarRelevamiento(relevamiento) {
 
     $.get('relevamientosControlAmbiental/obtenerRelevamiento/' + relevamiento.id_relevamiento_ambiental,
         function(data) {
-            crearSelectsGeneralidades(data.cantidad_turnos);
+            crearSelectsGeneralidades(data.cantidad_turnos, data.generalidades);
             setearRelevamiento(data, obtenerFila);
 
             $('#btn-finalizar').click(function() {
@@ -544,17 +521,25 @@ function setearRelevamiento(data, filaCallback) {
         $('#observacion_carga').val(data.relevamiento.observacion_carga);
     }
 
-    setearFilaGeneralidad(data.generalidades[0]);
-    setearFilaGeneralidad(data.generalidades[1]);
-    setearFilaGeneralidad(data.generalidades[2]);
 
-    row_th.append($('<th>')
-      .addClass('sortable')
-      .attr('data-id','islaIslote')
-      .css('width','120px')
-      .css('display','inline-block')
-      .text('ISLA/ISLOTE')
-    );
+    if (data.casino.id_casino == 3) {
+      row_th.append($('<th>')
+        .addClass('sortable')
+        .attr('data-id','islaIslote')
+        .css('width','120px')
+        .css('display','inline-block')
+        .text('ISLOTE')
+      );
+    }
+    else {
+      row_th.append($('<th>')
+        .addClass('sortable')
+        .attr('data-id','islaIslote')
+        .css('width','120px')
+        .css('display','inline-block')
+        .text('ISLA')
+      );
+    }
 
     for (let i=1; i<=data.cantidad_turnos; i++) {
       row_th.append($('<th>')
@@ -564,6 +549,10 @@ function setearRelevamiento(data, filaCallback) {
           .text('TURNO '+i)
       );
     }
+
+    setearFilaGeneralidad(data.generalidades[0], data.relevamiento.id_estado_relevamiento);
+    setearFilaGeneralidad(data.generalidades[1], data.relevamiento.id_estado_relevamiento);
+    setearFilaGeneralidad(data.generalidades[2], data.relevamiento.id_estado_relevamiento);
 
     let tabla = $('#modalRelevamientoAmbiental .cuerpoTablaPersonas');
     for (let i = 0; i < data.detalles.length; i++) {
@@ -594,45 +583,20 @@ function obtenerFila(detalle) {
           )
     }
 
-    if (detalle.turno1 != null) {
-      fila.find('.turno1')
-          .val(detalle.turno1)
-    }
-    if (detalle.turno2 != null) {
-      fila.find('.turno2')
-          .val(detalle.turno2)
-    }
-    if (detalle.turno3 != null) {
-      fila.find('.turno3')
-          .val(detalle.turno3)
-    }
-    if (detalle.turno4 != null) {
-      fila.find('.turno4')
-          .val(detalle.turno4)
-    }
-    if (detalle.turno5 != null) {
-      fila.find('.turno5')
-          .val(detalle.turno5)
-    }
-    if (detalle.turno6 != null) {
-      fila.find('.turno6')
-          .val(detalle.turno6)
-    }
-    if (detalle.turno7 != null) {
-      fila.find('.turno7')
-          .val(detalle.turno7)
-    }
-    if (detalle.turno8 != null) {
-      fila.find('.turno8')
-          .val(detalle.turno8)
-    }
+    if (detalle.turno1 != null) fila.find('.turno1').val(detalle.turno1);
+    if (detalle.turno2 != null) fila.find('.turno2').val(detalle.turno2);
+    if (detalle.turno3 != null) fila.find('.turno3').val(detalle.turno3);
+    if (detalle.turno4 != null) fila.find('.turno4').val(detalle.turno4);
+    if (detalle.turno5 != null) fila.find('.turno5').val(detalle.turno5);
+    if (detalle.turno6 != null) fila.find('.turno6').val(detalle.turno6);
+    if (detalle.turno7 != null) fila.find('.turno7').val(detalle.turno7);
+    if (detalle.turno8 != null) fila.find('.turno8').val(detalle.turno8);
 
     return fila;
 }
 
-function setearFilaGeneralidad (generalidad) {
+function setearFilaGeneralidad (generalidad, estado) {
   let x;
-  let modal = $('#modalRelevamientoAmbiental');
 
   if (generalidad.tipo_generalidad == 'clima') {
     x = 'climaTurno';
@@ -643,39 +607,26 @@ function setearFilaGeneralidad (generalidad) {
    x = 'eventoTurno';
  }
 
- if (generalidad.turno1 != null) {
-   $('#'+x+'1')
-       .val(2);
- }
- if (generalidad.turno2 != null) {
-   modal.find('#'+x+'2')
-       .val(generalidad.turno2);
- }
- if (generalidad.turno3 != null) {
-   modal.find('#'+x+'3')
-       .val(generalidad.turno3);
- }
- if (generalidad.turno4 != null) {
-   modal.find('#'+x+'4')
-       .val(generalidad.turno4);
- }
- if (generalidad.turno5 != null) {
-   modal.find('#'+x+'5')
-       .val(generalidad.turno5);
- }
- if (generalidad.turno6 != null) {
-   modal.find('#'+x+'6')
-       .val(generalidad.turno6);
- }
- if (generalidad.turno7 != null) {
-   modal.find('#'+x+'7')
-       .val(generalidad.turno7);
- }
- if (generalidad.turno8 != null) {
-   modal.find('#'+x+'8')
-       .val(generalidad.turno8);
- }
+ if (generalidad.turno1 != null) $('#'+x+'1').val(generalidad.turno1);
+ if (generalidad.turno2 != null) $('#'+x+'2').val(generalidad.turno2);
+ if (generalidad.turno3 != null) $('#'+x+'3').val(generalidad.turno3);
+ if (generalidad.turno4 != null) $('#'+x+'4').val(generalidad.turno4);
+ if (generalidad.turno5 != null) $('#'+x+'5').val(generalidad.turno5);
+ if (generalidad.turno6 != null) $('#'+x+'6').val(generalidad.turno6);
+ if (generalidad.turno7 != null) $('#'+x+'7').val(generalidad.turno7);
+ if (generalidad.turno8 != null) $('#'+x+'8').val(generalidad.turno8);
 
+ //si el estado es Finalizado, desactivo los selects de generalidades:
+ if (estado == 3) {
+   if (generalidad.turno1 != null) $('#'+x+'1').attr('disabled','true');
+   if (generalidad.turno2 != null) $('#'+x+'2').attr('disabled','true');
+   if (generalidad.turno3 != null) $('#'+x+'3').attr('disabled','true');
+   if (generalidad.turno4 != null) $('#'+x+'4').attr('disabled','true');
+   if (generalidad.turno5 != null) $('#'+x+'5').attr('disabled','true');
+   if (generalidad.turno6 != null) $('#'+x+'6').attr('disabled','true');
+   if (generalidad.turno7 != null) $('#'+x+'7').attr('disabled','true');
+   if (generalidad.turno8 != null) $('#'+x+'8').attr('disabled','true');
+ }
 }
 
 function enviarFormularioCarga(relevamiento,
@@ -777,11 +728,15 @@ function enviarFormularioCarga(relevamiento,
     });
 }
 
-function crearSelectsGeneralidades (cant) {
+function crearSelectsGeneralidades (cant, generalidades) {
   let row_th = $('#tablaPersonas .cabeceraTablaPersonas');
   let modal = $('#modalRelevamientoAmbiental .modal-dialog');
 
-  $.get('relevamientosControlAmbiental/obtenerGeneralidades/', function(data) {
+  $.ajax({
+      type: 'GET',
+      url: 'http://' + window.location.host + '/relevamientosControlAmbiental/obtenerGeneralidades/',
+      async: false,
+      success: function(data) {
 
         $('#rowClima').append($('<h5>').text('CONDICIONES CLIMÁTICAS'));
         $('#rowTemperatura').append($('<h5>').text('CONDICIONES DE TEMPERATURA'));
@@ -878,7 +833,13 @@ function crearSelectsGeneralidades (cant) {
           }
         }
 
-      });
+
+      },
+      error: function(data) {
+          console.log('Error');
+      }
+  });
+
 }
 
 function desactivarGeneralidades(cantidad_turnos) {
@@ -973,15 +934,6 @@ function mensajeError(errores) {
     }, 250);
 }
 
-$('#btn-salir').click(function() {
-    $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
-    $('#rowClima').children().remove();
-    $('#rowTemperatura').children().remove();
-    $('#rowEvento').children().remove();
-    $("br").remove();
-    $('#modalRelevamientoAmbiental').modal('hide');
-});
-
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevo').click(function(e) {
     e.preventDefault();
@@ -1027,4 +979,14 @@ $('#btn-generar').click(function(e) {
         }
     });
 
+});
+
+//SALIR O CERRAR UN RELEVAMIENTO
+$('#btn-salir').click(function() {
+    $('#tablaPersonas .cabeceraTablaPersonas').children().remove();
+    $('#rowClima').children().remove();
+    $('#rowTemperatura').children().remove();
+    $('#rowEvento').children().remove();
+    $("br").remove();
+    $('#modalRelevamientoAmbiental').modal('hide');
 });

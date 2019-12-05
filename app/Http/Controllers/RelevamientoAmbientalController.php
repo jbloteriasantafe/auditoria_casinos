@@ -96,8 +96,6 @@ class RelevamientoAmbientalController extends Controller
       $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
                                 ->where('id_sector', '!=', NULL)
                                 ->where('deleted_at','=',NULL)
-                                //@TODO borrar la liena de abajo despues de hacer las pruebas correspondientes
-                                ->take(4)
                                 ->orderBy('nro_isla', 'asc')
                                 ->get();
 

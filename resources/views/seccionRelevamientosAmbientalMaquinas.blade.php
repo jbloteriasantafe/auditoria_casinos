@@ -360,7 +360,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                       <tbody></tbody>
                     </table>
 
-                    <div class="" style="overflow: scroll; height: 500px;">
+                    <div class="" style="overflow: scroll; height: 350px;">
                     <table class="table tablaPozos">
                       <tbody class="cuerpoTablaPersonas">
                         <tr class="filaEjemplo" style="display: none">

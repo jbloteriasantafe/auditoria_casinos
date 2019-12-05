@@ -92,8 +92,6 @@ class RelevamientoAmbientalMesasController extends Controller
     $mesas = DB::table('mesa_de_panio') ->where('id_casino','=',$request->id_casino)
                                         ->where('id_sector_mesas', '!=', NULL)
                                         ->where('deleted_at','=',NULL)
-                                        //@TODO borrar la linea de abajo despues de hacer las pruebas correspondientes
-                                        ->take(4)
                                         ->orderBy('nro_admin', 'asc')
                                         ->get();
 

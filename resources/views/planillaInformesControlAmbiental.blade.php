@@ -122,7 +122,7 @@
           <td class="tablaInicio" style="background-color: white" width="10px">{{$tot['total']}}</td>
           @endforeach
           @if ($una_sola_vez)
-          @foreach ($distribuciones_globales_mtm as $dist)
+          @foreach ($distribuciones_globales_mesas as $dist)
           <td class="tablaInicio" style="background-color: white" width="10px" rowspan="{{sizeof($otros_datos['casino']->sectores_mesas)}}">{{$dist['distribucion']}}</td>
           @endforeach
           <?php $una_sola_vez=0; ?>

@@ -237,7 +237,7 @@ class InformeControlAmbientalController extends Controller
       $detalles_informe_mesas[] = $detalle_informe_mesas;
     }
 
-    //creo un array de distribuciones globales de maquinas
+    //creo un array de distribuciones globales de mesas
     for ($i=1; $i<=sizeof($casino->turnos); $i++) {
       $distribucion = 0;
       foreach ($detalles_informe_mesas as $d) {
