@@ -41,15 +41,26 @@ class GliSoftController extends Controller
         $casinos_ids[] = $c->id_casino;
       }
       //Ordenar por nombre ascendiente ignorando mayusculas
-      $juegos = DB::table('juego')->select('juego.*')
+      $query = DB::table('juego')->select('juego.id_juego')
       ->join('casino_tiene_juego as cj','juego.id_juego','=','cj.id_juego')
       ->whereIn('cj.id_casino',$casinos_ids)
+      ->groupBy('juego.id_juego')
       ->orderBy('juego.nombre_juego','ASC')
       ->get();
       //Hay juegos con el mismo nombre, los agrupo
       $juegosarr = [];
-      foreach($juegos as $j){
+      foreach($query as $q){
+        $j = Juego::find($q->id_juego);
         $nombre = $j->nombre_juego;
+        $cas_juego = [];
+        foreach($j->casinos as $c){
+          $cas_juego[$c->id_casino]=$c->codigo;
+        }
+        ksort($cas_juego);
+        $nombre = $nombre . ' #';
+        foreach($cas_juego as $c){
+          $nombre = $nombre . ' ' . $c;
+        }
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
         }
@@ -68,6 +79,12 @@ class GliSoftController extends Controller
   }
 
   public function obtenerGliSoft($id){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $casinos_ids = [];
+    foreach($user->casinos as $c){
+      $casinos_ids[] = $c->id_casino;
+    }
+
     $glisoft = GliSoft::find($id);
 
     if(!empty($glisoft->archivo)){
@@ -78,7 +95,12 @@ class GliSoftController extends Controller
     }
     $juegosYTPagos = array();
     foreach ($glisoft->juegos as $juego) {
-      $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago];
+      $juego_casinos = $juego->casinos();
+      $visible = $juego_casinos->whereIn('casino.id_casino',$casinos_ids)->count();
+      if($visible>0){
+        $juego_casinos = $juego_casinos->get(['casino.id_casino','casino.nombre','casino.codigo']);
+        $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago,'casinos' => $juego_casinos];
+      }
     }
     return ['glisoft' => $glisoft , 'expedientes' => $glisoft->expedientes, 'nombre_archivo' => $nombre_archivo , 'juegos' => $juegosYTPagos];
   }
@@ -95,70 +117,83 @@ class GliSoftController extends Controller
 
   //METODO QUE RESPONDEN A GUARDAR
   public function guardarGliSoft(Request $request){
-
     Validator::make($request->all(), [
       'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
-      'juego' => 'nullable|exists:juego,id_juego'
+      'juegos' => 'nullable',
     ], array(), self::$atributos)->after(function ($validator){
-        //$validator->getData()['descripcion'] get campo de validador
+        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        $casinos_ids = [];
+        foreach($user->casinos as $c){
+          $casinos_ids[] = $c->id_casino;
+        }
+        $data = $validator->getData();
+        if(isset($data['juegos'])){
+          $juegos = explode(",",$data['juegos']);
+          $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          foreach($juegos as $j){
+            $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
+            if($acceso == 0){
+              $validator->errors()->add($j, 'No puede acceder a ese juego');
+            }
+          }
+        }
     })->validate();
 
-    $GLI=new GliSoft;
+    $GLI = null;
+    $nombre_archivo = null;
 
-    $GLI->nro_archivo =$request->nro_certificado;
-    $GLI->observaciones=$request->observaciones;
-
-    if($request->file != null){
-      $file=$request->file;
-      $archivo=new Archivo;
-      $data=base64_encode(file_get_contents($file->getRealPath()));
-      $nombre_archivo=$file->getClientOriginalName();
-      $archivo->nombre_archivo=$nombre_archivo;
-      $archivo->archivo=$data;
-      $archivo->save();
-      $GLI->archivo()->associate($archivo->id_archivo);
-    }
-
-    $GLI->save();
-
-    if(!empty($request->expedientes)){
-      $expedientesReq = explode(',',$request->expedientes);
-    }else{
-      $expedientesReq=null;
-    }
-    if($expedientesReq != null){
-      foreach ($expedientesReq as $exp) {
-        if($this->noEstabaEnLista($exp,$GLI->expedientes)){
-          $GLI->expedientes()->attach($exp);
+    DB::transaction(function() use($GLI,$nombre_archivo,$request){
+      $GLI=new GliSoft;
+      $GLI->nro_archivo =$request->nro_certificado;
+      $GLI->observaciones=$request->observaciones;
+  
+      if($request->file != null){
+        $file=$request->file;
+        $archivo=new Archivo;
+        $data=base64_encode(file_get_contents($file->getRealPath()));
+        $nombre_archivo=$file->getClientOriginalName();
+        $archivo->nombre_archivo=$nombre_archivo;
+        $archivo->archivo=$data;
+        $archivo->save();
+        $GLI->archivo()->associate($archivo->id_archivo);
+      }
+  
+      $GLI->save();
+  
+      if(!empty($request->expedientes)){
+        $expedientesReq = explode(',',$request->expedientes);
+      }else{
+        $expedientesReq=null;
+      }
+      if($expedientesReq != null){
+        foreach ($expedientesReq as $exp) {
+          if($this->noEstabaEnLista($exp,$GLI->expedientes)){
+            $GLI->expedientes()->attach($exp);
+          }
         }
       }
-    }
-    if(isset($request->juegos)){
-      $juegos=explode("," , $request->juegos);
-      JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
-    }
-
-    $GLI->save();
-
-    //obtengo solo el nombre del archivo para devolverlo a la vista
-    if(!empty($GLI->archivo)){
-      $nombre_archivo = $GLI->archivo->nombre_archivo;
-    }
-    else{
-      $nombre_archivo = null;
-    }
-
+      if(isset($request->juegos)){
+        $juegos=explode("," , $request->juegos);
+        JuegoController::getInstancia()->asociarGLI($juegos , $GLI->id_gli_soft);
+      }
+  
+      $GLI->save();
+  
+      //obtengo solo el nombre del archivo para devolverlo a la vista
+      if(!empty($GLI->archivo)){
+        $nombre_archivo = $GLI->archivo->nombre_archivo;
+      }
+    });
+    
     return ['gli_soft' => $GLI,  'nombre_archivo' =>$nombre_archivo];
   }
 
   public function guardarGliSoft_gestionarMaquina($nro_certificado,$observaciones,$file){
-
         $GLI=new GliSoft;
         $GLI->nro_archivo =$nro_certificado;
         $GLI->observaciones=$observaciones;
-
         if($file != null){
           $archivo=new Archivo;
           $data=base64_encode(file_get_contents($file->getRealPath()));
@@ -168,11 +203,7 @@ class GliSoftController extends Controller
           $archivo->save();
           $GLI->archivo()->associate($archivo->id_archivo);
         }
-
         $GLI->save();
-
-
-
         return $GLI;
   }
 
@@ -208,89 +239,121 @@ class GliSoftController extends Controller
   }
 
   public function modificarGliSoft(Request $request){
-
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      $casinos_ids = [];
+      foreach($user->casinos as $c){
+        $casinos_ids[] = $c->id_casino;
+      }
       Validator::make($request->all(), [
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
         'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
+        'expedientes' => 'nullable',
         'juegos' => 'nullable'
-      ])->after(function ($validator){
-          //$validator->getData()['descripcion'] get campo de validador
+      ])->after(function ($validator) use ($casinos_ids){
+        $data = $validator->getData();
+        if(isset($data['juegos'])){
+          $juegos = explode(",",$data['juegos']);
+          $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          foreach($juegos as $j){
+            $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
+            if($acceso == 0){
+              $validator->errors()->add($j, 'No puede acceder a ese juego');
+            }
+          }
+        }
       })->validate();
 
-      $GLI=GliSoft::find($request->id_gli_soft);
-
-      $GLI->nro_archivo =$request->nro_certificado;
-      $GLI->observaciones=$request->observaciones;
-
-      if(!empty($request->expedientes)){
-        $expedientesReq = explode(',',$request->expedientes);
-      }else{
-        $expedientesReq=null;
-      }
-      if(isset($GLI->expedientes)){
-        foreach ($GLI->expedientes as $expediente) {
-          if($this->noEstaEnLista($expediente ,  $expedientesReq )){
-            $GLI->expedientes()->detach($expediente->id_expediente);
+      $GLI = null;
+      $nombre_archivo = null;
+      DB::transaction(function() use($request,$casinos_ids,$GLI,$nombre_archivo){
+        $GLI=GliSoft::find($request->id_gli_soft);
+        $GLI->nro_archivo =$request->nro_certificado;
+        $GLI->observaciones=$request->observaciones;
+  
+        if(!empty($request->expedientes)){
+          $expedientesReq = explode(',',$request->expedientes);
+        }else{
+          $expedientesReq=null;
+        }
+        if(isset($GLI->expedientes)){
+          foreach ($GLI->expedientes as $expediente) {
+            if($this->noEstaEnLista($expediente ,  $expedientesReq )){
+              $GLI->expedientes()->detach($expediente->id_expediente);
+            }
           }
         }
-      }
-
-      if($request->expedientes != null){
-        for($i=0; $i<count(  $expedientesReq); $i++){
-          if($this->noEstabaEnLista(  $expedientesReq[$i],$GLI->expedientes)){
-            $GLI->expedientes()->attach(  $expedientesReq[$i]);
+  
+        if($request->expedientes != null){
+          for($i=0; $i<count(  $expedientesReq); $i++){
+            if($this->noEstabaEnLista(  $expedientesReq[$i],$GLI->expedientes)){
+              $GLI->expedientes()->attach(  $expedientesReq[$i]);
+            }
           }
         }
-      }
+        
 
+        //Saco los viejos que puede ver el usuario
+        $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
+        ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
+        ->join('juego as j','j.id_juego','=','jgl.id_juego')
+        ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+        ->where('gl.id_gli_soft',$GLI->id_gli_soft)
+        ->whereIn('cj.id_casino',$casinos_ids)->get();
+        
+        foreach($juegos_accesibles as $j){
+          $juego = Juego::find($j->id_juego);
+          $juego->gliSoftOld()->dissociate();
+          $juego->gliSoft()->detach($GLI->id_gli_soft);
+          $juego->save();
+        }
 
-
-      $JuegoController=JuegoController::getInstancia();
-      $JuegoController->desasociarGLI($GLI->id_gli_soft);
-      if(!empty($request->juegos)){
-        $juegos=explode("," , $request->juegos);
-        $JuegoController->asociarGLI($juegos , $GLI->id_gli_soft);
-      }
-
-      $GLI->save();
-
-      if(!empty($request->file)){
-          if($GLI->archivo != null){
-            $archivoAnterior=$GLI->archivo;
-            $GLI->archivo()->dissociate();
-            $GLI->save();
-            $archivoAnterior->delete();
+        //Agrego los nuevos
+        if(!empty($request->juegos)){
+          $juegos=explode("," , $request->juegos);
+          foreach($juegos as $id_juego){
+            $juego = Juego::find($id_juego);
+            $juego->gliSoftOld()->associate($GLI->id_gli_soft);
+            $juego->gliSoft()->attach($GLI->id_gli_soft);
+            $juego->save();
           }
-
-          $file=$request->file;
-          $archivo=new Archivo;
-          $archivo->nombre_archivo=$file->getClientOriginalName();
-          $data=base64_encode(file_get_contents($file->getRealPath()));
-          $archivo->archivo=$data;
-          $archivo->save();
-          $GLI->archivo()->associate($archivo->id_archivo);
-          $GLI->save();
-
-      }else{
-          if($request->borrado == "true"){
-            $archivoAnterior=$GLI->archivo;
-            $GLI->archivo()->dissociate();
+        }
+  
+        $GLI->save();
+  
+        if(!empty($request->file)){
+            if($GLI->archivo != null){
+              $archivoAnterior=$GLI->archivo;
+              $GLI->archivo()->dissociate();
+              $GLI->save();
+              $archivoAnterior->delete();
+            }
+  
+            $file=$request->file;
+            $archivo=new Archivo;
+            $archivo->nombre_archivo=$file->getClientOriginalName();
+            $data=base64_encode(file_get_contents($file->getRealPath()));
+            $archivo->archivo=$data;
+            $archivo->save();
+            $GLI->archivo()->associate($archivo->id_archivo);
             $GLI->save();
-            $archivoAnterior->delete();
-          }
-      }
-
-      $GLI->save();
-      $GLI=GliSoft::find($request->id_gli_soft);
-
-      if(!empty($GLI->archivo)){
-        $nombre_archivo = $GLI->archivo->nombre_archivo;
-      }
-      else{
-        $nombre_archivo = null;
-      }
+  
+        }else{
+            if($request->borrado == "true"){
+              $archivoAnterior=$GLI->archivo;
+              $GLI->archivo()->dissociate();
+              $GLI->save();
+              $archivoAnterior->delete();
+            }
+        }
+  
+        $GLI->save();
+        $GLI=GliSoft::find($request->id_gli_soft);
+        if(!empty($GLI->archivo)){
+          $nombre_archivo = $GLI->archivo->nombre_archivo;
+        }
+      });
 
       return ['gli_soft' => $GLI , 'nombre_archivo' => $nombre_archivo ];
   }
