@@ -175,6 +175,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
             <div id="juegoPlegado" class="row">
                 <div class="row">
                   <div class="row" style="padding-bottom: 15px;">
+                    <div class="col-md-12">
                       <div class="col-md-3">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
@@ -188,6 +189,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
                         </select>
                       </div>
+                    </div>
                   </div>
                   <div class="row" style="padding-bottom: 15px;">
                     <div class="col-md-12">
@@ -230,7 +232,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       <h5>Vincular Máquinas  <button style="display:inline;" id="btn-agregarMaquina" class="btn btn-success borrarFila" type="button">
                         <i class="fa fa-fw fa-link"></i>
                       </button></h5>
-                        <div id="listaMaquinas" class="pre-scrollable" style="min-height: 350px;">
+                        <div id="listaMaquinas" class="pre-scrollable" style="margin-top:15px;min-height: 350px;">
                           <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
                             <div class="col-md-10">
                               <div class="input-group">
