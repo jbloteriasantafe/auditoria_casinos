@@ -49,7 +49,7 @@ $('.etiquetaLogoSalida').click(function(e){
 
   $.ajax({
       type: 'POST',
-      url: 'logout',
+      url: '/logout',
       success: function (data) {
         window.location.href = "login";
       },

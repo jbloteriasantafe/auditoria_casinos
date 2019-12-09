@@ -316,7 +316,13 @@ $id_usuario = session('id_usuario');
             <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
           </div>
           <div class="modal-body franjaRojaModal">
-            <strong><p>¿Seguro desea eliminar el Certificado de Software?</p></strong>
+            <div class="cuerpoEliminar"></div>
+            <strong>
+              <p>¿Seguro desea eliminar el certificado 
+                <span class="certifEliminar"></span>
+                ?
+              </p>
+            </strong>
           </div>
           <div class="modal-footer">
             <button id="boton-eliminarGLI" type="button" class="btn btn-dangerEliminar">ELIMINAR</button>

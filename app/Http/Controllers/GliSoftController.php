@@ -16,7 +16,6 @@ use Validator;
 class GliSoftController extends Controller
 {
   private static $atributos = [
-
     'nro_certificado' => 'Nro certificado',
     'observaciones' => 'Niveles de Progresivo',
     'file' => 'Archivo GLI',
@@ -51,15 +50,9 @@ class GliSoftController extends Controller
       $juegosarr = [];
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
-        $nombre = $j->nombre_juego;
-        $cas_juego = [];
-        foreach($j->casinos as $c){
-          $cas_juego[$c->id_casino]=$c->codigo;
-        }
-        ksort($cas_juego);
-        $nombre = $nombre . ' #';
-        foreach($cas_juego as $c){
-          $nombre = $nombre . ' ' . $c;
+        $nombre = $j->nombre_juego . ' #';
+        foreach($j->casinos->sortBy('codigo') as $c){
+          $nombre = $nombre . ' ' . $c->codigo;
         }
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
@@ -118,10 +111,10 @@ class GliSoftController extends Controller
   //METODO QUE RESPONDEN A GUARDAR
   public function guardarGliSoft(Request $request){
     Validator::make($request->all(), [
-      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/'],
+      'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
-      'juegos' => 'nullable',
+      'juegos' => 'required|string',
     ], array(), self::$atributos)->after(function ($validator){
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         $casinos_ids = [];
@@ -132,12 +125,17 @@ class GliSoftController extends Controller
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          $tiene_juegos = false;
           foreach($juegos as $j){
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
             if($acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
+            else{ $tiene_juegos = true; }
           }
+          if(!$tiene_juegos){
+            $validator->errors()->add('juegos', 'No puede crear un certificado de software sin juegos.');
+          } 
         }
     })->validate();
 
@@ -250,17 +248,23 @@ class GliSoftController extends Controller
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
-        'juegos' => 'nullable'
+        'juegos' => 'required|string'
       ])->after(function ($validator) use ($casinos_ids){
         $data = $validator->getData();
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
+          $tiene_juegos = false;
           foreach($juegos as $j){
+            //Se necesita clonar porque el where y count modifican la estructura
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
             if($acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
+            else{ $tiene_juegos = true; }
+          }
+          if(!$tiene_juegos){
+            $validator->errors()->add('juegos', 'No puede crear/modificar un certificado de software sin juegos.');
           }
         }
       })->validate();
@@ -301,7 +305,7 @@ class GliSoftController extends Controller
         ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
         ->where('gl.id_gli_soft',$GLI->id_gli_soft)
         ->whereIn('cj.id_casino',$casinos_ids)->get();
-        
+
         foreach($juegos_accesibles as $j){
           $juego = Juego::find($j->id_juego);
           $juego->gliSoftOld()->dissociate();
@@ -389,27 +393,55 @@ class GliSoftController extends Controller
     return true;
   }
 
-
-
   public function eliminarGLI($id){
     $GLI=GliSoft::find($id);
-    $juegos=$GLI->juegos;
-    foreach($juegos as $juego){
-      $juego->gliSoftOld()->dissociate();
-      $juego->save();
+    $se_borro = false;
+    if(is_null($GLI)) return ['gli' => $GLI,'se_borro' => $se_borro];
+
+    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
+    $casinos_ids=array();
+    foreach($casinos as $c){
+      $casinos_ids [] = $c->id_casino;
     }
-    $GLI->setearJuegos([]);
-    $GLI->expedientes()->sync([]);
 
-    $archivo=$GLI->archivo;
-    $GLI->archivo()->dissociate();
-    //lo tengo que guardar primero al gli para que no me tire error por integridad referencial con archivo
-    $GLI->save();
-    $GLI->delete();
-    if(!empty($archivo))
-      $archivo->delete();
+    $juegos_accesibles = DB::table('gli_soft as gl')->select('j.id_juego')
+    ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
+    ->join('juego as j','j.id_juego','=','jgl.id_juego')
+    ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+    ->where('gl.id_gli_soft',$GLI->id_gli_soft)
+    ->whereIn('cj.id_casino',$casinos_ids);
 
-    return ['gli' => $GLI];
+    $juegos_old = DB::table('gli_soft as gl')->select('j.id_juego')
+    ->join('juego as j','j.id_gli_soft','=','gl.id_gli_soft')
+    ->join('casino_tiene_juego as cj','cj.id_juego','=','j.id_juego')
+    ->where('gl.id_gli_soft',$GLI->id_gli_soft)
+    ->whereIn('cj.id_casino',$casinos_ids);
+
+    $juegos_accesibles = $juegos_accesibles->union($juegos_old)->distinct()->get();
+
+    DB::transaction(function() use ($GLI,$juegos_accesibles,$se_borro){
+      foreach($juegos_accesibles as $j){
+        $juego = Juego::find($j->id_juego);
+        $juego->gliSoftOld()->dissociate();
+        $juego->gliSoft()->detach($GLI->id_gli_soft);
+        $juego->save();
+      }
+      $GLI->save();
+      $cant_juegos = $GLI->juegos()->count()+$GLI->juegosOld()->count();
+      if($cant_juegos == 0){//Si el GLI no tiene mas juegos, lo borro
+        $GLI->expedientes()->sync([]);
+        $archivo = $GLI->archivo;
+        $GLI->archivo()->dissociate();
+        $GLI->save();
+        $GLI->delete();
+        if(!empty($archivo)){
+          $archivo->delete();
+        }
+        $se_borro = true;
+      }
+    });
+
+    return ['gli' => $GLI,'se_borro' => $se_borro];
   }
 
 }

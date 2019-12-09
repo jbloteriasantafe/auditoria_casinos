@@ -142,8 +142,8 @@ $(document).on('click','.borrarExpediente',function(){
 
 $(document).on('click','.detalle',function(){
     //Modificar los colores del modal
-    $('.modal-title').text('| VER MÁS');
-    $('.modal-header').attr('style','background: #4FC3F7');
+    $('#modalGLI .modal-title').text('| VER MÁS');
+    $('#modalGLI .modal-header').attr('style','background: #4FC3F7');
     $('#btn-guardar').hide();
     //Resetear formulario para llevar los datos
     $('#frmG').trigger('reset');
@@ -153,7 +153,7 @@ $(document).on('click','.detalle',function(){
       $(this).remove();
     })
     $('#cuerpoTablaDePago tr').remove();
-    $('.modal-footer .cancelar').text('SALIR');
+    $('#modalGLI .modal-footer .cancelar').text('SALIR');
 
     //limpia la tabla de juegos
     $('#tablaJuegos tbody').empty();
@@ -225,8 +225,8 @@ $(document).on('click','.detalle',function(){
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
 
-  $('.modal-title').text('| CERTIFICADO DE SOFTWARE');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
+  $('#modalAyuda .modal-title').text('| CERTIFICADO DE SOFTWARE');
+  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
 
@@ -239,8 +239,8 @@ $('#btn-nuevo').click(function(e){
     $('#mensajeExito').hide();
 
     //Modificar los colores del modal
-    $('.modal-title').text('| NUEVO CERTIFICADO DE SOFTWARE');
-    $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+    $('#modalGLI .modal-title').text('| NUEVO CERTIFICADO DE SOFTWARE');
+    $('#modalGLI .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
     //Limpiar los inputs
     $('input').val('');
@@ -259,7 +259,7 @@ $('#btn-nuevo').click(function(e){
     $('#btn-guardar').text('ACEPTAR');
     $('#btn-guardar').show();
     $('#btn-guardar').val("nuevo");
-    $('.modal-footer .cancelar').text('CANCELAR');
+    $('#modalGLI .modal-footer .cancelar').text('CANCELAR');
 
     //Limpiar tablas
     $('#tablaJuegos tbody').empty();
@@ -267,10 +267,7 @@ $('#btn-nuevo').click(function(e){
 
     //Preparar los datalist
     $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
-
     $('#inputExpediente').setearElementoSeleccionado(0,"");
-    //$('#inputJuego').setearElementoSeleccionado(0,"");
 
     //Inicializa el fileinput para cargar los PDF
     $("#cargaArchivo").fileinput('destroy').fileinput({
@@ -297,8 +294,8 @@ $(document).on('click','.modificarGLI',function(){
     $('#mensajeExito').hide();
 
     //Modificar los colores del modal
-    $('.modal-title').text('| MODIFICAR CERTIFICADO SOFTWARE');
-    $('.modal-header').attr('style','background: #ff9d2d','color: #000;');
+    $('#modalGLI .modal-title').text('| MODIFICAR CERTIFICADO SOFTWARE');
+    $('#modalGLI .modal-header').attr('style','background: #ff9d2d','color: #000;');
 
     $('#id_gli').val($(this).val());
 
@@ -316,7 +313,7 @@ $(document).on('click','.modificarGLI',function(){
     $('#btn-guardar').addClass('btn').addClass('btn-warningModificar');
     $('#btn-guardar').text('ACEPTAR');
     $('#btn-guardar').show();
-    $('.modal-footer .btn-default').text('CANCELAR');
+    $('#modalGLI .modal-footer .btn-default').text('CANCELAR');
 
     //Limpiar tablas
     $('#tablaExpedientesSoft tbody').empty();
@@ -397,22 +394,17 @@ $(document).on('click','.modificarGLI',function(){
     });
 });
 
+function mostrarModalEliminar(id,msj=""){
+  $('#modalEliminar .cuerpoEliminar').empty().append(msj);
+  const nombre_certif = $('#cuerpoTabla #'+id).find('.codigo').text();
+  $('#modalEliminar .certifEliminar').empty().text(nombre_certif);
+  $('#boton-eliminarGLI').val(id_gli);
+  $('#modalEliminar').modal('show');
+}
 //Borrar GLI
 $(document).on('click','.eliminarGLI',function(){
-
-    $('.modal-title').removeAttr('style');
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
-    $('#btn-guardar').removeClass('btn-success');
-    $('#btn-guardar').addClass('btn-warning');
-    $('#btn-guardar').text('Eliminar');
-
-    var id_gli = $(this).val();
-
-    $('#boton-eliminarGLI').val(id_gli);
-
-    $('#modalEliminar').modal('show');
+    const id_gli = $(this).val();
+    mostrarModalEliminar(id_gli);
 });
 
 $('#boton-eliminarGLI').click(function (e) {
@@ -446,6 +438,21 @@ $('#cargaArchivo').on('fileclear', function(event) {
 $('#cargaArchivo').on('fileselect', function(event) {
   $('#cargaArchivo').attr('data-borrado','false');
 });
+
+function parseError(response){
+  if(response == 'validation.unique'){
+    return 'El valor tiene que ser único y ya existe el mismo.';
+  }
+  else if(response == 'validation.required'){
+    return 'El campo es obligatorio.'
+  }
+  else if(response == 'validation.max.string'){
+    return 'El valor es muy largo.'
+  }
+  else{
+    return response;
+  }
+}
 
 //Crear nuevo gli-modificar
 $('#btn-guardar').click(function (e){
@@ -498,6 +505,13 @@ $('#btn-guardar').click(function (e){
       formData.append('expedientes' , expedientes);
       formData.append('juegos' , juegos);
       formData.append('borrado', $('#cargaArchivo').attr('data-borrado'));
+      if(juegos.length == 0){
+        $('#modalGLI').modal('hide');
+        setTimeout(function(){
+          mostrarModalEliminar(id,'Al desasociar todos los juegos del certificado, se lo eliminaria.')
+        },250);
+        return;
+      }
     }
 
     $.ajax({
@@ -529,15 +543,13 @@ $('#btn-guardar').click(function (e){
           console.log('Error:', data);
           var response = JSON.parse(data.responseText);
 
-          if(typeof response.nro_admin !== 'undefined'){
-            mostrarErrorValidacion($('#nro_admin'),response.nro_admin[0],true);
-            $('#error_nav_maquina').show();
-          }
-
           if(typeof response.nro_certificado !== 'undefined'){
-            mostrarErrorValidacion($('#nroCertificado'),response.nro_certificado[0],true);
+            mostrarErrorValidacion($('#nroCertificado'),parseError(response.nro_certificado[0]),true);
           }
 
+          if(typeof response.juegos !== 'undefined'){
+            mostrarErrorValidacion($('#tablaJuegos tbody'),parseError(response.juegos[0]),true);
+          }
 
           if(typeof response.file !== 'undefined'){
             $('#mensajeError .textoMensaje').empty();
@@ -561,6 +573,11 @@ $("#contenedorFiltros input").on('keypress',function(e){
       $('#buscarCertificado').click();
     }
 });
+
+$('#modalGLI .modal').on('hidden.bs.modal', function() {
+  ocultarErrorValidacion($('#nroCertificado'));
+  ocultarErrorValidacion($('#tablaJuegos tbody'));
+})
 
 
 //Ordenar tabla
@@ -689,11 +706,11 @@ function generarFilaTabla(certificado){
       }
 
       fila.append($('<td>')
-              .addClass('col-xs-4')
+              .addClass('col-xs-4').addClass('codigo')
               .text(certificado.nro_archivo)
           )
           .append($('<td>')
-              .addClass('col-xs-5')
+              .addClass('col-xs-5').addClass('archivo')
               .text(nombre_archivo)
           )
           .append($('<td>')

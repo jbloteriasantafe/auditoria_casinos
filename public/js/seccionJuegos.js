@@ -340,7 +340,7 @@ function parseError(response){
     return 'El valor tiene que ser único y ya existe el mismo.';
   }
   else if(response == 'validation.required'){
-    return 'El valor es obligatorio.'
+    return 'El campo es obligatorio.'
   }
   else if(response == 'validation.max.string'){
     return 'El valor es muy largo.'
