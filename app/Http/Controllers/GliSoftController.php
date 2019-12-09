@@ -31,7 +31,6 @@ class GliSoftController extends Controller
   }
 
   public function buscarTodo($buscar = null){
-      $glisofts=GliSoft::all();
       $uc = UsuarioController::getInstancia();
       $uc->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
       $user = $uc->quienSoy()['usuario'];
@@ -65,10 +64,10 @@ class GliSoftController extends Controller
       }
       //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
       return view('seccionGLISoft' , 
-      ['glis' => $glisofts,
+      ['superusuario' => $user->es_superusuario,
       'casinos' => $user->casinos,
       'juegos' => $juegosarr,
-      'codigo_defecto_busqueda' => $codigo_defecto_busqueda])->render();
+      'codigo_defecto_busqueda' => $codigo_defecto_busqueda]);
   }
 
   public function obtenerGliSoft($id){
@@ -206,6 +205,18 @@ class GliSoftController extends Controller
   }
 
   public function buscarGliSofts(Request $request){
+    Validator::make($request->all(), ['id_casino' => 'required|integer'], 
+    array(), self::$atributos)->after(function ($validator){
+        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        $data = $validator->getData();
+        $id_casino = $data['id_casino'];
+        if($id_casino == 0 && !$user->es_superusuario){
+          $validator->errors()->add('id_casino', 'El usuario no puede realizar esa accion.');
+        }
+        if($id_casino != 0 && !$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino', 'El usuario no puede acceder a ese casino.');
+        } 
+    })->validate();
     $reglas = array();
     if(!empty($request->certificado)){
       $reglas[]=['gli_soft.nro_archivo' , 'like' , '%' .  $request->certificado . '%'];
@@ -221,18 +232,18 @@ class GliSoftController extends Controller
     ->select('gli_soft.*', 'archivo.nombre_archivo')
     ->leftJoin('archivo' , 'archivo.id_archivo' , '=' , 'gli_soft.id_archivo')
     ->leftJoin('juego_glisoft','juego_glisoft.id_gli_soft','=','gli_soft.id_gli_soft')
-    ->when($sort_by,function($query) use ($sort_by){
-      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-    })
+    ->leftJoin('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego_glisoft.id_juego')
     ->where($reglas);
+    if($request->id_casino != 0){
+      $resultados=$resultados->whereNotNull('casino_tiene_juego.id_casino');
+      $resultados=$resultados->where('casino_tiene_juego.id_casino',$request->id_casino);
+    }
+    $resultados=$resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    });
+
     //Elimino duplicados y pagino.
     $resultados = $resultados->groupBy('gli_soft.id_gli_soft')->paginate($request->page_size);
-
-    foreach ($resultados as $index => $resultado) {
-      $gli = GliSoft::find($resultado->id_gli_soft);
-      $resultados[$index]->eliminar =  ($gli->expedientes->count() && $gli->juegos->count() && $gli->maquinas->count());
-    }
-
     return ['resultados' => $resultados];
   }
 

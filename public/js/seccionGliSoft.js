@@ -656,7 +656,7 @@ $('#buscarCertificado').click(function(e,
     nro_exp_org:$('#nro_exp_org').val(),
     nro_exp_interno:$('#nro_exp_interno').val(),
     nro_exp_control:$('#nro_exp_control').val(),
-    casino:$('#sel1').val(),
+    id_casino:$('#sel1').val(),
     certificado: $('#nro_certificado').val(),
     nombre_archivo: $('#nombre_archivo').val(),
     //Si es undefined es pq escribio cualquier fruta
@@ -667,33 +667,33 @@ $('#buscarCertificado').click(function(e,
     page_size: page_size,
   }
 
-    $.ajax({
-      type: "post",
-      url: '/certificadoSoft/buscarGliSoft',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
+  $.ajax({
+    type: "post",
+    url: '/certificadoSoft/buscarGliSoft',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      console.log(data);
 
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.resultados.total,clickIndice);
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,data.resultados.total,clickIndice);
+      $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.resultados.total,clickIndice);
+      $('#herramientasPaginacion').generarIndices(page_number,page_size,data.resultados.total,clickIndice);
 
-        $('#tablaGliSofts tbody tr').remove();
+      $('#tablaGliSofts tbody tr').remove();
 
-        for (var i = 0; i < data.resultados.data.length; i++) {
-          var filaCertificado = generarFilaTabla(data.resultados.data[i]);
-          $('#cuerpoTabla').append(filaCertificado);
-        }
+      for (var i = 0; i < data.resultados.data.length; i++) {
+        var filaCertificado = generarFilaTabla(data.resultados.data[i]);
+        $('#cuerpoTabla').append(filaCertificado);
+      }
 
-        if(abrir_modal){//Si entro por la url le abro el primer resultado
-          $('#tablaGliSofts tbody tr').eq(0).find('.detalle').trigger('click');
-          abrir_modal = false;
-        }
-      },
-      error: function (data) {
-        console.log('Error:', data);
-      },
-    });
+      if(abrir_modal){//Si entro por la url le abro el primer resultado
+        $('#tablaGliSofts tbody tr').eq(0).find('.detalle').trigger('click');
+        abrir_modal = false;
+      }
+    },
+    error: function (data) {
+      console.log('Error:', data);
+    },
+  });
 });
 
 function generarFilaTabla(certificado){

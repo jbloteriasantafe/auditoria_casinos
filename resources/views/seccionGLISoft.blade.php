@@ -65,7 +65,9 @@ $id_usuario = session('id_usuario');
                                 <h5>Casino</h5>
                                 <div class="form-group">
                                   <select class="form-control" id="sel1">
-                                    <option value="0">-Casino-</option>
+                                    @if($superusuario)
+                                    <option value="0">Todos los casinos</option>
+                                    @endif
                                     @foreach($casinos as $casino)
                                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                     @endforeach
