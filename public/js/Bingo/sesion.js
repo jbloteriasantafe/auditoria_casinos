@@ -193,7 +193,7 @@ $('#btn-agregarTermino').click(function(){
           .addClass('row')
           .addClass('terminoFormula')
           .css('margin-bottom','15px')
-          .attr('id','terminoFormula')
+          .attr('id','terminoFormulaAgregado')
           .append($('<div>')
               .addClass('col-lg-3')
               .append($('<input>')
@@ -402,13 +402,11 @@ $('#btn-nuevo').click(function(e){
   $('.modal-title').text('| NUEVA SESIÓN');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
-  // document.querySelector("#fechaInicioNueva").valueAsDate = new Date();
-  // let h =new Date();
-  // let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
-  // document.querySelector("#horaInicioNueva").value = hora;
-  // //Calulo la fecha actual
-  // var fecha_actual = fechaHoy();
-  // var fecha_str = $('#cuerpoTabla tr').last().children().text();
+  //Restablezco los campos para crear sesión en caso de que hayan sido ocultados
+  // $('#valor_carton').show();
+  // $('#serie_inicial').show();
+  // $('#carton_inicial').show();
+
   $('#modalFormula').modal('show');
 
 });
@@ -442,13 +440,14 @@ $(document).on('click','.modificar',function(){
         $('#pozo_dotacion_inicial').val(data.sesion.pozo_dotacion_inicial);
         $('#pozo_extra_inicial').val(data.sesion.pozo_extra_inicial);
 
-        $('#valor_carton').val(data.detalles[0].valor_carton);
-        $('#serie_inicial').val(data.detalles[0].serie_inicio);
-        $('#carton_inicial').val(data.detalles[0].carton_inicio);
+        //oculto los campos utilizados para iniciar una sesión
+        $('#valor_carton').remove();
+        $('#serie_inicial').remove();
+        $('#carton_inicial').remove();
 
-        var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
+        var cantidad = data.detalles.length ;
          for (var i = 0; i < cantidad; i++){
-           cargarDetallesInicioSesion(data.detalles[i+1]);
+           cargarDetallesInicioSesion(data.detalles[i]);
          }
 
       });
@@ -466,15 +465,21 @@ $('.operador').keydown(function(e){
 
 //borrar fila -> valor carton - serie inicial - carton incial
 $(document).on('click','.borrarTermino',function(){
-
-  $(this).parent().parent().remove();
-
   var i=$('#columna #terminoFormula').length;
+  console.log(i);
+  if(i == 3){
+    $('#columna #terminoFormula').last().find('#valor_carton').val('');
+    $('#columna #terminoFormula').last().find('#serie_inicial').val('');
+    $('#columna #terminoFormula').last().find('#carton_inicial').val('');
+  }else{
+    $(this).parent().parent().remove();
+  }
 
-  $('#columna #terminoFormula').last().find('#valor_carton').val('');
-  $('#columna #terminoFormula').last().find('#serie_inicial').val('');
-  $('#columna #terminoFormula').last().find('#carton_inicial').val('');
-
+  var j=$('#columna #terminoFormulAgregado').length;
+  console.log(j);
+  if(j ==1){
+    $(this).parent().parent().remove();
+  }
 });
 
 //borrar fila -> valor carton_f - serie inicial - carton incial
@@ -494,11 +499,6 @@ $(document).on('click','.borrarTerminoFinal',function(){
 $(document).on('click','.borrarTerminoRelevamiento',function(){
 
   $(this).parent().parent().remove();
-
-  var i=$('#columnaRelevamiento #terminoRelevamiento').length;
-
-  $('#columnaRelevamiento #terminoRelevamiento').last().find('#nombre_premio').val('');
-  $('#columnaRelevamiento #terminoRelevamiento').last().find('#carton_ganador').val('');
 
 });
 
@@ -1766,6 +1766,65 @@ function cargarDetallesInicioSesion(detalle){
           )
           .append($('<div>')
               .addClass('col-xs-3')
+              .css('padding-right','0px')
+              .append($('<button>')
+                  .addClass('borrarTermino')
+                  .addClass('borrarFila')
+                  .addClass('btn')
+                  .addClass('btn-danger')
+                  .css('margin-top','6px')
+                  .attr('type','button')
+                  .append($('<i>')
+                      .addClass('fa')
+                      .addClass('fa-trash')
+                  )
+              )
+          )
+
+
+      )
+}
+
+//cargar fila detalle inicio de sesion
+function cargarFilaDetallesInicioSesion(){
+  $('#columna')
+      .append($('<div>')
+          .addClass('row')
+          .addClass('terminoFormula')
+          .css('margin-bottom','15px')
+          .attr('id','terminoFormula')
+          .append($('<div>')
+              .addClass('col-lg-3')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','valor_carton')
+                  .attr('type','text')
+                  .attr('value', '')
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-3')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','serie_inicial')
+                  .attr('type','text')
+                  .attr('value', '')
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-3')
+              .append($('<input>')
+                  .attr('placeholder' , '')
+                  .attr('id','carton_inicial')
+                  .attr('type','text')
+                  .attr('value', '')
+                  .addClass('form-control')
+              )
+          )
+          .append($('<div>')
+              .addClass('col-lg-3')
               .css('padding-right','0px')
               .append($('<button>')
                   .addClass('borrarTermino')

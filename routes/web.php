@@ -863,3 +863,7 @@ Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
   Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
   Route::get('bingo/informe','Bingo\InformeController@index');
 });
+
+Route::get('autoexcluido','Autoexcluido\AutoexcluidoController@index');
+Route::post('autoexcluido/agregarAE','Autoexcluido\AutoexcluidoController@agregarAE');
+Route::get('autoexcluido/existeAE','Autoexcluido\AutoexcluidoController@existeAE');

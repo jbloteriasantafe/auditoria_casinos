@@ -243,6 +243,7 @@ class SesionesController extends Controller
         }
 
     public function modificarSesion(Request $request){
+      dd($request);
       //Validación de los datos
       Validator::make($request->all(), [
             'pozo_dotacion_inicial' => 'required|numeric',
@@ -577,7 +578,7 @@ class SesionesController extends Controller
         }
         //elimino la partidas
         $partida->delete();
-        
+
         return ['partida' => $partida];
       }
 
