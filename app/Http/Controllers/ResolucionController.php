@@ -88,6 +88,7 @@ class ResolucionController extends Controller
 
       if($id_res_actuales){
         $res_elim=Resolucion::select("id_resolucion")
+                ->where('id_expediente',$id_expediente)
                 ->whereNotIn("id_resolucion",$id_res_actuales)
                 ->get();
         foreach($res_elim as $r){

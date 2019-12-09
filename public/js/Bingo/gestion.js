@@ -8,7 +8,7 @@ $(document).ready(function(){
 
   $('#gestionBingo').siblings('div.opcionesHover').attr('aria-expanded','true');
 
-  $('.tituloSeccionPantalla').text('Gestion de Premios y Canon');
+  $('.tituloSeccionPantalla').text('Gestión de Premios');
   // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcGestionarBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGestionarBingo').addClass('opcionesSeleccionado');

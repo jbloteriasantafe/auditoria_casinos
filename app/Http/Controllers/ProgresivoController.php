@@ -115,7 +115,8 @@ class ProgresivoController extends Controller
            function($query) use ($sort_by){
              return $query->orderBy($sort_by);
            })
-    ->where('progresivo.es_individual','=',0);
+    ->where('progresivo.es_individual','=',0)
+    ->whereNull('progresivo.deleted_at');
 
     $reglas = [];
 
@@ -477,7 +478,8 @@ class ProgresivoController extends Controller
     join pozo on (prog.id_progresivo = pozo.id_progresivo)
     join nivel_progresivo as niv on (niv.id_pozo = pozo.id_pozo)
     where prog.es_individual = 1
-    and maq.id_casino = prog.id_casino";
+    and maq.id_casino = prog.id_casino 
+    and prog.deleted_at is NULL and pozo.deleted_at is NULL and niv.deleted_at is NULL";
 
     $parametros = [];
 
@@ -525,7 +527,7 @@ class ProgresivoController extends Controller
     })->validate();
 
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+    if(!$user->es_superusuario && !$user->usuarioTieneCasino($request->id_casino)){
       return $this->errorOut(['id_casino' => 'El usuario no puede administrar ese casino']);
     }
 
@@ -596,7 +598,11 @@ class ProgresivoController extends Controller
     $progresivo = Progresivo::find($id_progresivo);
     if($progresivo === null) return $this->errorOut(['id_progresivo' => 'Progresivo no existe']);
 
-    $progresivo->maquinas()->sync([]);
+    //Como tenemos un SOFT DELETE, si borramos el progresivo y era individual
+    //Cuando hagamos un query no podemos buscarlo si lo restauramos (hay que enlazarlo de vuelta)
+    //En principio no es necesario sacarle las maquinas al progresivo ya que
+    //La maquina nunca va a llegar a un progresivo borrado por maquina->progresivos
+    //$progresivo->maquinas()->sync([]);
 
     foreach($progresivo->pozos as $pozo){
       foreach($pozo->niveles as $nivel){
@@ -833,11 +839,15 @@ class ProgresivoController extends Controller
   }
 
   public function cargarProgresivos(){
+
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->es_superusuario){
       return "Operacion no permitida";
     }
-
+    //Esto era para cuando se migro de los CSV a la tabla,
+    //Lo dejo para documentacion futura.
+    //Lo que hace es que carga de 3 tablas precargadas (melinque, santafe y rosario) a la de progresivos
+    /*
     $query_mel =
     "select 1 as id_casino,p.*
     from progresivos_melinque p";
@@ -984,7 +994,7 @@ class ProgresivoController extends Controller
 
       DB::statement($deleteq);
     });
-
+    */
     return;
   }
 
@@ -1006,6 +1016,8 @@ class ProgresivoController extends Controller
   }
 
   public function obtenerProgresivoPorIdMaquina($id_maquina){
+    //ESTO ESTA ASI POR QUE EN LAYOUT PARCIAL ESPERA ESTA RESPUESTA (LayoutController::obtenerLayoutParcial)
+    //NO BORRAR SIN VER BIEN PORQUE (no tuve tiempo de revisarlo)
     $maquina= Maquina::find($id_maquina);
     $pozo = null;
     $progresivo = '';

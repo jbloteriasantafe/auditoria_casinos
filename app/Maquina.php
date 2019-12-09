@@ -23,7 +23,8 @@ class Maquina extends Model
   public function nro_admin(){
     return $this->nro_admin;
   }
-  public function gliSoft(){
+  //Deprecado, usar relacion ->juegos->glisofts o juego_activo->glisofts
+  public function gliSoftOld(){
     return $this->belongsTo('App\GliSoft','id_gli_soft','id_gli_soft');
   }
   public function gliHard(){

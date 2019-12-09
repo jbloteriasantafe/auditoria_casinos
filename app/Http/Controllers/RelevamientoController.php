@@ -47,15 +47,22 @@ class RelevamientoController extends Controller
     return self::$instance;
   }
 
-  // estaValidado devuelve los sectores sin validar, si está vacia, esta validado
-  // tiene en cuenta que todos los sectores tengan relevamiento visados, en ese caso
-  // el estado a verificar es 7 -> rel visado
+  //Verifica que todos los sectores esten validados para un relevamiento en una fecha,
+  //En principio no podria darse la situacion que esten todos los sectores esten en estado "4" (Visado)
+  //Porque automaticamente los pasa a 7 (Rel Visado), pero si se fuese a dar lo consideramos igualmente de correcto
+  //Si esta todo bien, retorna un arreglo vacio.
   public function estaValidado($fecha, $id_casino,$tipo_moneda){
-    $relevamientos=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
-                                ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ])
+    $relevamientos_validados=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
+                                ->where([
+                                  ['fecha' , '=' , $fecha] ,
+                                  ['sector.id_casino' , '=' , $id_casino],
+                                  ['backup','=',0]
+                                ])
+                                ->whereIn('id_estado_relevamiento',[4,7])
                                 ->get();
     $errores=array();
 
+    //No estoy seguro pq hace esto aca, pero verifica que tenga contadores importados tambien.
     $cant_contador_horario = ContadorHorario::where([['fecha' , '=' , $fecha] ,
                                                     ['id_casino' , '=' , $id_casino] ,
                                                     ['id_tipo_moneda' , '=' , $tipo_moneda->id_tipo_moneda]])
@@ -72,16 +79,22 @@ class RelevamientoController extends Controller
     }else{
       $sectorescount = $casino->sectores->count();
     }
-    if($sectorescount != $relevamientos->count()){
-      $errores[]= 'No todos los sectores estan relevados';
 
-      foreach ($relevamientos as $relevamientoSector) {
-        //si todos los relevamientos estan relevados y visados, entonces el estado es rel. visado = 7
-          if($relevamientoSector->estado_relevamiento->id_estado_relevamiento!=7){//todos los relevamientos validados para el día. ID 4 -> validado
-            $errores[]=$relevamientoSector->sector->descripcion;
-          }
+    if($sectorescount != $relevamientos_validados->count()){
+      $errores[]= 'No todos los sectores estan relevados o validados';
+      $sin_validar  = Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
+      ->where([
+        ['fecha' , '=' , $fecha] ,
+        ['sector.id_casino' , '=' , $id_casino],
+        ['backup','=',0]
+      ])
+      ->whereNotIn('id_estado_relevamiento',[4,7])
+      ->get();
+      foreach ($sin_validar as $sv) {
+        $errores[]=[$sv->id_relevamiento,$sv->sector->descripcion];
       }
     }
+
     return $errores;
   }
 
@@ -1163,8 +1176,11 @@ class RelevamientoController extends Controller
 
     $ret = new \stdClass();
     $ret->casino = $maq->casino->nombre;
-    $ret->sector = $maq->isla->sector->descripcion;
-    $ret->isla = $maq->isla->nro_isla;
+    if(!is_null($maq->isla)){
+      $ret->sector = $maq->isla->sector->descripcion;
+      $ret->isla = $maq->isla->nro_isla;
+    }
+
     $ret->nro_admin = $maq->nro_admin;
 
     $testString = array("SI" => True, "NO" => False, null => null);
@@ -1206,7 +1222,7 @@ class RelevamientoController extends Controller
                                      })
                            ->leftJoin('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
                            ->leftJoin('tipo_causa_no_toma','tipo_causa_no_toma.id_tipo_causa_no_toma','=','detalle_relevamiento.id_tipo_causa_no_toma')
-                           ->join('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
+                           ->leftJoin('usuario','usuario.id_usuario','=','relevamiento.id_usuario_cargador')
                            ->where('maquina.id_maquina',$maq->id_maquina)
                            ->where('detalle_relevamiento.id_maquina',$maq->id_maquina)
                            ->where('detalle_contador_horario.id_maquina',$maq->id_maquina)

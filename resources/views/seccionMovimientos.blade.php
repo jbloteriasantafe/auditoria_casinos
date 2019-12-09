@@ -995,18 +995,6 @@
                           <a href="" id="navJuego"><h4>JUEGOS</h4></a>
                     </div>
                     <div width="10%">
-                          <i id="error_nav_progresivo" class="fa fa-times" style="color:#F44336;"></i>
-                          <a href="" id="navProgresivo"><h4>PROGRESIVO</h4></a>
-                    </div>
-                    <div width="10%">
-                          <i id="error_nav_soft" class="fa fa-times" style="color:#F44336;"></i>
-                          <a href="" id="navSoft"><h4>GLI SOFT</h4></a>
-                    </div>
-                    <div width="10%">
-                          <i id="error_nav_hard" class="fa fa-times" style="color:red; display:none;"></i>
-                          <a href="" id="navHard"><h4>GLI HARD</h4></a>
-                    </div>
-                    <div width="10%">
                           <i id="error_nav_formula" class="fa fa-times" style="color:red; display:none;"></i>
                           <a href="" id="navFormula"><h4>FÓRMULA</h4></a>
                     </div>
@@ -1148,7 +1136,7 @@
 
                         <div class="col-lg-4">
                           <h5>Moneda</h5>
-                          <select class="form-control" id="juega_progresivo">
+                          <select class="form-control" id="tipo_moneda">
                             @foreach ($monedas as $moneda)
                             <option value="{{$moneda->id_tipo_moneda}}">{{$moneda->descripcion}}</option>
                             @endforeach
@@ -1161,7 +1149,7 @@
 
                         <div class="col-lg-4">
 
-                          <h5>Expedientes del GLI SOFT</h5>
+                          <h5>Expedientes del CERTIFICADO SOFT</h5>
 
                           <!-- <h5>Número de expediente</h5> -->
                           <div id="M_expediente" class="input-group triple-input">
@@ -1674,7 +1662,7 @@
                     <div id="listaSoftMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                         <div class="row">
                             <div class="col-md-12">
-                              <h6>GLI SOFTWARE ACTIVO</h6>
+                              <h6>CERTIFICADO SOFTWARE ACTIVO</h6>
 
                               <!-- Tabla de todos los gli soft en la máquina -->
                               <table id="tablaSoftActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -1705,7 +1693,7 @@
                                 <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
                               </div>
 
-                              <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fas fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
+                              <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fas fa-times aviso"></i> La máquina no contiene certificado de Software.</p>
                             </div>
                         </div>
 
@@ -1716,7 +1704,7 @@
                     <div id="agregarSoft" style="cursor:pointer;" data-toggle="collapse" data-target="#softPlegado">
                         <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                             <div class="col-md-12">
-                                <h6>AGREGAR GLI SOFTWARE<i class="fas fa-fw fa-angle-down"></i></h6>
+                                <h6>AGREGAR CERTIFICADO SOFTWARE<i class="fas fa-fw fa-angle-down"></i></h6>
                             </div>
                         </div>
                     </div>
@@ -1728,7 +1716,7 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <h5>Código de Certificado</h5>
-                                        <input id="inputSoft" data-software=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Software"/>
+                                        <input id="inputSoft" data-software=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar Certificado Software"/>
                                         <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" /> -->
                                         <!-- <datalist id="soft"> </datalist> -->
                                         <!-- <span id="alerta_codigo_soft" class="alertaSpan"></span> -->
@@ -1757,10 +1745,10 @@
                                     <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
                                 </button>
                                 <button id="btn-crearSoft" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-plus"></i> CREAR GLI SOFTWARE
+                                    <i class="fas fa-fw fa-plus"></i> CREAR CERTIFICADO SOFTWARE
                                 </button>
                                 <button id="btn-agregarSoftLista" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR GLI SOFTWARE
+                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO SOFTWARE
                                 </button>
                             </div>
                         </div>
@@ -1775,7 +1763,7 @@
                     <div id="listaHardMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                         <div class="row">
                             <div class="col-md-12">
-                              <h6>GLI HARDWARE ACTIVO</h6>
+                              <h6>CERTIFICADO HARDWARE ACTIVO</h6>
 
                               <!-- Tabla de todos los gli hard en la máquina -->
                               <table id="tablaHardActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -1807,7 +1795,7 @@
                               </div>
 
                               <p id="noexiste_hard" style="display:block;margin-top:30px; margin-bottom:20px;">
-                                <i class="fas fa-times aviso"></i> La máquina no contiene certificado de GLI Hardware.</p>
+                                <i class="fas fa-times aviso"></i> La máquina no contiene certificado de Hardware.</p>
                             </div>
                         </div>
 
@@ -1845,10 +1833,10 @@
                                     <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
                                 </button>
                                 <button id="btn-crearHard" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-plus"></i> CREAR GLI HARDWARE
+                                    <i class="fas fa-fw fa-plus"></i> CREAR CERTIFICADO HARDWARE
                                 </button>
                                 <button id="btn-agregarHardLista" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR GLI HARDWARE
+                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO HARDWARE
                                 </button>
                             </div>
                         </div>

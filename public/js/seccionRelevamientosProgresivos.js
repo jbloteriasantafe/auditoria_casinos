@@ -608,7 +608,8 @@ function causaNoTomaCallback(x) {
 function obtenerFilaValidacion(detalle) {
     let fila = filaEjemploValidacion();
     fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
-    fila.find('.nombrePozo').text(detalle.nombre_pozo);
+    //fila.find('.nombrePozo').text(detalle.nombre_pozo);
+    fila.find('.maquinas').text(detalle.nro_admins);
     fila.find('.isla').text(detalle.nro_isla);
     fila.attr('data-id', detalle.id_detalle_relevamiento_progresivo);
 

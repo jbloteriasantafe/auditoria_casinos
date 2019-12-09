@@ -15,14 +15,22 @@ class Isla extends Model
   protected $connection = 'mysql';
   protected $table = 'isla';
   protected $primaryKey = 'id_isla';
-  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at');
+  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at','orden','id_sector');
   public $timestamps = false;
-  protected $appends = array('cantidad_maquinas');
+  protected $appends = array('cantidad_maquinas','cantidad_maquinas_y_int_tecnica');
 
   // Obtiene todas las mtm ACTIVAS
   public function getCantidadMaquinasAttribute(){
       if($this->deleted_at == null){
       return Maquina::where('id_isla','=',$this->id_isla)->whereIn('id_estado_maquina',[1,2,7])->whereNull('deleted_at')->count();
+    }else{
+      return 0;
+    }
+  }
+  //IDEM anterior pero con egreso x int tecnica tambien
+  public function getCantidadMaquinasYIntTecnicaAttribute(){
+    if($this->deleted_at == null){
+    return Maquina::where('id_isla','=',$this->id_isla)->whereIn('id_estado_maquina',[1,2,5,7])->whereNull('deleted_at')->count();
     }else{
       return 0;
     }
@@ -50,6 +58,14 @@ class Isla extends Model
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
+
+  public function layouts_totales(){
+    return $this->belongsToMany('App\LayoutTotal','layout_total_isla','id_isla','id_layout_total')->withPivot('maquinas_observadas');
+  }
+
+  public function observaciones_layout_total(){
+    return $this->hasMany('App\LayoutTotalIsla','id_isla','id_isla');
   }
 
   public static function boot(){

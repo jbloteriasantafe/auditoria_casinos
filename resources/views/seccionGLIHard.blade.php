@@ -72,7 +72,7 @@ $id_usuario = session('id_usuario');
                     <div class="col-md-12"> <!-- columna TABLA CASINOS -->
                       <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h4>Certificados GLI Hardware Registrados en el Sistema</h4>
+                            <h4>Certificados de Hardware Registrados en el Sistema</h4>
                         </div>
                         <div class="panel-body">
                           <table id="tablaGliHard" class="table table-fixed tablesorter">
@@ -106,7 +106,7 @@ $id_usuario = session('id_usuario');
                         <div class="col-xs-12">
                           <center>
                               <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">NUEVO GLI HARDWARE</h4>
+                              <h4 class="txtNuevo">NUEVO CERTIFICADO HARDWARE</h4>
                           </center>
                         </div>
                     </div>
@@ -125,8 +125,8 @@ $id_usuario = session('id_usuario');
                   </a> -->
                   <a href="certificadoSoft" style="text-decoration:none;">
                       <div class="tarjetaSeccionMenor" align="center">
-                        <h2 class="tituloFondoMenor">GLISOFT</h2>
-                        <h2 class="tituloSeccionMenor">GLI SOFTWARE</h2>
+                        <h2 class="tituloFondoMenor">CERTIFICADO SOFT</h2>
+                        <h2 class="tituloSeccionMenor">CERTIFICADO SOFTWARE</h2>
                         <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/software_white.png" alt="">
                       </div>
                   </a>
@@ -167,7 +167,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-header modalNuevo">
             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-            <h3 class="modal-title">| NUEVO CERTIFICADO GLI</h3>
+            <h3 class="modal-title">| NUEVO CERTIFICADO HARDWARE</h3>
           </div>
 
           <div id="colapsado" class="collapse in">
@@ -201,7 +201,7 @@ $id_usuario = session('id_usuario');
                       <div class="row">
 
                           <div class="col-md-12">
-                              <h6>EXPEDIENTES DEL GLI HARDWARE</h6>
+                              <h6>EXPEDIENTES DEL CERTIFICADO HARDWARE</h6>
                               <table id="tablaExpedientesHard" class="table">
                                 <thead>
                                     <th class="col-xs-9">N° DE CERTIFICADO</th>
@@ -246,7 +246,7 @@ $id_usuario = session('id_usuario');
             <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
           </div>
           <div class="modal-body franjaRojaModal">
-            <strong><p>¿Seguro desea eliminar el GLI Hardware?</p></strong>
+            <strong><p>¿Seguro desea eliminar el Certificado de Hardware?</p></strong>
           </div>
           <div class="modal-footer">
             <button id="btn-eliminar" type="button" class="btn btn-dangerEliminar">ELIMINAR</button>
@@ -261,13 +261,13 @@ $id_usuario = session('id_usuario');
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| GLI HARDWARE</h3>
+  <h3 class="modal-title" style="color: #fff;">| CERTIFICADO DE HARDWARE</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de Gli Hardware</h5>
+    <h5>Tarjeta de Certificado de Hardware</h5>
     <p>
-      Permite la carga de .pdf de Gli Hardware, asociados a expedientes que unifiquen con sus respectivos informes.
+      Permite la carga de .pdf de Certificados de  Hardware, asociados a expedientes que unifiquen con sus respectivos informes.
     </p>
   </div>
   @endsection

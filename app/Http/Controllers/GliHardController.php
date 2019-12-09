@@ -29,7 +29,7 @@ class GliHardController extends Controller
   public function buscarTodo(){
       $glihard=GliHard::all();
       $casinos=Casino::all();
-      UsuarioController::getInstancia()->agregarSeccionReciente('GLI Hard' , 'certificadoHard');
+      UsuarioController::getInstancia()->agregarSeccionReciente('Certificados Hardware' , 'certificadoHard');
 
       return view('seccionGLIHard' , ['glis' => $glihard, 'casinos' =>$casinos ]);
   }
@@ -132,6 +132,15 @@ class GliHardController extends Controller
       return ['glihard' => $GLI, 'nombre_archivo' => $nombre_archivo];
   }
 
+  public function guardarNuevoGliHard($nro_certificado,$expedientes,$file){
+    $request = new Request;
+    $request->merge(['nro_certificado'=>$nro_certificado]);
+    $request->merge(['expedientes'=>$expedientes]);
+    $request->merge(['file'=>$file]);
+    dump($request->all());
+    return $this->guardarGliHard($request)['glihard'];
+  }
+
   public function modificarGliHard(Request $request){
 
       Validator::make($request->all(), [
@@ -167,9 +176,11 @@ class GliHardController extends Controller
       }else{
           if($request->borrado == "true"){
             $archivoAnterior=$GLI->archivo;
-            $GLI->archivo()->dissociate();
-            $GLI->save();
-            $archivoAnterior->delete();
+            if(!is_null($archivoAnterior)){
+              $GLI->archivo()->dissociate();
+              $GLI->save();
+              $archivoAnterior->delete();
+            }
           }
       }
       if(!empty($request->expedientes)){

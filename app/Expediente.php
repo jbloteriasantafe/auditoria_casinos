@@ -16,7 +16,7 @@ class Expediente extends Model
   public function casinos(){
     return $this->belongsToMany('App\Casino','expediente_tiene_casino','id_expediente','id_casino');
   }
-  public function resolucion(){
+  public function resoluciones(){
     return $this->hasMany('App\Resolucion','id_expediente','id_expediente');
   }
   public function disposiciones(){

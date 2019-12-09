@@ -7,9 +7,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 $id_usuario = $usuario['usuario']->id_usuario;
 $cas = $usuario['usuario']->casinos;
 
-//@HACK temporal @TODO remover cuand se pase a todos los casinos
-$tiene_santafe = UsuarioController::getInstancia()
-->usuarioTieneCasinoCorrespondiente($id_usuario,2);
 $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 ?>
 
@@ -369,14 +366,14 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
                                   <li>
                                     <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
-                                      <span>GLI Software</span>
+                                      <span>Certificados Software</span>
                                     </div>
                                   </li>
                                   @endif
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glihard'))
                                   <li>
                                     <div id="opcGliHard" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoHard'" href="#" style="cursor: pointer;">
-                                      <span>GLI Hardware</span>
+                                      <span>Certificados Hardware</span>
                                     </div>
                                   </li>
                                   @endif
@@ -394,31 +391,27 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         <!-- FIN GESTIÓN MAQUINAS -->
 
                         <!-- GESTIÓN BINGO -->
-                        @if ($tiene_santafe)
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion'))
-                        <!-- <li>
+                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion') || $usuario['usuario']->es_superusuario)
+                         <li>
                             <div id="barraGestionBingo" class="opcionesHover" data-target="#gestionBingo" data-toggle="collapse">
                                 <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
-                                <span class="icono" style="padding-bottom: 50px;"> -->
-                                <!--  (falta arroba ) svg('bingos','iconoTableroControl') -->
-                                <!-- </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                    @svg('bingos','iconoTableroControl')
+                               </span>
                                 <span>Bingo</span>
-                            </div> -->
+                            </div>
 
                             <!-- SEGUNDO NIVEL -->
-                            <!-- <ul class="subMenu1 collapse" id="gestionBingo">
-
+                             <ul class="subMenu1 collapse" id="gestionBingo">
                               <li>
                                 <div id="opcGestionarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/gestionBingo'" href="#" style="cursor: pointer;">
-                                  <span>Gestion premios y canon</span>
+                                  <span>Gestión de premios</span>
                                 </div>
                               </li>
-
                             </ul>
-                        </li> -->
-                        @endif
+                        </li>
                         @endif
                         <!-- FIN GESTIÓN BINGO -->
 
@@ -430,7 +423,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                                                                                             'ver_seccion_gestionar_movimientos','ver_seccion_relevamientos_movimientos',
                                                                                                             'ver_seccion_eventualidades','ver_seccion_eventualidades_MTM',
                                                                                                             'ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                                                                                                            'ver_seccion_informecontable']))
+                                                                                                            'ver_seccion_informecontable','ver_seccion_informesector']))
                         <div class="separadoresMenu">AUDITORÍA</div>
                         <li>
                             <div id="barraMaquinas" class="opcionesHover" data-target="#maquinas" data-toggle="collapse" href="#">
@@ -446,7 +439,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="maquinas">
                               @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                              'ver_seccion_informecontable']))
+                              'ver_seccion_informecontable','ver_seccion_informesector']))
                               <li>
                                 <div class="opcionesHover" data-target="#informesMTM" data-toggle="collapse" href="#">
                                   <span class="flechita">
@@ -467,6 +460,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadorelevamientos'))
                                     <li>
                                       <div id="opcEstadisticas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticas_relevamientos'" href="#" style="cursor: pointer;">                                        <span>Relevamiento</span>
+                                      </div>
+                                    </li>
+                                  @endif
+                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informesector'))
+                                    <li>
+                                      <div id="opcInformesSector" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeSector'" href="#" style="cursor: pointer;">
+                                        <span>Sector</span>
                                       </div>
                                     </li>
                                   @endif
@@ -534,7 +534,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                            </div>
                                          </li>
                                          @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos') && $tiene_santafe)
+                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos'))
                                          <li>
                                            <div id="opcRelevamientosProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosProgresivo'" href="#" style="cursor: pointer;">
                                              <span>Relev. Progresivos</span>
@@ -715,7 +715,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             </ul>
                         </li>
 
-@if ($tiene_santafe)
+
                         <li>
                             <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
                               <span class="flechita">
@@ -757,7 +757,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               @endif
                             </ul>
                           </li>
-@endif
 
 
 

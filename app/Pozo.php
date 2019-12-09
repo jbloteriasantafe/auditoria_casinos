@@ -4,14 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\PozoObserver;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class Pozo extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'pozo';
   protected $primaryKey = 'id_pozo';
-  protected $visible = array('id_pozo','descripcion','id_progresivo');
+  protected $visible = array('id_pozo','descripcion','id_progresivo','deleted_at');
   public $timestamps = false;
 
   public function progresivo(){

@@ -286,7 +286,7 @@ $('#btn-buscarMaquina').click(function(e) {
                 data.detalles[i].jackpot != null ? fila.append($('<td>').text(data.detalles[i].jackpot)) : fila.append($('<td>').text('-'));
                 data.detalles[i].progresivo != null ? fila.append($('<td>').text(data.detalles[i].progresivo)) : fila.append($('<td>').text('-'));
 
-                fila.append($('<td>').text(producidoCalculado))
+                fila.append($('<td>').text(producidoCalculado != null? producidoCalculado : '-'))
 
                 data.detalles[i].producido_importado != null ? fila.append($('<td>').text(data.detalles[i].producido_importado)) : fila.append($('<td>').text('-'));
 

@@ -244,6 +244,7 @@ class ABMCRelevamientosAperturaController extends Controller
         $dia = substr($rel->fecha,8,2);
         $rel->fecha = $dia."-".$mes."-".$año;
         $rel->casino = $cas->nombre;
+        $rel->id_casino = $cas->id_casino;
 
         $fichas = DB::table('ficha')
                       ->select('ficha.valor_ficha')

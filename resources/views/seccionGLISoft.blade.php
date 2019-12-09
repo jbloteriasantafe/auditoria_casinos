@@ -21,6 +21,18 @@ $id_usuario = session('id_usuario');
 
 @section('contenidoVista')
 
+<datalist id="datalistJuegos">
+@foreach($juegos as $nombre => $lista)
+@foreach($lista as $idx => $j)
+  @if($idx == 0)
+  <option value="{{$nombre}}" data-id="{{$j->id_juego}}"></option>
+  @else
+  <option value="{{$nombre.' ('.$idx.')'}}" data-id="{{$j->id_juego}}"></option>
+  @endif
+@endforeach
+@endforeach
+</datalist>
+
           <div class="row">
               <div class="col-lg-12 col-xl-9">
 
@@ -37,7 +49,7 @@ $id_usuario = session('id_usuario');
                                 <h5>Código de Certificado</h5>
                                 <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado">
                               </div>
-                              <div class="col-md-2">
+                              <div class="col-md-3">
                                 <h5>Nombre Archivo</h5>
                                 <input id="nombre_archivo" type="text" class="form-control" placeholder="Nombre archivo">
                               </div>
@@ -49,7 +61,7 @@ $id_usuario = session('id_usuario');
                                     <input id="nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
                                 </div>
                               </div>
-                              <div class="col-md-2">
+                              <div class="col-md-3">
                                 <h5>Casino</h5>
                                 <div class="form-group">
                                   <select class="form-control" id="sel1">
@@ -58,6 +70,12 @@ $id_usuario = session('id_usuario');
                                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                     @endforeach
                                   </select>
+                                </div>
+                              </div>
+                              <div class="col-md-4">
+                                <h5>Juego</h5>
+                                <div class="form-group">
+                                  <input class="form-control" id="inputJuegoBuscador" list="datalistJuegos" placeholder="Nombre juego">
                                 </div>
                               </div>
                             <div class="col-md-2">
@@ -75,7 +93,7 @@ $id_usuario = session('id_usuario');
                     <div class="col-md-12">
                       <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h4>Certificados GLI Software Registrados en el Sistema</h4>
+                            <h4>Certificados de Software Registrados en el Sistema</h4>
                         </div>
                         <div class="panel-body">
                           <table id="tablaGliSofts" class="table table-fixed tablesorter">
@@ -109,7 +127,7 @@ $id_usuario = session('id_usuario');
                         <div class="col-xs-12">
                           <center>
                               <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">NUEVO GLI SOFTWARE</h4>
+                              <h4 class="txtNuevo">NUEVO CERTIFICADO SOFTWARE</h4>
                           </center>
                         </div>
                     </div>
@@ -120,8 +138,8 @@ $id_usuario = session('id_usuario');
             <div class="col-xl-12 col-lg-4">
               <a href="certificadoHard" style="text-decoration:none;">
                   <div class="tarjetaSeccionMenor" align="center">
-                    <h2 class="tituloFondoMenor">GLIHARD</h2>
-                    <h2 class="tituloSeccionMenor">GLI HARDWARE</h2>
+                    <h2 class="tituloFondoMenor">CERTIFICADO HARD</h2>
+                    <h2 class="tituloSeccionMenor">CERTIFICADO HARDWARE</h2>
                     <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/hardware_white.png" alt="">
                   </div>
               </a>
@@ -168,7 +186,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-header modalNuevo">
             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-            <h3 class="modal-title"> | NUEVO CERTIFICADO GLI</h3>
+            <h3 class="modal-title"> | NUEVO CERTIFICADO SOFTWARE</h3>
           </div>
 
         <div id="colapsado" class="collapse in">
@@ -204,7 +222,7 @@ $id_usuario = session('id_usuario');
                         <!-- tabla de expedientes -->
                         <div class="row">
                             <div class="col-md-12">
-                                <h6>EXPEDIENTES DEL GLI HARDWARE</h6>
+                                <h6>EXPEDIENTES DEL CERTIFICADO SOFTWARE</h6>
                                 <table id="tablaExpedientesSoft" class="table">
                                   <thead>
                                       <th class="col-xs-9">N° DE CERTIFICADO</th>
@@ -247,7 +265,7 @@ $id_usuario = session('id_usuario');
                       <h5>Buscar JUEGOS <i class="fa fa-search"></i></h5>
 
                        <div class="input-group lista-datos-group">
-                            <input id="inputJuego" class="form-control " type="text" value="" autocomplete="off" placeholder="Nombre del juego">
+                            <input id="inputJuego" class="form-control " type="text" value="" autocomplete="off" placeholder="Nombre del juego" list="datalistJuegos">
                             <span class="input-group-btn">
                               <button id="btn-agregarJuego" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                             </span>
@@ -259,17 +277,19 @@ $id_usuario = session('id_usuario');
 
                     <div class="col-md-12">
                         <h6>JUEGOS DEL CERTIFICADO</h6>
-                        <table id="tablaJuegos" class="table">
-                          <thead>
-                              <th class="col-xs-3">NOMBRE</th>
-                              <th class="col-xs-3">CÓDIGO JUEGO</th>
-                              <th class="col-xs-3">TABLA PAGOS</th>
-                              <th class="col-xs-3">ACCIÓN</th>
-                          </thead>
-                          <tbody>
+                        <div style="overflow: scroll;min-height: 250px;max-height: 350px;">
+                          <table id="tablaJuegos" class="table">
+                            <thead>
+                                <th class="col-xs-3">NOMBRE</th>
+                                <th class="col-xs-3">CÓDIGO JUEGO</th>
+                                <th class="col-xs-3">TABLA PAGOS</th>
+                                <th class="col-xs-3">ACCIÓN</th>
+                            </thead>
+                            <tbody>
 
-                          </tbody>
-                        </table>
+                            </tbody>
+                          </table>
+                        </div>
                     </div>
                 </div> <!-- row - tabla juegos -->
 
@@ -278,7 +298,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-footer">
             <button id="btn-guardar" type="button" value="add"></button>
             <input id="id_gli" type="" hidden value="" >
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+            <button type="button" class="cancelar btn btn-default" data-dismiss="modal">CANCELAR</button>
           </div>
         </div> <!-- -->
         </div>
@@ -296,7 +316,7 @@ $id_usuario = session('id_usuario');
             <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
           </div>
           <div class="modal-body franjaRojaModal">
-            <strong><p>¿Seguro desea eliminar el GLI Software?</p></strong>
+            <strong><p>¿Seguro desea eliminar el Certificado de Software?</p></strong>
           </div>
           <div class="modal-footer">
             <button id="boton-eliminarGLI" type="button" class="btn btn-dangerEliminar">ELIMINAR</button>
@@ -311,13 +331,13 @@ $id_usuario = session('id_usuario');
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| GLI SOFTWARE</h3>
+  <h3 class="modal-title" style="color: #fff;">| CERTIFICADO DE SOFTWARE</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de Gli Software</h5>
+    <h5>Tarjeta de Certificado de Software</h5>
     <p>
-      Admite la carga de los respectivos .pdf de gli software, asociados a expedientes y juegos que corresponda.
+      Admite la carga de los respectivos .pdf de certificados de software, asociados a expedientes y juegos que corresponda.
     </p>
   </div>
   @endsection

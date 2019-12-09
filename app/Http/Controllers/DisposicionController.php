@@ -63,7 +63,15 @@ class DisposicionController extends Controller
   }
 
   public function eliminarDisposicion($id){
-    $disposicion = Disposicion::destroy($id);
+    $disposicion = Disposicion::find($id);
+    $nota = $disposicion->nota;
+    DB::transaction(function() use($disposicion,$nota){
+      $disposicion->delete();
+      if(!is_null($nota)){
+        $nota->delete();
+      }
+    });
+
     return ['disposicion' => $disposicion];
   }
 

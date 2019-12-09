@@ -9,7 +9,7 @@ class EstadoMaquina extends Model
     protected $connection = 'mysql';
     protected $table = 'estado_maquina';
     protected $primaryKey = 'id_estado_maquina';
-    protected $visible = array('id_sta','descripcion');
+    protected $visible = array('id_estado_maquina','descripcion');
     public $timestamps = false;
 
     public function maquinas(){

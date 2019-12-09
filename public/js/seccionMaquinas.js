@@ -163,6 +163,7 @@ function eventoBusqueda(page_size, page_number, sort_by, columna,orden){
     id_sector: $('#busqueda_sector').val(),
     nro_isla: $('#busqueda_isla').val(),
     estado_maquina: $('#busqueda_estado').val(),
+    id_tipo_moneda: $('#busqueda_moneda').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,

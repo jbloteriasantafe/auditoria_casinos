@@ -5,7 +5,9 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
+use App\TipoMoneda;
 
+$monedas = TipoMoneda::all();
 $usuario = UsuarioController::getInstancia()->quienSoy();
 
 ?>
@@ -57,7 +59,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <br>
 
                               <div class="row"> <!-- Segunda fila -->
-                                <div class="col-lg-3">
+                                <div class="col-lg-2">
                                   <h5>Casino</h5>
                                   <select class="form-control" id="busqueda_casino">
                                     <option value="0">Todos los casinos</option>
@@ -71,7 +73,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   <h5>Sector</h5>
                                   <select class="form-control" id="busqueda_sector">
                                     <option value="0">Todos los sectores</option>
-
                                   </select>
                                 </div>
                                 <div class="col-lg-2">
@@ -84,6 +85,15 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                     <option value="0">TODOS</option>
                                     <option value="1">ACTIVA</option>
                                     <option value="2">NO ACTIVA</option>
+                                  </select>
+                                </div>
+                                <div class="col-lg-1">
+                                  <h5>MONEDA</h5>
+                                  <select class="form-control" id="busqueda_moneda">
+                                    <option value="">TODAS</option>
+                                    @foreach($monedas as $m)
+                                    <option value="{{$m->id_tipo_moneda}}">{{$m->descripcion}}</option>
+                                    @endforeach
                                   </select>
                                 </div>
                                 <div class="col-lg-2">
@@ -201,11 +211,11 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                         <div width="10%">
                               <i id="error_nav_soft" class="fa fa-times" style="color:#F44336;"></i>
-                              <a href="" id="navSoft"><h4>GLI SOFT</h4></a>
+                              <a href="" id="navSoft"><h4>CERTIFICADOS SOFT</h4></a>
                         </div>
                         <div width="10%">
                               <i id="error_nav_hard" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navHard"><h4>GLI HARD</h4></a>
+                              <a href="" id="navHard"><h4>CERTIFICADOS HARD</h4></a>
                         </div>
                         <div width="10%">
                               <i id="error_nav_formula" class="fa fa-times" style="color:red;"></i>
@@ -367,7 +377,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                               <div class="row">
                                 <div class="col-xs-12">
-                                  <h5>Expedientes del GLI SOFT</h5>
+                                  <h5>Expedientes del CERTIFICADO SOFT</h5>
                                   <ul id="listaExpedientes">
                                     <li class="row">
                                       <div class="col-xs-7">
@@ -892,7 +902,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="listaSoftMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                             <div class="row">
                                 <div class="col-md-12">
-                                  <h6>GLI SOFTWARE ACTIVO</h6>
+                                  <h6>CERTIFICADOS</h6>
 
                                   <!-- Tabla de todos los gli soft en la máquina -->
                                   <table id="tablaSoftActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -904,81 +914,21 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      <tr id="datosGLISoft" data-id="" data-codigo="" data-observaciones="">
+                                      <tr id="datosGLISoft" data-id="" data-codigo="" data-observaciones="" hidden>
                                         <td>
-                                          <span id="nro_certificado_activo" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
+                                          <span class="badge nro_certificado_activo" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
                                         </td>
-                                        <td id="nombre_archivo_activo"></td>
                                         <td>
-                                          <button type="button" class="btn btn-danger borrarSoft" name="button">
-                                            <i class="fa fa-fw fa-trash"></i>
-                                          </button>
+                                          <a class="nombre_archivo_activo" href="/glisofts/pdf/" target="_blank" rel="noopener noreferrer"></a>
+                                        </td>
+                                        <td>
+                                          <span class="nombre_juego_gli"></span>
                                         </td>
                                       </tr>
                                     </tbody>
                                   </table>
 
-                                  <div class="zona-file" hidden>
-                                    <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
-                                  </div>
-
-                                  <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Software.</p>
-                                </div>
-                            </div>
-
-                        </div>
-
-
-                        <!-- CREAR O BUSCAR GLI soft-->
-                        <div id="agregarSoft" style="cursor:pointer;" data-toggle="collapse" data-target="#softPlegado">
-                            <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                                <div class="col-md-12">
-                                    <h6>AGREGAR GLI SOFTWARE<i class="fa fa-fw fa-angle-down"></i></h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="softPlegado" class="collapse">
-                            <br>
-                            <div class="row" style="padding-bottom: 15px;">
-                                <div class="col-md-4 col-md-offset-1">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Código de Certificado</h5>
-                                            <input id="inputSoft" data-software=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Software"/>
-                                            <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" /> -->
-                                            <!-- <datalist id="soft"> </datalist> -->
-                                            <!-- <span id="alerta_codigo_soft" class="alertaSpan"></span> -->
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Observaciones</h5>
-                                            <textarea id="observaciones" class="form-control" rows="10" style="resize:none; height:80px;" placeholder="Observaciones"></textarea>
-                                            <span id="alerta_observaciones" class="alertaSpan"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Archivo</h5>
-                                    <div class="zona-file">
-                                        <input id="cargaArchivoSoft" data-borrado="false" type="file">
-                                    </div>
-                                    <span id="alerta_archivoSoft" class="alertaSpan"></span>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button id="btn-cancelarSoft" class="btn btn-danger" type="button" name="button">
-                                        <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
-                                    </button>
-                                    <button id="btn-crearSoft" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-plus"></i> CREAR GLI SOFTWARE
-                                    </button>
-                                    <button id="btn-agregarSoftLista" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR GLI SOFTWARE
-                                    </button>
+                                  <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no posee certificados de Software.</p>
                                 </div>
                             </div>
                         </div>
@@ -991,7 +941,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="listaHardMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                             <div class="row">
                                 <div class="col-md-12">
-                                  <h6>GLI HARDWARE ACTIVO</h6>
+                                  <h6>CERTIFICADO HARDWARE ACTIVO</h6>
 
                                   <!-- Tabla de todos los gli hard en la máquina -->
                                   <table id="tablaHardActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
@@ -1019,11 +969,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                   </table>
 
                                   <div class="zona-file" hidden>
-                                    <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
                                   </div>
 
                                   <p id="noexiste_hard" style="display:block;margin-top:30px; margin-bottom:20px;">
-                                    <i class="fa fa-times aviso"></i> La máquina no contiene certificado de GLI Hardware.</p>
+                                    <i class="fa fa-times aviso"></i> La máquina no posee un certificado de Hardware.</p>
                                 </div>
                             </div>
 
@@ -1033,7 +982,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                         <div id="agregarHard" style="cursor:pointer;" data-toggle="collapse" data-target="#hardPlegado">
                             <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                                 <div class="col-md-12">
-                                    <h6>AGREGAR GLI HARDWARE<i class="fa fa-fw fa-angle-down"></i></h6>
+                                    <h6>AGREGAR CERTIFICADO HARDWARE<i class="fa fa-fw fa-angle-down"></i></h6>
                                 </div>
                             </div>
                         </div>
@@ -1044,7 +993,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                 <div class="col-md-4 col-md-offset-1">
                                     <h5>Código de Certificado</h5>
                                     <!-- <input id="inputHard" data-hard="" class="form-control" type="text" list="hard" autocomplete="off" placeholder="Código de certificado"/> -->
-                                    <input id="inputHard" class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Hardware"/>
+                                    <input id="inputHard" class="form-control" type="text" autocomplete="off" placeholder="Buscar Certificado de Hardware"/>
                                 </div>
                                 <div class="col-md-6">
                                     <h5>Archivo</h5>
@@ -1061,10 +1010,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                         <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
                                     </button>
                                     <button id="btn-crearHard" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-plus"></i> CREAR GLI HARDWARE
+                                        <i class="fa fa-fw fa-plus"></i> CREAR CERTIFICADO HARDWARE
                                     </button>
                                     <button id="btn-agregarHardLista" class="btn btn-successAceptar" type="button" name="button">
-                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR GLI HARDWARE
+                                        <i class="fa fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO HARDWARE
                                     </button>
                                 </div>
                             </div>

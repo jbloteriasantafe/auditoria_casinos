@@ -64,10 +64,11 @@ class RelevamientoProgresivoController extends Controller
 
       $nro_admin_maquinas = substr_replace($nro_admin_maquinas,'',0,1);
 
-      $resultados = DB::table('isla')
-      ->selectRaw('DISTINCT(nro_isla)')
-      ->join('maquina','maquina.id_isla','=','isla.id_isla')
-      ->whereIn('id_maquina',$id_maquinas_pozo)->get();
+      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')
+                                     ->join('maquina','maquina.id_isla','=','isla.id_isla')
+                                     ->whereIn('id_maquina',$id_maquinas_pozo)
+                                     ->orderBy('nro_isla', 'asc')
+                                     ->get();
 
       $i=0;
       $nro_isla='';
@@ -89,6 +90,7 @@ class RelevamientoProgresivoController extends Controller
       $d->id_pozo = $pozo->id_pozo;
       $d->id_tipo_causa_no_toma_progresivo = $detalle->id_tipo_causa_no_toma_progresivo;
       $d->nro_admins=$nro_admin_maquinas;
+      $d->es_individual = $pozo->progresivo->es_individual;
       $d->niveles=array();
       $detalle_arr = $detalle->toArray();
       foreach ($pozo->niveles as $nivel){
@@ -102,6 +104,8 @@ class RelevamientoProgresivoController extends Controller
       }
       $detalles[]=$d;
     }
+
+    $detalles = $this->ordenarArrayBubbleSort($detalles, 0);
 
     return ['detalles' => $detalles,
             'relevamiento' => $relevamiento,
@@ -206,6 +210,7 @@ class RelevamientoProgresivoController extends Controller
                                     ->join('isla','maquina.id_isla','=','isla.id_isla')
                                     ->join('sector','isla.id_sector','=','sector.id_sector')
                                     ->where('sector.id_sector','=',$request->id_sector)
+                                    ->whereNull('pozo.deleted_at')
                                     ->groupBy('id_progresivo', 'id_pozo')
                                     ->get();
 
@@ -261,15 +266,16 @@ class RelevamientoProgresivoController extends Controller
 
   public function crearPlanillaProgresivos($relevamiento_progresivo){
     $detalles = array();
-    $detalles_linkeados = array();
+    $detalles_link_sin_ordenar = array();
     $detalles_individuales = array();
 
     foreach ($relevamiento_progresivo->detalles as $detalle_relevamiento) {
       $niveles = array();
       $id_maquinas = array();
 
-      $pozo = Pozo::find($detalle_relevamiento->id_pozo);
-      $progresivo = $pozo->progresivo;
+      $pozo = Pozo::withTrashed()->find($detalle_relevamiento->id_pozo);
+      $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
+      $niveles = $pozo->niveles()->get();
 
       $x=0;
       $nro_maquinas = "";
@@ -291,11 +297,13 @@ class RelevamientoProgresivoController extends Controller
                                       ->get();
       $i = 0;
       $nro_islas="";
+      $flag_isla_unica = 0;
       foreach ($resultados as $resultado) {
 
         if($i == 0){
           $nro_islas = $resultado->nro_isla;
         }else {
+          $flag_isla_unica = 1;
           $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
         }
         $i++;
@@ -308,11 +316,21 @@ class RelevamientoProgresivoController extends Controller
         $causa_no_toma_progresivo = -1;
       }
 
+      $nombre_nivel = [];
+      foreach($niveles as $n){
+        if(isset($n->nro_nivel)){
+          $nombre_nivel[$n->nro_nivel]=isset($n->nombre_nivel)? $n->nombre_nivel : '';
+        }
+      }
+
       $detalle = array(
         'nro_maquinas' => $nro_maquinas,
         'nro_islas' => $nro_islas,
+        'flag_isla_unica' => $flag_isla_unica,
         'pozo' => $pozo->descripcion,
-        'pozo_unico' => count($pozo->progresivo->pozos) == 1,
+        //Si venimos de un progresivo borrado, nos va a dar 0 pozos, que le muestre el nombre por si las moscas
+        //No habria forma de saber si era pozo unico o no.
+        'pozo_unico' => count($progresivo->pozos) == 1,
         'progresivo' => $progresivo->nombre,
         'es_individual' => $progresivo->es_individual,
         'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
@@ -321,6 +339,12 @@ class RelevamientoProgresivoController extends Controller
         'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
         'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
         'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'nombre_nivel1' => isset($nombre_nivel[1])? $nombre_nivel[1] : '',
+        'nombre_nivel2' => isset($nombre_nivel[2])? $nombre_nivel[2] : '',
+        'nombre_nivel3' => isset($nombre_nivel[3])? $nombre_nivel[3] : '',
+        'nombre_nivel4' => isset($nombre_nivel[4])? $nombre_nivel[4] : '',
+        'nombre_nivel5' => isset($nombre_nivel[5])? $nombre_nivel[5] : '',
+        'nombre_nivel6' => isset($nombre_nivel[6])? $nombre_nivel[6] : '',
         'causa_no_toma_progresivo' => $causa_no_toma_progresivo
       );
 
@@ -329,12 +353,14 @@ class RelevamientoProgresivoController extends Controller
 
     foreach ($detalles as $detalle) {
       if ($detalle['es_individual'] == 0) {
-        array_push($detalles_linkeados, $detalle);
+        array_push($detalles_link_sin_ordenar, $detalle);
       }
       else {
         array_push($detalles_individuales, $detalle);
       }
     }
+
+    $detalles_linkeados = $this->ordenarArrayBubbleSort($detalles_link_sin_ordenar, 1);
 
     $sector = Sector::find($relevamiento_progresivo->id_sector);
     $casino = Casino::find($sector->id_casino);
@@ -438,7 +464,7 @@ class RelevamientoProgresivoController extends Controller
     //Como no se hace validacion, puede mandar texto, si es texto
     //Lo pongo como nulo.
     $detalles = $request->detalles;
-    //Tengo que hacer todo este berenjenal porque 
+    //Tengo que hacer todo este berenjenal porque
     //PHP te hace copias en vez de referencias
     //Y no pude hacer andar el array con &
     //Un foreach seria mucho mas facil...
@@ -534,6 +560,66 @@ class RelevamientoProgresivoController extends Controller
 
   public function obtenerMinimorelevamientoProgresivo ($id_casino) {
     return ['rta' => (Casino::find($id_casino))->minimo_relevamiento_progresivo];
+  }
+
+  public function ordenarArrayBubbleSort ($array, $paraPlanilla) {
+
+    //CASO 1: ordenamiento para planillas (entra un array comun)
+    if ($paraPlanilla == 1) {
+      //primero separo el array entre los que tienen isla unica y los que no
+      //(estos ultimos no me sirven para el ordenamiento, los pusheo al final del array resultante)
+      $arr_ordenar = array();
+      $arr_no_ordenar = array();
+      foreach ($array as $a) {
+        if ($a['flag_isla_unica'] == 0) {
+          array_push ($arr_ordenar, $a);
+        }
+        else {
+          array_push ($arr_no_ordenar, $a);
+        }
+      }
+
+        //bubble sort
+        $n = sizeof($arr_ordenar);
+        for ($i=0; $i<$n; $i++) {
+          for ($j=0; $j < $n-$i-1; $j++) {
+            if ($arr_ordenar[$j]['nro_islas'] > $arr_ordenar[$j+1]['nro_islas']) {
+              $temp = $arr_ordenar[$j];
+              $arr_ordenar[$j] = $arr_ordenar[$j+1];
+              $arr_ordenar[$j+1] = $temp;
+            }
+          }
+        }
+    }
+    //CASO 2: ordenamiento para modal carga (entra un object)
+    else {
+      //primero separo el array entre los que tienen isla unica y los que no
+      //(estos ultimos no me sirven para el ordenamiento, los pusheo al final del array resultante)
+      $arr_ordenar = array();
+      $arr_no_ordenar = array();
+      foreach ($array as $a) {
+        if ($a->es_individual == 0) {
+          array_push ($arr_ordenar, $a);
+        }
+        else {
+          array_push ($arr_no_ordenar, $a);
+        }
+      }
+
+        //bubble sort
+        $n = sizeof($arr_ordenar);
+        for ($i=0; $i<$n; $i++) {
+          for ($j=0; $j < $n-$i-1; $j++) {
+            if ($arr_ordenar[$j]->nro_isla > $arr_ordenar[$j+1]->nro_isla) {
+              $temp = $arr_ordenar[$j];
+              $arr_ordenar[$j] = $arr_ordenar[$j+1];
+              $arr_ordenar[$j+1] = $temp;
+            }
+          }
+        }
+    }
+
+    return array_merge($arr_ordenar, $arr_no_ordenar);
   }
 
 }

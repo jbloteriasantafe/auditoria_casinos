@@ -366,7 +366,8 @@ class ProducidoController extends Controller
               'id_contador_inicial' => $id_contador_inicial,
               'tipos_ajuste' => $tipos_ajuste,
               'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final],
-              'fecha_produccion' => $producido->fecha
+              'fecha_produccion' => $producido->fecha,
+              'moneda' => $producido->tipo_moneda
             ];
   }
 

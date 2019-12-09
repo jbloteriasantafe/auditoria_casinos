@@ -161,6 +161,7 @@ function limpiarCamposHard(){
 
   $('#cargaArchivoHard').attr('data-borrado','true');
   $('#cargaArchivoHard')[0].files[0] = null;
+  console.log('Limpiando Hard');
 
   //Habilitar el input file y el evento click de la cruz para eliminar
   $('#cargaArchivoHard').fileinput('enable');
@@ -172,7 +173,8 @@ function agregarFilaHard(){
 
       $('#nro_certificado_hard_activo').text($('#inputHard').val());
       $('#nombre_archivo_hard_activo').text($('#secHard .file-footer-caption').attr('title'));
-
+      const id_hard = $('#inputHard').attr('data-elemento-seleccionado');
+      $('#nro_certificado_hard_activo').attr('data-id',id_hard);
       $('#listaHardMaquina').attr('data-agregado','true');
 
     //SI HAY UN ARCHIVO
@@ -285,38 +287,26 @@ function mostrarGliHard(gli_hard){
 }
 
 function obtenerDatosGliHard(){
-    var agregado = $('#listaHardMaquina').attr('data-agregado');
-    var id_gli_hard = $('#inputHard').attr('data-hard');
+    let agregado = $('#listaHardMaquina').attr('data-agregado');
+    let gli_hard = {
+      id_gli_hard: null,
+      nro_certificado: null,
+      nombre_archivo: null,
+      file: null,
+    }
 
     // Si hay GLI agregado manda el id.
     if (agregado == 'true') {
-        // Si es CREADO manda un 0.
-        if (id_gli_hard == '') {
-            var file = '';
 
-            if($('#cargaArchivoHard').attr('data-borrado') == 'false' && $('#cargaArchivoHard')[0].files[0] != null){
-                file = $('#cargaArchivoHard')[0].files[0];
-            }
-
-            var gli_hard = {
-                id_gli_hard: 0,
-                nro_certificado: $('#inputHard').val(),
-                file: file,
-            }
-
-        // Si es AGREGADO manda el id existente
-        }else{
-            var gli_hard = {
-                id_gli_hard:  $('#inputHard').attr('data-hard'),
-            }
-        }
-
-    // Si no hay GLI agegado
-    }else{
-        var gli_hard = {
-            id_gli_hard: '',
-        }
+      gli_hard.nombre_archivo = $('#nombre_archivo_hard_activo').text();
+      gli_hard.id_gli_hard = $('#nro_certificado_hard_activo').attr('data-id');
+      if(gli_hard.id_gli_hard == 0 && $('#cargaArchivoHard')[0].files[0] != null){
+          gli_hard.file = $('#cargaArchivoHard')[0].files[0];
+      }
+      gli_hard.nro_certificado = $('#nro_certificado_hard_activo').text();
     }
 
+    //console.log('Datos');
+    //console.log(gli_hard);
     return gli_hard;
   }

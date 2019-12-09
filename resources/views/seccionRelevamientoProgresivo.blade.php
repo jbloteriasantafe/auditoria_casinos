@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario;
+$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
 $puede_eliminar = $user->es_administrador || $user->es_superusuario;
 $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 $niveles = 6;
@@ -390,7 +390,7 @@ $niveles = 6;
                           </tr>
                           <tr class="filaEjemplo validacion" style="display: none">
                             <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
-                            <td class="col-xs-2 nombrePozo">POZO99</td>
+                            <td class="col-xs-2 maquinas">MAQUINA1/MAQUINA2/...</td>
                             <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
                             @for ($i=1;$i<=6;$i++)
                             <td class="col-xs-1">

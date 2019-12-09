@@ -5,7 +5,6 @@ var confirmacion = 0 ;
 
 
 $(document).ready(function(){
-
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -71,7 +70,6 @@ $(document).ready(function(){
   $('.mensajeConfirmacion').hide();
   $('#iconoCarga').hide();
   $('#btn-buscar').trigger('click',[1,10,'layout_total.fecha','desc']);
-
 });
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
@@ -128,8 +126,8 @@ $('#btn-minimizarValidar').click(function(){
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
 
-  $('.modal-title').text('| LAYOUT TOTAL');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
+  $('#modalAyuda .modal-title').text('| LAYOUT TOTAL');
+  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
 	$('#modalAyuda').modal('show');
 
@@ -139,7 +137,7 @@ $('#btn-ayuda').click(function(e){
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalLayoutTotal .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutTotal').modal('show');
 
   $.get("obtenerFechaActual", function(data){
@@ -197,7 +195,7 @@ $('#btn-finalizarValidacion').click(function(e){
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalLayoutSinSistema .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutSinSistema').modal('show');
 })
 
@@ -214,7 +212,7 @@ $("#btn-backup").click(function(){
     id_casino: $('#casinoSinSistema option:selected').val(),
   }
 
-  console.log(formData);
+  //console.log(formData);
 
   $.ajax({
       type: "POST",
@@ -222,7 +220,7 @@ $("#btn-backup").click(function(){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(data);
+        //console.log(data);
 
 
         var pageNumber = $('#herramientasPaginacion').getCurrentPage();
@@ -272,7 +270,7 @@ $('#btn-generar').click(function(e){
       data: formData,
       dataType: 'json',
       beforeSend: function(data){
-        console.log('Empezó');
+        //console.log('Empezó');
         $('#modalLayoutTotal').find('.modal-footer').children().hide();
         $('#modalLayoutTotal').find('.modal-body').children().hide();
 
@@ -321,35 +319,77 @@ $('#btn-generar').click(function(e){
 
 });
 
-$(document).on('input' , '#frmCargaControlLayout input' ,function(){
-  habilitarBotonGuardar();
-})
 
-$(document).on('click','.carga',function(e){
-  e.preventDefault();
-  limpiarModal();
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalCargaControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
+function limpiarNull(s,defecto = ''){
+  return s === null? defecto : s;
+}
 
-  var id_layout_total = $(this).val();
-  $('#id_layout_total').val(id_layout_total);
+function cargarDivActivas(id_layout_total,done = function (x){return;}){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    dataType: 'json',
+    success: function(data){
+      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemplo').clone().attr('id','').show();
+      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      for(let z = 0;z<data.length;z++){
+        const sector = data[z];
+        let sector_html = sectorEjemplo.clone();
+        sector_html.find('.nombre').text(sector.descripcion);
+        sector_html.attr('data-id-sector',sector.id_sector);
+        let tr = null;
+        for(let i=0;i<sector.islas.length;i++){
+          const isla = sector.islas[i];
+          if(i%activas_x_fila == 0){
+            tr = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(tr);
+          }
+          let isla_html = islaEjemplo.clone();
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+          isla_html.find('.inputIsla').val(isla.maquinas_observadas);
+          isla_html.attr('data-id-isla',isla.id_isla);
+          tr.append(isla_html);
+        }
 
-  //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
-  $('#btn-guardar').hide();
-  $('#btn-finalizar').hide();
+        $('#modalCargaControlLayout .activas').append(sector_html);
+      }
+      const inputs = $('#modalCargaControlLayout .activas input');
+      let total_activas = $('#modalCargaControlLayout .total_activas');
+      inputs.change(function(){
+        let total = 0;
+        inputs.each(function(i,input){
+          const val = parseInt($(input).val());
+          total += (isNaN(val)? 0 : val);
+        });
+        total_activas.val(total);
+      });
+      $(inputs[0]).change(); //Trigger change para que se actualize.
+      done();
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
 
+ 
+}
 
+function cargarDivInactivas(id_layout_total,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
       $('#cargaFechaActual').val(data.layout_total.fecha);
       $('#cargaFechaGeneracion').val(data.layout_total.fecha_generacion);
       $('#cargaCasino').val(data.casino.nombre);
       $('#cargaTurno').val(data.layout_total.turno);
-
       $('#fecha').val(data.layout_total.fecha_ejecucion);
       $('#fecha_ejecucion').val(data.layout_total.fecha_ejecucion);
+      $('#observacion_carga').val(data.layout_total.observacion_fiscalizacion);
 
       if (data.usuario_cargador != null) {
           $('#fiscaCarga').val(data.usuario_cargador.nombre);
@@ -368,70 +408,389 @@ $(document).on('click','.carga',function(e){
       if (data.usuario_fiscalizador){
         $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
       }
-
-
       $('#tablaCargaControlLayout tbody tr').remove();
 
-      var tablaCargaRelevamiento = $('#tablaCargaControlLayout tbody');
+      if('detalles' in data){
+        for (var i = 0; i < data.detalles.length; i++) {
+          agregarNivel(data.detalles[i] , $('#controlLayout') ,'carga');
+        }
+      }
+      done();
+  });
+}
 
+function cargarDivInactivasValidar(id_layout_total,done = function (x){return;}){
+  $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
+
+    $('#validarFechaActual').val(data.layout_total.fecha);
+    $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
+    $('#validarCasino').val(data.casino);
+    $('#validarTurno').val(data.layout_total.turno);
+
+    $('#fecha').val(data.layout_total.fecha_ejecucion);
+    $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
+
+    if(data.usuario_cargador != null) {
+        $('#validarFiscaCarga').val(data.usuario_cargador.nombre);
+    }
+
+    if(data.usuario_fiscalizador != null) {
+      $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
+                      .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
+                      .prop('readonly',true);
+    }
+
+    if(data.layout_total.observacion_fiscalizacion != null){
+      $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
+    }
+
+    if(data.layout_total.observacion_validacion != null){
+      $('#observacion_validar').val(data.layout_total.observacion_validacion);
+    }
+
+    sectores = data.sectores;
+
+    $('#tablaValidarControlLayout tbody tr').remove();
+
+    for (var i = 0; i < data.detalles.length; i++) {
+      agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
+    }
+    done();
+  });
+}
+
+function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
+  $.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    dataType: 'json',
+    success: function(data){
+      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const islaEjemplo = $('#islaEjemploValidar').clone().attr('id','').show();
+      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
+      if(data.length == 0) $('#modalValidarControl .activas').append('<h4>No hay islas asociadas a este layout total</h4>');
+      for(let z = 0;z<data.length;z++){
+        const sector = data[z];
+        let sector_html = sectorEjemplo.clone();
+        sector_html.find('.nombre').text(sector.descripcion);
+        sector_html.attr('data-id-sector',sector.id_sector);
+        let total_observadas = 0;
+        let total_sistema = 0;
+        let tr = null;
+        for(let i=0;i<sector.islas.length;i++){
+          const isla = sector.islas[i];
+          if(i%activas_x_fila == 0){
+            tr = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(tr);
+          }
+          let isla_html = islaEjemplo.clone();
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+
+          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
+          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '0';
+          isla_html.find('.observado').text(observado);
+          isla_html.find('.sistema').text(sistema);
+          isla_html.attr('data-id-isla',isla.id_isla);
+          isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
+
+          tr.append(isla_html);
+        }
+        let suma = islaEjemplo.clone();
+        suma.addClass('total');
+        suma.find('.textoIsla').text('TOTAL');
+        suma.find('.observado').text(sector.total_observadas);
+        suma.find('.sistema').text(sector.total_sistema);
+        suma.find('.textoIsla').addClass(sector.total_observadas == sector.total_sistema? 'correcto': 'incorrecto');
+        let width = suma.css('width');
+        width = parseFloat(width.substr(0,width.length-1))*2;
+        suma.css('width',width+'%');
+        //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
+        //Porque ocupa 2 espacios.
+        if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
+          tr = filaEjemplo.clone();
+          sector_html.find('.cuerpoTabla').append(tr);
+        }
+        tr.append(suma);
+        
+        $('#modalValidarControl .activas').append(sector_html);
+      }
+      done();
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  limpiarModal();
+  //ocultar mensaje de salida
+  salida = 0;
+  guardado = true;
+  $('#modalCargaControlLayout .mensajeSalida').hide();
+  $('#mensajeExito').hide();
+
+  var id_layout_total = $(this).val();
+  $('#id_layout_total').val(id_layout_total);
+
+  $('#btn-guardar').show();
+  $('#btn-guardarTemp').show();
+  let divActivas = $('#modalCargaControlLayout .activas').hide();
+  let divInactivas = $('#modalCargaControlLayout .inactivas').hide();
+  let tabActivas = $('#modalCargaControlLayout .tabActivas');
+  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
   });
 
-  $('#modalCargaControlLayout').modal('show');
+  //El que termina primero setea la bandera, el segundo muestra el modal.
+  let done = false;
+  const donef = function(){
+    if(done) $('#modalCargaControlLayout').modal('show');
+    else done = true;
+  };
+  cargarDivActivas(id_layout_total,donef);
+  cargarDivInactivas(id_layout_total,donef);
 });
 
-$(document).on('click','.validar',function(e){
-  e.preventDefault();
+function infoSectores(){
+  let sectores = [];
+  //Busco en el div de activas cada sector y le saco la info
+  $('#modalValidarControl .activas div.sector').each(function(){
+    const t = $(this);
+    let islaTotal = t.find('.total');
+    const nombre = t.find('.nombre').text();
+    const observado = parseInt(islaTotal.find('.observado').text());
+    const sistema = parseInt(islaTotal.find('.sistema').text());
+    const id_sector = t.attr('data-id-sector');
+    //console.log("AGREGANDO "+id_sector);
+    sectores[id_sector] = [];
+    sectores[id_sector]['nombre'] = nombre;
+    sectores[id_sector]['activas'] = observado;
+    sectores[id_sector]['sistema'] = sistema;
+    sectores[id_sector]['inactivas'] = 0;
+    sectores[id_sector]['islaTotal'] = islaTotal;
+  });
+
+  return sectores;
+}
+//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
+//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
+function cargarDivDiferenciasValidar(){
+  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone().removeClass('diferenciasFilaEjemplo');
+  tabla.find('.diferenciasFilaEjemplo').remove();
+
+  sectores = infoSectores();
+
+  islas_con_inactivas = [];
+  //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
+  $('#modalValidarControl .inactivas .NivelLayout').each(function(){
+    const t = $(this);
+    const id_sector = t.find('select').val();
+    const nro_isla = t.find('.nro_isla').val();
+    //console.log("BUSCANDO INACTIVO "+id_sector);
+    //Si es un relevamiento viejo que no tiene asociada islas 
+    //Esto no va a estar seteado por lo que se ignora.
+    if(id_sector in sectores){
+      sectores[id_sector]['inactivas']++;
+      const init = !(nro_isla in islas_con_inactivas);
+      if(init) islas_con_inactivas[nro_isla] = 1;
+      else islas_con_inactivas[nro_isla]++;
+    }
+  });
+
+  //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
+  let total_activas = 0;
+  let total_inactivas = 0;
+  let total_relevadas = 0;
+  let total_sistema = 0;
+  let total_diff = 0;
+  sectores.forEach(function(val,key){
+    const fila = filaEjemplo.clone();
+    const nombre = val['nombre'];
+    const activas = val['activas'];
+    total_activas += activas;
+    const inactivas = val['inactivas'];
+    total_inactivas += inactivas;
+    const relevado = activas + inactivas;
+    total_relevadas += relevado;
+    const sistema = val['sistema'];
+    total_sistema += sistema;
+    const diff = Math.abs(sistema - relevado);
+    total_diff += diff;
+
+    fila.attr('data-id-sector',key);
+    fila.find('.diferenciasSector').text(nombre);
+    fila.find('.diferenciasActivas').text(activas);
+    fila.find('.diferenciasInactivas').text(inactivas);
+    fila.find('.diferenciasTotal').text(relevado);
+    fila.find('.diferenciasTotalSistema').text(sistema);
+    fila.find('.diferenciasDiferencia').text(diff)
+    .addClass(diff? 'incorrecto' : 'correcto');
+    tabla.find('.cuerpoTablaDiferencias').append(fila);
+
+    let islaTotal = val['islaTotal'];
+    islaTotal.find('.textoIsla').removeClass('correcto').removeClass('incorrecto');
+    islaTotal.find('.textoIsla').addClass(diff == 0? 'correcto' : 'incorrecto');
+    if(inactivas != 0) islaTotal.find('.inactivas').text('+'+inactivas);
+    else islaTotal.find('.inactivas').text('');
+  });
+
+  {
+    const fila = filaEjemplo.clone();
+    fila.attr('data-id-sector',-1);
+    fila.find('.diferenciasSector').text('').addClass('borde_superior');
+    fila.find('.diferenciasActivas').text(total_activas).addClass('borde_superior');
+    fila.find('.diferenciasInactivas').text(total_inactivas).addClass('borde_superior');
+    fila.find('.diferenciasTotal').text(total_relevadas).addClass('borde_superior');
+    fila.find('.diferenciasTotalSistema').text(total_sistema).addClass('borde_superior');
+    fila.find('.diferenciasDiferencia').text(total_diff)
+    .addClass(total_diff? 'incorrecto' : 'correcto').addClass('borde_superior');
+    tabla.find('.cuerpoTablaDiferencias').append(fila);
+  }
+
+
+  //Busco la isla correspondiente y le agrego las inactivas
+  $('#modalValidarControl .activas div.sector .isla').each(function(){
+    let t = $(this);
+    let textoIsla = t.find('.textoIsla');
+    const nro_isla = parseInt(textoIsla.text());
+    if(nro_isla in islas_con_inactivas){
+      //Si la isla tiene inactivas, saco la evaluacion de correcto e incorrecto
+      //y me fijo de vuelta si da con las inactivas
+      textoIsla.removeClass('correcto').removeClass('incorrecto');
+      const observadas = parseInt(t.find('.observado').text());
+      const sistema = parseInt(t.find('.sistema').text());
+      const inactivas = islas_con_inactivas[nro_isla];
+      t.find('.inactivas').text('+'+inactivas);
+      const correcto = sistema == (inactivas+observadas); 
+      textoIsla.addClass(correcto? 'correcto' : 'incorrecto');
+    }
+  });
+
+  $('#modalValidarControl .diferencias').append(tabla);
+}
+
+function mostrarModalValidacion(id_layout_total,editable = true){
   limpiarModal();
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
   $('#modalValidarControlLayout .mensajeSalida').hide();
   $('#mensajeExito').hide();
-
-  var id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
   $('#btn-guardar').hide();
-  $('#btn-finalizar').hide();
+  $('#btn-guardarTemp').hide();
 
-  $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
-
-      $('#validarFechaActual').val(data.layout_total.fecha);
-      $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
-      $('#validarCasino').val(data.casino);
-      $('#validarTurno').val(data.layout_total.turno);
-
-      $('#fecha').val(data.layout_total.fecha_ejecucion);
-      $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
-
-      if(data.usuario_cargador != null) {
-          $('#validarFiscaCarga').val(data.usuario_cargador.nombre);
-      }
-
-      if(data.usuario_fiscalizador != null) {
-        $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
-                        .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
-                        .prop('readonly',true);
-      }
-
-      sectores = data.sectores;
-
-      $('#tablaValidarControlLayout tbody tr').remove();
-
-      var tablaCargaRelevamiento = $('#tablaValidarControlLayout tbody');
-
-      for (var i = 0; i < data.detalles.length; i++) {
-        agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
-      }
+  let divActivas = $('#modalValidarControl .activas').hide();
+  let divInactivas = $('#modalValidarControl .inactivas').hide();
+  let divDiferencias = $('#modalValidarControl .diferencias').hide();
+  let tabActivas = $('#modalValidarControl .tabActivas');
+  let tabInactivas = $('#modalValidarControl .tabInactivas');
+  let tabDiferencias = $('#modalValidarControl .tabDiferencias');
+  tabActivas.on('click',function(){
+    divInactivas.hide();
+    divDiferencias.hide();
+    divActivas.show();
+    tabActivas.addClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
   });
-
-  $('#modalValidarControl').modal('show');
+  tabInactivas.on('click',function(){
+    divActivas.hide();
+    divDiferencias.hide();
+    divInactivas.show();
+    tabInactivas.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+    tabDiferencias.removeClass('subrayado');
+  });
+  tabDiferencias.on('click',function(){
+    divActivas.hide();
+    divInactivas.hide();
+    divDiferencias.show();
+    tabDiferencias.addClass('subrayado');
+    tabActivas.removeClass('subrayado');
+    tabInactivas.removeClass('subrayado');
+  });
   $('#btn-agregarNivel').hide();
+  //El que termina primero setea la bandera, el segundo muestra el modal.
+  let done = false;
+  const donef = function(){
+    if(done){
+      cargarDivDiferenciasValidar();
+      if(editable){
+        $('#observacion_validar').removeAttr('disabled');
+        $('#modalValidarControl .modal-title').text('VALIDAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').show();
+      }
+      else{
+        $('#observacion_validar').attr('disabled','disabled');
+        $('#modalValidarControl .modal-title').text('VISUALIZAR CONTROL LAYOUT');
+        $('#btn-finalizarValidacion').hide();
+      }
+      $('#modalValidarControl').modal('show');
+    }
+    else done = true;
+  };
+  cargarDivActivasValidar(id_layout_total,donef);
+  cargarDivInactivasValidar(id_layout_total,donef);
+}
+
+$(document).on('click','.validar',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,true);
+});
+
+$(document).on('click','.ver',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  mostrarModalValidacion(id_layout_total,false);
+});
+
+$(document).on('click','.eliminar',function(e){
+  e.preventDefault();
+  const id_layout_total = $(this).val();
+  $('#modalEliminar').modal('show');
+  $('#btn-eliminarModal').off().on('click', function() {
+      $.ajaxSetup({
+          headers: {
+              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+          }
+      })
+      $.ajax({
+          type: "DELETE",
+          url: "layouts/eliminarLayoutTotal/" + id_layout_total,
+          success: function (data) {
+            $('#btn-buscar').trigger('click');
+          },
+          error: function (data) {
+            console.log('Error: ', data);
+          }
+      })
+  });
 });
 
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
-
   $('#tecnico').popover('hide');
   $('#fecha').popover('hide');
   $('#frmLayoutTotal').trigger('reset');
@@ -441,8 +800,6 @@ $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal
   $('#inputFisca').val('');
   $('#fiscaCarga').val('');
 
-  //validar
-  $('#frmValidarControlLayout').trigger('reset');
   $('#validarFechaActual').val('');
   $('#validarFechaGeneracion').val('');
   $('#validarCasino').val('');
@@ -484,18 +841,15 @@ $('.selectCasinos').on('change',function(){
   });
 });
 
-//FINALIZAR CARGA RELEVAMIENTO
-$('#btn-guardar').click(function(e){
-  e.preventDefault();
+function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
   });
-
-  var maquinas = [];
+  let maquinas = [];
   $('#tablaCargaControlLayout tbody tr').each(function(){
-    var maquina = {
+    const maquina = {
       id_sector :  $(this).find('.sector').val(),
       nro_isla  : $(this).find('.nro_isla').val(),
       nro_admin : $(this).find('.nro_admin').val(),
@@ -504,84 +858,158 @@ $('#btn-guardar').click(function(e){
       pb : $(this).find('.pb ').is(':checked')  == true ? 1 :  0,
     };
     maquinas.push(maquina);
-  })
+  });
 
-  formData= {
+  let islas = [];
+  $('#modalCargaControlLayout .isla').each(function(){
+    const t = $(this);
+    islas.push({
+      id_isla: t.attr('data-id-isla'),
+      maquinas_observadas: t.find('.inputIsla').val()
+    });
+  });
+
+  const formData = {
     id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
     id_layout_total:   $('#id_layout_total').val(),
     fecha_ejecucion: $('#fecha_ejecucion').val(),
     maquinas: maquinas,
     observacion_fiscalizacion: $('#observacion_carga').val(),
-    confirmacion: confirmacion
-  }
-
-  console.log(formData);
+    confirmacion: confirmacion,
+    islas: islas
+  };
+  
+  //console.log(formData);
   $.ajax({
       type: 'POST',
-      url: 'http://' + window.location.host +'/layouts/cargarLayoutTotal',
+      url: url,
       data: formData,
       dataType: 'json',
-      success: function (resultados) {
-        $('#mensajeExito h3').text('ÉXITO DE CARGA');
-        $('#mensajeExito .cabeceraMensaje').addClass('modificar');
-        $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
-        $('#mensajeExito').show();
+      success: succ,
+      error: err
+  });
+}
 
-        //se puede eliminar, la misma logica lo hace el boton buscar
-        var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-        var tam = $('#tituloTabla').getPageSize();
-        var columna = $('#tablaLayouts .activa').attr('value');
-        var orden = $('#tablaLayouts .activa').attr('estado');
-        $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-        $('#modalCargaControlLayout').modal('hide');
-      },
-      error: function (data) {
-        var response = JSON.parse(data.responseText);
-        var bandera_error_no_aceptable= false;//bandera true ocurrio un error que no necesite ser corregido
-        var bandera_error_aceptable = false;//bandera true si necesito pedir confirmacion
-        if(typeof response.id_fiscalizador_toma !== 'undefined'){
-              mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
-              bandera_error_no_aceptable = true;
+$('#btn-guardarTemp').click(function(e){
+  e.preventDefault();
+  enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
+    function(x){
+      //console.log(x);
+      guardado=true;
+      $('#mensajeExito h3').text('ÉXITO DE CARGA');
+      $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+      $('#mensajeExito p').text("Se ha guardado correctamente el control de Layout Total.");
+      $('#mensajeExito').show();
+      $('#btn-buscar').trigger('click');
+    },
+    function(x){
+      console.log(x);
+      mostrarError('Hubo un problema al guardar.');
+    }
+  );
+});
 
-        }
+function mostrarError(mensaje = '') {
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').find('.textoMensaje')
+          .empty()
+          .append('<h2>ERROR</h2>')
+          .append(mensaje);
+      $('#mensajeError').show();
+  }, 500);
+}
 
-        if(typeof response.fecha_ejecucion !== 'undefined'){
-              mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
-              bandera_error_no_aceptable = true;
-        }
-        var i = 0;
+function verificarFormularioCarga(){
+  let invalidas = [];
+  $('#modalCargaControlLayout .isla input').each(function(){
+    const t = $(this);
+    const val = t.val();
+    const intVal = parseInt(val);
+    if((val.length == 0) 
+    || isNaN(intVal) 
+    || (val.indexOf('.') != -1)
+    || (val.indexOf(',') != -1)
+    || (intVal < 0)){
+      invalidas.push(t);
+      return;
+    }
+  });
+  if(invalidas.length != 0){
+    for(let i = 0;i < invalidas.length;i++){
+      let inv = invalidas[i];
+      mostrarErrorValidacion(inv,"Valor invalido",false);
+    }
+    return "Islas incompletas o con valores invalidos";
+  }
+  return null;
+}
 
-        $('#controlLayout tr').each(function(){
-          if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
-            bandera_error_no_aceptable = true;
-          }
-          if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
-            bandera_error_aceptable = true;
-          }
-          i++;
-        })
-        if(bandera_error_aceptable && !bandera_error_no_aceptable){
-          pedirValidacion();
-        }else{
-          $('.mensajeConfirmacion').hide();
-        }
+//FINALIZAR CARGA RELEVAMIENTO
+$('#btn-guardar').click(function(e){
+  e.preventDefault();
+
+  const mensajes = verificarFormularioCarga();
+  if(mensajes != null){
+    mostrarError(mensajes);
+    return;
+  }
+
+  const success = function (resultados) {
+    $('#mensajeExito h3').text('ÉXITO DE CARGA');
+    $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+    $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
+    $('#mensajeExito').show();
+    $('#btn-buscar').trigger('click');
+    $('#modalCargaControlLayout').modal('hide');
+  };
+
+  const error = function (data) {
+    var response = JSON.parse(data.responseText);
+    var bandera_error_no_aceptable= false;//bandera true ocurrio un error que no necesite ser corregido
+    var bandera_error_aceptable = false;//bandera true si necesito pedir confirmacion
+    if(typeof response.id_fiscalizador_toma !== 'undefined'){
+          mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
+          bandera_error_no_aceptable = true;
+    }
+
+    if(typeof response.fecha_ejecucion !== 'undefined'){
+          mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
+          bandera_error_no_aceptable = true;
+    }
+    var i = 0;
+
+    $('#controlLayout tr').each(function(){
+      if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
+        bandera_error_no_aceptable = true;
       }
-    });
+      if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
+        bandera_error_no_aceptable = true;
+      }
+      if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
+        bandera_error_no_aceptable = true;
+      }
+      if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
+        filaError = i;
+        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
+        bandera_error_aceptable = true;
+      }
+      i++;
+    })
+    if(bandera_error_aceptable && !bandera_error_no_aceptable){
+      pedirValidacion();
+    }else{
+      $('.mensajeConfirmacion').hide();
+    }
+  };
 
+  enviarLayout('http://' + window.location.host +'/layouts/cargarLayoutTotal',success,error);
 });
 
 function pedirValidacion(){
@@ -687,11 +1115,6 @@ function agregarMaquinaConDiferencia(renglon ,estado){
 
 }
 
-function habilitarBotonGuardar(){
-  guardado = false;
-  $('#btn-guardar').show();
-}
-
 // Todo busqueda Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     $.ajaxSetup({
@@ -702,27 +1125,27 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
     e.preventDefault();
 
-      var page_size = (page_size == null || isNaN(page_size) ) ? size : page_size;
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
-      if(sort_by == null){ // limpio las columnas
-        $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-      }
+    var page_size = (page_size == null || isNaN(page_size) ) ? size : page_size;
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    }
 
-      //Fix error cuando librería saca los selectores
-      if(isNaN($('#herramientasPaginacion').getPageSize())){
-        var size = 10; // por defecto
-      }else {
-        var size = $('#herramientasPaginacion').getPageSize();
-      }
+    //Fix error cuando librería saca los selectores
+    if(isNaN($('#herramientasPaginacion').getPageSize())){
+      var size = 10; // por defecto
+    }else {
+      var size = $('#herramientasPaginacion').getPageSize();
+    }
 
-      var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-      // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-      var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-      var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
-      if(sort_by == null){ // limpio las columnas
-        $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-      }
+    var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
+    if(sort_by == null){ // limpio las columnas
+      $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+    }
 
     var formData = {
       fecha: $('#buscadorFecha').val(),
@@ -740,7 +1163,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         data: formData,
         dataType: 'json',
         success: function (resultados) {
-            console.log(resultados);
+            //console.log(resultados);
 
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();
@@ -775,12 +1198,24 @@ function mostrarIconosPorPermisos(){
       data: formData,
       dataType: 'json',
       success: function(data) {
-
         //Para los iconos que no hay permisos: OCULTARLOS!
-        if (!data.ver_planilla_layout_total) $('.planilla').hide();
-        if (!data.carga_layout_total) $('.carga').hide();
-        if (!data.validar_layout_total) $('.validar').hide();
-
+        $('#cuerpoTabla tr').each(function(i,c){
+          let fila = $(c);
+          const estado = fila.find('.estado').text();
+          setearEstado(fila,estado);
+          if(!data.carga_layout_total){
+            $('#cuerpoTabla .carga').hide();
+          }
+          if(!data.validar_layout_total){
+            $('#cuerpoTabla .validar').hide();
+            $('#cuerpoTabla .imprimir').hide();
+            $('#cuerpoTabla .ver').hide();
+          }else{
+            $('#cuerpoTabla .imprimir').show();
+            $('#cuerpoTabla .eliminar').show();
+          }
+          fila.css('display','');//Lo muestro.
+        });
       },
       error: function(error) {
           console.log(error);
@@ -815,75 +1250,62 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+function setearEstado(fila,estado){
+  let icono_estado = fila.find('.icono_estado');
+  let icono_ver = fila.find('.ver');
+  let icono_planilla = fila.find('.planilla');
+  let icono_carga = fila.find('.carga');
+  let icono_validacion = fila.find('.validar');
+  let icono_imprimir = fila.find('.imprimir');
+  let icono_eliminar = fila.find('.eliminar')
+  //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
+  icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
+  fila.find('.estado').text(estado);
+  //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
+  icono_ver.hide();
+  icono_planilla.show();
+  icono_imprimir.hide();
+  icono_carga.hide();
+  icono_validacion.hide();
+  icono_eliminar.hide();
+  switch (estado) {
+    case 'Generado':
+      icono_estado.addClass('faGenerado');
+      icono_carga.show();
+      break;
+    case 'Cargando':
+      icono_estado.addClass('faCargando');
+      icono_carga.show();
+      break;
+    case 'Finalizado':
+      icono_estado.addClass('faFinalizado');
+      icono_ver.show();
+      icono_validacion.show();
+      break;
+    case 'Visado':
+      icono_estado.addClass('faValidado');
+      icono_ver.show();
+      break;
+    default:
+      break;
+  }
+}
+
+//La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
 function generarFilaTabla(layout_total){
-
-    var fila = $(document.createElement('tr'));
-    fila.attr('id', layout_total.id_layout_total)
-        .append($('<td>').addClass('col-xs-2')
-            .text((layout_total.fecha))
-        )
-        .append($('<td>').addClass('col-xs-2')
-            .text(layout_total.casino)
-        )
-        .append($('<td>').addClass('col-xs-2') /* REEMPLAZAR EN TURNO */
-            .text(layout_total.turno)
-        )
-        .append($('<td>').addClass('col-xs-3')
-            .append($('<i>').addClass('fas fa-fw fa-dot-circle'))
-            .append($('<span>').text(layout_total.estado))
-        )
-        .append($('<td>').addClass('col-xs-3')
-            .append($('<button>').addClass('btn btn-info planilla').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-warning carga').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-success validar').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(layout_total.id_layout_total)
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
-            )
-        )
-      var icono_planilla = fila.find('.planilla');
-      var icono_carga = fila.find('.carga');
-      var icono_validacion = fila.find('.validar');
-      var icono_impirmir = fila.find('.imprimir');
-
-      switch (layout_total.estado) {
-          case 'Generado':
-            fila.find('.fa-dot-circle').addClass('faGenerado');
-
-            icono_planilla.show();
-            icono_carga.show();
-            icono_validacion.hide();
-            icono_impirmir.hide();
-            break;
-          case 'Cargando':
-            fila.find('.fa-dot-circle').addClass('faCargando');
-            break;
-          case 'Finalizado':
-            fila.find('.fa-dot-circle').addClass('faFinalizado');
-            icono_validacion.show();
-            icono_impirmir.show();
-            icono_carga.hide();
-            icono_planilla.hide();
-            break;
-          case 'Validado':
-              fila.find('.fa-dot-circle').addClass('faValidado');
-              icono_validacion.hide();
-              icono_impirmir.show();
-              icono_carga.hide();
-              icono_planilla.hide();
-              break;
-          default:break;
-
-      }
-      return fila;
+  let fila = $('#filaEjemplo').clone();
+  fila.attr('id',layout_total.id_layout_total);
+  fila.find('.fecha').text(layout_total.fecha);
+  fila.find('.casino').text(layout_total.casino);
+  fila.find('.turno').text(layout_total.turno);
+  fila.find('.planilla').val(layout_total.id_layout_total);
+  fila.find('.carga').val(layout_total.id_layout_total);
+  fila.find('.validar').val(layout_total.id_layout_total);
+  fila.find('.imprimir').val(layout_total.id_layout_total);
+  fila.find('.ver').val(layout_total.id_layout_total);
+  fila.find('.eliminar').val(layout_total.id_layout_total);
+  setearEstado(fila,layout_total.estado);
+  return fila;
 }
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
@@ -896,9 +1318,7 @@ function generarFilaTabla(layout_total){
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
     $('#alertaArchivo').hide();
-
     window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
-
 });
 
 //Agrega nivel de layout
@@ -909,112 +1329,113 @@ $(document).on('click','.btn-agregarNivel',function(){
 
 //borrar un nivel de layout
 $(document).on('click','.borrarNivelLayout',function(){
-    // var index = $('#controlLayout').parent().parent().index();
-    //
-    // $('#controlLayout').children().eq(index).remove();
-
     $(this).parent().parent().remove();
+});
 
+$(document).on('input' , '#modalCargaControlLayout input' ,function(){
+  guardado = false;
+});
+  
+$(document).on('input' , '#modalCargaControlLayout textarea' ,function(){
+  guardado = false;
+});
+
+$(document).on('change' , '#modalCargaControlLayout select' ,function(){
+  guardado = false;
 });
 
 function agregarNivel(nivel,tabla,funcion){
+  console.log(nivel);
+  const id_nivel_layout = (nivel != null) ? nivel.id_nivel_layout: "";
+  const sector = (nivel != null) ? nivel.descripcion_sector: "";
+  const nIsla = (nivel != null) ? nivel.nro_isla: null;
+  const nAdmin = (nivel != null) ? nivel.nro_admin: null;
+  const id_maquina = (nivel != null) ? nivel.id_maquina : 0; 
+  const co = (nivel != null) ? nivel.co: null;
+  const pBloq = (nivel != null) ? nivel.pb : null;  
+  const editable = funcion == 'carga';
 
-  var id_nivel_layout = ((nivel != null) ? nivel.id_nivel_layout: "");
-  var sector = ((nivel != null) ? nivel.descripcion_sector: "");
-  var nIsla = ((nivel != null) ? nivel.nro_isla: null);
-  var nAdmin = ((nivel != null) ? nivel.nro_admin: null);
-  var co = ((nivel != null) ? nivel.co: null);
-  var pBloq = ((nivel != null) ? nivel.pb : null);
+  let fila = $('<tr>')
+  .addClass('NivelLayout')
+  .attr('id_nivel_layout',id_nivel_layout);
 
-  var editable = funcion == 'carga' ? true : false;
+  fila.append($('<td>'));
+  fila.append(
+    $('<td>').append(
+      $('<select>').attr('type','text').addClass('form-control sector').attr('disabled' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+          .attr('type','text')
+          .attr('placeholder','Isla')
+          .addClass('form-control nro_isla')
+          .val(nIsla)
+          .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+        .attr('type','text')
+        .attr('placeholder','N° ADMIN')
+        .addClass('form-control nro_admin')
+        .val(nAdmin)
+        .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .append($('<input>')
+        .attr('type','text')
+        .attr('placeholder','C.0')
+        .addClass('form-control co')
+        .val(co)
+        .attr('readonly' , !editable)
+    )
+  );
+  fila.append($('<td>')
+    .css('text-align' , 'center')
+    .append($('<input>')
+    .attr('type','checkbox')
+    .addClass('pb')
+    .prop('checked' , pBloq)
+    .prop('disabled' , !editable)
+    )
+  );
+  tabla.append(fila);
 
-          tabla.append($('<tr>')
-                  .addClass('NivelLayout')
-                  .attr('id_nivel_layou',id_nivel_layout)
-                  .append($('<td>')
-                  )
-                  .append($('<td>')
-                    .append($('<select>')
-                        .attr('type','text')
-                        .addClass('form-control sector')
-                        .attr('disabled' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                  .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','Isla')
-                        .addClass('form-control nro_isla')
-                        .val(nIsla)
-                        .attr('readonly' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','N° ADMIN')
-                        .addClass('form-control nro_admin')
-                        .val(nAdmin)
-                        .attr('readonly' , !editable)
-                    )
-                  )
-                .append($('<td>')
-                    .append($('<input>')
-                        .attr('type','text')
-                        .attr('placeholder','C.0')
-                        .addClass('form-control co')
-                        .val(co)
-                        .attr('readonly' , !editable)
-                    )
-                  )
-
-                .append($('<td>')
-                    .css('text-align' , 'center')
-                    .append($('<input>')
-                    .attr('type','checkbox')
-                    .addClass('pb')
-                    .prop('checked' , pBloq)
-                    .prop('disabled' , !editable)
-                )
-              )
-            )
-
-
-            if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
-              $('.nro_admin:last').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
-              $('.nro_admin:last').setearElementoSeleccionado(0,"");
-                $('.NivelLayout:last()',tabla)
-                  .append($('<td>')
-                    .append($('<button>')
-                      .addClass('borrarNivelLayout')
-                      .addClass('btn')
-                      .addClass('btn-danger')
-                      .addClass('borrarFila')
-                      .attr('type','button')
-                      .append($('<i>')
-                        .addClass('fa fa-fw fa-trash')
-                      )
-                  )
-                )
-           }else if(funcion == 'validar'){
-            var boton_gestionar = $('<a>').addClass('btn btn-success pop gestion_maquina')
-                                                  .attr('type' , 'button')
-                                                 .attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina )
-                                                 .attr('target' , '_blank')
-                                                 .attr("data-placement" , "top")
-                                                 .attr('data-trigger','hover')
-                                                 .attr('title','GESTIONAR MÁQUINA')
-                                                 .attr('data-content','Ir a sección máquina')
-                                                 .append($('<i>').addClass('fa fa-fw fa-wrench'));
-            $('.NivelLayout:last()',tabla)
-                    .append($('<td>').append(boton_gestionar));
-            $('.gestion_maquina').popover({
-              html:true
-            });
-          }
+  if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
+    fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
+    fila.find('.nro_admin').setearElementoSeleccionado(id_maquina,nAdmin);
+    $(fila).append(
+      $('<td>')
+        .append($('<button>')
+          .addClass('borrarNivelLayout')
+          .addClass('btn')
+          .addClass('btn-danger')
+          .addClass('borrarFila')
+          .attr('type','button')
+          .append($('<i>')
+            .addClass('fa fa-fw fa-trash')
+          )
+      )
+    );
+  }else if(funcion == 'validar'){
+  var boton_gestionar = $('<a>').addClass('btn btn-success pop gestion_maquina')
+                                .attr('type' , 'button')
+                                .attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina )
+                                .attr('target' , '_blank')
+                                .attr("data-placement" , "top")
+                                .attr('data-trigger','hover')
+                                .attr('title','GESTIONAR MÁQUINA')
+                                .attr('data-content','Ir a sección máquina')
+                                .append($('<i>').addClass('fa fa-fw fa-wrench'));
+  
+  $('.NivelLayout:last()',tabla).append($('<td>').append(boton_gestionar));
+  $('.gestion_maquina').popover({html:true});
+}
 
 
-          cargarSectores(sectores ,sector , tabla);
+cargarSectores(sectores ,sector , tabla);
 }
 
 function cargarSectores(sectores, seleccionado , tabla){
@@ -1038,4 +1459,19 @@ function limpiarModal(){
     $('#modalLayoutTotal').find('.modal-footer').children().show();
     $('#modalLayoutTotal').find('.modal-body').children().show()
     $('#controlLayout .NivelLayout').remove();
+    $('#cargaFechaActual').val('');
+    $('#cargaFechaGeneracion').val('');
+    $('#cargaCasino').val('');
+    $('#cargaTurno').val('');
+    $('#fiscaCarga').val('');
+    $('#inputFisca').val('');
+    $('#fecha').val('');
+    $('#observacion_carga').val('');
+    $('#observacion_validar').val('');
+    $('#observacion_carga_validacion').val('');
+    $('.activas').empty();
+    $('.diferencias').empty();
+    $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
+    $('#modalValidarControl .subrayado').removeClass('subrayado');
+    $('modalCargaControlLayout .total_activas').val('');
 }
