@@ -877,22 +877,61 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                       @endif
 
 
-
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
-                        <li>
-                          <div id="" class="opcionesHover"  href="">
-                            <a href="http://10.1.120.9/AE/login.php" target="_blank">
-                            <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
+                          <li>
+                            <div id="opcAltaAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('usuario','iconoUsuarios')
                               </span>
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('usuario','iconoUsuarios')
-                              </span>
-                              <span>AUTOEXCLUSIÓN</span>
-                            </a>
-                          </div>
-                        </li>
+                              <span>Alta de autoexcluidos</span>
+                            </div>
+                          </li>
 
+                          <li>
+                            <div id="opcVencimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>Vencimientos</span>
+                            </div>
+                          </li>
+
+                          <li>
+                            <div id="opcAutoxeclusionesFinalizadas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>Autoexclusiones finalizadas</span>
+                            </div>
+                          </li>
+
+                          <li>
+                            <div id="barraInformesAutxoeclusion" class="opcionesHover" data-target="#informesAutoexcluidos" data-toggle="collapse" href="#">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('usuario','iconoUsuarios')
+                                </span>
+                                <span>Informes</span>
+                            </div>
+
+                            <!-- SEGUNDO NIVEL -->
+                            <ul class="subMenu1 collapse" id="informesAutoexcluidos">
+                              <li>
+                                <div id="opcListadoAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
+                                  <span>Listado de AE</span>
+                                </div>
+                              </li>
+
+                              <li>
+                                <div id="opcGaleriaImagenesAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
+                                  <span>Galería de imagenes</span>
+                                </div>
+                              </li>
+                            </ul>
+
+                          </li>
 
 
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',

@@ -27,6 +27,7 @@ class AutoexcluidoController extends Controller
 
       return view('Autoexcluidos.index', ['juegos' => $juegos, 'ocupaciones' => $ocupaciones, 'casinos' => $casinos, 'frecuencias' => $frecuencias]);
     }
+
     //Función para agregar un nuevo autoexluido completo.
     public function agregarAE(Request $request){
       //Validación de los datos
@@ -85,12 +86,14 @@ class AutoexcluidoController extends Controller
 
       return $datos_ae->id_autoexcluido;
     }
+
     //Función para obtener los datos a partir de un DNI
     public function existeAE($dni){
       $autoexcluido = Autoexcluido::where('nro_dni','=',$dni);
 
         return $autoexcluido;
     }
+
     //Función para cargar los datos del ae
     protected function cargarDatos($datos_personales){
       $datos_ae = new Autoexcluido;
@@ -127,6 +130,7 @@ class AutoexcluidoController extends Controller
 
       $contacto->save();
     }
+
     //Función para cargar los datos de estado / fecha
     protected function cargarEstado($datos, $id_usuario, $id_autoexcluido){
       //modifico las fechas para guardarlas en formato aaaa-mm-dd
@@ -153,6 +157,7 @@ class AutoexcluidoController extends Controller
 
       $estado->save();
     }
+
     //Función para cargar la encuesta
     protected function cargarEncuesta($datos, $id_autoexcluido){
       //creo un nuevo etado con los datos
@@ -171,5 +176,4 @@ class AutoexcluidoController extends Controller
       $encuesta->id_autoexcluido = $id_autoexcluido;
       $encuesta->save();
     }
-
 }
