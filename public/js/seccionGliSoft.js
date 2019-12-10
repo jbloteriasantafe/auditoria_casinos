@@ -15,14 +15,21 @@ $(document).ready(function(){
   $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
   $('#opcGliSoft').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcGliSoft').addClass('opcionesSeleccionado');
-
-
-  const url = window.location.pathname.split("/");
-  //El codigo por el que se busca ya se setea por la view
-  //Solo seteamos por javascript que se abra el modal
-  if(url.length >= 3) abrir_modal = true;
   
-  $('#buscarCertificado').trigger('click');
+  const url = window.location.pathname.split("/");
+  if(url.length >= 3) {
+    abrir_modal = true;
+    let id = url[2]; 
+    let fila_falsa = generarFilaTabla({nro_archivo : '',id_gli_soft : id}).hide();
+    $('#cuerpoTabla').append(fila_falsa);
+    //Cuando se muestra el modal (mas abajo) se realiza otra busqueda y se la limpia
+    fila_falsa.find('.detalle').trigger('click');
+  }
+  else{
+    abrir_modal = false;
+    $('#buscarCertificado').trigger('click');
+  }
+
 });
 
 //Opacidad del modal al minimizar
@@ -45,7 +52,7 @@ $('#btn-agregarJuego').click(function(e){
     }
     else{
       $.get('/juegos/obtenerJuego/' + id_juego , function(data){
-        agregarFilaJuego(data.juego, data.tablasDePago);
+        agregarFilaJuego(data.juego, data.tablasDePago,data.casinos);
         $('#inputJuego').val('');
       });
     }
@@ -61,11 +68,10 @@ function existeEnDataList(id){
   return bandera;
 }
 
-function agregarFilaJuego(juego, tablas) {
+function agregarFilaJuego(juego, tablas,casinos) {
   var fila = $('<tr>').attr('id', juego.id_juego);
 
   var tablas_pago = '';
-
   if (tablas.length > 0) {
       tablas_pago = $('<select>').addClass('form-control');
 
@@ -74,29 +80,16 @@ function agregarFilaJuego(juego, tablas) {
       }
   }
 
-
-  fila.append($('<td>').addClass('col-xs-3')
-                       .text(juego.nombre_juego)
-  );
-  if(juego.cod_juego==null){
-    fila.append($('<td>').addClass('col-xs-3')
-                       .text('')
-  );
-  }else{
-    fila.append($('<td>').addClass('col-xs-3')
-                       .text(juego.cod_juego)
-  );
-  }
-
-  fila.append($('<td>').addClass('col-xs-3')
-                       .append(tablas_pago)
-  );
-  fila.append($('<td>').addClass('col-xs-3')
-                       .append($('<button>').addClass('btn btn-danger borrarJuego')
-                                            .append($('<i>').addClass('fa fa-fw fa-trash'))
-                              )
-  );
-
+  fila.append($('<td>').addClass('col-xs-3').text(juego.nombre_juego));
+  fila.append($('<td>').addClass('col-xs-2').text(juego.cod_juego == null? '' : juego.cod_juego));
+  fila.append($('<td>').addClass('col-xs-2').text(casinos));
+  fila.append($('<td>').addClass('col-xs-3').append(tablas_pago));
+  let boton_borrar = $('<button>').addClass('btn btn-danger borrarJuego')
+  .append($('<i>').addClass('fa fa-fw fa-trash'));
+  let boton_ver = $('<button>').addClass('btn btn-danger verJuego')
+  .append($('<i>').addClass('fa fa-fw fa-search'));
+  fila.append($('<td>').addClass('col-xs-2').append(boton_ver).append(boton_borrar));
+  
   $('#tablaJuegos tbody').append(fila);
 }
 
@@ -141,6 +134,7 @@ $(document).on('click','.borrarExpediente',function(){
 /* DETALLE, MODIFICAR, NUEVO Y BORRAR */
 
 $(document).on('click','.detalle',function(){
+    console.log('Entro?');
     //Modificar los colores del modal
     $('#modalGLI .modal-title').text('| VER MÁS');
     $('#modalGLI .modal-header').attr('style','background: #4FC3F7');
@@ -167,10 +161,15 @@ $(document).on('click','.detalle',function(){
 
       mostrarArchivo(data);
 
-       for (var i = 0; i < data.juegos.length; i++) {
+      for (var i = 0; i < data.juegos.length; i++) {
         console.log(data.juegos[i]);
-        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
+        agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago,data.juegos[i].casinos);
       }
+      if(abrir_modal){
+        abrir_modal = false;
+        $('#buscarCertificado').trigger('click');
+      }
+
       $('.borrarJuego').prop('disabled',true);
       $('.borrarExpediente').prop('disabled',true);
       $('#cargaArchivo').parent().css({'display':'none'});
@@ -311,7 +310,7 @@ $(document).on('click','.modificarGLI',function(){
         //Cargar los juegos
         for (var i = 0; i < data.juegos.length; i++) {
           console.log(data.juegos[i]);
-          agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago);
+          agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago,data.juegos[i].casinos);
         }
 
         $('.borrarJuego').prop('disabled',false);
@@ -675,11 +674,6 @@ $('#buscarCertificado').click(function(e,
       for (var i = 0; i < data.resultados.data.length; i++) {
         var filaCertificado = generarFilaTabla(data.resultados.data[i]);
         $('#cuerpoTabla').append(filaCertificado);
-      }
-
-      if(abrir_modal){//Si entro por la url le abro el primer resultado
-        $('#tablaGliSofts tbody tr').eq(0).find('.detalle').trigger('click');
-        abrir_modal = false;
       }
     },
     error: function (data) {

@@ -177,7 +177,7 @@ Route::delete('notas/eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
  ************/
 Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
   Route::get('/','GliSoftController@buscarTodo');
-  Route::get('/{buscar}','GliSoftController@buscarTodo');
+  Route::get('/{id}','GliSoftController@buscarTodo');
   Route::post('/guardarGliSoft','GliSoftController@guardarGliSoft');
   Route::get('/pdf/{id}','GliSoftController@leerArchivoGliSoft');
   Route::get('/obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');

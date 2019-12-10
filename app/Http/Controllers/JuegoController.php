@@ -74,12 +74,24 @@ class JuegoController extends Controller
 
     $tabla = TablaPago::where('id_juego', '=', $id)->get();
 
+
     return ['juego' => $juego ,
             'tablasDePago' => $tabla,
             'maquinas' => $maquinas,
             'pack'=>$packJuego,
             'certificadoSoft' => $this->obtenerCertificadosSoft($id),
-            'casinosJuego' => $juego->casinos];
+            'casinosJuego' => $juego->casinos,
+            'casinos' => $this->obtenerListaCodigosCasinos($juego)];
+  }
+
+  public function obtenerListaCodigosCasinos($juego,$sep=', '){
+    $lista = '';
+    $casinos_juego = $juego->casinos()->orderBy('codigo')->get();
+    foreach($casinos_juego as $idx => $c){
+      if($idx!=0) $lista = $lista . $sep;
+      $lista = $lista . $c->codigo;
+    }
+    return $lista;
   }
 
   public function encontrarOCrear($juego){

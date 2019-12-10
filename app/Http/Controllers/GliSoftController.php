@@ -30,7 +30,7 @@ class GliSoftController extends Controller
       return self::$instance;
   }
 
-  public function buscarTodo($buscar = null){
+  public function buscarTodo($id = null){
       $uc = UsuarioController::getInstancia();
       $uc->agregarSeccionReciente('Certificados Software' , 'certificadoSoft');
       $user = $uc->quienSoy()['usuario'];
@@ -49,25 +49,18 @@ class GliSoftController extends Controller
       $juegosarr = [];
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
-        $nombre = $j->nombre_juego . ' ‣';
-        foreach($j->casinos->sortBy('codigo') as $c){
-          $nombre = $nombre . ' ' . $c->codigo;
-        }
+        $casinos = JuegoController::getInstancia()->obtenerListaCodigosCasinos($j);
+        $nombre = $j->nombre_juego . ' ‣ ' . $casinos;
         if(!isset($juegosarr[$nombre])){
           $juegosarr[$nombre] = [];
         }
         $juegosarr[$nombre][] = $j;
       }
-      $codigo_defecto_busqueda = '';
-      if(!is_null($buscar)){
-        $codigo_defecto_busqueda = $buscar;
-      }
       //formato juegosarr = {'juego1' => [j1,j2],'juego2' => [j3],...}
       return view('seccionGLISoft' , 
       ['superusuario' => $user->es_superusuario,
       'casinos' => $user->casinos,
-      'juegos' => $juegosarr,
-      'codigo_defecto_busqueda' => $codigo_defecto_busqueda]);
+      'juegos' => $juegosarr]);
   }
 
   public function obtenerGliSoft(Request $request,$id){
@@ -109,13 +102,9 @@ class GliSoftController extends Controller
     foreach ($glisoft->juegos as $juego) {
       $visible = $juego->casinos()->whereIn('casino.id_casino',$casinos_ids)->count();
       if($visible>0){
-        $juego_casinos = $juego->casinos()->orderBy('codigo')->get();
-        $juego_casinos_str = '';
-        foreach($juego_casinos as $idx => $c){
-          if($idx != 0)$juego_casinos_str = $juego_casinos_str . ', ';
-          $juego_casinos_str = $juego_casinos_str . $c->codigo;
-        }
-        $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago,'casinos' => $juego_casinos_str];
+        $juegosYTPagos[]= ['juego'=> $juego, 
+        'tablas_de_pago' => $juego->tablasPago,
+        'casinos' => JuegoController::getInstancia()->obtenerListaCodigosCasinos($juego)];
       }
     }
     return ['glisoft' => $glisoft ,

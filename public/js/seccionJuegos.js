@@ -222,8 +222,8 @@ function obtenerIdMaquina(id_casino,nro_admin){
 
 $(document).on('click', '.verCertificado', function(){
   const input = $(this).parent().parent().find('.codigo');
-  const val = input.val();
-  if(obtenerIdCertificado(val) != null) window.open('certificadoSoft/' + val,'_blank');
+  const val = input.attr('data-id');
+  window.open('certificadoSoft/' + val,'_blank');
 });
 
 $(document).on('click','.verMaquina',function(){

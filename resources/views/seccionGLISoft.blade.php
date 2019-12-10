@@ -47,7 +47,7 @@ $id_usuario = session('id_usuario');
                             <div class="row">
                               <div class="col-md-3">
                                 <h5>Código de Certificado</h5>
-                                <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado" value="{{$codigo_defecto_busqueda}}">
+                                <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado">
                               </div>
                               <div class="col-md-3">
                                 <h5>Nombre Archivo</h5>
@@ -287,9 +287,10 @@ $id_usuario = session('id_usuario');
                           <table id="tablaJuegos" class="table">
                             <thead>
                                 <th class="col-xs-3">NOMBRE</th>
-                                <th class="col-xs-3">CÓDIGO JUEGO</th>
+                                <th class="col-xs-2">CÓDIGO JUEGO</th>
+                                <th class="col-xs-2">CASINOS</th>
                                 <th class="col-xs-3">TABLA PAGOS</th>
-                                <th class="col-xs-3">ACCIÓN</th>
+                                <th class="col-xs-2">ACCIÓN</th>
                             </thead>
                             <tbody>
 
