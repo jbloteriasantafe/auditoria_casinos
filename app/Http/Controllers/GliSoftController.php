@@ -70,8 +70,26 @@ class GliSoftController extends Controller
       'codigo_defecto_busqueda' => $codigo_defecto_busqueda]);
   }
 
-  public function obtenerGliSoft($id){
+  public function obtenerGliSoft(Request $request,$id){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+
+    Validator::make($request->all(),
+    [],[],self::$atributos)->after(function ($validator) use ($id,$user){
+      if(is_null($id)){
+        $validator->errors()->add('certificado', 'No existe el certificado.');
+        return;
+      }
+      $GLI = GliSoft::find($id); 
+      if(is_null($GLI)){
+        $validator->errors()->add('certificado', 'No existe el certificado.');
+        return;
+      }
+      if(!$this->puedeAccederGLISoft($user,$GLI)){
+        $validator->errors()->add('certificado', 'No puede acceder al objeto.');
+        return;
+      }
+    });
+
     $casinos_ids = [];
     foreach($user->casinos as $c){
       $casinos_ids[] = $c->id_casino;
@@ -85,14 +103,19 @@ class GliSoftController extends Controller
       $size=(int) (strlen(rtrim($glisoft->archivo->archivo, '=')) * 3 / 4);
     }else{
       $nombre_archivo = null;
+      $size = 0;
     }
     $juegosYTPagos = array();
     foreach ($glisoft->juegos as $juego) {
-      $juego_casinos = $juego->casinos();
-      $visible = $juego_casinos->whereIn('casino.id_casino',$casinos_ids)->count();
+      $visible = $juego->casinos()->whereIn('casino.id_casino',$casinos_ids)->count();
       if($visible>0){
-        $juego_casinos = $juego_casinos->get(['casino.id_casino','casino.nombre','casino.codigo']);
-        $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago,'casinos' => $juego_casinos];
+        $juego_casinos = $juego->casinos()->orderBy('codigo')->get();
+        $juego_casinos_str = '';
+        foreach($juego_casinos as $idx => $c){
+          if($idx != 0)$juego_casinos_str = $juego_casinos_str . ', ';
+          $juego_casinos_str = $juego_casinos_str . $c->codigo;
+        }
+        $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago,'casinos' => $juego_casinos_str];
       }
     }
     return ['glisoft' => $glisoft ,
@@ -102,7 +125,28 @@ class GliSoftController extends Controller
             'size' =>$size];
   }
 
-  public function leerArchivoGliSoft($id){
+  public function leerArchivoGliSoft(Request $request,$id){
+    Validator::make($request->all(),
+    [],[],self::$atributos)->after(function ($validator) use ($id){
+      if(is_null($id)){
+        $validator->errors()->add('certificado', 'No existe el certificado.');
+        return;
+      }
+      $GLI = GliSoft::find($id); 
+      if(is_null($GLI)){
+        $validator->errors()->add('certificado', 'No existe el certificado.');
+        return;
+      }
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if(!$this->puedeAccederGLISoft($user,$GLI)){
+        $validator->errors()->add('certificado', 'No puede acceder al objeto.');
+        return;
+      }
+      if(is_null($GLI->archivo)){
+        $validator->errors()->add('archivo', 'No existe el archivo.');
+        return;
+      }
+    });
     $data = DB::table('gli_soft')->select('archivo.archivo','archivo.nombre_archivo')
                                 ->join('archivo','archivo.id_archivo','=','gli_soft.id_archivo')
                                 ->where('gli_soft.id_gli_soft','=',$id)->first();
@@ -265,8 +309,14 @@ class GliSoftController extends Controller
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
         'juegos' => 'required|string'
-      ])->after(function ($validator) use ($casinos_ids){
+      ])->after(function ($validator) use ($user,$casinos_ids){
         $data = $validator->getData();
+        //Verifico que pueda ver el certificado
+        $GLI = GliSoft::find($data['id_gli_soft']);
+        if(!$this->puedeAccederGLISoft($user,$GLI)){
+          $validator->errors()->add('certificado','No puede acceder a ese objeto.');
+        }
+        //Verifico que pueda ver los juegos que me mando
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
@@ -409,12 +459,15 @@ class GliSoftController extends Controller
     return true;
   }
 
-  public function eliminarGLI($id){
+  public function eliminarGLI(Request $request,$id){
     $GLI=GliSoft::find($id);
     $se_borro = false;
-    if(is_null($GLI)) return ['gli' => $GLI,'se_borro' => $se_borro];
+    if(is_null($GLI)) return ['gli' => null,'se_borro' => false];
 
-    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$this->puedeAccederGLISoft($user,$GLI)) return ['gli' => null,'se_borro' => false];
+
+    $casinos = $user->casinos;
     $casinos_ids=array();
     foreach($casinos as $c){
       $casinos_ids [] = $c->id_casino;
@@ -460,4 +513,21 @@ class GliSoftController extends Controller
     return ['gli' => $GLI,'se_borro' => $se_borro];
   }
 
+  public function puedeAccederGLISoft($user,$GLI,$ids=false){
+    if(is_null($user)) return false;
+    if(is_null($GLI)) return false;
+    if($ids){
+      $user = Usuario::find($user);
+      $GLI = GliSoft::find($GLI);
+    }
+    if($user->es_superusuario) return true;
+    $juegos = $GLI->juegos;
+    foreach($juegos as $j){
+      $casinos_juego = $j->casinos;
+      foreach($casinos_juego as $c){
+        if(!$user->usuarioTieneCasino($c->id_casino)) return false;
+      }
+    }
+    return true;
+  }
 }
