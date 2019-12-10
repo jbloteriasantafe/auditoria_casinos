@@ -154,7 +154,6 @@ $(document).on('click','.detalle',function(){
     })
     $('#cuerpoTablaDePago tr').remove();
     $('#modalGLI .modal-footer .cancelar').text('SALIR');
-
     //limpia la tabla de juegos
     $('#tablaJuegos tbody').empty();
 
@@ -166,45 +165,7 @@ $(document).on('click','.detalle',function(){
       $('#nroCertificado').val(data.glisoft.nro_archivo);
       $('#observaciones').val(data.glisoft.observaciones);
 
-      //SI NO HAY ARCHIVO EN LA BASE
-      if (data.nombre_archivo == null) {
-        //Inicializa el fileinput para cargar los PDF
-        $("#cargaArchivo").fileinput('destroy').fileinput({
-          language: 'es',
-          showRemove: false,
-          showUpload: false,
-          showCaption: false,
-          showZoom: false,
-          browseClass: "btn btn-primary",
-          previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-          overwriteInitial: false,
-          initialPreviewAsData: true,
-          dropZoneEnabled: true,
-          allowedFileExtensions: ['pdf']
-        });
-
-        //SI HAY ARCHIVO EN LA BASE
-      }else{
-        //Carga el fileinput con el PDF cargado
-        $("#cargaArchivo").fileinput('destroy').fileinput({
-          language: 'es',
-          showRemove: false,
-          showUpload: false,
-          showCaption: false,
-          showZoom: false,
-          browseClass: "btn btn-primary",
-          previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-          overwriteInitial: true,
-          initialPreviewAsData: true,
-          initialPreview: [
-            "http://" + window.location.host + "/certificadoSoft/pdf/" + id,
-          ],
-          initialPreviewConfig: [
-            {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
-          ],
-          allowedFileExtensions: ['pdf'],
-        });
-      }
+      mostrarArchivo(data);
 
        for (var i = 0; i < data.juegos.length; i++) {
         console.log(data.juegos[i]);
@@ -212,6 +173,7 @@ $(document).on('click','.detalle',function(){
       }
       $('.borrarJuego').prop('disabled',true);
       $('.borrarExpediente').prop('disabled',true);
+      $('#cargaArchivo').parent().css({'display':'none'});
       $('#modalGLI').modal('show');
   })
 
@@ -283,7 +245,8 @@ $('#btn-nuevo').click(function(e){
       dropZoneEnabled: true,
       allowedFileExtensions: ['pdf']
     });
-
+    $('#modalGLI .link_archivo').removeAttr('href').hide();
+    $('#modalGLI .no_visualizable').hide();
     //Abrir el modal
     $('#modalGLI').modal('show');
 
@@ -338,44 +301,7 @@ $(document).on('click','.modificarGLI',function(){
         $('#observaciones').val(data.glisoft.observaciones);
 
         //SI NO HAY ARCHIVO EN LA BASE
-        if (data.nombre_archivo == null) {
-            //Inicializa el fileinput vacio para cargar los PDF
-            $("#cargaArchivo").fileinput('destroy').fileinput({
-              language: 'es',
-              showRemove: false,
-              showUpload: false,
-              showCaption: false,
-              showZoom: false,
-              browseClass: "btn btn-primary",
-              previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-              overwriteInitial: false,
-              initialPreviewAsData: true,
-              dropZoneEnabled: true,
-              allowedFileExtensions: ['pdf']
-            });
-
-        //SI HAY ARCHIVO EN LA BASE
-        }else{
-            //Carga el fileinput con el PDF cargado
-            $("#cargaArchivo").fileinput('destroy').fileinput({
-              language: 'es',
-              showRemove: false,
-              showUpload: false,
-              showCaption: false,
-              showZoom: false,
-              browseClass: "btn btn-primary",
-              previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-              overwriteInitial: true,
-              initialPreviewAsData: true,
-              initialPreview: [
-                "http://" + window.location.host +"/certificadoSoft/pdf/" + id,
-              ],
-              initialPreviewConfig: [
-                {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
-              ],
-              allowedFileExtensions: ['pdf'],
-            });
-        }
+        mostrarArchivo(data);
 
         //Cargar los expedientes
         for (var i = 0; i < data.expedientes.length; i++) {
@@ -393,6 +319,68 @@ $(document).on('click','.modificarGLI',function(){
         $('#modalGLI').modal('show');
     });
 });
+
+function mostrarArchivo(data) {
+  const no_hay_archivo = data.nombre_archivo == null;
+  const muy_grande = data.size >= (5 * 1024 * 1024);
+  if (no_hay_archivo) {
+    $('#modalGLI .no_visualizable').text('Sin archivo adjunto.').show();
+    $('#modalGLI .link_archivo').removeAttr('href').show();
+    $("#cargaArchivo").fileinput('destroy').fileinput({
+      language: 'es',
+      showRemove: false,
+      showUpload: false,
+      showCaption: false,
+      showZoom: false,
+      browseClass: "btn btn-primary",
+      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+      overwriteInitial: false,
+      initialPreviewAsData: true,
+      dropZoneEnabled: true,
+      allowedFileExtensions: ['pdf'],
+    });
+  }
+  else {
+    $('#modalGLI .link_archivo').attr('href', '/certificadoSoft/pdf/' + data.glisoft.id_gli_soft).show();
+    $('#modalGLI .no_visualizable').text('El archivo es muy grande para visualizarlo.').show();
+    if (muy_grande) {
+      $("#cargaArchivo").fileinput('destroy').fileinput({
+        language: 'es',
+        showRemove: false,
+        showUpload: false,
+        showCaption: false,
+        showZoom: false,
+        browseClass: "btn btn-primary",
+        previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+        overwriteInitial: false,
+        initialPreviewAsData: true,
+        dropZoneEnabled: true,
+        allowedFileExtensions: ['pdf'],
+      });
+    }
+    else {
+      $("#cargaArchivo").fileinput('destroy').fileinput({
+        language: 'es',
+        showRemove: false,
+        showUpload: false,
+        showCaption: false,
+        showZoom: false,
+        browseClass: "btn btn-primary",
+        previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+        overwriteInitial: true,
+        initialPreviewAsData: true,
+        initialPreview: [
+          "http://" + window.location.host + "/certificadoSoft/pdf/" + data.glisoft.id_gli_soft,
+        ],
+        initialPreviewConfig: [
+          { type: 'pdf', caption: data.nombre_archivo, size: data.size, width: "120px", url: "{$url}", key: 1 },
+        ],
+        allowedFileExtensions: ['pdf']
+      });
+      $('#modalGLI .no_visualizable').hide();
+    }
+  }
+}
 
 function mostrarModalEliminar(id,msj=""){
   $('#modalEliminar .cuerpoEliminar').empty().append(msj);
@@ -433,10 +421,14 @@ $('#boton-eliminarGLI').click(function (e) {
 $('#cargaArchivo').on('fileclear', function(event) {
     $('#cargaArchivo').attr('data-borrado','true');
     $('#cargaArchivo')[0].files[0] = null;
+    $('#modalGLI .no_visualizable').hide();
+    $('#modalGLI .link_archivo').hide();
 });
 
 $('#cargaArchivo').on('fileselect', function(event) {
   $('#cargaArchivo').attr('data-borrado','false');
+  $('#modalGLI .no_visualizable').hide();
+  $('#modalGLI .link_archivo').hide();
 });
 
 function parseError(response){

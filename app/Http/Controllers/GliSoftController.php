@@ -49,7 +49,7 @@ class GliSoftController extends Controller
       $juegosarr = [];
       foreach($query as $q){
         $j = Juego::find($q->id_juego);
-        $nombre = $j->nombre_juego . ' #';
+        $nombre = $j->nombre_juego . ' ‣';
         foreach($j->casinos->sortBy('codigo') as $c){
           $nombre = $nombre . ' ' . $c->codigo;
         }
@@ -81,7 +81,8 @@ class GliSoftController extends Controller
 
     if(!empty($glisoft->archivo)){
       $nombre_archivo = $glisoft->archivo->nombre_archivo;
-      $size=$glisoft->archivo->archivo;
+      //Saca el tamaño approx de una string encodeada en base64
+      $size=(int) (strlen(rtrim($glisoft->archivo->archivo, '=')) * 3 / 4);
     }else{
       $nombre_archivo = null;
     }
@@ -94,7 +95,11 @@ class GliSoftController extends Controller
         $juegosYTPagos[]= ['juego'=> $juego, 'tablas_de_pago' => $juego->tablasPago,'casinos' => $juego_casinos];
       }
     }
-    return ['glisoft' => $glisoft , 'expedientes' => $glisoft->expedientes, 'nombre_archivo' => $nombre_archivo , 'juegos' => $juegosYTPagos];
+    return ['glisoft' => $glisoft ,
+            'expedientes' => $glisoft->expedientes,
+            'nombre_archivo' => $nombre_archivo ,
+            'juegos' => $juegosYTPagos,
+            'size' =>$size];
   }
 
   public function leerArchivoGliSoft($id){

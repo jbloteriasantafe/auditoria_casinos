@@ -245,9 +245,13 @@ $id_usuario = session('id_usuario');
                       <div class="row">
                         <div class="col-md-12">
                                 <h5>Archivo</h5>
-                                <div class="zona-file" style="border-radius:5px;">
-                                    <input id="cargaArchivo" data-borrado="false" type="file" multiple>
+                                <div class="row zona-file col-md-12" style="border-radius:5px;">
+                                    <input id="cargaArchivo" data-borrado="false" type="file">
+                                    <span class="no_visualizable" hidden>El archivo es muy grande para visualizarlo.</span>
                                 </div>
+                                <a class="row link_archivo col-md-12" href="/certificadoSoft/pdf/" target="_blank" rel="noopener noreferrer" style="text-align: center;">
+                                  PDF
+                                </a>
                         </div>
                       </div>
                     </div>
@@ -366,9 +370,6 @@ $id_usuario = session('id_usuario');
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <script type="text/javascript">
-
-
-
         $('#cargaArchivo').on('fileuploaderror', function(event, data, msg) {
             var form = data.form, files = data.files, extra = data.extra,
                 response = data.response, reader = data.reader;
