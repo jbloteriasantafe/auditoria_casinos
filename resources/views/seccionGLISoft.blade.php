@@ -145,13 +145,6 @@ $id_usuario = session('id_usuario');
                     <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/hardware_white.png" alt="">
                   </div>
               </a>
-              <!-- <a href="certificadoHard" style="text-decoration:none;">
-                  <div class="tarjetaSeccionMenor" align="center">
-                    <h2 class="tituloFondoMenor">HARDWARE</h2>
-                    <h2 class="tituloSeccionMenor">GLI HARDWARE</h2>
-                    <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/hardware_white.png" alt="">
-                  </div>
-              </a> -->
             </div>
           @endif
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))

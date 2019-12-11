@@ -40,7 +40,7 @@ class JuegoController extends Controller
     return view('seccionJuegos' , 
     ['casinos' => $casinos,
      'maquinas_casinos' => $maquinas_casinos,
-     'certificados' => GliSoft::all()
+     'certificados' => GliSoftController::getInstancia()->gliSoftsPorCasinos($casinos)
     ]);
   }
 

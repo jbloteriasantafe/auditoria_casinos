@@ -519,4 +519,26 @@ class GliSoftController extends Controller
     }
     return true;
   }
+
+  public function gliSoftsPorCasinos($casinos,$ids = false){
+    if(is_null($casinos)) return [];
+    $casinos_ids = [];
+    if($ids){
+      $casinos_ids = $casinos;
+    } 
+    else{
+      foreach($casinos as $c) $casinos_ids[] = $c->id_casino;
+    } 
+    $gli_softs = DB::table('gli_soft as gl')->select('gl.id_gli_soft')
+    ->join('juego_glisoft as jgl','jgl.id_gli_soft','=','gl.id_gli_soft')
+    ->join('casino_tiene_juego as cj','cj.id_juego','=','jgl.id_juego')
+    ->whereIn('cj.id_casino',$casinos_ids)
+    ->groupBy('gl.id_gli_soft')
+    ->get();
+    $ret = [];
+    foreach($gli_softs as $gl){
+      $ret[]=GliSoft::find($gl->id_gli_soft);
+    }
+    return $ret;
+  }
 }
