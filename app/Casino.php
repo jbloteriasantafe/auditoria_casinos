@@ -46,6 +46,9 @@ class Casino extends Model
   public function sectores(){
     return $this->HasMany('App\Sector','id_casino','id_casino');
   }
+  public function sectores_mesas(){
+    return $this->HasMany('App\Mesas\SectorMesas','id_casino','id_casino');
+  }
   public function islas(){
     return $this->hasMany('App\Isla','id_casino','id_casino');
   }
