@@ -864,6 +864,11 @@ Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
   Route::get('bingo/informe','Bingo\InformeController@index');
 });
 
-Route::get('autoexcluido','Autoexcluido\AutoexcluidoController@index');
-Route::post('autoexcluido/agregarAE','Autoexcluido\AutoexcluidoController@agregarAE');
-Route::get('autoexcluido/existeAE','Autoexcluido\AutoexcluidoController@existeAE');
+/************
+AUTOEXCLUSIÓN
+*************/
+Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_relevamientos_control_ambiental'], function () {
+  Route::get('/','Autoexclusion\AutoexclusionController@index');
+  Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
+  Route::get('existeAE','Autoexclusion\AutoexclusionController@existeAE');
+});

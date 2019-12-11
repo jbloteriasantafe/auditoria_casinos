@@ -879,7 +879,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                           <li>
-                            <div id="opcAltaAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                            <div id="opcAltaAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusion'" style="cursor: pointer;">
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('usuario','iconoUsuarios')
                               </span>
@@ -931,6 +931,22 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               </li>
                             </ul>
 
+                          </li>
+
+
+                          <div class="separadoresMenu">AUTOEXCLUSIÓN (VIEJO)</div>
+                          <li>
+                            <div id="" class="opcionesHover"  href="">
+                              <a href="http://10.1.120.9/AE/login.php" target="_blank">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('usuario','iconoUsuarios')
+                                </span>
+                                <span>AUTOEXCLUSIÓN</span>
+                              </a>
+                            </div>
                           </li>
 
 

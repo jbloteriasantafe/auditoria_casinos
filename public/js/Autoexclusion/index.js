@@ -3,15 +3,10 @@ $(document).ready(function(){
   $('#barraMenu').attr('aria-expanded','true');
   // $('#maquinas').removeClass();
   // $('#maquinas').addClass('subMenu1 collapse in');
-  $('#bingoMenu').removeClass();
-  $('#bingoMenu').addClass('subMenu2 collapse in');
 
-  $('#bingoMenu').siblings('div.opcionesHover').attr('aria-expanded','true');
-
-  $('.tituloSeccionPantalla').text('Reportes de Estados');
+  $('.tituloSeccionPantalla').text('Alta de autoexcluidos');
   // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcReporteEstadoBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcReporteEstadoBingo').addClass('opcionesSeleccionado');
+
 
   $('#dtpBuscadorFecha').datetimepicker({
     language:  'es',
@@ -199,9 +194,11 @@ function clickIndice(e,pageNumber,tam){
 //Botón agregar nuevo AE
 $('#btn-agregar-ae').click(function(e){
     e.preventDefault();
+
   //vuelvo a step1
   $('.page').removeClass('active');
   $('.step1').addClass('active');
+
   //limpio el form
   $('#frmAgregarAE :input').val('');
 
@@ -223,6 +220,7 @@ $('#btn-agregar-ae').click(function(e){
   $('.step').removeClass('finish');
   $('.step').removeClass('actived');
   $('#one').addClass('actived');
+
   //muestra modal
   $('#modalAgregarAE').modal('show');
 });
@@ -231,7 +229,7 @@ $('#btn-agregar-ae').click(function(e){
 //función para autocompletar el input de provincia
 function cargarProvincias(){
     var options = {
-    url: "/js/Autoexcluidos/provincias.json",
+    url: "/js/Autoexclusion/provincias.json",
     listLocation: "provincias",
     getValue: "nombre",
 
@@ -245,6 +243,7 @@ function cargarProvincias(){
 		       }
     }
   };
+
   $("#nombre_provincia").easyAutocomplete(options);
   $("#nombre_provincia_vinculo").easyAutocomplete(options);
 };
@@ -254,7 +253,7 @@ function cargarLocalidades(){
   var nombre_provincia =  $("#nombre_provincia").val();
   var localidades = [];
 
-  $.getJSON('/js/Autoexcluidos/localidades.json', function(data) {
+  $.getJSON('/js/Autoexclusion/localidades.json', function(data) {
          $.each(data.localidades, function(key, value) {
            //si pertenece a la provincia seleccionada, la agrego
            if(value.provincia.nombre === nombre_provincia){
@@ -268,16 +267,15 @@ function cargarLocalidades(){
         }); // close getJSON()
 
   var options = {
-	// url: "/js/Autoexcluidos/localidades.json",
-  data: localidades,
-  // listLocation: "localidades",
-	getValue: "nombre",
-    	list: {
-    		match: {
-    			enabled: true
-    		}
-    	}
-    };
+    data: localidades,
+
+  	getValue: "nombre",
+      	list: {
+      		match: {
+      			enabled: true
+      		}
+      	}
+  };
 
   $("#nombre_localidad").easyAutocomplete(options);
 };
@@ -287,7 +285,7 @@ function cargarLocalidadesVinculo(){
   var nombre_provincia =  $("#nombre_provincia_vinculo").val();
   var localidades = [];
 
-  $.getJSON('/js/Autoexcluidos/localidades.json', function(data) {
+  $.getJSON('/js/Autoexclusion/localidades.json', function(data) {
          $.each(data.localidades, function(key, value) {
            //si pertenece a la provincia seleccionada, la agrego
            if(value.provincia.nombre === nombre_provincia){
@@ -301,16 +299,15 @@ function cargarLocalidadesVinculo(){
         }); // close getJSON()
 
   var options = {
-	// url: "/js/Autoexcluidos/localidades.json",
-  data: localidades,
-  // listLocation: "localidades",
-	getValue: "nombre",
-    	list: {
-    		match: {
-    			enabled: true
-    		}
-    	}
-    };
+    data: localidades,
+
+  	getValue: "nombre",
+      	list: {
+      		match: {
+      			enabled: true
+      		}
+      	}
+  };
 
   $("#nombre_localidad_vinculo").easyAutocomplete(options);
 };
@@ -341,19 +338,67 @@ $("#btn-prev").on("click", function(){
         //oculto botón anterior
         $("#btn-prev").hide();
       }
+
+    //si le dio al boton de anterior y la pagina activa (despues de darle al boton)
+    //es del step #2 (index1) o step #3 (index2), muestro los botones de ANTERIOR
+    //y SIGUIENTE, y oculto el de ENVIAR
+    if($(".page.active").index() == 1 || $(".page.active").index() == 2) {
+        $("#btn-prev").show();
+        $("#btn-next").show();
+        $("#btn-guardar").hide();
+    }
+
 });
 
 //botón siguiente modal agregar ae
 $("#btn-next").on("click", function(){
-  //si apreta sig y es la primera, busco si existe ae con el dni
-  if( $(".page.active").index() == 1 ) {
+  var step = $(".page.active").index() + 1;
+  var valid = 1;
+
+  //verificacion de inputs validos step #1
+  if(step == 1) {
+    if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
+      mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);
+      valid = 0;
+    }
+
     //si existe dni->precargo el form con los datos
+    //HACER
+  }
+  //verificacion de inputs validos step #2
+  else if(step == 2) {
+    if (!/^[a-z\s]+$/.test($('#apellido').val())) {
+      mostrarErrorValidacion($('#apellido') , 'El apellido no puede contener números' , false);
+      valid = 0;
+    }
+
+    if (!/^[a-z\s]+$/.test($('#nombres').val())) {
+      mostrarErrorValidacion($('#apellido') , 'Los nombres no puede contener números' , false);
+      valid = 0;
+    }
+
+    if (isNaN($('#nro_domicilio').val()) && $('#nro_domicilio').val() != '') {
+      mostrarErrorValidacion($('#nro_domicilio') , 'El número de domicilio debe ser un dato de tipo numérico' , false);
+      valid = 0;
+    }
+
+    if (isNaN($('#telefono').val()) && $('#telefono').val() != '') {
+      mostrarErrorValidacion($('#telefono') , 'El teléfono debe ser un dato de tipo numérico' , false);
+      valid = 0;
+    }
+
+    if (!$('#correo').val().includes("@")) {
+      mostrarErrorValidacion($('#correo') , 'El email ingresado debe ser valido' , false);
+      valid = 0;
+    }
+  }
+  //verificacion de inputs validos step #3
+  else if(step == 3) {
 
   }
 
+
     //verifico que los input del step no esten en blanco.
-    var step = $(".page.active").index() + 1;
-    var valid = 1;
     $( ".step"+step+" :input" ).each(function(){
       if( $(this).val() == '' && step<4){
           mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
@@ -407,6 +452,7 @@ $('#btn-guardar').click(function (e) {
       id_ocupacion: $('#nro_dni').val(),
       id_capacitacion: $('#id_capacitacion').val(),
     }
+
     //guardo los datos de contacto
     var ae_datos_contacto =  {
       nombre_apellido: $('#nombre_apellido').val(),
@@ -416,6 +462,7 @@ $('#btn-guardar').click(function (e) {
       telefono_vinculo: $('#telefono_vinculo').val(),
       vinculo: $('#vinculo').val(),
     }
+
     //guardo los datos de estado+fecha
     var ae_estado = {
       id_casino: $('#id_casino').val(),
@@ -426,6 +473,7 @@ $('#btn-guardar').click(function (e) {
       fecha_cierre_definitivo: $('#fecha_cierre_definitivo').val(),
       //faltan inportaciones
     }
+
     //guardo los datos de la encuesta
     var ae_encuesta = {
         juego_preferido: $('#juego_preferido').val(),
@@ -449,14 +497,13 @@ $('#btn-guardar').click(function (e) {
     }
 
     //url de destino, dependiendo si se esta creando o modificando una sesión
-    var url;
-
+    let url;
     //dependiendo el valor del botón guarda o edita
-    var state = $('#btn-guardar').val();
+    let state = $('#btn-guardar').val();
     if( state == 'nuevo'){
-      url =  'autoexcluido/agregarAE';
+      url =  'autoexclusion/agregarAE';
     }else{
-      url = 'autoexcluido/agregarAE';
+      url = 'autoexclusion/agregarAE';
       //se agrega id_ae si se esta modificando
       var formData = {
         datos_personales: ae_datos,
@@ -466,8 +513,6 @@ $('#btn-guardar').click(function (e) {
         // id_ae: $('#id_ae').val(),
       }
     }
-
-    console.log(formData);
 
     $.ajax({
         type: "POST",
@@ -491,8 +536,6 @@ $('#btn-guardar').click(function (e) {
         },
         error: function (data) {
             var response = JSON.parse(data.responseText);
-
-
         }
     });
 });

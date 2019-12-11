@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Autoexcluido;
+namespace App\Http\Controllers\Autoexclusion;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use Validator;
 
-use App\Autoexcluido\Autoexcluido;
-use App\Autoexcluido\ContactoAE;
-use App\Autoexcluido\EstadoAE;
-use App\Autoexcluido\Encuesta;
+use App\Autoexclusion\Autoexcluido;
+use App\Autoexclusion\ContactoAE;
+use App\Autoexclusion\EstadoAE;
+use App\Autoexclusion\Encuesta;
 
 use Illuminate\Support\Facades\DB;
 
-class AutoexcluidoController extends Controller
+class AutoexclusionController extends Controller
 {
     private static $atributos = [
     ];
@@ -25,7 +25,7 @@ class AutoexcluidoController extends Controller
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
       $casinos = DB::table('casino')->get();
 
-      return view('Autoexcluidos.index', ['juegos' => $juegos, 'ocupaciones' => $ocupaciones, 'casinos' => $casinos, 'frecuencias' => $frecuencias]);
+      return view('Autoexclusion.index', ['juegos' => $juegos, 'ocupaciones' => $ocupaciones, 'casinos' => $casinos, 'frecuencias' => $frecuencias]);
     }
 
     //Función para agregar un nuevo autoexluido completo.
@@ -63,72 +63,68 @@ class AutoexcluidoController extends Controller
           // }
         })->validate();
 
-      //creo un nuevo Autoexcluido y cargo sus datos
-      $datos_personales = $request->datos_personales;
-      $datos_ae = $this->cargarDatos($datos_personales);
+      //creo un nuevo Autoexcluido y cargo sus datos personales
+      $ae = $this->cargarDatos($request['datos_personales']);
 
-      //id autoexluido
-      $id_autoexcluido = $datos_ae->id_autoexcluido;
-      //busco la id del usuario que agrega ae
+      $id_autoexcluido = $ae->id_autoexcluido;
       $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
 
       //cargo los datos de contacto
-      $datos_contacto = $request->datos_contacto;
-      $this->cargarContacto($datos_contacto, $id_autoexcluido);
+      $this->cargarContacto($request['datos_contacto'], $id_autoexcluido);
 
       //cargo los datos de estado/fecha
-      $datos_estado= $request->ae_estado;
-      $this->cargarEstado($datos_estado, $id_usuario, $id_autoexcluido);
+      $this->cargarEstado($request['ae_estado'], $id_usuario, $id_autoexcluido);
 
-      // cargo la encuesta
-      $datos_encuesta= $request->ae_encuesta;
-      $this->cargarEncuesta($datos_encuesta, $id_autoexcluido);
+      // cargo los datos de la encuesta
+      $this->cargarEncuesta($request['ae_encuesta'], $id_autoexcluido);
 
-      return $datos_ae->id_autoexcluido;
+      return $ae->id_autoexcluido;
     }
 
     //Función para obtener los datos a partir de un DNI
     public function existeAE($dni){
       $autoexcluido = Autoexcluido::where('nro_dni','=',$dni);
 
-        return $autoexcluido;
+      return $autoexcluido;
     }
 
     //Función para cargar los datos del ae
     protected function cargarDatos($datos_personales){
-      $datos_ae = new Autoexcluido;
-      $datos_ae->nro_dni = $datos_personales['nro_dni'];
-      $datos_ae->apellido = $datos_personales['apellido'];
-      $datos_ae->nombres = $datos_personales['nombres'];
-      $datos_ae->fecha_nacimiento = $datos_personales['fecha_nacimiento'];
-      $datos_ae->id_sexo = $datos_personales['id_sexo'];
-      $datos_ae->domicilio = $datos_personales['domicilio'];
-      $datos_ae->nro_domicilio = $datos_personales['nro_domicilio'];
-      $datos_ae->nombre_localidad = $datos_personales['nombre_localidad'];
-      $datos_ae->nombre_provincia = $datos_personales['nombre_provincia'];
-      $datos_ae->telefono = $datos_personales['telefono'];
-      $datos_ae->correo = $datos_personales['correo'];
-      $datos_ae->id_ocupacion = $datos_personales['id_ocupacion'];
-      $datos_ae->id_capacitacion = $datos_personales['id_capacitacion'];
-      $datos_ae->id_estado_civil = $datos_personales['id_estado_civil'];
-      //guardo los datos
-      $datos_ae->save();
+      $ae = new Autoexcluido;
+      $ae->nro_dni = $datos_personales['nro_dni'];
+      $ae->apellido = $datos_personales['apellido'];
+      $ae->nombres = $datos_personales['nombres'];
+      $ae->fecha_nacimiento = $datos_personales['fecha_nacimiento'];
+      $ae->id_sexo = $datos_personales['id_sexo'];
+      $ae->domicilio = $datos_personales['domicilio'];
+      $ae->nro_domicilio = $datos_personales['nro_domicilio'];
+      $ae->nombre_localidad = $datos_personales['nombre_localidad'];
+      $ae->nombre_provincia = $datos_personales['nombre_provincia'];
+      $ae->telefono = $datos_personales['telefono'];
+      $ae->correo = $datos_personales['correo'];
+      $ae->id_ocupacion = $datos_personales['id_ocupacion'];
+      $ae->id_capacitacion = $datos_personales['id_capacitacion'];
+      $ae->id_estado_civil = $datos_personales['id_estado_civil'];
 
-      return $datos_ae;
+      //guardo los datos
+      $ae->save();
+
+      return $ae;
     }
+
     //Función para cargar los datos de contacto
     protected function cargarContacto($datos, $id_autoexcluido){
       //creo un nuevo contacto de ae con los datos;
-      $contacto =  new ContactoAE;
-      $contacto->nombre_apellido = $datos['nombre_apellido'];
-      $contacto->domicilio = $datos['domicilio_vinculo'];
-      $contacto->nombre_localidad = $datos['nombre_localidad_vinculo'];
-      $contacto->nombre_provincia = $datos['nombre_provincia_vinculo'];
-      $contacto->telefono = $datos['telefono_vinculo'];
-      $contacto->vinculo = $datos['vinculo'];
-      $contacto->id_autoexcluido = $id_autoexcluido;
+      $c =  new ContactoAE;
+      $c->nombre_apellido = $datos['nombre_apellido'];
+      $c->domicilio = $datos['domicilio_vinculo'];
+      $c->nombre_localidad = $datos['nombre_localidad_vinculo'];
+      $c->nombre_provincia = $datos['nombre_provincia_vinculo'];
+      $c->telefono = $datos['telefono_vinculo'];
+      $c->vinculo = $datos['vinculo'];
+      $c->id_autoexcluido = $id_autoexcluido;
 
-      $contacto->save();
+      $c->save();
     }
 
     //Función para cargar los datos de estado / fecha
@@ -143,37 +139,36 @@ class AutoexcluidoController extends Controller
       $fecha = explode('-', $datos['fecha_cierre_definitivo']);
       $fecha_cierre_definitivo = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
 
-
       //creo un nuevo etado con los datos
-      $estado = new EstadoAE;
-      $estado->id_casino = $datos['id_casino'];
-      $estado->id_nombre_estado = $datos['id_nombre_estado'];
-      $estado->fecha_ae = $datos['fecha_autoexlusion'];
-      $estado->fecha_vencimiento = $fecha_vencimiento;
-      $estado->fecha_renovacion = $fecha_renovacion;
-      $estado->fecha_cierre_ae = $fecha_cierre_definitivo;
-      $estado->id_usuario = $id_usuario;
-      $estado->id_autoexcluido = $id_autoexcluido;
+      $e = new EstadoAE;
+      $e->id_casino = $datos['id_casino'];
+      $e->id_nombre_estado = $datos['id_nombre_estado'];
+      $e->fecha_ae = $datos['fecha_autoexlusion'];
+      $e->fecha_vencimiento = $fecha_vencimiento;
+      $e->fecha_renovacion = $fecha_renovacion;
+      $e->fecha_cierre_ae = $fecha_cierre_definitivo;
+      $e->id_usuario = $id_usuario;
+      $e->id_autoexcluido = $id_autoexcluido;
 
-      $estado->save();
+      $e->save();
     }
 
     //Función para cargar la encuesta
     protected function cargarEncuesta($datos, $id_autoexcluido){
-      //creo un nuevo etado con los datos
-      $encuesta = new Encuesta;
-      $encuesta->id_juego_preferido = $datos['juego_preferido'];
-      $encuesta->id_frecuencia_asistencia = $datos['id_frecuencia_asistencia'];
-      $encuesta->veces = $datos['veces'];
-      $encuesta->tiempo_jugado = $datos['tiempo_jugado'];
-      $encuesta->club_jugadores = $datos['socio_club_jugadores'];
-      $encuesta->juego_responsable = $datos['juego_responsable'];
-      $encuesta->recibir_informacion = $datos['recibir_informacion'];
-      $encuesta->autocontrol_juego = $datos['autocontrol_juego'];
-      $encuesta->medio_recibir_informacion = $datos['medio_recepcion'];
-      $encuesta->como_asiste = $datos['como_asiste'];
-      $encuesta->observacion = $datos['observaciones'];
-      $encuesta->id_autoexcluido = $id_autoexcluido;
-      $encuesta->save();
+      //creo una nueva encuesta con los datos
+      $e = new Encuesta;
+      $e->id_juego_preferido = $datos['juego_preferido'];
+      $e->id_frecuencia_asistencia = $datos['id_frecuencia_asistencia'];
+      $e->veces = $datos['veces'];
+      $e->tiempo_jugado = $datos['tiempo_jugado'];
+      $e->club_jugadores = $datos['socio_club_jugadores'];
+      $e->juego_responsable = $datos['juego_responsable'];
+      $e->recibir_informacion = $datos['recibir_informacion'];
+      $e->autocontrol_juego = $datos['autocontrol_juego'];
+      $e->medio_recibir_informacion = $datos['medio_recepcion'];
+      $e->como_asiste = $datos['como_asiste'];
+      $e->observacion = $datos['observaciones'];
+      $e->id_autoexcluido = $id_autoexcluido;
+      $e->save();
     }
 }

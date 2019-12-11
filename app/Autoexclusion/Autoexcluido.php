@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Autoexcluido;
+namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
 
