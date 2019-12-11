@@ -1,7 +1,7 @@
 var juego_seleccionado;
 
 $(document).ready(function() {
-  $('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+  $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
   $('#inputJuego').setearElementoSeleccionado(0,"");
   $('#tablaJuegosActivos').hide();
 
@@ -19,7 +19,7 @@ $('#btn-agregarJuegoLista').click(function(){
         limpiarCamposJuego();
 
         $('#inputJuego').borrarDataList();
-        $('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+        $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
         $('#inputJuego').setearElementoSeleccionado(0,"");
         // $('#inputJuego').parent().find('.contenedor-data-list').hide();// lo rompe
 

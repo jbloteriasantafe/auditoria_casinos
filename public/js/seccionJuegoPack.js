@@ -63,7 +63,7 @@ $('#btn-open-asociar-pack-juego').click(function(e){
     //limpio modal
     $('#btn-agregarJuegoListaPack').hide();
     //genero la lista para juegos
-    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
+    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
     $('#inputJuegoPack').setearElementoSeleccionado(0,"");
     //genero la lista para los pack
      $('#inputNombrePack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
@@ -124,7 +124,7 @@ $('#btn-agregarJuegoListaPack').click(function(){
           //limpiarCamposJuego();
   
           $('#inputJuegoPack').borrarDataList();
-          $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+          $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
           $('#inputJuegoPack').setearElementoSeleccionado(0,"");
   
       });
@@ -348,7 +348,7 @@ $(document).on('click','.asociar',function(){
     //ocultarErrorValidacion($('#inputIdentificador'));
     //ocultarErrorValidacion($('#inputPrefijo'));
     //se restrablece los botones despues de salir del ver detalle
-    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
+    $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
     $('#inputJuegoPack').setearElementoSeleccionado(0,"");
     var id_pack = $(this).val();
     var nombre_pack=$(this).parent().parent().children().eq(0).text();

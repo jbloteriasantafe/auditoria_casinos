@@ -272,7 +272,7 @@ $(document).on('click','.modificarGLI',function(){
 
     //Preparar los datalist
     $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juego/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
+    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
 
     $('#inputExpediente').setearElementoSeleccionado(0,"");
     //$('#inputJuego').setearElementoSeleccionado(0,"");
