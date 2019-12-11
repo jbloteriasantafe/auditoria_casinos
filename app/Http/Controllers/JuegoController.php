@@ -30,7 +30,7 @@ class JuegoController extends Controller
     return self::$instance;
   }
 
-  public function buscarTodo(){
+  public function buscarTodo($id = null){
     $uc = UsuarioController::getInstancia();
     $uc->agregarSeccionReciente('Juegos','juegos');
     $usuario = $uc->quienSoy()['usuario'];
@@ -46,10 +46,19 @@ class JuegoController extends Controller
 
   public function obtenerJuego($id){
     $juego = Juego::find($id);
+    if(is_null($juego)){
+      return $this->errorOut(['acceso'=>['']]);
+    }
+
     $casinosUser = Usuario::find(session('id_usuario'))->casinos;
     $reglaCasinos=array();
     foreach($casinosUser as $casino){
       $reglaCasinos [] = $casino->id_casino;
+    }
+
+    $acceso = $juego->casinos()->whereIn('casino_tiene_juego.id_casino',$reglaCasinos)->count();
+    if($acceso == 0){
+      return $this->errorOut(['acceso'=>['']]);
     }
 
     $maquinas= array();

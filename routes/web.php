@@ -136,14 +136,18 @@ Route::get('permiso/{id}','PermisoController@getPermiso');
 /***********
 Juegos
 ***********/
-Route::get('juegos','JuegoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_juegos');
-Route::get('juegos/obtenerJuego/{id?}','JuegoController@obtenerJuego');
-Route::post('juegos/guardarJuego','JuegoController@guardarJuego');
-Route::post('juegos/modificarJuego','JuegoController@modificarJuego');
-Route::delete('juegos/eliminarJuego/{id}','JuegoController@eliminarJuego');
-Route::get('juegos/obtenerTablasDePago/{id}','JuegoController@obtenerTablasDePago');
-Route::get('juego/buscarJuegos/{busqueda}','JuegoController@buscarJuegoPorCodigoYNombre');
-Route::post('juegos/buscar','JuegoController@buscarJuegos');
+Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
+  Route::get('/','JuegoController@buscarTodo');
+  Route::get('/{id}','JuegoController@buscarTodo');
+  Route::get('/obtenerJuego/{id?}','JuegoController@obtenerJuego');
+  Route::post('/guardarJuego','JuegoController@guardarJuego');
+  Route::post('/modificarJuego','JuegoController@modificarJuego');
+  Route::delete('/eliminarJuego/{id}','JuegoController@eliminarJuego');
+  Route::get('/obtenerTablasDePago/{id}','JuegoController@obtenerTablasDePago');
+  Route::get('/buscarJuegos/{busqueda}','JuegoController@buscarJuegoPorCodigoYNombre');
+  Route::post('/buscar','JuegoController@buscarJuegos');
+});
+
 /***********
 PackJuego
 ***********/

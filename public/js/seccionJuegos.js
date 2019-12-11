@@ -2,6 +2,17 @@ $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Juegos');
   $('#opcJuegos').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
   $('#opcJuegos').addClass('opcionesSeleccionado');
+
+  const url = window.location.pathname.split("/");
+  if(url.length >= 3) {
+    let id = url[2]; 
+    let fila_falsa = crearFilaJuego({id_juego : id}).hide();
+    $('#cuerpoTabla').append(fila_falsa);
+    fila_falsa.find('.detalle').trigger('click');
+  }
+  
+  $('#buscarCertificado').trigger('click');
+
   //click forzado
   $('#btn-buscar').trigger('click');
 })
@@ -85,7 +96,7 @@ $(document).on('click','.detalle', function(){
 
   var id_juego = $(this).val();
 
-  $.get("juegos/obtenerJuego/" + id_juego, function(data){
+  $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
       $('#id_juego').val(data.juego.id_juego);
@@ -122,7 +133,7 @@ $(document).on('click','.modificar',function(){
     $('#btn-guardar').val('modificar').show();
     $('#id_juego').val(id_juego);
     habilitarControles(true);
-    $.get("juegos/obtenerJuego/" + id_juego, function(data){
+    $.get("/juegos/obtenerJuego/" + id_juego, function(data){
       console.log(data);
       mostrarJuego(data.juego, data.tablasDePago , data.maquinas,data.certificadoSoft,data.casinosJuego);
       $('#modalJuego').modal('show');
@@ -224,7 +235,7 @@ $(document).on('click', '.verCertificado', function(){
   const input = $(this).parent().parent().find('.codigo');
   const val = input.val();
   const id = obtenerIdCertificado(val);
-  if(id != null) window.open('certificadoSoft/' + id,'_blank');
+  if(id != null) window.open('/certificadoSoft/' + id,'_blank');
 });
 
 $(document).on('click','.verMaquina',function(){
@@ -232,7 +243,7 @@ $(document).on('click','.verMaquina',function(){
   const id_casino = fila.find('.selectCasinos').val();
   const nro_admin = fila.find('.nro_admin').val();
   const id_maquina = obtenerIdMaquina(id_casino,nro_admin);
-  if(id_maquina != null) window.open('maquinas/' + id_maquina,'_blank');
+  if(id_maquina != null) window.open('/maquinas/' + id_maquina,'_blank');
 });
 
 /* busqueda de usuarios */
@@ -269,7 +280,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   $.ajax({
     type: "POST",
-    url: 'juegos/buscar',
+    url: '/juegos/buscar',
     data: formData,
     dataType: 'json',
     success: function (resultados) {
@@ -324,7 +335,7 @@ $('#btn-eliminarModal').click(function (e) {
 
     $.ajax({
         type: "DELETE",
-        url: "juegos/eliminarJuego/" + id_juego,
+        url: "/juegos/eliminarJuego/" + id_juego,
         success: function (data) {
           //Remueve de la tabla
           $('#btn-buscar').trigger('click');
@@ -393,7 +404,7 @@ $('#btn-guardar').click(function (e) {
 
     var state = $('#btn-guardar').val();
     var type = "POST";
-    var url = 'juegos/guardarJuego';
+    var url = '/juegos/guardarJuego';
     var id_juego = $('#id_juego').val();
 
     var formData = {
@@ -406,7 +417,7 @@ $('#btn-guardar').click(function (e) {
     }
 
     if (state == "modificar") {
-      url = 'juegos/modificarJuego';
+      url = '/juegos/modificarJuego';
       formData.id_juego =  $('#id_juego').val();
     }
 

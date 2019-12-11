@@ -4,7 +4,7 @@
 @endsection
 
 @section('estilos')
-  <link rel="stylesheet" href="css/paginacion.css">
+  <link rel="stylesheet" href="/css/paginacion.css">
   <link rel="stylesheet" href="/css/lista-datos.css">
 @endsection
 
@@ -462,9 +462,9 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     @section('scripts')
 
     <!-- JavaScript paginacion -->
-    <script src="js/paginacion.js" charset="utf-8"></script>
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionJuegos.js" charset="utf-8"></script>
+    <script src="/js/seccionJuegos.js" charset="utf-8"></script>
     @endsection

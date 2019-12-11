@@ -1,6 +1,3 @@
-//Esta variable dice si hay que abrir el primer resultado
-//Se usa cuando se entra por la url
-let abrir_modal = false;
 $(document).ready(function(){
 
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -18,17 +15,13 @@ $(document).ready(function(){
   
   const url = window.location.pathname.split("/");
   if(url.length >= 3) {
-    abrir_modal = true;
     let id = url[2]; 
     let fila_falsa = generarFilaTabla({nro_archivo : '',id_gli_soft : id}).hide();
     $('#cuerpoTabla').append(fila_falsa);
-    //Cuando se muestra el modal (mas abajo) se realiza otra busqueda y se la limpia
     fila_falsa.find('.detalle').trigger('click');
   }
-  else{
-    abrir_modal = false;
-    $('#buscarCertificado').trigger('click');
-  }
+  
+  $('#buscarCertificado').trigger('click');
 
 });
 
@@ -164,10 +157,6 @@ $(document).on('click','.detalle',function(){
       for (var i = 0; i < data.juegos.length; i++) {
         console.log(data.juegos[i]);
         agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago,data.juegos[i].casinos);
-      }
-      if(abrir_modal){
-        abrir_modal = false;
-        $('#buscarCertificado').trigger('click');
       }
 
       $('.borrarJuego').prop('disabled',true);
@@ -729,3 +718,8 @@ function generarFilaTabla(certificado){
           )
         return fila;
 }
+$(document).on('click', '.verJuego', function(){
+  const fila = $(this).parent().parent();
+  const id = fila.attr('id');
+  if(typeof id !== 'undefined') window.open('/juegos/' + id,'_blank');
+});
