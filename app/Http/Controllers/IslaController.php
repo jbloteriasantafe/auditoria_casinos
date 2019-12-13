@@ -65,6 +65,23 @@ class IslaController extends Controller
       return ['islas' => $resultados];
   }
 
+    public function buscarIslaPorCasinoSectorYNro($id_casino , $id_sector, $nro_isla ){
+      $sectores = array();
+      if($id_sector == 0){
+        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        foreach($usuario->casinos as $casino){
+          foreach($casino->sectores as $sector){
+            $sectores[] = $sector->id_sector;
+          }
+        }
+      }
+      else{
+        $sectores[] = $id_sector;
+      }
+      $resultados = $this->buscarIslaPorCasinoYNro($id_casino,$nro_isla,false)['islas']->whereIn('id_sector',$sectores);
+      return ['islas' => $resultados];
+  }
+
   //busca UNA ISLA. SI EL NRO DE ISLA COINCIDE EN SU TOTALIDAD
   public function buscarIslaPorNro($nro_isla, $id_casino = 0){
     if($id_casino != 0){

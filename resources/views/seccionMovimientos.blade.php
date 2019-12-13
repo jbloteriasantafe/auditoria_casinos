@@ -913,22 +913,8 @@
          </div>
 
         <div class="modal-body" style="color:#fff; background-color:#FFFFF;">
-
                 <!-- Si no anda falta el <fieldset> -->
-
               <h4 style="color:#000000">Este movimiento no posee máquinas en proceso de fiscalización.</h4>
-                <!-- <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-
-                   <div class="row">
-                        <div class="col-md-12">
-                            <h4 id="mensaje3" style="color:#000000"></h4>
-                            <ul id="lista2" style="color:#000000">
-
-                            </ul>
-                        </div>
-                    </div> -->
-
         </div>
         <br>
         <div class="modal-footer">
@@ -946,8 +932,6 @@
 
               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
               <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-
-              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
 
               <center>
                 <h3 class="modal-title" style="margin-left:30px; color: #fff; text-align:center; display:inline;">NUEVA MÁQUINA TRAGAMONEDAS</h3>
@@ -1007,7 +991,6 @@
 
               <!-- Panel que se minimiza -->
               <div  id="colapsado" class="collapse in">
-
 
                   <!-- PASO 1 | MÁQUINA -->
                   <div class="seccion" id="secMaquina">
@@ -1208,12 +1191,6 @@
                               <p id="noexiste_isla" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> La máquina no tiene una isla asociada.</p>
                             </div>
                         </div>
-                        <!-- <div class="row">
-                            <div class="col-md-12">
-                              <h4>Isla Activa</h4>
-                              <p id="noexiste_isla">La máquina no tiene un isla asociada.</p>
-                            </div>
-                        </div> -->
 
                         <div id="headListaIsla" class="row" hidden="true">
                             <div class="col-xs-2">
@@ -1258,10 +1235,10 @@
                     </div>
 
                     <!-- CREAR O BUSCAR Isla-->
-                    <div id="agregarIsla" style="cursor:pointer;" data-toggle="collapse" data-target="#islaPlegado">
+                    <div id="asociarIsla" style="cursor:pointer;" data-toggle="collapse" data-target="#islaPlegado">
                         <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                             <div class="col-md-12" >
-                                <h6 >AGREGAR ISLA<i class="fa fa-fw fa-angle-down"></i></h6>
+                                <h6 >ASOCIAR ISLA<i class="fa fa-fw fa-angle-down"></i></h6>
                             </div>
                         </div>
                     </div>
@@ -1310,26 +1287,6 @@
                                   <input id="sub_isla" type="text" class="form-control" placeholder="Número de isla">
                                   <br>
                                   <span id="alerta_nro_isla" class="alertaSpan"></span>
-                                </div>
-
-                                <div class="col-md-6">
-                                  <h5>Agregar Máquina</h5>
-                                  <div class="row">
-                                    <div class="col-xs-9">
-                                      <input id="inputMaquina" data-maquina=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar máquinas"/>
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <button id="cancelarMaquina" class="btn btn-danger borrarFila borrarInputIsla" type="button"><i class="fa fa-fw fa-times"></i></button>
-                                        <button id="agregarMaquina" class="btn btn-success borrarFila agregarInputIsla" type="button"><i class="fa fa-fw fa-plus"></i></button>
-                                    </div>
-                                  </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div id="infoCambioSector" hidden class="col-md-12">
-                                    <i class="fa fa-exclamation" style="margin-left:10px; margin-right:10px;color:#FF9100;margin-top:10px;"></i>
-                                    <p style="color:#FF9100;margin-top:10px;">Está cambiando la ISLA a otro SECTOR</p>
                                 </div>
                             </div>
 
@@ -1395,11 +1352,8 @@
                                 <button id="btn-cancelarIsla" class="btn btn-danger" type="button" name="button" style="display: none;">
                                     <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i> LIMPIAR CAMPOS
                                 </button>
-                                <button id="btn-crearIsla" class="btn btn-success" type="button" name="button" style="display: none;">
-                                    <i class="fa fa-fw fa-plus" style="position:relative; left:-1px; top:-1px;"></i> CREAR ISLA
-                                </button>
-                                <button id="btn-agregarIsla" class="btn btn-success" type="button" name="button" style="display: none;">
-                                    <i class="fa fa-fw fa-arrow-up" style="position:relative; left:-1px; top:-1px;"></i> AGREGAR ISLA
+                                <button id="btn-asociarIsla" class="btn btn-success" type="button" name="button" style="display: none;">
+                                    <i class="fa fa-fw fa-arrow-up" style="position:relative; left:-1px; top:-1px;"></i> ASOCIAR ISLA
                                 </button>
                             </div>
                         </div>

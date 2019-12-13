@@ -135,13 +135,6 @@ class MTMController extends Controller
          $return_juego->porcentaje_devolucion =  $un_juego->pivot->porcentaje_devolucion;
          $return_juego->tablasPago =  $un_juego->tablasPago;
          $return_juego->id_gli_soft = $un_juego->id_gli_soft;
-        //  $return_juego->pack= PackJuego::find($un_juego->pivot->id_pack); la gestion del pack fue extraida, si estas en el futuro, borrar esto
-        //  if (count($return_juego->pack)<1){
-        //    $pack_aux= new \stdClass();
-        //    $pack_aux->identificador="";
-        //    $pack_aux->id_pack=-1;
-        //    $return_juego->pack=$pack_aux;
-        //  }
          if($un_juego->nombre_juego == $juego_activo->nombre_juego){
             $juego_activo = $return_juego;
             $encontrado = true;
@@ -180,8 +173,6 @@ class MTMController extends Controller
       }
 
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
-      //$islaa = Isla::find($isla->id_isla);
-      //$nro_isla = $islaa->nro_isla;
       return['maquina' => $mtm,
              'moneda' => (!is_null($mtm->id_tipo_moneda))?$mtm->tipoMoneda:null,
              'tipo_gabinete' => $mtm->tipoGabinete,
@@ -214,9 +205,6 @@ class MTMController extends Controller
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
         $id_casino = $usuario->casinos[0]->id_casino;
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        // foreach ($maquinas as $maquina) {
-        //   $maquina->nro_admin = $maquina->nro_admin;
-        // } lo comento, no le encuentro el sentido
         return ['maquinas' => $maquinas];
       }else{
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
@@ -269,9 +257,6 @@ class MTMController extends Controller
                       ->get();
       }else{
         $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        // foreach ($maquinas as $maquina) {
-        //   $maquina->nro_admin = $maquina->nro_admin;
-        // }
       }
 
       return ['maquinas' => $maquinas];
@@ -371,10 +356,8 @@ class MTMController extends Controller
               $maquina->save();
               $razon = "La maquina se creo desde un archivo.";
               LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
-        }//fin foreach
-
-      }//fin if
-
+        }
+      }
   }
 
   public function guardarMaquina(Request $request){
@@ -431,13 +414,6 @@ class MTMController extends Controller
           //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
       ],array(),self::$atributos)->after(function($validator){
         $id_casino = $validator->getData()['id_casino'];
-        // validacion nro admin. Entre SF y ME no existen duplicados
-        // if($id_casino == 3){
-        //   $duplicados = Maquina::where([['id_casino' , $id_casino] , ['nro_admin' , $validator->getData()['nro_admin']]])->get();
-        // }else{
-        //  $duplicados = Maquina::where('nro_admin', $validator->getData()['nro_admin'])->whereIn('id_casino' , [1,2])->get(); // 1 -> Melincue, 2 -> Santa Fe
-        // }
-
         $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
                                       ['nro_admin' ,'=', $validator->getData()['nro_admin']]])
                                       ->whereNull('deleted_at')
@@ -502,16 +478,8 @@ class MTMController extends Controller
       IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
 
     }else if( $request->modificado == 1){
-      // $unaIsla= new Isla();
-      // $unaIsla->nro_isla = $request->nro_isla;
-      // $unaIsla->codigo = $request->codigo;
-      // $unaIsla->id_sector = $request->id_sector;
-      // $unaIsla->id_casino = $request->id_casino;
-      // //modifica isla creada
-      // $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
       $unaIsla= Isla::find($request->id_isla);
     }else {//estoy usando una isla ya creada (sin modificar)
-
       $unaIsla= Isla::find($request->id_isla);
     }
 
@@ -1399,7 +1367,4 @@ class MTMController extends Controller
 
       return ['tipo' => $maquina->tipoMoneda];
   }
-
-
-
 }

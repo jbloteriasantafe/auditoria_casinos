@@ -7,38 +7,26 @@ $('.modal').on('hidden.bs.modal', cierreModal);
 
 $('#selectCasino').on('change', function(e,id_sector=0){
   var id_casino = $(this).val();
-  //Borrar máquinas
-  console.log(id_sector);
+  deshabilitarComponentesIsla();
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
-  $('#infoCambioSector').hide();
-
+  //Ocultar botones
+  $('#btn-asociarIsla').hide();
+  $('#btn-cancelarIsla').hide();
+  $('#nro_isla').prop('readonly',true);
+  $('#sub_isla').prop('readonly',true);
   if(id_casino == 0){
-    //Deshabilitar componentes
-      deshabilitarComponentesIsla();
-  }else{
-      $('#sector option').remove();
-      $('#nro_isla').prop('readonly' , false);
-      $('#sub_isla').prop('readonly', false);
-      $('#inputMaquina').prop('readonly' , false);
-      //generar datalist en campo de isla
-      $('#nro_isla').generarDataList("islas/buscarIslaPorCasinoYNro/" + id_casino  ,'islas','id_isla','nro_isla',1);
-      $('#inputMaquina').generarDataList("maquinas/obtenerMTMEnCasino/" + id_casino  ,'maquinas','id_maquina','nro_admin',2);
-
-      // $('#maquinasEnIsla').show();
-      // $('#nro_isla').setearElementoSeleccionado(0,"");
-      // $('#inputMaquina').setearElementoSeleccionado(0,"");
+    $('#sector').prop('disabled',true);
+  }
+  else{
       //busca sectores en servidor
       $.get('http://' + window.location.host +"/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-        $('#sector').append($('<option>')
-                          .val(0)
-                          .text("-Seleccione un sector-")
-                      )
+        $('#sector').prop('disabled',false);
         for (var i = 0; i < data.sectores.length; i++) {
           $('#sector').append($('<option>')
                             .val(data.sectores[i].id_sector)
                             .text(data.sectores[i].descripcion)
                         )
-         $('#sector').val(id_sector)
+         $('#sector').val(id_sector);
         }
       });
   }
@@ -46,22 +34,16 @@ $('#selectCasino').on('change', function(e,id_sector=0){
 //Botones de acciones
 
 $('#sector').on('change',function(){
-    if($(this).val() !=  0 ){
-      validarUbicacionIsla();
-    }else {
-      $('#infoCambioSector').hide();
-    }
+    //generar datalist en campo de isla
+    $('#nro_isla').generarDataList("islas/buscarIslaPorCasinoSectorYNro/" + $('#selectCasino').val() + '/' + $('#sector').val()  ,'islas','id_isla','nro_isla',1);
+    $('#nro_isla').prop('readonly',false);
+    $('#sub_isla').prop('readonly',false);
 })
 
 $('#btn-cancelarIsla').click(clickLimpiarCampos);
 
-$('#btn-agregarIsla').click(clickAgregarIsla);
+$('#btn-asociarIsla').click(clickAsociarIsla);
 
-$('#btn-crearIsla').click(clickCrearIsla);
-//Acciones input máquina
-$('#agregarMaquina').click(clickAgregarMaquina);
-
-$('#cancelarMaquina').click(clickCancelarMaquina);
 
 //Acciones isla activa
 $('#editarIslaActiva').click(clickEditarIsla);
@@ -71,9 +53,6 @@ $('#borrarIslaActiva').click(clickBorrarIsla);
 $('#nro_isla').change(changeIsla);
 
 $(document).on('keyup', '#nro_isla', keyupIsla);
-
-// $(document).on('change', '#nro_isla', changeIsla);
-$(document).on('click', '.borrarMaquinaIsla', borrarMaquinaIsla);
 
 /*** FUNCIONES ***/
 function mostrarIsla(casino, isla, sectores, sector){
@@ -100,11 +79,11 @@ function mostrarIsla(casino, isla, sectores, sector){
   //Ocultar el plegado
   $('#tablaIslaActiva').show();
   $('#noexiste_isla').hide();
-  $('#agregarIsla').hide();
+  $('#asociarIsla').hide();
   $('#islaPlegado').hide();
 
   //Acomodar plegado
-  $('#agregarIsla').removeClass().attr('aria-expanded','true');
+  $('#asociarIsla').removeClass().attr('aria-expanded','true');
   $('#islaPlegado').addClass('in').attr('aria-expanded','true').css('height','auto');
 
 
@@ -137,6 +116,7 @@ function recargarDatosIsla() {
       $('#tablaMaquinasDeIsla tbody tr:first td:eq(1)').text(nro_admin);
       $('#tablaMaquinasDeIsla tbody tr:first td:eq(2)').text(marca);
       $('#tablaMaquinasDeIsla tbody tr:first td:eq(3)').text(modelo);
+      $('#selectCasino').trigger('change');
 }
 
 //El tipo de máquina puede ser: ACTUAL, CARGADA, AGREGADA
@@ -144,13 +124,9 @@ function agregarMaquinaIsla(id_maquina, nro_admin, marca, modelo, tipo) {
   var fila = $('<tr>').attr('id', id_maquina);
   var icono = '';
   var descripcion = '';
-  var accion = $('<button>').addClass('btn btn-danger borrarMaquinaIsla')
-                            .append($('<i>').addClass('fa fa-fw fa-trash'));
-
   //Se setea el icono correcto según el tipo
   if (tipo == 'actual') {
       var icono = $('<i>').addClass('fa fa-star').css('color','#FB8C00');
-      var accion = $('<span>').text('');
   }else if (tipo == 'agregada') {
       descripcion = ' Agregada';
       var icono = $('<i>').addClass('fa fa-plus').css('color','#00C853');
@@ -162,49 +138,26 @@ function agregarMaquinaIsla(id_maquina, nro_admin, marca, modelo, tipo) {
   nro_admin != '' ? fila.append($('<td>').text(nro_admin)) : fila.append($('<td>').text('-'));
   marca != '' ? fila.append($('<td>').text(marca)) : fila.append($('<td>').text('-'));
   modelo != '' ? fila.append($('<td>').text(modelo)) : fila.append($('<td>').text('-'));
-  fila.append($('<td>').append(accion))
 
   //Agregar fila a la tabla
   if (tipo == 'agregada') {
     fila.insertAfter($('#tablaMaquinasDeIsla tbody #0'));
-    // $('#tablaMaquinasDeIsla tbody').find('#0').after(fila);
   }
   $('#tablaMaquinasDeIsla tbody').append(fila);
 }
 
 function reiniciarSector(){//borra sectores
-  $('#sector option').remove();
-  $('#sector').append($('<option>').val(0).text('- Sectores del casino -'));
+  $('#sector option[value!="0"]').remove();
+  $('#sector').val(0);
+  $('#sector').prop('disabled',true);
 }
 
 function deshabilitarComponentesIsla() {
-  //Deshabilitar componentes
+    //Deshabilitar componentes
     $('#nro_isla').prop('readonly' , true).val('');
     $('#nro_isla').borrarDataList();
     $('#sub_isla').prop('readonly', true).val('');
-    $('#inputMaquina').prop('readonly' , true).val('');
-    $('#inputMaquina').borrarDataList();
     reiniciarSector();
-}
-
-/*** Manejadoras de eventos ***/
-function borrarMaquinaIsla(e) {
-  //Borrar máquina de la isla
-  $(this).parent().parent().remove();
-}
-
-function validarUbicacionIsla(){
-  var inputIsla = $('#nro_isla').val();
-  var id_sector_isla = $('#nro_isla').attr('data-sector');
-  var id_sector = $('#sector').val();
-  if(id_sector != id_sector_isla && inputIsla != ''){
-    alert("Esta cambiando la isla de sector");
-    $('#infoCambioSector').show();
-    //mostrar advertencia
-    //mostrarMensajeAdvertencia($('#nro_isla') , "Esta isla esta asiganda a otro sector. Si continua, la isla será asignada al nuevo sector" , true);
-  }else {
-    $('#infoCambioSector').hide();
-  }
 }
 
 function changeIsla(e) {
@@ -221,8 +174,6 @@ function changeIsla(e) {
 
         $('#nro_isla').attr('data-sector' , data.sector.id_sector);
 
-        validarUbicacionIsla();
-
         //Agregar las máquinas en la tabla
         for (var i = 0; i < data.maquinas.length; i++){
             agregarMaquinaIsla(data.maquinas[i].id_maquina,
@@ -231,56 +182,22 @@ function changeIsla(e) {
                                data.maquinas[i].modelo, 'cargada');
         }
 
-        $('#btn-crearIsla').hide();
-        $('#btn-agregarIsla').show();
+        $('#btn-asociarIsla').show();
         $('#btn-cancelarIsla').show();
       });
   }
-  //Si se indica una isla inexistente
-  else {
-      $('#infoCambioSector').hide();
+  else {//Si se indica una isla inexistente
       $('#nro_isla').attr('data-sector' , "");
-
-      //Si el campo está vacío esconder los botones
-      if (input == '') {
-        // $('#btn-crearIsla').hide();
-        // $('#btn-agregarIsla').hide();
-        // $('#btn-cancelarIsla').hide();
-      }
-      //Si se crea una nueva isla mostrar los botones
-      else {
-        $('#btn-crearIsla').show();
-        $('#btn-agregarIsla').hide();
-        $('#btn-cancelarIsla').show();
-      }
-
+      $('#btn-asociarIsla').hide();
+      $('#btn-cancelarIsla').show();
   }
-
-
-
 }
 
 function keyupIsla(e) {
   if ($(this).val() == '') {
-    $('#btn-crearIsla').hide();
-    $('#btn-agregarIsla').hide();
+    $('#btn-asociarIsla').hide();
     $('#btn-cancelarIsla').hide();
   }
-}
-
-function clickAgregarMaquina(e) {
-  var id_maquina = $('#inputMaquina').attr('data-elemento-seleccionado');
-
-  if (id_maquina != 0) {
-    $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maquina, function(data) {
-      agregarMaquinaIsla(data.maquina.id_maquina, data.maquina.nro_admin , data.maquina.marca , data.maquina.modelo, 'agregada');
-      $('#inputMaquina').setearElementoSeleccionado(0 , "");
-    });
-  }
-}
-
-function clickCancelarMaquina(e) {
-  $('#inputMaquina').setearElementoSeleccionado(0 , "");
 }
 
 function clickLimpiarCampos(e) {
@@ -289,8 +206,7 @@ function clickLimpiarCampos(e) {
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
 
   //Ocultar botones
-  $('#btn-crearIsla').hide();
-  $('#btn-agregarIsla').hide();
+  $('#btn-asociarIsla').hide();
   $('#btn-cancelarIsla').hide();
 }
 
@@ -304,12 +220,11 @@ function clickLimpiarCamposModalIsla(e) {
   $('#activa_sub_isla').text(''),
   $('#activa_datos').attr('data-sector',''),
   //Ocultar botones
-  $('#btn-crearIsla').hide();
-  $('#btn-agregarIsla').hide();
+  $('#btn-asociarIsla').hide();
   $('#btn-cancelarIsla').hide();
 }
 
-function clickAgregarIsla(e) {
+function clickAsociarIsla(e) {
   modificado = 1;
 
   var cantidad_maquinas = $('#tablaMaquinasDeIsla tbody > tr').length;
@@ -328,7 +243,7 @@ function clickAgregarIsla(e) {
   //Ocultar el plegado
   $('#tablaIslaActiva').show();
   $('#noexiste_isla').hide();
-  $('#agregarIsla').hide();
+  $('#asociarIsla').hide();
   $('#islaPlegado').hide();
 
   //Llenar el arreglo de máquinas
@@ -338,37 +253,6 @@ function clickAgregarIsla(e) {
       maquinas_seleccionadas.push($(this).attr('id'));
   });
 }
-
-function clickCrearIsla(e){
-  modificado = 0;
-
-  var cantidad_maquinas = $('#tablaMaquinasDeIsla tbody > tr').length;
-  var id_isla = 0;
-  var id_casino = $('#selectCasino').val();
-  var id_sector = $('#sector').val();
-
-  //Llenar la tabla de isla activa
-  $('#activa_datos').attr('data-isla', id_isla).attr('data-casino', id_casino).attr('data-sector', id_sector);
-  $('#activa_nro_isla span').text($('#nro_isla').val());
-  $('#activa_sub_isla').text($('#sub_isla').val());
-  $('#activa_cantidad_maquinas').text(cantidad_maquinas);
-  $('#activa_casino').text($('#selectCasino option:selected').text());
-  $('#activa_zona').text($('#sector option:selected').text());
-
-  //Ocultar el plegado
-  $('#tablaIslaActiva').show();
-  $('#noexiste_isla').hide();
-  $('#agregarIsla').hide();
-  $('#islaPlegado').hide();
-
-  //Llenar el arreglo de máquinas
-  var maquinas = $('#tablaMaquinasDeIsla tbody > tr').not('.actual');
-
-  $.each(maquinas, function(index, value){
-      maquinas_seleccionadas.push($(this).attr('id'));
-  });
-}
-
 function clickEditarIsla(e) {
   modificado = 0;
   maquinas_seleccionadas = [];
@@ -401,12 +285,11 @@ function clickEditarIsla(e) {
       $('#noexiste_isla').text('Modificando Isla Activa').show();
       console.log('dd',$('#tituloAgregar'));
       $('#tituloAgregar').text('EDICIÓN DE ISLA ACTIVA').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-angle-down'));
-      $('#agregarIsla').show();
+      $('#asociarIsla').show();
       $('#islaPlegado').show();
 
       //Mostrar botones
-      $('#btn-crearIsla').hide();
-      $('#btn-agregarIsla').show();
+      $('#btn-asociarIsla').show();
       $('#btn-cancelarIsla').show();
 
       modificando = false; //Una vez que entra a modificar isla ya quedan los datos guardados
@@ -418,7 +301,7 @@ function clickEditarIsla(e) {
     //Mostrar datos
     $('#tablaIslaActiva').hide();
     $('#noexiste_isla').show();
-    $('#agregarIsla').show();
+    $('#asociarIsla').show();
     $('#islaPlegado').show();
   }
 
@@ -440,17 +323,12 @@ function clickBorrarIsla(e) {
   //Mostrar la zona de llenado de datos
   $('#tablaIslaActiva').hide();
   $('#noexiste_isla').show();
-  $('#agregarIsla').show();
+  $('#asociarIsla').show();
   $('#islaPlegado').show();
 
   //Ocultar botones
-  $('#btn-crearIsla').hide();
-  $('#btn-agregarIsla').hide();
+  $('#btn-asociarIsla').hide();
   $('#btn-cancelarIsla').hide();
-
-  //Acomodar plegado
-  // $('#agregarIsla').removeClass().attr('aria-expanded','true');
-  // $('#islaPlegado').addClass('in').attr('aria-expanded','true');
 }
 
 function cierreModal(e) {
@@ -463,27 +341,17 @@ function cierreModal(e) {
   $('#tablaIslaActiva').hide();
   $('#noexiste_isla').show();
 
-
   //Vaciar tabla de máquinas menos la máquina actual
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
 
   //Todo esto para resetear el collapse
-  $('#agregarIsla').show();
+  $('#asociarIsla').show();
   $('#islaPlegado').show();
-  $('#agregarIsla').addClass('collapsed').attr('aria-expanded', false);
+  $('#asociarIsla').addClass('collapsed').attr('aria-expanded', false);
   $('#islaPlegado').css('display','').attr('aria-expanded', false);
   $('#islaPlegado').collapse("hide");
 
-
-  // if($('#islaPlegado').hasClass('in')){
-  //   $('#agregarIsla').attr('aria-expanded', false);
-  //   $('#islaPlegado').removeClass('in');
-  // }
-
-
-
   //Ocultar botones
-  $('#btn-crearIsla').hide();
-  $('#btn-agregarIsla').hide();
+  $('#btn-asociarIsla').hide();
   $('#btn-cancelarIsla').hide();
 }
