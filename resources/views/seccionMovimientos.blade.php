@@ -1063,7 +1063,7 @@
                         <div class="col-lg-4">
                           <h5>Gabinete</h5>
                           <select class="form-control" id="tipo_gabinete">
-                            <option value="0">-Tipo de Gabinete-</option>
+                            <option value="">-Tipo de Gabinete-</option>
                             @foreach ($gabinetes as $gabinete)
                             <option value="{{$gabinete->id_tipo_gabinete}}">{{$gabinete->descripcion}}</option>
                             @endforeach
@@ -1074,7 +1074,7 @@
                         <div class="col-lg-4">
                           <h5>Tipo de Máquina</h5>
                           <select class="form-control" id="tipo_maquina">
-                            <option value="0">-Tipo de Máquina-</option>
+                            <option value="">-Tipo de Máquina-</option>
                             @foreach ($tipos as $tipo)
                             <option value="{{$tipo->id_tipo_maquina}}">{{$tipo->descripcion}}</option>
                             @endforeach
@@ -1570,10 +1570,18 @@
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
     <!-- JavaScript personalizado -->
+    <script>
+    //Stubs para seccionMaquinas-Modal, porque no se usan/envian cuando se hace el alta estos datos
+    function limpiarModalGliSoft(){};
+    function limpiarModalGliHard(){};
+    function obtenerDatosGliHard(){
+      return {id_gli_hard : null,nro_certificado: null,file: null,nombre_archivo: null};
+    };
+    </script>
     <script src="/js/seccionMaquinas-Formula.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-JuegoNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
-    <script src="/js/seccionMovimientos-Maquinas-Modal.js" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas-Modal.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
 
     <script src="js/inputSpinner.js" type="text/javascript"></script>

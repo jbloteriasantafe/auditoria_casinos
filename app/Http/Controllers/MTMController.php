@@ -383,9 +383,6 @@ class MTMController extends Controller
           'codigo' => 'nullable', //codigo sub isla
           'maquinas' => 'nullable',
           'maquinas.*' => 'exists:maquina,id_maquina',
-          'notas' => 'nullable',
-          'notas' => 'required_if:expedientes,null',
-          'notas.*.id_nota' => 'required|exists:nota,id_nota',
           'juego' => 'array|required',
           'juego.*.id_juego' => 'required', //validar que es id valido
           'juego.*.nombre_juego' => 'required',
@@ -393,13 +390,6 @@ class MTMController extends Controller
           'juego.*.cod_identificacion' => ['nullable','regex:/^\d(.|-|_|\d)*$/','unique:juego,cod_identificacion','max:100'],
           'juego.*.tabla.*.id_tabla' => 'nullable',
           'juego.*.tabla.*.nombre_tabla' => 'required',
-          'progresivo.id_progresivo' => 'nullable',
-          'progresivo.id_tipo_progresivo' => 'nullable',
-          'progresivo.nombre_progresivo' => 'nullable',
-          'gli_soft' => 'nullable',
-          'gli_hard.id_gli_hard' => 'nullable',
-          'gli_hard.nro_certificado' => 'required_if:gli_hard.id_gli_hard,0|max:45',
-          'gli_hard.file' => 'nullable',
           'formula.id_formula' => 'required',
           'formula.cuerpoFormula' => 'required',
       ],array(),self::$atributos)->after(function($validator){
@@ -433,11 +423,7 @@ class MTMController extends Controller
           $validator->errors()->add('nro_isla', 'Se encontró un error con la base de datos.(Más de una isla con mismo nro)');
         }
 
-      })->sometimes('gli_hard.file','mimes:pdf',function($input){
-      return $input['gli_hard.file'] != null;
-      })->sometimes('gli_hard.id_gli_hard','exists:gli_hard,id_gli_hard',function($input){
-      return $input['gli_hard.id_gli_hard'] != null && $input['gli_hard.id_gli_hard'] != 0;
-    })->validate();
+      })->validate();
 
     //SI EXISTE FORMULA LA BUSCA SI NO CREA
     $formula=null;
@@ -457,17 +443,7 @@ class MTMController extends Controller
     }
 
     //el admin tiene la opcion de gestionar islas -> pedido por rosario.
-    //unaIsla es nueva isla
-    if($request->id_isla == 0){ //si estoy creando una isla, valido
-      //si estoy creando y pasó la validacion,
-      $unaIsla= new Isla();
-      $unaIsla->nro_isla = $request->nro_isla;
-      $unaIsla->codigo = $request->codigo;
-      $unaIsla->id_casino = $request->id_casino;
-      $unaIsla->id_sector = $request->id_sector;
-      IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
-
-    }else if( $request->modificado == 1){
+    if($request->modificado == 1){
       $unaIsla= Isla::find($request->id_isla);
     }else {//estoy usando una isla ya creada (sin modificar)
       $unaIsla= Isla::find($request->id_isla);
@@ -557,7 +533,6 @@ class MTMController extends Controller
     $MTM->id_isla=$unaIsla->id_isla;
     $MTM->id_juego=$juegoActivo->id_juego;
     $MTM->id_tipo_moneda = $request->id_tipo_moneda;
-    //$MTM->porcentaje_devolucion=$request->porcentaje_devolucion;
     $MTM->id_casino = $request->id_casino;
     $MTM->save();
     $MTM->formula()->associate($formula);
@@ -609,11 +584,7 @@ class MTMController extends Controller
 
   public function modificarMaquina(Request $request){
     Validator::make($request->all(), [
-          //nro admin es unico por casino, auqnue entre SF y ME no se repiten.
-          //['required','alpha_dash',Rule::unique('maquina')->where(function($query){$query->where('id_casino',$request->id_casino);})]
-          //CHECKEAR CORRESPONDENCIA ISLA->PROGRESIVO
-          //CHECKEAR CORRESPONDENCIA JUEGO-> PROGRESIVO. EN LO POSIBLE EN LA VISTA ADEMAS DE ACA TAMBIEN
-          'id_maquina' => 'required' ,
+          'id_maquina' => 'required|exists:maquina,id_maquina' ,
           'nro_admin' => ['required ','integer','max:999999'],
           'marca'=> 'required|max:45',
           'modelo' => 'required|max:60',
@@ -621,13 +592,11 @@ class MTMController extends Controller
           'id_unidad_medida' => 'nullable|max:45',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
-          //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-          'id_tipo_gabinete'=> 'required', //exists:tipo_gabinete,id_tipo_gabinete
-          'id_tipo_maquina' => 'required', // exists:tipo_maquina,id_tipo_maquina
+          'id_tipo_gabinete'=> 'nullable|exists:tipo_gabinete,id_tipo_gabinete',
+          'id_tipo_maquina' => 'nullable|exists:tipo_maquina,id_tipo_maquina',
           'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
           'id_sector' => 'required|exists:sector,id_sector',
-          'id_isla'  => 'required',
-          'nro_isla' => 'required',// validacion en after, ver is nro y casino se corresponden
+          'id_isla'  => 'required|exists:isla,id_isla',
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' =>  'required_if:notas,null',
@@ -635,20 +604,14 @@ class MTMController extends Controller
           'notas' => 'required_if:expedientes,null',
           'notas.*.id_nota' => 'required|exists:nota,id_nota',
           'juego' => 'array|required',
-          'juego.*.id_juego' => 'required', //validar que es id valido
+          'juego.*.id_juego' => 'required|exists:juego,id_juego',
           'juego.*.nombre_juego' => 'required',
           'juego.*.activo' => 'in:1,0',
           'juego.*.tabla.*.id_tabla' => 'nullable',
           'juego.*.tabla.*.nombre_tabla' => 'required',
-          'id_progresivo' => 'nullable',
-          'nombre_progresivo' => 'nullable',
-          'id_tipo' => 'nullable',
-          'formula.id_formula' => 'required',
+          'formula.id_formula' => 'required|exists:formula,id_formula',
           'formula.cuerpoFormula' => 'required',
           'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
-          //table,column,except,idColumn
-          //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
-          //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
           'gli_hard' => 'nullable',
           'gli_hard.*.id_gli_hard' => 'nullable|integer',
           'gli_hard.*.nro_certificado' => 'nullable|alpha_dash',
@@ -657,39 +620,23 @@ class MTMController extends Controller
       ],array(),self::$atributos)->after(function($validator){
         //validacion isla
         $reglas = array();
-        $reglas[] = ['nro_isla' , '=' , $validator->getData()['nro_isla']];
-        $reglas[] = ['id_casino' , '=' , $validator->getData()['id_casino']];
-        if($validator->getData()['codigo'] != ''){
-          $reglas[] = ['codigo' , '=' , $validator->getData()['codigo']];
-        }
 
-        if($validator->getData()['id_isla'] != 0){
-          $reglas[] = ['id_isla' , '<>' , $validator->getData()['id_isla']];
-        }
-
-        $isla_db = Isla::where($reglas)->get();
-
-        if($isla_db->count() > 1){
-          $validator->errors()->add('nro_isla', 'Se encontró un error con la base de datos.(Más de una isla con mismo nro)');
-        }
         //validacion maquina
         if($validator->getData()['id_casino'] != 3){//santa fe y melincue
           $casinos = [1,2];
           $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
                               ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
                               ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                                  ->where('maquina.nro_admin' , $validator->getData()['nro_admin'])
-                                  ->whereIn('casino.id_casino' ,$casinos )
+                              ->where('maquina.nro_admin' , $validator->getData()['nro_admin'])
+                              ->whereIn('casino.id_casino' ,$casinos )
                               ->get();
-
         }else{//si la maquina es de rosario
           $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
                               ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
                               ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                                  ->where('maquina.nro_admin' , $validator->getData()['nro_admin'] )
-                                      ->where('maquina.id_casino' , '=',3)
+                              ->where('maquina.nro_admin' , $validator->getData()['nro_admin'] )
+                              ->where('maquina.id_casino' , '=',3)
                               ->get();
-
         }
 
         if(count($maquina) == 1){//si al modificar maquina, no cambio nro admin deberia haber una maquina y ser la misma.
@@ -723,29 +670,9 @@ class MTMController extends Controller
         break;
     }
 
-    //ISLA
-    if($request->id_isla == 0){ //si estoy creando una isla, valido
-      //si estoy creando y pasó la validacion,
-      $unaIsla= new Isla();
-      $unaIsla->nro_isla = $request->nro_isla;
-      $unaIsla->codigo = $request->codigo;
-      $unaIsla->id_casino = $request->id_casino;
-      $unaIsla->id_sector = $request->id_sector;
+    $unaIsla= Isla::find($request->id_isla);
 
-      $unaIsla = IslaController::getInstancia()->saveIsla($unaIsla, $request->maquinas);
-    }else if( $request->modificado == 1){
-      $unaIsla= new Isla();
-      $unaIsla->nro_isla = $request->nro_isla;
-      $unaIsla->codigo = $request->codigo;
-      $unaIsla->id_sector = $request->id_sector;
-      $unaIsla->id_casino = $request->id_casino;
-      //modifica isla creada
-      $unaIsla = IslaController::getInstancia()->modifyIsla($unaIsla, $request->id_isla, $request->maquinas);
-    }else {//estoy usando una isla ya creada (sin modificar)
-      $unaIsla= Isla::find($request->id_isla);
-    }
-
-    //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
+    //GLIHARD: SI EXISTE GLIHARD BUSCA, SI NO CREA
     $gli_hard = null;
     switch ($request->gli_hard['id_gli_hard']){
       case 'undefined':break;
@@ -767,9 +694,6 @@ class MTMController extends Controller
     $MTM= Maquina::find($request->id_maquina);
     //CONDICIONES ANTERIORES
 
-    /*
-      Checkeo de cambios
-    */
     //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
     //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
     if(is_null($MTM->id_estado_maquina)){
@@ -807,9 +731,6 @@ class MTMController extends Controller
       $razon .= "Cambió la isla. ";
     }
 
-    /*
-      ACTUALIZACION DE DATOS
-    */
     //JUEGOS
     //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
     //los juegos se gestionand desde aca solo si la mtm no es multi-juego
@@ -914,8 +835,8 @@ class MTMController extends Controller
     $MTM->id_gli_hard = is_null($gli_hard)? null: $gli_hard->id_gli_hard;
 
     $MTM->save();
-    if($request->id_tipo_gabinete != 0) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
-    if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
+    if(!empty($request->id_tipo_gabinete)) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
+    if(!empty($request->id_tipo_maquina != 0)) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
     $MTM->estado_maquina()->associate($request->id_estado_maquina);
 
     if(!empty($request->expedientes)) $MTM->expedientes()->sync($request->expedientes);

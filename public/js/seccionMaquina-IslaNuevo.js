@@ -1,5 +1,4 @@
 var maquinas_seleccionadas = [];
-var modificado = 0; //Indica si la isla está activa
 var modificando = false; //En true para entrar a modificar una máquina
 
 /*** OYENTES de eventos ***/
@@ -56,7 +55,6 @@ $(document).on('keyup', '#nro_isla', keyupIsla);
 /*** FUNCIONES ***/
 function mostrarIsla(casino, isla, sectores, sector){
   modificando = true;
-  modificado = 0;
 
   if(sector == null){
     id_sector = 0 ;
@@ -95,7 +93,6 @@ function obtenerDatosIsla(){
     nro_isla: $('#activa_nro_isla span').text(),
     codigo: $('#activa_sub_isla').text(),
     id_sector: $('#activa_datos').attr('data-sector'),
-    modificado: modificado,
     maquinas: maquinas_seleccionadas,
   }
 
@@ -223,8 +220,6 @@ function clickLimpiarCamposModalIsla(e) {
 }
 
 function clickAsociarIsla(e) {
-  modificado = 1;
-
   var cantidad_maquinas = $('#tablaMaquinasDeIsla tbody > tr').length;
   var id_isla = $('#nro_isla').obtenerElementoSeleccionado();
   var id_casino = $('#selectCasino').val();
@@ -252,7 +247,6 @@ function clickAsociarIsla(e) {
   });
 }
 function clickEditarIsla(e) {
-  modificado = 0;
   maquinas_seleccionadas = [];
 
   $('#selectCasino').prop('disabled', false);
@@ -306,7 +300,6 @@ function clickEditarIsla(e) {
 
 function clickBorrarIsla(e) {
   maquinas_seleccionadas = [];
-  modificado = 0;
 
   $('#activa_datos').attr('data-isla','');
   $('#activa_datos').attr('data-casino','');

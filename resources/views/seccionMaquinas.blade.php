@@ -299,7 +299,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                             <div class="col-lg-4">
                               <h5>Gabinete</h5>
                               <select class="form-control" id="tipo_gabinete">
-                                <option value="0">-Tipo de Gabinete-</option>
+                                <option value="">-Tipo de Gabinete-</option>
                                 @foreach ($gabinetes as $gabinete)
                                 <option value="{{$gabinete->id_tipo_gabinete}}">{{$gabinete->descripcion}}</option>
                                 @endforeach
@@ -309,7 +309,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                             <div class="col-lg-4">
                               <h5>Tipo de Máquina</h5>
                               <select class="form-control" id="tipo_maquina">
-                                <option value="0">-Tipo de Máquina-</option>
+                                <option value="">-Tipo de Máquina-</option>
                                 @foreach ($tipos as $tipo)
                                 <option value="{{$tipo->id_tipo_maquina}}">{{$tipo->descripcion}}</option>
                                 @endforeach

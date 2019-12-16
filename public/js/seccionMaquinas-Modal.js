@@ -151,7 +151,6 @@ $('#btn-guardar').click(function(e){
   formData.append('id_casino', isla['id_casino']);
   formData.append('nro_isla', isla['nro_isla']);
   formData.append('codigo', isla['codigo']);
-  formData.append('modificado' , isla['modificado']);
   formData.append('cantidad_maquinas' , isla['cantidad_maquinas']);
   formData.append('id_sector', isla['id_sector']);
   for (var i = 0; i < isla['maquinas'].length; i++) {
@@ -166,7 +165,6 @@ $('#btn-guardar').click(function(e){
     formData.append('juego['+i+'][denominacion]', juegos[i]['denominacion']);
     formData.append('juego['+i+'][porcentaje_devolucion]', juegos[i]['porcentaje_devolucion']);
     formData.append('juego['+i+'][id_pack]', juegos[i]['id_pack']);
-    // formData.append('juego['+i+'][cod_identificacion]', juegos[i]['cod_identificacion']);
 
     if(juegos[i]['tablas'].length){
       for(var j=0;j<juegos[i]['tablas'].length;j++){
@@ -190,10 +188,7 @@ $('#btn-guardar').click(function(e){
   formData.append('formula[cuerpoFormula]', formula['cuerpoFormula']);
 
   formData.append('id_log_movimiento', $('#modalMaquina #id_movimiento').val());
-  //FIN DATOS
-  // for (var pair of formData.entries()) {
-  //   console.log(pair[0]+ ', ' + pair[1]);
-  // }
+
   console.log('informacion enviada en el data',formData);
   $.ajax({
       type: 'POST',
@@ -261,86 +256,38 @@ $('#btn-guardar').click(function(e){
           console.log('Error:', data);
           $('.navModal > div > i').hide();
 
-          var response = JSON.parse(data.responseText);
+          const conversion = {
+            'nro_admin'            : { obj: '#nro_admin'                          , show: '#error_nav_maquina'},
+            'nro_serie'            : { obj: '#nro_serie'                          , show: '#error_nav_maquina'},
+            'marca'                : { obj: '#marca'                              , show: '#error_nav_maquina'},
+            'modelo'               : { obj: '#modelo'                             , show: '#error_nav_maquina'},
+            'desc_marca'           : { obj: '#desc_marca'                         , show: '#error_nav_maquina'},
+            'unidad_medida'        : { obj: '#unidad_medida'                      , show: '#error_nav_maquina'},
+            'mac'                  : { obj: '#mac'                                , show: '#error_nav_maquina'},
+            'id_tipo_gabinete'     : { obj: '#tipo_gabinete'                      , show: '#error_nav_maquina'},
+            'id_tipo_maquina'      : { obj: '#tipo_maquina'                       , show: '#error_nav_maquina'},
+            'id_tipo_moneda'       : { obj: '#tipo_moneda'                        , show: '#error_nav_maquina'},
+            'juega_progresivo'     : { obj: '#juega_progresivo'                   , show: '#error_nav_maquina'},
+            'denominacion'         : { obj: '#modalMaquina #denominacion'         , show: '#error_nav_maquina'}, 
+            'id_estado_maquina'    : { obj: '#estado'                             , show: '#error_nav_maquina'},
+            'juego'                : { obj: ''                                    , show: '#error_nav_juego'  },
+            'id_casino'            : { obj: ''                                    , show: '#error_nav_isla'   },
+            'id_isla'              : { obj: ''                                    , show: '#error_nav_isla'   },
+            'id_sector'            : { obj: ''                                    , show: '#error_nav_isla'   },
+            'gli_soft.id_gli_soft' : { obj: ''                                    , show: '#error_nav_soft'   },
+            'formula.id_formula'   : { obj: ''                                    , show: '#error_nav_formula'},
+          };
 
-          if(typeof response.nro_admin !== 'undefined'){
-            mostrarErrorValidacion($('#nro_admin'),response.nro_admin[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.nro_serie !== 'undefined'){
-            mostrarErrorValidacion($('#nro_serie'),response.nro_serie[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.marca !== 'undefined'){
-            mostrarErrorValidacion($('#marca'),response.marca[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.modelo !== 'undefined'){
-            mostrarErrorValidacion($('#modelo'),response.modelo[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.desc_marca !== 'undefined'){
-            mostrarErrorValidacion($('#desc_marca'),response.desc_marca[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.unidad_medida !== 'undefined'){
-            mostrarErrorValidacion($('#unidad_medida'),response.unidad_medida[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.mac !== 'undefined'){
-            mostrarErrorValidacion($('#mac'),response.mac[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.id_tipo_gabinete !== 'undefined'){
-            mostrarErrorValidacion($('#tipo_gabinete'),response.id_tipo_gabinete[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.id_tipo_maquina !== 'undefined'){
-            mostrarErrorValidacion($('#tipo_maquina'),response.id_tipo_maquina[0],true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.id_tipo_moneda !== 'undefined'){
-            mostrarErrorValidacion($('#tipo_moneda'),'Valor incorrecto',true);
-            $('#error_nav_maquina').show();
-          }
-          if(typeof response.juego !== 'undefined'){
-            $('#error_nav_juego').show();
-          }
-          if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined'){
-            $('#error_nav_isla').show();
-          }
-
-          if(typeof response.juega_progresivo !== 'undefined'){
-            mostrarErrorValidacion($('#juega_progresivo'),response.juega_progresivo[0],true);
-            $('#error_nav_maquina').show();
-          }
-
-          if(typeof response.denominacion !== 'undefined'){
-            mostrarErrorValidacion($('#modalMaquina #denominacion'),response.denominacion[0],true);
-            $('#error_nav_maquina').show();
-          }
-
-          if(typeof response.porcentaje_devolucion !== 'undefined'){
-            mostrarErrorValidacion($('#modalMaquina #porcentaje_devolucion'),response.porcentaje_devolucion,true);
-            $('#error_nav_maquina').show();
-          }
-
-          if(typeof response.id_estado_maquina !== 'undefined'){
-            $('#estado').addClass('alerta');
-            $('#alerta_estado').text(response.id_estado_maquina[0]).show();
-          }
-
-          if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined' || typeof response.id_sector !== 'undefined'){
-            $('#error_nav_isla').show();
-          }
-
-          if(typeof response['gli_soft.id_gli_soft'] !== 'undefined'){
-            $('#error_nav_soft').show();
-          }
-          if(typeof response['formula.id_formula'] !== 'undefined'){
-            $('#error_nav_formula').show();
-          }
-
+          const response = JSON.parse(data.responseText);
+          const keys = Object.keys(response);
+          keys.forEach(key => {
+            const val = response[key][0];
+            const errorResponse = conversion[key];
+            if(tieneValor(val) && tieneValor(errorResponse)){
+              mostrarErrorValidacion($(errorResponse.obj),parseError(val),true);
+              $(errorResponse.show).show();
+            }
+          });
       }
     });
 });
@@ -376,27 +323,7 @@ function crearFilaResultadosMaquinas(data){
                     .addClass('btn').addClass('btn-info').addClass('detalle')
                     .val(data.maquina.id_maquina)
                 )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa').addClass('fa-fw').addClass('fa-pencil')
-                    )
-                    .append($('<span>').text(' MODIFICAR'))
-                    .addClass('btn').addClass('btn-warning').addClass('modificar')
-                    .val(data.maquina.id_maquina)
-                )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa')
-                        .addClass('fa-fw')
-                        .addClass('fa-trash')
-                    )
-                    .append($('<span>').text(' ELIMINAR'))
-                    .addClass('btn').addClass('btn-danger').addClass('eliminar')
-                    .val(data.maquina.id_maquina)
-                )
-            )
+    );
     return fila;
 }
 
@@ -418,6 +345,9 @@ function ocultarAlertasMaquina(){
       $('input').each(function(){
           $(this).removeClass('alerta');
       });
+      $('select').each(function(){
+        $(this).removeClass('alerta');
+    });
 }
 
 function limpiarModalMaquina(){
@@ -468,7 +398,6 @@ function limpiarModal(){
 function habilitarControles(valor){
   habilitarControlesMaquina(valor);
   habilitarControlesJuegos(valor);
-  habilitarControlesProgresivo(valor);
   habilitarControlesGliSoft(valor);
   habilitarControlesGliHard(valor);
   habilitarControlesFormula(valor);
@@ -511,8 +440,8 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
   $('#nro_serie').val(data.maquina.nro_serie);
   $('#mac').val(data.maquina.mac);
   $('#marca_juego').val(data.maquina.marca_juego);
-  data.tipo_gabinete != null ? $('#tipo_gabinete').val(data.tipo_gabinete.id_tipo_gabinete) : $('#tipo_gabinete').val(0) ;
-  data.tipo_maquina != null ? $('#tipo_maquina').val(data.tipo_maquina.id_tipo_maquina) : $('#tipo_maquina').val(0);
+  data.tipo_gabinete != null ? $('#tipo_gabinete').val(data.tipo_gabinete.id_tipo_gabinete) : $('#tipo_gabinete').val("") ;
+  data.tipo_maquina != null ? $('#tipo_maquina').val(data.tipo_maquina.id_tipo_maquina) : $('#tipo_maquina').val("");
   $('#estado').val(data.maquina.id_estado_maquina);
   $('#porcentaje_devolucion').val(data.maquina.porcentaje_devolucion);
   if(data.maquina.juega_progresivo == 1){
@@ -590,17 +519,30 @@ function agregarJuegosPackMtm(juego){
 
   fila.append($('<td>').text(dev));
 
-
-
-
-
   $('#tablaMtmJuegoPack').append(fila);
-
-
 };
 
 function limpiarModaPaqueteJuegos(){
     $('#inputPackActual').val("");
     $('#inputPackActual').attr("data-idPack", -1);
     $('#tablaMtmJuegoPack tbody').empty();
+}
+
+function parseError(response){
+  if(response == 'validation.unique'){
+    return 'El valor tiene que ser único y ya existe el mismo.';
+  }
+  else if(response == 'validation.required'){
+    return 'El campo es obligatorio.'
+  }
+  else if(response == 'validation.max.string'){
+    return 'El valor es muy largo.'
+  }
+  else{
+    return null;
+  }
+}
+
+function tieneValor(val){
+  return typeof val !== 'undefined';
 }
