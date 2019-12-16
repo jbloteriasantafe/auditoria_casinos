@@ -10,7 +10,6 @@ $(document).ready(function(){
   $('#buscadorExpediente').setearElementoSeleccionado(0,"");
 
   $('#error_nav_juego').hide();
-  $('#error_nav_progresivo').hide();
   $('#error_nav_isla').hide();
   $('#error_nav_soft').hide();
   $('#error_nav_maquina').hide();
@@ -39,13 +38,6 @@ $('#navPaqueteJuegos').click(function(){
   $('.seccion').hide();
   $('#secPaqueteJuego').show();
 });
-
-$('#navProgresivo').click(function(){
-  recargarDatosProgresivo();
-  $('.seccion').hide();
-  $('#secProgresivo').show();
-});
-
 $('#navSoft').click(function(){
   $('.seccion').hide();
   $('#secSoft').show();
@@ -112,7 +104,6 @@ $('#btn-guardar').click(function(e){
 
 
   var juegos = obtenerDatosJuego();
-  var progresivo =  progresivo_global ;
   var gli_hard = obtenerDatosGliHard();
   var formula = obtenerDatosFormula();
 
@@ -186,31 +177,6 @@ $('#btn-guardar').click(function(e){
       formData.append('juego['+i+'][tabla]', []);
 
     }
-  }
-  console.log("DATOS DEL PROGRESIVO GLOBAL"+progresivo);
-  if(typeof(progresivo) != 'undefined'){
-    //DATOS DE SECCION PROGRESIVOS
-    formData.append('progresivo[id_progresivo]' , progresivo['id_progresivo']);
-    formData.append('progresivo[nombre_progresivo]' , progresivo['nombre_progresivo']);
-    formData.append('progresivo[id_tipo]' , progresivo['id_tipo_progresivo']);
-    formData.append('progresivo[maximo]', progresivo['maximo']);
-    formData.append('progresivo[porcentaje_recuperacion]', progresivo['porcentaje_recuperacion']);
-
-    for(var j=0;j<progresivo['pozos'].length;j++){// POR CADA POZO
-      for (var i = 0; i < progresivo['pozos'][j]['niveles'].length; i++) { // POR CADA NIVEL DEL POZO
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][id_nivel]', progresivo['pozos'][j]['niveles'][i]['id_nivel']);
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][nombre_nivel]', progresivo['pozos'][j]['niveles'][i]['nombre_nivel']);
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][nro_nivel]', progresivo['pozos'][j]['niveles'][i]['nro_nivel']);
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][base]', progresivo['pozos'][j]['niveles'][i]['base']);
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][porc_visible]', progresivo['pozos'][j]['niveles'][i]['visible']);
-        formData.append('progresivo[pozos]['+j+'][niveles]['+i+'][porc_oculto]', progresivo['pozos'][j]['niveles'][i]['oculto']);
-      }
-      for (var i = 0; i < progresivo['pozos'][j]['maquinas'].length; i++) {// POR CADA DEL POZO
-        formData.append('progresivo[pozos]['+j+'][maquinas]['+i+'][id_maquina]', progresivo['pozos'][j]['maquinas'][i]);
-      }
-    }
-  }else{
-    formData.append('progresivo[id_progresivo]', -1);
   }
 
   //DATOS SECCION GLI HARD
@@ -337,15 +303,9 @@ $('#btn-guardar').click(function(e){
             mostrarErrorValidacion($('#tipo_moneda'),'Valor incorrecto',true);
             $('#error_nav_maquina').show();
           }
-          // if(typeof response.id_casino !== 'undefined'){
-          //   mostrarErrorValidacion($('#tipo_maquina'),response.id_casino[0],true);
-          //   $('#alerta_casinos').text(response.id_casino[0]).show();
-          // }
-
           if(typeof response.juego !== 'undefined'){
             $('#error_nav_juego').show();
           }
-
           if(typeof response.id_casino !== 'undefined' || typeof response.id_isla !== 'undefined'){
             $('#error_nav_isla').show();
           }
@@ -491,18 +451,14 @@ function habilitarControlesMaquina(valor){
 
 function ocultarAlertas(){
   ocultarAlertasMaquina();
-  //ocultarAlertasJuegos();
-  //ocultarAlertasProgresivo();
   ocultarAlertasGliSoft();
   ocultarAlertasGliHard();
-  //ocultarAlertasFormula();
 }
 
 function limpiarModal(){
   $('.navModal > div > i').hide();
   limpiarModalMaquina();
   limpiarModalJuego();
-  limpiarModalProgresivo();
   limpiarModalGliSoft();
   limpiarModalGliHard();
   limpiarModalFormula();
@@ -547,8 +503,6 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
   }else{
     $('#juega_progresivo_m').val("SI");
   }
-
-
 
   $('#nro_admin').val(data.maquina.nro_admin);
   $('#marca').val(data.maquina.marca);
@@ -607,11 +561,8 @@ function mostrarMaquina(data, accion){// funcion que setea datos de la maquina d
    $('#modalMaquina .modal-title').text(text);
   }
 
-
   mostrarJuegos(data.juegos,data.juego_activo);
 
-  mostrarProgresivo(data.progresivo, data.id_casino);
-  //data.progresivo != null ? mostrarProgresivo(data.progresivo, data.id_casino) : mostrarProgresivo(null,data.id_casino);
   data.gli_soft != null ? mostrarGliSofts(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;
   data.formula != null ? mostrarFormula(data.formula) : null;

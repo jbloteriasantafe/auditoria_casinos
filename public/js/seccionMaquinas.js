@@ -27,8 +27,6 @@ $(document).ready(function() {
       if(arreglo[2] !=0){
           eventoModificar(arreglo[2]);
           console.log('carga pagina');
-        }else{
-          eventoNuevo();
       }
       break;
     default:
@@ -58,12 +56,6 @@ $('#btn-ayuda').click(function(e){
 
 });
 
-//abrir modal nuevo
-$('#btn-nuevo').click(function(e){
-    e.preventDefault();
-    eventoNuevo();
-});
-
 //minimiza modal
 $('#btn-minimizar').click(function(){
     if($(this).data("minimizar")==true){
@@ -75,20 +67,6 @@ $('#btn-minimizar').click(function(){
   }
 });
 
-//abrir modal nuevo
-$('#btn-cargaMasiva').click(function(e){
-    e.preventDefault();
-
-    limpiarModal();
-    habilitarControles(true);
-
-    //Modificar los colores del modal
-    $('.modal-title').text('| CARGA MASIVA');
-    $('.modal-header').attr('style','background: #6DC7BE','color: #000;');
-    $('#btn-guardar').removeClass('btn-warning');
-    $('#btn-guardar').addClass('btn-success');
-    $('#modalCargaMasiva').modal('show');
-});
 
 //boton Borrar Maquina: Mostror modal
 $(document).on('click','.eliminar',function(){
@@ -213,8 +191,6 @@ $('#busqueda_casino').on('change',function(){
 
 function eventoModificar(id_maquina){
   $('#mensajeExito').hide();
-  //se decidio que desde el modificar no se podra alterar la isla, por lo que cada vez que entre a este modal, se ocultara la seccion
- // $('#modalMaquina').find('#navIsla').hide();
   limpiarModal();
   habilitarControles(true);
   //en nro isla queda desabilitado porque todavia no seleccionó un casino

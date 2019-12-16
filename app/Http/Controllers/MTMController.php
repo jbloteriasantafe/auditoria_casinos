@@ -361,13 +361,7 @@ class MTMController extends Controller
   }
 
   public function guardarMaquina(Request $request){
-
     Validator::make($request->all(), [
-          //nro admin es unico por casino, aunque entre SF y ME no se repiten.
-          //['required','alpha_dash',Rule::unique('maquina')->where(function($query){$query->where('id_casino',$request->id_casino);})]
-          //CHECKEAR CORRESPONDENCIA ISLA->PROGRESIVO
-          //CHECKEAR CORRESPONDENCIA JUEGO-> PROGRESIVO. EN LO POSIBLE EN LA VISTA ADEMAS DE ACA TAMBIEN
-
           'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
           'nro_admin' => 'required|integer',
           'marca'=> 'required|max:45',
@@ -379,10 +373,9 @@ class MTMController extends Controller
           'juega_progresivo' => 'required|boolean',
           'id_tipo_gabinete'=> 'nullable',
           'id_tipo_maquina' => 'nullable',
-          //'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
-          'expedientes' => 'nullable',//'required_if:notas,null',
+          'expedientes' => 'nullable',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
           'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
           'id_sector' => 'required|exists:sector,id_sector',
@@ -409,9 +402,6 @@ class MTMController extends Controller
           'gli_hard.file' => 'nullable',
           'formula.id_formula' => 'required',
           'formula.cuerpoFormula' => 'required',
-          //table,column,except,idColumn
-          //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
-          //'gli_hards.*.id_gli_hard' => 'required|integer|exists:gli_hard,id_gli_hard|distinct',
       ],array(),self::$atributos)->after(function($validator){
         $id_casino = $validator->getData()['id_casino'];
         $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,

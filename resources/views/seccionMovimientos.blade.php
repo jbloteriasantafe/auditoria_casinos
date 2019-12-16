@@ -1303,10 +1303,9 @@
                                         <thead>
                                             <tr>
                                               <th width="5%"></th>
-                                              <th width="20%">NÚMERO</th>
-                                              <th width="30%">MARCA</th>
-                                              <th width="30%">MODELO</th>
-                                              <th width="15%">ACCIÓN</th>
+                                              <th width="25%">NÚMERO</th>
+                                              <th width="35%">MARCA</th>
+                                              <th width="35%">MODELO</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1360,7 +1359,7 @@
                     </div>
                   </div> <!-- / PASO 2 | ISLA -->
 
-                  <!-- PASO 2 | JUEGO -->
+                  <!-- PASO 3 | JUEGO -->
                   <div class="seccion" id="secJuego">
 
                       <div id="listaJuegosMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
@@ -1453,351 +1452,7 @@
                         </div>
                     </div> <!-- / PASO 2 | JUEGO -->
 
-
-                  <!-- PASO 3 | PROGRESIVO -->
-                  <div class="seccion" id="secProgresivo">
-                    <!-- <form id="frmProgresivo" name="frmProgresivo" class="form-horizontal" novalidate=""> -->
-                      <div class="row">
-                        <div class="col-lg-12">
-                          <h6>PROGRESIVO ACTIVO</h6>
-                          <div id="tablaProgresivoSeleccionado" class="row" style="margin-bottom: 15px;" hidden="true">
-                              <div class="col-xs-2 col-xs-offset-1">
-                                  <h5>Progresivo seleccionada</h5>
-                                  <p id="progresivoSeleccionado">No existe progresivo seleccionada.</p>
-                              </div>
-                              <div class="col-xs-3">
-                                  <h5>Tipo de Progresivo</h5>
-                                  <p id="tipoSeleccionado"></p>
-                              </div>
-                              <div class="col-xs-2">
-                                  <h5>Máximo</h5>
-                                  <p id="maximoSeleccionado"></p>
-                              </div>
-                              <div class="col-xs-2">
-                                  <h5>% Recup.</h5>
-                                  <p id="porc_recuperacionSeleccionado"></p>
-                              </div>
-                              <div class="col-xs-2">
-                                  <h5>Acción</h5>
-                                  <button id="borrarProgresivoSeleccionado" type="button" class="btn btn-danger borrarFila"  name="button"><i class="fa fa-trash"></i></button>
-                              </div>
-                          </div>
-                          <div class="row" id="noexiste_progresivo">
-                            <p  style="display:block;margin-top:25px; margin-bottom:20px;"><i class="fas fa-times aviso"></i> No existe ningún progresivo activo.</p>
-                          </div>
-                          <div class="row">
-                            <div class="col-lg-10 col-lg-offset-1">
-                              <table id="tablaNivelesSeleccionados" class="" hidden="true">
-                                  <thead>
-                                    <th class="col-lg-2">Nro Nivel</th>
-                                    <th class="col-lg-2">Nombre nivel</th>
-                                    <th class="col-lg-2">% Oculto</th>
-                                    <th class="col-lg-2">% Visible</th>
-                                    <th class="col-lg-2">Base</th>
-                                    <th class="col-lg-2"></th>
-                                  </thead>
-                                  <tbody id="nivelesSeleccionados">
-
-                                  </tbody >
-                                </table>
-                            </div>
-                          </div>
-                          <br>
-                          <div id="seccionAgregarProgresivo" style="cursor:pointer;" data-toggle="collapse" data-target="#collapseAgregarProgresivo">
-                              <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                                  <div class="col-md-12">
-                                      <h6>AGREGAR PROGRESIVO<i class="fas fa-fw fa-angle-down"></i></h6>
-                                  </div>
-                              </div>
-                          </div>
-                          <div id="collapseAgregarProgresivo" class="collapse">
-                            <div class="row">
-                              <div class="col-md-6 col-lg-6">
-                                <h5>Nombre Progresivo</h5>
-                                <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
-                                <br>
-                              </div>
-                              <div class="col-md-6 col-lg-6">
-                                <h5>Tipo Progresivo</h5>
-                                <select class="form-control" id="selectTipoProgresivos">
-                                  <option value="0">-Seleccione un tipo-</option>
-                                  @foreach ($tipo_progresivos as $tipo_progresivo)
-                                  <option value="{{$tipo_progresivo}}">{{$tipo_progresivo}}</option>
-                                  @endforeach
-                                </select>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-xs-6 col-md-6 col-lg-6">
-                                <h5>Porcentaje Recuperación</h5>
-                                <input id="porcentaje_recuperacion" type="text" class="form-control" placeholder="Porcentaje recuperación">
-                              </div>
-                              <div class="col-xs-6 col-md-6 col-lg-6">
-                                <h5>Valor Máximo</h5>
-                                <input id="maximo" type="text" class="form-control" placeholder="Valor Máximo">
-                              </div>
-
-                            </div>
-                            <br>
-                            <div hidden="true" id="cuerpo_individual">
-                              <div class="row">
-                                <div class="col-xs-6 col-md-6 col-lg-6">
-
-                                  <h5>Buscador Islas <i class="fas fa-fw fa-search"></i></h5>
-                                  <div class="row">
-                                    <div class='input-group' id='groupIsla'>
-                                        <input class="form-control buscadorIsla" type="text" list="datalist_islas" autocomplete="off" placeholder="Nro Isla" id=""  />
-                                        <datalist id="datalist_islas"> </datalist>
-                                        <span class="input-group-addon cancelarIsla" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                        <span class="input-group-addon agregarIsla" style="cursor:pointer;"><i class="fa fa-plus"></i></span>
-                                    </div>
-
-                                  </div>
-                                  <br>
-                                  <h5>Buscador Maquinas <i class="fas fa-fw fa-search"></i></h5>
-                                  <div class="row">
-                                    <div class='input-group' id='groupMaquina'>
-                                        <input data-maquina=""  class="form-control buscadorMaquina" type="text" list="datalist_maquinas" autocomplete="off" placeholder="Nro Admin" id=""/>
-                                        <datalist id="datalist_maquinas"> </datalist>
-                                        <span class="input-group-addon cancelarMaquina" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                        <span class="input-group-addon agregarMaquina" style="cursor:pointer;"><i class="fa fa-plus"></i></span>
-                                    </div>
-                                  </div>
-
-                                </div>
-
-                                <div id="" class="col-md-6 col-lg-6">
-                                  <h5>Maquinas Seleccionadas:</h5>
-                                  <ul class="listaMaquinas">
-                                  </ul>
-                                </div>
-                              </div>
-                              <br>
-                              <div class="row">
-                                  <div class="col-lg-12">
-                                      <h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                                      <div class="columna">
-                                      </div>
-                                  </div>
-                              </div>
-
-                            </div>
-                            <div hidden="true" id="cuerpo_linkeado">
-                              <!-- comienzo seccdio invididual -->
-                              <div class="row">
-                                <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                              </div>
-
-                             <div id="contenedorPozos" class="">
-
-
-                             </div>
-                              <!-- fin despaleable pozos-->
-                            </div>
-                            <button id="btn-cancelarProgresivo" class="btn btn-danger" type="button" name="button">
-                                <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
-                            </button>
-                            <button id="btn-agregarProgresivo" class="btn btn-successAceptar" type="button" name="button">
-                                <i class="fas fa-fw fa-arrow-up"></i> AGREGAR PROGRESIVO
-                            </button>
-                            <button id="btn-crearProgresivo" class="btn btn-successAceptar" type="button" name="button">
-                                <i class="fas fa-fw fa-plus"></i> CREAR PROGRESIVO
-                            </button>
-
-                            </div>
-                          </div>
-                      </div>
-                    <!-- </form> -->
-                  </div> <!-- / PASO 3 | Progresivo -->
-
-                  <!-- / PASO 4 | SOFT -->
-                  <div class="seccion" id="secSoft">
-
-                    <div id="listaSoftMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
-                        <div class="row">
-                            <div class="col-md-12">
-                              <h6>CERTIFICADO SOFTWARE ACTIVO</h6>
-
-                              <!-- Tabla de todos los gli soft en la máquina -->
-                              <table id="tablaSoftActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
-                                <thead>
-                                  <tr>
-                                    <th width="30%">CÓDIGO DE CERTIFICADO</th>
-                                    <th width="40%">ARCHIVO</th>
-                                    <th width="30%">ACCIÓN</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr id="datosGLISoft" data-id="" data-codigo="" data-observaciones="">
-                                    <td>
-                                      <span id="nro_certificado_activo" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
-                                    </td>
-                                    <td id="nombre_archivo_activo"></td>
-                                    <td>
-                                      <button type="button" class="btn btn-danger borrarSoft" name="button">
-                                        <i class="fas fa-fw fa-trash"></i>
-                                      </button>
-                                    </td>
-                                  </tr>
-
-                                </tbody>
-                              </table>
-
-                              <div class="zona-file" hidden>
-                                <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
-                              </div>
-
-                              <p id="noexiste_soft" style="display:block;margin-top:30px; margin-bottom:20px;"><i class="fas fa-times aviso"></i> La máquina no contiene certificado de Software.</p>
-                            </div>
-                        </div>
-
-                    </div>
-
-
-                    <!-- CREAR O BUSCAR GLI soft-->
-                    <div id="agregarSoft" style="cursor:pointer;" data-toggle="collapse" data-target="#softPlegado">
-                        <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                            <div class="col-md-12">
-                                <h6>AGREGAR CERTIFICADO SOFTWARE<i class="fas fa-fw fa-angle-down"></i></h6>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="softPlegado" class="collapse">
-                        <br>
-                        <div class="row" style="padding-bottom: 15px;">
-                            <div class="col-md-4 col-md-offset-1">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h5>Código de Certificado</h5>
-                                        <input id="inputSoft" data-software=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar Certificado Software"/>
-                                        <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" /> -->
-                                        <!-- <datalist id="soft"> </datalist> -->
-                                        <!-- <span id="alerta_codigo_soft" class="alertaSpan"></span> -->
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h5>Observaciones</h5>
-                                        <textarea id="observaciones" class="form-control" rows="10" style="resize:none; height:80px;" placeholder="Observaciones"></textarea>
-                                        <span id="alerta_observaciones" class="alertaSpan"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h5>Archivo</h5>
-                                <div class="zona-file">
-                                    <input id="cargaArchivoSoft" data-borrado="false" type="file">
-                                </div>
-                                <span id="alerta_archivoSoft" class="alertaSpan"></span>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button id="btn-cancelarSoft" class="btn btn-danger" type="button" name="button">
-                                    <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
-                                </button>
-                                <button id="btn-crearSoft" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-plus"></i> CREAR CERTIFICADO SOFTWARE
-                                </button>
-                                <button id="btn-agregarSoftLista" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO SOFTWARE
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                  </div> <!-- / PASO 4 | soft -->
-
-
-                  <!-- PASO 5 | HARD -->
-                  <div class="seccion" id="secHard">
-
-
-                    <div id="listaHardMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
-                        <div class="row">
-                            <div class="col-md-12">
-                              <h6>CERTIFICADO HARDWARE ACTIVO</h6>
-
-                              <!-- Tabla de todos los gli hard en la máquina -->
-                              <table id="tablaHardActivo" class="table" hidden style="margin-top:30px; margin-bottom:20px;">
-                                <thead>
-                                  <tr>
-                                    <th width="30%">CÓDIGO DE CERTIFICADO</th>
-                                    <th width="40%">ARCHIVO</th>
-                                    <th width="30%">ACCIÓN</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td>
-                                      <span id="nro_certificado_hard_activo" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
-                                    </td>
-                                    <td id="nombre_archivo_hard_activo"></td>
-                                    <td>
-                                      <button type="button" class="btn btn-danger borrarHard" name="button">
-                                        <i class="fas fa-fw fa-trash"></i>
-                                      </button>
-                                    </td>
-                                  </tr>
-
-                                </tbody>
-                              </table>
-
-                              <div class="zona-file" hidden>
-                                <!-- <input id="muestraArchivoSoft" type="file" name="" value=""> -->
-                              </div>
-
-                              <p id="noexiste_hard" style="display:block;margin-top:30px; margin-bottom:20px;">
-                                <i class="fas fa-times aviso"></i> La máquina no contiene certificado de Hardware.</p>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- CREAR O BUSCAR GLI HARD-->
-                    <div id="agregarHard" style="cursor:pointer;" data-toggle="collapse" data-target="#hardPlegado">
-                        <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                            <div class="col-md-12">
-                                <h6>AGREGAR GLI HARDWARE<i class="fas fa-fw fa-angle-down"></i></h6>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="hardPlegado" class="collapse">
-
-                        <div class="row" style="padding-bottom: 15px;">
-                            <div class="col-md-4 col-md-offset-1">
-                                <h5>Código de Certificado</h5>
-                                <!-- <input id="inputHard" data-hard="" class="form-control" type="text" list="hard" autocomplete="off" placeholder="Código de certificado"/> -->
-                                <input id="inputHard" class="form-control" type="text" autocomplete="off" placeholder="Buscar GLI Hardware"/>
-                            </div>
-                            <div class="col-md-6">
-                                <h5>Archivo</h5>
-                                <div class="zona-file">
-                                    <input id="cargaArchivoHard" data-borrado="false" type="file">
-                                </div>
-                                <span id="alerta_archivoHard" class="alertaSpan"></span>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button id="btn-cancelarHard" class="btn btn-danger" type="button" name="button">
-                                    <i class="fas fa-fw fa-times"></i> LIMPIAR CAMPOS
-                                </button>
-                                <button id="btn-crearHard" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-plus"></i> CREAR CERTIFICADO HARDWARE
-                                </button>
-                                <button id="btn-agregarHardLista" class="btn btn-successAceptar" type="button" name="button">
-                                    <i class="fas fa-fw fa-arrow-up"></i> AGREGAR CERTIFICADO HARDWARE
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                  </div> <!-- / PASO 4 | HARD -->
-
-                  <!-- PASO 6 | FORMULA -->
+                  <!-- PASO 4 | FORMULA -->
                   <div class="seccion" id="secFormula">
                     <form id="frmFormula" name="frmFormula" class="form-horizontal" novalidate="">
                       <div class="row">
@@ -1884,10 +1539,7 @@
                           <div class="zona-file">
                               <input id="cargaMasiva" data-borrado="false" type="file" accept="">
                           </div>
-
-                          <!-- <input id="cargaMasiva" type="file" name="Archivo de Máquinas" accept=""> -->
                       </div>
-                            <!-- <button type="button" class="btn btn-success" id="btn-carga-masiva" value=""> SIGUIENTE</button> -->
                     </div><br>
                 </form>
               </div>
@@ -1920,12 +1572,8 @@
     <!-- JavaScript personalizado -->
     <script src="/js/seccionMaquinas-Formula.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-JuegoNuevo.js" charset="utf-8"></script>
-    <!-- <script src="/js/seccionMaquinas-GliSoft.js" charset="utf-8"></script> -->
-    <script src="/js/seccionMaquinas-GliSoftNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-GliHardNuevo.js" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-Progresivo.js" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-Modal.js" charset="utf-8"></script>
+    <script src="/js/seccionMovimientos-Maquinas-Modal.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
 
     <script src="js/inputSpinner.js" type="text/javascript"></script>

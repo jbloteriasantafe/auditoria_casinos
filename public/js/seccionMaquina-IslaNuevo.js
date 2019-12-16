@@ -44,7 +44,6 @@ $('#btn-cancelarIsla').click(clickLimpiarCampos);
 
 $('#btn-asociarIsla').click(clickAsociarIsla);
 
-
 //Acciones isla activa
 $('#editarIslaActiva').click(clickEditarIsla);
 
@@ -56,7 +55,6 @@ $(document).on('keyup', '#nro_isla', keyupIsla);
 
 /*** FUNCIONES ***/
 function mostrarIsla(casino, isla, sectores, sector){
-
   modificando = true;
   modificado = 0;
 
@@ -276,7 +274,6 @@ function clickEditarIsla(e) {
       for (var i = 0; i < data.maquinas.length; i++){
         if($('#id_maquina').val() != data.maquinas[i].id_maquina){
           agregarMaquinaIsla(data.maquinas[i].id_maquina, data.maquinas[i].nro_admin, data.maquinas[i].marca, data.maquinas[i].modelo, "cargada");
-          // agregar(data.maquinas[i].id_maquina,data.maquinas[i].nro_admin,data.maquinas[i].marca, data.maquinas[i].modelo, true);
         }
       }
 

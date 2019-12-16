@@ -37,10 +37,7 @@ $('#inputJuego').on('seleccionado',function(){
     var id_juego = $(this).obtenerElementoSeleccionado();
 
     $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-
-
         $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
-        $('#niveles_progresivos').val(data.juego.id_progresivo).prop('readonly',true); //Acá tiene que ir el nivel de progresivo, no el id
 
         //Si no tiene tablas de pagos ocultar esa zona
         if (data.tablasDePago.length == 0) {
@@ -240,7 +237,6 @@ function limpiarCamposJuego(){
   $('#inputCodigo').val('');
   $('#den_sala').val('');
   $('#porcentaje_devolucion_juego').val('');
-  $('#niveles_progresivos').val('');
   $('#tablas_pago input').each(function(){
     if($(this).is('[readonly]')){
       $('#tablas_pago').empty();
@@ -262,7 +258,6 @@ function limpiarModalJuego(){
   //Borra todos los inputs
   $('#inputJuego').setearElementoSeleccionado(0,"");
   $('#inputCodigo').val('');
-  $('#niveles_progresivos').val('');
   $('#tablas_pago').empty();
 
   $('#tablaJuegosActivos tbody tr').remove();
@@ -286,14 +281,12 @@ function habilitarControlesJuegos(valor){
     $('#inputJuego').prop('readonly', false);
 
     $('#inputCodigo').prop('readonly', false);
-    $('#niveles_progresivos').prop('readonly', false);
     $('.juegoSeleccionado input[type=radio]').prop('disabled' , false);
     $('#agregarJuego').show();
     $('.borrarJuego').show();
   }else{
     $('#inputJuego').prop('readonly', true);
     $('#inputCodigo').prop('readonly', true);
-    $('#niveles_progresivos').prop('readonly', true);
     $('.juegoSeleccionado input[type=radio]').prop('disabled' , true);
     $('.borrarJuego').hide();
     $('#agregarJuego').hide();

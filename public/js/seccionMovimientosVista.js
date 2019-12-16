@@ -2491,7 +2491,6 @@ $('#mensajeExito .confirmar').click(function(e){
     // $('#boton_cargar').trigger('click');
 
     limpiarModalJuego();
-    limpiarModalProgresivo();
     limpiarModalGliSoft();
     limpiarModalGliHard();
     limpiarModalFormula();

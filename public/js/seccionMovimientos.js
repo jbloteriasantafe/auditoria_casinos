@@ -367,8 +367,6 @@ $(document).on('click','.detalle',function(){
 
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
         console.log(data);
-        //mostrarProgresivo(data.progresivo,data.tipo_progresivo,data.niveles,false);
-        //habilitarControles(false);
         $('#modalExpediente').modal('show');
     });
 });
@@ -998,35 +996,7 @@ $('#btn-buscar').click(function(e){
     }
 
     function limpiarAlertas(){
-      $('#nombre_progresivo').removeClass('alerta');
-      $('#alerta-nombre_progresivo').text('');
-      $('#alerta-nombre_progresivo').hide();
-
-      $('#columna .NivelProgresivo').each(function(){
-        $(this).find('#nro_nivel').removeClass('alerta');
-        $(this).find('#nombre_nivel').removeClass('alerta');
-        $(this).find('#porc_oculto').removeClass('alerta');
-        $(this).find('#porc_visible').removeClass('alerta');
-        $(this).find('#base').removeClass('alerta');
-        $(this).find('#maximo').removeClass('alerta');
-      });
       $('.alertaTabla').remove();
-    }
-
-    function mostrarProgresivo(progresivo,tipo_progresivo,niveles,editable){
-      $('#id_progresivo').val(progresivo.id_progresivo);
-      $('#nombre_progresivo').val(progresivo.nombre_progresivo);
-      $('#selectTipoProgresivos').val(tipo_progresivo.id_tipo_progresivo);
-      //niveles
-      for(var index=0; index<niveles.length; index++){
-        agregarNivelProgresivo(niveles[index],editable);
-      }
-      if(niveles.length == 0){
-        $('#tablaNivelesProgresivoEncabezado').hide();
-      }
-      else{
-        $('#tablaNivelesProgresivoEncabezado').show();
-      }
     }
 
     function agregarDisposicion(disposicion, editable){

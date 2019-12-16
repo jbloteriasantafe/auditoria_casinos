@@ -152,10 +152,8 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
              <div class="modal-content">
                 <div class="modal-header" style="padding-bottom: 0px !important;">
 
-                  <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
 
-                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                   <h3 class="modal-title" style="color: #fff; text-align:center">NUEVA MÁQUINA TRAGAMONEDAS</h3>
 
                   <style media="screen">
@@ -221,7 +219,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <i id="error_nav_formula" class="fa fa-times" style="color:red;"></i>
                               <a href="" id="navFormula"><h4>FÓRMULA</h4></a>
                         </div>
-                        <div width="10%" "display: none;">
+                        <div width="10%" style="display: none;">
                           <i id="error_nav_paquete_juego" class="fa fa-times" style="color:#F44336;"></i>
                           <a href="" id="navPaqueteJuegos"><h4>PAQUETE-JUEGOS</h4></a>
                         </div>
@@ -236,7 +234,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                       <!-- PASO 1 | MÁQUINA -->
                       <div class="seccion" id="secMaquina">
-                        <!-- <form id="frmMaquina" name="frmMaquina" class="form-horizontal" novalidate=""> -->
                           <div class="row">
                               <div class="col-md-12">
                                 <h6>DETALLES DE LA MÁQUINA</h6>
@@ -398,7 +395,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                       <!-- PASO 2 | ISLA-->
                       <div class="seccion" id="secIsla">
-
                         <div id="" data-agregado="false" style="padding: 5px 0px 30px 0px;">
                             <div class="row">
                                 <div class="col-md-12">
@@ -440,166 +436,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                                 </div>
                             </div>
 
-                        </div>
-
-                        <!-- CREAR O BUSCAR Isla-->
-                        <div id="agregarIsla" style="cursor:pointer;" data-toggle="collapse" data-target="#islaPlegado">
-                            <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                                <div class="col-md-12">
-                                    <h6 id="tituloAgregar">AGREGAR ISLA<i class="fa fa-fw fa-angle-down"></i></h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="islaPlegado" class="collapse">
-                            <div class="row" style="padding-bottom: 15px;">
-                              <br>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <h5>Casino</h5>
-                                        <select class="form-control" id="selectCasino">
-                                         <option value="0">- Seleccione el casino -</option>
-                                         <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                         @foreach ($usuario['usuario']->casinos as $casino)
-                                         <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                         @endforeach
-                                         </select>
-                                         <br>
-                                        <span id="alerta_casinos" class="alertaSpan"></span>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <h5>Sector</h5>
-                                      <select class="form-control" id="sector" >
-                                        <option value="0">- Sectores del Casino -</option>
-                                      </select>
-                                      <span id="alerta_sector" class="alertaSpan"></span>
-                                    </div>
-
-                                </div>
-
-                                <br>
-
-                                <div class="row">
-                                    <div class="col-md-3">
-                                      <h5>Número de isla</h5>
-                                      <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off">
-                                      <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" />
-                                      <datalist id="soft"> </datalist> -->
-
-                                      <br>
-                                      <span id="alerta_nro_isla" class="alertaSpan"></span>
-                                    </div>
-
-                                    <div class="col-md-3">
-                                      <h5>Sub isla</h5>
-                                      <input id="sub_isla" type="text" class="form-control" placeholder="Número de isla">
-                                      <br>
-                                      <span id="alerta_nro_isla" class="alertaSpan"></span>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                      <h5>Agregar Máquina</h5>
-                                      <div class="row">
-                                        <div class="col-xs-9">
-                                          <input id="inputMaquina" data-maquina=""  class="form-control" type="text" autocomplete="off" placeholder="Buscar máquinas"/>
-                                        </div>
-                                        <div class="col-xs-3">
-                                            <button id="cancelarMaquina" class="btn btn-danger borrarFila borrarInputIsla" type="button"><i class="fa fa-fw fa-times"></i></button>
-                                            <button id="agregarMaquina" class="btn btn-success borrarFila agregarInputIsla" type="button"><i class="fa fa-fw fa-plus"></i></button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div id="infoCambioSector" hidden class="col-md-12">
-                                        <i class="fa fa-exclamation" style="margin-left:10px; margin-right:10px;color:#FF9100;margin-top:10px;"></i>
-                                        <p style="color:#FF9100;margin-top:10px;">Está cambiando la ISLA a otro SECTOR</p>
-                                    </div>
-                                </div>
-
-                                <br><br>
-
-                                <div id="maquinasEnIsla" class="row">
-                                    <div class="col-xs-12">
-                                      <h6>MÁQUINAS EN LA ISLA</h6>
-                                      <br>
-                                        <table id="tablaMaquinasDeIsla" class="table">
-                                            <thead>
-                                                <tr>
-                                                  <th width="15%"></th>
-                                                  <th width="15%">NÚMERO</th>
-                                                  <th width="25%">MARCA</th>
-                                                  <th width="30%">MODELO</th>
-                                                  <th width="15%">ACCIÓN</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr id="0" class="actual">
-                                                  <td>
-                                                    <i class="fa fa-star" style="color:#FB8C00;position:relative;left:-1px;"></i>
-                                                    <span style="color:#aaa; margin-left:10px;">Actual</span>
-                                                  </td>
-                                                  <td>-</td>
-                                                  <td>-</td>
-                                                  <td>-</td>
-                                                  <td></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- <div class="col-md-4 col-md-offset-1">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Casino</h5>
-                                            <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" />
-                                            <datalist id="soft"> </datalist>
-                                            <span id="alerta_codigo_soft" class="alertaSpan"></span>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Observaciones</h5>
-                                            <textarea id="observaciones" class="form-control" rows="10" style="resize:none; height:80px;" placeholder="Observaciones"></textarea>
-                                            <span id="alerta_observaciones" class="alertaSpan"></span>
-                                        </div>
-                                    </div>
-                                </div> -->
-
-                            </div>
-
-                            <style media="screen">
-                                  .modal-body .btn-success{
-                                      border: none;
-                                      font-family: Roboto-Condensed;
-                                      font-size: 15px;
-                                      font-weight: bold;
-                                  }
-                                  .modal-body .btn-danger{
-                                      border: none;
-                                      font-family: Roboto-Condensed;
-                                      font-size: 15px;
-                                      font-weight: bold;
-                                  }
-
-
-                            </style>
-
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button id="btn-cancelarIsla" class="btn btn-danger" type="button" name="button" style="display: none;">
-                                        <i class="fa fa-fw fa-times" style="position:relative; left:-1px; top:-1px;"></i> LIMPIAR CAMPOS
-                                    </button>
-                                    <button id="btn-crearIsla" class="btn btn-success" type="button" name="button" style="display: none;">
-                                        <i class="fa fa-fw fa-plus" style="position:relative; left:-1px; top:-1px;"></i> CREAR ISLA
-                                    </button>
-                                    <button id="btn-agregarIsla" class="btn btn-success" type="button" name="button" style="display: none;">
-                                        <i class="fa fa-fw fa-arrow-up" style="position:relative; left:-1px; top:-1px;"></i> AGREGAR ISLA
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                       </div> <!-- / PASO 2 | ISLA -->
                        <!-- PASO  | PAQUETE JUEGO -->
@@ -726,177 +562,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                           </div>
                       </div> <!-- / PASO 2 | JUEGO -->
 
-                      <!-- PASO 3 | PROGRESIVO -->
-                      <div class="seccion" id="secProgresivo">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <h6>PROGRESIVO</h6>
-                              <div id="tablaProgresivoSeleccionado" class="row" style="margin-bottom: 15px;" hidden="true">
-                                  <div class="col-xs-2 col-xs-offset-1">
-                                      <h5>Progresivo</h5>
-                                      <p id="progresivoSeleccionado"></p>
-                                  </div>
-                                  <div class="col-xs-3">
-                                      <h5>Tipo de Progresivo</h5>
-                                      <p id="tipoSeleccionado"></p>
-
-                                  </div>
-                                  <div class="col-xs-2">
-                                      <h5>Máximo</h5>
-                                      <p id="maximoSeleccionado"></p>
-
-                                  </div>
-                                  <div class="col-xs-2">
-                                      <h5>% Recup.</h5>
-                                      <p id="porc_recuperacionSeleccionado"></p>
-                                  </div>
-                                  <div class="col-xs-2">
-                                      <h5>Acción </h5>
-                                      <button id="editarProgresivoSeleccionado" class="btn btn-warning" type="button">
-                                        <i class="fas fa-fw fa-pencil-alt"></i>
-                                      </button>
-                                      <button id="borrarProgresivoSeleccionado" class="btn btn-danger" type="button">
-                                        <i class="fas fa-fw fa-trash"></i>
-                                      </button>
-                                  </div>
-                              </div>
-                              <div class="row" id="noexiste_progresivo">
-                                <p  style="display:block;margin-top:25px; margin-bottom:20px;"><i class="fa fa-times aviso"></i> No existe ningún progresivo activo.</p>
-                              </div>
-                              <div class="row">
-                                <div class="col-lg-10 col-lg-offset-1">
-                                  <table id="tablaNivelesSeleccionados" class="" hidden="true">
-                                      <thead>
-                                        <th class="col-lg-2">Nro Nivel</th>
-                                        <th class="col-lg-2">Nombre nivel</th>
-                                        <th class="col-lg-2">Base</th>
-                                        <th class="col-lg-2">% Visible</th>
-                                        <th class="col-lg-2">% Oculto</th>
-                                        <th class="col-lg-2"></th>
-                                      </thead>
-                                      <tbody id="nivelesSeleccionados">
-
-                                      </tbody >
-                                    </table>
-                                </div>
-                              </div>
-                          <br>
-                          <div id="seccionAgregarProgresivo" style="cursor:pointer;" data-toggle="collapse" data-target="#collapseAgregarProgresivo">
-                              <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
-                                  <div class="col-md-12">
-                                      <h6>AGREGAR PROGRESIVO<i class="fa fa-fw fa-angle-down"></i></h6>
-                                  </div>
-                              </div>
-                          </div>
-                          <div id="collapseAgregarProgresivo" class="collapse">
-                            <div class="row">
-                              <div class="col-md-6 col-lg-6">
-                                <h5>Nombre Progresivo</h5>
-                                <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
-                                <br>
-                                <!-- <div id="alerta-nombre_progresivo" class="alert alert-danger"><span></span></div> -->
-                                <span id="alerta-nombre-progresivo" class="alertaSpan"></span>
-                              </div>
-                              <div class="col-md-6 col-lg-6">
-                                <h5>Tipo Progresivo</h5>
-                                <select class="form-control" id="selectTipoProgresivos">
-                                  <option value="0">-Seleccione un tipo-</option>
-                                  @foreach ($tipo_progresivos as $tipo_progresivo)
-                                  <option value="{{$tipo_progresivo}}">{{$tipo_progresivo}}</option>
-                                  @endforeach
-                                </select>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-xs-6 col-md-6 col-lg-6">
-                                <h5>Porcentaje Recuperación</h5>
-                                <input id="porcentaje_recuperacion" type="text" class="form-control" placeholder="Porcentaje recuperación">
-                              </div>
-                              <div class="col-xs-6 col-md-6 col-lg-6">
-                                <h5>Valor Máximo</h5>
-                                <input id="maximo" type="text" class="form-control" placeholder="Valor Máximo">
-                              </div>
-
-                            </div>
-                            <br>
-                            <div hidden="true" id="cuerpo_individual">
-                              <div class="row">
-                                <div class="col-xs-6 col-md-6 col-lg-6">
-
-                                  <h5>Buscador Islas <i class="fa fa-fw fa-search"></i></h5>
-                                  <div class="row">
-
-                                    <div class="input-group">
-                                        <input id="input-datos-grupo" class="form-control buscadorIsla" type="text" value="" autocomplete="off">
-                                        <span class="input-group-btn">
-                                          <button class="btn btn-default btn-lista-datos agregarIsla" type="button"><i class="fa fa-plus"></i></button>
-                                        </span>
-                                    </div>
-
-                                  </div>
-                                  <br>
-                                  <h5>Buscador Maquinas <i class="fa fa-fw fa-search"></i></h5>
-                                  <div class="row">
-                                    <div class="input-group">
-                                        <input id="input-datos-grupo" class="form-control buscadorMaquina" type="text" value="" autocomplete="off">
-                                        <span class="input-group-btn">
-                                          <button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>
-                                        </span>
-                                    </div>
-                                  </div>
-
-                                </div>
-
-                                <div id="" class="col-md-6 col-lg-6">
-                                  <div class="row">
-                                    <div class="col-md-8 col-lg-8">
-                                      <h5>Maquinas Seleccionadas:</h5>
-                                    </div>
-                                    <div class="col-md-4 col-lg-4 errorVacio">
-
-                                    </div>
-                                  </div>
-                                  <ul class="listaMaquinas">
-                                  </ul>
-                                </div>
-                              </div>
-                              <br>
-                              <div class="row">
-                                  <div class="col-lg-12">
-                                      <h5>Niveles Progresivo <button class="btn btn-success btn-agregarNivelProgresivo" type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                                      <div class="columna">
-                                      </div>
-                                  </div>
-                              </div>
-
-                            </div>
-                            <div hidden="true" id="cuerpo_linkeado">
-                              <!-- comienzo seccdio invididual -->
-                              <div class="row">
-                                <h5>Nuevo Pozo:  <button id="btn-agregarPozo" class="btn btn-success  " type="button"><i class="fa fa-fw fa-plus"></i> Agregar</button></h5>
-                              </div>
-
-                             <div id="contenedorPozos" class="">
-
-                             </div>
-                              <!-- fin despaleable pozos-->
-                            </div>
-                            <button id="btn-cancelarProgresivo" class="btn btn-danger" type="button" name="button">
-                                <i class="fa fa-fw fa-times"></i> LIMPIAR CAMPOS
-                            </button>
-                            <button id="btn-agregarProgresivo" class="btn btn-successAceptar" type="button" name="button">
-                                <i class="fa fa-fw fa-arrow-up"></i> AGREGAR PROGRESIVO
-                            </button>
-                            <button id="btn-crearProgresivo" class="btn btn-successAceptar" type="button" name="button">
-                              <i class="fa fa-fw fa-plus"></i> CREAR PROGRESIVO
-                            </button>
-
-                            </div>
-                          </div>
-                        </div>
-                      </div> <!-- / PASO 3 | Progresivo -->
-
-                      <!-- / PASO 4 | SOFT -->
+                      <!-- / PASO 3 | SOFT -->
                       <div class="seccion" id="secSoft">
 
                         <div id="listaSoftMaquina" data-agregado="false" style="padding: 5px 0px 30px 0px;">
@@ -933,8 +599,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                             </div>
                         </div>
                       </div> <!-- / PASO 4 | soft -->
-
-
 
                       <!-- PASO 5 | HARD -->
                       <div class="seccion" id="secHard">
@@ -1178,7 +842,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
     <script src="/js/seccionMaquinas-GliSoftNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-GliHardNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-Progresivo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
