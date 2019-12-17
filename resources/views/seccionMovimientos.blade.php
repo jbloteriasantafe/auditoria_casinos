@@ -246,13 +246,13 @@
                       <div class="col-xs-6">
                         <h5>Casino</h5>
                         <select class="form-control" id="selectCasinoIngreso">
-                           <option class="default1" value="3">- Seleccione el casino -</option>
+                           <option class="default1" value="">- Seleccione el casino -</option>
                          </select>
                       </div>
                       <div class="col-xs-6">
                         <h5>TIPO MOVIMIENTO</h5>
                         <select id="tipo_movimiento_nuevo" class="form-control" name="">
-                          <option class="default2" value="7">- Seleccione el Tipo -</option>
+                          <option class="default2" value="">- Seleccione el Tipo -</option>
                         </select>
                         <br>
                       </div>
@@ -1140,7 +1140,6 @@
                               <input id="M_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
                               <input id="M_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
                           </div>
-                          <!-- <ul id="listaExpedientes"></ul> -->
 
                         </div>
                              <!-- fin de la columna  -->
@@ -1275,9 +1274,6 @@
                                 <div class="col-md-3">
                                   <h5>Número de isla</h5>
                                   <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off">
-                                  <!-- <input id="inputSoft" data-soft="" class="form-control" type="text" list="soft" autocomplete="off" placeholder="Código de certificado" />
-                                  <datalist id="soft"> </datalist> -->
-
                                   <br>
                                   <span id="alerta_nro_isla" class="alertaSpan"></span>
                                 </div>
@@ -1574,6 +1570,8 @@
     //Stubs para seccionMaquinas-Modal, porque no se usan/envian cuando se hace el alta estos datos
     function limpiarModalGliSoft(){};
     function limpiarModalGliHard(){};
+    function habilitarControlesGliSoft(){};
+    function habilitarControlesGliHard(){};
     function obtenerDatosGliHard(){
       return {id_gli_hard : null,nro_certificado: null,file: null,nombre_archivo: null};
     };

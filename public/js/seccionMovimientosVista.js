@@ -201,14 +201,10 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
 
         $('#modalCas').modal('hide');
         $('#mensajeExito').show();
-
-
       },
       error: function(data){
-
-          $('#mensajeError p').text('Debe seleccionar un casino');
-          $('#mensajeError').show();
-
+        $('#mensajeError p').text('Debe seleccionar un casino y un tipo de movimiento');
+        $('#mensajeError').show();
       }
     })
 

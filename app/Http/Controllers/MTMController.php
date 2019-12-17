@@ -367,218 +367,87 @@ class MTMController extends Controller
           'marca'=> 'required|max:45',
           'modelo' => 'required|max:60',
           'mac' => 'nullable|max:100',
-          'id_unidad_medida' => 'required|in:1,2',
+          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
+          'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
           'juega_progresivo' => 'required|boolean',
-          'id_tipo_gabinete'=> 'nullable',
-          'id_tipo_maquina' => 'nullable',
+          'id_tipo_gabinete'=> 'nullable|exists:tipo_gabinete,id_tipo_gabinete',
+          'id_tipo_maquina' => 'nullable|exists:tipo_maquina,id_tipo_maquina',
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' => 'nullable',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
-          'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
-          'id_sector' => 'required|exists:sector,id_sector',
-          'nro_isla' => 'required',
-          'codigo' => 'nullable', //codigo sub isla
-          'maquinas' => 'nullable',
-          'maquinas.*' => 'exists:maquina,id_maquina',
+          'id_isla' => 'required|exists:isla,id_isla',
           'juego' => 'array|required',
-          'juego.*.id_juego' => 'required', //validar que es id valido
-          'juego.*.nombre_juego' => 'required',
-          'juego.*.activo' => 'in:1,0',
-          'juego.*.cod_identificacion' => ['nullable','regex:/^\d(.|-|_|\d)*$/','unique:juego,cod_identificacion','max:100'],
-          'juego.*.tabla.*.id_tabla' => 'nullable',
-          'juego.*.tabla.*.nombre_tabla' => 'required',
-          'formula.id_formula' => 'required',
-          'formula.cuerpoFormula' => 'required',
+          'juego.*.id_juego' => 'required|exists:juego,id_juego',
+          'juego.*.activo' => 'required|in:1,0',
+          'formula.id_formula' => 'required|exists:formula,id_formula',
       ],array(),self::$atributos)->after(function($validator){
-        $id_casino = $validator->getData()['id_casino'];
+        $data = $validator->getData();
+        $id_casino = $data['id_casino'];
         $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
-                                      ['nro_admin' ,'=', $validator->getData()['nro_admin']]])
+                                      ['nro_admin' ,'=', $data['nro_admin']]])
                                       ->whereNull('deleted_at')
                                       ->get();
-
-
         if($duplicados->count() >= 1){
           $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
         }
+        //TODO: Validar casino tiene acceso a medida,a moneda?
+        //TODO: Validar usuario tiene acceso a la isla? al juego? a la formula?
+    })->validate();
 
-        //validacion datos de isla
+    $MTM = null;
+    $cantidad = null;
+    DB::transaction(function () use ($request,$MTM,$cantidad) {
+      $MTM                   = new Maquina;
+      $MTM->nro_admin        = $request->nro_admin;
+      $MTM->marca            = $request->marca;
+      $MTM->marca_juego      = $request->marca_juego;
+      $MTM->modelo           = $request->modelo;
+      $MTM->desc_marca       = $request->desc_marca;
+      $MTM->nro_serie        = $request->nro_serie;
+      $MTM->mac              = $request->mac;
+      $MTM->denominacion     = $request->denominacion;
+      $MTM->juega_progresivo = $request->juega_progresivo;
+      $MTM->save();
 
-        $reglas = array();
-        $reglas[] = ['id_casino' , '=' , $validator->getData()['id_casino']];
-        $reglas[] = ['nro_isla' , '=' , $validator->getData()['nro_isla']];
-        if($validator->getData()['codigo'] != ''){
-          $reglas[] = ['codigo' , '=' , $validator->getData()['codigo']];
-        }
-
-        if($validator->getData()['id_isla'] != 0){
-          $reglas[] = ['id_isla' , '<>' , $validator->getData()['id_isla']];
-        }
-
-        $isla_db = Isla::where($reglas)->get();
-
-        if($isla_db->count() > 1){
-          $validator->errors()->add('nro_isla', 'Se encontró un error con la base de datos.(Más de una isla con mismo nro)');
-        }
-
-      })->validate();
-
-    //SI EXISTE FORMULA LA BUSCA SI NO CREA
-    $formula=null;
-    switch ($request->formula['id_formula']){
-      case 'undefined':
-        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
-        break;
-      case '':
-        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
-      break;
-      case null:
-        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
-      break;
-      default:
-        $formula=Formula::find($request->formula['id_formula']);
-        break;
-    }
-
-    //el admin tiene la opcion de gestionar islas -> pedido por rosario.
-    if($request->modificado == 1){
-      $unaIsla= Isla::find($request->id_isla);
-    }else {//estoy usando una isla ya creada (sin modificar)
-      $unaIsla= Isla::find($request->id_isla);
-    }
-
-    //SI EXISTE GLISOFT LA BUSCA SI NO CREA
-    switch ($request->gli_soft['id_gli_soft']){
-      case 'undefined':break;
-      case '':break;
-      case 0:
-        $gli_soft=GliSoftController::getInstancia()->guardarGliSoft_gestionarMaquina($request->gli_soft['nro_certificado'],$request->gli_soft['observaciones'],$request->gli_soft['file']);
-        break;
-      default:
-        $gli_soft=GliSoft::find($request->gli_soft['id_gli_soft']);
-        break;
-    }
-
-    //GLIHARD:      SI EXISTE GLIHARD BUSCA, SI NO CREA
-    $gli_hard = null;
-    switch ($request->gli_hard['id_gli_hard']){
-      case 'undefined':break;
-      case '':break;
-      case null: break;
-      case "null": break;
-      case 0:
-        $gli_hard=GliHardController::getInstancia()
-        ->guardarNuevoGliHard($request->gli_hard['nro_certificado'],null,$request->gli_hard['file']);
-        break;
-      default:
-        $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
-        break;
-    }
-
-    $i=0;
-
-    $MTM= new Maquina;
-
-    $juegos= array(); //arreglo con todos los juegos,
-
-    $juegos_finales=array();
-    //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
-    foreach ($request['juego'] as $unJuego){
-        if($unJuego['id_juego']==0){// 0 es juego nuevo
-
-          $juego=JuegoController::getInstancia()->guardarJuego_gestionarMAquina($unJuego['nombre_juego'],$unJuego['tabla']);
-          if($unJuego['activo']==1){
-              $juegoActivo=$juego;
+      $juegos  = array(); //arreglo con todos los juegos
+      foreach ($request['juego'] as $unJuego) {
+          $juego = Juego::find($unJuego['id_juego']);
+          if($unJuego['activo'] == 1){
               $MTM->juego_activo()->associate($juego->id_juego);
           }
-          $juegos_finales[] = ($juego->id_juego);
-        }else{
-          if($unJuego['id_juego']>=1){
-            $juego=Juego::find($unJuego['id_juego']);
-            if($unJuego['activo']==1){//usuario viejo y activo
-              $juegoActivo=$juego;
-              $MTM->juego_activo()->associate($juego->id_juego);
-            }
+          $id_pack_juego = null;
+          $juegos[$juego->id_juego] = [
+            'denominacion' => $unJuego['denominacion'], 
+            'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'], 
+            'id_pack' => $id_pack_juego
+          ];
+      }
 
-            $id_pack_juego=null;
+      $MTM->unidad_medida()->associate($request->id_unidad_medida);
+      $MTM->tipoMoneda()->associate($request->id_tipo_moneda);
+      $MTM->casino()->associate($request->id_casino);
+      $MTM->juegos()->sync($juegos);
+      $MTM->isla()->associate($request->id_isla);
+      $MTM->formula()->associate($$request->formula['id_formula']);
+      $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->viene a ser un estado PENDIENTE DE HABILITACION
+      if(!empty($request->id_tipo_gabinete)){$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);}
+      if(!empty($request->id_tipo_maquina) ){$MTM->tipoMaquina()->associate($request->id_tipo_maquina);}
+      if(!empty($request->expedientes))     {$MTM->expedientes()->sync($request->expedientes);}
+      if(!empty($request->notas))           {$MTM->notas()->sync($request->notas);}
+      if($request->marca_juego == ""){
+        $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $MTM->juego_activo->nombre_juego;
+      }else{
+        $MTM->marca_juego = $request->marca_juego;
+      }
+      $MTM->save();
 
-            $juegos_finales[ $juego->id_juego] = ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego];
-          }
-        }
-        if(isset($gli_soft)){
-          $juego->agregarGliSofts([$gli_soft],false);
-          $juego->save();
-        }
-    }
-
-    if(isset($gli_soft)){
-      $MTM->gliSoftOld()->associate($gli_soft->id_gli_soft);
-    }
-    if(isset($gli_hard)){
-      $MTM->gliHard()->associate($gli_hard->id_gli_hard);
-    }
-
-    $MTM->nro_admin = $request->nro_admin;
-    $MTM->marca = $request->marca;
-    $MTM->marca_juego = $request->marca_juego;
-    $MTM->modelo = $request->modelo;
-    $MTM->desc_marca = $request->desc_marca;
-    $MTM->id_unidad_medida = $request->id_unidad_medida;
-    $MTM->nro_serie = $request->nro_serie;
-    $MTM->mac = $request->mac;
-    $MTM->denominacion = $request->denominacion;
-    $MTM->juega_progresivo = $request->juega_progresivo;
-    $MTM->id_isla=$unaIsla->id_isla;
-    $MTM->id_juego=$juegoActivo->id_juego;
-    $MTM->id_tipo_moneda = $request->id_tipo_moneda;
-    $MTM->id_casino = $request->id_casino;
-    $MTM->save();
-    $MTM->formula()->associate($formula);
-    $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->viene a ser un estado PENDIENTE DE HABILITACION
-    if($request->id_tipo_gabinete != 0)$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
-    if($request->id_tipo_maquina != 0) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
-
-    $MTM->juegos()->sync($juegos_finales);
-
-
-    //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
-    switch ($request->id_progresivo) {
-      case 'undefined':break;
-      case '':break;
-      case -1:break;
-      case 0:
-        $progresivo= ProgresivoController::getInstancia()->guardarProgresivo_gestionarMaquina($request->nombre_progresivo,$request->id_tipo, $request->progresivo['niveles'] , $MTM);
-        break;
-      default:
-        $progresivo= ProgresivoController::getInstancia()->modificarNivelesProgresivos_gestionarMaquina($request->id_progresivo,$request->nombre_progresivo,$request->id_tipo, $request->progresivo['niveles'] , $MTM);
-        break;
-    }
-
-    if(!empty($request->expedientes)){
-      $MTM->expedientes()->sync($request->expedientes);
-    }
-
-    if(!empty($request->notas)){
-      $MTM->notas()->sync($request->notas);
-    }
-
-    $razon = "La maquina se creo manualmente.";
-
-    LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
-
-    if($request->marca_juego == ""){
-        $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $juegoActivo->nombre_juego;
-    }else{
-      $MTM->marca_juego =$request->marca_juego;
-    }
-
-    $MTM->save();
-
-    $cantidad = LogMovimientoController::getInstancia()->guardarRelevamientoMovimientoIngreso($request['id_log_movimiento'],$MTM->id_maquina);
-     //para el log de movimiento buscar maquinas restantes
-
+      $razon = "La maquina se creo manualmente.";
+      LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
+      $cantidad = LogMovimientoController::getInstancia()->guardarRelevamientoMovimientoIngreso($request['id_log_movimiento'],$MTM->id_maquina);
+    });
     return ['maquina' => $MTM , 'cantidad' =>$cantidad ];
   }
 

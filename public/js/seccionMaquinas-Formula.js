@@ -79,31 +79,20 @@ $('#inputFormula').on("keypress" , function(e){
 $('.agregarFormula').click(function(){
     var inputFormula = $('#inputFormula').val() ;
     console.log('inp',inputFormula);
-    // if(typeof inputFormula.split(/[-+]+/)[1] != 'undefined' && inputFormula.split(/[-+]+/)[1] != ""){
-    //   $('#formulaSeleccionada').text($('#inputFormula').val());
-    //   $('#formulaSeleccionada').attr('data-id', $('#inputFormula').obtenerElementoSeleccionado());
-    //   $('#borrarFormulaSeleccionada').css('display','inline');
-    //   $('#inputFormula').setearElementoSeleccionado(0,""); //limpia input
-    // }else{
-    //   mostrarErrorValidacion($('#inputFormula'), 'Formato Incorrecto.' , true);
-    // }
     //se valida a partir del id valido, 0 corresponde a vacio o algo no recuparo desde la base de datos
-      if($('#inputFormula').attr('data-elemento-seleccionado')!='0'){
-        $('#formulaSeleccionada').text($('#inputFormula').val());
-      $('#formulaSeleccionada').attr('data-id', $('#inputFormula').obtenerElementoSeleccionado());
-      $('#borrarFormulaSeleccionada').css('display','inline');
-      $('#inputFormula').setearElementoSeleccionado(0,""); //limpia input
-      }else{
-        mostrarErrorValidacion($('#inputFormula'), 'Formato Incorrecto.' , true);
-      }
-
-
+    if($('#inputFormula').attr('data-elemento-seleccionado')!='0'){
+      $('#formulaSeleccionada').text($('#inputFormula').val());
+    $('#formulaSeleccionada').attr('data-id', $('#inputFormula').obtenerElementoSeleccionado());
+    $('#borrarFormulaSeleccionada').css('display','inline');
+    $('#inputFormula').setearElementoSeleccionado(0,""); //limpia input
+    }else{
+      mostrarErrorValidacion($('#inputFormula'), 'Formato Incorrecto.' , true);
+    }
 });
 
 //Botón para borrar la formula seleccionada
 $('#borrarFormulaSeleccionada').click(function(){
     var formula=$('#formulaSeleccionada').text();
-
     $('#formulaSeleccionada').text('No existe formula seleccionada.');
     $('#formulaSeleccionada').attr('data-id' , '');
     $('#borrarFormulaSeleccionada').css('display','none');

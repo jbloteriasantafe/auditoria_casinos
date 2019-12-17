@@ -523,8 +523,11 @@ function parseError(response){
   else if(response == 'validation.max.string'){
     return 'El valor es muy largo.'
   }
+  else if(response == 'validation.exists'){
+    return 'El valor no es valido';
+  }
   else{
-    return null;
+    return response;
   }
 }
 
