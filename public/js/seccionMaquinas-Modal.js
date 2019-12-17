@@ -200,53 +200,38 @@ $('#btn-guardar').click(function(e){
       success: function(data){
           console.log(data);
           if(data.cantidad==0){
-
-            var id=  $('#modalMaquina').find('#id_movimiento').val();
-
+            const id=$('#modalMaquina').find('#id_movimiento').val();
             $('#'+ id).find('.boton_cargar').remove();
-
           }
-           $('#btn-buscar').trigger('click');
+          $('#btn-buscar').trigger('click');
 
           //Si estuvo bien:
-              // 1. Cerrar el modal de máquina.
-              // 2. Mostrar el modal de éxtio de carga de máquina.
+          // 1. Cerrar el modal de máquina.
+          // 2. Mostrar el modal de éxtio de carga de máquina.
           $('#modalMaquina').modal('hide');
 
           if(state == 'nuevo'){
-
-              $('#mensajeExito h3').text('ÉXITO DE CARGA');
-
-              var p;
-
-              if (data.cantidad != 0) {
-                  //Mostrar los botones en el mensaje de éxito
-                  $('#mensajeExito').addClass('fijarMensaje mostrarBotones');
-
-                  if (data.cantidad == 1) {
-                    p = '<p>La máquina se dio de alta correctamente. Queda '
-                            +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">1</span> '
-                            +'máquina pendiente para cargar.'
-                  }else {
-                    p = '<p>La máquina se dio de alta correctamente. Quedan '
-                            +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">'+ data.cantidad +'</span> '
-                            +'máquinas pendientes para cargar. Los datos de DETALLE MTM serán los de la MTM anterior, para facilitar la carga. Deberá modificar los que corresponda.'
-                  }
+              if(data.cantidad != 0){
+                if(data.cantidad == 1){
+                  const mensaje = 'La máquina se dio de alta correctamente. Queda '
+                  +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">1</span> '
+                  +'máquina pendiente para cargar.';
+                  mensajeExito('ÉXITO DE CARGA',mensaje,true);
+                }
+                else{
+                  const mensaje = 'La máquina se dio de alta correctamente. Quedan '
+                  +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">'
+                  + data.cantidad 
+                  +'</span> '
+                  +'máquinas pendientes para cargar. Los datos de DETALLE MTM serán los de la MTM anterior, para facilitar la carga. Deberá modificar los que corresponda.'
+                  mensajeExito('ÉXITO DE CARGA',mensaje,true);
+                }
               }
-              else {
-                  //Ocultar los botones en el mensaje de éxito
-                  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-
-                  p = '<p>Se cargaron todas las máquinas con éxito.</p>'
+              else{
+                mensajeExito('ÉXITO DE CARGA','Se cargaron todas las máquinas con éxito.',false)
               }
-
-              $('#mensajeExito p').replaceWith(p);
         }else{
-          //Ocultar los botones en el mensaje de éxito
-          $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-
-          $('#mensajeExito h3').text('ÉXITO DE CARGA');
-          $('#mensajeExito p').text("Se ha modificado correctamente la máquina.");
+          mensajeExito('ÉXITO DE CARGA','Se ha modificado correctamente la máquina.',false);
         }
 
         $('#mensajeExito').show();
@@ -403,8 +388,8 @@ function habilitarControles(valor){
   habilitarControlesFormula(valor);
 }
 
-function mostrarMaquina(data, accion){// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
-      console.log("entra al function mostrar maq");
+// funcion que setea datos de la maquina de todos los tabs . Accion puede ser modificar o detalle
+function mostrarMaquina(data, accion){
   if(data.maquina.id_pack==null){
     $('#navPaqueteJuegos').attr('hidden',true);
     $('#navJuego').attr('hidden',false);
@@ -545,4 +530,15 @@ function parseError(response){
 
 function tieneValor(val){
   return typeof val !== 'undefined';
+}
+
+function mensajeExito(titulo,parrafo,mostrar_botones){
+  if(mostrar_botones){
+    $('#mensajeExito').addClass('fijarMensaje mostrarBotones');
+  }
+  else{
+    $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
+  }
+  $('#mensajeExito h3').text(titulo);
+  $('#mensajeExito p').text(parrafo);
 }
