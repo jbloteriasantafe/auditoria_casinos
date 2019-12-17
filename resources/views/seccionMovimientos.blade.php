@@ -1132,9 +1132,8 @@
 
                         <div class="col-lg-4">
 
-                          <h5>Expedientes del CERTIFICADO SOFT</h5>
+                          <h5>Expedientes</h5>
 
-                          <!-- <h5>Número de expediente</h5> -->
                           <div id="M_expediente" class="input-group triple-input">
                               <input id="M_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
                               <input id="M_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />

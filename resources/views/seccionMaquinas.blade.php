@@ -374,7 +374,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
                               <div class="row">
                                 <div class="col-xs-12">
-                                  <h5>Expedientes del CERTIFICADO SOFT</h5>
+                                  <h5>Expedientes</h5>
                                   <ul id="listaExpedientes">
                                     <li class="row">
                                       <div class="col-xs-7">
