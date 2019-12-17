@@ -380,53 +380,53 @@ class MTMController extends Controller
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' => 'nullable',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
-          'id_isla' => 'required|exists:isla,id_isla',
+          'id_isla' => 'required|integer|exists:isla,id_isla',
           'juego' => 'array|required',
           'juego.*.id_juego' => 'required|exists:juego,id_juego',
           'juego.*.activo' => 'required|in:1,0',
           'formula.id_formula' => 'required|exists:formula,id_formula',
-      ],array(),self::$atributos);
-      $validator->after(function($validator){
-        $data = $validator->getData();
-        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-        $usuario_casinos = DB::table('usuario_tiene_casino')->where('id_usuario',$user->id_usuario);
-
-        $log_movimiento = LogMovimiento::find($data['id_log_movimiento']);
-        $acceso_log = (clone $usuario_casinos)->where('id_casino',$log_movimiento->id_casino)->count();
-        if($acceso_log == 0) $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');
-
-        $isla = Isla::find($data['id_isla']);
-        $acceso_isla = (clone $usuario_casinos)->where('id_casino',$isla->id_casino)->count();
-        if($acceso_isla == 0) $validator->errors()->add('id_isla', 'El usuario no puede acceder a esa isla.');
-        if($isla->id_casino != $log_movimiento->id_casino) $validator->errors()->add('id_casino','Mismatch de los casinos entre el movimiento y la isla.');
-        
-        $acceso_unidad_medida = DB::table('casino_tiene_unidad_medida')
-        ->where('id_casino',$log_movimiento->id_casino)
-        ->where('id_unidad_medida',$data['id_unidad_medida'])->count();
-        if($acceso_unidad_medida == 0) $validator->errors()->add('id_unidad_medida','El casino no tiene acceso a esa unidad de medida.');
-
-        foreach($data['juego'] as $j){
-          $juego = Juego::find($j['id_juego']);
-          $acceso_juego = $juego->casinos()->where('casino_tiene_juego.id_casino',$log_movimiento->id_casino)->count();
-          if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->id_juego);
-        }
-        $expedientes = $data['expedientes'];
-        if(!empty($expedientes)){
-          foreach($expedientes as $e){
-            $exp = Expediente::find($e['id_expediente']);
-            $acceso_expediente = $exp->casinos()->where('expediente_tiene_casino.id_casino',$log_movimiento->id_casino)->count();
-            if($acceso_expediente == 0) $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->id_expediente);
+      ],array(),self::$atributos)->after(function($validator){
+        if(!$validator->errors()->any()){
+          $data = $validator->getData();
+          $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+          $usuario_casinos = DB::table('usuario_tiene_casino')->where('id_usuario',$user->id_usuario);
+  
+          $log_movimiento = LogMovimiento::find($data['id_log_movimiento']);
+          $acceso_log = (clone $usuario_casinos)->where('id_casino',$log_movimiento->id_casino)->count();
+          if($acceso_log == 0) $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');
+  
+          $isla = Isla::find($data['id_isla']);
+          $acceso_isla = (clone $usuario_casinos)->where('id_casino',$isla->id_casino)->count();
+          if($acceso_isla == 0) $validator->errors()->add('id_isla', 'El usuario no puede acceder a esa isla.');
+          if($isla->id_casino != $log_movimiento->id_casino) $validator->errors()->add('id_casino','Mismatch de los casinos entre el movimiento y la isla.');
+          
+          $acceso_unidad_medida = DB::table('casino_tiene_unidad_medida')
+          ->where('id_casino',$log_movimiento->id_casino)
+          ->where('id_unidad_medida',$data['id_unidad_medida'])->count();
+          if($acceso_unidad_medida == 0) $validator->errors()->add('id_unidad_medida','El casino no tiene acceso a esa unidad de medida.');
+  
+          foreach($data['juego'] as $j){
+            $juego = Juego::find($j['id_juego']);
+            $acceso_juego = $juego->casinos()->where('casino_tiene_juego.id_casino',$log_movimiento->id_casino)->count();
+            if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->id_juego);
+          }
+          $expedientes = $data['expedientes'];
+          if(!empty($expedientes)){
+            foreach($expedientes as $e){
+              $exp = Expediente::find($e['id_expediente']);
+              $acceso_expediente = $exp->casinos()->where('expediente_tiene_casino.id_casino',$log_movimiento->id_casino)->count();
+              if($acceso_expediente == 0) $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->id_expediente);
+            }
+          }
+          $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
+                                        ['nro_admin' ,'=', $data['nro_admin']]])
+                                        ->whereNull('deleted_at')
+                                        ->get();
+          if($duplicados->count() >= 1){
+            $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
           }
         }
-        $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
-                                      ['nro_admin' ,'=', $data['nro_admin']]])
-                                      ->whereNull('deleted_at')
-                                      ->get();
-        if($duplicados->count() >= 1){
-          $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
-        }
-    });
-    $validator->validate();
+    })->validate();
 
     $MTM = null;
     $cantidad = null;
