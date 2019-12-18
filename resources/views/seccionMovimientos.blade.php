@@ -1211,29 +1211,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                 <h5>Acciones</h5>
                             </div>
                         </div>
-                        <!-- Informacion de isla seleccionadoa -->
-                        <div id="islaSeleccionada" class="row">
-                            <div class="col-xs-2">
-                              <p id="casinoSeleccionado"></p>
-                            </div>
-                            <div class="col-xs-2">
-                              <p id="sectorSeleccionado"></p>
-                            </div>
-                            <div class="col-xs-2">
-                              <p id="nro_islaSeleccionado"></p>
-                            </div>
-                            <div class="col-xs-2">
-                              <p id="codigoSeleccionado"></p>
-                            </div>
-                            <div class="col-xs-2">
-                              <p id="cantidad_maquinasSeleccionado"></p>
-                            </div>
-                            <div id="accionesIslaSeleccionada" class="col-xs-2">
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- CREAR O BUSCAR Isla-->
+                    <!-- BUSCAR Isla-->
                     <div id="asociarIsla" style="cursor:pointer;" data-toggle="collapse" data-target="#islaPlegado">
                         <div class="row" style="border-top: 1px solid #eee; padding-top: 15px;">
                             <div class="col-md-12" >

@@ -393,9 +393,9 @@ function eventoNuevo(movimiento, expediente){
 
   //Setear la cantidad de máquinas pendientes
   if (movimiento.cantidad == 1) {
-    $('#maquinas_pendientes').text(' ' + movimiento.cantidad + ' MÁQUINA PENDIENTE A CARGAR');
+    $('#maquinas_pendientes').text(' ' + movimiento.cant_maquinas+ ' MÁQUINA PENDIENTE A CARGAR');
   }else {
-    $('#maquinas_pendientes').text(' ' + movimiento.cantidad + ' MÁQUINAS PENDIENTES A CARGAR');
+    $('#maquinas_pendientes').text(' ' + movimiento.cant_maquinas + ' MÁQUINAS PENDIENTES A CARGAR');
   }
 
   $('#modalMaquina').modal('show');
