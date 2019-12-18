@@ -418,7 +418,7 @@ class MTMController extends Controller
               if($acceso_expediente == 0) $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->id_expediente);
             }
           }
-          $duplicados = Maquina::where([['id_casino' ,'=', $id_casino] ,
+          $duplicados = Maquina::where([['id_casino' ,'=', $log_movimiento->id_casino] ,
                                         ['nro_admin' ,'=', $data['nro_admin']]])
                                         ->whereNull('deleted_at')
                                         ->get();
@@ -430,7 +430,9 @@ class MTMController extends Controller
 
     $MTM = null;
     $cantidad = null;
-    DB::transaction(function () use ($request,$MTM,$cantidad) {
+    DB::beginTransaction();
+    try {
+      $log_movimiento        = LogMovimiento::find($request->id_log_movimiento);
       $MTM                   = new Maquina;
       $MTM->nro_admin        = $request->nro_admin;
       $MTM->marca            = $request->marca;
@@ -441,6 +443,7 @@ class MTMController extends Controller
       $MTM->mac              = $request->mac;
       $MTM->denominacion     = $request->denominacion;
       $MTM->juega_progresivo = $request->juega_progresivo;
+      $MTM->id_casino        = $log_movimiento->id_casino;
       $MTM->save();
 
       $juegos  = array(); //arreglo con todos los juegos
@@ -456,13 +459,12 @@ class MTMController extends Controller
             'id_pack' => $id_pack_juego
           ];
       }
-
       $MTM->unidad_medida()->associate($request->id_unidad_medida);
       $MTM->tipoMoneda()->associate($request->id_tipo_moneda);
       $MTM->casino()->associate($request->id_casino);
       $MTM->juegos()->sync($juegos);
       $MTM->isla()->associate($request->id_isla);
-      $MTM->formula()->associate($$request->formula['id_formula']);
+      $MTM->formula()->associate($request->formula['id_formula']);
       $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->viene a ser un estado PENDIENTE DE HABILITACION
       if(!empty($request->id_tipo_gabinete)){$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);}
       if(!empty($request->id_tipo_maquina) ){$MTM->tipoMaquina()->associate($request->id_tipo_maquina);}
@@ -474,11 +476,15 @@ class MTMController extends Controller
         $MTM->marca_juego = $request->marca_juego;
       }
       $MTM->save();
-
       $razon = "La maquina se creo manualmente.";
       LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
       $cantidad = LogMovimientoController::getInstancia()->guardarRelevamientoMovimientoIngreso($request['id_log_movimiento'],$MTM->id_maquina);
-    });
+      DB::commit();
+    } catch (Exception $e) {
+      DB::rollBack();
+      $MTM = null;
+      $cantidad = null;
+    }
     return ['maquina' => $MTM , 'cantidad' =>$cantidad ];
   }
 

@@ -145,7 +145,9 @@ $('#btn-guardar').click(function(e){
   formData.append('denominacion', $('#modalMaquina #denominacion').val());
   formData.append('porcentaje_devolucion', $('#porcentaje_devolucion').val());
   formData.append('id_estado_maquina', $('#estado').val());
-  formData.append('expedientes', expedientes);
+  for(let i=0;i<expedientes.length;i++){
+    formData.append('expedientes['+i+'][id_expediente]',expedientes[i]);
+  }
 
   formData.append('id_isla', isla['id_isla']);
   formData.append('id_casino', isla['id_casino']);
