@@ -1,28 +1,23 @@
 var juego_seleccionado;
 
 $(document).ready(function() {
-  $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
-  $('#inputJuego').setearElementoSeleccionado(0,"");
   $('#tablaJuegosActivos').hide();
-
 })
 
 // AGREGAR JUEGO A LA MÁQUINA
 $('#btn-agregarJuegoLista').click(function(){
   //Crear un item de la lista
   var id = $('#inputJuego').obtenerElementoSeleccionado();
+  const id_casino = $(this).attr('data-casino');
 
   $.get('http://' + window.location.host +'/juegos/obtenerJuego/'+ id, function(data) {
-
         agregarRenglonListaJuego(data.juego.id_juego , data.juego.nombre_juego , $('#den_sala').val() , $('#porcentaje_devolucion_juego').val() , data.tablasDePago, false);
 
         limpiarCamposJuego();
 
         $('#inputJuego').borrarDataList();
-        $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, false);
+        $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos/" + id_casino ,'resultados','id_juego','nombre_juego', 2, false);
         $('#inputJuego').setearElementoSeleccionado(0,"");
-        // $('#inputJuego').parent().find('.contenedor-data-list').hide();// lo rompe
-
     });
 
     //Se agrega a la lista de juegos
@@ -70,44 +65,36 @@ $('#inputJuego').on('seleccionado',function(){
     });
 
     //Mostrar los botones correspondientes
-    //$('#btn-cancelarJuego').show(); se comenta porque no tiene funcionalidad
     $('#btn-agregarJuegoLista').show();
     $('#btn-crearJuego').hide();
 
 });
 
-// $('#inputJuego').on('input',function(){
-//   //se ejecuta despues de que cambia el valor del input
-//   $();
-//   $();
-// })
 
 $('#inputJuego').on('deseleccionado',function(){
       console.log('deseleccionado');
-      if($('#inputJuego').val() != ''){
-
-            //se dispuso que no se pueda crear los juegos desde esta pantalla, por lo que se elimina la opcion de crear juego
-            /*
-            $('#btn-crearJuego').show();
-            $('#btn-agregarJuegoLista').hide();
-            $('#btn-cancelarJuego').show();
-            */
-      }else{
-            $('#btn-agregarJuegoLista').hide();
-            $('#btn-crearJuego').hide();
-            $('#btn-cancelarJuego').hide();
+      if($('#inputJuego').val() == ''){
+        $('#btn-agregarJuegoLista').hide();
+        $('#btn-crearJuego').hide();
+        $('#btn-cancelarJuego').hide();
       }
       $('#tablas_de_pago').show();
 });
 
-function mostrarJuegos(juegos,juego_activo){
-  //Ocultar mensaje de inexistencia de juegos
-  $('#listaJuegosMaquina').find('p').hide();
-    //Cargar juego activo
+function mostrarJuegos(id_casino,juegos,juego_activo){
+  $('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos/"+id_casino ,'resultados','id_juego','nombre_juego', 2, false);
+  $('#inputJuego').setearElementoSeleccionado(0,"");
+  $('#btn-agregarJuegoLista').attr('data-casino',id_casino);
+  //Cargar juego activo
+  if(juego_activo != null){
     agregarRenglonListaJuego(juego_activo.id_juego, juego_activo.nombre_juego, juego_activo.denominacion,juego_activo.porcentaje_devolucion , juego_activo.tablasPago, true);
-    for (var i = 0; i < juegos.length; i++) {
-      agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false);
-    }
+  }
+  for (var i = 0; i < juegos.length; i++) {
+    agregarRenglonListaJuego(juegos[i].id_juego, juegos[i].nombre_juego , juegos[i].denominacion , juegos[i].porcentaje_devolucion, juegos[i].tablasPago, false);
+  }
+  //Mensaje no hay juegos
+  if($('#tablaJuegosActivos tbody tr').length == 0) $('#listaJuegosMaquina').find('p').show();
+  else $('#listaJuegosMaquina').find('p').hide();
 }
 
 function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo){
@@ -185,7 +172,6 @@ $('#btn-agregarTablaDePago').click(function(){
 $('#btn-crearJuego').click(function(){
   //Crear un item de la lista
 
-    // var tablas = $('<select>');
     var tablas = [];
     $('#tablas_pago>div').each(function(){
         var tabla = {

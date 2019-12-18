@@ -197,12 +197,12 @@ function keyupIsla(e) {
 
 function clickLimpiarCampos(e) {
   deshabilitarComponentesIsla();
-  $('#selectCasino').val(0);
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
 
   //Ocultar botones
   $('#btn-asociarIsla').hide();
   $('#btn-cancelarIsla').hide();
+  $('#selectCasino').trigger('change');
 }
 
 function clickLimpiarCamposModalIsla(e) {
@@ -249,7 +249,6 @@ function clickAsociarIsla(e) {
 function clickEditarIsla(e) {
   maquinas_seleccionadas = [];
 
-  $('#selectCasino').prop('disabled', false);
 
   //PARA MODIFICAR
   if (modificando) {
@@ -307,8 +306,6 @@ function clickBorrarIsla(e) {
 
   //Vaciar los campos
   $('#btn-cancelarIsla').trigger('click');
-
-  $('#selectCasino').prop('disabled',false);
 
   //Mostrar la zona de llenado de datos
   $('#tablaIslaActiva').hide();

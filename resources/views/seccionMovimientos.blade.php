@@ -1,5 +1,6 @@
 <?php use App\Http\Controllers\UsuarioController;
 
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
  ?>
  @extends('includes.dashboard')
  @section('headerLogo')
@@ -66,7 +67,7 @@
                     <h5>Casino</h5>
                     <select class="form-control" id="dtpCasinoMov">
                       <option value="0" selected>- Seleccione casino -</option>
-                      @foreach ($casinos as $casino)
+                      @foreach ($usuario['usuario']->casinos as $casino)
                       <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                       @endforeach
                     </select>
@@ -1248,11 +1249,6 @@
                                 <div class="col-md-4">
                                     <h5>Casino</h5>
                                     <select class="form-control" id="selectCasino">
-                                     <option value="0">- Seleccione el casino -</option>
-                                     <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                     @foreach ($usuario['usuario']->casinos as $casino)
-                                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                     @endforeach
                                      </select>
                                      <br>
                                     <span id="alerta_casinos" class="alertaSpan"></span>

@@ -477,7 +477,7 @@ function mostrarMaquina(data, accion){
    $('#modalMaquina .modal-title').text(text);
   }
 
-  mostrarJuegos(data.juegos,data.juego_activo);
+  mostrarJuegos(data.maquina.id_casino,data.juegos,data.juego_activo);
 
   data.gli_soft != null ? mostrarGliSofts(data.gli_soft) : null;
   data.gli_hard != null ? mostrarGliHard(data.gli_hard) : null;

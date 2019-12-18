@@ -231,20 +231,20 @@ $(document).on('click', '.nuevoIngreso', function() {
 
   $.get('movimientos/obtenerDatos/'+ id_movimiento, function(data){
       $('#conceptoExpediente').text(data.expediente.concepto);
-      if(data.tipo!=null){
+      if(data.movimiento.tipo_carga!=null){
         $('#modalLogMovimiento #cantMaqCargar').show();
 
-          if(data.tipo==1){
+          if(data.movimiento.tipo_carga==1){
             $('#tipoManual').prop('checked',true).prop('disabled',true);
             $('#tipoCargaSel').prop('disabled',true);
           }
 
-          if(data.tipo==2){
+          if(data.movimiento.tipo_carga==2){
             $('#tipoCargaSel').prop('checked',true).prop('disabled',true);
             $('#tipoManual').prop('disabled',true);
           }
 
-          $("#cant_maq").val(data.cantidad).prop('disabled',true);
+          $("#cant_maq").val(data.movimiento.cantidad).prop('disabled',true);
           $('#btn-aceptar-ingreso').prop('disabled',false);
     }
     else{
@@ -345,7 +345,7 @@ $(document).on('click', '.boton_cargar', function(e){
         //muestra tab de maquinas y oculto el resto
       $.get('movimientos/obtenerDatos/'+ mov, function(data){
 
-        eventoNuevo(data.cantidad, data.expediente);
+        eventoNuevo(data.movimiento, data.expediente);
       })
 
     }
@@ -357,7 +357,7 @@ $(document).on('click', '.boton_cargar', function(e){
 
 });
 
-function eventoNuevo(cantidad, expediente){
+function eventoNuevo(movimiento, expediente){
 
   limpiarModal();
   $('#mensajeExito').hide(); //oculto mensaje exito
@@ -374,6 +374,11 @@ function eventoNuevo(cantidad, expediente){
 
   //como estoy creando id = 0
   $('#id_maquina').val(0);
+  const option_casino = $('#dtpCasinoMov option[value="'+movimiento.id_casino+'"]').clone();
+  $('#selectCasino').empty()
+  .append(option_casino).prop('disabled',true)
+  .val(movimiento.id_casino);
+  mostrarJuegos(movimiento.id_casino,[],null);
 
   $('.seccion').hide();
   $('.navModal a').removeClass();
@@ -387,10 +392,10 @@ function eventoNuevo(cantidad, expediente){
   $('#M_nro_exp_control').val(expediente.nro_exp_control).prop('readonly',true);
 
   //Setear la cantidad de máquinas pendientes
-  if (cantidad == 1) {
-      $('#maquinas_pendientes').text(' ' + cantidad + ' MÁQUINA PENDIENTE A CARGAR');
+  if (movimiento.cantidad == 1) {
+    $('#maquinas_pendientes').text(' ' + movimiento.cantidad + ' MÁQUINA PENDIENTE A CARGAR');
   }else {
-      $('#maquinas_pendientes').text(' ' + cantidad + ' MÁQUINAS PENDIENTES A CARGAR');
+    $('#maquinas_pendientes').text(' ' + movimiento.cantidad + ' MÁQUINAS PENDIENTES A CARGAR');
   }
 
   $('#modalMaquina').modal('show');
@@ -958,30 +963,11 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,n
     //select de juego
   var input = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
 
-  //   //input denominacion por si es multijuego
-  // var denominacion = $('<input>').addClass('denominacion_modificada form-control');
-  //
-  // var select2 = $('<select>').addClass('unidad_denominacion');
-  //
-  //   for (var j = 0; j <unidades.length; j++) {
-  //       var tipo = unidades[j].descripcion;
-  //       var id = unidades[j].id_unidad_medida;
-  //       select2.append($('<option>').text(tipo).val(id));
-  //   }
-  //   select2.val(unidad_seleccionada);
-  //   fila.append($('<td>').append(select));
-  //
-  //   //input devolución por si es multijuego
-  // var devolucion = $('<input>').addClass('devolución_modificada form-control').val(dev);
-
   fila.append($('<td>').append(input)); //falta el denom y el devol
 
   input.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos','id_juego','nombre_juego',1);
 
   input.setearElementoSeleccionado(id_juego,nombre_juego);
-
-  //input.setearElementoSeleccionado(0,"");
-
 
   };
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar

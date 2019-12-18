@@ -360,6 +360,20 @@ class JuegoController extends Controller
     return ['resultados' => $resultados];
   }
 
+    public function buscarJuegoPorCasinoYNombre($id_casino,$busqueda){
+      $casino = Usuario::find(session('id_usuario'))
+      ->casinos()->where('usuario_tiene_casino.id_casino',$id_casino)->get();
+      if($casino->count() == 0) return ['resultados' => []];
+
+      $resultados=Juego::distinct()
+                        ->select('juego.*')
+                        ->join('casino_tiene_juego','casino_tiene_juego.id_juego','=','juego.id_juego')
+                        ->where('casino_tiene_juego.id_casino',$casino->first()->id_casino)
+                        ->where('nombre_juego' , 'like' , $busqueda . '%')->get();
+  
+      return ['resultados' => $resultados];
+    }
+
   //busca UN juego que coincida con el nombre  @param $nombre_juego
   public function buscarJuegoPorNombre($nombre_juego){
     $resultado=Juego::where('nombre_juego' , '=' , trim($nombre_juego))->get();

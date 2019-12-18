@@ -137,7 +137,7 @@ class LogMovimientoController extends Controller
   public function obtenerDatos($id){
     $log = LogMovimiento::find($id);
     $exp = $log->expediente;
-    return ['cantidad' => $log->cant_maquinas, 'tipo'=>$log->tipo_carga , 'expediente' => $exp];
+    return ['movimiento' => $log, 'expediente' => $exp];
   }
 
   public function obtenerMovimiento($id){
