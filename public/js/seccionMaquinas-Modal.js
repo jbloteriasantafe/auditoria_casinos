@@ -161,21 +161,20 @@ $('#btn-guardar').click(function(e){
 
   //DATOS DE SECCION JUEGOS
   for(var i=0;i<juegos.length;i++){
-    formData.append('juego['+i+'][id_juego]', juegos[i]['id_juego']);
-    formData.append('juego['+i+'][nombre_juego]', juegos[i]['nombre_juego']);
-    formData.append('juego['+i+'][activo]', juegos[i]['activo']);
-    formData.append('juego['+i+'][denominacion]', juegos[i]['denominacion']);
-    formData.append('juego['+i+'][porcentaje_devolucion]', juegos[i]['porcentaje_devolucion']);
-    formData.append('juego['+i+'][id_pack]', juegos[i]['id_pack']);
+    formData.append('juegos['+i+'][id_juego]', juegos[i]['id_juego']);
+    formData.append('juegos['+i+'][nombre_juego]', juegos[i]['nombre_juego']);
+    formData.append('juegos['+i+'][activo]', juegos[i]['activo']);
+    formData.append('juegos['+i+'][denominacion]', juegos[i]['denominacion']);
+    formData.append('juegos['+i+'][porcentaje_devolucion]', juegos[i]['porcentaje_devolucion']);
+    formData.append('juegos['+i+'][id_pack]', juegos[i]['id_pack']);
 
     if(juegos[i]['tablas'].length){
       for(var j=0;j<juegos[i]['tablas'].length;j++){
-        formData.append('juego['+i+'][tabla]['+j+'][id_tabla]', juegos[i]['tablas'][j]['id_tabla']);
-        formData.append('juego['+i+'][tabla]['+j+'][nombre_tabla]', juegos[i]['tablas'][j]['nombre_tabla']);
+        formData.append('juegos['+i+'][tabla]['+j+'][id_tabla]', juegos[i]['tablas'][j]['id_tabla']);
+        formData.append('juegos['+i+'][tabla]['+j+'][nombre_tabla]', juegos[i]['tablas'][j]['nombre_tabla']);
       }
     }else{
-      formData.append('juego['+i+'][tabla]', []);
-
+      formData.append('juegos['+i+'][tabla]', []);
     }
   }
 
@@ -257,10 +256,8 @@ $('#btn-guardar').click(function(e){
             'juega_progresivo'     : { obj: '#juega_progresivo'                   , show: '#error_nav_maquina'},
             'denominacion'         : { obj: '#modalMaquina #denominacion'         , show: '#error_nav_maquina'}, 
             'id_estado_maquina'    : { obj: '#estado'                             , show: '#error_nav_maquina'},
-            'juego'                : { obj: ''                                    , show: '#error_nav_juego'  },
-            'id_casino'            : { obj: ''                                    , show: '#error_nav_isla'   },
+            'juegos'                : { obj: ''                                   , show: '#error_nav_juego'  },
             'id_isla'              : { obj: ''                                    , show: '#error_nav_isla'   },
-            'id_sector'            : { obj: ''                                    , show: '#error_nav_isla'   },
             'gli_soft.id_gli_soft' : { obj: ''                                    , show: '#error_nav_soft'   },
             'formula.id_formula'   : { obj: ''                                    , show: '#error_nav_formula'},
           };

@@ -369,21 +369,21 @@ class MTMController extends Controller
           'marca'=> 'required|max:45',
           'modelo' => 'required|max:60',
           'mac' => 'nullable|max:100',
-          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
-          'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
           'juega_progresivo' => 'required|boolean',
+          'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
+          'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
           'id_tipo_gabinete'=> 'nullable|exists:tipo_gabinete,id_tipo_gabinete',
           'id_tipo_maquina' => 'nullable|exists:tipo_maquina,id_tipo_maquina',
-          'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
+          'id_isla' => 'required|integer|exists:isla,id_isla',
           'expedientes' => 'nullable',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
-          'id_isla' => 'required|integer|exists:isla,id_isla',
-          'juego' => 'array|required',
-          'juego.*.id_juego' => 'required|exists:juego,id_juego',
-          'juego.*.activo' => 'required|in:1,0',
+          'juegos' => 'array|required',
+          'juegos.*.id_juego' => 'required|exists:juego,id_juego',
+          'juegos.*.activo' => 'required|in:1,0',
           'formula.id_formula' => 'required|exists:formula,id_formula',
       ],array(),self::$atributos)->after(function($validator){
         if(!$validator->errors()->any()){
@@ -405,7 +405,7 @@ class MTMController extends Controller
           ->where('id_unidad_medida',$data['id_unidad_medida'])->count();
           if($acceso_unidad_medida == 0) $validator->errors()->add('id_unidad_medida','El casino no tiene acceso a esa unidad de medida.');
   
-          foreach($data['juego'] as $j){
+          foreach($data['juegos'] as $j){
             $juego = Juego::find($j['id_juego']);
             $acceso_juego = $juego->casinos()->where('casino_tiene_juego.id_casino',$log_movimiento->id_casino)->count();
             if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->id_juego);
@@ -447,7 +447,7 @@ class MTMController extends Controller
       $MTM->save();
 
       $juegos  = array(); //arreglo con todos los juegos
-      foreach ($request['juego'] as $unJuego) {
+      foreach ($request['juegos'] as $unJuego) {
           $juego = Juego::find($unJuego['id_juego']);
           if($unJuego['activo'] == 1){
               $MTM->juego_activo()->associate($juego->id_juego);
@@ -495,113 +495,99 @@ class MTMController extends Controller
           'marca'=> 'required|max:45',
           'modelo' => 'required|max:60',
           'mac' => 'nullable|max:100',
-          'id_unidad_medida' => 'nullable|max:45',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
+          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
+          'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
           'id_tipo_gabinete'=> 'nullable|exists:tipo_gabinete,id_tipo_gabinete',
           'id_tipo_maquina' => 'nullable|exists:tipo_maquina,id_tipo_maquina',
-          'id_casino' => ['required', Rule::exists('usuario_tiene_casino')->where(function($query){$query->where('id_usuario', session('id_usuario'));})],
-          'id_sector' => 'required|exists:sector,id_sector',
+          'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'id_isla'  => 'required|exists:isla,id_isla',
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-          'id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina',
           'expedientes' =>  'required_if:notas,null',
           'expedientes.*.id_expediente' => 'required|exists:expediente,id_expediente',
           'notas' => 'required_if:expedientes,null',
           'notas.*.id_nota' => 'required|exists:nota,id_nota',
-          'juego' => 'array|required',
-          'juego.*.id_juego' => 'required|exists:juego,id_juego',
-          'juego.*.nombre_juego' => 'required',
-          'juego.*.activo' => 'in:1,0',
-          'juego.*.tabla.*.id_tabla' => 'nullable',
-          'juego.*.tabla.*.nombre_tabla' => 'required',
+          'juegos' => 'array|required',
+          'juegos.*.id_juego' => 'required|exists:juego,id_juego',
+          'juegos.*.activo' => 'in:1,0',
           'formula.id_formula' => 'required|exists:formula,id_formula',
-          'formula.cuerpoFormula' => 'required',
-          'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
           'gli_hard' => 'nullable',
           'gli_hard.*.id_gli_hard' => 'nullable|integer',
           'gli_hard.*.nro_certificado' => 'nullable|alpha_dash',
-          'gli_hard.*.expedientes' => 'nullable',
           'gli_hard.*.file' => 'sometimes|mimes:pdf'
       ],array(),self::$atributos)->after(function($validator){
-        //validacion isla
-        $reglas = array();
+        if(!$validator->errors()->any()){
+          $data = $validator->getData();
+          $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+          $usuario_casinos = DB::table('usuario_tiene_casino')->where('id_usuario',$user->id_usuario);
 
-        //validacion maquina
-        if($validator->getData()['id_casino'] != 3){//santa fe y melincue
-          $casinos = [1,2];
-          $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                              ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
-                              ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                              ->where('maquina.nro_admin' , $validator->getData()['nro_admin'])
-                              ->whereIn('casino.id_casino' ,$casinos )
-                              ->get();
-        }else{//si la maquina es de rosario
-          $maquina = Maquina::join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                              ->join('sector', 'sector.id_sector', '=' ,'isla.id_sector')
-                              ->join('casino', 'casino.id_casino', '=' , 'sector.id_casino')
-                              ->where('maquina.nro_admin' , $validator->getData()['nro_admin'] )
-                              ->where('maquina.id_casino' , '=',3)
-                              ->get();
-        }
+          $isla = Isla::find($data['id_isla']);
+          $acceso_isla = (clone $usuario_casinos)->where('id_casino',$isla->id_casino)->count();
+          if($acceso_isla == 0) $validator->errors()->add('id_isla', 'El usuario no puede acceder a esa isla.');
 
-        if(count($maquina) == 1){//si al modificar maquina, no cambio nro admin deberia haber una maquina y ser la misma.
-          if($maquina[0]->id_maquina != $validator->getData()['id_maquina']){
-            $validator->errors()->add('nro_admin', 'El número de administración ya está tomado.');
+          $MTM = Maquina::find($data['id_maquina']);
+          $acceso_MTM = (clone $usuario_casinos)->where('id_casino',$MTM->id_casino)->count();
+          if($acceso_MTM == 0) $validator->errors()->add('id_maquina', 'El usuario no puede acceder a esa maquina.');
+
+          if($isla->id_casino != $MTM->id_casino) $validator->errors()->add('id_casino','Mismatch de los casinos entre la maquina y la isla.');
+
+          $acceso_unidad_medida = DB::table('casino_tiene_unidad_medida')
+          ->where('id_casino',$MTM->id_casino)
+          ->where('id_unidad_medida',$data['id_unidad_medida'])->count();
+
+          if($acceso_unidad_medida == 0) $validator->errors()->add('id_unidad_medida','La maquina no tiene acceso a esa unidad de medida.');
+
+          foreach($data['juegos'] as $j){
+            $juego = Juego::find($j['id_juego']);
+            $acceso_juego = $juego->casinos()->where('casino_tiene_juego.id_casino',$MTM->id_casino)->count();
+            if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->id_juego);
           }
-        }else if(count($maquina) > 1){
-          $validator->errors()->add('DB', 'El número de administración ya está tomado.');
+          if(isset($data['expedientes'])){
+            foreach($data['expedientes'] as $e){
+              $exp = Expediente::find($e['id_expediente']);
+              $acceso_expediente = $exp->casinos()->where('expediente_tiene_casino.id_casino',$MTM->id_casino)->count();
+              if($acceso_expediente == 0) $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->id_expediente);
+            }
+          }
+          if(isset($data['notas'])){
+            foreach($data['notas'] as $n){
+              $nota = Nota::find($n['id_nota']);
+              $acceso_nota = $nota->casino->id_casino != $MTM->id_casino;
+              if($acceso_nota == 0) $validator->errors()->add('id_nota','No puede acceder a la nota '.$nota->id_nota);
+            }
+          }
+          $duplicados = Maquina::where([['id_casino' ,'=', $MTM->id_casino] ,
+          ['nro_admin' ,'=', $data['nro_admin']]])
+          ->whereNull('deleted_at')
+          ->where('id_maquina','<>',$MTM->id_maquina)
+          ->get()->count();
+          if($duplicados>0){
+            $validator->errors()->add('nro_admin','El número de administración ya está tomado.');
+          }
         }
+      })->validate();// FIN VALIDACION-----------
 
-      })->sometimes('gli_hard.file','mimes:pdf',function($input){
-      return $input['gli_hard.file'] != null;
-      })->sometimes('gli_hard.id_gli_hard','exists:gli_hard,id_gli_hard',function($input){
-      return $input['gli_hard.id_gli_hard'] != null && $input['gli_hard.id_gli_hard'] != 0;
-    })->validate();// FIN VALIDACION-----------
-
-    $tipo_movimiento = NULL;
-    $formula=null;
-
-    //SI EXISTE FORMULA LA BUSCA SI NO CREA
-    switch ($request->formula['id_formula']){
-      case 'undefined':break;
-      case '':break;
-      case 0:
-        //el 0 es una bandera, una formula generica que se asigna al dar de alta una maquinia sin determinar formula
-        //buscaba con "formula" en el json pero era "cuerpoFormula"
-        $formula=FormulaController::getInstancia()->guardarFormulaConcatenada($request->formula['cuerpoFormula']);
-        break;
-      default:
-        $formula=Formula::find($request->formula['id_formula']);
-        break;
-    }
-
-    $unaIsla= Isla::find($request->id_isla);
+    $formula= Formula::find($request->formula['id_formula']);
+    $isla= Isla::find($request->id_isla);
 
     //GLIHARD: SI EXISTE GLIHARD BUSCA, SI NO CREA
     $gli_hard = null;
-    switch ($request->gli_hard['id_gli_hard']){
-      case 'undefined':break;
-      case '':break;
-      case null: break;
-      case "null": break;
-      case 0:
+    if(!is_null($request->gli_hard['id_gli_hard'])){
+      if($request->gli_hard['id_gli_hard'] === 0){
         $gli_hard=GliHardController::getInstancia()
         ->guardarNuevoGliHard($request->gli_hard['nro_certificado'],null,$request->gli_hard['file']);
-        break;
-      default:
+      }
+      else{
         $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
-        break;
+      }
     }
-
-    $i=0;
-
-    $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
-    $MTM= Maquina::find($request->id_maquina);
-    //CONDICIONES ANTERIORES
 
     //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
     //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
+    $MTM= Maquina::find($request->id_maquina);
+    $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
+    $tipo_movimiento = NULL;
     if(is_null($MTM->id_estado_maquina)){
       $MTM->id_estado_maquina=$request->id_estado_maquina;
     }elseif($MTM->id_estado_maquina != $request->id_estado_maquina){
@@ -632,98 +618,33 @@ class MTMController extends Controller
         $razon .= "Cambió la denominacion. ";
     }
 
-    if($MTM->id_isla != $unaIsla->id_isla){
+    if($MTM->id_isla != $isla->id_isla){
       $tipo_movimiento = 4;
       $razon .= "Cambió la isla. ";
     }
 
-    //JUEGOS
-    //POR CADA JUEGO, SI NO EXISTE CREO, SINO busco. ACTIVO se termina asociando
-    //los juegos se gestionand desde aca solo si la mtm no es multi-juego
     if($MTM->id_pack==null){
-      $juego_viejo = $MTM->juego_activo;
-
-      $abreviaturas = [];//Ver mas abajo para que sirve esto.
-      foreach($MTM->juegos as $unJuego){
-        $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
-      }
-
+      $this->generarMarcaJuego($MTM,$request->marca,$request->juegos,$request->marca_juego);
+      $juego_activo_nuevo = $request->juegos[0];
+      $juego_activo_viejo = $MTM->juego_activo;
       $MTM->juegos()->detach();
-      
-      foreach ($request->juego as $unJuego){
-        $abreviaturas[] = $this->abreviarMarca($MTM->marca) . ' - ' . $unJuego['nombre_juego'];
-        if($unJuego['id_juego']==0){// 0 es juego nuevo
-          $juego=JuegoController::getInstancia()->guardarJuego_gestionarMaquina($unJuego['nombre_juego'],$unJuego['tabla']);
-
-          if($unJuego['activo']==1){ // asociar juego activo
-              $juegoActivo=$juego;
-              $MTM->juego_activo()->associate($juego->id_juego);
-          }
-          $denominacion = $unJuego['denominacion'] == "-" ? null : $unJuego['denominacion'];
-          $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion']]]);
-          // $juegos_finales[] = ($juego->id_juego);
-        }else{
-          if($unJuego['id_juego']>=1){
-            $juego=Juego::find($unJuego['id_juego']);
-            if($unJuego['activo']==1){// asociar juego activo
-              $juegoActivo=$juego;
-              $MTM->juego_activo()->associate($juego->id_juego);
-            }
-            // la gestion de pack se quita del modal mtm
-            $id_pack_juego=null;
-
-            $MTM->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => $id_pack_juego]]);
-            // $juegos_finales[] = ($juego->id_juego);
-          }
+      foreach ($request->juegos as $unJuego){
+        $juego=Juego::find($unJuego['id_juego']);
+        if($unJuego['activo']==1){// asociar juego activo
+          $juego_activo_nuevo = $juego;
+          $MTM->juego_activo()->associate($juego->id_juego);
         }
+        $MTM->juegos()->syncWithoutDetaching(
+          [$juego->id_juego => 
+            ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => null ]
+          ]
+        );
       }
-
-      if($juego_viejo->id_juego != $juegoActivo->id_juego){
+      if($juego_activo_viejo->id_juego != $juego_activo_nuevo->id_juego){
         $tipo_movimiento = 7;
         $razon .= "Cambió el juego. ";
       }
-
-      // NO SIMPLIFICAR CON LO DE ARRIBA HABIA CASOS ESPECIALES QUE NO SE TENIAN EN CUENTA!!
-      $marca_juego_generado = $this->abreviarMarca($request->marca) . ' - ' . $juegoActivo->nombre_juego;
-      $es_nuevo = $marca_juego_generado != $MTM->marca_juego;
-      $es_customizado = !in_array($request->marca_juego,$abreviaturas);
-      // Casos que se dan
-      // Cambio de JUEGO ACTIVO sin cambiar el marca juego
-      // Por ejemplo si: 
-      //  Marca juego: IGT - Scarab
-      //  Juegos:
-      //   - Scarab (activo)
-      //   - Jungle Riches
-      // Y lo cambiamos a 
-      //  Marca juego: IGT - Scarab
-      //  Juegos:
-      //   - Scarab 
-      //   - Jungle Riches (activo)
-      // El comporamiento deseado es que se cambie el MARCA JUEGO
-      // Pero si tenemos un MARCA JUEGO custom elegido por el usuario ej
-      //  Marca juego: Minguito!
-      //  Juegos:
-      //   - Scarab (activo)
-      //   - Jungle Riches 
-      // Y lo cambiamos a
-      //  Marca juego: Minguito!
-      //  Juegos:
-      //   - Scarab 
-      //   - Jungle Riches (activo)
-      // NO! queremos que cambie
-      // La excepcion a la regla es que sea la cadena vacia!
-      // Ya se que se puede simplificar en un solo IF pero queda mas claro asi.
-      if($es_nuevo && !$es_customizado){
-        $MTM->marca_juego = $marca_juego_generado;
-      }
-      else if($es_customizado && $request->marca_juego == ""){
-        $MTM->marca_juego = $marca_juego_generado;
-      }
-      else if($es_customizado){
-        $MTM->marca_juego = $request->marca_juego;
-      }
-           
-      $MTM->id_juego = $juegoActivo->id_juego;
+      $MTM->id_juego = $juego_activo_nuevo->id_juego;
     }
 
     $MTM->nro_admin = $request->nro_admin;
@@ -735,9 +656,9 @@ class MTMController extends Controller
     $MTM->mac = $request->mac;
     $MTM->formula()->associate($formula);
     $MTM->denominacion = $request->denominacion;
-    $MTM->juega_progresivo = $request->progresivo['id_progresivo'] != -1;
-    $MTM->id_isla=$unaIsla->id_isla;
-    $MTM->id_casino=$unaIsla->id_casino;
+    $MTM->juega_progresivo = $MTM->progresivos()->count() > 0;
+    $MTM->id_isla=$isla->id_isla;
+    $MTM->id_casino=$isla->id_casino;
     $MTM->id_gli_hard = is_null($gli_hard)? null: $gli_hard->id_gli_hard;
 
     $MTM->save();
@@ -749,26 +670,62 @@ class MTMController extends Controller
 
     if(!empty($request->notas))$MTM->notas()->sync($request->notas);
 
-    //SI EXISTE EL PROGRESIVO BUSCO SI NO, CREO
-    if($request->progresivo['id_progresivo'] != -1){ // 0 nuevo progresivo , > 0 nuevo progresivo, -1 sin progresivo
-      switch ($request->progresivo['id_progresivo']) {
-        case 'undefined':break;
-        case '':break;
-        case 0:
-        $progresivo= ProgresivoController::getInstancia()->guardarProgresivo_gestionarMaquina($request->progresivo,$MTM);
-        break;
-        default:
-        $progresivo= ProgresivoController::getInstancia()->modificarProgresivo_gestionarMaquina($request->progresivo,$MTM);
-        break;
-      }
-    }
-
     LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,$tipo_movimiento);//tipo mov
 
     $MTM->save();
 
     return ['maquina' => $MTM];
   }
+  public function generarMarcaJuego($MTM,$marca,$juegos_nuevos,$marca_juego_recibido){
+    // Casos que se dan
+    // Cambio de JUEGO ACTIVO sin cambiar el marca juego
+    // Por ejemplo si: 
+    //  Marca juego: IGT - Scarab
+    //  Juegos:
+    //   - Scarab (activo)
+    //   - Jungle Riches
+    // Y lo cambiamos a 
+    //  Marca juego: IGT - Scarab
+    //  Juegos:
+    //   - Scarab 
+    //   - Jungle Riches (activo)
+    // El comporamiento deseado es que se cambie el MARCA JUEGO
+    // Pero si tenemos un MARCA JUEGO custom elegido por el usuario ej
+    //  Marca juego: Minguito!
+    //  Juegos:
+    //   - Scarab (activo)
+    //   - Jungle Riches 
+    // Y lo cambiamos a
+    //  Marca juego: Minguito!
+    //  Juegos:
+    //   - Scarab 
+    //   - Jungle Riches (activo)
+    // NO! queremos que cambie
+    // La excepcion a la regla es que sea la cadena vacia!
+    // Ya se que se puede simplificar en un solo IF pero queda mas claro asi.
+    $abreviaturas = [];
+    $marca_abr = $this->abreviarMarca($MTM->marca);
+    //Hago una lista con las marca_juegos de los juegos CON LA MARCA VIEJA!
+    foreach($MTM->juegos as $juego){
+      $abreviaturas[] =  $marca_abr . ' - ' . $juego->nombre_juego;
+    }
+    foreach($juegos_nuevos as $juego){
+      $abreviaturas[] =  $marca_abr . ' - ' . Juego::find($juego['id_juego'])->nombre_juego;
+      if($juego['activo']==1){
+        $juego_nuevo_activo = $juego;
+      }
+    }
+    $es_customizado = !in_array($marca_juego_recibido,$abreviaturas);
+    //Si lo que recibi no esta en esa lista, es porque es custom (tipeado por el usuario,mientras no sea vacio)
+    if($es_customizado && $marca_juego_recibido != ''){
+      $MTM->marca_juego = $marca_juego_recibido;
+    }
+    else{
+      $MTM->marca_juego = $this->abreviarMarca($marca) . ' - ' . $juego_nuevo_activo['nombre_juego'];
+    }
+    return;
+  }
+
   //ELIMINA LOGICAMENTE LA MAQUINA. deleted_at != null
   public function eliminarMTM($id){
     $MTM=Maquina::find($id);
@@ -867,24 +824,6 @@ class MTMController extends Controller
     $razon = "La maquina no pertence más a la isla " .  $isla->nro_isla."." ;
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,4);//tipo movimiento cambio layout
   }
-
-  public function generarMarcaJuego($arreglo_maquinas){//si vacio reviso todas las maquinas, si no recorro todas
-    if(empty($arreglo_maquinas)){
-      $maquinas=Maquina::all();
-      foreach ($maquinas as $maquina) {
-        $maquina->marca_juego= $this->abreviarMarca($maquina->marca) . ' - ' . $maquina->juego_activo->nombre_juego;
-        $maquina->save();
-      }
-    }else{
-      foreach ($arreglo_maquinas as $id_maquina) {
-        $maquina= Maquina::find($id_maquina);
-        $maquina->marca_juego=  $this->abreviarMarca($maquina->marca) . ' - ' . $maquina->juego_activo->nombre_juego;
-        $maquina->save();
-      }
-    }
-
-  }
-
   public function abreviarMarca($marca){
     switch (str_replace(' ' ,'',strtolower($marca))) {
       case 'aristocrat':

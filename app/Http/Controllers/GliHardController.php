@@ -137,7 +137,6 @@ class GliHardController extends Controller
     $request->merge(['nro_certificado'=>$nro_certificado]);
     $request->merge(['expedientes'=>$expedientes]);
     $request->merge(['file'=>$file]);
-    dump($request->all());
     return $this->guardarGliHard($request)['glihard'];
   }
 
