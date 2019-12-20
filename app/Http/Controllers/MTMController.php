@@ -566,114 +566,113 @@ class MTMController extends Controller
             $validator->errors()->add('nro_admin','El número de administración ya está tomado.');
           }
         }
-      })->validate();// FIN VALIDACION-----------
+      })->validate();
 
-    $formula= Formula::find($request->formula['id_formula']);
-    $isla= Isla::find($request->id_isla);
-
-    //GLIHARD: SI EXISTE GLIHARD BUSCA, SI NO CREA
+    $formula  = Formula::find($request->formula['id_formula']);
+    $isla     = Isla::find($request->id_isla);
+    $MTM      = Maquina::find($request->id_maquina);
     $gli_hard = null;
-    if(!is_null($request->gli_hard['id_gli_hard'])){
-      if($request->gli_hard['id_gli_hard'] === 0){
-        $gli_hard=GliHardController::getInstancia()
-        ->guardarNuevoGliHard($request->gli_hard['nro_certificado'],null,$request->gli_hard['file']);
-      }
-      else{
-        $gli_hard=GliHard::find($request->gli_hard['id_gli_hard']);
-      }
-    }
+    if($request->gli_hard['id_gli_hard'] > 0){
+      $gli_hard = GliHard::find($request->gli_hard['id_gli_hard']);
+    } 
 
-    //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
-    //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
-    $MTM= Maquina::find($request->id_maquina);
-    $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
-    $tipo_movimiento = NULL;
-    if(is_null($MTM->id_estado_maquina)){
-      $MTM->id_estado_maquina=$request->id_estado_maquina;
-    }elseif($MTM->id_estado_maquina != $request->id_estado_maquina){
-      $razon .= "Cambió el estado. ";
-      switch($request->id_estado_maquina){
-        case 1:
-          $tipo_movimiento = 1;
-          break;
-        case 2:
-          $tipo_movimiento = 3;
-          break;
-        case 3:
-          $tipo_movimiento = 2;
-          break;
-        case 4:
-          $tipo_movimiento = 2;
-          break;
-        case 5:
-          $tipo_movimiento = 2;
-          break;
-          default:
-            break;
-      }
-    }
-
-    if($MTM->denominacion != $request->denominacion){
-        $tipo_movimiento = 5;
-        $razon .= "Cambió la denominacion. ";
-    }
-
-    if($MTM->id_isla != $isla->id_isla){
-      $tipo_movimiento = 4;
-      $razon .= "Cambió la isla. ";
-    }
-
-    if($MTM->id_pack==null){
-      $this->generarMarcaJuego($MTM,$request->marca,$request->juegos,$request->marca_juego);
-      $juego_activo_nuevo = $request->juegos[0];
-      $juego_activo_viejo = $MTM->juego_activo;
-      $MTM->juegos()->detach();
-      foreach ($request->juegos as $unJuego){
-        $juego=Juego::find($unJuego['id_juego']);
-        if($unJuego['activo']==1){// asociar juego activo
-          $juego_activo_nuevo = $juego;
-          $MTM->juego_activo()->associate($juego->id_juego);
+    DB::beginTransaction();
+    try {
+        if ($request->gli_hard['id_gli_hard'] === 0) {//Triple igual para que no de igual a NULL
+            $gli_hard = GliHardController::getInstancia()
+                ->guardarNuevoGliHard($request->gli_hard['nro_certificado'], null, $request->gli_hard['file']);
         }
-        $MTM->juegos()->syncWithoutDetaching(
-          [$juego->id_juego => 
-            ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'],'id_pack' => null ]
-          ]
-        );
-      }
-      if($juego_activo_viejo->id_juego != $juego_activo_nuevo->id_juego){
-        $tipo_movimiento = 7;
-        $razon .= "Cambió el juego. ";
-      }
-      $MTM->id_juego = $juego_activo_nuevo->id_juego;
+        //se comprueba si es null, esto es un problema arrastrado en el alta, nunca deberia ser null pero la comprobacion no estaria de mas
+        //si es null es estado anterior, se le asigna el nuevo , sino se evalua el cambio para asignar razon
+        $razon = "La maquina sufrió modificaciones: "; //razon del cambio, que se guardara en el log de máquinas
+        $tipo_movimiento = null;
+        if (is_null($MTM->id_estado_maquina)) {
+            $MTM->id_estado_maquina = $request->id_estado_maquina;
+        } elseif ($MTM->id_estado_maquina != $request->id_estado_maquina) {
+            $razon .= "Cambió el estado. ";
+            switch ($request->id_estado_maquina) {
+                case 1:
+                    $tipo_movimiento = 1;
+                    break;
+                case 2:
+                    $tipo_movimiento = 3;
+                    break;
+                case 3:
+                    $tipo_movimiento = 2;
+                    break;
+                case 4:
+                    $tipo_movimiento = 2;
+                    break;
+                case 5:
+                    $tipo_movimiento = 2;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if ($MTM->denominacion != $request->denominacion) {
+            $tipo_movimiento = 5;
+            $razon .= "Cambió la denominacion. ";
+        }
+        if ($MTM->id_isla != $isla->id_isla) {
+            $tipo_movimiento = 4;
+            $razon .= "Cambió la isla. ";
+        }
+        $this->generarMarcaJuego($MTM, $request->marca, $request->juegos, $request->marca_juego);
+        $juego_activo_nuevo = $request->juegos[0];
+        $juego_activo_viejo = $MTM->juego_activo;
+        $MTM->juegos()->detach();
+        foreach ($request->juegos as $unJuego) {
+            $juego = Juego::find($unJuego['id_juego']);
+            if ($unJuego['activo'] == 1) { // asociar juego activo
+                $juego_activo_nuevo = $juego;
+                $MTM->juego_activo()->associate($juego->id_juego);
+            }
+            $MTM->juegos()->syncWithoutDetaching(
+                [$juego->id_juego =>
+                    ['denominacion' => $unJuego['denominacion'], 'porcentaje_devolucion' => $unJuego['porcentaje_devolucion'], 'id_pack' => null],
+                ]
+            );
+        }
+        if ($juego_activo_viejo->id_juego != $juego_activo_nuevo->id_juego) {
+            $tipo_movimiento = 7;
+            $razon .= "Cambió el juego. ";
+        }
+        $MTM->id_juego = $juego_activo_nuevo->id_juego;
+        $MTM->nro_admin = $request->nro_admin;
+        $MTM->marca = $request->marca;
+        $MTM->modelo = $request->modelo;
+        $MTM->id_unidad_medida = $request->id_unidad_medida;
+        $MTM->id_tipo_moneda = $request->id_tipo_moneda;
+        $MTM->nro_serie = $request->nro_serie;
+        $MTM->mac = $request->mac;
+        $MTM->formula()->associate($formula);
+        $MTM->denominacion = $request->denominacion;
+        $MTM->juega_progresivo = $MTM->progresivos()->count() > 0;
+        $MTM->id_isla = $isla->id_isla;
+        $MTM->id_casino = $isla->id_casino;
+        $MTM->id_gli_hard = is_null($gli_hard) ? null : $gli_hard->id_gli_hard;
+        $MTM->save();
+        if (!empty($request->id_tipo_gabinete)) {
+            $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
+        }
+        if (!empty($request->id_tipo_maquina != 0)) {
+            $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
+        }
+        $MTM->estado_maquina()->associate($request->id_estado_maquina);
+        if (!empty($request->expedientes)) {
+            $MTM->expedientes()->sync($request->expedientes);
+        }
+        if (!empty($request->notas)) {
+            $MTM->notas()->sync($request->notas);
+        }
+        LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon, $tipo_movimiento);
+        $MTM->save();
+        DB::commit();
+    } catch (Exception $e) {
+        DB::rollBack();
     }
-
-    $MTM->nro_admin = $request->nro_admin;
-    $MTM->marca = $request->marca;
-    $MTM->modelo = $request->modelo;
-    $MTM->id_unidad_medida = $request->id_unidad_medida;
-    $MTM->id_tipo_moneda = $request->id_tipo_moneda;
-    $MTM->nro_serie = $request->nro_serie;
-    $MTM->mac = $request->mac;
-    $MTM->formula()->associate($formula);
-    $MTM->denominacion = $request->denominacion;
-    $MTM->juega_progresivo = $MTM->progresivos()->count() > 0;
-    $MTM->id_isla=$isla->id_isla;
-    $MTM->id_casino=$isla->id_casino;
-    $MTM->id_gli_hard = is_null($gli_hard)? null: $gli_hard->id_gli_hard;
-
-    $MTM->save();
-    if(!empty($request->id_tipo_gabinete)) $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
-    if(!empty($request->id_tipo_maquina != 0)) $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
-    $MTM->estado_maquina()->associate($request->id_estado_maquina);
-
-    if(!empty($request->expedientes)) $MTM->expedientes()->sync($request->expedientes);
-
-    if(!empty($request->notas))$MTM->notas()->sync($request->notas);
-
-    LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,$tipo_movimiento);//tipo mov
-
-    $MTM->save();
-
     return ['maquina' => $MTM];
   }
   public function generarMarcaJuego($MTM,$marca,$juegos_nuevos,$marca_juego_recibido){
