@@ -96,6 +96,7 @@ Route::post('expedientes/modificarExpediente','ExpedienteController@modificarExp
 Route::delete('expedientes/eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
 Route::post('expedientes/buscarExpedientes','ExpedienteController@buscarExpedientes');
 Route::get('expedientes/buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
+Route::get('expedientes/buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
 Route::get('expedientes/tiposMovimientos/{id_expediente}','ExpedienteController@tiposMovimientos');
 /***********
 Usuarios

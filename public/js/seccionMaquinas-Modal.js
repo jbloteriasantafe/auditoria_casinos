@@ -5,10 +5,6 @@ $(document).ready(function(){
   //seteo al inicio el buscador de marca en el modal
   $('#marca').generarDataList("maquinas/buscarMarcas",'marcas','id_marca','marca',1,false);
   $('#marca').setearElementoSeleccionado(0,"");
-
-  $('#buscadorExpediente').generarDataList("expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-  $('#buscadorExpediente').setearElementoSeleccionado(0,"");
-
   $('#error_nav_juego').hide();
   $('#error_nav_isla').hide();
   $('#error_nav_soft').hide();
@@ -243,23 +239,26 @@ $('#btn-guardar').click(function(e){
           $('.navModal > div > i').hide();
 
           const conversion = {
-            'nro_admin'            : { obj: '#nro_admin'                          , show: '#error_nav_maquina'},
-            'nro_serie'            : { obj: '#nro_serie'                          , show: '#error_nav_maquina'},
-            'marca'                : { obj: '#marca'                              , show: '#error_nav_maquina'},
-            'modelo'               : { obj: '#modelo'                             , show: '#error_nav_maquina'},
-            'desc_marca'           : { obj: '#desc_marca'                         , show: '#error_nav_maquina'},
-            'unidad_medida'        : { obj: '#unidad_medida'                      , show: '#error_nav_maquina'},
-            'mac'                  : { obj: '#mac'                                , show: '#error_nav_maquina'},
-            'id_tipo_gabinete'     : { obj: '#tipo_gabinete'                      , show: '#error_nav_maquina'},
-            'id_tipo_maquina'      : { obj: '#tipo_maquina'                       , show: '#error_nav_maquina'},
-            'id_tipo_moneda'       : { obj: '#tipo_moneda'                        , show: '#error_nav_maquina'},
-            'juega_progresivo'     : { obj: '#juega_progresivo'                   , show: '#error_nav_maquina'},
-            'denominacion'         : { obj: '#modalMaquina #denominacion'         , show: '#error_nav_maquina'}, 
-            'id_estado_maquina'    : { obj: '#estado'                             , show: '#error_nav_maquina'},
-            'juegos'                : { obj: ''                                   , show: '#error_nav_juego'  },
-            'id_isla'              : { obj: ''                                    , show: '#error_nav_isla'   },
-            'gli_soft.id_gli_soft' : { obj: ''                                    , show: '#error_nav_soft'   },
-            'formula.id_formula'   : { obj: ''                                    , show: '#error_nav_formula'},
+            'nro_admin'            : { obj: '#nro_admin'                 , show: '#error_nav_maquina'},
+            'nro_serie'            : { obj: '#nro_serie'                 , show: '#error_nav_maquina'},
+            'marca'                : { obj: '#marca'                     , show: '#error_nav_maquina'},
+            'modelo'               : { obj: '#modelo'                    , show: '#error_nav_maquina'},
+            'desc_marca'           : { obj: '#desc_marca'                , show: '#error_nav_maquina'},
+            'unidad_medida'        : { obj: '#unidad_medida'             , show: '#error_nav_maquina'},
+            'mac'                  : { obj: '#mac'                       , show: '#error_nav_maquina'},
+            'id_tipo_gabinete'     : { obj: '#tipo_gabinete'             , show: '#error_nav_maquina'},
+            'id_tipo_maquina'      : { obj: '#tipo_maquina'              , show: '#error_nav_maquina'},
+            'id_tipo_moneda'       : { obj: '#tipo_moneda'               , show: '#error_nav_maquina'},
+            'juega_progresivo'     : { obj: '#juega_progresivo'          , show: '#error_nav_maquina'},
+            'denominacion'         : { obj: '#modalMaquina #denominacion', show: '#error_nav_maquina'}, 
+            'id_estado_maquina'    : { obj: '#estado'                    , show: '#error_nav_maquina'},
+            'juegos'               : { obj: ''                           , show: '#error_nav_juego'  },
+            'id_isla'              : { obj: ''                           , show: '#error_nav_isla'   },
+            'gli_soft.id_gli_soft' : { obj: ''                           , show: '#error_nav_soft'   },
+            'formula.id_formula'   : { obj: ''                           , show: '#error_nav_formula'},
+            'id_juego'             : { obj: '#tablaJuegosActivos tbody'  , show: '#error_nav_juego'  },
+            'id_expediente'        : { obj: '#listaExpedientes'          , show: '#error_nav_maquina'},
+            'id_unidad_medida'     : { obj: '#unidad_medida'             , show: '#error_nav_maquina'}
           };
 
           const response = JSON.parse(data.responseText);
@@ -367,6 +366,15 @@ function ocultarAlertas(){
   ocultarAlertasMaquina();
   ocultarAlertasGliSoft();
   ocultarAlertasGliHard();
+  $('#modalMaquina input').each(function(){
+    ocultarErrorValidacion($(this));
+  });
+  $('#modalMaquina select').each(function(){
+    ocultarErrorValidacion($(this));
+  });
+  $('#modalMaquina .alerta').each(function(){
+    ocultarErrorValidacion($(this));
+  });
 }
 
 function limpiarModal(){
@@ -377,6 +385,7 @@ function limpiarModal(){
   limpiarModalGliHard();
   limpiarModalFormula();
   limpiarModaPaqueteJuegos();
+  ocultarAlertas();
 }
 
 function habilitarControles(valor){
@@ -411,6 +420,8 @@ function mostrarMaquina(data, accion){
     $('#navJuego').attr('hidden',true);
   }
   casino_global = data.casino.id_casino;
+  $('#buscadorExpediente').generarDataList("expedientes/buscarExpedientePorCasinoYNumero/"+casino_global,'resultados','id_expediente','concatenacion',2,true);
+  $('#buscadorExpediente').setearElementoSeleccionado(0,"");
   if (data.maquina.juega_progresivo==0){
     $('#juega_progresivo_m').val("NO");
   }else{

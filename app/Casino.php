@@ -23,7 +23,7 @@ class Casino extends Model
     return $this->belongsToMany('App\Usuario','usuario_tiene_casino','id_casino','id_usuario');
   }
   public function expedientes(){
-    return $this->belongsToMany('App\Casino','expediente_tiene_casino','id_casino','id_expediente');
+    return $this->belongsToMany('App\Expediente','expediente_tiene_casino','id_casino','id_expediente');
   }
   public function logs_movimientos(){
     return $this->hasMany('App\LogMovimiento','id_casino','id_casino');

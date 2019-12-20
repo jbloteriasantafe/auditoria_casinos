@@ -541,13 +541,14 @@ class MTMController extends Controller
           foreach($data['juegos'] as $j){
             $juego = Juego::find($j['id_juego']);
             $acceso_juego = $juego->casinos()->where('casino_tiene_juego.id_casino',$MTM->id_casino)->count();
-            if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->id_juego);
+            if($acceso_juego == 0) $validator->errors()->add('id_juego','No puede acceder al juego '.$juego->nombre_juego);
           }
           if(isset($data['expedientes'])){
             foreach($data['expedientes'] as $e){
               $exp = Expediente::find($e['id_expediente']);
               $acceso_expediente = $exp->casinos()->where('expediente_tiene_casino.id_casino',$MTM->id_casino)->count();
-              if($acceso_expediente == 0) $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->id_expediente);
+              if($acceso_expediente == 0) 
+                $validator->errors()->add('id_expediente','No puede acceder al expediente '.$exp->concatenacion);
             }
           }
           if(isset($data['notas'])){
@@ -657,16 +658,22 @@ class MTMController extends Controller
         if (!empty($request->id_tipo_gabinete)) {
             $MTM->tipoGabinete()->associate($request->id_tipo_gabinete);
         }
-        if (!empty($request->id_tipo_maquina != 0)) {
+        else $MTM->tipoGabinete()->dissociate();
+        if (!empty($request->id_tipo_maquina)) {
             $MTM->tipoMaquina()->associate($request->id_tipo_maquina);
         }
+        else $MTM->tipoMaquina()->dissociate();
+
         $MTM->estado_maquina()->associate($request->id_estado_maquina);
+
         if (!empty($request->expedientes)) {
             $MTM->expedientes()->sync($request->expedientes);
         }
+        else $MTM->expedientes()->sync([]);
         if (!empty($request->notas)) {
             $MTM->notas()->sync($request->notas);
         }
+        else $MTM->notas()->sync([]);
         LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon, $tipo_movimiento);
         $MTM->save();
         DB::commit();

@@ -10,7 +10,8 @@ class Expediente extends Model
   protected $connection = 'mysql';
   protected $table = 'expediente';
   protected $primaryKey = 'id_expediente';
-  protected $visible = array('id_expediente', 'nro_exp_org','nro_exp_interno','nro_exp_control','fecha_iniciacion','iniciador','concepto','ubicacion_fisica','fecha_pase','remitente','destino','nro_folios','tema','anexo','nro_cuerpos');
+  protected $visible = array('id_expediente', 'nro_exp_org','nro_exp_interno','nro_exp_control','fecha_iniciacion','iniciador','concepto','ubicacion_fisica','fecha_pase','remitente','destino','nro_folios','tema','anexo','nro_cuerpos','concatenacion');
+  protected $appends = array('concatenacion');
   public $timestamps = false;
 
   public function casinos(){
@@ -43,6 +44,10 @@ class Expediente extends Model
 
   public function tipo_movimiento(){
     return $this->belongsTo('App\TipoMovimiento', 'id_tipo_movimiento', 'id_tipo_movimiento');
+  }
+
+  public function getConcatenacionAttribute(){
+    return $this->nro_exp_org . '-' . $this->nro_exp_interno . '-' . $this->nro_exp_control;
   }
 
   public static function boot(){

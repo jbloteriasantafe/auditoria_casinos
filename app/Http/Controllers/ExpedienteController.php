@@ -568,6 +568,34 @@ class ExpedienteController extends Controller
     return ['resultados' => $resultado];
   }
 
+  public function buscarExpedientePorCasinoYNumero($id_casino,$busqueda){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $acceso = $usuario->casinos()->where('usuario_tiene_casino.id_casino',$id_casino)->count();
+    if($acceso == 0) return ['resultados' => []];
+
+    $arreglo=explode("-", $busqueda);
+    $reglas=array();
+    if(isset($arreglo[0])){
+      $reglas[]=['expediente.nro_exp_org', 'like' , '%' . $arreglo[0] . '%'];
+    }
+    if(isset($arreglo[1])){
+      $reglas[]=['expediente.nro_exp_interno', 'like' , '%' . $arreglo[1] . '%'];
+    }
+    if(isset($arreglo[2])){
+      $reglas[]=['expediente.nro_exp_control', 'like' , '%' . $arreglo[2] . '%'];
+    }
+
+    $expedientes=Casino::find($id_casino)->expedientes()->where($reglas)->get();
+    $resultado = [];
+    foreach ($expedientes as $expediente) {
+      $auxiliar =  new \stdClass();
+      $auxiliar->id_expediente = $expediente->id_expediente;
+      $auxiliar->concatenacion = $expediente->concatenacion;
+      $resultado[] = $auxiliar;
+    }
+    return ['resultados' => $resultado];
+  }
+
   public function tiposMovimientos($id_expediente){
     if($id_expediente==0){
       return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
