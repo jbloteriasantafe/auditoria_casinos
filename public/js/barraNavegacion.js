@@ -60,6 +60,9 @@ $('.etiquetaLogoSalida').click(function(e){
 
 });
 
+function eliminarErrorValidacion(input){
+  input.popover('destroy');
+}
 /*
  input: selector al que se agrega el popover,
  mensaje: mensaje a mostrar en el popover,

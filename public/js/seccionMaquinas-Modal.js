@@ -367,13 +367,13 @@ function ocultarAlertas(){
   ocultarAlertasGliSoft();
   ocultarAlertasGliHard();
   $('#modalMaquina input').each(function(){
-    ocultarErrorValidacion($(this));
+    eliminarErrorValidacion($(this));
   });
   $('#modalMaquina select').each(function(){
-    ocultarErrorValidacion($(this));
+    eliminarErrorValidacion($(this));
   });
   $('#modalMaquina .alerta').each(function(){
-    ocultarErrorValidacion($(this));
+    eliminarErrorValidacion($(this));
   });
 }
 
@@ -387,6 +387,10 @@ function limpiarModal(){
   limpiarModaPaqueteJuegos();
   ocultarAlertas();
 }
+
+$("#modalMaquina").on("hidden.bs.modal",function(){
+  limpiarModal();
+})
 
 function habilitarControles(valor){
   habilitarControlesMaquina(valor);
