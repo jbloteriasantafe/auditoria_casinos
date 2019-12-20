@@ -176,11 +176,6 @@ $(document).on('change','.copia input.nro_admin',function(){
   else fila.removeAttr('data-id');
 });
 
-//agregar Tabla DE Pago
-$('#btn-agregarTablaDePago').click(function(){
-  agregarRenglonTablaDePago();
-});
-
 function agregarRenglonTablaDePago(){
   let fila = $('<div>').addClass('row').addClass('col-md-12').addClass('copia')
   .css('padding-top','2px').css('padding-bottom','2px');

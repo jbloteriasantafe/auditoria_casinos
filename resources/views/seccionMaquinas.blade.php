@@ -538,9 +538,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <div class="row" style="padding-bottom: 15px;border-top: 1px solid #eee; padding-top: 15px;">
                                   <div id="tablas_de_pago" class="col-md-12">
                                       <h5 style="display:inline; margin-right:10px;">Tablas de pago</h5>
-                                      <button style="display:inline;" id="btn-agregarTablaDePago" class="btn btn-success borrarFila" type="button">
-                                        <i class="fa fa-fw fa-plus"></i>
-                                      </button>
                                       <div id="tablas_pago" style="margin-top:15px;">
                                       </div>
                                   </div>
