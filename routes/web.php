@@ -251,6 +251,7 @@ Route::get('islas/buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaControlle
 Route::get('islas/buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
 Route::post('islas/buscarIslas','IslaController@buscarIslas');
 Route::get('islas/obtenerIsla/{id_isla}','IslaController@obtenerIsla');
+Route::get('islas/obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
 Route::delete('islas/eliminarIsla/{id_isla}','IslaController@eliminarIsla');
 Route::post('islas/modificarIsla','IslaController@modificarIsla');
 Route::post('islas/guardarIsla','IslaController@guardarIsla');

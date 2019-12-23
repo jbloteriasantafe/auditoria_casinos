@@ -1159,7 +1159,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                 <thead>
                                   <tr>
                                       <th width="15%">ISLA</th>
+                                      <!--
                                       <th width="15%">SUBISLA</th>
+                                      -->
                                       <th width="15%">MÁQUINAS</th>
                                       <th width="20%">CASINO</th>
                                       <th width="20%">SECTOR</th>
@@ -1169,12 +1171,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                 <tbody>
                                   <tr id="activa_datos" data-isla="" data-casino="" data-sector="">
                                       <td id="activa_nro_isla">
-                                        <span class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">123</span>
+                                        <span class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">999999</span>
                                       </td>
-                                      <td id="activa_sub_isla">2</td>
-                                      <td id="activa_cantidad_maquinas">8</td>
-                                      <td id="activa_casino">Santa Fe</td>
-                                      <td id="activa_zona">Zona 1</td>
+                                      <!--
+                                      <td id="activa_sub_isla">99999</td>
+                                      -->
+                                      <td id="activa_cantidad_maquinas">99999999999</td>
+                                      <td id="activa_casino">INVALIDO</td>
+                                      <td id="activa_zona">INVALIDO</td>
                                       <td>
                                         <button id="editarIslaActiva" class="btn btn-warning" type="button">
                                           <i class="fas fa-fw fa-pencil-alt"></i>
@@ -1201,9 +1205,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                             <div class="col-xs-2">
                                 <h5>Nro Isla</h5>
                             </div>
+                            <!-- Comento porque no se esta usando
                             <div class="col-xs-2">
                                 <h5>Sub Isla</h5>
-                            </div>
+                            </div> -->
                             <div class="col-xs-2">
                                 <h5>Cant. Máquinas</h5>
                             </div>
@@ -1252,13 +1257,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <br>
                                   <span id="alerta_nro_isla" class="alertaSpan"></span>
                                 </div>
-
+                                <!--
                                 <div class="col-md-3">
                                   <h5>Sub isla</h5>
                                   <input id="sub_isla" type="text" class="form-control" placeholder="Número de isla">
                                   <br>
                                   <span id="alerta_nro_isla" class="alertaSpan"></span>
-                                </div>
+                                </div>-->
                             </div>
 
                             <br><br>

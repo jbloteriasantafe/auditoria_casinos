@@ -1,6 +1,3 @@
-//$('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN');
-//$('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del PRODUCIDO fueron importados');
-//$('#mensajeExito').show();
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
   $('#gestionExpediente').addClass('active');
@@ -335,33 +332,31 @@ $('#btn-nuevo').click(function(){
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
-
     $('.modal-title').text('VER DETALLE EXPEDIENTE');
     $('.modal-header').attr('style','background: #ff9d2d');
-
-      $('#btn-guardar').removeClass('btn-success');
-      $('#btn-guardar').addClass('btn-warning');
-      $('#btn-guardar').text('ACEPTAR');
+    $('#btn-guardar').removeClass('btn-success');
+    $('#btn-guardar').addClass('btn-warning');
+    $('#btn-guardar').text('ACEPTAR');
     //Resetear formulario para llevar los datos
-      $('#frmExpediente').trigger('reset');
-      $('#columna > #disposicion').remove();
-      $('#listaGLISoft > li').remove();
-      $('#listaGLIHard > li').remove();
-      $('#inputSoft').prop("readonly", false); //Se desbloquea el input
-      //Se ocultan todos los alertas
-      $('#alerta-nroExpediente').hide();
-      $('#alerta-fechaPase').hide();
-      $('#alerta-fechaInicio').hide();
-      $('#alerta-destino').hide();
-      $('#alerta-ubicacion').hide();
-      $('#alerta-iniciador').hide();
-      $('#alerta-remitente').hide();
-      $('#alerta-concepto').hide();
-      $('#alerta-tema').hide();
-      $('#alerta-nroCuerpos').hide();
-      $('#alerta-nroFolios').hide();
-      $('#alerta-anexo').hide();
-      $('#alerta-resolucion').hide();
+    $('#frmExpediente').trigger('reset');
+    $('#columna > #disposicion').remove();
+    $('#listaGLISoft > li').remove();
+    $('#listaGLIHard > li').remove();
+    $('#inputSoft').prop("readonly", false); //Se desbloquea el input
+    //Se ocultan todos los alertas
+    $('#alerta-nroExpediente').hide();
+    $('#alerta-fechaPase').hide();
+    $('#alerta-fechaInicio').hide();
+    $('#alerta-destino').hide();
+    $('#alerta-ubicacion').hide();
+    $('#alerta-iniciador').hide();
+    $('#alerta-remitente').hide();
+    $('#alerta-concepto').hide();
+    $('#alerta-tema').hide();
+    $('#alerta-nroCuerpos').hide();
+    $('#alerta-nroFolios').hide();
+    $('#alerta-anexo').hide();
+    $('#alerta-resolucion').hide();
 
     var id_expediente = $(this).val();
 

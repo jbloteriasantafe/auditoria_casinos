@@ -381,6 +381,7 @@ function limpiarModal(){
   $('.navModal > div > i').hide();
   limpiarModalMaquina();
   limpiarModalJuego();
+  limpiarModalIsla();
   limpiarModalGliSoft();
   limpiarModalGliHard();
   limpiarModalFormula();
@@ -388,9 +389,8 @@ function limpiarModal(){
   ocultarAlertas();
 }
 
-$("#modalMaquina").on("hidden.bs.modal",function(){
-  limpiarModal();
-})
+$("#btn-cancelar").on("click",limpiarModal)
+$('#modalMaquina .close').on("click",limpiarModal)
 
 function habilitarControles(valor){
   habilitarControlesMaquina(valor);
@@ -556,6 +556,6 @@ function mensajeExito(titulo,parrafo,mostrar_botones){
   else{
     $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
   }
-  $('#mensajeExito h3').text(titulo);
-  $('#mensajeExito p').text(parrafo);
+  $('#mensajeExito h3').empty().append(titulo);
+  $('#mensajeExito p').empty().append(parrafo);
 }

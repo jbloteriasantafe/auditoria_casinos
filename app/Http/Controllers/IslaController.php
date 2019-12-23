@@ -276,6 +276,19 @@ class IslaController extends Controller
           ];
   }
 
+  public function obtenerIslaPorNro($id_casino,$id_sector,$nro_isla){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $acceso = $usuario->casinos()->where('casino.id_casino','=',$id_casino)->count();
+    if($acceso == 0) return [];
+
+    $isla = Isla::where([['id_casino','=',$id_casino],
+                        ['id_sector','=',$id_sector],
+                        ['nro_isla','=',$nro_isla]])->first();
+                        
+    if(is_null($isla)) return [];
+    return $this->obtenerIsla($isla->id_isla);
+  }
+
   public function eliminarIsla($id){
 
     Validator::make([

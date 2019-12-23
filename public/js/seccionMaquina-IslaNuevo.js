@@ -1,9 +1,6 @@
 var maquinas_seleccionadas = [];
 var modificando = false; //En true para entrar a modificar una máquina
 
-/*** OYENTES de eventos ***/
-$('.modal').on('hidden.bs.modal', cierreModal);
-
 $('#selectCasino').on('change', function(e,id_sector=0){
   var id_casino = $(this).val();
   deshabilitarComponentesIsla();
@@ -30,6 +27,7 @@ $('#selectCasino').on('change', function(e,id_sector=0){
       });
   }
 });
+
 //Botones de acciones
 
 $('#sector').on('change',function(){
@@ -50,7 +48,6 @@ $('#borrarIslaActiva').click(clickBorrarIsla);
 
 $('#nro_isla').change(changeIsla);
 
-$(document).on('keyup', '#nro_isla', keyupIsla);
 
 /*** FUNCIONES ***/
 function mostrarIsla(casino, isla, sectores, sector){
@@ -156,67 +153,43 @@ function deshabilitarComponentesIsla() {
 }
 
 function changeIsla(e) {
-  var seleccionado = $('#nro_isla').obtenerElementoSeleccionado(); //id de la isla seleccionada
-  var input = $('#nro_isla').val(); //Números del input
+  const id_casino = $('#selectCasino').val();
+  const id_sector = $('#sector').val();
+  const nro_isla = $('#nro_isla').val();
 
   //Vaciar tabla de máquinas menos la máquina actual y las agregadas
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').not('.agregada').remove();
-
-  //Si se selecciona una isla existente
-  if (seleccionado) {
-      //Buscar las máquinas de la isla
-      $.get('http://' + window.location.host +"/islas/obtenerIsla/" + seleccionado, function(data){
-
-        $('#nro_isla').attr('data-sector' , data.sector.id_sector);
-
-        //Agregar las máquinas en la tabla
-        for (var i = 0; i < data.maquinas.length; i++){
-            agregarMaquinaIsla(data.maquinas[i].id_maquina,
-                               data.maquinas[i].nro_admin,
-                               data.maquinas[i].marca,
-                               data.maquinas[i].modelo, 'cargada');
-        }
-
-        $('#btn-asociarIsla').show();
-        $('#btn-cancelarIsla').show();
-      });
-  }
-  else {//Si se indica una isla inexistente
-      $('#nro_isla').attr('data-sector' , "");
+  //Aca hacemos otro pedido a la base de datos porque el datalist te guarda el ultimo seleccionado entonces
+  //Quedaba bugeado (solo en el fronttend) isla 219381987321 con id_isla correcto
+  $.get('http://' + window.location.host + "/islas/obtenerIsla/" + id_casino + '/' + id_sector + '/' + nro_isla, function (data) {
+    if (data.length == 0) {//Nro isla invalido
+      $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
+      $('#nro_isla').attr('data-sector', "");
       $('#btn-asociarIsla').hide();
       $('#btn-cancelarIsla').show();
-  }
-}
+    }
+    else {
+      $('#nro_isla').attr('data-sector', data.sector.id_sector);
+      //Agregar las máquinas en la tabla
+      for (var i = 0; i < data.maquinas.length; i++) {
+        agregarMaquinaIsla(data.maquinas[i].id_maquina,
+          data.maquinas[i].nro_admin,
+          data.maquinas[i].marca,
+          data.maquinas[i].modelo, 'cargada');
+      }
 
-function keyupIsla(e) {
-  if ($(this).val() == '') {
-    $('#btn-asociarIsla').hide();
-    $('#btn-cancelarIsla').hide();
-  }
+      $('#btn-asociarIsla').show();
+      $('#btn-cancelarIsla').show();
+    }
+  });
 }
 
 function clickLimpiarCampos(e) {
-  deshabilitarComponentesIsla();
-  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
-
-  //Ocultar botones
-  $('#btn-asociarIsla').hide();
-  $('#btn-cancelarIsla').hide();
-  $('#selectCasino').trigger('change');
+  clickBorrarIsla();
 }
 
-function clickLimpiarCamposModalIsla(e) {
-  deshabilitarComponentesIsla();
-  $('#selectCasino').val(0);
-  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
-  $('#activa_datos').attr('data-isla',''),
-  $('#activa_datos').attr('data-casino',''),
-  $('#activa_nro_isla span').text(''),
-  $('#activa_sub_isla').text(''),
-  $('#activa_datos').attr('data-sector',''),
-  //Ocultar botones
-  $('#btn-asociarIsla').hide();
-  $('#btn-cancelarIsla').hide();
+function limpiarModalIsla() {
+  clickBorrarIsla();
 }
 
 function clickAsociarIsla(e) {
@@ -249,7 +222,6 @@ function clickAsociarIsla(e) {
 function clickEditarIsla(e) {
   maquinas_seleccionadas = [];
 
-
   //PARA MODIFICAR
   if (modificando) {
     //Hacer un GET y cargar los datos
@@ -259,7 +231,6 @@ function clickEditarIsla(e) {
       console.log(data.sector.id_sector);
 
       $('#selectCasino').val(data.sector.id_casino).trigger('change', [data.sector.id_sector]);
-      // $('#sector').val(data.sector.id_sector).trigger('change');
       $('#nro_isla').setearElementoSeleccionado(data.isla.id_isla, data.isla.nro_isla);
       var codigo = data.isla.codigo == null ? '' : data.isla.codigo;
       $('#sub_isla').val(data.isla.codigo);
@@ -294,7 +265,6 @@ function clickEditarIsla(e) {
     $('#asociarIsla').show();
     $('#islaPlegado').show();
   }
-
 }
 
 function clickBorrarIsla(e) {
@@ -303,40 +273,26 @@ function clickBorrarIsla(e) {
   $('#activa_datos').attr('data-isla','');
   $('#activa_datos').attr('data-casino','');
   $('#activa_datos').attr('data-sector','');
+  $('#activa_nro_isla span').text('');
+  $('#activa_sub_isla').text('');
+  $('#activa_cantidad_maquinas').text('');
+  $('#activa_casino').text('');
+  $('#activa_zona').text('');
 
   //Vaciar los campos
-  $('#btn-cancelarIsla').trigger('click');
+  deshabilitarComponentesIsla();
+  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
+
+  //Ocultar botones
+  $('#btn-asociarIsla').hide();
+  $('#btn-cancelarIsla').hide();
+  $('#selectCasino').trigger('change');
 
   //Mostrar la zona de llenado de datos
   $('#tablaIslaActiva').hide();
   $('#noexiste_isla').show();
   $('#asociarIsla').show();
   $('#islaPlegado').show();
-
-  //Ocultar botones
-  $('#btn-asociarIsla').hide();
-  $('#btn-cancelarIsla').hide();
-}
-
-function cierreModal(e) {
-  //se ejecuta siempre que se cierre algun modal
-  //encargado de setear todo vacio
-
-  deshabilitarComponentesIsla();
-  $('#selectCasino').val(0);
-
-  $('#tablaIslaActiva').hide();
-  $('#noexiste_isla').show();
-
-  //Vaciar tabla de máquinas menos la máquina actual
-  $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
-
-  //Todo esto para resetear el collapse
-  $('#asociarIsla').show();
-  $('#islaPlegado').show();
-  $('#asociarIsla').addClass('collapsed').attr('aria-expanded', false);
-  $('#islaPlegado').css('display','').attr('aria-expanded', false);
-  $('#islaPlegado').collapse("hide");
 
   //Ocultar botones
   $('#btn-asociarIsla').hide();
