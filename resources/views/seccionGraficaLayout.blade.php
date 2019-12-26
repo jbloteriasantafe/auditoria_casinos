@@ -115,7 +115,7 @@
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionMovimientos.js" charset="utf-8"></script>
+    <script src="js/seccionGraficaLayout.js" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
