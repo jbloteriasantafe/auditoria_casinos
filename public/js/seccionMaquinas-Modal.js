@@ -202,9 +202,6 @@ $('#btn-guardar').click(function(e){
           }
           $('#btn-buscar').trigger('click');
 
-          //Si estuvo bien:
-          // 1. Cerrar el modal de máquina.
-          // 2. Mostrar el modal de éxtio de carga de máquina.
           $('#modalMaquina').modal('hide');
 
           if(state == 'nuevo'){
@@ -263,14 +260,19 @@ $('#btn-guardar').click(function(e){
 
           const response = JSON.parse(data.responseText);
           const keys = Object.keys(response);
+          let errores_popup = "";
           keys.forEach(key => {
-            const val = response[key][0];
-            const errorResponse = conversion[key];
-            if(tieneValor(val) && tieneValor(errorResponse)){
-              mostrarErrorValidacion($(errorResponse.obj),parseError(val),true);
-              $(errorResponse.show).show();
+            const error = response[key][0];
+            const objetos = conversion[key];
+            if(tieneValor(error) && tieneValor(objetos)){
+              mostrarErrorValidacion($(objetos.obj),parseError(error),true);
+              $(objetos.show).show();
+            }
+            else if(tieneValor(error) && !tieneValor(objetos)){
+              errores_popup += "<p>"+error+"</p>";
             }
           });
+          if(errores_popup.length > 0) mostrarError(errores_popup);
       }
     });
 });
@@ -558,4 +560,15 @@ function mensajeExito(titulo,parrafo,mostrar_botones){
   }
   $('#mensajeExito h3').empty().append(titulo);
   $('#mensajeExito p').empty().append(parrafo);
+}
+
+function mostrarError(mensaje = '') {
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').find('.textoMensaje')
+          .empty()
+          .append('<h2>ERROR</h2>')
+          .append(mensaje);
+      $('#mensajeError').show();
+  }, 500);
 }
