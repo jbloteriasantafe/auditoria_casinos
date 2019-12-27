@@ -15,7 +15,7 @@ class LogMovimiento extends Model
   protected $visible = array('id_log_movimiento','fecha','id_casino',
   'id_expediente','id_estado_movimiento','id_estado_relevamiento',
   'id_tipo_movimiento','carga_finalizada', 'cant_maquinas', 'tipo_carga',
-  'islas');
+  'islas','sentido');
 
   public $timestamps = false;
 

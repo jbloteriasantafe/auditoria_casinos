@@ -1315,6 +1315,13 @@ class LogMovimientoController extends Controller
             'tipos_movimientos' => $t];
   }
 
+  public function casinosYMovimientosIngresosEgresos(){
+    $id_usuario = session('id_usuario');
+    $cas= UsuarioController::getInstancia()->buscarCasinosDelUsuario($id_usuario);
+    $t=TipoMovimiento::whereIn('id_tipo_movimiento',[11,12])->get();
+    return ['casinos' =>$cas,
+            'tipos_movimientos' => $t];
+  }
 
   public function nuevoLogMovimiento(Request $request){
     $validator =Validator::make($request->all(),
@@ -1543,11 +1550,13 @@ class LogMovimientoController extends Controller
   //al final se va a mostrar estatico, pero si se puede buscar algunos viejos con los filtros
   public function buscarEventualidadesMTMs(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-
       Validator::make($request->all(), [
           'id_casino' => 'nullable',
-          'fecha' => 'nullable|date',
-          'id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento'
+          'fecha' => 'nullable|date_format:Y-m-d',
+          'id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
+          'id_casino' => 'nullable|exists:casino,id_casino',
+          'mtm' => 'nullable|exists:nro_admin,maquina',
+          'sentido' => 'nullable|string'
       ], array(), self::$atributos)->after(function ($validator){})->validate();
 
       $reglas=array();
@@ -1568,76 +1577,58 @@ class LogMovimientoController extends Controller
         $reglas[]=['relevamiento_movimiento.nro_admin','=' , $request->mtm ];
       }
 
+      if(isset($request->sentido)){
+        $reglas[]=['log_movimiento.sentido','=',$request->sentido];
+      }
+
+      if(isset($request->id_casino)){
+        $reglas[] = ['log_movimiento.id_casino','=',$request->id_casino];
+      }
 
       $casinos = array();
 
-      if(isset($request->id_casino)){
-        $casinos[] = $request->id_casino;
-      }else {
-        foreach ($usuario->casinos as $casino) {
-          $casinos[] = $casino->id_casino;
-        }
+      foreach ($usuario->casinos as $casino) {
+        $casinos[] = $casino->id_casino;
       }
-
-      // if(empty($reglas) && !isset($request->fecha)){
-      //   return $this->todasEventualidadesMTMs();
-      // }
 
       $reglas[]=['log_movimiento.tiene_expediente','=',0];
-      // $reglas[]=['log_movimiento.id_expediente','is',null]; hay que usar wherenull
 
-      $resultados = null;
-      if(!isset($request->fecha)){
-        $resultados= DB::table('log_movimiento')
-                        ->select('log_movimiento.*','tipo_movimiento.*',
-                          'estado_movimiento.descripcion as estado_descripcion',
-                          'casino.*',
-                          'tipo_movimiento.*')
-                        ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                        ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                        ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
-                        ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-                        ->where($reglas)
-                        ->whereNull('log_movimiento.id_expediente')
-                        ->where('log_movimiento.tiene_expediente','=', 0)
-                        ->whereIn('log_movimiento.id_casino',$casinos)
-                        ->distinct('log_movimiento.id_log_movimiento')
-                        ->orderBy('log_movimiento.fecha','DES')
-                        ->take(30)
-                        ->get();
-      }else{
+      $resultados= DB::table('log_movimiento')
+      ->select('log_movimiento.*','tipo_movimiento.*',
+        'estado_movimiento.descripcion as estado_descripcion',
+        'casino.*',
+        'tipo_movimiento.*')
+      ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
+      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+      ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
+      ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+      ->whereIn('log_movimiento.id_casino',$casinos)
+      ->where($reglas)
+      ->whereNull('log_movimiento.id_expediente')
+      ->where('log_movimiento.tiene_expediente','=', 0);
+      if(isset($request->fecha)){
         $fecha=explode("-", $request->fecha);
-        $resultados= DB::table('log_movimiento')
-                        ->select('log_movimiento.*','tipo_movimiento.*',
-                          'estado_movimiento.descripcion as estado_descripcion',
-                          'casino.*',
-                          'tipo_movimiento.*')
-                        ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                        ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                        ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
-                        ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-                        ->where($reglas)
-                        ->whereNull('log_movimiento.id_expediente')
-                        ->whereIn('log_movimiento.id_casino',$casinos)
-                        ->where('log_movimiento.tiene_expediente','=', 0)
-                        ->whereYear('log_movimiento.fecha' , '=', $fecha[0])
-                        ->whereMonth('log_movimiento.fecha','=', $fecha[1])
-                        ->distinct('log_movimiento.id_log_movimiento')
-                        ->orderBy('log_movimiento.fecha','DES')
-                        ->take(30)
-                        ->get();
+        $resultados = $resultados->whereYear('log_movimiento.fecha' , '=', $fecha[0])
+                      ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
       }
+      $resultados = $resultados->distinct('log_movimiento.id_log_movimiento')
+      ->orderBy('log_movimiento.fecha','DES');
+      $sort_by = $request->sort_by;
+      $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+      });
 
-      $tipos = TipoMovimiento::all();
-      $casinos = $usuario->casinos;
+      $resultados = $resultados->paginate($request->page_size,['log_movimiento.id_log_movimiento']);
+
+      $tipos = TipoMovimiento::where('puede_reingreso',1)->orWhere('puede_egreso_temporal',1)
+      ->where('deprecado',0)->get();
       $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
-      $esSuperUsuario = $usuario->es_superusuario;
 
       return ['eventualidades'=>$resultados,
-              'esControlador' =>$esControlador,/*$esControlador*/
-              'esSuperUsuario' => $esSuperUsuario,
+              'esControlador' =>$esControlador,
+              'esSuperUsuario' => $usuario->es_superusuario,
               'tiposEventualidadesMTM'=> $tipos,
-              'casinos' => $casinos];
+              'casinos' => $usuario->casinos];
 
   }
 
@@ -1933,7 +1924,8 @@ class LogMovimientoController extends Controller
   }
 
   public function tiposMovIntervMTM(){
-    $tipos = TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();
+    $tipos = TipoMovimiento::where('puede_reingreso',1)->orWhere('puede_egreso_temporal',1)
+    ->where('deprecado',0)->get();
     return ['tipos_movimientos' => $tipos];
   }
 

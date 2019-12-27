@@ -128,7 +128,7 @@ $(document).on('click', '#btn-nuevo-movimiento', function(e){
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
 
-  $.get('movimientos/casinosYMovimientos', function(data){
+  $.get('movimientos/casinosYMovimientosIngresosEgresos', function(data){
 
       //carga el select de los casinos del modal
       for (var i = 0; i < data.casinos.length; i++) {

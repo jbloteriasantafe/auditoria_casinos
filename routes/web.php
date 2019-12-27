@@ -262,6 +262,7 @@ Route::post('islas/actualizarListaMaquinas','IslaController@actualizarListaMaqui
 Movimientos
 ***********/
 Route::get('movimientos/casinosYMovimientos','LogMovimientoController@casinosYMovimientos');
+Route::get('movimientos/casinosYMovimientosIngresosEgresos','LogMovimientoController@casinosYMovimientosIngresosEgresos');
 Route::get('movimientos','LogMovimientoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_movimientos');
 Route::post('movimientos/buscarLogsMovimientos','LogMovimientoController@buscarLogsMovimientos');
 Route::post('movimientos/generarRelevamientosMovimientosIngreso', 'LogMovimientoController@generarRelevamientosMovimientosIngreso');

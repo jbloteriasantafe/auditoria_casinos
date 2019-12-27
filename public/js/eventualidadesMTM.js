@@ -1,6 +1,8 @@
 var eventoAEliminar;
 var mtmEv=[];
 $(document).ready(function(){
+  $('#herramientasPaginacion').generarTitulo(1,10,40,function(){});
+  $('#herramientasPaginacion').generarTitulo(1,10,40,function(){});
   var t= $('#tablaResultadosEvMTM tbody > tr .fecha_eventualidad');
 
     $.each(t, function(index, value){
@@ -1021,7 +1023,7 @@ $(document).on('click', '.btn_imprimirEvmtm', function(){
 });
 
 //Busqueda de eventos
-$('#btn-buscarEventualidadMTM').click(function(e){
+$('#btn-buscarEventualidadMTM').click(function(e,pagina,tam,columna,orden){
 
   $.ajaxSetup({
     headers: {
@@ -1030,13 +1032,26 @@ $('#btn-buscarEventualidadMTM').click(function(e){
   });
   e.preventDefault();
 
-    var formData = {
-      id_tipo_movimiento: $('#B_TipoMovEventualidad').val(),
-      fecha: $('#fecha_eventualidad').val(),
-      id_casino: $('#B_CasinoEv').val(),
-      mtm: $('#B_mtmEv').val(),
-      isla: $('#B_islaEv').val(),
-    }
+  const noTieneValor = function(val){
+    const es_null = val === null;
+    const es_undefined = typeof val === 'undefined';
+    return es_null || es_undefined;
+  }
+
+  const sort_by = {columna: noTieneValor(columna)? 'log_movimiento.fecha' : columna, orden: noTieneValor(orden)? 'desc' : orden}
+  const page = noTieneValor(pagina)? $('#herramientasPaginacion').getCurrentPage() : pagina;
+  const page_size = noTieneValor(tam)? $('#herramientasPaginacion').getPageSize() : tam;
+  var formData = {
+    id_tipo_movimiento: $('#B_TipoMovEventualidad').val(),
+    fecha: $('#fecha_eventualidad').val(),
+    id_casino: $('#B_CasinoEv').val(),
+    mtm: $('#B_mtmEv').val(),
+    isla: $('#B_islaEv').val(),
+    sentido: $('#B_SentidoEventualidad').val(),
+    page: page,
+    sort_by: sort_by,
+    page_size: page_size,
+  }
 
   $.ajax({
     type: 'POST',
@@ -1044,16 +1059,16 @@ $('#btn-buscarEventualidadMTM').click(function(e){
     data: formData,
     dataType: 'json',
 
-    success: function (data) {
-      console.log('success', data);
+    success: function (response) {
+      console.log('success', response);
+      $('#herramientasPaginacion').generarTitulo(page,page_size,response.eventualidades.total,clickIndice);
       $('#tablaResultadosEvMTM #cuerpoTablaEvMTM tr').remove();
-
-      for (var i = 0; i < data.eventualidades.length; i++) {
-
-        var filaEventualidad = generarFilaTabla(data.eventualidades[i], data.esControlador,data.esSuperUsuario);
+      const eventualidades = response.eventualidades.data;
+      for (var i = 0; i < eventualidades.length; i++) {
+        var filaEventualidad = generarFilaTabla(eventualidades[i], response.esControlador,response.esSuperUsuario);
         $('#cuerpoTablaEvMTM').append(filaEventualidad);
-        console.log('fila:',filaEventualidad);      }
-
+      }
+      $('#herramientasPaginacion').generarIndices(page,page_size,response.eventualidades.total,clickIndice);
     },
     error: function (data) {
       console.log('Error:', data);
@@ -1061,107 +1076,46 @@ $('#btn-buscarEventualidadMTM').click(function(e){
   });
 });
 
+function clickIndice(e,pageNumber,tam){
+  if(e != null){
+    e.preventDefault();
+  }
+
+  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  var columna = $('#tablaResultados .activa').attr('value');
+  var orden = $('#tablaResultados .activa').attr('estado');
+  $('#btn-buscarEventualidadMTM').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
+
 
 $("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
     $('#btn-buscarEventualidadMTM').trigger('click',['eventualidades.fecha_toma','desc']);
 });
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event,controlador,superusuario){
-  var fila = $(document.createElement('tr'));
-  var fecha;
-  var tipo_ev;
-  var casino;
-  var estado = event.id_estado_movimiento;
-  var islas = event.islas;
+  const estado = event.id_estado_movimiento;
+  let fila = $('#filaEjemploTablaEventualidades').clone().removeAttr('id');
+  fila.attr('id',event.id_log_movimiento);
+  fila.find('.fecha').text(convertirDate(event.fecha)).attr('title',event.fecha);
+  fila.find('.tipo').text(event.descripcion).attr('title',event.descripcion);
+  fila.find('.sentido').text(event.sentido).attr('title',event.sentido);
+  fila.find('.estado').attr('title',event.estado_descripcion);
+  if(estado == 4) fila.find('.estado i').removeClass('fa-exclamation').addClass('fa-check').css('color','#4CAF50');
+  else fila.find('.estado i').removeClass('fa-exclamation').addClass('fa-times').css('color','#EF5350');
+  fila.find('.casino').text(event.nombre).attr('title',event.nombre);
+  fila.find('.isla').text(event.islas).attr('title',event.islas);
+  if(estado == 1) fila.find('.accion .btn_cargarEvmtm i').removeClass('fa-upload').addClass('fa-pencil-alt');
+  fila.find('button').attr('data-casino',event.id_casino).val(event.id_log_movimiento);
 
-  tipo_ev=event.descripcion;
-  fecha=event.fecha;
-  casino=event.nombre;
+  if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
+  if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide();}
+  if (controlador == 1 && estado==8 && !superusuario) {fila.find('.btn_validarEvmtm').hide()}
+  if(controlador == 1 && estado == 6 && !superusuario){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
+  if(controlador==1 && estado==1 && !superusuario){fila.find('.btn_cargarEvmtm').hide();}
+  if(event.deprecado==1) fila.find('td').css('color','rgb(150,150,150)');
 
-  fila.attr('id', event.id_eventualidad)
-      .append($('<td>')
-      .addClass('col-xs-2')
-      .text(convertirDate(fecha))
-      )
-      .append($('<td>')
-      .addClass('col-xs-2')
-      .text(tipo_ev)
-      )
-      if(estado==4){
-      fila.append($('<td>')
-      .addClass('col-xs-1')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check').css('color','#4CAF50').css('align','center')))
-      }
-      else{
-        fila.append($('<td>')
-        .addClass('col-xs-1')
-        .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-times').css('color','#EF5350').css('align','center')))
-      }
-      fila.append($('<td>')
-      .addClass('col-xs-2')
-      .text(casino)
-      );
-      fila.append($('<td>')
-      .addClass('col-xs-2')
-      .text(islas)
-      );
-      contenido = $('<td>')
-      .addClass('col-xs-3')
-      .append($('<span>').text(' '))
-      .append($('<span>').text(' '))
-      .append($('<button>')
-      .addClass('btn_imprimirEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print')
-      )
-      .append($('<span>').text('IMPRIMIR'))
-      .addClass('btn').addClass('btn-info')
-      .attr('value',event.id_log_movimiento)
-      );
-
-      if(estado!=1){
-        dibujo = 'fa-upload';
-      }
-      else{
-        dibujo = "fa-pencil-alt";
-      }
-
-      contenido.append($('<button>')
-      .addClass('btn_cargarEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass(dibujo)
-      )
-      .append($('<span>').text('CARGAR'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',event.id_log_movimiento)
-      .attr('data-casino', event.id_casino)
-      )
-      .append($('<span>').text(' '))
-      .append($('<button>')
-      .addClass('btn_validarEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
-      )
-      .append($('<span>').text('VALIDAR'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',event.id_log_movimiento)
-      )
-      .append($('<span>').text(' '))
-      .append($('<button>')
-      .addClass('btn_borrarEvmtm')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash')
-      )
-      .append($('<span>').text('BORRAR'))
-      .addClass('btn').addClass('btn-danger')
-      .attr('value',event.id_log_movimiento)
-      )
-
-      fila.append(contenido);
-
-    if(estado!=8 && estado!=6 && estado!=1){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide(); }
-    if(controlador == 0 && !superusuario){fila.find('.btn_validarEvmtm').hide();fila.find('.btn_borrarEvmtm').hide();}
-    if (controlador == 1 && estado==8 && !superusuario) {fila.find('.btn_validarEvmtm').hide()}
-    if(controlador == 1 && estado == 6 && !superusuario){fila.find('.btn_validarEvmtm').hide(); fila.find('.btn_cargarEvmtm').hide();}
-    if(controlador==1 && estado==1 && !superusuario){fila.find('.btn_cargarEvmtm').hide();}
-
-    return fila;
+  return fila;
 };
 
 //botón de eliminar que esta dentro del modal de cargar en la lista de maquinas, sectores e islas

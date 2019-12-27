@@ -11,6 +11,7 @@
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/lista-datos.css">
+<link rel="stylesheet" href="/css/paginacion.css">
 @endsection
 
 <div class="col-md-9">
@@ -37,11 +38,27 @@
                   <select class="form-control" id="B_TipoMovEventualidad">
                     <option value="" selected>- Seleccione tipo intervención -</option>
                     @foreach ($tiposEventualidadesMTM as $t_ev)
+                    @if($t_ev->es_intervencion_mtm)
                     <option value="{{$t_ev->id_tipo_movimiento}}">{{$t_ev->descripcion}}</option>
+                    @endif
                     @endforeach
-                    <!-- <option value=" " >- Todos los movimientos -</option> -->
+                    <optgroup label="Fuera de uso">
+                    @foreach ($tiposEventualidadesMTM as $t_ev)
+                    @if($t_ev->deprecado)
+                    <option value="{{$t_ev->id_tipo_movimiento}}" style="color:red">{{$t_ev->descripcion}}</option>
+                    @endif
+                    @endforeach
+                    </optgroup>
                   </select>
-
+                </div>
+                <div class="col-lg-4">
+                  <h5>SENTIDO</h5>
+                  <select class="form-control" id="B_SentidoEventualidad">
+                    <option value="" selected>- Seleccione el sentido -</option>
+                    <option value="EGRESO TEMPORAL">EGRESO TEMPORAL</option>
+                    <option value="REINGRESO">REINGRESO</option>
+                    <option value="---">---</option>
+                  </select>
                 </div>
                 <div class="col-lg-4">
                   <h5>Fecha</h5>
@@ -54,30 +71,27 @@
                     <input class="form-control" type="hidden" id="fecha_eventualidad" value=""/>
                   </div>
                 </div>
-
-                <div class="col-lg-4">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="B_CasinoEv">
-                    <option value="" selected>- Seleccione casino -</option>
-                    @foreach ($casinos as $casino)
-                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                    @endforeach
-                    <!-- <option value=" " >- Todos los movimientos -</option> -->
-                  </select>
-
-                </div>
               </div>
               <div class="row">
                 <div class="col-lg-4">
-                  <h5>Nro. de Máquina</h5>
-                  <input id="B_mtmEv" type="text" class="form-control" placeholder="Nro. de máquina">
-                </div>
+                    <h5>Casino</h5>
+                    <select class="form-control" id="B_CasinoEv">
+                      <option value="" selected>- Seleccione casino -</option>
+                      @foreach ($casinos as $casino)
+                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="col-lg-4">
+                    <h5>Nro. de Máquina</h5>
+                    <input id="B_mtmEv" type="text" class="form-control" placeholder="Nro. de máquina">
+                  </div>
 
-                <div class="col-lg-4">
-                  <h5>Nro. de Isla</h5>
-                  <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
+                  <div class="col-lg-4">
+                    <h5>Nro. de Isla</h5>
+                    <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
+                  </div>
                 </div>
-              </div>
               </div> <!-- row / formulario -->
 
               <br>
@@ -115,12 +129,13 @@
               <table id="tablaResultadosEvMTM" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-2 " value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2"  estado="">TIPO</th>
+                    <th class="col-xs-2" value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" estado="">TIPO</th>
+                    <th class="col-xs-2" estado="">SENTIDO</th>
                     <th class="col-xs-1">ESTADO</th>
-                    <th class="col-xs-2"  estado="">CASINO</th>
-                    <th class="col-xs-2"  estado="">ISLA</th>
-                    <th class="col-xs-3"  estado="">ACCIÓN</th>
+                    <th class="col-xs-1" estado="">CASINO</th>
+                    <th class="col-xs-1" estado="">ISLA</th>
+                    <th class="col-xs-3" estado="">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
@@ -160,6 +175,8 @@
                   @endforeach --}}
                 </tbody>
               </table>
+              <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -203,7 +220,7 @@
         <div  id="colapsado" class="collapse in">
 
           <div class="row"> <!-- ROW 1 -->
-            <div class="col-md-8">
+            <div class="col-md-4">
               <h5>Agregar Máquina</h5>
 
               <div class="row">
@@ -218,7 +235,13 @@
             <div class="col-md-4">
               <h5>Tipo Movimiento</h5>
               <select class="form-control" id="tipoMov">
-                <option value="9" selected>- Seleccione Tipo Movimiento -</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <h5>SENTIDO</h5>
+              <select class="form-control" id="sentidoMov">
+                <option value="EGRESO TEMPORAL">EGRESO TEMPORAL</option>
+                <option value="REINGRESO">REINGRESO</option>
               </select>
             </div>
             <br>
@@ -302,44 +325,36 @@
 
       <div  id="colapsado" class="collapse in">
           <div class="modal-body" style="font-family: Roboto;">
-            <div class="row"> <!-- PRIMER FILA-->
+          <div class="row col-md-12"> <!-- PRIMER FILA-->
+            <div class="col-md-3">
+              <h5>Fiscalizador Toma: </h5>
+              <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
+            </div>
 
-          <div class="col-md-3">
-            <h5>Fiscalizador Toma: </h5>
-            <div class="row"> <!-- row 2 -->
-              <div class="input-group lista-datos-group">
-                <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
-              </div>
-              <!-- <input id="inputMaq" data-maquina="" class="form-control" type="text" autocomplete="off" placeholder="Buscar máquinas"/> -->
-            </div> <!-- fin row2 -->
-          </div>
-
-          <div class="col-md-3">
-            <h5>Tipo Movimiento</h5>
-            <div class="input-group lista-datos-group">
+            <div class="col-md-2">
+              <h5>Tipo Movimiento</h5>
               <input id="inputTipoMov" class="form-control" type="text" value="" autocomplete="off" readonly="">
             </div>
-            <br>
-          </div>
 
-          <div class="col-md-3">
-            <h5>Fiscalizador Carga: </h5>
-          <div class="input-group lista-datos-group">
+            <div class="col-md-2">
+              <h5>Sentido</h5>
+              <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="---">
+            </div>
+
+            <div class="col-md-3">
+              <h5>Fiscalizador Carga: </h5>
               <input id="fiscaCargaEv" type="text"class="form-control">
             </div>
-          </div>
 
-          <div class="col-md-3">
-            <h5>Fecha Ejecución: </h5>
-            <div class='input-group date' id='evFecha' data-link-field="fecha_ejecucionEv" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
-              <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaEv"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
-              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-              <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+            <div class="col-md-2">
+              <h5>Fecha Ejecución: </h5>
+              <div class='input-group date' id='evFecha' data-link-field="fecha_ejecucionEv" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaEv"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
+                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="hidden" id="fecha_ejecucionEv" value=""/>
             </div>
-            <input type="hidden" id="fecha_ejecucionEv" value=""/>
-          </div>
-
-          <br>
           </div>
         </div> <!-- FIN PRIMER FILA-->
 
@@ -774,8 +789,35 @@
   </div>
 </div>
 
-
-
+<table hidden>
+  <thead></thead>
+  <tbody>
+    <tr id="filaEjemploTablaEventualidades">
+      <td class="col-xs-2 fecha">99 DIC 9999</td>
+      <td class="col-xs-2 tipo">***</td>
+      <td class="col-xs-2 sentido">***</td>
+      <td class="col-xs-1 estado">
+        <i class="fas fa-fw fa-exclamation" style="color: rgb(255,255,0);align: center;"></i>
+      </td>
+      <td class="col-xs-1 casino">INVALIDO</td>
+      <td class="col-xs-1 isla">999999</td>
+      <td class="col-xs-3 accion">
+        <button class="btn btn-info btn_imprimirEvmtm" title="IMPRIMIR">
+          <i class="fa fa-fw fa-print"></i>
+        </button>
+        <button class="btn btn-info btn_cargarEvmtm" title="CARGAR">
+          <i class="fa fa-fw fa-upload"></i>
+        </button>
+        <button class="btn btn-info btn_validarEvmtm" title="VALIDAR">
+          <i class="fa fa-fw fa-check"></i>
+        </button>
+        <button class="btn btn-info btn_borrarEvmtm" title="BORRAR">
+          <i class="fa fa-fw fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  <tbody>
+</table>
 
 
 
