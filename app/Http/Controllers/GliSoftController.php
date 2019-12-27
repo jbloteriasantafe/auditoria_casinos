@@ -514,10 +514,10 @@ class GliSoftController extends Controller
     foreach($juegos as $j){
       $casinos_juego = $j->casinos;
       foreach($casinos_juego as $c){
-        if(!$user->usuarioTieneCasino($c->id_casino)) return false;
+        if($user->usuarioTieneCasino($c->id_casino)) return true;
       }
     }
-    return true;
+    return false;
   }
 
   public function gliSoftsPorCasinos($casinos,$ids = false){
