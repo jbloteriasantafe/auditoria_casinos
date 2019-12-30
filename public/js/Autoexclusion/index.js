@@ -7,20 +7,6 @@ $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Alta de autoexcluidos');
   // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
 
-
-  $('#dtpBuscadorFecha').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
   $('#dtpFechaNacimiento').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -30,11 +16,10 @@ $(document).ready(function(){
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
+    ignoreReadonly: true
   });
 
-  $('#dtpFechaAutoexclusion').datetimepicker({
+  $('#dtpFechaAutoexclusionEstado').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -43,15 +28,165 @@ $(document).ready(function(){
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
+    ignoreReadonly: true
   });
 
+  $('#dtpFechaVencimiento').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true
+  });
+
+  $('#dtpFechaFinalizacion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true
+  });
+
+  $('#dtpFechaCierreDefinitivo').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true
+  });
 
   $('#btn-buscar').trigger('click');
 
-
 });
+
+//PAGINACION
+$('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+        }
+    });
+
+    e.preventDefault();
+
+    //Fix error cuando librería saca los selectores
+    if (isNaN($('#herramientasPaginacion').getPageSize())) {
+        var size = 10; // por defecto
+    } else {
+        var size = $('#herramientasPaginacion').getPageSize();
+    }
+
+    var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    var sort_by = (columna != null) ? { columna, orden } : { columna: $('#tablaAutoexcluidos .activa').attr('value'), orden: $('#tablaAutoexcluidos .activa').attr('estado') };
+    if (sort_by == null) { // limpio las columnas
+        $('#tablaAutoexcluidos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado', '');
+    }
+
+    var formData = {
+        apellido: $('#buscadorApellido').val(),
+        dni: $('#buscadorDni').val(),
+        estado: $('#buscadorEstado').val(),
+        casino: $('#buscadorCasino').val(),
+        fecha_autoexclusion: $('#buscadorFechaAutoexclusion').val(),
+        fecha_vencimiento: $('#buscadorFechaVencimiento').val(),
+        fecha_finalizacion: $('#buscadorFechaFinalizacion').val(),
+        fecha_cierre_definitivo: $('#buscadorFechaCierreDefinitivo').val(),
+        page: page_number,
+        sort_by: sort_by,
+        page_size: page_size,
+    }
+
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + window.location.host + '/autoexclusion/buscarAutoexcluidos',
+        data: formData,
+        dataType: 'json',
+        success: function(resultados) {
+            console.log(resultados);
+
+            $('#herramientasPaginacion')
+                .generarTitulo(page_number, page_size, resultados.total, clickIndice);
+
+            $('#cuerpoTabla tr').not('.filaTabla').remove();
+
+            for (var i = 0; i < resultados.data.length; i++) {
+                $('#tablaAutoexcluidos tbody').append(generarFilaTabla(resultados.data[i]));
+            }
+
+            $('#herramientasPaginacion')
+                .generarIndices(page_number, page_size, resultados.total, clickIndice);
+        },
+        error: function(data) {
+            console.log('Error:', data);
+        }
+    });
+});
+
+//Paginacion
+$(document).on('click', '#tablaAutoexcluidos thead tr th[value]', function(e) {
+    $('#tablaAutoexcluidos th').removeClass('activa');
+    if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
+        $(e.currentTarget).children('i')
+            .removeClass().addClass('fa fa-sort-desc')
+            .parent().addClass('activa').attr('estado', 'desc');
+    } else {
+        if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
+            $(e.currentTarget).children('i')
+                .removeClass().addClass('fa fa-sort-asc')
+                .parent().addClass('activa').attr('estado', 'asc');
+        } else {
+            $(e.currentTarget).children('i')
+                .removeClass().addClass('fa fa-sort')
+                .parent().attr('estado', '');
+        }
+    }
+    $('#tablaAutoexcluidos th:not(.activa) i')
+        .removeClass().addClass('fa fa-sort')
+        .parent().attr('estado', '');
+    clickIndice(e,
+        $('#herramientasPaginacion').getCurrentPage(),
+        $('#herramientasPaginacion').getPageSize());
+});
+
+function clickIndice(e, pageNumber, tam) {
+    if (e != null) {
+        e.preventDefault();
+    }
+    var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+    var columna = $('#tablaAutoexcluidos .activa').attr('value');
+    var orden = $('#tablaAutoexcluidos .activa').attr('estado');
+    $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden]);
+}
+
+function generarFilaTabla(unAutoexcluido) {
+    console.log(unAutoexcluido);
+    let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
+    fila.attr('data-id', unAutoexcluido.id_autoexcluido);
+    fila.find('.dni').text(unAutoexcluido.nro_dni);
+    fila.find('.apellido').text(unAutoexcluido.apellido);
+    fila.find('.nombres').text(unAutoexcluido.nombres);
+    fila.find('.estado').text(unAutoexcluido.descripcion);
+    fila.find('.fecha_ae').text(unAutoexcluido.fecha_ae);
+    fila.find('button').each(function(idx, c) { $(c).val(unAutoexcluido.id_autoexcluido); });
+    let ver_mas = fila.find('.info').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VER MÁS', 'data-delay': '{"show":"300", "hide":"100"}' });
+
+    fila.css('display', 'flow-root');
+
+    return fila;
+}
 
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){
@@ -75,20 +210,7 @@ $('#btn-minimizarMaquinas').click(function(){
   }
 });
 
-//si presiono enter y el modal esta abierto se manda el formulario
-$(document).on("keypress" , function(e){
-  if(e.which == 13 && $('#modalFormula').is(':visible')) {
-    e.preventDefault();
-    $('#btn-guardar').click();
-  }
-})
-//enter en buscador
-$('contenedorFiltros input').on("keypress" , function(e){
-  if(e.which == 13) {
-    e.preventDefault();
-    $('#').click();
-  }
-})
+
 
 $('#columna input').on('focusout' , function(){
   if ($(this).val() == ''){
@@ -100,96 +222,6 @@ $('#columna input').focusin(function(){
   $(this).removeClass('alerta');
 
 });
-
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-
-  $('.modal-title').text('| FÓRMULAS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
-	$('#modalAyuda').modal('show');
-
-});
-
-//busqueda de reportes
-$('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  e.preventDefault();
-
-  //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
-  }
-
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosPremio .activa').attr('value'),orden: $('#tablaResultadosPremio .activa').attr('estado')} ;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaResultadosPremios th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-  var formData = {
-    fecha: $('#buscadorFecha').val(),
-    casino: $('#buscadorCasino').val(),
-    page: page_number,
-    sort_by: sort_by,
-    page_size: page_size,
-  }
-
-  $.ajax({
-      type: 'GET',
-      url: 'buscarEstado',
-      data: formData,
-      dataType: 'json',
-      success: function(resultados){
-
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-        $('#cuerpoTabla tr').remove();
-        for (var i = 0; i < resultados.data.length; i++){
-          $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
-        }
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-      },
-      error: function(data){
-        console.log('Error:', data);
-      }
-    });
-});
-
-$(document).on('click','#tablaResultados thead tr th[value]',function(e){
-  $('#tablaResultados th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
-  }
-  else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-    }
-  }
-  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-function clickIndice(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('value');
-  var orden = $('#tablaResultados .activa').attr('estado');
-  $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
 
 //Botón agregar nuevo AE
 $('#btn-agregar-ae').click(function(e){
@@ -362,18 +394,72 @@ $("#btn-next").on("click", function(){
       valid = 0;
     }
 
-    //si existe dni->precargo el form con los datos
-    //HACER
+    //si existe dni, precargo el formulario con los datos
+    $.get('/autoexclusion/existeAutoexcluido/' + $('#nro_dni').val(), function (data) {
+
+      if (data != -1) {
+        //precargo el step de datos personales y de contacto
+        $('#apellido').val(data.autoexcluido.apellido);
+        $('#nombres').val(data.autoexcluido.nombres);
+        $('#fecha_nacimiento').val(data.autoexcluido.fecha_nacimiento);
+        $('#id_sexo').val(data.autoexcluido.id_sexo);
+        $('#id_estado_civil').val(data.autoexcluido.id_estado_civil);
+        $('#domicilio').val(data.autoexcluido.domicilio);
+        $('#nro_domicilio').val(data.autoexcluido.nro_domicilio);
+        $('#nombre_provincia').val(data.autoexcluido.nombre_provincia);
+        $('#nombre_localidad').val(data.autoexcluido.nombre_localidad);
+        $('#telefono').val(data.autoexcluido.telefono);
+        $('#correo').val(data.autoexcluido.correo);
+        $('#id_ocupacion').val(data.autoexcluido.id_ocupacion);
+        $('#id_capacitacion').val(data.autoexcluido.id_capacitacion);
+
+        if (data.datos_contacto != null) {
+          $('#nombre_apellido').val(data.datos_contacto.nombre_apellido);
+          $('#domicilio_vinculo').val(data.datos_contacto.domicilio);
+          $('#nombre_provincia_vinculo').val(data.datos_contacto.nombre_provincia);
+          $('#nombre_localidad_vinculo').val(data.datos_contacto.nombre_localidad);
+          $('#telefono_vinculo').val(data.datos_contacto.telefono);
+          $('#vinculo').val(data.datos_contacto.vinculo);
+        }
+
+        //precargo el step del estado
+        $('#id_casino').val(data.estado.id_casino);
+        $('#id_estado').val(data.estado.id_nombre_estado);
+        $('#fecha_autoexlusion').val(data.estado.fecha_ae);
+        $('#fecha_vencimiento_periodo').val(data.estado.fecha_vencimiento);
+        $('#fecha_renovacion').val(data.estado.fecha_renovacion);
+        $('#fecha_cierre_definitivo').val(data.estado.fecha_cierre_ae);
+
+        //precargo el step de la encuesta
+        if (data.encuesta != null) {
+          $('#juego_preferido').val(data.encuesta.id_juego_preferido);
+          $('#id_frecuencia_asistencia').val(data.encuesta.id_frecuencia_asistencia);
+          $('#veces').val(data.encuesta.veces);
+          $('#tiempo_jugado').val(data.encuesta.tiempo_jugado);
+          $('#socio_club_jugadores').val(data.encuesta.club_jugadores);
+          $('#juego_responsable').val(data.encuesta.juego_responsable);
+          $('#autocontrol_juego').val(data.encuesta.autocontrol_juego);
+          $('#como_asiste').val(data.encuesta.como_asiste);
+          $('#recibir_informacion').val(data.encuesta.recibir_informacion);
+          $('#medio_recepcion').val(data.encuesta.medio_recibir_informacion);
+          $('#observaciones').val(data.encuesta.observacion);
+        }
+
+        //cambio el estado del boton guardar a "existente", para editar y no agregar un AE nuevo
+        $('#btn-guardar').val('existente');
+      }
+
+    });
   }
   //verificacion de inputs validos step #2
   else if(step == 2) {
-    if (!/^[a-z\s]+$/.test($('#apellido').val())) {
+    if (!/^[a-zA-Z\s]+$/.test($('#apellido').val())) {
       mostrarErrorValidacion($('#apellido') , 'El apellido no puede contener números' , false);
       valid = 0;
     }
 
-    if (!/^[a-z\s]+$/.test($('#nombres').val())) {
-      mostrarErrorValidacion($('#apellido') , 'Los nombres no puede contener números' , false);
+    if (!/^[a-zA-Z\s]+$/.test($('#nombres').val())) {
+      mostrarErrorValidacion($('#nombre') , 'Los nombres no puede contener números' , false);
       valid = 0;
     }
 
@@ -419,7 +505,7 @@ $("#btn-next").on("click", function(){
       }
     }
 
-    //si llegue al final, muestro botón de guaradr y oculto el de siguiente
+    //si llegue al final, muestro botón de guardar y oculto el de siguiente
     if( $(".page.active").index() == $(".page").length-1 ){
       $("#btn-guardar").show();
       $("#btn-next").hide();
@@ -429,6 +515,16 @@ $("#btn-next").on("click", function(){
 
 //botón guardar ae
 $('#btn-guardar').click(function (e) {
+    let hay_datos_contacto = ($('#nombre_apellido').val()!='' || $('#domicilio_vinculo').val()!='' || $('#nombre_localidad_vinculo').val()!='' ||
+                              $('#nombre_provincia_vinculo').val()!='' || $('#telefono_vinculo').val()!='' || $('#vinculo').val()!='') ?
+                              1 : 0;
+
+    let hay_encuesta = ($('#juego_preferido').val()!='' || $('#id_frecuencia_asistencia').val()!='' || $('#veces').val()!='' ||
+                        $('#tiempo_jugado').val()!='' || $('#socio_club_jugadores').val()!='' || $('#juego_responsable').val()!='' ||
+                        $('#autocontrol_juego').val()!='' || $('#recibir_informacion').val()!='' || $('#medio_recepcion').val()!='' ||
+                        $('#observaciones').val()!='' || $('#como_asiste').val()!='') ?
+                        1 : 0;
+
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -449,12 +545,13 @@ $('#btn-guardar').click(function (e) {
       nombre_provincia: $('#nombre_provincia').val(),
       telefono: $('#telefono').val(),
       correo: $('#correo').val(),
-      id_ocupacion: $('#nro_dni').val(),
+      id_ocupacion: $('#id_ocupacion').val(),
       id_capacitacion: $('#id_capacitacion').val(),
     }
 
     //guardo los datos de contacto
     var ae_datos_contacto =  {
+      hay_datos_contacto: hay_datos_contacto,
       nombre_apellido: $('#nombre_apellido').val(),
       domicilio_vinculo: $('#domicilio_vinculo').val(),
       nombre_localidad_vinculo: $('#nombre_localidad_vinculo').val(),
@@ -471,11 +568,17 @@ $('#btn-guardar').click(function (e) {
       fecha_vencimiento_periodo: $('#fecha_vencimiento_periodo').val(),
       fecha_renovacion: $('#fecha_renovacion').val(),
       fecha_cierre_definitivo: $('#fecha_cierre_definitivo').val(),
-      //faltan inportaciones
+    }
+
+    //guardo los datos de importación
+    var ae_importacion = {
+      foto1: $('#foto1')[0],
+
     }
 
     //guardo los datos de la encuesta
     var ae_encuesta = {
+        hay_encuesta: hay_encuesta,
         juego_preferido: $('#juego_preferido').val(),
         id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
         veces: $('#veces').val(),
@@ -501,14 +604,15 @@ $('#btn-guardar').click(function (e) {
     //dependiendo el valor del botón guarda o edita
     let state = $('#btn-guardar').val();
     if( state == 'nuevo'){
-      url =  'autoexclusion/agregarAE';
+      url =  'autoexclusion/agregarAE/1';
     }else{
-      url = 'autoexclusion/agregarAE';
+      url = 'autoexclusion/agregarAE/0';
       //se agrega id_ae si se esta modificando
       var formData = {
         datos_personales: ae_datos,
         datos_contacto: ae_datos_contacto,
         ae_estado: ae_estado,
+        ae_importacion: ae_importacion,
         ae_encuesta: ae_encuesta,
         // id_ae: $('#id_ae').val(),
       }
@@ -526,11 +630,13 @@ $('#btn-guardar').click(function (e) {
               $('#mensajeExito div').css('background-color','#4DB6AC');
               // $('#cuerpoTabla').append(generarFilaTabla(data.sesion,data.estado,data.casino,data.nombre_inicio,data.nombre_fin,'guardar'));
             }else{ //Si está modificando
-              $('#mensajeExito p').text('La autoexclusión fue GEDITADA correctamente.');
+              $('#mensajeExito p').text('La autoexclusión fue EDITADA correctamente.');
               $('#mensajeExito div').css('background-color','#FFB74D');
             }
             // $('#frmFormula').trigger("reset");
             $('#modalAgregarAE').modal('hide');
+            //hago un trigger al boton buscar asi actualiza la tabla sin recargar la pagina
+            $('#btn-buscar').trigger('click');
             //Mostrar éxito
             $('#mensajeExito').show();
         },
@@ -538,4 +644,94 @@ $('#btn-guardar').click(function (e) {
             var response = JSON.parse(data.responseText);
         }
     });
+});
+
+//boton ver mas:
+$(document).on('click', '#btnVerMas', function(e){
+  e.preventDefault();
+
+  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #fff');
+
+  var id_autoexcluido = $(this).val();
+  $('#modalVerMas input:checked').prop('checked' ,false);
+
+  $.get('/autoexclusion/buscarAutoexcluido/' + id_autoexcluido, function (data) {
+    console.log(data);
+
+    $('#infoApellido').val(data.autoexcluido.apellido);
+    $('#infoNombres').val(data.autoexcluido.nombres);
+    $('#infoFechaNacimiento').val(data.autoexcluido.fecha_nacimiento);
+    $('#infoDni').val(data.autoexcluido.nro_dni);
+    $('#infoSexo').val(data.autoexcluido.id_sexo);
+    $('#infoEstadoCivil').val(data.autoexcluido.id_estado_civil);
+    $('#infoDomicilio').val(data.autoexcluido.domicilio);
+    $('#infoNroDomicilio').val(data.autoexcluido.nro_domicilio);
+    $('#infoProvincia').val(data.autoexcluido.nombre_provincia);
+    $('#infoLocalidad').val(data.autoexcluido.nombre_localidad);
+    $('#infoTelefono').val(data.autoexcluido.telefono);
+    $('#infoEmail').val(data.autoexcluido.correo);
+    $('#infoOcupacion').val(data.autoexcluido.id_ocupacion);
+    $('#infoCapacitacion').val(data.autoexcluido.id_capacitacion);
+
+    if (data.datos_contacto != null) {
+      $('#infoNombreApellidoVinculo').val(data.datos_contacto.nombre_apellido);
+      $('#infoDomiclioVinculo').val(data.datos_contacto.domicilio);
+      $('#infoProvinciaVinculo').val(data.datos_contacto.nombre_provincia);
+      $('#infoLocalidadVinculo').val(data.datos_contacto.nombre_localidad);
+      $('#infoTelefonoVinculo').val(data.datos_contacto.telefono);
+      $('#infoVinculo').val(data.datos_contacto.vinculo);
+    }
+    else {
+      $('#infoDatosContacto').remove();
+
+      $('#infoNombreApellidoVinculo').val('Información no ingresada');
+      $('#infoDomiclioVinculo').val('Información no ingresada');
+      $('#infoProvinciaVinculo').val('Información no ingresada');
+      $('#infoLocalidadVinculo').val('Información no ingresada');
+      $('#infoTelefonoVinculo').val('Información no ingresada');
+      $('#infoVinculo').val('Información no ingresada');
+    }
+
+    $('#infoCasino').val(data.estado.id_casino);
+    $('#infoEstado').val(data.estado.id_nombre_estado);
+    $('#infoFechaAutoexclusion').val(data.estado.fecha_ae);
+    $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);
+    $('#infoFechaRenovacion').val(data.estado.fecha_renovacion);
+    $('#infoFechaCierreDefinitivo').val(data.estado.fecha_cierre_ae);
+
+    if (data.encuesta != null) {
+      $('#infoJuegoPreferido').val(data.encuesta.id_juego_preferido);
+      $('#infoFrecuenciaAsistencia').val(data.encuesta.id_frecuencia_asistencia);
+      $('#infoVeces').val(data.encuesta.veces);
+      $('#infoTiempoJugado').val(data.encuesta.tiempo_jugado);
+      $('#infoSocioClubJugadores').val(data.encuesta.club_jugadores);
+      $('#infoJuegoResponsable').val(data.encuesta.juego_responsable);
+      $('#infoAutocontrol').val(data.encuesta.autocontrol_juego);
+      $('#infoComoAsiste').val(data.encuesta.como_asiste);
+      $('#infoRecibirInformacion').val(data.encuesta.recibir_informacion);
+      $('#infoMedioRecepcion').val(data.encuesta.medio_recibir_informacion);
+      $('#infoObservaciones').val(data.encuesta.observacion);
+    }
+    else {
+      $('#infoJuegoPreferido').val('Información no ingresada');
+      $('#infoFrecuenciaAsistencia').val('Información no ingresada');
+      $('#infoVeces').val('Información no ingresada');
+      $('#infoTiempoJugado').val('Información no ingresada');
+      $('#infoSocioClubJugadores').val('Información no ingresada');
+      $('#infoJuegoResponsable').val('Información no ingresada');
+      $('#infoAutocontrol').val('Información no ingresada');
+      $('#infoComoAsiste').val('Información no ingresada');
+      $('#infoRecibirInformacion').val('Información no ingresada');
+      $('#infoMedioRecepcion').val('Información no ingresada');
+      $('#infoObservaciones').val('Información no ingresada');
+    }
+
+    $('#modalVerMas').modal('show');
+  });
+
+  //SALIR DEL MODAL VER MAS
+  $('#btn-salir').click(function() {
+      $('#modalVerMas').modal('hide');
+  });
+
 });

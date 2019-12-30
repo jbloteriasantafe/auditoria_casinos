@@ -869,6 +869,8 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_relevamientos_control_ambiental'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
-  Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
-  Route::get('existeAE','Autoexclusion\AutoexclusionController@existeAE');
+  Route::post('agregarAE/{esNuevo}','Autoexclusion\AutoexclusionController@agregarAE');
+  Route::get('existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
+  Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
+  Route::get('/buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');
 });

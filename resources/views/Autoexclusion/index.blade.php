@@ -89,6 +89,89 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
       <div class="col-xl-9">
 
+        <!-- FILTROS DE BÚSQUEDA -->
+        <div class="row">
+            <div class="col-md-12">
+                <div id="contenedorFiltros" class="panel panel-default">
+                  <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+                    <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
+                  </div>
+                  <div id="collapseFiltros" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-md-3">
+                            <h5>Apellido</h5>
+                            <input class="form-control" id="buscadorApellido" value=""/>
+                        </div>
+                        <div class="col-md-3">
+                            <h5>DNI</h5>
+                            <input class="form-control" id="buscadorDni" value=""/>
+                        </div>
+                        <div class="col-md-3">
+                            <h5>Estado</h5>
+                            <select id="buscadorEstado" class="form-control selectEstado" name="">
+                              <option selected="" value="">- Todos los estados -</option>
+                              @foreach ($estados_autoexclusion as $estado)
+                                <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+                              @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <h5>Casino</h5>
+                            <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                                <option value="0">-Todos los Casinos-</option>
+                                @foreach ($casinos as $casino)
+                                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                          <h5>Fecha autoexclusión</h5>
+                          <div class="input-group date" id="dtpFechaAutoexclusion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                              <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                              <span id="input-times-autoexclusion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span id="input-calendar-autoexclusion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <h5>Fecha vencimiento</h5>
+                          <div class="input-group date" id="dtpFechaVencimiento" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                              <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                              <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <h5>Fecha finalización</h5>
+                          <div class="input-group date" id="dtpFechaFinalizacion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                              <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                              <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <h5>Fecha cierre definitivo</h5>
+                          <div class="input-group date" id="dtpFechaCierreDefinitivo" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                              <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivo" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                              <span id="input-times-cierre-definitivo" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                              <span id="input-calendar-cierre-definitivo" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                          </div>
+                        </div>
+                      </div>
+                      <br>
+                      <div class="row">
+                        <center>
+                          <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                        </center>
+                      </div>
+                      <br>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+
           <div class="row">
             <div class="col-md-12">
               <div class="panel panel-default">
@@ -103,25 +186,23 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                         <th class="col-xs-2 activa">DNI<i class="fa fa-sort-desc"></i></th>
                         <th class="col-xs-2">APELLIDO<i class="fa fa-sort"></i></th>
                         <th class="col-xs-2">NOMBRES<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">SEXO<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">EDAD<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">FECHA AE<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">FECHA VENC.<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">FECHA RENOV.<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1">FECHA CIERRE DEF.<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2">ESTADO<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2">FECHA AE<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2">ACCIONES<i class="fa fa-sort"></i></th>
                       </tr>
                     </thead>
                     <tbody id="cuerpoTabla" style="height: 350px;">
-                      <tr class="filaEjemplo">
-                        <td class="col-xs-1.5 dni">444444444</td>
-                        <td class="col-xs-2 apellido">Martinez</td>
-                        <td class="col-xs-2 nombres">Juan Pedro</td>
-                        <td class="col-xs-2 sexo">M</td>
-                        <td class="col-xs-1 edad">33</td>
-                        <td class="col-xs-1 fecha_ae">12/04/2019</td>
-                        <td class="col-xs-1 fecha_venc">09/10/2019</td>
-                        <td class="col-xs-1 fecha_renov">-/-/-</td>
-                        <td class="col-xs-1 fecha_cierre_def">09/04/2020</td>
+                      <tr class="filaTabla" style="display: none">
+                        <td class="col-sm-2 dni"></td>
+                        <td class="col-xs-2 apellido"></td>
+                        <td class="col-xs-2 nombres"></td>
+                        <td class="col-xs-2 estado"></td>
+                        <td class="col-xs-2 fecha_ae"></td>
+                        <td class="col-xs-2 acciones">
+                          <button id="btnVerMas" class="btn btn-info info" type="button" value="">
+                            <i class="fa fa-fw fa-search-plus"></i></button>
+                          <span></span>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -136,7 +217,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
 
 
-    <!-- MMODAL AGREGAR AE-->
+    <!-- MODAL AGREGAR AE-->
     <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
@@ -180,8 +261,8 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                       <h5>FECHA DE NACIMIENTO</h5>
                                       <div class="input-group date" id="dtpFechaNacimiento" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
                                           <input type="text" class="form-control" placeholder="Fecha de nacimiento" id="fecha_nacimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                                          <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                          <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                          <span id="input-times-nacimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                          <span id="input-calendar-nacimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                       </div>
                                     </div>
                                     <div class="col-lg-3">
@@ -301,17 +382,15 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                           <h5>ESTADO</h5>
                                           <select id="id_estado" name="id_estado" class="form-control">
                                             <option selected="" value="">- Seleccione un estado -</option>
-                                            <option value="1">VIGENTE</option>
-                                            <option value="2">RENOVADO</option>
-                                            <option value="3" selected="">PENDIENTE DE VALIDACIÓN</option>
-                                            <option value="4">FINALIZADO x/AE</option>
-                                            <option value="5">VENCIDO</option>
+                                            @foreach ($estados_autoexclusion as $estado)
+                                              <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+                                            @endforeach
                                           </select>
                                         </div>
 
                                         <div class="col-lg-6">
                                           <h5>FECHA AUTOEXCLUSIÓN</h5>
-                                          <div class="input-group date" id="dtpFechaAutoexclusion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                                          <div class="input-group date" id="dtpFechaAutoexclusionEstado" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
                                               <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="fecha_autoexlusion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                                               <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                               <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -357,7 +436,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-3">
                                     <h5>JUEGO PREFERIDO</h5>
                                     <select id="juego_preferido" class="form-control" name="juego_preferido">
-                                        <option value="">-Todos los Casinos-</option>
+                                        <option value="">- Seleccione un juego -</option>
                                         @foreach($juegos as $juego)
                                         <option value="{{$juego->id_juego_preferido}}">{{$juego->nombre}}</option>
                                         @endforeach
@@ -365,8 +444,8 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   </div>
                                   <div class="col-lg-3">
                                     <h5>F. DE ASISTENCIA</h5>
-                                    <select id="id_frecuencia_asistencia" class="form-control" name="ifrecuencia_asistencia">
-                                          <option selected="" value="">Seleccione casino</option>
+                                    <select id="id_frecuencia_asistencia" class="form-control" name="id_frecuencia_asistencia">
+                                          <option selected="" value="">- Seleccione un valor -</option>
                                         @foreach($frecuencias as $frecuencia)
                                         <option value="{{$frecuencia->id_frecuencia}}">{{$frecuencia->nombre}}</option>
                                         @endforeach
@@ -383,7 +462,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>¿ES SOCIO DEL CLUB DE JUGADORES?</h5>
                                       <select id="socio_club_jugadores" name="socio_club_jugadores" class="form-control">
-                                        <option selected="" value="">- Seleccionar opción -</option>
+                                        <option selected="" value="">- Seleccione una opción -</option>
                                         <option value="SI">SI</option>
                                         <option value="NO">NO</option>
                                       </select>
@@ -391,7 +470,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>¿CONOCE EL PROGRAMA JUEGO RESPONSABLE?</h5>
                                     <select id="juego_responsable" name="juego_responsable" class="form-control">
-                                      <option selected="" value="">- Seleccionar opción -</option>
+                                      <option selected="" value="">- Seleccione una opción -</option>
                                       <option value="SI">SI</option>
                                       <option value="NO">NO</option>
                                     </select>
@@ -399,7 +478,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>¿DECISIÓN POR PROBLEMAS DE AUTOCONTROL?</h5>
                                     <select id="autocontrol_juego" name="autocontrol_juego" class="form-control">
-                                      <option selected="" value="">- Seleccionar opción -</option>
+                                      <option selected="" value="">- Seleccione una opción -</option>
                                       <option value="SI">SI</option>
                                       <option value="NO">NO</option>
                                     </select>
@@ -407,7 +486,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>¿CÓMO ASISTE?</h5>
                                     <select id="como_asiste" name="como_asiste" class="form-control">
-                                      <option selected="" value="">- Seleccionar opción -</option>
+                                      <option selected="" value="">- Seleccione una opción -</option>
                                       <option value="0">SOLO</option>
                                       <option value="1">ACOMPAÑADO</option>
                                     </select>
@@ -415,7 +494,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>¿DESEA RECIBIR INFORMACIÓN SOBRE JR?</h5>
                                     <select id="recibir_informacion" name="recibir_informacion" class="form-control">
-                                      <option selected="" value="">- Seleccionar opción -</option>
+                                      <option selected="" value="">- Seleccione una opción -</option>
                                       <option value="SI">SI</option>
                                       <option value="NO">NO</option>
                                     </select>
@@ -457,6 +536,291 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
             </div>
           </div>
     </div>
+
+
+
+
+
+
+    <!-- MODAL VER MAS -->
+    <div class="modal fade" id="modalVerMas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+             <div class="modal-content">
+                <div class="modal-header modalVerMas">
+                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <h3 class="modal-title">| VER MÁS</h3>
+                </div>
+
+              <div id="colapsado" class="collapse in">
+                <div class="modal-body">
+                  <form id="frmAutoExcluido" name="frmAutoExcluido" class="form-horizontal" novalidate="">
+
+                    <!-- ver mas: datos personales -->
+                    <div class="infoDatosPersonales">
+                        <h6>Datos personales</h6>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>APELLIDO</h5>
+                            <input id="infoApellido" name="infoApellido" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>NOMBRES</h5>
+                            <input id="infoNombres" name="infoNombres" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>FECHA DE NACIMIENTO</h5>
+                            <input id="infoFechaNacimiento" name="infoFechaNacimiento" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>DNI</h5>
+                            <input id="infoDni" name="infoDni" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>SEXO</h5>
+                            <select id="infoSexo" name="infoSexo" class="form-control" disabled>
+                              <option selected="" value="">Seleccionar Valor</option>
+                              <option value="0">Masculino</option>
+                              <option value="1">Femenino</option>
+                              <option value="-1">Otro</option>
+                            </select>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>ESTADO CIVIL</h5>
+                            <select id="infoEstadoCivil" name="infoEstadoCivil" class="form-control" disabled>
+                              <option selected="" value="">Seleccionar Valor</option>
+                              <option value="1">Soltero</option>
+                              <option value="2">Casado</option>
+                              <option value="3">Separado / Divorciado</option>
+                              <option value="4">Unido de Hecho</option>
+                              <option value="5">Viudo</option>
+                              <option value="6">No Contesta</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>DOMICILIO</h5>
+                            <input id="infoDomicilio" name="infoDomicilio" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>NRO. DOMICILIO</h5>
+                            <input id="infoNroDomicilio" name="infoNroDomicilio" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>PROVINCIA</h5>
+                            <input id="infoProvincia" name="infoProvincia" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>LOCALIDAD</h5>
+                            <input id="infoLocalidad" name="infoLocalidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>TELEFONO</h5>
+                            <input id="infoTelefono" name="infoTelefono" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>EMAIL</h5>
+                            <input id="infoEmail" name="infoEmail" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>OCUPACIÓN</h5>
+                            <select id="infoOcupacion" name="infoOcupacion" class="form-control" disabled>
+                                <option selected="" value="">Seleccionar Valor</option>
+                                @foreach($ocupaciones as $ocupacion)
+                                <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
+                                @endforeach
+                            </select>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>CAPACITACIÓN</h5>
+                            <select id="infoCapacitacion" name="infoCapacitacion" class="form-control" disabled>
+                              <option selected="" value="">Seleccionar Valor</option>
+                              <option value="1">Primaria</option>
+                              <option value="2">Secundaria</option>
+                              <option value="3">Terciaria</option>
+                              <option value="4">Universitaria</option>
+                              <option value="5">Otra</option>
+                              <option value="6">No Contesta</option>
+                            </select>
+                          </div>
+                        </div>
+                    </div><br>
+
+                    <!-- ver mas: datos de contacto -->
+                    <div class="infoDatosContacto">
+                      <h6>Datos persona de contacto</h6>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>NOMBRE Y APELLIDO</h5>
+                          <input id="infoNombreApellidoVinculo" name="infoNombreApellidoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>DOMICILIO</h5>
+                          <input id="infoDomiclioVinculo" name="infoDomiclioVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>PROVINCIA</h5>
+                          <input id="infoProvinciaVinculo" name="infoProvinciaVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>LOCALIDAD</h5>
+                          <input id="infoLocalidadVinculo" name="infoLocalidadVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>TELÉFONO</h5>
+                          <input id="infoTelefonoVinculo" name="infoTelefonoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>VÍNCULO</h5>
+                          <input id="infoVinculo" name="infoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                      </div>
+                    </div><br>
+
+                    <!-- ver mas: información de estado de autoexclusión -->
+                    <div class="infoEstadoAutoexclusion">
+                      <h6>Información de estado de la autoexclusión</h6>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>CASINO</h5>
+                          <select id="infoCasino" class="form-control selectCasinos" name="infoCasino" disabled>
+                              <option value="0">-Todos los Casinos-</option>
+                              @foreach ($casinos as $casino)
+                                <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                              @endforeach
+                          </select>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>ESTADO</h5>
+                          <select id="infoEstado" class="form-control selectEstado" name="infoEstado" disabled>
+                            <option selected="" value="">- Todos los estados -</option>
+                            @foreach ($estados_autoexclusion as $estado)
+                              <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+                            @endforeach
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>FECHA AUTOEXCLUSIÓN</h5>
+                          <input id="infoFechaAutoexclusion" name="infoFechaAutoexclusion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>VENCIMIENTO 1° PERÍODO</h5>
+                          <input id="infoFechaVencimiento" name="infoFechaVencimiento" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <h5>PERMITIR RENOVACIÓN DESDE</h5>
+                          <input id="infoFechaRenovacion" name="infoFechaRenovacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>FECHA CIERRE DEFINITIVO</h5>
+                          <input id="infoFechaCierreDefinitivo" name="infoFechaCierreDefinitivo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                        </div>
+                      </div>
+                    </div><br>
+
+                    <!-- ver mas: información de encuesta -->
+                    <div class="infoEncuesta">
+                        <h6>Encuesta</h6>
+                        <div class="row">
+                          <div class="col-lg-3">
+                            <h5>JUEGO PREFERIDO</h5>
+                            <select id="infoJuegoPreferido" class="form-control" name="infoJuegoPreferido" disabled>
+                                <option value="">- Seleccione un juego -</option>
+                                @foreach($juegos as $juego)
+                                <option value="{{$juego->id_juego_preferido}}">{{$juego->nombre}}</option>
+                                @endforeach
+                            </select>
+                          </div>
+                          <div class="col-lg-3">
+                            <h5>F. DE ASISTENCIA</h5>
+                            <select id="infoFrecuenciaAsistencia" class="form-control" name="infoFrecuenciaAsistencia" disabled>
+                                  <option selected="" value="">- Seleccione un valor -</option>
+                                @foreach($frecuencias as $frecuencia)
+                                <option value="{{$frecuencia->id_frecuencia}}">{{$frecuencia->nombre}}</option>
+                                @endforeach
+                            </select>
+                          </div>
+                          <div class="col-lg-3">
+                            <h5>VECES</h5>
+                            <input id="infoVeces" name="infoVeces" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-3">
+                            <h5>TIEMPO JUGANDO (HS)</h5>
+                            <input id="infoTiempoJugado" name="infoTiempoJugado" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>¿ES SOCIO DEL CLUB DE JUGADORES?</h5>
+                            <input id="infoSocioClubJugadores" name="infoSocioClubJugadores" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>¿CONOCE EL PROGRAMA JUEGO RESPONSABLE?</h5>
+                            <input id="infoJuegoResponsable" name="infoinfoJuegoResponsableFechaRenovacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>¿DECISIÓN POR PROBLEMAS DE AUTOCONTROL?</h5>
+                            <input id="infoAutocontrol" name="infoAutocontrol" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>¿CÓMO ASISTE?</h5>
+                            <select id="infoComoAsiste" name="infoComoAsiste" class="form-control" disabled>
+                              <option selected="" value="">- Seleccione una opción -</option>
+                              <option value="0">SOLO</option>
+                              <option value="1">ACOMPAÑADO</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>¿DESEA RECIBIR INFORMACIÓN SOBRE JR?</h5>
+                            <input id="infoRecibirInformacion" name="infoRecibirInformacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>¿MEDIO DE RECEPCIÓN?</h5>
+                            <input id="infoMedioRecepcion" name="infoMedioRecepcion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-12">
+                            <h5>OBSERVACIONES</h5>
+                              <input id="infoObservaciones" name="infoObservaciones" class="form-control"  placeholder="" value="" required disabled>
+                          </div>
+                        </div>
+                    </div>
+                  </form>
+                </div>
+
+                <div class="modal-footer">
+                  <button id="btn-salir" type="button" class="btn btn-default" >SALIR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+
+
 
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
