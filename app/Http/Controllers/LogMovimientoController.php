@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
@@ -1611,11 +1612,11 @@ class LogMovimientoController extends Controller
         $resultados = $resultados->whereYear('log_movimiento.fecha' , '=', $fecha[0])
                       ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
       }
-      $resultados = $resultados->distinct('log_movimiento.id_log_movimiento')
-      ->orderBy('log_movimiento.fecha','DES');
       $sort_by = $request->sort_by;
       $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        // Como no tiene hora la fecha, si queremos que los cargados mas tarde pero
+        // en el mismo dia aparezcan despues, ordenamos por ID.
+        return $query->orderBy($sort_by['columna'],$sort_by['orden'])->orderBy('log_movimiento.id_log_movimiento','desc');
       });
 
       $resultados = $resultados->paginate($request->page_size,['log_movimiento.id_log_movimiento']);
@@ -1717,68 +1718,69 @@ class LogMovimientoController extends Controller
   public function nuevaEventualidadMTM( Request $request){
     $validator =Validator::make($request->all(), [
         'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
-        'maquinas' => 'required'
+        'maquinas' => 'required',
+        'sentido' => ['required','string',Rule::in(['EGRESO TEMPORAL', 'REINGRESO'])]
     ], array(), self::$atributos)->after(function($validator){
+      $data = $validator->getData();
+      if($data['id_tipo_movimiento']==9){
+        $validator->errors()->add('tipo_movimiento', 'No se ha seleccionado el tipo de movimiento.');
+      }
+      $sentido = $data['sentido'];
+      $tipo = TipoMovimiento::find($data['id_tipo_movimiento']);
+      //Verifico que el tipo pueda realizar un movimiento en ese sentido
+      if($sentido == 'EGRESO TEMPORAL' && !$tipo->puede_egreso_temporal){
+        $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
+      }
+      if($sentido == 'REINGRESO' && !$tipo->puede_reingreso){
+        $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
+      }
+    })->validate();
 
-        if($validator->getData()['id_tipo_movimiento']==9){
-          $validator->errors()->add('tipo_movimiento', 'No se ha seleccionado el tipo de movimiento.');
-        }
-
-
-
-      })->validate();
-
-     if(isset($validator))
-      {
-        if ($validator->fails())
-        {
-          return [
-                'errors' => $validator->getMessageBag()->toArray()
-            ];
-        }
-     }
-
-    $logMovimiento = new LogMovimiento;
-    $logMovimiento->fecha= date("Y-m-d");
-    $logMovimiento->tiene_expediente = 0;
-    $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-    $logMovimiento->estado_movimiento()->associate(6);//creado
-    $logMovimiento->estado_relevamiento()->associate(1);//generado
-    $logMovimiento->save();
-
-
-
-    foreach ($request['maquinas'] as $mtm) {
-      $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm['id_maquina']],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
-      if($relevamiento == null){
-        $maq =Maquina::find($mtm['id_maquina']);
-       RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
-       $this->guardarIslasMovimiento($logMovimiento,$maq);
+    if(isset($validator)){
+      if ($validator->fails()){
+        return [
+              'errors' => $validator->getMessageBag()->toArray()
+          ];
       }
     }
 
-
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    foreach ($usuario->casinos as $casino) {
-      $casinos[] = $casino->id_casino;
+    $logMovimiento = null;
+    DB::beginTransaction();
+    try{
+      $logMovimiento = new LogMovimiento;
+      $logMovimiento->fecha= date("Y-m-d");
+      $logMovimiento->tiene_expediente = 0;
+      $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+      $logMovimiento->estado_movimiento()->associate(6);//creado
+      $logMovimiento->estado_relevamiento()->associate(1);//generado
+      $logMovimiento->sentido = $request['sentido'];
+      $logMovimiento->save();
+  
+      foreach ($request['maquinas'] as $mtm) {
+        $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm['id_maquina']],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
+        if($relevamiento == null){
+          $maq =Maquina::find($mtm['id_maquina']);
+         RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
+         $this->guardarIslasMovimiento($logMovimiento,$maq);
+        }
+      }
+  
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      foreach ($usuario->casinos as $casino) {
+        $casinos[] = $casino->id_casino;
+      }
+      $casino = Casino::find($casinos[0]);
+  
+      $logMovimiento->casino()->associate($casinos[0]);
+      $logMovimiento->save();
     }
-    $casino = Casino::find($casinos[0]);
+    catch(Exception $e){
+      DB::rollBack();
+      return null;
+    }
+    DB::commit();
 
-    $logMovimiento->casino()->associate($casinos[0]);
-    $logMovimiento->save();
-
-    // $view = View::make('planillaEventualidadesMTMs', compact('rels'));
-    // $dompdf = new Dompdf();
-    // $dompdf->set_paper('A4', 'portrait');
-    // $dompdf->loadHtml($view->render());
-    // $dompdf->render();
-    // $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    // $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMovimiento->fecha, $font, 10, array(0,0,0));
-    // $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    //
-    // return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
     return $logMovimiento->id_log_movimiento;
-
   }
 
   public function cargarEventualidadMTM(Request $request){
@@ -1931,13 +1933,19 @@ class LogMovimientoController extends Controller
 
   //tipo: si es 1 = es nueva la planilla, si es 2 es que se imprime con la carga completa
   public function imprimirEventualidadMTM($id_log_mov, $tipo){
-
     $rels= array();
     $log = LogMovimiento::find($id_log_mov);
-    $i = 0;//count($log->relevamientos_movimientos) - 1;
+    $i = 0;
     $casino = $log->casino;
     foreach ($log->relevamientos_movimientos as $relev) {
-      $rels[] = RelevamientoMovimientoController::getInstancia()->relevamientosIntervencionesMTM($relev->id_maquina,$i,$log->id_log_movimiento,$log->tipo_movimiento->descripcion, $tipo, $casino);
+      $rels[] = RelevamientoMovimientoController::getInstancia()
+      ->relevamientosIntervencionesMTM( $relev->id_maquina,
+                                        $i,
+                                        $log->id_log_movimiento,
+                                        $log->tipo_movimiento->descripcion,
+                                        $log->sentido,
+                                        $tipo,
+                                        $casino);
       $i++;
     }
 
@@ -1966,7 +1974,7 @@ class LogMovimientoController extends Controller
     }
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
-    return ['maquinas'=>$maquinas,'fiscalizador_carga'=> $user,'tipo_movimiento' => $log->tipo_movimiento->descripcion,
+    return ['maquinas'=>$maquinas,'fiscalizador_carga'=> $user,'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido,
             'casino' => $log->casino];
   }
 

@@ -60,9 +60,13 @@ footer
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
               <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
                     print_r($hoy); ?></div>
-              <table><tr><th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">TIPO DE MOVIMIENTO</th>
+              <table>
+              <tr>
+                <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">TIPO DE MOVIMIENTO</th>
+                <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">SENTIDO</th>
               </tr>
-                <td class="tablaInicio"style="background-color: #dddddd; border-color: gray;">{{$relevamiento->tipo_movimiento}}</td>
+              <td class="tablaInicio"style="background-color: #dddddd; border-color: gray;">{{$relevamiento->tipo_movimiento}}</td>
+              <td class="tablaInicio"style="background-color: #dddddd; border-color: gray;">{{$relevamiento->sentido}}</td>
               </table>
               <br>
               <table>

@@ -42,10 +42,10 @@
                     <option value="{{$t_ev->id_tipo_movimiento}}">{{$t_ev->descripcion}}</option>
                     @endif
                     @endforeach
-                    <optgroup label="Fuera de uso">
+                    <optgroup style="color:red;" label="Fuera de uso">
                     @foreach ($tiposEventualidadesMTM as $t_ev)
                     @if($t_ev->deprecado)
-                    <option value="{{$t_ev->id_tipo_movimiento}}" style="color:red">{{$t_ev->descripcion}}</option>
+                    <option value="{{$t_ev->id_tipo_movimiento}}" style="color:red;">{{$t_ev->descripcion}}</option>
                     @endif
                     @endforeach
                     </optgroup>
@@ -123,18 +123,18 @@
         <div class="col-md-12">
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h4 id="tituloTablaEvMTM"></h4>
+              <h4 id="tituloTablaEvMTM">Movimientos Registrados en el Sistema</h4>
             </div>
             <div class="panel-body">
               <table id="tablaResultadosEvMTM" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-2" value="eventualidades.fecha_toma" estado="" >FECHA <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" estado="">TIPO</th>
-                    <th class="col-xs-2" estado="">SENTIDO</th>
-                    <th class="col-xs-1">ESTADO</th>
-                    <th class="col-xs-1" estado="">CASINO</th>
-                    <th class="col-xs-1" estado="">ISLA</th>
+                    <th class="col-xs-2" value="log_movimiento.fecha" estado="" >FECHA <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="tipo_movimiento.descripcion" estado="">TIPO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="log_movimiento.sentido" estado="">SENTIDO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1" value="estado_movimiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
+                    <th class="col-xs-1" value="log_movimiento.islas" estado="">ISLAS <i class="fa fa-sort"></i></th>
                     <th class="col-xs-3" estado="">ACCIÓN</th>
                   </tr>
                 </thead>
@@ -288,9 +288,9 @@
 <div class="modal fade" id="modalEliminarEventualidadMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header" style="background-color:#ef3e42;color:white;">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-            <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+            <h3>ADVERTENCIA</h3>
           </div>
 
           <div class="modal-body franjaRojaModal">
@@ -338,7 +338,7 @@
 
             <div class="col-md-2">
               <h5>Sentido</h5>
-              <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="---">
+              <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
             </div>
 
             <div class="col-md-3">

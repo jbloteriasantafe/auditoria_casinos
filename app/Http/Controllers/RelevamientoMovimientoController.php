@@ -471,7 +471,7 @@ class RelevamientoMovimientoController extends Controller
   }*/
 
 
-   public function relevamientosIntervencionesMTM($id_mtm,$nro, $id_log_movimiento, $tipo_movimiento,$tipo, $cas){
+   public function relevamientosIntervencionesMTM($id_mtm,$nro,$id_log_movimiento,$tipo_movimiento,$sentido,$tipo,$cas){
      $rel= new \stdClass();
      $rel->nro= $nro;
 
@@ -479,6 +479,7 @@ class RelevamientoMovimientoController extends Controller
      $relevamiento = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_mtm]])->get()->first();
      //campos que solo se deberían chequear y si estan mal agregarlo en observaciones
      $rel->tipo_movimiento = $tipo_movimiento; //guarda la descripcion del tipo de movimiento
+     $rel->sentido = $sentido;
      $rel->nro_admin = $maquina->nro_admin;
      $isla = Isla::find($maquina->id_isla);
      if($isla != null)
