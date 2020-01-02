@@ -802,8 +802,8 @@ $(document).on('click','.verMaquinaEv',function(){
       if (true) {
         //CARGA CAMPOS INPUT
 
-        $('#f_cargaVal').val(data.cargador.nombre);
-        $('#f_tomaVal').val(data.fiscalizador.nombre);
+        $('#f_cargaVal').val(data.cargador == null? '' : data.cargador.nombre);
+        $('#f_tomaVal').val(data.fiscalizador == null? '' : data.fiscalizador.nombre);
         $('#tipo_movVal').val(data.tipo_movimiento.descripcion);
         $('#nro_adminVal').val(data.maquina.nro_admin);
         $('#nro_islaVal').val(data.maquina.nro_isla);
@@ -828,41 +828,18 @@ $(document).on('click','.verMaquinaEv',function(){
                   v="-"
                 }
 
-              //  if(data.toma==null){
-
-                    if(p != null ){
-                        fila.append($('<td>')
-                            .addClass('col-xs-6')
-                            .text(p))
-                            .append($('<td>')
-                            .addClass('col-xs-3')
-                            .text(v)
-                            );
-                            $('#tercer_col').hide();
-                            tablaContadores.append(fila);
-                    }
-              //  }
-
-                  //   else{
-                  //       var m = data.toma[vcont + i];
-                  //
-                  //     if(p != null ){
-                  //         fila.append($('<td>')
-                  //             .addClass('col-xs-6')
-                  //             .text(p))
-                  //             .append($('<td>')
-                  //             .addClass('col-xs-3')
-                  //             .text(v)
-                  //             )
-                  //             .append($('<td>')
-                  //             .addClass('col-xs-3')
-                  //             .text(m)
-                  //             );
-                  //             $('#tercer_col').show();
-                  //             tablaContadores.append(fila);
-                  //     }
-                  // }
-              }
+                if(p != null ){
+                    fila.append($('<td>')
+                        .addClass('col-xs-6')
+                        .text(p))
+                        .append($('<td>')
+                        .addClass('col-xs-3')
+                        .text(v)
+                        );
+                        $('#tercer_col').hide();
+                        tablaContadores.append(fila);
+                }
+        }
 
         if(data.toma!=null){
 

@@ -181,30 +181,28 @@
           </div>
         </div>
       </div> <!-- .row / TABLA -->
-</div>
+      
 <div class="col-md-3">
-
-      <!--Botón nueva eventualidad de máquina-->
+  <!--Botón nueva eventualidad de máquina-->
   <div class="row">
-      <div class="col-lg-12">
-            <a href="" id="btn-nueva-evmaquina" style="text-decoration: none;">
-              <div class="panel panel-default panelBotonNuevo">
-                  <center><img class="imgNuevo" src="/img/logos/tragaperras_white.png"><center>
-                  <div class="backgroundNuevo"></div>
-                  <div class="row">
-                      <div class="col-xs-12">
-                        <center>
-                            <h5 class="txtLogo">+</h5>
-                            <h4 class="txtNuevo">NUEVA INTERVENCIÓN DE MÁQUINA</h4>
-                          </center>
-                      </div>
-                  </div>
-              </div>
-            </a>
-          </div>
-      </div> <!-- .row -->
+    <div class="col-lg-12">
+      <a href="" id="btn-nueva-evmaquina" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+            <center><img class="imgNuevo" src="/img/logos/tragaperras_white.png"><center>
+            <div class="backgroundNuevo"></div>
+            <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                    <h5 class="txtLogo">+</h5>
+                    <h4 class="txtNuevo">NUEVA INTERVENCIÓN DE MÁQUINA</h4>
+                  </center>
+                </div>
+            </div>
+        </div>
+      </a>
+    </div>
+  </div> <!-- .row -->
 </div>
-
 
 <!-- ************************modal para cargar maq afectadas ******************************-->
 <div class="modal fade" id="modalNuevaEvMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
