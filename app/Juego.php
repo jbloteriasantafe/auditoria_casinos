@@ -69,7 +69,7 @@ class Juego extends Model
     return $this->belongsTo('App\Progresivo','id_progresivo','id_progresivo');
   }
 
-  public function maquinas(){
+  public function maquinas(){//En realidad obtiene las maquinas que lo tienen como activo.
     return $this->hasMany('App\Maquina','id_juego','id_juego');
   }
 
