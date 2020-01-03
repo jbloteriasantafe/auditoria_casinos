@@ -45,15 +45,15 @@ $id_usuario = session('id_usuario');
                       <div id="collapseFiltros" class="panel-collapse collapse">
                           <div class="panel-body">
                             <div class="row">
-                              <div class="col-md-3">
+                              <div class="col-md-4">
                                 <h5>Código de Certificado</h5>
                                 <input id="nro_certificado" type="text" class="form-control" placeholder="Código de certificado">
                               </div>
-                              <div class="col-md-3">
+                              <div class="col-md-4">
                                 <h5>Nombre Archivo</h5>
                                 <input id="nombre_archivo" type="text" class="form-control" placeholder="Nombre archivo">
                               </div>
-                              <div class="col-md-3">
+                              <div class="col-md-4">
                                 <h5>Número de expediente</h5>
                                 <div class="input-group triple-input">
                                     <input id="nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
@@ -61,16 +61,15 @@ $id_usuario = session('id_usuario');
                                     <input id="nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
                                 </div>
                               </div>
-                              <div class="col-md-3">
-                                <h5>Casino</h5>
+                              <div class="col-md-4">
+                                <h5>Casino del juego</h5>
                                 <div class="form-group">
                                   <select class="form-control" id="sel1">
-                                    @if($superusuario)
                                     <option value="0">Todos los casinos</option>
-                                    @endif
                                     @foreach($casinos as $casino)
                                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                     @endforeach
+                                    <option value="-1">Sin juego asociado</option>
                                   </select>
                                 </div>
                               </div>
@@ -80,7 +79,7 @@ $id_usuario = session('id_usuario');
                                   <input class="form-control" id="inputJuegoBuscador" list="datalistJuegos" placeholder="Nombre juego">
                                 </div>
                               </div>
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                               <h5 style="color:#f5f5f5">Búsqueda</h5>
                               <button id="buscarCertificado" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-search fa-1x"></i> BUSCAR</button>
                             </div>
@@ -156,13 +155,6 @@ $id_usuario = session('id_usuario');
                       <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/expedientes_white.png" alt="">
                     </div>
                 </a>
-                <!-- <a href="expedientes" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor" align="center">
-                      <h2 class="tituloFondoMenor">EXPEDIENTES</h2>
-                      <h2 class="tituloSeccionMenor">EXPEDIENTES</h2>
-                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/expedientes_white.png" alt="">
-                    </div>
-                </a> -->
               </div>
             </div>
             @endif
@@ -191,7 +183,6 @@ $id_usuario = session('id_usuario');
                 <div class="row">
                     <!-- columna de la IZQUIERDA -->
                     <div class="col-lg-6">
-
                         <div class="row">
                           <div class="col-md-12">
                             <h5>Código de certificado</h5>
@@ -199,13 +190,18 @@ $id_usuario = session('id_usuario');
                             <br>
                           </div>
                         </div>
-
+                        <div class="row">
+                          <div class="col-md-12">
+                            <h5>Casinos utilizando el certificado</h5>
+                            <select id="selectCasinosGLI" class="form-control" list="dataCasinos" size="2" style="height: 100%;" readonly="">
+                            </select>
+                          </div>
+                        </div>
                         <!-- buscar expedientes -->
                         <div class="row">
                             <div class="col-lg-12">
                               <h5>Buscar Expedientes <i class="fa fa-search"></i></h5>
-
-                               <div class="input-group lista-datos-group">
+                              <div class="input-group lista-datos-group">
                                     <input id="inputExpediente" class="form-control " type="text" value="" autocomplete="off" placeholder="- - - - -/ - - - - - - - / -">
                                     <span class="input-group-btn">
                                       <button id="btn-agregarExpediente" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
