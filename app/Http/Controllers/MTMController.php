@@ -713,21 +713,21 @@ class MTMController extends Controller
     $marca_abr = $this->abreviarMarca($MTM->marca);
     //Hago una lista con las marca_juegos de los juegos CON LA MARCA VIEJA!
     foreach($MTM->juegos as $juego){
-      $abreviaturas[] =  $marca_abr . ' - ' . $juego->nombre_juego;
+      $abreviaturas[] =  trim($marca_abr . ' - ' . $juego->nombre_juego);
     }
     foreach($juegos_nuevos as $juego){
-      $abreviaturas[] =  $marca_abr . ' - ' . Juego::find($juego['id_juego'])->nombre_juego;
+      $abreviaturas[] =  trim($marca_abr . ' - ' . Juego::find($juego['id_juego'])->nombre_juego);
       if($juego['activo']==1){
         $juego_nuevo_activo = $juego;
       }
     }
-    $es_customizado = !in_array($marca_juego_recibido,$abreviaturas);
+    $es_customizado = !in_array(trim($marca_juego_recibido),$abreviaturas);
     //Si lo que recibi no esta en esa lista, es porque es custom (tipeado por el usuario,mientras no sea vacio)
     if($es_customizado && $marca_juego_recibido != ''){
-      $MTM->marca_juego = $marca_juego_recibido;
+      $MTM->marca_juego = trim($marca_juego_recibido);
     }
     else{
-      $MTM->marca_juego = $this->abreviarMarca($marca) . ' - ' . $juego_nuevo_activo['nombre_juego'];
+      $MTM->marca_juego = trim($this->abreviarMarca($marca) . ' - ' . $juego_nuevo_activo['nombre_juego']);
     }
     return;
   }
