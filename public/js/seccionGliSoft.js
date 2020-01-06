@@ -255,6 +255,7 @@ $('#btn-nuevo').click(function(e){
     });
     $('#modalGLI .link_archivo').removeAttr('href').hide();
     $('#modalGLI .no_visualizable').hide();
+    agregarCasinosModal([]);
     //Abrir el modal
     $('#modalGLI').modal('show');
 
@@ -393,13 +394,13 @@ function mostrarModalEliminar(id,msj=""){
   $('#modalEliminar .cuerpoEliminar').empty().append(msj);
   const nombre_certif = $('#cuerpoTabla #'+id).find('.codigo').text();
   $('#modalEliminar .certifEliminar').empty().text(nombre_certif);
-  $('#boton-eliminarGLI').val(id_gli);
+  $('#boton-eliminarGLI').val(id);
   $('#modalEliminar').modal('show');
 }
 //Borrar GLI
 $(document).on('click','.eliminarGLI',function(){
     const id_gli = $(this).val();
-    mostrarModalEliminar(id_gli);
+    mostrarModalEliminar(id_gli,"Si el certificado tiene juegos de otro casino, solo se desasociarán los juegos que puede acceder.");
 });
 
 $('#boton-eliminarGLI').click(function (e) {
@@ -415,7 +416,17 @@ $('#boton-eliminarGLI').click(function (e) {
       type: "DELETE",
       url: "/certificadoSoft/eliminarGliSoft/" + id_gli ,
       success: function (data) {
-        $('#cuerpoTabla #' + id_gli).remove();
+        if(data.se_borro){
+          $('#cuerpoTabla #' + id_gli).remove();
+          $('#mensajeExito h3').text('Eliminar');
+          $('#mensajeExito p').text('Se elimino el certificado.');
+          $('#mensajeExito').show();
+        }
+        else{
+          $('#mensajeExito h3').text('Eliminar');
+          $('#mensajeExito p').text('Se desasociaron todos los juegos.');
+          $('#mensajeExito').show();
+        }
         $("#tablaGliSofts").trigger("update");
         $('#modalEliminar').modal('hide');
       },
@@ -503,13 +514,6 @@ $('#btn-guardar').click(function (e){
       formData.append('expedientes' , expedientes);
       formData.append('juegos' , juegos);
       formData.append('borrado', $('#cargaArchivo').attr('data-borrado'));
-      if(juegos.length == 0){
-        $('#modalGLI').modal('hide');
-        setTimeout(function(){
-          mostrarModalEliminar(id,'Al desasociar todos los juegos del certificado, se lo eliminaria.')
-        },250);
-        return;
-      }
     }
 
     $.ajax({

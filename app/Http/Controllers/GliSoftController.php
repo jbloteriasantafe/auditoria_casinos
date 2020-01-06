@@ -151,7 +151,8 @@ class GliSoftController extends Controller
       'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],
       'observaciones' => 'nullable|string',
       'file' => 'sometimes|mimes:pdf',
-      'juegos' => 'required|string',
+      'expedientes' => 'nullable',
+      'juegos' => 'nullable|string',
     ], array(), self::$atributos)->after(function ($validator){
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         $casinos_ids = [];
@@ -162,17 +163,12 @@ class GliSoftController extends Controller
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
-          $tiene_juegos = false;
           foreach($juegos as $j){
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
             if($acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
-            else{ $tiene_juegos = true; }
           }
-          if(!$tiene_juegos){
-            $validator->errors()->add('juegos', 'No puede crear un certificado de software sin juegos.');
-          } 
         }
     })->validate();
 
@@ -296,7 +292,7 @@ class GliSoftController extends Controller
         'observaciones' => 'nullable|string',
         'file' => 'sometimes|mimes:pdf',
         'expedientes' => 'nullable',
-        'juegos' => 'required|string'
+        'juegos' => 'nullable|string'
       ])->after(function ($validator) use ($user,$casinos_ids){
         $data = $validator->getData();
         //Verifico que pueda ver el certificado
@@ -305,17 +301,12 @@ class GliSoftController extends Controller
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
-          $tiene_juegos = false;
           foreach($juegos as $j){
             //Se necesita clonar porque el where y count modifican la estructura
             $acceso = (clone $juegos_user)->where('id_juego',$j)->count();
             if($acceso == 0){
               $validator->errors()->add($j, 'No puede acceder a ese juego');
             }
-            else{ $tiene_juegos = true; }
-          }
-          if(!$tiene_juegos){
-            $validator->errors()->add('juegos', 'No puede crear/modificar un certificado de software sin juegos.');
           }
         }
       })->validate();
