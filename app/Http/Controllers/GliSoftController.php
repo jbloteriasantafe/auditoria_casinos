@@ -461,7 +461,7 @@ class GliSoftController extends Controller
 
     $juegos_accesibles = $juegos_accesibles->union($juegos_old)->distinct()->get();
 
-    DB::transaction(function() use ($GLI,$juegos_accesibles,$se_borro){
+    DB::transaction(function() use ($GLI,$juegos_accesibles,&$se_borro){
       foreach($juegos_accesibles as $j){
         $juego = Juego::find($j->id_juego);
         $juego->gliSoftOld()->dissociate();
