@@ -174,8 +174,10 @@ class MTMController extends Controller
         $sector = null;
       }
 
+      $marca_juego_es_generado = $mtm->marca_juego == $this->marcaJuego($mtm->marca,$mtm->juego_activo->nombre_juego);
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
       return['maquina' => $mtm,
+             'marca_juego_es_generado' => $marca_juego_es_generado,
              'moneda' => (!is_null($mtm->id_tipo_moneda))?$mtm->tipoMoneda:null,
              'tipo_gabinete' => $mtm->tipoGabinete,
              'tipo_maquina' => $mtm->tipoMaquina,
@@ -371,6 +373,7 @@ class MTMController extends Controller
           'mac' => 'nullable|max:100',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
+          'generar_marca_juego' => 'required|boolean',
           'juega_progresivo' => 'required|boolean',
           'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
@@ -436,7 +439,6 @@ class MTMController extends Controller
       $MTM                   = new Maquina;
       $MTM->nro_admin        = $request->nro_admin;
       $MTM->marca            = $request->marca;
-      $MTM->marca_juego      = $request->marca_juego;
       $MTM->modelo           = $request->modelo;
       $MTM->desc_marca       = $request->desc_marca;
       $MTM->nro_serie        = $request->nro_serie;
@@ -451,6 +453,12 @@ class MTMController extends Controller
           $juego = Juego::find($unJuego['id_juego']);
           if($unJuego['activo'] == 1){
               $MTM->juego_activo()->associate($juego->id_juego);
+              if($request->generar_marca_juego){
+                $MTM->marca_juego = $this->marcaJuego($request->marca,$MTM->juego_activo->nombre_juego);
+              }
+              else{
+                $MTM->marca_juego = $request->marca_juego;
+              }
           }
           $id_pack_juego = null;
           $juegos[$juego->id_juego] = [
@@ -497,6 +505,7 @@ class MTMController extends Controller
           'mac' => 'nullable|max:100',
           'nro_serie'=>  'nullable|alpha_dash',
           'marca_juego' => 'nullable|max:100',
+          'generar_marca_juego' => 'required|boolean',
           'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
           'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
           'id_tipo_gabinete'=> 'nullable|exists:tipo_gabinete,id_tipo_gabinete',
@@ -620,7 +629,6 @@ class MTMController extends Controller
             $tipo_movimiento = 4;
             $razon .= "Cambió la isla. ";
         }
-        $this->generarMarcaJuego($MTM, $request->marca, $request->juegos, $request->marca_juego);
         $juego_activo_nuevo = $request->juegos[0];
         $juego_activo_viejo = $MTM->juego_activo;
         $MTM->juegos()->detach();
@@ -639,6 +647,12 @@ class MTMController extends Controller
         if ($juego_activo_viejo->id_juego != $juego_activo_nuevo->id_juego) {
             $tipo_movimiento = 7;
             $razon .= "Cambió el juego. ";
+        }
+        if($request->generar_marca_juego){
+          $MTM->marca_juego = $this->marcaJuego($request->marca,$juego_activo_nuevo->nombre_juego);
+        }
+        else{
+          $MTM->marca_juego = $request->marca_juego;
         }
         $MTM->id_juego = $juego_activo_nuevo->id_juego;
         $MTM->nro_admin = $request->nro_admin;
@@ -682,54 +696,10 @@ class MTMController extends Controller
     }
     return ['maquina' => $MTM];
   }
-  public function generarMarcaJuego($MTM,$marca,$juegos_nuevos,$marca_juego_recibido){
-    // Casos que se dan
-    // Cambio de JUEGO ACTIVO sin cambiar el marca juego
-    // Por ejemplo si: 
-    //  Marca juego: IGT - Scarab
-    //  Juegos:
-    //   - Scarab (activo)
-    //   - Jungle Riches
-    // Y lo cambiamos a 
-    //  Marca juego: IGT - Scarab
-    //  Juegos:
-    //   - Scarab 
-    //   - Jungle Riches (activo)
-    // El comporamiento deseado es que se cambie el MARCA JUEGO
-    // Pero si tenemos un MARCA JUEGO custom elegido por el usuario ej
-    //  Marca juego: Minguito!
-    //  Juegos:
-    //   - Scarab (activo)
-    //   - Jungle Riches 
-    // Y lo cambiamos a
-    //  Marca juego: Minguito!
-    //  Juegos:
-    //   - Scarab 
-    //   - Jungle Riches (activo)
-    // NO! queremos que cambie
-    // La excepcion a la regla es que sea la cadena vacia!
-    // Ya se que se puede simplificar en un solo IF pero queda mas claro asi.
-    $abreviaturas = [];
-    $marca_abr = $this->abreviarMarca($MTM->marca);
-    //Hago una lista con las marca_juegos de los juegos CON LA MARCA VIEJA!
-    foreach($MTM->juegos as $juego){
-      $abreviaturas[] =  trim($marca_abr . ' - ' . $juego->nombre_juego);
-    }
-    foreach($juegos_nuevos as $juego){
-      $abreviaturas[] =  trim($marca_abr . ' - ' . Juego::find($juego['id_juego'])->nombre_juego);
-      if($juego['activo']==1){
-        $juego_nuevo_activo = $juego;
-      }
-    }
-    $es_customizado = !in_array(trim($marca_juego_recibido),$abreviaturas);
-    //Si lo que recibi no esta en esa lista, es porque es custom (tipeado por el usuario,mientras no sea vacio)
-    if($es_customizado && $marca_juego_recibido != ''){
-      $MTM->marca_juego = trim($marca_juego_recibido);
-    }
-    else{
-      $MTM->marca_juego = trim($this->abreviarMarca($marca) . ' - ' . $juego_nuevo_activo['nombre_juego']);
-    }
-    return;
+
+  public function marcaJuego($marca,$nombre_juego){
+    $marca_abr = $this->abreviarMarca($marca);
+    return trim($marca_abr . ' - ' . $nombre_juego);  
   }
 
   //ELIMINA LOGICAMENTE LA MAQUINA. deleted_at != null

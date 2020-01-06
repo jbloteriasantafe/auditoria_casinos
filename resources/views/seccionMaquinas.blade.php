@@ -291,7 +291,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                           <div class="row">
 
                             <div class="col-lg-4">
-                              <h5>Marca - Juego <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-content="Si deja este campo en blanco la abreviación será generada automáticamente"></i></h5>
+                              <h5>Marca - Juego <input class="form-check-input" type="checkbox" value="" id="marca_juego_check" title="Por defecto se genera solo segun la marca y el juego activo, desmarcarlo si se desea cambiarlo a mano."></h5>
                               <input id="marca_juego" type="text" class="form-control" placeholder="Descripción marca">
                               <br>
                               <span id="alerta_desc_marca" class="alertaSpan"></span>
@@ -513,9 +513,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                               <div class="row" >
                                   <div class="col-md-4">
                                       <h5>Nombre Juego</h5>
-                                        <!-- <input id="nro_isla"  class="form-control" type="text"  placeholder="Número de isla" autocomplete="off"> -->
                                       <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego" />
-                                      <!-- <datalist id="juego"> </datalist> -->
                                   </div>
                                   <div class="col-md-4">
                                       <h5>Código de Juego</h5>

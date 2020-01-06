@@ -54,6 +54,10 @@ $('#navFormula').click(function(){
   $('.seccion').hide();
   $('#secFormula').show();
 });
+
+$('#marca_juego_check').change(function(){
+  $('#marca_juego').prop('readonly',$(this).prop('checked'));
+})
 /***************
 TODOS LOS EVENTOS DEL BUSCADOR DE EXPEDIENTE
 ****************/
@@ -135,6 +139,8 @@ $('#btn-guardar').click(function(e){
   formData.append('id_tipo_moneda', $('#tipo_moneda').val());
   formData.append('nro_serie', $('#nro_serie').val());
   formData.append('marca_juego', $('#marca_juego').val());
+  const marca_juego_check = $('#marca_juego_check').prop('checked');
+  formData.append('generar_marca_juego', marca_juego_check? 1 : 0);
   formData.append('juega_progresivo', $('#juega_progresivo').val());
   formData.append('id_tipo_gabinete', $('#tipo_gabinete').val());
   formData.append('id_tipo_maquina', $('#tipo_maquina').val());
@@ -360,6 +366,7 @@ function habilitarControlesMaquina(valor){
   $('#estado').prop('disabled',!valor);
   $('#buscadorExpediente').prop('readonly',!valor);
   $('#marca_juego').prop('readonly',!valor);
+  $('#marca_juego_check').prop('disabled',!valor);
   $('#tipo_moneda').prop('disabled',!valor);
   $('#unidad_medida').prop('disabled',!valor);
 }
@@ -441,6 +448,7 @@ function mostrarMaquina(data, accion){
   $('#nro_serie').val(data.maquina.nro_serie);
   $('#mac').val(data.maquina.mac);
   $('#marca_juego').val(data.maquina.marca_juego);
+  $('#marca_juego_check').prop('checked',data.marca_juego_es_generado).trigger('change');
   data.tipo_gabinete != null ? $('#tipo_gabinete').val(data.tipo_gabinete.id_tipo_gabinete) : $('#tipo_gabinete').val("") ;
   data.tipo_maquina != null ? $('#tipo_maquina').val(data.tipo_maquina.id_tipo_maquina) : $('#tipo_maquina').val("");
   $('#estado').val(data.maquina.id_estado_maquina);

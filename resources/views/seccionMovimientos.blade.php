@@ -1056,7 +1056,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       <div class="row">
 
                         <div class="col-lg-4">
-                          <h5>Marca - Juego <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-content="Si deja este campo en blanco la abreviación será generada automáticamente"></i></h5>
+                          <h5>Marca - Juego <input class="form-check-input" type="checkbox" value="" id="marca_juego_check" title="Por defecto se genera solo segun la marca y el juego activo, desmarcarlo si se desea cambiarlo a mano."></h5>
                           <input id="marca_juego" type="text" class="form-control" placeholder="Descripción marca">
                           <br>
                           <span id="alerta_desc_marca" class="alertaSpan"></span>
