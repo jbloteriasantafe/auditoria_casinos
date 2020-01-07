@@ -192,6 +192,9 @@ function agregarRenglonTablaDePago(){
   return fila;
 }
 
+$('#btn-agregarTablaDePago').click(function(){
+  agregarRenglonTablaDePago();
+});
 //borrar Tabla de Pago
 $(document).on('click' , '.borrarTablaPago' , function(){
   var fila = $(this).parent().parent();
@@ -446,19 +449,15 @@ $('#btn-guardar').click(function (e) {
               mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
             }
 
-            var i=0;
-            var error=' ';
-            $('#columna #unaTablaDePago').each(function(){
-              $(this).find('#codigo').removeClass('alerta');
+            $('#tablas_pago .copia input').each(function(){
+              $(this).removeClass('alerta');
             });
 
-            $('#columna #unaTablaDePago').each(function(){
-              if(typeof response['tablasDePago.'+ i +'.codigo'] !== 'undefined'){
-                error=response['tablasDePago.'+ i +'.codigo'];
-                $(this).find('#codigo').addClass('alerta');
+            $('#tablas_pago .copia input').each(function(index,value){
+              if(typeof response['tabla_pago.'+ index +'.codigo'] !== 'undefined'){
+                $(this).addClass('alerta');
               }
-              i++;
-            })
+            });
 
         }
     });
