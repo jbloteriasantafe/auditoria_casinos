@@ -174,7 +174,7 @@ class MTMController extends Controller
         $sector = null;
       }
 
-      $marca_juego_es_generado = $mtm->marca_juego == $this->marcaJuego($mtm->marca,$mtm->juego_activo->nombre_juego);
+      $marca_juego_es_generado = $mtm->marca_juego == $this->marcaJuego($mtm->marca,$mtm->juego_activo->nombre_juego,$mtm->id_casino);
       $unidades = DB::table('unidad_medida')->select('unidad_medida.*')->get();
       return['maquina' => $mtm,
              'marca_juego_es_generado' => $marca_juego_es_generado,
@@ -356,7 +356,7 @@ class MTMController extends Controller
               $maquina->id_estado_maquina = 1; //ingreso
               // $maquina->id_tipo_moneda = ;//pesos por defecto ?
               $maquina->id_casino= $id_casino;
-              $maquina->marca_juego = $this->abreviarMarca($maquina->marca) .' - '. $maquinaTemp->juego_activo->nombre_juego;
+              $maquina->marca_juego = $this->marcaJuego($maquina->marca,$maquinaTemp->juego_activo->nombre_juego,$maquina->id_casino);
               $maquina->save();
               $razon = "La maquina se creo desde un archivo.";
               LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
@@ -453,8 +453,8 @@ class MTMController extends Controller
           $juego = Juego::find($unJuego['id_juego']);
           if($unJuego['activo'] == 1){
               $MTM->juego_activo()->associate($juego->id_juego);
-              if($request->generar_marca_juego){
-                $MTM->marca_juego = $this->marcaJuego($request->marca,$MTM->juego_activo->nombre_juego);
+              if($request->generar_marca_juego || $request->marca_juego == ""){
+                $MTM->marca_juego = $this->marcaJuego($request->marca,$MTM->juego_activo->nombre_juego,$MTM->id_casino);
               }
               else{
                 $MTM->marca_juego = $request->marca_juego;
@@ -478,11 +478,6 @@ class MTMController extends Controller
       if(!empty($request->id_tipo_maquina) ){$MTM->tipoMaquina()->associate($request->id_tipo_maquina);}
       if(!empty($request->expedientes))     {$MTM->expedientes()->sync($request->expedientes);}
       if(!empty($request->notas))           {$MTM->notas()->sync($request->notas);}
-      if($request->marca_juego == ""){
-        $MTM->marca_juego = $this->abreviarMarca($MTM->marca) . ' - ' . $MTM->juego_activo->nombre_juego;
-      }else{
-        $MTM->marca_juego = $request->marca_juego;
-      }
       $MTM->save();
       $razon = "La maquina se creo manualmente.";
       LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,1);//tipo mov ingreso (pero esta sin validar todavia)
@@ -649,7 +644,7 @@ class MTMController extends Controller
             $razon .= "Cambió el juego. ";
         }
         if($request->generar_marca_juego){
-          $MTM->marca_juego = $this->marcaJuego($request->marca,$juego_activo_nuevo->nombre_juego);
+          $MTM->marca_juego = $this->marcaJuego($request->marca,$juego_activo_nuevo->nombre_juego,$MTM->id_casino);
         }
         else{
           $MTM->marca_juego = $request->marca_juego;
@@ -697,8 +692,8 @@ class MTMController extends Controller
     return ['maquina' => $MTM];
   }
 
-  public function marcaJuego($marca,$nombre_juego){
-    $marca_abr = $this->abreviarMarca($marca);
+  public function marcaJuego($marca,$nombre_juego,$id_casino=-1){
+    $marca_abr = $this->abreviarMarca($marca,$id_casino);
     return trim($marca_abr . ' - ' . $nombre_juego);  
   }
 
@@ -800,67 +795,22 @@ class MTMController extends Controller
     $razon = "La maquina no pertence más a la isla " .  $isla->nro_isla."." ;
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,4);//tipo movimiento cambio layout
   }
-  public function abreviarMarca($marca){
-    switch (str_replace(' ' ,'',strtolower($marca))) {
-      case 'aristocrat':
-        $marca = 'ARI';
-        break;
-      case 'bally':
-        $marca = 'BAL';
-        break;
-      case 'igt':
-        $marca = 'IGT';
-        break;
-      case 'konami':
-        $marca = 'KON';
-        break;
-      case 'atronic':
-        $marca = 'ATR';
-        break;
-      case 'electro':
-        $marca = 'ELE';
-        break;
-      case 'magic':
-        $marca = 'MAG';
-        break;
-      case 'ainsworth':
-        $marca = 'AIN';
-        break;
-      case 'novomatic':
-        $marca = 'NOV';
-        break;
-      case 'electrochance':
-        $marca = 'ELE';
-        break;
-      case 'alfastreet':
-        $marca = 'ALF';
-        break;
-      case 'ballygaming':
-        $marca = 'BAL';
-        break;
-      case 'sielcon':
-        $marca = 'SIE';
-        break;
-      case 'healtec':
-        $marca = 'HTE';
-        break;
-      case 'zitro':
-        $marca = 'ZIT';
-        break;
-      case 'wms':
-        $marca = 'WMS';
-        break;
-      case 'bcm':
-        $marca = 'BCM';
-        break;
-      case 'Interblock':
-        $marca = 'IBK';
-        break;
-      default:
-        # code...
-        break;
+  public function abreviarMarca($marca,$id_casino){
+    $marca = str_replace(' ' ,'',strtoupper($marca));
+    // En el codigo viejo hacia un switch gigante por cada marca, lo cambio a un simple algoritmo
+    // Habia un par de casos especiales que nunca se tocaban
+    // (agregar aca si hay que poner casos especiales)
+    $marcas_especiales = [
+      1 => [],
+      2 => [],
+      3 => ['WILLIAMS' => 'WILLIAMS']
+    ];
+    if(array_key_exists($id_casino,$marcas_especiales) 
+    && array_key_exists($marca,$marcas_especiales[$id_casino])){
+      return $marcas_especiales[$id_casino][$marca];
     }
-    return $marca;
+    $limit = min(3,strlen($marca));
+    return substr($marca,0,$limit);
   }
 
   public function buscarMaquinasPorExpediente($id_expediente){
