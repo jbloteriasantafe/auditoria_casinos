@@ -56,7 +56,7 @@ class RelevamientoProgresivoController extends Controller
       $nro_admin_maquinas = '';
       $pozo = Pozo::find($detalle->id_pozo);
       if($pozo == null) continue;
-      $maquinas = $pozo->progresivo->maquinas;
+      $maquinas = $pozo->progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get();
       foreach ($maquinas as $maq){
         $id_maquinas_pozo[] = $maq['id_maquina'];
         $nro_admin_maquinas = $nro_admin_maquinas .'/'. $maq['nro_admin'];

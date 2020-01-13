@@ -170,16 +170,18 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
             <tr>
               <th class="col-xs-3" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
               <th class="col-xs-3" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-3" value="progresivo.islas">ISLAS</td>
-              <th class="col-xs-3">ACCIONES</th>
+              <th class="col-xs-2" value="islas">ISLAS</td>
+              <th class="col-xs-2" value="sectores">SECTORES</td>
+              <th class="col-xs-2">ACCIONES</th>
             </tr>
           </thead>
           <tbody id="cuerpoTabla" style="height: 350px;">
             <tr class="filaEjemplo" style='display: none;'>
               <td class="col-xs-3 nombre">PROGRESIVO999</td>
               <td class="col-xs-3 casino">CASINO999</td>
-              <td class="col-xs-3 islas">ISLA1/ISLA2/...</td>
-              <td class="col-xs-3 acciones">
+              <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
+              <td class="col-xs-2 sectores">SECTOR1/SECTOR2/...</td>
+              <td class="col-xs-2 acciones">
                 <button class="btn btn-info detalle">
                   <i class="fa fa-fw fa-search-plus"></i>
                 </button>

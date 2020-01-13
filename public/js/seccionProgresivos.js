@@ -1,6 +1,3 @@
-/****************EVENTOS DEL DOM***********/
-
-
 $(document).ready(function() {
     $('#barraMaquinas').attr('aria-expanded', 'true');
     $('#maquinas').removeClass();
@@ -16,7 +13,6 @@ $(document).ready(function() {
     $('#opcProgresivos').addClass('opcionesSeleccionado');
 
     $('#btn-buscar').trigger('click');
-    //$('[data-toggle="tooltip"]').tooltip('hide');
     cargarMaquinas();
 });
 
@@ -613,6 +609,7 @@ function generarFilaTabla(progresivo) {
     fila.find('.nombre').text(progresivo.nombre);
     fila.find('.casino').text(casino);
     fila.find('.islas').text(progresivo.islas);
+    fila.find('.sectores').text(progresivo.sectores);
     fila.attr('id', 'progresivo' + progresivo.id_progresivo)
     fila.find('.modificar').val(progresivo.id_progresivo);
     fila.find('.detalle').val(progresivo.id_progresivo);
@@ -1018,7 +1015,10 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
     limpiarErrores();
     $('#modalProgresivo_casino').attr('disabled', progresivo.id_progresivo != -1);
     $('#modalProgresivo_casino').val(progresivo.id_casino);
-    $('#modalProgresivo_casino').find('option')[0].selected = true;
+    //Si estamos creando un nuevo progresivo y solo tengo un solo casino para elegir, lo seteo
+    if(progresivo.id_progresivo == -1 && $('#modalProgresivo_casino option').length == 1){
+        $('#modalProgresivo_casino option')[0].selected = true;
+    }
     $('#id_progresivo').val(progresivo.id_progresivo);
     $('#nombre_progresivo').val(progresivo.nombre);
     $('#nombre_progresivo').attr('disabled', !editable);

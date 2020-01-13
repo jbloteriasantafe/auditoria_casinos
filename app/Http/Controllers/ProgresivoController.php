@@ -106,11 +106,13 @@ class ProgresivoController extends Controller
     $resultados =
     DB::table('progresivo')
     ->select('progresivo.*')
-    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(isla.nro_isla, 'SIN')) separator '/') as islas")
+    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(isla.nro_isla     , 'SIN')) ORDER BY isla.nro_isla ASC SEPARATOR '/') as islas")
+    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(sector.descripcion, 'SIN')) ORDER BY sector.descripcion ASC SEPARATOR '/') as sectores")
     ->leftjoin('maquina_tiene_progresivo',
     'progresivo.id_progresivo','=','maquina_tiene_progresivo.id_progresivo')
     ->leftjoin('maquina','maquina_tiene_progresivo.id_maquina','=','maquina.id_maquina')
     ->leftjoin('isla','maquina.id_isla','=','isla.id_isla')
+    ->leftjoin('sector','isla.id_sector','=','sector.id_sector')
     ->when($sort_by,
            function($query) use ($sort_by){
              return $query->orderBy($sort_by);

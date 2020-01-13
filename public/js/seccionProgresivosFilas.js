@@ -1,26 +1,4 @@
-/* 
-
-Si es INPUT
-
-Al setear o getear, se hace con puntos i.e '3.147' pero se muestra
-con coma correctamente
-SET(VAL: fmtConPunto)
-GET()->VAL: fmtConPunto
-
-Si es TEXT
-
-Al setear o getear, se hace literal lo que se le pasa por lo que
-hay que poner una interfaz que pase de numero con punto a con coma.
-
-Lo transforma con coma y lo setea
-SET(VAL: float) 
-
-Se fija si es un numero con coma y lo pasa a punto
-Si no es valido o vacio, habria que retornar null
-GET()->VAL: float
-
-*/
-
+//Funcion que antes era mas compleja pero quedo asi despues de simplificar.
 function filaObj(f, str) {
     return $(f).find(str);
 }
@@ -53,6 +31,8 @@ function limpiarNull(s) {
     return (s === null) ? '' : s;
 }
 
+//Obtiene el valor de una celda, independientemente si es un input o si solo es texto
+//El parametro numeric se usa para validar que sea un numero.
 function objVal(obj, newval = undefined, numeric = false) {
     const edit = obj.find('input').length > 0;
     if (edit) obj = obj.find('input');
@@ -61,7 +41,7 @@ function objVal(obj, newval = undefined, numeric = false) {
         newval = limpiarNull(newval);
         let dotnewval = newval;
         if (numeric) {
-            dotnewval = getDotFloat(newval);
+            dotnewval = getDotFloat(newval);//ver float.js, si pone un numero con coma lo pasa a punto
         }
         return edit ? obj.val(dotnewval).val() : obj.text(dotnewval).text();
     } else { //GET
