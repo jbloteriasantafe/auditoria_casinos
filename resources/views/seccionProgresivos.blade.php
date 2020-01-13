@@ -172,10 +172,10 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
         <table id="tablaResultados" class="table table-fixed tablesorter">
           <thead>
             <tr>
-              <th class="col-xs-3" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
+              <th class="col-xs-3" value="progresivo.nombre"    estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
               <th class="col-xs-2" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="islas">ISLAS</td>
-              <th class="col-xs-3" value="sectores">SECTORES</td>
+              <th class="col-xs-2" value="islas"                estado="">ISLAS<i class="fa fa-sort"></i></td>
+              <th class="col-xs-3" value="sectores"             estado="">SECTORES<i class="fa fa-sort"></i></td>
               <th class="col-xs-2">ACCIONES</th>
             </tr>
           </thead>

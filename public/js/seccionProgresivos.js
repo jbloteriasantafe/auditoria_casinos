@@ -60,17 +60,17 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         var size = $('#herramientasPaginacion').getPageSize();
     }
 
-    var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-
+    page_size   = (page_size == null || isNaN(page_size)) ? size : page_size;
+    page_number = (pagina != null) ? pagina  : $('#herramientasPaginacion').getCurrentPage();
+    columna     = (columna != null)? columna : $('#tablaResultados .activa').attr('value');
+    orden       = (orden  != null) ? orden   : $('#tablaResultados .activa').attr('estado');
     var formData = {
         nombre_progresivo: $('#B_nombre_progresivo').val(),
         id_casino: $('#busqueda_casino').val(),
         islas: $('#B_islas').val(),
         sectores: $('#B_sectores').val(),
         page: page_number,
-        sort_by: 'nombre',
+        sort_by: {columna: columna, orden: orden},
         page_size: page_size,
     };
 

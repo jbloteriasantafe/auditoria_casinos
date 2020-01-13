@@ -109,7 +109,7 @@ class ProgresivoController extends Controller
     ->leftjoin('sector','isla.id_sector','=','sector.id_sector')
     ->when($sort_by,
            function($query) use ($sort_by){
-             return $query->orderBy($sort_by);
+             return $query->orderBy($sort_by['columna'],$sort_by['orden']);
            })
     ->where('progresivo.es_individual','=',0)
     ->whereNull('progresivo.deleted_at');
