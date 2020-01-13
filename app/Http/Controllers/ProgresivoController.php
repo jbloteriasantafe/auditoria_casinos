@@ -74,22 +74,16 @@ class ProgresivoController extends Controller
     if($request->id_casino === null) return array();
 
     $where_casino = false;
-    $where_nombre = false;
-    $where_islas = false;
     if($request->id_casino != 0){
       $casino = Casino::find($request->id_casino);
       //El casino no existe.
       if($casino === null) return array();
       $where_casino = true;
     }
-    if($request->nombre_progresivo != null &&
-       $request->nombre_progresivo != ''){
-      $where_nombre = true;
-    }
 
-    if($request->islas != null){
-      $where_islas = true;
-    }
+    $where_nombre = $request->nombre_progresivo != null && $request->nombre_progresivo != '';
+    $where_islas = $request->islas != null;
+    $where_sectores = $request->sectores != null;
 
     //Checkeo que solo el superusuario puede buscar todo.
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -143,20 +137,28 @@ class ProgresivoController extends Controller
           $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda);
         }
       }
+    }
+    if($where_sectores){
+      if($request->sectores == 'SIN'){
+        $resultados = $resultados->whereNull('sector.descripcion');
+      }
+      else{
+        $sectores_busqueda = ($request->sectores === null)? null
+        : explode('/',$request->sectores);
 
-
+        if($sectores_busqueda != null){
+          $resultados->where(function($q) use ($sectores_busqueda){
+            foreach($sectores_busqueda as $s){
+              $q->orWhere('sector.descripcion','LIKE','%'.$s.'%');
+            }
+          });
+        }
+      }
     }
 
     $resultados = $resultados->where($reglas);
-
-
     $resultados = $resultados->groupBy('progresivo.id_progresivo');
-
-    //dump($resultados->toSql());
-    //dump($resultados->getBindings());
-
     $resultados = $resultados->paginate($request->page_size);
-
     return $resultados;
   }
 

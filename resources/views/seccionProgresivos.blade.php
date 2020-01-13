@@ -127,7 +127,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <div id="collapseFiltros" class="panel-collapse collapse">
                 <div class="panel-body">
                   <div class="row"> <!-- Primera fila -->
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                       <h5>Casino</h5>
                       <select class="form-control" id="busqueda_casino">
                         @if ($usuario['usuario']->es_superusuario)
@@ -144,9 +144,13 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                     </div>
                     <div class="col-lg-3">
                       <h5>Islas</h5>
-                      <input id="B_islas" type="test" class="form-control" placeholder="Islas">
+                      <input id="B_islas" type="text" class="form-control" placeholder="Islas">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
+                      <h5>Sectores</h5>
+                      <input id="B_sectores" type="text" class="form-control" placeholder="Sectores">
+                    </div>
+                    <div class="col-lg-2">
                       <h5>Búsqueda</h5>
                       <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                     </div>
@@ -169,18 +173,18 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           <thead>
             <tr>
               <th class="col-xs-3" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-3" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+              <th class="col-xs-2" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
               <th class="col-xs-2" value="islas">ISLAS</td>
-              <th class="col-xs-2" value="sectores">SECTORES</td>
+              <th class="col-xs-3" value="sectores">SECTORES</td>
               <th class="col-xs-2">ACCIONES</th>
             </tr>
           </thead>
           <tbody id="cuerpoTabla" style="height: 350px;">
             <tr class="filaEjemplo" style='display: none;'>
               <td class="col-xs-3 nombre">PROGRESIVO999</td>
-              <td class="col-xs-3 casino">CASINO999</td>
+              <td class="col-xs-2 casino">CASINO999</td>
               <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
-              <td class="col-xs-2 sectores">SECTOR1/SECTOR2/...</td>
+              <td class="col-xs-3 sectores">SECTOR1/SECTOR2/...</td>
               <td class="col-xs-2 acciones">
                 <button class="btn btn-info detalle">
                   <i class="fa fa-fw fa-search-plus"></i>

@@ -279,7 +279,7 @@ class RelevamientoProgresivoController extends Controller
 
       $x=0;
       $nro_maquinas = "";
-      foreach ($progresivo->maquinas as $maq) {
+      foreach ($progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get() as $maq) {
         $id_maquinas[] = $maq->id_maquina;
         if ($x == 0) {
           $nro_maquinas = $maq->nro_admin;
