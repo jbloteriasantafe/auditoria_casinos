@@ -168,6 +168,7 @@ class ProgresivoController extends Controller
     "select maq.id_maquina as id_maquina,
             maq.nro_admin as nro_admin,
             maq.marca_juego as marca_juego,
+            maq.id_casino as id_casino,
             CONCAT(maq.nro_admin,cas.codigo) as nombre,
             ifnull(isla.nro_isla,'-') as isla,
             ifnull(sec.descripcion,'-') as sector

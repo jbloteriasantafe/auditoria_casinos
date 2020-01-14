@@ -255,12 +255,31 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
             <div class=''>
               <h3 class=''>Maquinas</h3>
               <div class="row">
-                <h5>Enlazar maquina:
-                  <button id='btn-agregarMaquina' class="btn btn-success">
+                <div class="col-md-3">
+                  <h5>Enlazar maquina:</h5>
+                </div>
+                <div class="col-md-2">
+                  <button id="btn-agregarMaquina" class="btn btn-success">
                     <i class="fa fa-fw fa-plus"></i>
                     <b>Enlazar</b>
                   </button>
-                </h5>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <h5>Enlazar isla:</h5>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group lista-datos-group" style="display: inline-block;">
+                    <input id="input-isla" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <button id="btn-agregarIsla" class="btn btn-success">
+                    <i class="fa fa-fw fa-plus"></i>
+                    <b>Enlazar</b>
+                  </button>
+                </div>
               </div>
               <div id="contenedorMaquinas" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
             </div>
