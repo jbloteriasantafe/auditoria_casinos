@@ -163,7 +163,7 @@ class ProgresivoController extends Controller
   }
 
 
-  private function datosMaquinasCasino($id_casino = null){
+  private function datosMaquinasCasino($id_casino = null,$nro_admin = null){
     $query =
     "select maq.id_maquina as id_maquina,
             maq.nro_admin as nro_admin,
@@ -182,6 +182,10 @@ class ProgresivoController extends Controller
     if($id_casino != null){
       $query = $query . " and cas.id_casino = :id_casino";
       $parametros['id_casino'] = $id_casino;
+    }
+    if($nro_admin != null){//uso regexp porque like no me estaba andando...
+      $query = $query . " and CAST(maq.nro_admin as CHAR) regexp :nro_admin";
+      $parametros['nro_admin'] = '^'.strval($nro_admin);
     }
     return DB::select(DB::raw($query),$parametros);
   }
@@ -216,14 +220,14 @@ class ProgresivoController extends Controller
 
 
 
-  public function buscarMaquinas(Request $request,$id_casino){
+  public function buscarMaquinas(Request $request,$id_casino,$nro_admin=null){
     //TODO: Deberia retornar las maquinas que estan dadas de baja,
     //i.e. tienen el parametro deleted_at seteado?
     //Agregarle un progresivo a una maquina borrada...
     if($id_casino === null) return array();
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($id_casino == 0){
-      if($user->es_superusuario) return $this->datosMaquinasCasino();
+      if($user->es_superusuario) return $this->datosMaquinasCasino(null,$nro_admin);
       else return array();
     }
 
@@ -232,7 +236,7 @@ class ProgresivoController extends Controller
         return array();
     }
 
-    return $this->datosMaquinasCasino($casino->id_casino);
+    return ['maquinas' => $this->datosMaquinasCasino($casino->id_casino,$nro_admin)];
   }
 
 

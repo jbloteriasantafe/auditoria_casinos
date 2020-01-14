@@ -1015,37 +1015,45 @@ function arregloMaquinas() {
 
 $('#modalProgresivo_casino').change(function(){
     $('#input-isla').generarDataList("http://" + window.location.host+"/islas/buscarIslaPorCasinoYNro/" + $(this).val(),'islas','id_isla','nro_isla',1,true);
+    $('#input-maquina').generarDataList("http://" + window.location.host+"/progresivos/buscarMaquinas/" + $(this).val(),'maquinas','id_maquina','nro_admin',1,true);
     //FIX visual
     $('#input-isla').parent().find('.contenedor-data-list').css('top','0px').css('position','revert');
-    cargarMaquinas($(this).val());
+    $('#input-maquina').parent().find('.contenedor-data-list').css('top','0px').css('position','revert');
 });
+
 $('#modalProgresivoIndividual_casino').change(function(){
     cargarMaquinas($(this).val());
 });
 
 $('#btn-agregarIsla').click(function(){
     if($('#modalProgresivo_casino').val() == null || $('#input-isla').val().length == 0) return;
-    const selector_casino = 'data-id-casino='+$('#modalProgresivo_casino').val();
-    const selector_isla = 'data-isla='+$('#input-isla').val();
-    let maquinas =$('#maquinas_lista')
-    .find('option['+selector_casino+']['+selector_isla+']');
-    let maquinas_filas = [];
-    maquinas.each(function(k,v){
-        const m = $(v);
-        const id_maquina = m.attr('data-id');
-        const selector_maquina = 'data-id='+id_maquina;
-        const no_esta_en_la_tabla = $('#contenedorMaquinas .tablaMaquinas tr['+selector_maquina+']').length == 0;
-        if(no_esta_en_la_tabla){
-            maquinas_filas.push({
-                id_maquina: m.attr('data-id'),
-                nro_admin: m.attr('data-nro_admin'),
-                sector: m.attr('data-sector'),
-                isla: m.attr('data-isla'),
-                marca_juego: m.attr('data-marca_juego')
+    $.get('/islas/listarMaquinasPorNroIsla/'+$('#input-isla').val()+'/'+$('#modalProgresivo_casino').val(),function(data){
+        let maquinas_filas = [];
+        if(data.islas.length > 0){
+            data.islas[0].maquinas.forEach(function(v,k){
+                const selector_maquina = 'data-id='+v.id_maquina;
+                const no_esta_en_la_tabla = $('#contenedorMaquinas .tablaMaquinas tr['+selector_maquina+']').length == 0;
+                if(no_esta_en_la_tabla){
+                    maquinas_filas.push({
+                        id_maquina: v.id_maquina,
+                        nro_admin: v.nro_admin,
+                        sector: data.islas[0].sector,
+                        isla: data.islas[0].nro_isla,
+                        marca_juego: v.marca_juego
+                    });
+                }
             });
         }
+        llenarTablaMaquinas(maquinas_filas,true,true);
+    }); 
+});
+
+
+$('#btn-agregarMaquina').click(function() {
+    if($('#modalProgresivo_casino').val() == null || $('#input-maquina').val().length == 0) return;
+    $.get('/progresivos/buscarMaquinas/'+$('#modalProgresivo_casino').val()+'/'+$('#input-maquina').val(),function(data){
+        console.log(data);
     });
-    llenarTablaMaquinas(maquinas_filas,true,true);
 });
 
 function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
@@ -1284,11 +1292,7 @@ function llenarTablaMaquinas(maquinas, editable, reusar_div=false) {
         maq_html.show();    
     }
 
-    $('#btn-agregarMaquina').attr('disabled', !editable).off();
-    $('#btn-agregarMaquina').on('click', function() {
-        maq_html.find('.cuerpoTabla').append(filaEditableMaquina());
-    });
-
+    $('#btn-agregarMaquina').attr('disabled', !editable);
 
     var fila_ejemplo_maq = filaEjemploMaquina();
     maq_html.find('.filaEjemplo').remove();

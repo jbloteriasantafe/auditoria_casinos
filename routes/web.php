@@ -52,7 +52,7 @@ Progresivos
 Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_seccion_progresivos'], function () {
   Route::get('/','ProgresivoController@buscarTodos');
   Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
-  Route::get('/buscarMaquinas/{id_casino}','ProgresivoController@buscarMaquinas');
+  Route::get('/buscarMaquinas/{id_casino}/{nro_admin?}','ProgresivoController@buscarMaquinas');
   Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
     Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
   Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');

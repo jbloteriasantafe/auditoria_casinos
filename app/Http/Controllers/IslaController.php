@@ -117,6 +117,7 @@ class IslaController extends Controller
         $aux->id_sector = $unaIsla->id_sector;
         $aux->codigo =  $unaIsla->codigo;
         $aux->nro_isla = $unaIsla->nro_isla;
+        $aux->sector = $unaIsla->sector->descripcion;
         $cantidad += $unaIsla->maquinas->count();
         $detalles[] = $aux;
       }

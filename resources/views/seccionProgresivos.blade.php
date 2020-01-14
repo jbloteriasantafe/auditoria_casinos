@@ -259,6 +259,11 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                   <h5>Enlazar maquina:</h5>
                 </div>
                 <div class="col-md-2">
+                  <div class="input-group lista-datos-group" style="display: inline-block;">
+                    <input id="input-maquina" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                  </div>
+                </div>
+                <div class="col-md-2">
                   <button id="btn-agregarMaquina" class="btn btn-success">
                     <i class="fa fa-fw fa-plus"></i>
                     <b>Enlazar</b>
