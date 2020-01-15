@@ -930,14 +930,21 @@ $('#btn-agregarMaquinaIndividual').click(function() {
         const selector_maquina = 'data-id='+m.id_maquina;
         const esta_en_la_tabla = $('#contenedorMaquinasIndividual .tablaMaquinasIndividual tr['+selector_maquina+']').length != 0;
         if(esta_en_la_tabla) return;
-        const fila = {
+        const data_fila = {
             id_maquina:  m.id_maquina,
             nro_admin:   m.nro_admin,
             sector:      m.sector,
             isla:        m.isla,
-            marca_juego: m.marca_juego
+            marca_juego: m.marca_juego,
+            porc_recup: $('#inputPorcRecupIndividual').val(),
+            maximo: $('#inputMaximoIndividual').val(),
+            base: $('#inputBaseIndividual').val(),
+            porc_visible: $('#inputPorcVisibleIndividual').val(),
+            porc_oculto: $('#inputPorcOcultoIndividual').val()
         };
-        $('#contenedorMaquinasIndividual .cuerpoTabla').append(filaEditableIndividualParcial(fila));
+        let fila = filaEjemploIndividual();
+        setearFilaProgresivoIndividual(fila, data_fila);
+        $('#contenedorMaquinasIndividual .cuerpoTabla').append(fila);
     });
 });
 
