@@ -183,124 +183,6 @@ function filaEjemploIndividual() {
     return fila;
 }
 
-function filaEditableIndividual() {
-    let fila = filaEjemploIndividual();
-
-    let input = crearEditable('text').attr('list', 'maquinas_lista')
-    let fila_nroadmin = filaIndNroAdmin(fila).empty().append(input);
-    let fila_sector = filaIndSector(fila).empty();
-    let fila_isla = filaIndIsla(fila).empty();
-    let fila_marcajuego = filaIndMarcaJuego(fila).empty();
-
-    function existeEnTablaIndividuales(id) {
-        return $('#contenedorMaquinasIndividual tbody tr[data-id=' + id + ']').length > 0;
-    }
-
-    {
-        const input2 = crearEditable('text').addClass('sinflechas');
-
-        filaIndRecup(fila).empty().append(input2.clone());
-        filaIndMaximo(fila).empty().append(input2.clone());
-        filaIndBase(fila).empty().append(input2.clone());
-        filaIndVisible(fila).empty().append(input2.clone());
-        filaIndOculto(fila).empty().append(input2.clone());
-
-        filaIndRecupVal(fila, $('#inputPorcRecupIndividual').val());
-        filaIndMaximoVal(fila, $('#inputMaximoIndividual').val());
-        filaIndBaseVal(fila, $('#inputBaseIndividual').val());
-        filaIndVisibleVal(fila, $('#inputPorcVisibleIndividual').val());
-        filaIndOcultoVal(fila, $('#inputPorcOcultoIndividual').val());
-    }
-
-    let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
-        fila.find('.erroneo').removeClass('erroneo');
-        let fila_val = arregloProgresivoIndividual(fila);
-        const validacion = validarFilaInd(fila);
-        if (!validacion.porc_recup) {
-            filaIndRecup(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.maximo) {
-            filaIndMaximo(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.base) {
-            filaIndBase(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_oculto) {
-            filaIndOculto(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_visible) {
-            filaIndVisible(fila).find('.editable').addClass('erroneo');
-        }
-
-        if (validacion.razones.length != 0) {
-            console.log(validacion.razones);
-            let finalstr = '';
-            for (let i = 0; i < validacion.razones.length; i++) {
-                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
-            }
-            mostrarError(finalstr);
-            return;
-        }
-
-        let value = input.val();
-        if (value == '') {
-            input.addClass('erroneo');
-            return;
-        }
-        let data = $('#maquinas_lista')
-            .find('option[value=' + value + ']');
-
-        if (data.length == 0) {
-            input.addClass('erroneo');
-            return;
-        }
-
-        let data_id = data.attr('data-id');
-        let nro_admin = data.attr('data-nro_admin');
-        let sector = data.attr('data-sector');
-        let isla = data.attr('data-isla');
-        let marca_juego = data.attr('data-marca_juego');
-
-        if (existeEnTablaIndividuales(data_id)) {
-            fila.remove();
-        }
-
-        fila_val.id_maquina = data_id;
-        fila_val.nro_admin = nro_admin;
-        fila_val.sector = sector;
-        fila_val.isla = isla;
-        fila_val.marca_juego = marca_juego;
-
-        let nueva_fila = filaEjemploIndividual();
-        setearFilaProgresivoIndividual(nueva_fila, fila_val);
-        fila.replaceWith(nueva_fila);
-
-        nueva_fila.find('.cuerpoTablaAcciones').empty();
-
-        let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
-        nueva_fila.find('.cuerpoTablaAcciones').append(botonEditar);
-
-        botonEditar.on('click', function() {
-            let data = arregloProgresivoIndividual(nueva_fila);
-            nueva_fila.replaceWith(filaEditableIndividualParcial(data));
-        });
-
-        let botonBorrar = crearBoton('fa-trash').addClass('borrar');
-        nueva_fila.find('.cuerpoTablaAcciones').append(botonBorrar);
-
-        botonBorrar.on('click', function() { nueva_fila.remove(); });
-    });
-
-    let botonCancelar = crearBoton('fa-times').addClass('cancelar');
-    botonCancelar.on('click', function() {
-        fila.remove();
-    });
-
-    fila.find('.cuerpoTablaAcciones')
-        .empty().append(botonConfirmar).append(botonCancelar);
-    return fila
-}
-
 function filaEditableIndividualParcial(data) {
     let fila = filaEjemploIndividual();
 
@@ -501,7 +383,7 @@ function mostrarProgresivoIndividual(data = null) {
     $('#modalProgresivoIndividual').modal('show');
     $('#modalProgresivoIndividual_seccionSup').show();
     $('#modalProgresivoIndividual_seccionParametros').show();
-    $('#btn-agregarMaquinaIndividual').off().parent().parent().show();
+    $('#btn-agregarMaquinaIndividual').parent().parent().show();
     $('#contenedorMaquinasIndividual').empty();
     $('#inputPorcRecupIndividual').val(0);
     $('#inputMaximoIndividual').val(0);
@@ -512,17 +394,13 @@ function mostrarProgresivoIndividual(data = null) {
     let maq_html = $('.tablaMaquinasDivIndividual').clone().removeClass('ejemplo').show();
     let cuerpo_tabla = maq_html.find('.cuerpoTabla').empty();
     $('#contenedorMaquinasIndividual').append(maq_html);
-    $('#btn-agregarMaquinaIndividual').off().on('click', function() {
-        cuerpo_tabla.append(filaEditableIndividual());
-    });
-
     $('#btn-guardarIndividual').off().on('click', enviarFormularioIndividual);
 
     $('#modalProgresivoIndividual_casino').trigger('change');
     if (data != null) {
         const callbackForm = function() { enviarFormularioIndividualModif(data.desde, data.hasta); }
         $('#btn-guardarIndividual').off().on('click', callbackForm);
-        $('#btn-agregarMaquinaIndividual').off().parent().parent().hide();
+        $('#btn-agregarMaquinaIndividual').parent().parent().hide();
         //Seteo el casino pq despues se usa para enviar el formulario.
         $('#modalProgresivoIndividual_casino').val(data.id_casino).trigger('change');
         $('#modalProgresivoIndividual_seccionSup').hide();
@@ -1032,7 +910,35 @@ $('#modalProgresivo_casino').change(function(){
 });
 
 $('#modalProgresivoIndividual_casino').change(function(){
-    cargarMaquinas($(this).val());
+    $('#input-maquina-individual').generarDataList("http://" + window.location.host+"/progresivos/buscarMaquinas/" + $(this).val(),'maquinas','id_maquina','nro_admin',1,true)
+    $('#input-maquina-individual').parent().find('.contenedor-data-list').css('top','0px').css('position','revert');
+});
+
+$('#input-maquina-individual').keypress(function(e){
+    if(e.charCode == 13) $('#btn-agregarMaquinaIndividual').click();
+});
+
+$('#btn-agregarMaquinaIndividual').click(function() {
+    const id_casino = $('#modalProgresivoIndividual_casino').val();
+    const nro_admin = $('#input-maquina-individual').val();
+    if(id_casino == null || nro_admin.length == 0) return;
+    $.get('/progresivos/buscarMaquinas/'+id_casino+'/'+nro_admin,function(data){
+        if(data.maquinas.length == 0) return;
+        const m = data.maquinas[0];
+        if(m.nro_admin != nro_admin) return;
+        $('#input-maquina-individual').setearElementoSeleccionado(0, "");
+        const selector_maquina = 'data-id='+m.id_maquina;
+        const esta_en_la_tabla = $('#contenedorMaquinasIndividual .tablaMaquinasIndividual tr['+selector_maquina+']').length != 0;
+        if(esta_en_la_tabla) return;
+        const fila = {
+            id_maquina:  m.id_maquina,
+            nro_admin:   m.nro_admin,
+            sector:      m.sector,
+            isla:        m.isla,
+            marca_juego: m.marca_juego
+        };
+        $('#contenedorMaquinasIndividual .cuerpoTabla').append(filaEditableIndividualParcial(fila));
+    });
 });
 
 $('#input-isla').keypress(function(e){
@@ -1273,49 +1179,6 @@ function setearFilaMaquinas(fila, id, nro_admin, sector, isla, marca_juego) {
 function existeEnTablaMaquinas(dataid) {
     let tabla = $('.tablaMaquinasDiv').not('.ejemplo');
     return tabla.find('tbody tr[data-id="' + dataid + '"]').length != 0;
-}
-
-function filaEditableMaquina() {
-    let fila = filaEjemploMaquina();
-    let input = $('<input></input>')
-        .addClass('form-control')
-        .addClass('editable')
-        .attr('list', 'maquinas_lista');
-
-    setearFilaMaquinas(fila, '', '', '', '', '')
-
-    fila.find('.cuerpoTablaNroAdmin').replaceWith(input);
-    fila.find('.cuerpoTablaAcciones').empty();
-    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-check').addClass('confirmar'));
-    fila.find('.cuerpoTablaAcciones').append(crearBoton('fa-times').addClass('cancelar'));
-
-    fila.find('.cancelar').on('click', function() {
-        fila.remove();
-    });
-
-    fila.find('.confirmar').on('click', function() {
-        let filaCompleta = filaEjemploMaquina();
-        let value = input.val();
-        let data = $('#maquinas_lista')
-            .find('option[value=' + input.val() + ']');
-
-        if (data.length == 0) return;
-
-        let data_id = data.attr('data-id');
-        let nro_admin = data.attr('data-nro_admin');
-        let sector = data.attr('data-sector');
-        let isla = data.attr('data-isla');
-        let marca_juego = data.attr('data-marca_juego');
-        if (existeEnTablaMaquinas(data_id)) {
-            fila.remove();
-        } else {
-            setearFilaMaquinas(filaCompleta, data_id, nro_admin, sector, isla, marca_juego);
-            fila.replaceWith(filaCompleta);
-        }
-
-    });
-
-    return fila;
 }
 
 function llenarTablaMaquinas(maquinas, editable, reusar_div=false) {

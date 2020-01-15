@@ -348,19 +348,25 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <input id="inputPorcOcultoIndividual" class="editable form-control" type="text">
             </div>
           </div>
+          <h3 class=''>Progresivos</h3>
           <div class="row">
-            <div class=''>
-              <h3 class=''>Maquinas</h3>
-              <div class="row">
-                <h5>Agregar progresivo individual:
-                  <button id='btn-agregarMaquinaIndividual' class="btn btn-success">
-                    <i class="fa fa-fw fa-plus"></i>
-                    <b>Agregar</b>
-                  </button>
-                </h5>
+            <div class="row">
+              <div class="col-md-3">
+                <h5>Agregar progresivo individual:</h5>
               </div>
-              <div id="contenedorMaquinasIndividual" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+              <div class="col-md-2">
+                <div class="input-group lista-datos-group" style="display: inline-block;">
+                  <input id="input-maquina-individual" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <button id="btn-agregarMaquinaIndividual" class="btn btn-success">
+                  <i class="fa fa-fw fa-plus"></i>
+                  <b>Agregar</b>
+                </button>
+              </div>
             </div>
+            <div id="contenedorMaquinasIndividual" class="" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
           </div>
 
           <div class="modal-footer">
