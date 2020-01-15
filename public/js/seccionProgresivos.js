@@ -1122,13 +1122,13 @@ function verificarFormulario() {
     let errores = false;
     let mensaje = "";
 
-    let sin_completar = $('#modalProgresivo_cuerpo').find('input');
+    let sin_completar = $('#contenedorPozos').find('input');
     if (sin_completar.length > 0) {
         sin_completar.each(function(idx, c) {
             $(c).addClass('erroneo');
         });
         errores = true;
-        mensaje = mensaje + "<p>Tiene pozos, niveles o maquinas sin completar</p>";
+        mensaje = mensaje + "<p>Tiene pozos o niveles sin completar</p>";
     }
 
     let porc_recup = parseFloat($('#porc_recup').val());
