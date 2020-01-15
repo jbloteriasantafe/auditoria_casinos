@@ -473,26 +473,26 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 </div>
 
 <div class="row top-buffer tablaMaquinasDiv ejemplo"  style="display: none;">
-  <div class="col-md-10">
+  <div class="col-md-12">
     <div>
       <div class="panel-body">
         <table class="table table-condensed tablesorter tablaMaquinas">
           <thead>
             <tr>
-              <th class="col-xs-1" value="maquina.nro_admin" estado="">#<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="maquina.sector" estado="">Sector<i class="fa fa-sort"></i></th>
-              <th class="col-xs-1" value="maquina.isla" estado="">Isla<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="maquina.marca_juego" estado="">Marca juego<i class="fa fa-sort"></i></th>
-              <th class="col-xs-4">ACCIONES</th>
+              <th class="col-xs-2" value="maquina.nro_admin" estado="">#<i class="fa fa-sort"></i></th>
+              <th class="col-xs-3" value="maquina.sector" estado="">Sector<i class="fa fa-sort"></i></th>
+              <th class="col-xs-2" value="maquina.isla" estado="">Isla<i class="fa fa-sort"></i></th>
+              <th class="col-xs-4" value="maquina.marca_juego" estado="">Marca juego<i class="fa fa-sort"></i></th>
+              <th class="col-xs-1">ACCIONES</th>
             </tr>
           </thead>
           <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
             <tr class="filaEjemplo">
               <td class="col-xs-2 cuerpoTablaNroAdmin">999</td>
-              <td class="col-xs-2 cuerpoTablaSector">SECTOR999</td>
-              <td class="col-xs-1 cuerpoTablaIsla">999</td>
+              <td class="col-xs-3 cuerpoTablaSector">SECTOR999</td>
+              <td class="col-xs-2 cuerpoTablaIsla">999</td>
               <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
-              <td class="col-xs-3 cuerpoTablaAcciones">
+              <td class="col-xs-1 cuerpoTablaAcciones">
                 <button class="btn btn-info unlink">
                   <i class="fas fa-unlink"></i>
                 </button>

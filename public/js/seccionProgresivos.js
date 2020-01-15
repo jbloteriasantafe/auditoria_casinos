@@ -42,6 +42,11 @@ function cargarMaquinas(id_casino) {
         .then(callbackMaquinas, function(err) { console.log(err) });
 }
 
+$('#contenedorFiltros').keypress(function(e){
+    if(e.charCode == 13){//Enter
+        $('#btn-buscar').click();
+    }
+});
 
 //Busqueda
 $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
@@ -99,6 +104,13 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
             console.log('Error:', data);
         }
     });
+});
+
+
+$('#contenedorFiltrosIndividuales').keypress(function(e){
+    if(e.charCode == 13){//Enter
+        $('#btn-buscar-individuales').click();
+    }
 });
 
 $('#btn-buscar-individuales').on('click', function(e) {
