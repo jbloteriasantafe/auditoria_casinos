@@ -1330,6 +1330,9 @@ function llenarTablaMaquinas(maquinas, editable, reusar_div=false) {
     }
 
     $('#btn-agregarMaquina').attr('disabled', !editable);
+    $('#input-maquina').attr('disabled',!editable);
+    $('#btn-agregarIsla').attr('disabled', !editable);
+    $('#input-isla').attr('disabled',!editable);
 
     var fila_ejemplo_maq = filaEjemploMaquina();
     maq_html.find('.filaEjemplo').remove();
