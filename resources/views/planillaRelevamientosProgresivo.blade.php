@@ -2,10 +2,6 @@
 <html>
 
   <style>
-  @page{
-    margin-left: 30px;
-    margin-right: 30px;
-  }
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
