@@ -12,7 +12,8 @@
     border: 1px solid #dddddd;
     text-align: left;
     padding: 3px;
-    white-space: nowrap;
+    max-width: 25ch;
+    word-break: break-all;
   }
 
   p {
@@ -95,8 +96,8 @@
     <table>
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #dddddd" width="30px">ISLA/S</th>
-          <th class="tablaInicio" style="background-color: #dddddd" width="130px">PROGRESIVO</th>
+          <th class="tablaInicio break" style="background-color: #dddddd" width="30px">ISLA/S</th>
+          <th class="tablaInicio break" style="background-color: #dddddd" width="130px">PROGRESIVO</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
