@@ -2,10 +2,14 @@
 <html>
 
   <style>
+  @page{
+    margin-left: 30px;
+    margin-right: 30px;
+  }
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 98%;
+    width: 100%;
   }
 
   td, th {
@@ -13,10 +17,6 @@
     text-align: left;
     padding: 3px;
     white-space: nowrap;
-  }
-
-  tr:nth-child(even) {
-    background-color: #dddddd;
   }
 
   p {
@@ -31,13 +31,12 @@
   }
 
   .cell_bg_1{
-    position:absolute; 
-    width:100%; 
-    height:100%; 
+    position:relative; 
     z-index:0; 
-    color: rgb(180,180,180);
-    text-align:right;
+    color: rgb(120,120,120);
     font-size: 50%;
+    top: 10px;
+    text-align: right;
   }
   .cell_bg_2{
     position:absolute; 
@@ -128,7 +127,7 @@
         <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
         @else
           @for ($i=1; $i<7; $i++)
-            @if ($detalle['nivel' . $i] != 0.00)
+            @if (strlen($detalle['nombre_nivel' . $i])>0)
         <td class="tablaProgresivos" style="background-color: white">
           <div class="cell_fg">
           {{$detalle['nivel' . $i]}}
@@ -140,11 +139,10 @@
             @else
         <td class="tablaProgresivos" style="background-color: #f5f5f5">
           <div class="cell_bg_2">
-            {{$detalle['nombre_nivel' . $i]}}
            </div>
         </td>
-            @endif
-          @endfor
+          @endif
+        @endfor
         <td class="tablaProgresivos" style="background-color: white"></td>
         @endif
       </tr>
@@ -197,7 +195,7 @@
           <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
         @else
           @for ($i=1; $i<7; $i++)
-            @if ($detalle['nivel' . $i] != 0.00)
+            @if (strlen($detalle['nombre_nivel' . $i])>0)
               <td class="tablaProgresivos" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
             @else
               <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>

@@ -257,14 +257,14 @@ class RelevamientoProgresivoController extends Controller
   public function generarPlanillaProgresivos($id_relevamiento_progresivo){
     $rel = RelevamientoProgresivo::find($id_relevamiento_progresivo);
 
-    $dompdf = $this->crearPlanillaProgresivos($rel);
+    $html = false;//poner en true si se quiere ver como html (DEBUG)
+    $dompdf = $this->crearPlanillaProgresivos($rel,$html);
 
-
-    return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-
+    if($html) return $dompdf;
+    else return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
-  public function crearPlanillaProgresivos($relevamiento_progresivo){
+  public function crearPlanillaProgresivos($relevamiento_progresivo,$html = false){
     $detalles = array();
     $detalles_link_sin_ordenar = array();
     $detalles_individuales = array();
@@ -322,6 +322,17 @@ class RelevamientoProgresivoController extends Controller
           $nombre_nivel[$n->nro_nivel]=isset($n->nombre_nivel)? $n->nombre_nivel : '';
         }
       }
+      $formatearNum = function($n){
+        if(is_null($n)) return '';
+        return number_format($n,2,'.','');
+      };
+      $nivel1 = $formatearNum($detalle_relevamiento->nivel1);
+      $nivel2 = $formatearNum($detalle_relevamiento->nivel2);
+      $nivel3 = $formatearNum($detalle_relevamiento->nivel3);
+      $nivel4 = $formatearNum($detalle_relevamiento->nivel4);
+      $nivel5 = $formatearNum($detalle_relevamiento->nivel5);
+      $nivel6 = $formatearNum($detalle_relevamiento->nivel6);
+
 
       $detalle = array(
         'nro_maquinas' => $nro_maquinas,
@@ -333,12 +344,12 @@ class RelevamientoProgresivoController extends Controller
         'pozo_unico' => count($progresivo->pozos) == 1,
         'progresivo' => $progresivo->nombre,
         'es_individual' => $progresivo->es_individual,
-        'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
-        'nivel2' => number_format($detalle_relevamiento->nivel2, 2, '.', ''),
-        'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
-        'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
-        'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
-        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'nivel1' => $nivel1,
+        'nivel2' => $nivel2,
+        'nivel3' => $nivel3,
+        'nivel4' => $nivel4,
+        'nivel5' => $nivel5,
+        'nivel6' => $nivel6,
         'nombre_nivel1' => isset($nombre_nivel[1])? $nombre_nivel[1] : '',
         'nombre_nivel2' => isset($nombre_nivel[2])? $nombre_nivel[2] : '',
         'nombre_nivel3' => isset($nombre_nivel[3])? $nombre_nivel[3] : '',
@@ -372,17 +383,18 @@ class RelevamientoProgresivoController extends Controller
       'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
     );
 
-    // $view = View::make('planillaProgresivos', compact('detalles','rel'));
     $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'landscape');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf;
+    if(!$html){
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'landscape');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      return $dompdf;
+    }
+    return $view;
   }
 
   public function cargarRelevamiento(Request $request,$validar = true){
