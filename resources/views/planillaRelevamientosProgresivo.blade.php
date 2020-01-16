@@ -13,7 +13,7 @@
     text-align: left;
     padding: 3px;
     max-width: 25ch;
-    word-break: break-all;
+    overflow-wrap: anywhere;
   }
 
   p {
