@@ -186,7 +186,7 @@
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-          <th class="tablaInicio" style="background-color: #dddddd; width: 105px;" width="10.5%">CAUSA NO TOMA</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
 
