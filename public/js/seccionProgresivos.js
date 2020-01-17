@@ -35,7 +35,7 @@ function cargarMaquinas(id_casino) {
 
     let ajaxData = {
         type: 'GET',
-        url: 'progresivos/buscarMaquinas/' + id_casino
+        url: '/progresivos/buscarMaquinas/' + id_casino
     };
 
     $.when($.ajax(ajaxData))
@@ -81,7 +81,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
 
     $.ajax({
         type: 'POST',
-        url: 'progresivos/buscarProgresivos',
+        url: '/progresivos/buscarProgresivos',
         data: formData,
         dataType: 'json',
         success: function(resultados) {
@@ -275,7 +275,7 @@ function enviarFormularioIndividual() {
     })
 
     let mensajeExito = 'Los progresivos fueron cargados con éxito.';
-    let url = 'progresivos/crearProgresivosIndividuales';
+    let url = '/progresivos/crearProgresivosIndividuales';
 
     let formData = {
         id_casino: $('#modalProgresivoIndividual_casino').val(),
@@ -325,7 +325,7 @@ function enviarFormularioIndividualModif(desde, hasta) {
     })
 
     let mensajeExito = 'Los progresivos fueron modificados.';
-    let url = 'progresivos/modificarProgresivosIndividuales';
+    let url = '/progresivos/modificarProgresivosIndividuales';
 
     let formData = {
         id_casino: $('#modalProgresivoIndividual_casino').val(),
@@ -370,7 +370,7 @@ function obtenerProgresivosIndividuales(data, success = function(x) { console.lo
 
     $.ajax({
         type: 'POST',
-        url: 'progresivos/buscarProgresivosIndividuales',
+        url: '/progresivos/buscarProgresivosIndividuales',
         data: data,
         dataType: 'json',
         success: success,
@@ -441,7 +441,7 @@ $(document).on('click', '#cuerpoTabla tr .detalle', function() {
 
     var id_progresivo = $(this).val();
 
-    $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
+    $.get("/progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
         console.log(data);
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, false);
         $('#modalProgresivo').modal('show');
@@ -460,7 +460,7 @@ $(document).on('click', '#cuerpoTabla tr .modificar', function() {
 
     var id_progresivo = $(this).val();
 
-    $.get("progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
+    $.get("/progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, true);
         $('#btn-guardar').val("modificar");
         $('#modalProgresivo').modal('show');
@@ -521,7 +521,7 @@ function generarFilaTabla(progresivo) {
                 })
                 $.ajax({
                     type: "DELETE",
-                    url: "progresivos/eliminarProgresivo/" + progresivo.id_progresivo,
+                    url: "/progresivos/eliminarProgresivo/" + progresivo.id_progresivo,
                     success: function(data) {
                         console.log(data);
                         fila.remove();
@@ -1051,7 +1051,7 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
             }
         })
         let mensajeExito = 'El progresivo fue modificado con éxito.';
-        let url = 'progresivos/modificarProgresivo/' + progresivo.id_progresivo;
+        let url = '/progresivos/modificarProgresivo/' + progresivo.id_progresivo;
 
 
         let formData = {
@@ -1065,7 +1065,7 @@ function mostrarProgresivo(progresivo, pozos, maquinas, editable) {
 
         if (progresivo.id_progresivo == -1) {
             mensajeExito = 'El progresivo fue creado con éxito.';
-            url = 'progresivos/crearProgresivo';
+            url = '/progresivos/crearProgresivo';
         }
 
         $.ajax({

@@ -412,7 +412,8 @@ class RelevamientoProgresivoController extends Controller
           'detalles.*.niveles.*' => 'nullable',
           'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
           'detalles.*.niveles.*.numero' => 'required|string',
-          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo'
+          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo',
+          'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo'
       ], array(
         'detalles.*.niveles.*.valor.numeric' => 'El valor de un nivel no es numerico.'
       ), self::$atributos)->after(function($validator){
@@ -439,7 +440,6 @@ class RelevamientoProgresivoController extends Controller
     DB::transaction(function() use($request){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
       $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
-      //$rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
       $rel->fecha_ejecucion = $request->fecha_ejecucion;
       $rel->estado_relevamiento()->associate(3); // id_estado finalizado
       $rel->observacion_carga = $request->observaciones;
@@ -447,7 +447,6 @@ class RelevamientoProgresivoController extends Controller
 
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
-
         if (!array_key_exists('id_tipo_causa_no_toma', $detalle) || $detalle['id_tipo_causa_no_toma'] === null) {
           $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
           $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
@@ -455,6 +454,7 @@ class RelevamientoProgresivoController extends Controller
           $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
           $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
           $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
+          $unDetalle->id_tipo_causa_no_toma_progresivo = NULL;
         }
         else {
           $unDetalle->nivel1 = NULL;
@@ -481,15 +481,20 @@ class RelevamientoProgresivoController extends Controller
     //Y no pude hacer andar el array con &
     //Un foreach seria mucho mas facil...
     for($didx=0;$didx<sizeof($detalles);$didx++){
-      for($n = 0;$n<6;$n++){
-        if(array_key_exists($n,$detalles[$didx]['niveles'])){
-          $aux = $detalles[$didx]['niveles'][$n]['valor'];
-          $value = is_numeric($aux)? $aux : NULL;
-          $detalles[$didx]['niveles'][$n]['valor']=$value;
+      if(array_key_exists('niveles',$detalles[$didx])){
+        for($n = 0;$n<6;$n++){
+          if(array_key_exists($n,$detalles[$didx]['niveles'])){
+            $aux = $detalles[$didx]['niveles'][$n]['valor'];
+            $value = is_numeric($aux)? $aux : NULL;
+            $detalles[$didx]['niveles'][$n]['valor']=$value;
+          }
         }
       }
+      if(array_key_exists('id_tipo_causa_no_toma',$detalles[$didx])){
+        $causa = $detalles[$didx]['id_tipo_causa_no_toma'];
+        $detalles[$didx]['id_tipo_causa_no_toma'] = is_numeric($causa) && $causa > 0? $causa : NULL;
+      }
     }
-    //dump($detalles);
     $request->merge(['detalles'=>$detalles]);
     $resultado = $this->cargarRelevamiento($request,false);
     if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){

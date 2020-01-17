@@ -12,7 +12,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 
 
 @section('estilos')
-<link rel="stylesheet" href="css/paginacion.css"/>
+<link rel="stylesheet" href="/css/paginacion.css"/>
 <link rel="stylesheet" href="/css/lista-datos.css"/>
 <style>
   .chico {
