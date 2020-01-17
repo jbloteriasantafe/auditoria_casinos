@@ -705,7 +705,7 @@ function mensajeAlerta(alertas, callbackConfirmar, callbackCancelar) {
 
 function obtenerIdFiscalizador(id_casino, str) {
     let f = $('#datalist' + id_casino).find('option:contains("' + str + '")');
-    if (f.length == 0) return null;
+    if (f.length != 1) return null;
     else return f.attr('data-id');
 }
 

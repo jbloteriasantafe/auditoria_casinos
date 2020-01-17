@@ -379,7 +379,9 @@ class RelevamientoProgresivoController extends Controller
       'sector' => $sector->descripcion,
       'casino' => $casino->nombre,
       'codigo_casino'=> $casino->codigo,
-      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) : "",
+      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? 
+      (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) 
+      : "",
       'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
     );
 
@@ -439,7 +441,8 @@ class RelevamientoProgresivoController extends Controller
 
     DB::transaction(function() use($request){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
-      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
+      $rel->usuario_fiscalizador()->dissociate();
+      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
       $rel->fecha_ejecucion = $request->fecha_ejecucion;
       $rel->estado_relevamiento()->associate(3); // id_estado finalizado
       $rel->observacion_carga = $request->observaciones;
