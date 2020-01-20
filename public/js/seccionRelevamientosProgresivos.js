@@ -682,10 +682,10 @@ function setearRelevamiento(data, filaCallback) {
         else individuales.push(d);
     });
     if(individuales.length>0){
-        setearBordeSeparadorFilaProgresivos();
         individuales.forEach(function(d){
             tabla.append(filaCallback(d).addClass('individual'));
         });
+        setTimeout(setearBordeSeparadorFilaProgresivos,1000);
     }
 }
 
