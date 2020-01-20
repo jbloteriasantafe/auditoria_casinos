@@ -588,7 +588,6 @@ function obtenerFila(detalle) {
     fila.find('input').off().change(sacarAlerta);
 
     fila.find('input:not([data-id])').attr('disabled', true);
-
     return fila;
 }
 
@@ -677,9 +676,39 @@ function setearRelevamiento(data, filaCallback) {
     }
 
     let tabla = $('#modalRelevamientoProgresivos .cuerpoTablaPozos');
-    for (let i = 0; i < data.detalles.length; i++) {
-        tabla.append(filaCallback(data.detalles[i]));
+    let individuales = [];
+    data.detalles.forEach(function(d){
+        if(d.es_individual == 0) tabla.append(filaCallback(d).addClass('linkeado'));
+        else individuales.push(d);
+    });
+    if(individuales.length>0){
+        setearBordeSeparadorFilaProgresivos();
+        individuales.forEach(function(d){
+            tabla.append(filaCallback(d).addClass('individual'));
+        });
     }
+}
+
+function setearBordeSeparadorFilaProgresivos(){
+    let fila = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr.linkeado').not('.filaEjemplo').last();
+    //Le seteo la misma altura a todas las celdas y le pongo el borde
+    //No se puede poner el borde a la fila por que no lo toma, y se necesita ponerle la misma altura
+    //Porque tienen alturas distintas y el borde se ve horrible si no. 
+    //Tomo la altura de la celda mas grande de la fila.
+    let altura = 0;
+    fila.find('td').each(function(){
+        const h = parseFloat($(this).css('height'));
+        if(h>altura){
+            altura = h;
+        } 
+    });
+    fila.addClass('separadorProgresivos');
+    fila.find('td').css('height',altura).css('border-bottom','double gray');
+}
+function sacarBordeSeparadorFilaProgresivos(){
+    let fila = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr.separadorProgresivos').not('.filaEjemplo');
+    fila.find('td').css('height','revert').css('border-bottom','revert');
+    fila.removeClass('separadorProgresivos');
 }
 
 function mensajeError(errores) {
@@ -861,7 +890,8 @@ $('#btn-minimizarCrear').click(function() {
 
 $('.cabeceraTablaPozos th.sortable').click(function() {
     let sort_by = $(this).attr('data-id');
-    let filas = $('.cuerpoTablaPozos tr');
+    let filas_linkeados = $('.cuerpoTablaPozos tr.linkeado');
+    let filas_individuales = $('.cuerpoTablaPozos tr.individual');
     console.log(sort_by);
     if ($(this).attr('sorted') === undefined) {
         $(this).attr('sorted', false);
@@ -886,24 +916,25 @@ $('.cabeceraTablaPozos th.sortable').click(function() {
         } else throw "Error not matching types in comparison";
     }
 
-    let reordenadas = ordenar(filas, comp,
-        function(add) {
-            let clonado = $(add).clone();
-            //Tengo que setear todo de vuelta, el clone no clona bien -___-
-            clonado.find('.causaNoToma').val($(add).find('.causaNoToma').val());
-            clonado.find('.causaNoToma').off().change(function() {
-                causaNoTomaCallback(this);
-            });
+    function clonar(add){
+        let clonado = $(add).clone();
+        //Tengo que setear todo de vuelta, el clone no clona bien -___-
+        clonado.find('.causaNoToma').val($(add).find('.causaNoToma').val());
+        clonado.find('.causaNoToma').off().change(function() {
+            causaNoTomaCallback(this);
+        });
+        clonado.find('input').off().change(sacarAlerta);
+        return clonado;
+    }
 
-            clonado.find('input').off().change(sacarAlerta);
-
-            return clonado;
-        }
-    );
-
-    $('.cuerpoTablaPozos').empty();
-    for (let i = 0; i < reordenadas.length; i++) {
-        $('.cuerpoTablaPozos').append(reordenadas[i]);
+    let reordenadas = ordenar(filas_linkeados, comp, clonar);
+    $('.cuerpoTablaPozos tr').not('.filaEjemplo').remove();
+    $('.cuerpoTablaPozos').append(reordenadas);
+    if(filas_individuales.length>0){
+        sacarBordeSeparadorFilaProgresivos();
+        reordenadas = ordenar(filas_individuales,comp,clonar);
+        $('.cuerpoTablaPozos').append(reordenadas);
+        setearBordeSeparadorFilaProgresivos();
     }
 })
 
