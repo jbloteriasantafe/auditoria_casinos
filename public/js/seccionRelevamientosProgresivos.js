@@ -685,7 +685,7 @@ function setearRelevamiento(data, filaCallback) {
         individuales.forEach(function(d){
             tabla.append(filaCallback(d).addClass('individual'));
         });
-        setearBordeSeparadorFilaProgresivos();
+        setTimeout(setearBordeSeparadorFilaProgresivos,1000);
     }
 }
 
@@ -695,18 +695,15 @@ function setearBordeSeparadorFilaProgresivos(){
     //No se puede poner el borde a la fila por que no lo toma, y se necesita ponerle la misma altura
     //Porque tienen alturas distintas y el borde se ve horrible si no. 
     //Tomo la altura de la celda mas grande de la fila.
-    //Lo pongo en un ready porque me daba altura 0 cuando demoraba en cargar, aseguro que este cargado
-    fila.ready(function(){
-        let altura = 0;
-        fila.find('td').each(function(){
-            const h = parseFloat($(this).css('height'));
-            if(h>altura){
-                altura = h;
-            } 
-        });
-        fila.addClass('separadorProgresivos');
-        fila.find('td').css('height',altura).css('border-bottom','double gray');
+    let altura = 0;
+    fila.find('td').each(function(){
+        const h = parseFloat($(this).css('height'));
+        if(h>altura){
+            altura = h;
+        } 
     });
+    fila.addClass('separadorProgresivos');
+    fila.find('td').css('height',altura).css('border-bottom','double gray');
 }
 function sacarBordeSeparadorFilaProgresivos(){
     let fila = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr.separadorProgresivos').not('.filaEjemplo');
