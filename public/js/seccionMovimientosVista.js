@@ -2034,7 +2034,7 @@ function clickIndiceMov(e,pageNumber,tam){
 
 //paginacion
 function generarFilaTabla(movimiento){
-  let fila              = $(document.createElement('tr'));
+  let fila              = $('#filaEjemploMovimiento').clone().removeAttr('id','');
   let t_mov             = movimiento.descripcion;
   let fecha             = movimiento.fecha;
   let estado            = movimiento.id_estado_movimiento.descripcion;
@@ -2051,159 +2051,52 @@ function generarFilaTabla(movimiento){
       nro_cont          = movimiento.nro_exp_control;
   }
 
-  fila.attr('id', movimiento.id_log_movimiento)
-  .append(
-    $('<td>')
-    .addClass('col-xs-2')
-    .text(convertirDate(fecha))
-  )
-  .append(
-    $('<td>')
-    .addClass('col-xs-2')
-    .text(nro_org + '-' + nro_int + '-' + nro_cont)
-  )
-  .append(
-    $('<td>')
-    .addClass('col-xs-2')
-    .text(islas)
-  )
-  .append(
-    $('<td>')
-    .addClass('col-xs-2')
-    .text(t_mov)
-  );
-
-  let icono = $('<i>').addClass('fas').addClass('fa-fw')
-  .addClass('fa-times').css('color','#EF5350');
-
+  fila.attr('id', movimiento.id_log_movimiento);
+  fila.find('.fecha_mov').text(convertirDate(fecha));
+  fila.find('.nro_exp_mov').text(nro_org + '-' + nro_int + '-' + nro_cont);
+  fila.find('.islas_mov').text(islas);
+  fila.find('.tipo_mov').text(t_mov);
   if(estado_movimiento==4){
-    icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
+    fila.find('.icono_mov i').remove();
+    let validado_icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
     .css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto');
+    fila.find('.icono_mov').append(validado_icono);
   }
-
-  fila.append(
-    $('<td>')
-    .addClass('col-xs-1').css('text-align','center')
-    .append(icono)
-  );
-
-  let boton_redirigir = $('<button>').addClass('boton_redirigir')
-  .append(
-    $('<i>').addClass('fas').addClass('fa-fw').addClass('fa-external-link-square-alt')
-  )
-  .append($('<span>').text(' REDIRIGIR'))
-  .addClass('btn').addClass('btn-warning')
-  .attr('value',movimiento.id_log_movimiento);
-
-  let boton_nuevo = $('<button>').addClass('boton_nuevo')
-  .append(
-    $('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt')
-  )
-  .append($('<span>').text('NUEVO'))
-  .attr('type','button')
-  .addClass('btn')
-  .attr('value',movimiento.id_log_movimiento)
+  
+  //Abre la pantalla de islas y CREO que asigna el controlador al movimiento
+  //Se usa solo en CAMBIO LAYOUT? creo
+  fila.find('.boton_redirigir').attr('value',movimiento.id_log_movimiento);
+  //Para agregar maquinas al movimiento que se mandan a fiscalizar.
+  fila.find('.boton_nuevo').attr('value',movimiento.id_log_movimiento)
   .attr('data-casino',movimiento.id_casino)
   .attr('data-tipo',movimiento.id_tipo_movimiento);
-
-  let boton_cargar = $('<button>').addClass('boton_cargar').attr("data-carga", t_carga)
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-plus')
-  )
-  .append($('<span>').text(' CARGAR'))
-  .addClass('btn').addClass('btn-success')
-  .attr('type','button')
-  .attr('value',movimiento.id_log_movimiento);
-
-  let boton_fiscalizar = $('<button>').addClass('boton_fiscalizar')
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-paper-plane')
-  )
-  .append($('<span>').text(' ENVIAR A FISCALIZAR'))
-  .addClass('btn').addClass('btn-success')
-  .attr('value',movimiento.id_log_movimiento);
-
-  let boton_modificar = $('<button>').addClass('boton_modificar')
-  .append(
-    $('<i>').addClass('fas').addClass('fa-fw').addClass('fa-pencil-alt')
-  )
-  .append($('<span>').text('MODIFICAR'))
-  .addClass('btn').addClass('btn-warning')
-  .attr('value',movimiento.id_log_movimiento)
+  //En INGRESO para poner los datos de la maquina
+  fila.find('.boton_cargar').attr('value',movimiento.id_log_movimiento);
+  //Envia el movimiento a fiscalizar por (obtener contadores) por los fiscalizadores
+  fila.find('.boton_fiscalizar').attr('value',movimiento.id_log_movimiento);
+  //Para cambiar juego/denominacion de maquinas (ademas envia a fiscalizar)
+  fila.find('.boton_modificar').attr('value',movimiento.id_log_movimiento)
   .attr('data-tmov',movimiento.id_tipo_movimiento)
   .attr('data-cas',movimiento.id_casino);
-
-  let boton_validar = $('<button>').addClass('boton_validar')
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
-  )
-  .append($('<span>').text(' VALIDAR'))
-  .addClass('btn').addClass('btn-success')
-  .attr('value',movimiento.id_log_movimiento);
-
-  let boton_baja = $('<button>').addClass('boton_baja')
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-ban')
-  )
-  .append($('<span>').text(' BAJA MTM'))
-  .addClass('btn').addClass('btn-danger')
-  .attr('value',movimiento.id_log_movimiento)
+  //Valida
+  fila.find('.boton_validar').attr('value',movimiento.id_log_movimiento);
+  //Egreso, poner que maquinas borrar
+  fila.find('.boton_baja').attr('value',movimiento.id_log_movimiento)
   .attr('data-casino', movimiento.id_casino)
   .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
-
-  let boton_toma2 = $('<button>').addClass('boton_toma2')
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-retweet')
-  )
-  .append($('<span>').text('VOLVER A RELEVAR'))
-  .addClass('btn')//.addClass('btn-info')
-  .attr('value',movimiento.id_log_movimiento)
+  //Seleccionar (de vuelta?) que maquinas enviar a fiscalizar
+  fila.find('.boton_toma2').attr('value',movimiento.id_log_movimiento)
   .attr('data-casino', movimiento.id_casino)
   .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
   .attr('data-estado',movimiento.id_estado_movimiento);
-
-  let boton_baja_mov = $('<button>').addClass('baja_mov')
-  .append(
-    $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash')
-  )
-  .append($('<span>').text(' BAJA MOV'))
-  .addClass('btn').addClass('btn-danger')
-  .attr('value',movimiento.id_log_movimiento)
+  //Borrar el movimiento
+  fila.find('.baja_mov').attr('value',movimiento.id_log_movimiento)
   .attr('data-casino', movimiento.id_casino)
   .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
-
-  let boton_print_mov = $('<button>').addClass('print_mov')
-  .append(
-    $('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print')
-  )
-  .append($('<span>').text(' IMPRIMIR MOV'))
-  .addClass('btn').addClass('btn-success')
-  .attr('value',movimiento.id_log_movimiento)
+  //Imprimir el mov
+  fila.find('.print_mov').attr('value',movimiento.id_log_movimiento)
   .attr('data-casino', movimiento.id_casino)
-  .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
-
-  fila.append(
-    $('<td>').addClass('col-xs-3')
-    .append($('<span>').text(' '))
-    .append(boton_redirigir)
-    .append(boton_nuevo)
-    .append($('<span>').text(' '))
-    .append(boton_cargar)
-    .append($('<span>').text(' '))
-    .append(boton_fiscalizar)
-    .append($('<span>').text(' '))
-    .append(boton_modificar)
-    .append($('<span>').text(' '))
-    .append(boton_validar)
-    .append($('<span>').text(' '))
-    .append(boton_baja)
-    .append($('<span>').text(' '))
-    .append(boton_toma2)
-    .append($('<span>').text(' '))
-    .append(boton_baja_mov)
-    .append($('<span>').text(' '))
-    .append(boton_print_mov)
-  );
+  .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
 
   if (t_mov=="INGRESO"){
     fila.find('.boton_nuevo').addClass('nuevoIngreso');
@@ -2295,37 +2188,27 @@ function generarFilaTabla(movimiento){
   else{
     fila.find('button,span').not('.print_mov').remove();
   }
-
+  /* ESTADOS:
+  1 	NOTIFICADO
+	2   FISCALIZANDO
+	3 	FISCALIZADO
+	4 	VALIDADO
+	5   ERROR
+	6 	CREADO
+	7 	MTM CARGADAS
+	8 	CARGANDO*/
   //para habilitar y deshabilitar botones, según el estado del movimiento:
-  if(estado_movimiento != 1){
-    fila.find('.nuevoIngreso').attr('style', 'display:none');
-  } 
-  else{
-    fila.find('.nuevoIngreso').show();
-  }
-  if(estado_movimiento != 3){
-    fila.find('.validarMovimiento').attr('style', 'display:none');
-  }
-  else{ 
-    fila.find('.validarMovimiento').show();
-  };
-  if(estado_movimiento != 8 || estado_movimiento == 1){
-    fila.find('.enviarIngreso').attr('style', 'display:none');
-  }else{
-    fila.find('.enviarIngreso').show();
-  }
-  if(t_mov=="INGRESO" && estado_movimiento != 1){
-    fila.find('.enviarIngreso').show();
-  }
+  fila.find('.nuevoIngreso').toggle(estado_movimiento == 1);
+  fila.find('.validarMovimiento').toggle(estado_movimiento == 3);
+  fila.find('.enviarIngreso').toggle(estado_movimiento == 8);
+  fila.find('.enviarIngreso').toggle(t_mov=="INGRESO" && estado_movimiento != 1);
   if(estado_movimiento == 4 || estado_movimiento == 5){
-    fila.find('.bajaMTM').attr('style', 'display:none')
+    fila.find('.bajaMTM').hide();
   }else{
-    fila.find('.bajaMTM').prop('disabled', false)
+    fila.find('.bajaMTM').prop('disabled', false);
   };
-  if(estado_movimiento > 2){
-    fila.find('.boton_toma2').show();}else{ fila.find('.boton_toma2').attr('style', 'display:none');
-  }
-  
+  fila.find('.boton_toma2').toggle(estado_movimiento > 2);
+   
   return fila;
 }
 

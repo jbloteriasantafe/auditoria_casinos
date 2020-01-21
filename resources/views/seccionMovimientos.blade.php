@@ -1528,6 +1528,50 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
   </div>
 
+<table hidden>
+  <tr id="filaEjemploMovimiento">
+     <td class="col-xs-2 fecha_mov">99 DIC 9999</td>
+     <td class="col-xs-2 nro_exp_mov">9999-999-9</td>
+     <td class="col-xs-2 islas_mov">9999-9999-...</td>
+     <td class="col-xs-2 tipo_mov">TIPO9999</td>
+     <td class="col-xs-1 icono_mov" style="text-align: center;">
+       <i class="fas fa-fw fa-times" style="color: #EF5350;"></i>
+     </td>
+     <td class="col-xs-3 botones_mov">
+        <button type="button" class="btn btn-warning boton_redirigir" title="REDIRIGIR">
+          <i class="fas fa-fw fa-external-link-square-alt"></i>
+        </button>
+        <button type="button" class="btn boton_nuevo" title="NUEVO">
+          <i class="far fa-fw fa-file-alt"></i>
+        </button>
+        <button type="button" class="btn btn-success boton_cargar" title="CARGAR">
+          <i class="fa fa-fw fa-plus"></i>
+        </button>
+        <button type="button" class="btn btn-success boton_fiscalizar" title="ENVIAR A FISCALIZAR">
+          <i class="fa fa-fw fa-paper-plane"></i>
+        </button>
+        <button type="button" class="btn btn-warning boton_modificar" title="MODIFICAR">
+          <i class="fas fa-fw fa-pencil-alt"></i>
+        </button>
+        <button type="button" class="btn btn-success boton_validar" title="VALIDAR">
+          <i class="fa fa-fw fa-check"></i>
+        </button>
+        <button type="button" class="btn btn-danger boton_baja" title="BAJA MTM">
+          <i class="fa fa-fw fa-ban"></i>
+        </button>
+        <button type="button" class="btn boton_toma2" title="VOLVER A RELEVAR">
+          <i class="fa fa-fw fa-retweet"></i>
+        </button>
+        <button type="button" class="btn btn-danger baja_mov" title="BAJA MOV">
+          <i class="fas fa-fw fa-trash"></i>
+        </button>
+        <button type="button" class="btn print_mov" title="IMPRIMIR MOV">
+          <i class="fas fa-fw fa-print"></i>
+        </button>
+     </td>
+  </tr>
+</table>
+
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 
