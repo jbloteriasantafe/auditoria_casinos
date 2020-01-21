@@ -56,7 +56,7 @@ class RelevamientoProgresivoController extends Controller
       $nro_admin_maquinas = '';
       $pozo = Pozo::find($detalle->id_pozo);
       if($pozo == null) continue;
-      $maquinas = $pozo->progresivo->maquinas;
+      $maquinas = $pozo->progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get();
       foreach ($maquinas as $maq){
         $id_maquinas_pozo[] = $maq['id_maquina'];
         $nro_admin_maquinas = $nro_admin_maquinas .'/'. $maq['nro_admin'];
@@ -257,14 +257,14 @@ class RelevamientoProgresivoController extends Controller
   public function generarPlanillaProgresivos($id_relevamiento_progresivo){
     $rel = RelevamientoProgresivo::find($id_relevamiento_progresivo);
 
-    $dompdf = $this->crearPlanillaProgresivos($rel);
+    $html = false;//poner en true si se quiere ver como html (DEBUG)
+    $dompdf = $this->crearPlanillaProgresivos($rel,$html);
 
-
-    return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-
+    if($html) return $dompdf;
+    else return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
-  public function crearPlanillaProgresivos($relevamiento_progresivo){
+  public function crearPlanillaProgresivos($relevamiento_progresivo,$html = false){
     $detalles = array();
     $detalles_link_sin_ordenar = array();
     $detalles_individuales = array();
@@ -279,7 +279,7 @@ class RelevamientoProgresivoController extends Controller
 
       $x=0;
       $nro_maquinas = "";
-      foreach ($progresivo->maquinas as $maq) {
+      foreach ($progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get() as $maq) {
         $id_maquinas[] = $maq->id_maquina;
         if ($x == 0) {
           $nro_maquinas = $maq->nro_admin;
@@ -322,6 +322,17 @@ class RelevamientoProgresivoController extends Controller
           $nombre_nivel[$n->nro_nivel]=isset($n->nombre_nivel)? $n->nombre_nivel : '';
         }
       }
+      $formatearNum = function($n){
+        if(is_null($n)) return '';
+        return number_format($n,2,'.','');
+      };
+      $nivel1 = $formatearNum($detalle_relevamiento->nivel1);
+      $nivel2 = $formatearNum($detalle_relevamiento->nivel2);
+      $nivel3 = $formatearNum($detalle_relevamiento->nivel3);
+      $nivel4 = $formatearNum($detalle_relevamiento->nivel4);
+      $nivel5 = $formatearNum($detalle_relevamiento->nivel5);
+      $nivel6 = $formatearNum($detalle_relevamiento->nivel6);
+
 
       $detalle = array(
         'nro_maquinas' => $nro_maquinas,
@@ -333,12 +344,12 @@ class RelevamientoProgresivoController extends Controller
         'pozo_unico' => count($progresivo->pozos) == 1,
         'progresivo' => $progresivo->nombre,
         'es_individual' => $progresivo->es_individual,
-        'nivel1' => number_format($detalle_relevamiento->nivel1, 2, '.', ''),
-        'nivel2' => number_format($detalle_relevamiento->nivel2, 2, '.', ''),
-        'nivel3' => number_format($detalle_relevamiento->nivel3, 2, '.', ''),
-        'nivel4' => number_format($detalle_relevamiento->nivel4, 2, '.', ''),
-        'nivel5' => number_format($detalle_relevamiento->nivel5, 2, '.', ''),
-        'nivel6' => number_format($detalle_relevamiento->nivel6, 2, '.', ''),
+        'nivel1' => $nivel1,
+        'nivel2' => $nivel2,
+        'nivel3' => $nivel3,
+        'nivel4' => $nivel4,
+        'nivel5' => $nivel5,
+        'nivel6' => $nivel6,
         'nombre_nivel1' => isset($nombre_nivel[1])? $nombre_nivel[1] : '',
         'nombre_nivel2' => isset($nombre_nivel[2])? $nombre_nivel[2] : '',
         'nombre_nivel3' => isset($nombre_nivel[3])? $nombre_nivel[3] : '',
@@ -368,21 +379,24 @@ class RelevamientoProgresivoController extends Controller
       'sector' => $sector->descripcion,
       'casino' => $casino->nombre,
       'codigo_casino'=> $casino->codigo,
-      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) : "",
+      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? 
+      (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) 
+      : "",
       'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
     );
 
-    // $view = View::make('planillaProgresivos', compact('detalles','rel'));
     $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'landscape');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf;
+    if(!$html){
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'landscape');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      return $dompdf;
+    }
+    return $view;
   }
 
   public function cargarRelevamiento(Request $request,$validar = true){
@@ -400,7 +414,8 @@ class RelevamientoProgresivoController extends Controller
           'detalles.*.niveles.*' => 'nullable',
           'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
           'detalles.*.niveles.*.numero' => 'required|string',
-          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo'
+          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo',
+          'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo'
       ], array(
         'detalles.*.niveles.*.valor.numeric' => 'El valor de un nivel no es numerico.'
       ), self::$atributos)->after(function($validator){
@@ -426,8 +441,8 @@ class RelevamientoProgresivoController extends Controller
 
     DB::transaction(function() use($request){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
-      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador); //validado
-      //$rel->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
+      $rel->usuario_fiscalizador()->dissociate();
+      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
       $rel->fecha_ejecucion = $request->fecha_ejecucion;
       $rel->estado_relevamiento()->associate(3); // id_estado finalizado
       $rel->observacion_carga = $request->observaciones;
@@ -435,7 +450,6 @@ class RelevamientoProgresivoController extends Controller
 
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
-
         if (!array_key_exists('id_tipo_causa_no_toma', $detalle) || $detalle['id_tipo_causa_no_toma'] === null) {
           $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
           $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
@@ -443,6 +457,7 @@ class RelevamientoProgresivoController extends Controller
           $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
           $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
           $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
+          $unDetalle->id_tipo_causa_no_toma_progresivo = NULL;
         }
         else {
           $unDetalle->nivel1 = NULL;
@@ -469,15 +484,20 @@ class RelevamientoProgresivoController extends Controller
     //Y no pude hacer andar el array con &
     //Un foreach seria mucho mas facil...
     for($didx=0;$didx<sizeof($detalles);$didx++){
-      for($n = 0;$n<6;$n++){
-        if(array_key_exists($n,$detalles[$didx]['niveles'])){
-          $aux = $detalles[$didx]['niveles'][$n]['valor'];
-          $value = is_numeric($aux)? $aux : NULL;
-          $detalles[$didx]['niveles'][$n]['valor']=$value;
+      if(array_key_exists('niveles',$detalles[$didx])){
+        for($n = 0;$n<6;$n++){
+          if(array_key_exists($n,$detalles[$didx]['niveles'])){
+            $aux = $detalles[$didx]['niveles'][$n]['valor'];
+            $value = is_numeric($aux)? $aux : NULL;
+            $detalles[$didx]['niveles'][$n]['valor']=$value;
+          }
         }
       }
+      if(array_key_exists('id_tipo_causa_no_toma',$detalles[$didx])){
+        $causa = $detalles[$didx]['id_tipo_causa_no_toma'];
+        $detalles[$didx]['id_tipo_causa_no_toma'] = is_numeric($causa) && $causa > 0? $causa : NULL;
+      }
     }
-    //dump($detalles);
     $request->merge(['detalles'=>$detalles]);
     $resultado = $this->cargarRelevamiento($request,false);
     if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){

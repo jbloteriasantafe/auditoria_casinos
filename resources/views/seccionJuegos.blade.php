@@ -234,7 +234,10 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       </button></h5>
                         <div id="listaMaquinas" class="pre-scrollable" style="margin-top:15px;min-height: 350px;">
                           <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
-                            <div class="col-md-10">
+                            <div class="col-md-1" title="Juego activo en la máquina">
+                              <span class="esActivo" style="font-size: 20px;color: gold;" hidden><i class="fa fa-fw fa-star"></i></span>
+                            </div>
+                            <div class="col-md-9">
                               <div class="input-group">
                                 <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">
                                   @foreach($casinos as $casino)

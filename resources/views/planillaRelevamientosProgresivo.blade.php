@@ -5,18 +5,13 @@
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 98%;
+    width: 100%;
   }
 
   td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 3px;
-    white-space: nowrap;
-  }
-
-  tr:nth-child(even) {
-    background-color: #dddddd;
   }
 
   p {
@@ -31,13 +26,12 @@
   }
 
   .cell_bg_1{
-    position:absolute; 
-    width:100%; 
-    height:100%; 
+    position:relative; 
     z-index:0; 
-    color: rgb(180,180,180);
-    text-align:right;
+    color: rgb(120,120,120);
     font-size: 50%;
+    top: 10px;
+    text-align: right;
   }
   .cell_bg_2{
     position:absolute; 
@@ -47,6 +41,24 @@
     color: rgb(180,180,180);
     text-align:right;
     font-size: 70%;
+  }
+  .short_break{
+    word-wrap: break-word;
+    width: 70px;
+    max-width: 70px;
+  }
+  .medium_break{
+    word-wrap: break-word;
+    width: 105px;
+    max-width: 105px;
+  }
+  .long_break{
+    word-wrap: break-word;
+    width: 140px;
+    max-width: 140px;
+  }
+  .break{
+    word-wrap: break-word;
   }
 </style>
 
@@ -97,54 +109,53 @@
     <!-- Tabla de progresivos linkeados -->
     @if (count($detalles_linkeados) > 0)
     <div class="primerEncabezado">Listado de progresivos linkeados:</div>
-    <table>
+    <table style="table-layout:fixed">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #dddddd" width="30px">ISLA/S</th>
-          <th class="tablaInicio" style="background-color: #dddddd" width="130px">PROGRESIVO</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="7%">ISLA/S</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">PROGRESIVO</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-          <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
+          <th class="tablaInicio" style="background-color: #dddddd;" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
 
       @foreach ($detalles_linkeados as $detalle)
       <tr>
-        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
+        <td class="tablaProgresivos" style="background-color: white;"><div class="break">{{$detalle['nro_islas']}}</div></td>
         @if ($detalle['pozo_unico'])
-        <td class="tablaProgresivos" style="background-color: white;" width="130px">{{$detalle['progresivo']}}</td>
+        <td class="tablaProgresivos" style="background-color: white;"><div class="break">{{$detalle['progresivo']}}</div></td>
         @else
-        <td class="tablaProgresivos" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+        <td class="tablaProgresivos" style="background-color: white;"><div class="break">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</div></td>
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
           @for ($i=0; $i<6; $i++)
         <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
-        <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
+        <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['causa_no_toma_progresivo']}}</div></td>
         @else
           @for ($i=1; $i<7; $i++)
-            @if ($detalle['nivel' . $i] != 0.00)
+            @if (strlen($detalle['nombre_nivel' . $i])>0)
         <td class="tablaProgresivos" style="background-color: white">
-          <div class="cell_fg">
+          <div class="cell_fg break">
           {{$detalle['nivel' . $i]}}
           </div>
-          <div class="cell_bg_1">
+          <div class="cell_bg_1 break">
           {{$detalle['nombre_nivel' . $i]}}
           </div>
         </td>
             @else
         <td class="tablaProgresivos" style="background-color: #f5f5f5">
           <div class="cell_bg_2">
-            {{$detalle['nombre_nivel' . $i]}}
            </div>
         </td>
-            @endif
-          @endfor
+          @endif
+        @endfor
         <td class="tablaProgresivos" style="background-color: white"></td>
         @endif
       </tr>
@@ -163,42 +174,42 @@
     <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:261px;"></span><?php print_r(date('j-m-y / h:i')); ?></div>
     <div class="primerEncabezado">Listado de progresivos individuales:</div>
-    <table>
+    <table style="table-layout:fixed">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #dddddd" width="30px%">ISLA</th>
-          <th class="tablaInicio" style="background-color: #dddddd" width="30px">MÁQ.</th>
-          <th class="tablaInicio" style="background-color: #dddddd" width="130px">PROGRESIVO</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="7%">ISLA</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="7%">MÁQ.</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">PROGRESIVO</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
-          <th class="tablaInicio" style="background-color: #dddddd; width: 105px;">CAUSA NO TOMA</th>
+          <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
 
       @foreach ($detalles_individuales as $detalle)
       <tr>
-        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_islas']}} </td>
-        <td class="tablaProgresivos" style="background-color: white" width="30px">{{$detalle['nro_maquinas']}} </td>
+        <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['nro_islas']}}</div></td>
+        <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['nro_maquinas']}}</div></td>
 
         @if ($detalle['pozo_unico'])
-          <td class="tablaProgresivos" style="background-color: white" width="130px">{{$detalle['progresivo']}}</td>
+          <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['progresivo']}}</div></td>
         @else
-          <td class="tablaProgresivos" style="background-color: white" width="170px">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</td>
+          <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['progresivo']}} ( {{$detalle['pozo']}} )</div></td>
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
           @for ($i=0; $i<6; $i++)
             <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
-          <td class="tablaProgresivos" style="background-color: white"> {{$detalle['causa_no_toma_progresivo']}} </td>
+          <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['causa_no_toma_progresivo']}}</div></td>
         @else
           @for ($i=1; $i<7; $i++)
-            @if ($detalle['nivel' . $i] != 0.00)
-              <td class="tablaProgresivos" style="background-color: white">{{$detalle['nivel' . $i]}} </td>
+            @if (strlen($detalle['nombre_nivel' . $i])>0)
+              <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['nivel' . $i]}}</div></td>
             @else
               <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>
             @endif

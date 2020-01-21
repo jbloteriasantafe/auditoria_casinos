@@ -192,6 +192,9 @@ function agregarRenglonTablaDePago(){
   return fila;
 }
 
+$('#btn-agregarTablaDePago').click(function(){
+  agregarRenglonTablaDePago();
+});
 //borrar Tabla de Pago
 $(document).on('click' , '.borrarTablaPago' , function(){
   var fila = $(this).parent().parent();
@@ -257,7 +260,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ //limpio las columnas
@@ -299,10 +301,8 @@ $(document).on('click','.borrarTablaDeJuego',function(){
   var cant_filas=0;
   $('#columna #unaTablaDePago').each(function(){
       cant_filas++;
-      // console.log('Cantidad de filas: ' + cant_filas);
   });
   if(cant_filas == 0){
-    // console.log('Entró al if de filas');
     $('#tablaPagosEncabezado').hide();
   }
 });
@@ -338,6 +338,15 @@ $('#btn-eliminarModal').click(function (e) {
         },
         error: function (data) {
           console.log('Error: ', data);
+          const response = data.responseJSON;
+          if(typeof response.maquina_juego_activo !== 'undefined'){
+            let mensaje = "El juego esta activo en las maquinas ";
+            for(let i=0;i<response.maquina_juego_activo.length;i++){
+              mensaje+=response.maquina_juego_activo[i] + ",";
+            }
+            mensaje += " tiene que cambiarlo a otro para poder eliminarlo."
+            mensajeError([mensaje]);
+          }
         }
     });
 });
@@ -376,6 +385,7 @@ $('#btn-guardar').click(function (e) {
         nro_admin: $('.nro_admin',$(this)).val() ,
         denominacion: $('.denominacion',$(this)).val(),
         porcentaje: $('.porcentaje',$(this)).val(),
+        activo: $('.esActivo',$(this)).css('display') != "none"? "1" : "0"
       }
       maquinas.push(maquina);
     })
@@ -439,19 +449,15 @@ $('#btn-guardar').click(function (e) {
               mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
             }
 
-            var i=0;
-            var error=' ';
-            $('#columna #unaTablaDePago').each(function(){
-              $(this).find('#codigo').removeClass('alerta');
+            $('#tablas_pago .copia input').each(function(){
+              $(this).removeClass('alerta');
             });
 
-            $('#columna #unaTablaDePago').each(function(){
-              if(typeof response['tablasDePago.'+ i +'.codigo'] !== 'undefined'){
-                error=response['tablasDePago.'+ i +'.codigo'];
-                $(this).find('#codigo').addClass('alerta');
+            $('#tablas_pago .copia input').each(function(index,value){
+              if(typeof response['tabla_pago.'+ index +'.codigo'] !== 'undefined'){
+                $(this).addClass('alerta');
               }
-              i++;
-            })
+            });
 
         }
     });
@@ -584,6 +590,8 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     div.find('.nro_admin').val(maquinas[i].nro_admin).trigger('change');
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
+    if(maquinas[i].activo){ div.find('.esActivo').show(); div.find('.borrarJuego').attr('disabled',true);}
+    else{ div.find('.esActivo').hide(); }
   } 
   for (var i = 0; i < certificados.length; i++){
     let fila = agregarRenglonCertificado();
@@ -615,3 +623,14 @@ function agregarRenglonCertificado(){
 $('#btn-agregarCertificado').click(function(){
   agregarRenglonCertificado();
 });
+
+function mensajeError(errores) {
+  $('#mensajeError .textoMensaje').empty();
+  for (let i = 0; i < errores.length; i++) {
+      $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
+  }
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').show();
+  }, 250);
+}

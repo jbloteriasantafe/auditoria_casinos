@@ -74,22 +74,16 @@ class ProgresivoController extends Controller
     if($request->id_casino === null) return array();
 
     $where_casino = false;
-    $where_nombre = false;
-    $where_islas = false;
     if($request->id_casino != 0){
       $casino = Casino::find($request->id_casino);
       //El casino no existe.
       if($casino === null) return array();
       $where_casino = true;
     }
-    if($request->nombre_progresivo != null &&
-       $request->nombre_progresivo != ''){
-      $where_nombre = true;
-    }
 
-    if($request->islas != null){
-      $where_islas = true;
-    }
+    $where_nombre = $request->nombre_progresivo != null && $request->nombre_progresivo != '';
+    $where_islas = $request->islas != null;
+    $where_sectores = $request->sectores != null;
 
     //Checkeo que solo el superusuario puede buscar todo.
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -106,14 +100,16 @@ class ProgresivoController extends Controller
     $resultados =
     DB::table('progresivo')
     ->select('progresivo.*')
-    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(isla.nro_isla, 'SIN')) separator '/') as islas")
+    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(isla.nro_isla     , 'SIN')) ORDER BY isla.nro_isla ASC SEPARATOR '/') as islas")
+    ->selectRaw("GROUP_CONCAT(DISTINCT(IFNULL(sector.descripcion, 'SIN')) ORDER BY sector.descripcion ASC SEPARATOR '/') as sectores")
     ->leftjoin('maquina_tiene_progresivo',
     'progresivo.id_progresivo','=','maquina_tiene_progresivo.id_progresivo')
     ->leftjoin('maquina','maquina_tiene_progresivo.id_maquina','=','maquina.id_maquina')
     ->leftjoin('isla','maquina.id_isla','=','isla.id_isla')
+    ->leftjoin('sector','isla.id_sector','=','sector.id_sector')
     ->when($sort_by,
            function($query) use ($sort_by){
-             return $query->orderBy($sort_by);
+             return $query->orderBy($sort_by['columna'],$sort_by['orden']);
            })
     ->where('progresivo.es_individual','=',0)
     ->whereNull('progresivo.deleted_at');
@@ -141,29 +137,38 @@ class ProgresivoController extends Controller
           $resultados = $resultados->whereIn('isla.nro_isla',$islas_busqueda);
         }
       }
+    }
+    if($where_sectores){
+      if($request->sectores == 'SIN'){
+        $resultados = $resultados->whereNull('sector.descripcion');
+      }
+      else{
+        $sectores_busqueda = ($request->sectores === null)? null
+        : explode('/',$request->sectores);
 
-
+        if($sectores_busqueda != null){
+          $resultados->where(function($q) use ($sectores_busqueda){
+            foreach($sectores_busqueda as $s){
+              $q->orWhere('sector.descripcion','LIKE','%'.$s.'%');
+            }
+          });
+        }
+      }
     }
 
     $resultados = $resultados->where($reglas);
-
-
     $resultados = $resultados->groupBy('progresivo.id_progresivo');
-
-    //dump($resultados->toSql());
-    //dump($resultados->getBindings());
-
     $resultados = $resultados->paginate($request->page_size);
-
     return $resultados;
   }
 
 
-  private function datosMaquinasCasino($id_casino = null){
+  private function datosMaquinasCasino($id_casino = null,$nro_admin = null){
     $query =
     "select maq.id_maquina as id_maquina,
             maq.nro_admin as nro_admin,
             maq.marca_juego as marca_juego,
+            maq.id_casino as id_casino,
             CONCAT(maq.nro_admin,cas.codigo) as nombre,
             ifnull(isla.nro_isla,'-') as isla,
             ifnull(sec.descripcion,'-') as sector
@@ -177,6 +182,10 @@ class ProgresivoController extends Controller
     if($id_casino != null){
       $query = $query . " and cas.id_casino = :id_casino";
       $parametros['id_casino'] = $id_casino;
+    }
+    if($nro_admin != null){//uso regexp porque like no me estaba andando...
+      $query = $query . " and CAST(maq.nro_admin as CHAR) regexp :nro_admin";
+      $parametros['nro_admin'] = '^'.strval($nro_admin);
     }
     return DB::select(DB::raw($query),$parametros);
   }
@@ -211,14 +220,14 @@ class ProgresivoController extends Controller
 
 
 
-  public function buscarMaquinas(Request $request,$id_casino){
+  public function buscarMaquinas(Request $request,$id_casino,$nro_admin=null){
     //TODO: Deberia retornar las maquinas que estan dadas de baja,
     //i.e. tienen el parametro deleted_at seteado?
     //Agregarle un progresivo a una maquina borrada...
     if($id_casino === null) return array();
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($id_casino == 0){
-      if($user->es_superusuario) return $this->datosMaquinasCasino();
+      if($user->es_superusuario) return $this->datosMaquinasCasino(null,$nro_admin);
       else return array();
     }
 
@@ -227,7 +236,7 @@ class ProgresivoController extends Controller
         return array();
     }
 
-    return $this->datosMaquinasCasino($casino->id_casino);
+    return ['maquinas' => $this->datosMaquinasCasino($casino->id_casino,$nro_admin)];
   }
 
 

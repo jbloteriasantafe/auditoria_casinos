@@ -61,7 +61,8 @@ class JuegoController extends Controller
       return $this->errorOut(['acceso'=>['']]);
     }
 
-    $maquinas= array();
+    $maquinas= [];
+    $maquina_agregada = [];
     foreach ($juego->maquinas_juegos->whereIn('id_casino',$reglaCasinos) as $key => $mtm) {
       $maquina = new \stdClass();
       $maquina->id_maquina = $mtm->id_maquina;
@@ -69,7 +70,23 @@ class JuegoController extends Controller
       $maquina->nro_admin = $mtm->nro_admin;
       $maquina->porcentaje_devolucion =  $mtm->pivot->porcentaje_devolucion;
       $maquina->denominacion = $mtm->pivot->denominacion;
+      $maquina->activo = $mtm->juego_activo->id_juego == $id;
       $maquinas[] = $maquina;
+      $maquina_agregada[$maquina->id_maquina] = true;
+    }
+    //Puede ser que en la BD queden maquinas con juegos activos, pero sin juegos asociados
+    //por la tabla maquina_tiene_juego, los mandamos por aca.
+    foreach ($juego->maquinas->whereIn('id_casino',$reglaCasinos) as $key => $mtm) {
+      if(!array_key_exists($mtm->id_maquina,$maquina_agregada)){
+        $maquina = new \stdClass();
+        $maquina->id_maquina = $mtm->id_maquina;
+        $maquina->id_casino = $mtm->id_casino;
+        $maquina->nro_admin = $mtm->nro_admin;
+        $maquina->porcentaje_devolucion =  null;
+        $maquina->denominacion = null;
+        $maquina->activo = true;
+        $maquinas[] = $maquina;
+      }
     }
 
     $packJuego=DB::table('pack_juego')
@@ -125,8 +142,7 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
-      'tabla_pago.*.id_tabla_pago' => 'nullable',
-      'tabla_pago.*.codigo' => 'required',
+      'tabla_pago.*.codigo' => 'required|max:150',
       'maquinas.*' => 'nullable',
       'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
       'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
@@ -167,6 +183,7 @@ class JuegoController extends Controller
           }
           if($mtm != null){
             $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+            $mtm->save();
           }
         }
       }
@@ -183,6 +200,7 @@ class JuegoController extends Controller
       if(isset($request->certificados)){
         $juego->setearGliSofts($request->certificados,True);
       }
+      $juego->save();
     });
 
     return ['juego' => $juego];
@@ -218,14 +236,14 @@ class JuegoController extends Controller
       'nombre_juego' => 'required|max:100',
       'cod_juego' => ['nullable','regex:/^\d?\w(.|-|_|\d|\w)*$/','max:100'],
       'tabla_pago.*' => 'nullable',
-      'tabla_pago.*.id_tabla_pago' => 'nullable',
-      'tabla_pago.*.codigo' => 'required',
+      'tabla_pago.*.codigo' => 'required|max:150',
       'maquinas.*' => 'nullable',
       'maquinas.*.nro_admin' => 'required|integer|exists:maquina,nro_admin',
       'maquinas.*.id_casino' => 'required|integer|exists:casino,id_casino',
       'maquinas.*.id_maquina' => 'required|integer',
       'maquinas.*.denominacion' => 'nullable',
       'maquinas.*.porcentaje' => 'nullable',
+      'maquinas.*.activo' => 'required|boolean',
       'certificados.*' => 'nullable',
       'certificados.*.id_gli_soft' => 'nullable',
       'id_progresivo' => 'nullable',
@@ -254,10 +272,12 @@ class JuegoController extends Controller
 
     $juego = Juego::find($request->id_juego);
 
-    $maquinas_accesibles = $juego->maquinas_juegos()
-    ->whereIn('id_casino',$ids_casinos)->get();
 
-    DB::transaction(function() use($request,$maquinas_accesibles,$juego){
+    //Solo toco las maquinas que no tienen el juego como activo, del casino del usuario
+    $mtms_accesibles = $juego->maquinas_juegos()
+    ->whereIn('id_casino',$ids_casinos)->where('maquina.id_juego','<>',$juego->id_juego)->get();
+
+    DB::transaction(function() use($request,$mtms_accesibles,$juego){
       $juego->nombre_juego= $request->nombre_juego;
       if($request->cod_juego!=null){
         $juego->cod_juego= $request->cod_juego;
@@ -277,9 +297,10 @@ class JuegoController extends Controller
         };
       }
 
-      //Al juego le saco las maquinas a las que puede acceder el usuario
-      foreach($maquinas_accesibles as $mtm){
+      //Al juego le saco las maquinas
+      foreach($mtms_accesibles as $mtm){
         $mtm->juegos()->detach($juego->id_juego);
+        $mtm->save();
       }
       
       if(isset($request->maquinas)){
@@ -291,6 +312,7 @@ class JuegoController extends Controller
             $mtm = Maquina::find($maquina['id_maquina']);
           }
           $mtm->juegos()->syncWithoutDetaching([$juego->id_juego => ['denominacion' => $maquina['denominacion'] ,'porcentaje_devolucion' => $maquina['porcentaje']]]);
+          $mtm->save();
         }
       }
       
@@ -300,6 +322,7 @@ class JuegoController extends Controller
       if(isset($request->certificados)){
         $juego->setearGliSofts($request->certificados,True);
       }
+      $juego->save();
     });
 
     return ['juego' => $juego];
@@ -315,14 +338,28 @@ class JuegoController extends Controller
     $juego = Juego::find($id);
     if(is_null($juego)) return ['juego' => null];
 
-    $maquinas_accesibles = $juego->maquinas_juegos()
+
+    $mtms_accesibles_con_juego_activo = $juego->maquinas()
+    ->whereIn('id_casino',$reglaCasinos);
+
+    if($mtms_accesibles_con_juego_activo->count()>0){
+      $errores = [];
+      foreach($mtms_accesibles_con_juego_activo->get() as $mtm){
+        $errores[] = $mtm->nro_admin;
+      }
+      return $this->errorOut(['maquina_juego_activo' => $errores]);
+    }
+
+    $mtms_accesibles = $juego->maquinas_juegos()
     ->whereIn('id_casino',$reglaCasinos)->get();
 
-    DB::transaction(function() use($juego,$reglaCasinos,$maquinas_accesibles){
-      foreach($maquinas_accesibles as $mtm){
+    DB::transaction(function() use($juego,$reglaCasinos,$mtms_accesibles){
+      foreach($mtms_accesibles as $mtm){
         $mtm->juegos()->detach($juego->id_juego);
+        $mtm->save();
       }
       $juego->casinos()->detach($reglaCasinos);
+      $juego->save();
       // @TODO: Si tuvieramos GLISOFT por casino, podriamos detachearlo aca nomas
       // Solo si no queda asociado a ningun casino se puede eliminar el juego
       $casRestantes= DB::table('casino_tiene_juego')->where('casino_tiene_juego.id_juego','=',$juego->id_juego)->count();

@@ -361,7 +361,7 @@ function eventoNuevo(movimiento, expediente){
   $('#btn-guardar').val("nuevo");
   $('#btn-guardar').prop('disabled',false).show();
   $('#btn-guardar').css('display','inline-block');
-
+  $('#marca_juego_check').prop('checked',true).trigger('change');
   //como estoy creando id = 0
   $('#id_maquina').val(0);
   const option_casino = $('#dtpCasinoMov option[value="'+movimiento.id_casino+'"]').clone();

@@ -46,6 +46,13 @@ $('#btn-agregarJuego').click(function(e){
     else{
       $.get('/juegos/obtenerJuego/' + id_juego , function(data){
         agregarFilaJuego(data.juego, data.tablasDePago,data.casinos);
+        casinos = [];
+        for(let i = 0;i<data.casinosJuego.length;i++){
+          let casino = data.casinosJuego[i];
+          casino.visible = 1;
+          if(!existeCasinoEnModal(casino.id_casino)) casinos.push(casino);
+        }
+        agregarCasinosModal(casinos,false);
         $('#inputJuego').val('');
       });
     }
@@ -73,21 +80,32 @@ function agregarFilaJuego(juego, tablas,casinos) {
       }
   }
 
-  fila.append($('<td>').addClass('col-xs-3').text(juego.nombre_juego));
-  fila.append($('<td>').addClass('col-xs-2').text(juego.cod_juego == null? '' : juego.cod_juego));
-  fila.append($('<td>').addClass('col-xs-2').text(casinos));
-  fila.append($('<td>').addClass('col-xs-3').append(tablas_pago));
+  fila.append($('<td>').addClass('col-xs-3 nombre_juego').text(juego.nombre_juego));
+  fila.append($('<td>').addClass('col-xs-2 cod_juego').text(juego.cod_juego == null? '' : juego.cod_juego));
+  fila.append($('<td>').addClass('col-xs-2 casinos').text(casinos));
+  fila.append($('<td>').addClass('col-xs-3 tablas_pago').append(tablas_pago));
   let boton_borrar = $('<button>').addClass('btn btn-danger borrarJuego')
   .append($('<i>').addClass('fa fa-fw fa-trash'));
   let boton_ver = $('<button>').addClass('btn btn-danger verJuego')
   .append($('<i>').addClass('fa fa-fw fa-search'));
-  fila.append($('<td>').addClass('col-xs-2').append(boton_ver).append(boton_borrar));
+  fila.append($('<td>').addClass('col-xs-2 acciones').append(boton_ver).append(boton_borrar));
   
   $('#tablaJuegos tbody').append(fila);
 }
 
 $(document).on('click','.borrarJuego',function(){
   $(this).parent().parent().remove();
+  let codigos = [];
+  $('#tablaJuegos tbody tr .casinos').each(function(t){
+    let arr = $(this).text().split(', ');
+    for(let i = 0;i<arr.length;i++) codigos[arr[i]]=true;
+  });
+  //Solo borro los casinos de los juegos del certificado que ve el usuario.
+  $('#selectCasinosGLI option[visible="1"]').each(function(t){
+    const c = $(this).attr('data-codigo');
+    if(!(c in codigos)) $(this).remove();
+  });
+  $('#selectCasinosGLI').attr('size',Math.max(2,$('#selectCasinosGLI option').length));
 });
 
 /* TODOS LOS EVENTOS DE BUSCAR EXPEDIENTES */
@@ -158,6 +176,8 @@ $(document).on('click','.detalle',function(){
         console.log(data.juegos[i]);
         agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago,data.juegos[i].casinos);
       }
+
+      agregarCasinosModal(data.casinos);
 
       $('.borrarJuego').prop('disabled',true);
       $('.borrarExpediente').prop('disabled',true);
@@ -235,6 +255,7 @@ $('#btn-nuevo').click(function(e){
     });
     $('#modalGLI .link_archivo').removeAttr('href').hide();
     $('#modalGLI .no_visualizable').hide();
+    agregarCasinosModal([]);
     //Abrir el modal
     $('#modalGLI').modal('show');
 
@@ -272,10 +293,8 @@ $(document).on('click','.modificarGLI',function(){
 
     //Preparar los datalist
     $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
-    //$('#inputJuego').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 2, true);
 
     $('#inputExpediente').setearElementoSeleccionado(0,"");
-    //$('#inputJuego').setearElementoSeleccionado(0,"");
 
     //obtenerGli
     var id = $(this).val();
@@ -298,9 +317,10 @@ $(document).on('click','.modificarGLI',function(){
 
         //Cargar los juegos
         for (var i = 0; i < data.juegos.length; i++) {
-          console.log(data.juegos[i]);
           agregarFilaJuego(data.juegos[i].juego, data.juegos[i].tablas_de_pago,data.juegos[i].casinos);
         }
+
+        agregarCasinosModal(data.casinos);
 
         $('.borrarJuego').prop('disabled',false);
         $('.borrarExpediente').prop('disabled',false);
@@ -374,13 +394,13 @@ function mostrarModalEliminar(id,msj=""){
   $('#modalEliminar .cuerpoEliminar').empty().append(msj);
   const nombre_certif = $('#cuerpoTabla #'+id).find('.codigo').text();
   $('#modalEliminar .certifEliminar').empty().text(nombre_certif);
-  $('#boton-eliminarGLI').val(id_gli);
+  $('#boton-eliminarGLI').val(id);
   $('#modalEliminar').modal('show');
 }
 //Borrar GLI
 $(document).on('click','.eliminarGLI',function(){
     const id_gli = $(this).val();
-    mostrarModalEliminar(id_gli);
+    mostrarModalEliminar(id_gli,"Si el certificado tiene juegos de otro casino, solo se desasociarán los juegos que puede acceder.");
 });
 
 $('#boton-eliminarGLI').click(function (e) {
@@ -396,7 +416,17 @@ $('#boton-eliminarGLI').click(function (e) {
       type: "DELETE",
       url: "/certificadoSoft/eliminarGliSoft/" + id_gli ,
       success: function (data) {
-        $('#cuerpoTabla #' + id_gli).remove();
+        if(data.se_borro){
+          $('#cuerpoTabla #' + id_gli).remove();
+          $('#mensajeExito h3').text('Eliminar');
+          $('#mensajeExito p').text('Se elimino el certificado.');
+          $('#mensajeExito').show();
+        }
+        else{
+          $('#mensajeExito h3').text('Eliminar');
+          $('#mensajeExito p').text('Se desasociaron todos los juegos.');
+          $('#mensajeExito').show();
+        }
         $("#tablaGliSofts").trigger("update");
         $('#modalEliminar').modal('hide');
       },
@@ -480,18 +510,10 @@ $('#btn-guardar').click(function (e){
       if($('#cargaArchivo').attr('data-borrado') == 'false' && $('#cargaArchivo')[0].files[0] != null){
         formData.append('file' , $('#cargaArchivo')[0].files[0]);
       }
-      // if ($('#cargaArchivo')[0].files[0] != null) formData.append('file' , $('#cargaArchivo')[0].files[0]);
 
       formData.append('expedientes' , expedientes);
       formData.append('juegos' , juegos);
       formData.append('borrado', $('#cargaArchivo').attr('data-borrado'));
-      if(juegos.length == 0){
-        $('#modalGLI').modal('hide');
-        setTimeout(function(){
-          mostrarModalEliminar(id,'Al desasociar todos los juegos del certificado, se lo eliminaria.')
-        },250);
-        return;
-      }
     }
 
     $.ajax({
@@ -723,3 +745,22 @@ $(document).on('click', '.verJuego', function(){
   const id = fila.attr('id');
   if(typeof id !== 'undefined') window.open('/juegos/' + id,'_blank');
 });
+
+function agregarCasinosModal(casinos,limpiar = true){
+  if(limpiar) $('#selectCasinosGLI').empty();
+  for (var i = 0; i < casinos.length; i++){
+    const casino = casinos[i];
+    let fila = $('<option>')
+    .text(casino.nombre)
+    .val(casino.id_casino)
+    .attr('disabled',true)
+    .attr('data-codigo',casino.codigo)
+    .attr('visible',casino.visible);
+    $('#selectCasinosGLI').append(fila);
+  }
+  $('#selectCasinosGLI').attr('size',Math.max(2,$('#selectCasinosGLI option').length)); 
+}
+
+function existeCasinoEnModal(id_casino){
+  return $('#selectCasinosGLI option[value="'+id_casino+'"]').length > 0;
+}

@@ -12,7 +12,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 
 
 @section('estilos')
-<link rel="stylesheet" href="css/paginacion.css"/>
+<link rel="stylesheet" href="/css/paginacion.css"/>
 <link rel="stylesheet" href="/css/lista-datos.css"/>
 <style>
   .chico {
@@ -127,7 +127,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <div id="collapseFiltros" class="panel-collapse collapse">
                 <div class="panel-body">
                   <div class="row"> <!-- Primera fila -->
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                       <h5>Casino</h5>
                       <select class="form-control" id="busqueda_casino">
                         @if ($usuario['usuario']->es_superusuario)
@@ -144,9 +144,13 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                     </div>
                     <div class="col-lg-3">
                       <h5>Islas</h5>
-                      <input id="B_islas" type="test" class="form-control" placeholder="Islas">
+                      <input id="B_islas" type="text" class="form-control" placeholder="Islas">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
+                      <h5>Sectores</h5>
+                      <input id="B_sectores" type="text" class="form-control" placeholder="Sectores">
+                    </div>
+                    <div class="col-lg-2">
                       <h5>Búsqueda</h5>
                       <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                     </div>
@@ -168,18 +172,20 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
         <table id="tablaResultados" class="table table-fixed tablesorter">
           <thead>
             <tr>
-              <th class="col-xs-3" value="progresivo.nombre" estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-3" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-3" value="progresivo.islas">ISLAS</td>
-              <th class="col-xs-3">ACCIONES</th>
+              <th class="col-xs-3" value="progresivo.nombre"    estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
+              <th class="col-xs-2" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+              <th class="col-xs-2" value="islas"                estado="">ISLAS<i class="fa fa-sort"></i></td>
+              <th class="col-xs-3" value="sectores"             estado="">SECTORES<i class="fa fa-sort"></i></td>
+              <th class="col-xs-2">ACCIONES</th>
             </tr>
           </thead>
           <tbody id="cuerpoTabla" style="height: 350px;">
             <tr class="filaEjemplo" style='display: none;'>
               <td class="col-xs-3 nombre">PROGRESIVO999</td>
-              <td class="col-xs-3 casino">CASINO999</td>
-              <td class="col-xs-3 islas">ISLA1/ISLA2/...</td>
-              <td class="col-xs-3 acciones">
+              <td class="col-xs-2 casino">CASINO999</td>
+              <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
+              <td class="col-xs-3 sectores">SECTOR1/SECTOR2/...</td>
+              <td class="col-xs-2 acciones">
                 <button class="btn btn-info detalle">
                   <i class="fa fa-fw fa-search-plus"></i>
                 </button>
@@ -249,12 +255,36 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
             <div class=''>
               <h3 class=''>Maquinas</h3>
               <div class="row">
-                <h5>Enlazar maquina:
-                  <button id='btn-agregarMaquina' class="btn btn-success">
+                <div class="col-md-3">
+                  <h5>Enlazar maquina:</h5>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group lista-datos-group" style="display: inline-block;">
+                    <input id="input-maquina" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <button id="btn-agregarMaquina" class="btn btn-success">
                     <i class="fa fa-fw fa-plus"></i>
                     <b>Enlazar</b>
                   </button>
-                </h5>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <h5>Enlazar isla:</h5>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group lista-datos-group" style="display: inline-block;">
+                    <input id="input-isla" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <button id="btn-agregarIsla" class="btn btn-success">
+                    <i class="fa fa-fw fa-plus"></i>
+                    <b>Enlazar</b>
+                  </button>
+                </div>
               </div>
               <div id="contenedorMaquinas" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
             </div>
@@ -318,19 +348,25 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <input id="inputPorcOcultoIndividual" class="editable form-control" type="text">
             </div>
           </div>
+          <h3 class=''>Progresivos</h3>
           <div class="row">
-            <div class=''>
-              <h3 class=''>Maquinas</h3>
-              <div class="row">
-                <h5>Agregar progresivo individual:
-                  <button id='btn-agregarMaquinaIndividual' class="btn btn-success">
-                    <i class="fa fa-fw fa-plus"></i>
-                    <b>Agregar</b>
-                  </button>
-                </h5>
+            <div class="row">
+              <div class="col-md-3">
+                <h5>Agregar progresivo individual:</h5>
               </div>
-              <div id="contenedorMaquinasIndividual" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+              <div class="col-md-2">
+                <div class="input-group lista-datos-group" style="display: inline-block;">
+                  <input id="input-maquina-individual" class="form-control " type="text" value="" autocomplete="off" style="float: revert;">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <button id="btn-agregarMaquinaIndividual" class="btn btn-success">
+                  <i class="fa fa-fw fa-plus"></i>
+                  <b>Agregar</b>
+                </button>
+              </div>
             </div>
+            <div id="contenedorMaquinasIndividual" class="" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
           </div>
 
           <div class="modal-footer">
@@ -443,26 +479,26 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 </div>
 
 <div class="row top-buffer tablaMaquinasDiv ejemplo"  style="display: none;">
-  <div class="col-md-10">
+  <div class="col-md-12">
     <div>
       <div class="panel-body">
         <table class="table table-condensed tablesorter tablaMaquinas">
           <thead>
             <tr>
-              <th class="col-xs-1" value="maquina.nro_admin" estado="">#<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="maquina.sector" estado="">Sector<i class="fa fa-sort"></i></th>
-              <th class="col-xs-1" value="maquina.isla" estado="">Isla<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="maquina.marca_juego" estado="">Marca juego<i class="fa fa-sort"></i></th>
-              <th class="col-xs-4">ACCIONES</th>
+              <th class="col-xs-2" value="maquina.nro_admin" estado="">#<i class="fa fa-sort"></i></th>
+              <th class="col-xs-3" value="maquina.sector" estado="">Sector<i class="fa fa-sort"></i></th>
+              <th class="col-xs-2" value="maquina.isla" estado="">Isla<i class="fa fa-sort"></i></th>
+              <th class="col-xs-4" value="maquina.marca_juego" estado="">Marca juego<i class="fa fa-sort"></i></th>
+              <th class="col-xs-1">ACCIONES</th>
             </tr>
           </thead>
           <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
             <tr class="filaEjemplo">
               <td class="col-xs-2 cuerpoTablaNroAdmin">999</td>
-              <td class="col-xs-2 cuerpoTablaSector">SECTOR999</td>
-              <td class="col-xs-1 cuerpoTablaIsla">999</td>
+              <td class="col-xs-3 cuerpoTablaSector">SECTOR999</td>
+              <td class="col-xs-2 cuerpoTablaIsla">999</td>
               <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
-              <td class="col-xs-3 cuerpoTablaAcciones">
+              <td class="col-xs-1 cuerpoTablaAcciones">
                 <button class="btn btn-info unlink">
                   <i class="fas fa-unlink"></i>
                 </button>
