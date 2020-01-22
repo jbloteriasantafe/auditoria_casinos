@@ -15,7 +15,6 @@ $(document).ready(function(){
   $('#collapseFiltros #dtpCasinoMov').val("0");
   $('#busqueda_maquina').val("");
 
-
   var prueba = window.location.pathname;
 
   if(prueba == '/movimientos'){
@@ -36,7 +35,6 @@ $(document).ready(function(){
 
     //PAGINACION
     $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
-
   }
   //Para agregar una máquina cuando la busco en un input
   $('#agregarMaq').click(clickAgregarMaq);
@@ -124,15 +122,12 @@ $(document).on('click', '#btn-nuevo-movimiento', function(e){
   $('#selectCasinoIngreso').val(3);
   $('#tipo_movimiento_nuevo').val(7);
 
-
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
 
   $.get('movimientos/casinosYMovimientosIngresosEgresos', function(data){
-
       //carga el select de los casinos del modal
       for (var i = 0; i < data.casinos.length; i++) {
-
         $('#modalCas #selectCasinoIngreso')
         .append($('<option>')
         .prop('disabled',false)
@@ -147,77 +142,64 @@ $(document).on('click', '#btn-nuevo-movimiento', function(e){
         .val(data.tipos_movimientos[i].id_tipo_movimiento)
         .text(data.tipos_movimientos[i].descripcion))
       };
-
   });
 
-    //ABRE MODAL QUE ME PERMITE ELEGIR EL CASINO AL QUE PERTENECE EL NUEVO MOV.
-    $('#modalCas').modal('show');
-
+  //ABRE MODAL QUE ME PERMITE ELEGIR EL CASINO AL QUE PERTENECE EL NUEVO MOV.
+  $('#modalCas').modal('show');
 });
 
 //ACEPTA EL MODAL DE CASINO
 $(document).on('click', '#aceptarCasinoIng', function(e) {
   $('#mensajeExito').hide();
+  id_mov=$('#modalCas #tipo_movimiento_nuevo').val();
+  id_cas=$('#modalCas #selectCasinoIngreso').val();
 
-    id_mov=$('#modalCas #tipo_movimiento_nuevo').val();
-    id_cas=$('#modalCas #selectCasinoIngreso').val();
+  var formData = {
+    id_tipo_movimiento: id_mov,
+    casino:id_cas
+  }
 
-    var formData = {
-      id_tipo_movimiento: id_mov,
-      casino:id_cas
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
     }
+  });
 
-    $.ajaxSetup({
-      headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-    });
+  $.ajax({
+    type: 'POST',
+    url: 'movimientos/nuevoLogMovimiento',
+    data: formData,
+    dataType: 'json',
+    success: function (data){
+      //CREO LA NUEVA FILA DE MOVIMIENTO
+      var movimiento = generarFilaTabla(data);
+      $('#cuerpoTabla').append(movimiento);
 
-    $.ajax({
-      type: 'POST',
-      url: 'movimientos/nuevoLogMovimiento',
-      data: formData,
-      dataType: 'json',
+      var t= $('#herramientasPaginacion').getPageSize();
+      //recargo la pág para que aparezca el nuevo movimientos en la tabla de movimientos
+      $('#btn-buscarMovimiento').trigger('click',[1,t,'log_movimiento.fecha','desc']);
 
-      success: function (data){
-
-        //CREO LA NUEVA FILA DE MOVIMIENTO
-        var movimiento = generarFilaTabla(data);
-        $('#cuerpoTabla').append(movimiento);
-
-        var t= $('#herramientasPaginacion').getPageSize();
-
-        //recargo la pág para que aparezca el nuevo movimientos en la tabla de movimientos
-        $('#btn-buscarMovimiento').trigger('click',[1,t,'log_movimiento.fecha','desc']);
-
-        //ME PERMITE QUE SE EJECUTE EL COD. QUE MUESTRA LOS NOMBRES DE LOS BOT.
-        $('[data-toggle="tooltip"]').tooltip();
-
-        $('#mensajeExito h3').text('ÉXITO');
-        $('#mensajeExito p').text('El Movimiento fue creado correctamente');
-
-        $('#modalCas').modal('hide');
-        $('#mensajeExito').show();
-      },
-      error: function(data){
-        $('#mensajeError p').text('Debe seleccionar un casino y un tipo de movimiento');
-        $('#mensajeError').show();
-      }
-    })
-
+      //ME PERMITE QUE SE EJECUTE EL COD. QUE MUESTRA LOS NOMBRES DE LOS BOT.
+      $('[data-toggle="tooltip"]').tooltip();
+      $('#mensajeExito h3').text('ÉXITO');
+      $('#mensajeExito p').text('El Movimiento fue creado correctamente');
+      $('#modalCas').modal('hide');
+      $('#mensajeExito').show();
+    },
+    error: function(data){
+      $('#mensajeError p').text('Debe seleccionar un casino y un tipo de movimiento');
+      $('#mensajeError').show();
+    }
+  })
 });
 
 //MOSTRAR MODAL PARA INGRESO: BTN NUEVO INGRESO
 $(document).on('click', '.nuevoIngreso', function() {
   var id_movimiento=$(this).parent().parent().attr('id');
-
   $('.modal-title').text('SELECCIÓN DE TIPO DE CARGA');
-
   $('input[name="carga"]').attr('checked', false);
-
   limpiarModal();
   habilitarControles(true);
-
   $('#btn-aceptar-ingreso').prop('disabled',true);
   $('#modalLogMovimiento #cantMaqCargar').hide();
   $('#modalLogMovimiento').find("#id_log_movimiento").val(id_movimiento);
@@ -226,41 +208,36 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('#modalLogMovimiento').modal('show');
 
   $.get('movimientos/obtenerDatos/'+ id_movimiento, function(data){
-      $('#conceptoExpediente').text(data.expediente.concepto);
-      if(data.movimiento.tipo_carga!=null){
-        $('#modalLogMovimiento #cantMaqCargar').show();
-
-          if(data.movimiento.tipo_carga==1){
-            $('#tipoManual').prop('checked',true).prop('disabled',true);
-            $('#tipoCargaSel').prop('disabled',true);
-          }
-
-          if(data.movimiento.tipo_carga==2){
-            $('#tipoCargaSel').prop('checked',true).prop('disabled',true);
-            $('#tipoManual').prop('disabled',true);
-          }
-
-          $("#cant_maq").val(data.movimiento.cantidad).prop('disabled',true);
-          $('#btn-aceptar-ingreso').prop('disabled',false);
+    $('#conceptoExpediente').text(data.expediente.concepto);
+    if(data.movimiento.tipo_carga!=null){
+      $('#modalLogMovimiento #cantMaqCargar').show();
+      if(data.movimiento.tipo_carga==1){
+        $('#tipoManual').prop('checked',true).prop('disabled',true);
+        $('#tipoCargaSel').prop('disabled',true);
+      }
+      if(data.movimiento.tipo_carga==2){
+        $('#tipoCargaSel').prop('checked',true).prop('disabled',true);
+        $('#tipoManual').prop('disabled',true);
+      }
+      $("#cant_maq").val(data.movimiento.cantidad).prop('disabled',true);
+      $('#btn-aceptar-ingreso').prop('disabled',false);
     }
     else{
-          $('#tipoManual').prop('disabled',false);
-          $('#tipoCargaSel').prop('disabled',false);
-          $('#cant_maq').val(1).prop('disabled',false);
-        }
+      $('#tipoManual').prop('disabled',false);
+      $('#tipoCargaSel').prop('disabled',false);
+      $('#cant_maq').val(1).prop('disabled',false);
+    }
   })
-
 }); //FIN DE EL NUEVO INGRESO
 
 //DETECTAR EL TIPO DE CARGA SELECCIONADO ES MASIVA
 $('#tipoCargaSel').click(function(){
-
   var s=$('#modalLogMovimiento #tipoCargaSel').val();
-
   if(s==2){ //TIPO DE CARGA: MASIVA
-    $('#modalLogMovimiento #cantMaqCargar').hide();}
-    $('#btn-aceptar-ingreso').prop('disabled',false);
-  });
+    $('#modalLogMovimiento #cantMaqCargar').hide();
+  }
+  $('#btn-aceptar-ingreso').prop('disabled',false);
+});
 
 //DETECTAR SI EL TIPO DE CARGA SELECCIONADO ES MANUAL
 $('#tipoManual').click(function(){
@@ -278,7 +255,6 @@ $("#btn-aceptar-ingreso").click(function(e){
   var t_carga=$('input:radio[name=carga]:checked').val();
 
   if (typeof cant_maq=="undefined" ) {
-
     $('#mensajeErrorCarga').text('Debe especificar la cantidad de máquinas que va a cargar');
     $('#mensajeErrorCarga').show();
   }
@@ -288,12 +264,11 @@ $("#btn-aceptar-ingreso").click(function(e){
       id_log_movimiento: id,
       cantMaq: cant_maq,
       tipoCarga: t_carga,
-
     }
 
     $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
     });
 
@@ -302,9 +277,7 @@ $("#btn-aceptar-ingreso").click(function(e){
         url: 'movimientos/guardarTipoCargaYCantMaq',
         data: formData,
         dataType: 'json',
-
           success: function (data){
-
             var tipo_carga=data.tipo_carga;
             //Busco la fila que contiene el id del movimiento indicado
             var fila= $("#tablaResultados tbody").find('#' + id);
@@ -314,12 +287,9 @@ $("#btn-aceptar-ingreso").click(function(e){
             $('#modalLogMovimiento').modal('hide');
             fila.find('.boton_cargar').show();
             $('#' + id).find('.nuevoIngreso').attr('style', 'display:none');;
-
           },
-
           error: function(data){
             var response = data.responseJSON.errors;
-            
           }
     })
   } //fin del else
@@ -404,12 +374,11 @@ $('#btn-minimizar').click(function(){
 //ABRIR MODAL DE CARGA MASIVA
 $('.cargar2').click(function(e){
   e.preventDefault();
-
-    //Modificar los colores del modal
-    $('.modal-title').text('| NUEVA CARGA MASIVA');
-    $('#btn-guardar').removeClass('btn-warning');
-    $('#btn-guardar').addClass('btn-success');
-    $('#modalCargaMasiva').modal('show');
+  //Modificar los colores del modal
+  $('.modal-title').text('| NUEVA CARGA MASIVA');
+  $('#btn-guardar').removeClass('btn-warning');
+  $('#btn-guardar').addClass('btn-success');
+  $('#modalCargaMasiva').modal('show');
 });
 
 //MANDAR ARCHIVO PARA CARGA MASIVA.
@@ -423,11 +392,10 @@ $('#btn-carga-masiva').click(function(){
   //tomo el archivo seleccionado para luego enviar a servidor
   var formData=new FormData();
   formData.append('file',$('#cargaMasiva')[0].files[0]);
-
   formData.append('id_casino' , $('#contenedorCargaMasiva').val());
 
   for(var pair of formData.entries()) {
-   console.log(pair[0]+ ', '+ pair[1]);
+    console.log(pair[0]+ ', '+ pair[1]);
   }
 
   $.ajax({
@@ -438,10 +406,8 @@ $('#btn-carga-masiva').click(function(){
       contentType:false,
       cache:false,
       success: function (data){
-
-          $('#frmCargaMasiva').trigger('reset');
-          $('#modalCargaMasiva').modal('hide');
-
+        $('#frmCargaMasiva').trigger('reset');
+        $('#modalCargaMasiva').modal('hide');
       },
       error: function(data){
          alert('error');},
