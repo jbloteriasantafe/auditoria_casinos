@@ -178,72 +178,56 @@ class LogMovimientoController extends Controller
     if(!empty($request->nro_exp_control))
       $reglas[]=['expediente.nro_exp_control', '=' , $request->nro_exp_control];
 
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    foreach ($usuario->casinos as $casino) {
+      $casinos[] = $casino->id_casino;
+    }
+
     if(!empty($request->casino)){
-      $casinos[] = $request->casino;
-    }else {
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach ($usuario->casinos as $casino) {
-        $casinos[] = $casino->id_casino;
-      }
+      $casinos = [$request->casino];
     }
 
     if(isset($request->nro_admin) && $request->nro_admin != ""){
       $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
     }
 
-    if(!empty($request->tipo_movimiento))
+    if(!empty($request->tipo_movimiento)){
       $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request['tipo_movimiento']];
+    }
 
+    $sort_by = ['columna' => 'log_movimiento.id_log_movimiento', 'orden' => 'DESC'];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
-    }else{
-      $sort_by = ['columna' => 'log_movimiento.fecha', 'orden' => 'DESC'];
     }
-      //busca en logs con expedientes
-      if(empty($request->fecha)){
-          $resultados=DB::table('log_movimiento')
-                    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
-                    ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
-                    ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
-                    ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-                    ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-                    ->where($reglas)
-                    ->whereIn('log_movimiento.id_casino' , $casinos)
-                    ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
-                    ->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
-                    ->when($sort_by,function($query) use ($sort_by){
-                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                })
-                    ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
-      }else{
-          $fecha=explode("-", $request->fecha);
-          $resultados=DB::table('log_movimiento')
-          ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
-          ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
-          ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
-          ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
-          ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-          ->where($reglas)
-          ->whereIn('log_movimiento.id_casino' , $casinos)
-          ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
-          ->whereYear('log_movimiento.fecha' , '=' ,$fecha[0])
-          ->whereMonth('log_movimiento.fecha','=', $fecha[1])
-          ->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
-          ->when($sort_by,function($query) use ($sort_by){
-                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                      })
 
-          ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
-        }
+    $resultados = DB::table('log_movimiento')
+    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
+    ->selectRaw('log_movimiento.id_estado_movimiento = 4 as validado')
+    ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
+    ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
+    ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
+    ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+    ->where($reglas)
+    ->whereIn('log_movimiento.id_casino' , $casinos)
+    ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9]);
 
-        $cas = DB::table('casino')
-                  ->select('casino.id_casino')
-                  ->whereIn('casino.id_casino' , $casinos)
-                  ->get();
+    if(!empty($request->fecha)){
+        $fecha = explode("-", $request->fecha);
+        $resultados = $resultados->whereYear('log_movimiento.fecha' , '=' ,$fecha[0])
+        ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
+    }
+    $resultados = $resultados->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->paginate($request->page_size,['log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
+
+    $cas = DB::table('casino')
+    ->select('casino.id_casino')
+    ->whereIn('casino.id_casino' , $casinos)
+    ->get();
 
     return ['logMovimientos' => $resultados, 'casinos' => $cas ];
-
-
   }
 
   public function noEsControlador($id_usuario , $logMov){

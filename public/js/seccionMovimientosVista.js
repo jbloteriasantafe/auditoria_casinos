@@ -2037,23 +2037,19 @@ function generarFilaTabla(movimiento){
   let fila              = $('#filaEjemploMovimiento').clone().removeAttr('id','');
   let t_mov             = movimiento.descripcion;
   let fecha             = movimiento.fecha;
-  let estado            = movimiento.id_estado_movimiento.descripcion;
-  let t_carga           = movimiento.tipo_carga;
   let estado_movimiento = movimiento.id_estado_movimiento;
   let cant              = movimiento.cant_maquinas;
   let islas             = (movimiento.islas != null)? movimiento.islas : '-';
-  let nro_org           = null;
-  let nro_int           = null;
-  let nro_cont          = null;
+  let expediente        = '-';
   if(movimiento.nro_exp_org != null){
-      nro_org           = movimiento.nro_exp_org;
-      nro_int           = movimiento.nro_exp_interno;
-      nro_cont          = movimiento.nro_exp_control;
+      expediente        = movimiento.nro_exp_org + '-'
+                        + movimiento.nro_exp_interno + '-'
+                        + movimiento.nro_exp_control;
   }
 
   fila.attr('id', movimiento.id_log_movimiento);
   fila.find('.fecha_mov').text(convertirDate(fecha));
-  fila.find('.nro_exp_mov').text(nro_org + '-' + nro_int + '-' + nro_cont);
+  fila.find('.nro_exp_mov').text(expediente);
   fila.find('.islas_mov').text(islas);
   fila.find('.tipo_mov').text(t_mov);
   if(estado_movimiento==4){
