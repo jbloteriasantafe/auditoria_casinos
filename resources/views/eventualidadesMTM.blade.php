@@ -38,7 +38,7 @@
                   <select class="form-control" id="B_TipoMovEventualidad">
                     <option value="" selected>- Seleccione tipo intervención -</option>
                     @foreach ($tiposEventualidadesMTM as $t_ev)
-                    @if($t_ev->es_intervencion_mtm)
+                    @if($t_ev->es_intervencion_mtm && !$t_ev->deprecado)
                     <option value="{{$t_ev->id_tipo_movimiento}}">{{$t_ev->descripcion}}</option>
                     @endif
                     @endforeach

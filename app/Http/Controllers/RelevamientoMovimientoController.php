@@ -54,9 +54,6 @@ class RelevamientoMovimientoController extends Controller
 
       if(count($fiscalizaciones) == 0){
         return 0;
-        //$val  = new Validator();
-        //$validator->errors()->add('sin_relevamientos', 'El movimiento no posee maquinas enviadas a fiscalizar.');
-        //return ['errors' => $val->messages()->toJson()];
       }
       $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
       $casino = $logMov->casino;

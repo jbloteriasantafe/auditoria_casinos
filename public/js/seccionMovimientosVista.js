@@ -209,7 +209,7 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
 
 //MOSTRAR MODAL PARA INGRESO: BTN NUEVO INGRESO
 $(document).on('click', '.nuevoIngreso', function() {
-  var id_movimiento=$(this).closest('tr').attr('id');
+  var id_movimiento=$(this).parent().parent().attr('id');
 
   $('.modal-title').text('SELECCIÓN DE TIPO DE CARGA');
 
@@ -309,7 +309,7 @@ $("#btn-aceptar-ingreso").click(function(e){
             //Busco la fila que contiene el id del movimiento indicado
             var fila= $("#tablaResultados tbody").find('#' + id);
             //seteo en el btn de carga el tipo de carga
-            fila.find('.boton_cargar').attr("data-carga",tipo_carga);
+            fila.attr("data-carga",tipo_carga);
 
             $('#modalLogMovimiento').modal('hide');
             fila.find('.boton_cargar').show();
@@ -336,13 +336,12 @@ $(document).on('click', '.boton_cargar', function(e){
 
     //Ver que tipo de carga de máqunas se hace.
     //MANUAL
-    if(boton.attr('data-carga')==1){
-        //muestra tab de maquinas y oculto el resto
+    if(boton.parent().parent().attr('data-carga')==1){
+      //muestra tab de maquinas y oculto el resto
       $.get('movimientos/obtenerDatos/'+ mov, function(data){
         ultimo_boton_carga = boton;
         eventoNuevo(data.movimiento, data.expediente);
       })
-
     }
     //MASIVA
     else {
@@ -454,10 +453,11 @@ $(document).on('click','.botonToma2',function(){
   $('#btn-enviar-egreso').hide();
   $('#btn-enviar-toma2').show();
 
-  var id_casino=$(this).attr('data-casino');
-  var id_mov=$(this).val();
-  var t_mov=$(this).attr('data-tipo');
-  var estado = $(this).attr('data-estado');
+  const fila = $(this).parent().parent();
+  var id_casino=fila.attr('data-casino');
+  var id_mov=fila.attr('id');
+  var t_mov=fila.attr('data-tipo');
+  var estado = fila.attr('data-estado');
 
   $('.modal-title').text('CARGAR MÁQUINAS A RE-RELEVAR');
   $('#tablaMaquinasSeleccionadas tbody tr').remove();
@@ -536,9 +536,10 @@ $(document).on('click','.nuevoEgreso',function(){
   ocultarErrorValidacion($('#B_fecha_egreso'));
   $('#B_fecha_egreso').val(' ');
 
-  var id_casino=$(this).attr('data-casino');
-  var id_mov=$(this).val();
-  var t_mov=$(this).attr('data-tipo');
+  const fila = $(this).parent().parent();
+  var id_casino=fila.attr('data-casino');
+  var id_mov=fila.attr('id');
+  var t_mov=fila.attr('data-tipo');
 
   $('.modal-title').text('CARGAR MÁQUINAS A EGRESAR');
   $('#tablaMaquinasSeleccionadas tbody tr').remove();
@@ -765,9 +766,10 @@ function enviarFiscalizar(id_mov,maq,fecha, fin,reingreso){
 //*************BOTÓN NUEVO DE MOVIMIENTO: DENOMINACION **************************************************
 
 $(document).on('click','.modificarDenominacion',function(){
-  var casino=$(this).attr('data-cas');
-  var mov=$(this).val();
-  var tmov=$(this).attr('data-tmov');
+  const fila = $(this).parent().parent();
+  var casino=fila.attr('data-casino');
+  var mov=fila.attr('id');
+  var tmov=fila.attr('data-tipo');
   $('#denom_comun').val(' ');
   $('#devol_comun').val(' ');
   $('#unidad_comun').val(' ');
@@ -872,7 +874,6 @@ $(document).on('click','.modificarDenominacion',function(){
   $('#mensajeExito').hide();
   $('#mensajeFiscalizacionError2').hide();
   $('#btn-enviar-denom').val(mov);
-
 });
 
 //crea tabla
@@ -901,13 +902,12 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,n
   fila.append($('<td>').text(nro_admin))
   //TIPO DE MOVIMIENTO ES DENOMINACION:
   if(t_mov==5){
-
     fila.append($('<td>')
         .append($('<input>')
         .addClass('denominacion_modificada form-control')
-        .val(denom)))
+        .val(denom)));
 
-  var select = $('<select>').addClass('unidad_denominacion form-control');
+    var select = $('<select>').addClass('unidad_denominacion form-control');
 
     for (var j = 0; j < unidades.length; j++) {
         var tipo = unidades[j].descripcion;
@@ -916,12 +916,10 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,n
     }
     select.val(unidad_seleccionada);
     fila.append($('<td>').append(select));
-
   };
 
   //TIPO DE MOVIMIENTO ES %DEVOLUCION:
   if(t_mov==6){
-
     fila.append($('<td>')
       .append($('<input>')
       .addClass('devolucion_modificada form-control')
@@ -930,25 +928,20 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,n
   //TIPO DE MOVIMIENTO ES JUEGO:
   if(t_mov==7){
     //select de juego
-  var input = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
-
-  fila.append($('<td>').append(input)); //falta el denom y el devol
-
-  input.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos','id_juego','nombre_juego',1);
-
-  input.setearElementoSeleccionado(id_juego,nombre_juego);
-
+    var input = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
+    fila.append($('<td>').append(input)); //falta el denom y el devol
+    input.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos','id_juego','nombre_juego',1);
+    input.setearElementoSeleccionado(id_juego,nombre_juego);
   };
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
   if (p==1) {
     fila.append($('<td>').append(accion));
   }
-    //Agregar fila a la tabla
-    $('#tablaDenominacion tbody').append(fila);
-    //Habilitar botones
-    $('#btn-enviar-denom').prop('disabled', false);
-    $('#btn-pausar-denom').prop('disabled', false);
-
+  //Agregar fila a la tabla
+  $('#tablaDenominacion tbody').append(fila);
+  //Habilitar botones
+  $('#btn-enviar-denom').prop('disabled', false);
+  $('#btn-pausar-denom').prop('disabled', false);
 };
 
 
@@ -957,7 +950,6 @@ function clickAgregarIslaDen(e){
 
   if (id_isla != 0) {
     $.get('movimientos/obtenerMaquinasIsla/' + id_isla, function(data) {
-
       console.log('ff', data);
       for (var i = 0; i < data.maquinas.length; i++) {
 
@@ -977,7 +969,6 @@ function clickAgregarSectorDen(e){
 
   if (id_isla != 0) {
     $.get('movimientos/obtenerMaquinasSector/' + 0, function(data) {
-
       console.log('ff', data);
       for (var i = 0; i < data.maquinas[i].length; i++) {
 
@@ -1006,17 +997,14 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
   fila.append($('<td>').text(nro_admin))
   //TIPO DE MOVIMIENTO ES DENOMINACION:
   if(t_mov==5){
-    
     fila.append($('<td>')
         .append($('<input>')
         .addClass('denominacion_modificada form-control')
         .attr("type","number").attr("step","0.01").attr("min","0.01")
-        .val( denFloat)))
+        .val(denFloat)))
     // se agrega elementos vacios para que sea aceptable visiblemente
     fila.append($('<td>'));
     fila.append($('<td>'));
-
-
   };
 
   //TIPO DE MOVIMIENTO ES %DEVOLUCION:
@@ -1048,14 +1036,14 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
   .append($('<input>')
   .addClass('denominacion_modificada form-control')
   .attr("type","number").attr("step","0.01").attr("min","0.01")
-  .val( denFloat)))
+  .val(denFloat)))
 
   // agrega % dev de juego
   fila.append($('<td>')
       .append($('<input>')
       .addClass('devolucion_modificada form-control')
       .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
-          .val(dev)));
+      .val(dev)));
   };
 
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
@@ -1090,9 +1078,7 @@ $('#todosDev').on('click', function(){
 })
 //cierra modal y limpio el data list de arriba
 $('#modalDenominacion').on('hidden.bs.modal', function() {
-
   $('.input-data-list').borrarDataList();
-
 })
 
 //BOTÓN ENVIAR A FISCALIZAR DE DENOMINACION, DEVOLUCION Y JUEGO
@@ -1264,9 +1250,10 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
 //MODAL BAJA MTM EN EL MOVIMIENTO EGRESO/REINGRESO
 
 $(document).on('click','.bajaMTM', function(){
-  var casino= $(this).attr('data-casino');
-  var id_movimiento= $(this).val();
-  var tipo_mov= $(this).attr('data-tipo-mov');
+  const fila = $(this).parent().parent();
+  var casino= fila.attr('data-casino');
+  var id_movimiento= fila.attr('id');
+  var tipo_mov= fila.attr('data-tipo');
 
   $('.modal-title').text('CARGAR MÁQUINAS PARA EGRESO DEFINITIVO');
   $('#modalBajaMTM').find('#tipoMovBaja').val(tipo_mov);
@@ -1394,7 +1381,7 @@ $(document).on('click','.validarMovimiento',function(){
   $('#modalValidacion .modal-title').text('VALIDAR MÁQUINAS RELEVADAS');
   $('#modalValidacion .modal-header').attr('style','background: #4FC3F7');
 
-  var id_log_movimiento = $(this).val();
+  var id_log_movimiento = $(this).parent().parent().attr('id');
 
   $.get('movimientos/ValidarMovimiento/' + id_log_movimiento, function(data){
 
@@ -1803,7 +1790,7 @@ function validar(id_rel, val, id_maquina){
 //Enviar a fiscalizar las de ingreso **************************
 $(document).on('click','.enviarIngreso',function(e){
   // e.preventDefault();
-  var id_log_movimiento = $(this).val();
+  var id_log_movimiento = $(this).parent().parent().attr('id');
   $('.modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
   $('#tablaMaquinas tbody tr').remove();
   $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
@@ -1825,8 +1812,6 @@ $(document).on('click','.enviarIngreso',function(e){
   });
 
   $('#modalEnviarFiscalizarIngreso').modal('show');
-
-
 })
 
 //dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
@@ -1889,7 +1874,6 @@ $("#btn-enviar-ingreso").click(function(e){
 
 //redirigir cambio layout
 $(document).on('click','.redirigir',function(e){
-
     var id_movimiento=$(this).val();
 
     var formData= {
@@ -1922,7 +1906,6 @@ $(document).on('click','.redirigir',function(e){
 
 //Busqueda de movimientos
 $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
-
   $('#mensajeExito').hide();
   $.ajaxSetup({
       headers: {
@@ -1999,7 +1982,6 @@ $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
-
   $('#tablaResultados th').removeClass('activa');
 
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
@@ -2021,7 +2003,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
 
 
 function clickIndiceMov(e,pageNumber,tam){
-
   if(e != null){
     e.preventDefault();
   }
@@ -2032,14 +2013,83 @@ function clickIndiceMov(e,pageNumber,tam){
   $('#btn-buscarMovimiento').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+function handleMovimientoIngreso(movimiento,fila){
+  fila.find('.boton_nuevo').addClass('nuevoIngreso');
+  fila.find('.boton_fiscalizar').addClass('enviarIngreso');
+  fila.find('.boton_validar').addClass('validarMovimiento');
+  fila.find('.boton_modificar').remove();
+  fila.find('.boton_redirigir').remove();
+  fila.find('.boton_cargar').hide();
+  fila.find('.boton_baja').remove();
+  fila.find('.baja_mov').addClass('bajaMov');
+  fila.find('.boton_toma2').remove();
+  const estado_movimiento = movimiento.id_estado_movimiento;
+  if(estado_movimiento==8 || movimiento.cant_maquinas != 0){
+      fila.find('.boton_cargar').show();
+      fila.find('.nuevoIngreso').attr('style', 'display:none');
+      fila.find('.enviarIngreso').show();
+  }
+  if(movimiento.cant_maquinas==0){
+    fila.find('.enviarIngreso').show();
+    fila.find('.boton_cargar').attr('style', 'display:none');
+  }
+  fila.find('.nuevoIngreso').toggle(estado_movimiento == 1);
+  fila.find('.enviarIngreso').toggle(estado_movimiento == 8);
+  fila.find('.enviarIngreso').toggle(estado_movimiento != 1);
+}
+function handleMovimientoEgreso(movimiento,fila){
+  fila.find('.boton_nuevo').addClass('nuevoEgreso');
+  fila.find('.boton_cargar').remove();
+  fila.find('.boton_fiscalizar').remove();
+  fila.find('.boton_validar').addClass('validarMovimiento');
+  fila.find('.boton_modificar').remove();
+  fila.find('.boton_redirigir').remove();
+  fila.find('.boton_baja').addClass('bajaMTM');
+  fila.find('.baja_mov').addClass('bajaMov');
+  fila.find('.boton_toma2').remove();
+  const estado_movimiento = movimiento.id_estado_movimiento;
+  if(estado_movimiento == 4 || estado_movimiento == 5){
+    fila.find('.bajaMTM').hide();
+  }else{
+    fila.find('.bajaMTM').prop('disabled', false);
+  };
+}
+function handleMovimientoPorcDevolucion_Denominacion_Juego(movimiento,fila){
+  fila.find('.boton_nuevo').remove();
+  fila.find('.boton_cargar').remove();
+  fila.find('.boton_fiscalizar').remove();
+  fila.find('.boton_modificar').addClass('modificarDenominacion');
+  fila.find('.boton_validar').addClass('validarMovimiento');
+  fila.find('.boton_redirigir').remove();
+  fila.find('.boton_baja').remove();
+  fila.find('.baja_mov').addClass('bajaMov');
+  fila.find('.boton_toma2').addClass('botonToma2');
+}
+function handleMovimientoCambioLayout(movimiento,fila){
+  fila.find('.boton_cargar').remove();
+  fila.find('.boton_nuevo').addClass('nuevoEgreso');
+  fila.find('.boton_fiscalizar').remove();
+  fila.find('.boton_redirigir').addClass('redirigir');
+  fila.find('.boton_validar').addClass('validarMovimiento');
+  fila.find('.boton_modificar').remove();
+  fila.find('.boton_baja').remove();
+  fila.find('.baja_mov').addClass('bajaMov');
+  fila.find('.boton_toma2').addClass('botonToma2');
+}
+function handleMovimientoIngresoInicial(movimiento,fila){
+  fila.find('button,span').remove();
+  fila.find('.botones_mov').text('-');
+}
+function handleMovimientoEgresoDefinitivo(movimiento,fila){
+  fila.find('button,span').remove();
+  fila.find('.botones_mov').text('-');
+}
+
 //paginacion
 function generarFilaTabla(movimiento){
   let fila              = $('#filaEjemploMovimiento').clone().removeAttr('id','');
   let t_mov             = movimiento.descripcion;
-  let fecha             = movimiento.fecha;
   let estado_movimiento = movimiento.id_estado_movimiento;
-  let cant              = movimiento.cant_maquinas;
-  let islas             = (movimiento.islas != null)? movimiento.islas : '-';
   let expediente        = '-';
   if(movimiento.nro_exp_org != null){
       expediente        = movimiento.nro_exp_org + '-'
@@ -2048,9 +2098,9 @@ function generarFilaTabla(movimiento){
   }
 
   fila.attr('id', movimiento.id_log_movimiento);
-  fila.find('.fecha_mov').text(convertirDate(fecha));
+  fila.find('.fecha_mov').text(convertirDate(movimiento.fecha));
   fila.find('.nro_exp_mov').text(expediente);
-  fila.find('.islas_mov').text(islas);
+  fila.find('.islas_mov').text((movimiento.islas != null)? movimiento.islas : '-');
   fila.find('.tipo_mov').text(t_mov);
   if(estado_movimiento==4){
     fila.find('.icono_mov i').remove();
@@ -2058,158 +2108,37 @@ function generarFilaTabla(movimiento){
     .css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto');
     fila.find('.icono_mov').append(validado_icono);
   }
+
+  fila.attr('data-casino',movimiento.id_casino);
+  fila.attr('data-tipo',movimiento.id_tipo_movimiento);
+  fila.attr('data-estado',movimiento.id_estado_movimiento);
   
-  //Abre la pantalla de islas y CREO que asigna el controlador al movimiento
-  //Se usa solo en CAMBIO LAYOUT? creo
-  fila.find('.boton_redirigir').attr('value',movimiento.id_log_movimiento);
-  //Para agregar maquinas al movimiento que se mandan a fiscalizar.
-  fila.find('.boton_nuevo').attr('value',movimiento.id_log_movimiento)
-  .attr('data-casino',movimiento.id_casino)
-  .attr('data-tipo',movimiento.id_tipo_movimiento);
-  //En INGRESO para poner los datos de la maquina
-  fila.find('.boton_cargar').attr('value',movimiento.id_log_movimiento);
-  //Envia el movimiento a fiscalizar por (obtener contadores) por los fiscalizadores
-  fila.find('.boton_fiscalizar').attr('value',movimiento.id_log_movimiento);
-  //Para cambiar juego/denominacion de maquinas (ademas envia a fiscalizar)
-  fila.find('.boton_modificar').attr('value',movimiento.id_log_movimiento)
-  .attr('data-tmov',movimiento.id_tipo_movimiento)
-  .attr('data-cas',movimiento.id_casino);
-  //Valida
-  fila.find('.boton_validar').attr('value',movimiento.id_log_movimiento);
-  //Egreso, poner que maquinas borrar
-  fila.find('.boton_baja').attr('value',movimiento.id_log_movimiento)
-  .attr('data-casino', movimiento.id_casino)
-  .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
-  //Seleccionar (de vuelta?) que maquinas enviar a fiscalizar
-  fila.find('.boton_toma2').attr('value',movimiento.id_log_movimiento)
-  .attr('data-casino', movimiento.id_casino)
-  .attr('data-tipo-mov', movimiento.id_tipo_movimiento)
-  .attr('data-estado',movimiento.id_estado_movimiento);
-  //Borrar el movimiento
-  fila.find('.baja_mov').attr('value',movimiento.id_log_movimiento)
-  .attr('data-casino', movimiento.id_casino)
-  .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
-  //Imprimir el mov
-  fila.find('.print_mov').attr('value',movimiento.id_log_movimiento)
-  .attr('data-casino', movimiento.id_casino)
-  .attr('data-tipo-mov', movimiento.id_tipo_movimiento);
-
-  if (t_mov=="INGRESO"){
-    fila.find('.boton_nuevo').addClass('nuevoIngreso');
-    fila.find('.boton_fiscalizar').addClass('enviarIngreso');
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_modificar').remove();
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_cargar').hide();
-    fila.find('.boton_baja').remove();
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').remove();
-
-    if(estado_movimiento==8 || cant != 0){
-        fila.find('.boton_cargar').show();
-        fila.find('.nuevoIngreso').attr('style', 'display:none');
-        fila.find('.enviarIngreso').show();
-    }
-    if(cant==0){
-      fila.find('.enviarIngreso').show();
-      fila.find('.boton_cargar').attr('style', 'display:none');
-    } //oculto el boton +
-  }
-  else if (t_mov=="EGRESO" ) {
-    fila.find('.boton_nuevo').addClass('nuevoEgreso');
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_modificar').remove();
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_baja').addClass('bajaMTM');
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').remove();
-  }
-  else if(t_mov=="EGRESO/REINGRESOS"){
-    fila.find('.boton_nuevo').addClass('nuevoEgreso');
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_modificar').remove();
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_baja').addClass('bajaMTM');
-    fila.find('.baja_mov').remove();
-    fila.find('.boton_toma2').remove();
-  }
-  else if (t_mov=="% DEVOLUCIÓN") {
-    fila.find('.boton_nuevo').remove();
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_modificar').addClass('modificarDenominacion');
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_baja').remove();
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').addClass('botonToma2');
-  }
-  else if (t_mov=="DENOMINACIÓN") {
-    fila.find('.boton_nuevo').remove();
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_modificar').addClass('modificarDenominacion');
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_baja').remove();
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').addClass('botonToma2');
-  }
-  else if (t_mov=="JUEGO") {
-    fila.find('.boton_nuevo').remove();
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_modificar').addClass('modificarDenominacion');
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_redirigir').remove();
-    fila.find('.boton_baja').remove();
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').addClass('botonToma2');
-  }
-  else if (t_mov=="CAMBIO LAYOUT" ) {
-    fila.find('.boton_cargar').remove();
-    fila.find('.boton_nuevo').addClass('nuevoEgreso');
-    fila.find('.boton_fiscalizar').remove();
-    fila.find('.boton_redirigir').addClass('redirigir');
-    fila.find('.boton_validar').addClass('validarMovimiento');
-    fila.find('.boton_modificar').remove();
-    fila.find('.boton_baja').remove();
-    fila.find('.baja_mov').addClass('bajaMov');
-    fila.find('.boton_toma2').addClass('botonToma2');
-  }
-  else{
-    fila.find('button,span').not('.print_mov').remove();
-  }
-  /* ESTADOS:
-  1 	NOTIFICADO
-	2   FISCALIZANDO
-	3 	FISCALIZADO
-	4 	VALIDADO
-	5   ERROR
-	6 	CREADO
-	7 	MTM CARGADAS
-	8 	CARGANDO*/
-  //para habilitar y deshabilitar botones, según el estado del movimiento:
-  fila.find('.nuevoIngreso').toggle(estado_movimiento == 1);
-  fila.find('.validarMovimiento').toggle(estado_movimiento == 3);
-  fila.find('.enviarIngreso').toggle(estado_movimiento == 8);
-  fila.find('.enviarIngreso').toggle(t_mov=="INGRESO" && estado_movimiento != 1);
-  if(estado_movimiento == 4 || estado_movimiento == 5){
-    fila.find('.bajaMTM').hide();
-  }else{
-    fila.find('.bajaMTM').prop('disabled', false);
+  const handlers = {
+    "INGRESO" : handleMovimientoIngreso, 
+    "EGRESO"  : handleMovimientoEgreso,
+    "EGRESO/REINGRESOS" : handleMovimientoEgreso,
+    "% DEVOLUCIÓN" : handleMovimientoPorcDevolucion_Denominacion_Juego,
+    "DENOMINACIÓN" : handleMovimientoPorcDevolucion_Denominacion_Juego,
+    "JUEGO" : handleMovimientoPorcDevolucion_Denominacion_Juego,
+    "CAMBIO LAYOUT" : handleMovimientoCambioLayout,
+    "INGRESO INICIAL" : handleMovimientoIngresoInicial,
+    "EGRESO DEFINITIVO" : handleMovimientoEgresoDefinitivo
   };
+
+  if(t_mov in handlers) handlers[t_mov](movimiento,fila);
+  else fila.find('button,span').not('.print_mov').remove();
+
+  fila.find('.validarMovimiento').toggle(estado_movimiento == 3);
   fila.find('.boton_toma2').toggle(estado_movimiento > 2);
+
+  const es_intervencion_mtm = movimiento.puede_reingreso || movimiento.ṕuede_egreso_temporal;
+  if(movimiento.deprecado || es_intervencion_mtm) fila.find('td').css('color','rgb(150,150,150)');
    
   return fila;
 }
 
 $(document).on('click','.print_mov',function(e){
-  var id= $(this).val();
+  var id= $(this).parent().parent().attr('id');
   $.get('movimientos/maquinasEnviadasAFiscalizar/' + id, function(data){
     if (data==0){
       $('#modalAlerta').modal('show');
@@ -2222,10 +2151,9 @@ $(document).on('click','.print_mov',function(e){
 
 
 $(document).on('click','.bajaMov',function(e){
-
   $('#mensajeExito').show();
   $('#mensajeError').hide();
-  var id_mov=$(this).val();
+  var id_mov=$(this).parent().parent().attr('id');
 
   var formData= {
     id_log_movimiento: id_mov
@@ -2242,10 +2170,8 @@ $(document).on('click','.bajaMov',function(e){
       url: 'movimientos/eliminarMovimiento',
       data: formData,
       dataType: 'json',
-
       success: function (data){
         if(data==1){
-
             $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
             $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
             $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
@@ -2254,10 +2180,8 @@ $(document).on('click','.bajaMov',function(e){
         else{
             $('#mensajeError p').text('No es posible eliminar este Movimiento.');
             $('#mensajeError').show();
-
         }
       },
-
       error: function(data){
         alert('ERROR: El movimiento ya fue enviado a fiscalizar o tiene asignado un expediente.',data);
       },

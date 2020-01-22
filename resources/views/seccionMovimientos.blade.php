@@ -45,11 +45,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   <div class="col-lg-3">
                     <h5>Tipo Movimiento</h5>
                     <select class="form-control" id="B_TipoMovimiento">
-                      <option value="" selected>- Seleccione tipo movimiento -</option>
-                      @foreach ($tiposMovimientos as $tipoMovimiento)
-                      <option value="{{$tipoMovimiento->id_tipo_movimiento}}">{{$tipoMovimiento->descripcion}}</option>
+                      <option value="0" selected>- Seleccione tipo movimiento -</option>
+                      @foreach ($tiposMovimientos as $tm)
+                      @if(!$tm->es_intervencion_mtm && !$tm->deprecado)
+                      <option value="{{$tm->id_tipo_movimiento}}">{{$tm->descripcion}}</option>
+                      @endif
                       @endforeach
-                      <option value="0" >- Todos los movimientos -</option>
+                      <optgroup style="color:red;" label="Fuera de uso">
+                      @foreach ($tiposMovimientos as $tm)
+                      @if($tm->es_intervencion_mtm || $tm->deprecado)
+                      <option value="{{$tm->id_tipo_movimiento}}" style="color:red;">{{$tm->descripcion}}</option>
+                      @endif
+                      @endforeach
+                      </optgroup>
                     </select>
                   </div>
                   <div class="col-lg-3">

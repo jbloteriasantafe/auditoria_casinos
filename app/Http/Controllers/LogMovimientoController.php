@@ -160,7 +160,7 @@ class LogMovimientoController extends Controller
     $estados = EstadoMaquina::all();
     $logs = LogMovimiento::whereIn('id_casino',$casinos)->orderBy('fecha','DESC')->get();
     $casinos=$usuario['usuario']->casinos;
-    $tiposMovimientos = TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7,8])->get();
+    $tiposMovimientos = TipoMovimiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Asignación Movimientos' ,'movimientos');
     return view('seccionMovimientos',['logMovimientos'=>$logs , 'tiposMovimientos' => $tiposMovimientos,'monedas'=>$monedas , 'unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 'gabinetes' => $gabinetes , 'tipo_progresivos' => $tipo_progresivos, 'estados' => $estados]);
   }
