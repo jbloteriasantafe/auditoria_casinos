@@ -544,45 +544,11 @@ $(document).on('click','.eliminarFiscal',function(){
   })
 });
 
-/*
-$('#btn-buscarRelMov').click(function(e){
-      es_cargaT2RelMov=0;
-    $.ajaxSetup({
-      headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-    });
-    e.preventDefault();
-
-    var formData = {
-      id_tipo_movimiento: $('#B_TipoMovimientoRel').val(),
-      fecha: $('#fechaRelMov').val(),
-      nro_admin: $('#busqueda_maquina').val()
-    }
-
-    $.ajax({
-      type: 'POST',
-      url: 'relevamientos_movimientos/buscarFiscalizaciones',
-      data: formData,
-      dataType: 'json',
-
-      success: function (data) {
-        console.log('success rel:', data);
-
-        $('#tablaRelevamientosMovimientos #cuerpoTablaRel tr').remove();
-
-          for (var i = 0; i < data.fiscalizaciones.length; i++) {
-
-              var filaRelMov = generarFilaTabla(data.fiscalizaciones[i]);
-              $('#cuerpoTablaRel').append(filaRelMov);
-          }
-
-      },
-      error: function (data) {
-        console.log('Error:', data);
-      }
-    });
-});*/
+function noTieneValor(val){
+  const es_null = val === null;
+  const es_undefined = typeof val === 'undefined';
+  return es_null || es_undefined;
+}
 
 //Busqueda de eventos
 $('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
@@ -594,11 +560,7 @@ $('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
   });
   e.preventDefault();
 
-  const noTieneValor = function(val){
-    const es_null = val === null;
-    const es_undefined = typeof val === 'undefined';
-    return es_null || es_undefined;
-  }
+
 
   let sort_by = {
     columna: noTieneValor(columna)? $('#tablaRelevamientosMovimientos .activa').attr('value') : columna, 
@@ -672,6 +634,7 @@ console.log('generar',rel);
   fecha=rel.fecha_envio_fiscalizar;
   casino=rel.nombre;
   estado=rel.id_estado_relevamiento;
+  const nota = noTieneValor(rel.identificacion_nota)? '---' : rel.identificacion_nota;
 
   fila.attr('id', rel.id_fiscalizacion_movimiento)
       .append($('<td>')
@@ -680,7 +643,7 @@ console.log('generar',rel);
       )
       .append($('<td>')
           .addClass('col-xs-3')
-          .text(rel.identificacion_nota)
+          .text(nota)
           )
       .append($('<td>')
       .addClass('col-xs-3')
