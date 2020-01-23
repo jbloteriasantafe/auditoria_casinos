@@ -201,11 +201,11 @@ class LogMovimientoController extends Controller
     }
 
     $resultados = DB::table('log_movimiento')
-    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*')
-    ->selectRaw('log_movimiento.id_estado_movimiento = 4 as validado')
+    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*','estado_movimiento.descripcion as estado')
     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
+    ->join('estado_movimiento','log_movimiento.id_estado_movimiento','=','estado_movimiento.id_estado_movimiento')
     ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
     ->where($reglas)
     ->whereIn('log_movimiento.id_casino' , $casinos)
@@ -643,22 +643,11 @@ class LogMovimientoController extends Controller
       $casinos[] = $id_casino;
     }
 
-    $resultados = DB::table('fiscalizacion_movimiento')
-                      ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
-                      ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
-                      ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
-                      ->whereIn('log_movimiento.id_casino',$casinos)
-                      ->where('log_movimiento.id_expediente','<>','null')
-                      ->orderBy('fiscalizacion_movimiento.fecha_envio_fiscalizar','desc')
-                      ->take(25)
-                      ->get();
-
     $tiposMovimientos = TipoMovimiento::all();
-  //  return $resultados;
+
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamientos Movimientos','relevamientos_movimientos');
 
-    return view('seccionRelevamientosMovimientos',['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos]);
+    return view('seccionRelevamientosMovimientos',['casinos' => $usuario->casinos,'tipos_movimientos' => $tiposMovimientos]);
   }
 
   //para poder realizar la carga de los datos
@@ -1336,6 +1325,7 @@ class LogMovimientoController extends Controller
       $logMovimiento->tiene_expediente = 0;
       $logMovimiento->estado_movimiento()->associate(1);//estado = notificado
       $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+      $logMovimiento->sentido = "---";
       $f = date("Y-m-d");
       $logMovimiento->fecha = $f;
       $logMovimiento->casino()->associate($request['casino']);

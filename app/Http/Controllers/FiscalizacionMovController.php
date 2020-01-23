@@ -100,39 +100,36 @@ class FiscalizacionMovController extends Controller
       $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
     }
 
-    if(!isset($request->fecha)){
-      $resultados = DB::table('fiscalizacion_movimiento')
-                        ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
-                        ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
-                        ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                        ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
-                        ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
-                        ->whereIn('log_movimiento.id_casino',$casinos)
-                        ->where('log_movimiento.id_expediente','<>','null')
-                        ->where($reglas)
-                        ->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
-                        ->orderBy('fiscalizacion_movimiento.fecha_envio_fiscalizar','desc')
-                        ->take(25)
-                        ->get();
-    }else{
-      $fecha=explode("-", $request->fecha);
-
-      $resultados = DB::table('fiscalizacion_movimiento')
-                        ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
-                        ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
-                        ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
-                        ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
-                        ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                        ->where('log_movimiento.id_expediente','<>','null')
-                        ->whereIn('log_movimiento.id_casino',$casinos)
-                        ->where($reglas)
-                        ->whereYear('fiscalizacion_movimiento.fecha_envio_fiscalizar' , '=', $fecha[0])
-                        ->whereMonth('fiscalizacion_movimiento.fecha_envio_fiscalizar','=', $fecha[1])
-                        ->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
-                        ->orderBy('fiscalizacion_movimiento.fecha_envio_fiscalizar','desc')
-                        ->take(25)
-                        ->get();
+    $sort_by = ['columna' => 'fiscalizacion.id_fiscalizacion_movimiento', 'orden' => 'DESC'];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
     }
+    $page_size = 10;
+    if(!empty($request->sort_by)){
+      $page_size = $request->page_size;
+    }
+
+    $resultados = DB::table('fiscalizacion_movimiento')
+    ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
+    ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
+    ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
+    ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
+    ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
+    ->whereIn('log_movimiento.id_casino',$casinos)
+    ->whereNotNull('log_movimiento.id_expediente')
+    ->where($reglas);
+
+    if(isset($request->fecha)){
+      $fecha=explode("-", $request->fecha);
+      $resultados = $resultados->whereYear('fiscalizacion_movimiento.fecha_envio_fiscalizar' , '=', $fecha[0])
+                               ->whereMonth('fiscalizacion_movimiento.fecha_envio_fiscalizar','=', $fecha[1]);
+    }
+    
+    $resultados = $resultados->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->paginate($request->page_size,['fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
 
     $tiposMovimientos = TipoMovimiento::all();
     return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos, 'es_controlador' => $es_controlador];

@@ -21,6 +21,7 @@ $cas = $usuario['usuario']->casinos;
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="css/lista-datos.css">
+<link rel="stylesheet" href="css/paginacion.css">
 @endsection
 
 <div class="row">
@@ -99,7 +100,7 @@ $cas = $usuario['usuario']->casinos;
             <h4>ÚLTIMOS RELEVAMIENTOS DE MOVIMIENTOS</h4>
           </div>
           <div class="panel-body">
-            <table id="tablaRelevamientosMovimientos" class="table">
+            <table id="tablaRelevamientosMovimientos" class="table table-fixed tablesorter">
               <thead>
                 <!-- fecha | tipo_mov | casino | accion -->
                 <th class="col-xs-2">FECHA</th>
@@ -108,40 +109,10 @@ $cas = $usuario['usuario']->casinos;
                 <th class="col-xs-2">CASINO</th>
                 <th class="col-xs-2">ACCIÓN</th>
               </thead>
-              <tbody id="cuerpoTablaRel">
-                @foreach($fiscalizaciones as $fiscalizacion)
-                <tr>
-                  <td>{{$fiscalizacion->fecha_envio_fiscalizar}}</td>
-                  <td>{{$fiscalizacion->identificacion_nota}}</td>
-                  <td>{{$fiscalizacion->descripcion}}</td>
-                  <td>{{$fiscalizacion->nombre}} </td>
-                  <td>
-                    @if($fiscalizacion->id_estado_relevamiento < 3)
-                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-generarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="far fa-file "> <span>GENERAR</span> </i></button>
-                    <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-upload"> <span>CARGAR TOMA 1</span></i></button>
-                    @endif
-                    @if($fiscalizacion->id_estado_relevamiento > 2)
-                      @if($fiscalizacion->id_estado_relevamiento  < 7)
-                        @if($fiscalizacion->id_estado_relevamiento  !== 4)
-                        <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-cargarT2RelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fa fa-fw fa-retweet"> <span>CARGAR TOMA 2</span></i></button>
-                        @endif
-                      @endif
-                      <button value="{{$fiscalizacion->id_fiscalizacion_movimiento}}" class="btn btn-imprimirRelMov btn-success" type="button" name="button" style="position:relative; top:5px;"><i class="fas fa-fw fa-print"> <span>IMPRIMIR</span></i></button>
-                    @endif
-                    <?php
-                      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                    ?>
-                    @if(($usuario['usuario']->es_controlador))
-                    <button type="button" class="btn btn-success eliminarFiscal" value="{{$fiscalizacion->id_fiscalizacion_movimiento}}">
-                            <i class="fa fa-fw fa-trash"></i>
-                    </button>
-                    @endif
-                  </td>
-                </tr>
-                @endforeach
+              <tbody id="cuerpoTablaRel" style="height: 380px;">
               </tbody>
             </table>
-
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
           </div>
         </div>
       </div>
@@ -382,6 +353,8 @@ $cas = $usuario['usuario']->casinos;
 
 @endsection
 @section('scripts')
+
+<script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
 <script src="js/seccionRelevamientosMovimientos.js" charset="utf-8"></script>
 

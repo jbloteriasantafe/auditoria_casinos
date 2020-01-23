@@ -199,6 +199,7 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('.modal-title').text('SELECCIÓN DE TIPO DE CARGA');
   $('input[name="carga"]').attr('checked', false);
   limpiarModal();
+  $('#tipoManual').prop('checked',true)
   habilitarControles(true);
   $('#btn-aceptar-ingreso').prop('disabled',true);
   $('#modalLogMovimiento #cantMaqCargar').hide();
@@ -1959,14 +1960,6 @@ function handleMovimientoCambioLayout(movimiento,fila){
   fila.find('.baja_mov').addClass('bajaMov');
   fila.find('.boton_toma2').addClass('botonToma2');
 }
-function handleMovimientoIngresoInicial(movimiento,fila){
-  fila.find('button,span').remove();
-  fila.find('.botones_mov').text('-');
-}
-function handleMovimientoEgresoDefinitivo(movimiento,fila){
-  fila.find('button,span').remove();
-  fila.find('.botones_mov').text('-');
-}
 
 //paginacion
 function generarFilaTabla(movimiento){
@@ -1984,14 +1977,39 @@ function generarFilaTabla(movimiento){
   fila.find('.fecha_mov').text(convertirDate(movimiento.fecha));
   fila.find('.nro_exp_mov').text(expediente);
   fila.find('.islas_mov').text((movimiento.islas != null)? movimiento.islas : '-');
-  fila.find('.tipo_mov').text(t_mov);
-  if(estado_movimiento==4){
-    fila.find('.icono_mov i').remove();
-    let validado_icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
-    .css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto');
-    fila.find('.icono_mov').append(validado_icono);
-  }
+  fila.find('.tipo_mov').text(t_mov); 
 
+  let icono = fila.find('.icono_mov i');
+  switch(estado_movimiento){
+    case 1:{//NOTIFICADO
+      icono = $('<i>').addClass('fas').addClass('fa-envelope')
+      .css('color','rgb(66,133,244)').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    case 2:{//FISCALIZANDO
+      icono = $('<i>').addClass('fas').addClass('fa-edit')
+      .css('color','rgb(244,160,0)').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    case 3:{//FISCALIZADO
+      icono = $('<i>').addClass('fas').addClass('fa-file-alt')
+      .css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    case 4:{//VALIDADO
+      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
+      .css('color','#66BB6A').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    case 6:{//CREADO
+      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-plus')
+      .css('color','rgb(150,150,150)').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    case 8:{//CARGANDO
+      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
+      .css('color','rgb(244,160,0)').css('margin-left',' auto').css('margin-right', 'auto');
+    }break;
+    default:{
+    }break;
+  }
+  fila.find('.icono_mov i').replaceWith(icono);
+  fila.find('.icono_mov').attr('title',movimiento.estado)
   fila.attr('data-casino',movimiento.id_casino);
   fila.attr('data-tipo',movimiento.id_tipo_movimiento);
   fila.attr('data-estado',movimiento.id_estado_movimiento);
@@ -2004,8 +2022,8 @@ function generarFilaTabla(movimiento){
     "DENOMINACIÓN" : handleMovimientoPorcDevolucion_Denominacion_Juego,
     "JUEGO" : handleMovimientoPorcDevolucion_Denominacion_Juego,
     "CAMBIO LAYOUT" : handleMovimientoCambioLayout,
-    "INGRESO INICIAL" : handleMovimientoIngresoInicial,
-    "EGRESO DEFINITIVO" : handleMovimientoEgresoDefinitivo
+    "INGRESO INICIAL" : handleMovimientoIngreso,
+    "EGRESO DEFINITIVO" : handleMovimientoEgreso
   };
 
   if(t_mov in handlers) handlers[t_mov](movimiento,fila);
@@ -2034,7 +2052,7 @@ $(document).on('click','.print_mov',function(e){
 
 
 $(document).on('click','.bajaMov',function(e){
-  $('#mensajeExito').show();
+  $('#mensajeExito').hide();
   $('#mensajeError').hide();
   var id_mov=$(this).parent().parent().attr('id');
 
@@ -2107,3 +2125,9 @@ function denominacionToFloat(den) {
   denf=den.replace(",",".")
   return parseFloat(denf)
 }
+
+$('#collapseFiltros').keypress(function(e){
+  if(e.charCode == 13){//Enter
+    $('#btn-buscarMovimiento').click();
+  }
+})

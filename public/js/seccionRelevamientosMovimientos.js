@@ -48,58 +48,19 @@ $(document).ready(function(){
       });
 
 
-$('#B_TipoMovimientoRel').val("");
-$('#busqueda_maquina').val("");
-  });
+  $('#B_TipoMovimientoRel').val("");
+  $('#busqueda_maquina').val("");
+  $('#btn-buscarRelMov').click();
+  $('#herramientasPaginacion').generarTitulo(1,10,10,clickIndice);
+});
 
+$('#fechaRel').on('change', function (e) {
+  $(this).trigger('focusin');
+})
 
-
-  $('#fechaRel').on('change', function (e) {
-    $(this).trigger('focusin');
-  })
-
-  $('#fechaRelMov').on('change', function (e) {
-    $(this).trigger('focusin');
-  })
-
-
-
-//filtros
-// function buscarFiscalizaciones() {
-//
-//   $.ajaxSetup({headers:{ 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-//
-//   var page_size = (page_size != null) ? page_size : 10;
-//   var page_number = (pagina != null) ? pagina : 1;
-//   var sort_by = (columna != null) ? {columna,orden} : null;
-//   if(sort_by == null) { // limpio las columnas
-//     $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-//   }
-//   e.preventDefault();
-//
-//   var formData = {
-//     //Casino
-//     page: page_number,
-//     sort_by: sort_by,
-//     page_size: page_size,
-//   }
-//
-//   $.ajax({
-//       type: 'POST',
-//       url: 'movimientos/obtenerFiscalizaciones',
-//       data: formData,
-//       dataType: 'json',
-//       success: function (resultados) {
-//
-//           $('#tituloTabla').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-//           $('.btn-imprimirRelMov').prop('disabled', true);
-//           $('#indicesPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-//       },
-//       error: function (data) {
-//           console.log('Error:', data);
-//       }
-//     });
-// }
+$('#fechaRelMov').on('change', function (e) {
+  $(this).trigger('focusin');
+})
 
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
 $(document).on('click','.btn-generarRelMov',function(e){
@@ -583,6 +544,7 @@ $(document).on('click','.eliminarFiscal',function(){
   })
 });
 
+/*
 $('#btn-buscarRelMov').click(function(e){
       es_cargaT2RelMov=0;
     $.ajaxSetup({
@@ -620,7 +582,81 @@ $('#btn-buscarRelMov').click(function(e){
         console.log('Error:', data);
       }
     });
+});*/
+
+//Busqueda de eventos
+$('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
+  es_cargaT2RelMov=0;
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+  e.preventDefault();
+
+  const noTieneValor = function(val){
+    const es_null = val === null;
+    const es_undefined = typeof val === 'undefined';
+    return es_null || es_undefined;
+  }
+
+  let sort_by = {
+    columna: noTieneValor(columna)? $('#tablaRelevamientosMovimientos .activa').attr('value') : columna, 
+    orden: noTieneValor(orden)?  $('#tablaRelevamientosMovimientos .activa').attr('estado') : orden
+  };
+  if(noTieneValor(sort_by.columna)){
+    sort_by.columna = 'fiscalizacion_movimiento.id_fiscalizacion_movimiento';
+  }
+  if(noTieneValor(sort_by.orden)){
+    sort_by.orden = 'desc';
+  }
+  console.log(sort_by);
+  const page = noTieneValor(pagina)? $('#herramientasPaginacion').getCurrentPage() : pagina;
+  const page_size = noTieneValor(tam)? $('#herramientasPaginacion').getPageSize() : tam;
+
+  var formData = {
+    id_tipo_movimiento: $('#B_TipoMovimientoRel').val(),
+    fecha: $('#fechaRelMov').val(),
+    nro_admin: $('#busqueda_maquina').val(),
+    page: noTieneValor(page)? 1 : page,
+    sort_by: sort_by,
+    page_size: noTieneValor(page_size)? 10 : page_size,
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: 'relevamientos_movimientos/buscarFiscalizaciones',
+    data: formData,
+    dataType: 'json',
+
+    success: function (response) {
+      const fiscalizaciones = response.fiscalizaciones.data;
+      console.log('success rel:', response);
+      $('#herramientasPaginacion').generarTitulo(page,page_size,response.fiscalizaciones.total,clickIndice);
+      $('#herramientasPaginacion').generarIndices(page,page_size,response.fiscalizaciones.total,clickIndice);
+      $('#tablaRelevamientosMovimientos #cuerpoTablaRel tr').remove();
+      for (var i = 0; i < fiscalizaciones.length; i++) {
+          var filaRelMov = generarFilaTabla(fiscalizaciones[i]);
+          $('#cuerpoTablaRel').append(filaRelMov);
+      }
+    },
+    error: function (data) {
+      console.log('Error:', data);
+    }
+  });
 });
+
+function clickIndice(e,pageNumber,tam){
+  if(e != null){
+    e.preventDefault();
+  }
+
+  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  var columna = $('#tablatablaRelevamientosMovimientosResultados .activa').attr('value');
+  var orden = $('#tablaRelevamientosMovimientos .activa').attr('estado');
+  $('#btn-buscarRelMov').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
 
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(rel){
