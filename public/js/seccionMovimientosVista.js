@@ -302,7 +302,7 @@ $(document).on('click', '.boton_cargar', function(e){
   e.preventDefault();
   boton.tooltip('hide');
 
-  var mov = boton.val();
+  var mov = boton.parent().parent().attr('id');
   $('#modalMaquina').find('#id_movimiento').val(mov);
 
   //Ver que tipo de carga de máqunas se hace.
@@ -323,8 +323,8 @@ $(document).on('click', '.boton_cargar', function(e){
 
 function eventoNuevo(movimiento, expediente){
   //Modificar los colores del modal
-  $('.modal-title').text('NUEVA MÁQUINA TRAGAMONEDAS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+  $('#modalMaquina .modal-title').text('NUEVA MÁQUINA TRAGAMONEDAS');
+  $('#modalMaquina .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
   $('#btn-guardar').removeClass('btn-warning');
   $('#btn-guardar').addClass('btn-success');
   $('#btn-guardar').text('CREAR MTM');
@@ -339,8 +339,8 @@ function eventoNuevo(movimiento, expediente){
   .val(movimiento.id_casino).trigger('change');
   mostrarJuegos(movimiento.id_casino,[],null);
 
-  $('.seccion').hide();
-  $('.navModal a').removeClass();
+  $('#modalMaquina  .seccion').hide();
+  $('#modalMaquina  .navModal a').removeClass();
   $('#navMaquina').addClass('navModalActivo');
   $('#secMaquina').show();
 
@@ -1749,12 +1749,7 @@ $("#btn-enviar-ingreso").click(function(e){
     error: function(data){
       $('#mensajeError h3').text('ERROR');
       $('#mensajeError p').text('No hay máquinas seleccionadas');
-      //$('#modalEnviarFiscalizarIngreso').modal('hide');
       $('#mensajeError').show();
-      var response = data.responseJSON.errors;
-
-      if(typeof response.fecha !== 'undefined'){
-        mostrarErrorValidacion($('#B_fecha_ingreso'),response.fecha[0],false);}
     }
   })
 })
@@ -1764,7 +1759,7 @@ $("#btn-enviar-ingreso").click(function(e){
 
 //redirigir cambio layout
 $(document).on('click','.redirigir',function(e){
-  var id_movimiento=$(this).val();
+  var id_movimiento=$(this).parent().parent().attr('id');
 
   var formData= {
     id_log_movimiento: id_movimiento
@@ -1912,6 +1907,7 @@ function handleMovimientoIngreso(movimiento,fila){
     fila.find('.boton_cargar').show();
     fila.find('.nuevoIngreso').attr('style', 'display:none');
     fila.find('.enviarIngreso').show();
+    fila.attr('data-carga',1);
   }
   if(movimiento.cant_maquinas==0){
     fila.find('.enviarIngreso').show();

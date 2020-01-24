@@ -293,10 +293,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
           <div class="row">
             <div class="row">
-
-              <div class="col-md-12" align="center">
-                <h6>FECHA: </h6>
-                <div class="form-group" style="padding-left:80px;padding-right:80px">
+              <div class="col-md-1">
+                <h5 class="" style="">FECHA</h5>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group" style="padding-left:0px;padding-right:80px;">
                   <div class='input-group date' id='dtpFechaIngreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                     <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_ingreso" value=""/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>

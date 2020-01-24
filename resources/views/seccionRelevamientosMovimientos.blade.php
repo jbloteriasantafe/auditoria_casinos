@@ -138,6 +138,32 @@ $cas = $usuario['usuario']->casinos;
   </div> <!-- .col-xl-9  | COLUMNA IZQUIERDA - FILTRO Y TABLA -->
 </div> <!-- row inicial-->
 
+<table hidden>
+  <tr id="filaEjemploRelevamiento">
+    <td class="col-xs-2 fecha">99-99-999</td>
+    <td class="col-xs-2 nota">99999</td>
+    <td class="col-xs-2 tipo">TIPO</td>
+    <td class="col-xs-2 casino">CASINO</td>
+    <td class="col-xs-2 maquinas">9999,999,9,9,99,,99</td>
+    <td class="col-xs-2 accion">
+      <button class="btn btn-success btn-generarRelMov" title="GENERAR">
+        <i class="far fa-file"></i>
+      </button>
+      <button class="btn btn-success btn-cargarRelMov" title="CARGAR">
+        <i class="fa fa-fw fa-upload"></i>
+      </button>
+      <button class="btn btn-success btn-cargarT2RelMov" title="CARGAR TOMA 2">
+        <i class="fa fa-fw fa-retweet"></i>
+      </button>
+      <button class="btn btn-success btn-imprimirRelMov" title="IMPRIMIR">
+        <i class="fas fa-fw fa-print"></i>
+      </button>
+      <button class="btn btn-default btn-eliminarFiscal" title="ELIMINAR">
+        <i class="fas fa-fw fa-trash"></i>
+      </button>
+    </td>
+  </tr>
+</table>
 
 
 <!--********************* Modal para CARGAR RELEVAMIENTO*****************************-->

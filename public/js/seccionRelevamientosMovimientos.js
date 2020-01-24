@@ -528,9 +528,10 @@ $(document).on('click','#guardarRel',function(){
 
 });
 
-$(document).on('click','.eliminarFiscal',function(){
+$(document).on('click','.btn-eliminarFiscal',function(){
     es_cargaT2RelMov=0;
   var id=$(this).val();
+  console.log(id);
 
   $.get('relevamientos_movimientos/eliminarFiscalizacion/' + id,function(data){
 
@@ -624,60 +625,18 @@ function clickIndice(e,pageNumber,tam){
 //Se generan filas en la tabla principal con las fiscalizaciones encontradas
 function generarFilaTabla(rel){
   console.log('generar',rel);
-  let fila = $(document.createElement('tr'));
   const fecha = rel.fecha_envio_fiscalizar;
   const tipo_mov = rel.descripcion;
   const casino = rel.nombre;
   const nota = noTieneValor(rel.identificacion_nota)? '---' : rel.identificacion_nota;
 
-  fila.attr('id', rel.id_fiscalizacion_movimiento)
-  .append($('<td>').addClass('col-xs-2').text(fecha).attr('title',fecha))
-  .append($('<td>').addClass('col-xs-2').text(nota).attr('title',nota))
-  .append($('<td>').addClass('col-xs-2').text(tipo_mov).attr('title',tipo_mov))
-  .append($('<td>').addClass('col-xs-2').text(casino).attr('title',casino))
-  .append($('<td>').addClass('col-xs-2').text(rel.maquinas).attr('title',rel.maquinas))
-  .append(
-    $('<td>').addClass('col-xs-2')
-    .append($('<span>').text(' '))
-    .append(
-      $('<button>').addClass('btn-generarRelMov')
-      .append($('<i>').addClass('far').addClass('fa-file'))
-      .append($('<span>').text('GENERAR'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',rel.id_fiscalizacion_movimiento)
-    )
-    .append($('<span>').text(' '))
-    .append(
-      $('<button>').addClass('btn-cargarRelMov')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-      .append($('<span>').text('CARGAR'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',rel.id_fiscalizacion_movimiento)
-    )
-    .append(
-      $('<button>').addClass('btn-cargarT2RelMov')
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-retweet'))
-      .append($('<span>').text('CARGAR 2'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',rel.id_fiscalizacion_movimiento)
-    )
-    .append($('<span>').text(' '))
-    .append(
-      $('<button>').addClass('btn-imprimirRelMov')
-      .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-print'))
-      .append($('<span>').text('IMPRIMIR'))
-      .addClass('btn').addClass('btn-success')
-      .attr('value',rel.id_fiscalizacion_movimiento)
-    )
-    .append($('<span>').text(' '))
-    .append(
-      $('<button>').addClass('btn-eliminarFiscal')
-      .append($('<i>').addClass('fas').addClass('fa-fw').addClass('fa-trash'))
-      .append($('<span>').text('ELIMINAR'))
-      .addClass('btn').addClass('btn-default')
-      .attr('value',rel.id_fiscalizacion_movimiento)
-    )
-  );
+  let fila = $('#filaEjemploRelevamiento').clone().attr('id',rel.id_fiscalizacion_movimiento);
+  fila.find('.fecha').text(fecha).attr('title',fecha);
+  fila.find('.nota').text(nota).attr('title',nota);
+  fila.find('.tipo').text(tipo_mov).attr('title',tipo_mov);
+  fila.find('.casino').text(casino).attr('title',casino);
+  fila.find('.maquinas').text(rel.maquinas).attr('title',rel.maquinas);
+  fila.find('button').attr('value',rel.id_fiscalizacion_movimiento);
 
   if(rel.es_controlador != 1){fila.find('.btn-eliminarFiscal').hide();}
 
