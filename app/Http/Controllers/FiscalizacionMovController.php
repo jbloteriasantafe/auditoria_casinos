@@ -86,18 +86,19 @@ class FiscalizacionMovController extends Controller
     $casinos= array();
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $es_controlador = $usuario->es_controlador;
-    foreach($usuario->casinos as $casino){
-          $casinos [] = $casino->id_casino;
+    if(empty($request->id_casino)){
+      foreach($usuario->casinos as $casino){
+        $casinos[] = $casino->id_casino;
+      }
+    }
+    else if($usuario->usuarioTieneCasino($request->id_casino)){
+      $casinos[] = $request->id_casino;
     }
 
     $reglas=array();
 
     if(isset($request->id_tipo_movimiento)){
       $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
-    }
-
-    if(isset($request->nro_admin) && $request->nro_admin != ""){
-      $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
     }
 
     $sort_by = ['columna' => 'fiscalizacion.id_fiscalizacion_movimiento', 'orden' => 'DESC'];
@@ -110,14 +111,20 @@ class FiscalizacionMovController extends Controller
     }
 
     $resultados = DB::table('fiscalizacion_movimiento')
-    ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')//,'estado_relevamiento.*'
+    ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')
+    ->selectRaw("GROUP_CONCAT(DISTINCT(maquina.nro_admin) ORDER BY maquina.nro_admin ASC SEPARATOR ', ') as maquinas")
     ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
     ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
     ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
     ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
+    ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
     ->whereIn('log_movimiento.id_casino',$casinos)
     ->whereNotNull('log_movimiento.id_expediente')
     ->where($reglas);
+
+    if(isset($request->nro_admin) && $request->nro_admin != ""){
+      $resultados = $resultados->whereRaw("CAST(maquina.nro_admin as CHAR) regexp ?",'^'.$request->nro_admin);
+    }
 
     if(isset($request->fecha)){
       $fecha=explode("-", $request->fecha);
@@ -125,11 +132,11 @@ class FiscalizacionMovController extends Controller
                                ->whereMonth('fiscalizacion_movimiento.fecha_envio_fiscalizar','=', $fecha[1]);
     }
     
-    $resultados = $resultados->distinct('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
+    $resultados = $resultados->groupBy('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
     ->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
     })
-    ->paginate($request->page_size,['fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento']);
+    ->paginate($request->page_size);
 
     $tiposMovimientos = TipoMovimiento::all();
     return ['fiscalizaciones' => $resultados ,'tipos_movimientos' => $tiposMovimientos, 'es_controlador' => $es_controlador];

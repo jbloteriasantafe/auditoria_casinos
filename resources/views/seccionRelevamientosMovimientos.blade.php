@@ -43,18 +43,26 @@ $cas = $usuario['usuario']->casinos;
 
               <div class="row">
 
-                <div class="col-lg-6">
+                <div class="col-lg-3">
                   <h5>Tipo Movimiento</h5>
                   <select class="form-control" id="B_TipoMovimientoRel">
-                    <option value="" selected>- Seleccione tipo movimiento -</option>
+                    <option value="" selected>Todos</option>
                     @foreach ($tipos_movimientos as $t_mov)
+                    @if(!$t_mov->deprecado && !$t_mov->es_intervencion_mtm)
                     <option value="{{$t_mov->id_tipo_movimiento}}">{{$t_mov->descripcion}}</option>
+                    @endif
                     @endforeach
-                    <!-- <option value=" " >- Todos los movimientos -</option> -->
+                    <optgroup style="color:red;" label="Fuera de uso">
+                    @foreach ($tipos_movimientos as $t_mov)
+                    @if($t_mov->deprecado || $t_mov->es_intervencion_mtm)
+                    <option value="{{$t_mov->id_tipo_movimiento}}">{{$t_mov->descripcion}}</option>
+                    @endif
+                    @endforeach
+                    </optgroup>
                   </select>
 
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-3">
                   <h5>Fecha</h5>
                   <div class="form-group">
                     <div class='input-group date' id='dtpFechaRM' data-link-field="fechaRelMov" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
@@ -65,7 +73,15 @@ $cas = $usuario['usuario']->casinos;
                     <input class="form-control" type="hidden" id="fechaRelMov" value=""/>
                   </div>
                 </div>
-
+                <div class="col-lg-3">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="B_Casino">
+                    <option value="" selected>Todos</option>
+                    @foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c)
+                    <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
                 <div class="col-lg-3">
                   <h5>Nro. de Máquina</h5>
                   <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
@@ -102,11 +118,11 @@ $cas = $usuario['usuario']->casinos;
           <div class="panel-body">
             <table id="tablaRelevamientosMovimientos" class="table table-fixed tablesorter">
               <thead>
-                <!-- fecha | tipo_mov | casino | accion -->
                 <th class="col-xs-2">FECHA</th>
-                <th class="col-xs-3">NOTA</th>
-                <th class="col-xs-3">TIPO DE MOVIMIENTO</th>
+                <th class="col-xs-2">NOTA</th>
+                <th class="col-xs-2">TIPO DE MOVIMIENTO</th>
                 <th class="col-xs-2">CASINO</th>
+                <th class="col-xs-2">MAQUINAS</th>
                 <th class="col-xs-2">ACCIÓN</th>
               </thead>
               <tbody id="cuerpoTablaRel" style="height: 380px;">
