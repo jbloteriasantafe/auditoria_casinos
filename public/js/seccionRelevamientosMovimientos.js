@@ -700,3 +700,23 @@ function generarFilaTabla(rel){
 
   return fila;
 };
+
+
+$(document).on('click','#tablaRelevamientosMovimientos thead tr th[value]',function(e){
+  $('#tablaResultados th').removeClass('activa');
+
+  if($(e.currentTarget).children('i').hasClass('fa-sort')){
+    console.log('1');
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+  }
+  else{
+    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    }
+    else{
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+    }
+  }
+  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+});

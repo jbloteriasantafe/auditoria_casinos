@@ -118,11 +118,11 @@ $cas = $usuario['usuario']->casinos;
           <div class="panel-body">
             <table id="tablaRelevamientosMovimientos" class="table table-fixed tablesorter">
               <thead>
-                <th class="col-xs-2">FECHA</th>
-                <th class="col-xs-2">NOTA</th>
-                <th class="col-xs-2">TIPO DE MOVIMIENTO</th>
-                <th class="col-xs-2">CASINO</th>
-                <th class="col-xs-2">MAQUINAS</th>
+                <th class="col-xs-2" value="fiscalizacion_movimiento.fecha_envio_fiscalizar">FECHA<i class="fa fa-sort"></i></th>
+                <th class="col-xs-2" value="fiscalizacion_movimiento.identificacion_nota">NOTA<i class="fa fa-sort"></i></th>
+                <th class="col-xs-2" value="tipo_movimiento.descripcion">TIPO DE MOVIMIENTO<i class="fa fa-sort"></i></th>
+                <th class="col-xs-2" value="casino.nombre">CASINO<i class="fa fa-sort"></i></th>
+                <th class="col-xs-2" value="maquinas">MAQUINAS<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2">ACCIÓN</th>
               </thead>
               <tbody id="cuerpoTablaRel" style="height: 380px;">
