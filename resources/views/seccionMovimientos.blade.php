@@ -1537,6 +1537,36 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div>
   </div>
 
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
+              </div>
+
+              <div  id="colapsado" class="collapse in">
+              <div class="modal-body" style="color:#fff; background-color:#EF5350;">
+                <form id="frmEliminar" name="frmJuego" class="form-horizontal" novalidate="">
+                    <div class="form-group error ">
+                        <div id="mensajeEliminar" class="col-xs-12">
+                          <strong>¿Seguro desea eliminar el MOVIMIENTO?</strong>
+                        </div>
+                    </div>
+                </form>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-dangerEliminar confirmar" id="btn-eliminarModal" value="0">ELIMINAR</button>
+                <button type="button" class="btn btn-default cancelar" data-dismiss="modal">CANCELAR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+  </div>
+
 <table hidden>
   <tr id="filaEjemploMovimiento">
      <td class="col-xs-2 fecha_mov">99 DIC 9999</td>

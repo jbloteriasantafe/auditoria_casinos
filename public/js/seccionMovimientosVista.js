@@ -1800,6 +1800,96 @@ $(document).on('click','.redirigir',function(e){
   window.open('islas','_blank');
 });
 
+$(document).on('click','.print_mov',function(e){
+  var id= $(this).parent().parent().attr('id');
+  $.get('movimientos/maquinasEnviadasAFiscalizar/' + id, function(data){
+    if (data==0){
+      $('#modalAlerta').modal('show');
+    }
+    else{
+      window.open('movimientos/maquinasEnviadasAFiscalizar/' + id,'_blank');
+    }
+  })
+});
+
+$(document).on('click','.bajaMov',function(e){
+  $('#mensajeExito').hide();
+  $('#mensajeError').hide();
+  var id_mov=$(this).parent().parent().attr('id');
+
+  var formData= {
+    id_log_movimiento: id_mov
+  }
+
+  modalEliminar(function(){
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+    });
+  
+    $.ajax({
+      type: 'POST',
+      url: 'movimientos/eliminarMovimiento',
+      data: formData,
+      dataType: 'json',
+      success: function (response){
+        $('#btn-buscarMovimiento').trigger('click');
+        $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
+        $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
+        $('#mensajeExito').show();
+      },
+      error: function(response){
+        console.log(response);
+        mensajeError(sacarErrores(response));
+      }
+    });
+  });
+});
+
+/* Detecta la confirmación para seguir cargando máquinas en movimientos */
+$('#mensajeExito .confirmar').click(function(e){
+  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
+  $('#mensajeExito').hide();
+  setTimeout(function(){
+    if(ultimo_boton_carga != null) ultimo_boton_carga.click();
+  },150);
+});
+
+/* Detecta la negativa para seguir cargando máquinas en movimientos */
+$('#mensajeExito .salir').click(function(e){
+  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
+  $('#mensajeExito').hide();
+  limpiarModal();
+});
+
+/* Cada vez que se abre un modal */
+$('.modal').on('shown.bs.modal', function() {
+  //Limpiar el mensaje de éxito. Sacar los botones y agregar animación
+  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
+  //Luego se lo cierra
+  $('#mensajeExito').hide();
+});
+
+$('#modalMaquina #nro_admin').on("keyup", function(e){
+  var text="NUEVA MÁQUINA TRAGAMONEDAS N°: " + $(this).val();
+  $('#modalMaquina .modal-title').text(text);
+});
+
+/* 
+ TABLA BUSQUEDA PRINCIPAL
+ ###########################
+ ##                       ##
+ ##                       ##
+ ##########     ############
+ ##########     ############
+ ##########     ############
+ ##########     ############
+ ##########     ############
+ ##########     ############
+ ###########################
+*/
+
 //Busqueda de movimientos
 $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
   $('#mensajeExito').hide();
@@ -1915,7 +2005,8 @@ function handleMovimientoIngreso(movimiento,fila){
   fila.find('.baja_mov').addClass('bajaMov');
   fila.find('.boton_toma2').remove();
   const estado_movimiento = movimiento.id_estado_movimiento;
-  if(estado_movimiento==8 || movimiento.cant_maquinas != 0){
+  const tiene_maquinas = movimiento.cant_maquinas !== null && movimiento.cant_maquinas != 0;
+  if(estado_movimiento==8 || tiene_maquinas){
     fila.find('.boton_cargar').show();
     fila.find('.nuevoIngreso').attr('style', 'display:none');
     fila.find('.enviarIngreso').show();
@@ -2046,81 +2137,6 @@ function generarFilaTabla(movimiento){
   return fila;
 }
 
-$(document).on('click','.print_mov',function(e){
-  var id= $(this).parent().parent().attr('id');
-  $.get('movimientos/maquinasEnviadasAFiscalizar/' + id, function(data){
-    if (data==0){
-      $('#modalAlerta').modal('show');
-    }
-    else{
-      window.open('movimientos/maquinasEnviadasAFiscalizar/' + id,'_blank');
-    }
-  })
-});
-
-
-$(document).on('click','.bajaMov',function(e){
-  $('#mensajeExito').hide();
-  $('#mensajeError').hide();
-  var id_mov=$(this).parent().parent().attr('id');
-
-  var formData= {
-    id_log_movimiento: id_mov
-  }
-
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
-
-  $.ajax({
-    type: 'POST',
-    url: 'movimientos/eliminarMovimiento',
-    data: formData,
-    dataType: 'json',
-    success: function (response){
-      $('#btn-buscarMovimiento').trigger('click');
-      $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
-      $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
-      $('#mensajeExito').show();
-    },
-    error: function(response){
-      console.log(response);
-      mensajeError(sacarErrores(response));
-    }
-  });
-});
-
-/* Detecta la confirmación para seguir cargando máquinas en movimientos */
-$('#mensajeExito .confirmar').click(function(e){
-  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  $('#mensajeExito').hide();
-  setTimeout(function(){
-    if(ultimo_boton_carga != null) ultimo_boton_carga.click();
-  },150);
-});
-
-/* Detecta la negativa para seguir cargando máquinas en movimientos */
-$('#mensajeExito .salir').click(function(e){
-  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  $('#mensajeExito').hide();
-  limpiarModal();
-});
-
-/* Cada vez que se abre un modal */
-$('.modal').on('shown.bs.modal', function() {
-  //Limpiar el mensaje de éxito. Sacar los botones y agregar animación
-  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  //Luego se lo cierra
-  $('#mensajeExito').hide();
-});
-
-$('#modalMaquina #nro_admin').on("keyup", function(e){
-  var text="NUEVA MÁQUINA TRAGAMONEDAS N°: " + $(this).val();
-  $('#modalMaquina .modal-title').text(text);
-});
-
 $('#collapseFiltros').keypress(function(e){
   if(e.charCode == 13){//Enter
     $('#btn-buscarMovimiento').click();
@@ -2190,4 +2206,27 @@ function parseError(response){
   else{
     return response;
   }
+}
+
+function modalEliminar(
+  confirmar = function(){},
+  cancelar = function(){},
+  mensaje = "¿Seguro desea eliminar el MOVIMIENTO?"
+)
+{
+  $('#modalEliminar #mensajeEliminar').empty();
+  $('#modalEliminar #mensajeEliminar').append($('<strong>').text(mensaje));
+  $('#modalEliminar .confirmar').off().click(function(){
+    confirmar();
+    setTimeout(function(){
+      $('#modalEliminar').modal('hide');
+    },250);
+  });
+  $('#modalEliminar .cancelar').off().click(function(){
+    cancelar();
+    setTimeout(function(){
+      $('#modalEliminar').modal('hide');
+    },250);
+  });
+  $('#modalEliminar').modal('show');
 }
