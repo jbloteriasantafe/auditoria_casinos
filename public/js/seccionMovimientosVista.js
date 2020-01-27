@@ -144,6 +144,11 @@ $(document).on('click', '#btn-nuevo-movimiento', function(e){
     };
   });
 
+  $('#modalCas .alerta').each(function(){
+    eliminarErrorValidacion($(this));
+    $(this).removeClass('alerta');
+  });
+
   //ABRE MODAL QUE ME PERMITE ELEGIR EL CASINO AL QUE PERTENECE EL NUEVO MOV.
   $('#modalCas').modal('show');
 });
@@ -186,9 +191,15 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
       $('#modalCas').modal('hide');
       $('#mensajeExito').show();
     },
-    error: function(data){
-      $('#mensajeError p').text('Debe seleccionar un casino y un tipo de movimiento');
-      $('#mensajeError').show();
+    error: function(response){
+      console.log(response);
+      const errorjson = response.responseJSON;
+      if(typeof errorjson.id_casino != 'undefined'){
+        mostrarErrorValidacion($('#selectCasinoIngreso'),parseError(errorjson.id_casino[0]),true);
+      }
+      if(typeof errorjson.id_tipo_movimiento != 'undefined'){
+        mostrarErrorValidacion($('#tipo_movimiento_nuevo'),parseError(errorjson.id_tipo_movimiento[0]),true);
+      }
     }
   })
 });
@@ -2068,18 +2079,15 @@ $(document).on('click','.bajaMov',function(e){
     url: 'movimientos/eliminarMovimiento',
     data: formData,
     dataType: 'json',
-    success: function (data){
+    success: function (response){
       $('#btn-buscarMovimiento').trigger('click');
       $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
       $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
       $('#mensajeExito').show();
-      console.log('Sucess!');
     },
-    error: function(data){
-      console.log(data);
-      $('#mensajeError p').text('No es posible eliminar este Movimiento.');
-      $('#mensajeError').show();
-      console.log('Error!');
+    error: function(response){
+      console.log(response);
+      mensajeError(sacarErrores(response));
     }
   });
 });
@@ -2113,6 +2121,26 @@ $('#modalMaquina #nro_admin').on("keyup", function(e){
   $('#modalMaquina .modal-title').text(text);
 });
 
+$('#collapseFiltros').keypress(function(e){
+  if(e.charCode == 13){//Enter
+    $('#btn-buscarMovimiento').click();
+  }
+})
+
+/* 
+ UTILIDADES
+ ###########################
+ ###       #######       ###
+ ###       #######       ###
+ ###       #######       ###
+ ###       #######       ###
+ ###       #######       ###
+ ###       #######       ###
+ ###                     ###
+ ###                     ###
+ ###########################
+*/
+
 function denominacionToFloat(den) {
   if (den=="" || den==null) {
     return parseFloat(0.01)
@@ -2121,8 +2149,45 @@ function denominacionToFloat(den) {
   return parseFloat(denf)
 }
 
-$('#collapseFiltros').keypress(function(e){
-  if(e.charCode == 13){//Enter
-    $('#btn-buscarMovimiento').click();
+//Saca los errores custom de un response y los retorna en una lista.
+function sacarErrores(errorResponse){
+  const errorjson = errorResponse.responseJSON;
+  const keys  = Object.keys(errorjson);
+  let msjs = [];
+  keys.forEach(function(k){
+    const list_msjs = errorjson[k];
+    list_msjs.forEach(function(str){msjs.push(str);});
+  });
+  return msjs;
+}
+
+//Toma una lista de strings y los muestra linea tras linea en el modal de errores.
+function mensajeError(errores) {
+  $('#mensajeError .textoMensaje').empty();
+  for (let i = 0; i < errores.length; i++) {
+      $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
   }
-})
+  $('#mensajeError').hide();
+  setTimeout(function() {
+      $('#mensajeError').show();
+  }, 250);
+}
+
+//Convierte los errores standard de laravel a lenguaje normal.
+function parseError(response){
+  if(response == 'validation.unique'){
+    return 'El valor tiene que ser único y ya existe el mismo.';
+  }
+  else if(response == 'validation.required'){
+    return 'El campo es obligatorio.'
+  }
+  else if(response == 'validation.max.string'){
+    return 'El valor es muy largo.'
+  }
+  else if(response == 'validation.exists'){
+    return 'El valor no es valido';
+  }
+  else{
+    return response;
+  }
+}

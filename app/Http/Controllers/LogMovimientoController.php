@@ -1306,16 +1306,18 @@ class LogMovimientoController extends Controller
       'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
       'id_casino' => 'required|exists:casino,id_casino'
     ], array(), self::$atributos)->after(function($validator) use ($user){
-      $data = $validator->getData();
-      $tipo_mov = TipoMovimiento::find($data['id_tipo_movimiento']);
-      $id_casino = $data['id_casino'];
-      // Lo que hago es verificar que no sea una intervencion MTM, 
-      // por si en algun futuro agregan otro que no sea uno de estos 2.
-      if($tipo_mov->es_intervencion_mtm){
-        $validator->errors()->add('id_tipo_movimiento', 'No se permite ese tipo de movimiento con esta operacion.');
-      }
-      if(!$user->usuarioTieneCasino($id_casino)){
-        $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
+      if(!$validator->errors()->any()){
+        $data = $validator->getData();
+        $tipo_mov = TipoMovimiento::find($data['id_tipo_movimiento']);
+        $id_casino = $data['id_casino'];
+        // Lo que hago es verificar que no sea una intervencion MTM, 
+        // por si en algun futuro agregan otro que no sea uno de estos 2.
+        if($tipo_mov->es_intervencion_mtm){
+          $validator->errors()->add('id_tipo_movimiento', 'No se permite ese tipo de movimiento con esta operacion.');
+        }
+        if(!$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
+        }
       }
     })->validate();
 
