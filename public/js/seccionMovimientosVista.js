@@ -156,7 +156,7 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
 
   var formData = {
     id_tipo_movimiento: id_mov,
-    casino:id_cas
+    id_casino:id_cas
   }
 
   $.ajaxSetup({
@@ -199,14 +199,15 @@ $(document).on('click', '.nuevoIngreso', function() {
   $('.modal-title').text('SELECCIÓN DE TIPO DE CARGA');
   $('input[name="carga"]').attr('checked', false);
   limpiarModal();
-  $('#tipoManual').prop('checked',true)
   habilitarControles(true);
   $('#btn-aceptar-ingreso').prop('disabled',true);
   $('#modalLogMovimiento #cantMaqCargar').hide();
   $('#modalLogMovimiento').find("#id_log_movimiento").val(id_movimiento);
   //estilo de modal, y lo muestra
   $('#modalLogMovimiento .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#tipoManual').prop('checked',true).click();
   $('#modalLogMovimiento').modal('show');
+
 
   $.get('movimientos/obtenerDatos/'+ id_movimiento, function(data){
     $('#conceptoExpediente').text(data.expediente.concepto);
@@ -2068,19 +2069,17 @@ $(document).on('click','.bajaMov',function(e){
     data: formData,
     dataType: 'json',
     success: function (data){
-      if(data==1){
-        $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
-        $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
-        $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
-        $('#mensajeExito').show();
-      }
-      else{
-        $('#mensajeError p').text('No es posible eliminar este Movimiento.');
-        $('#mensajeError').show();
-      }
+      $('#btn-buscarMovimiento').trigger('click');
+      $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
+      $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
+      $('#mensajeExito').show();
+      console.log('Sucess!');
     },
     error: function(data){
-      alert('ERROR: El movimiento ya fue enviado a fiscalizar o tiene asignado un expediente.',data);
+      console.log(data);
+      $('#mensajeError p').text('No es posible eliminar este Movimiento.');
+      $('#mensajeError').show();
+      console.log('Error!');
     }
   });
 });

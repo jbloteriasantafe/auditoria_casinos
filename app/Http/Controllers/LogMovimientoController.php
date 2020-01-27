@@ -1297,52 +1297,62 @@ class LogMovimientoController extends Controller
             'tipos_movimientos' => $t];
   }
 
+  // Llamado desde ASIGNACION y desde el nuevo cambio (Enero 2020)
+  // es SOLO para INGRESOS INICIALES y EGRESOS DEFINITIVOS
   public function nuevoLogMovimiento(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $validator =Validator::make($request->all(),
     [
       'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
-      'casino' => 'required|exists:casino,id_casino'
-    ], array(), self::$atributos)->after(function($validator){})->validate();
-
-    if(isset($validator))
-      {
-        if ($validator->fails())
-        {
-          return [
-                'errors' => $validator->getMessageBag()->toArray()
-            ];
-        }
+      'id_casino' => 'required|exists:casino,id_casino'
+    ], array(), self::$atributos)->after(function($validator) use ($user){
+      $data = $validator->getData();
+      $tipo_mov = TipoMovimiento::find($data['id_tipo_movimiento']);
+      $id_casino = $data['id_casino'];
+      // Lo que hago es verificar que no sea una intervencion MTM, 
+      // por si en algun futuro agregan otro que no sea uno de estos 2.
+      if($tipo_mov->es_intervencion_mtm){
+        $validator->errors()->add('id_tipo_movimiento', 'No se permite ese tipo de movimiento con esta operacion.');
       }
+      if(!$user->usuarioTieneCasino($id_casino)){
+        $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
+      }
+    })->validate();
 
-      $id_usuario = session('id_usuario');
-      //$id_casino = UsuarioController::getInstancia()->buscarCasinoDelUsuario($id_usuario);
+    //creo un expedienteAux para que cuando el movimiento se muestre en la lista no tenga problemas y se muestre
+    //hay que crearlo a pata en la base de datos del sistema que funciona con los casinos
+    $expedienteAux = Expediente::where(
+      [
+        ['concepto' ,'=','expediente_auxiliar_para_movimientos'],
+        ['id_casino','=',$request['id_casino']]
+      ]
+    )->get()->first();
 
-      //creo un expedienteAux para que cuando el movimiento se muestre en la lista no tenga problemas y se muestre
-      //hay que crearlo a pata en la base de datos del sistema que funciona con los casinos
-      $expedienteAux = Expediente::where([['concepto','=','expediente_auxiliar_para_movimientos'],['id_casino','=',$request['casino']]])->get()->first();
+    $logMovimiento = new LogMovimiento;
+    $logMovimiento->tiene_expediente = 0;
+    $logMovimiento->estado_movimiento()->associate(1);//estado = notificado
+    $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+    // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
+    // Recordar que sentido son REINGRESO, EGRESO TEMPORAL y ---
+    // SON UTILIZADOS POR MOVIMIENTOS POR INTERVENCION MTM!
+    $logMovimiento->sentido = "---";
+    $f = date("Y-m-d");
+    $logMovimiento->fecha = $f;
+    $logMovimiento->casino()->associate($request['id_casino']);
+    $logMovimiento->expediente()->associate($expedienteAux->id_expediente);
+    $logMovimiento->save();
+    $logMovimiento->controladores()->attach($user->id_usuario);
+    $logMovimiento->save();
 
-      $logMovimiento = new LogMovimiento;
-      $logMovimiento->tiene_expediente = 0;
-      $logMovimiento->estado_movimiento()->associate(1);//estado = notificado
-      $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-      $logMovimiento->sentido = "---";
-      $f = date("Y-m-d");
-      $logMovimiento->fecha = $f;
-      $logMovimiento->casino()->associate($request['casino']);
-      $logMovimiento->expediente()->associate($expedienteAux->id_expediente);
-      $logMovimiento->save();
-      $logMovimiento->controladores()->attach($id_usuario);
-      $logMovimiento->save();
+    $log = DB::table('log_movimiento')
+                ->select('log_movimiento.*','tipo_movimiento.descripcion','casino.id_casino','expediente.*')
+                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+                ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
+                ->join('expediente','expediente.id_expediente','=','log_movimiento.id_expediente')
+                ->where('log_movimiento.id_log_movimiento','=',$logMovimiento->id_log_movimiento)
+                ->get()->first();
 
-      $log = DB::table('log_movimiento')
-                  ->select('log_movimiento.*','tipo_movimiento.descripcion','casino.id_casino','expediente.*')
-                  ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                  ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                  ->join('expediente','expediente.id_expediente','=','log_movimiento.id_expediente')
-                  ->where('log_movimiento.id_log_movimiento','=',$logMovimiento->id_log_movimiento)
-                  ->get()->first();
-
-      return response()->json($log);
+    return response()->json($log);
 
   }
 
@@ -1369,24 +1379,38 @@ class LogMovimientoController extends Controller
     Recibe id del movimiento,
     si no tiene relevamientos creados o no tiene expediente, se puede eliminar
   */
-  public function eliminarMovimiento(Request $req)
+  public function eliminarMovimiento(Request $request)
   {
-    $log = LogMovimiento::find($req['id_log_movimiento']);
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $log = NULL;
 
-    if(isset($log->relevamientos_movimientos[0]) || $log->tiene_expediente == 1)
-    {
-      return 0;//dd('El movimiento ya fue enviado a fiscalizar o tiene asignado un expediente.');
-    }else{
-      $log->tipo_movimiento()->dissociate();
-      $log->estado_movimiento()->dissociate();
-      $log->expediente()->dissociate();
-      $log->controladores()->detach();
-      LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
-      //$log->log_clicks_movs()->detach();
-      LogMovimiento::destroy($log->id_log_movimiento);
+    $validator =Validator::make($request->all(),
+    [
+      'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento'
+    ], array(), self::$atributos)->after(function($validator) use ($user,&$log){
+      if(!$validator->errors()->any()){//Si no el log_movimiento existe
+        $data = $validator->getData();
+        $log = LogMovimiento::find($data['id_log_movimiento']);
+        if(!$user->usuarioTieneCasino($log->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
+        }
+        if($log->relevamientos_movimientos->count() > 0){
+          $validator->errors()->add('id_log_movimiento','El movimiento ya fue enviado a fiscalizar.');
+        }
+        if($log->tiene_expediente == 1){
+          $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
+        }
+      }
+    })->validate();
 
-      return 1;
-    }
+    $log->tipo_movimiento()->dissociate();
+    $log->estado_movimiento()->dissociate();
+    $log->expediente()->dissociate();
+    $log->controladores()->detach();
+    LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
+    //$log->log_clicks_movs()->detach();
+    LogMovimiento::destroy($log->id_log_movimiento);
+    return 1;
   }
 
   //desde seccion notas
