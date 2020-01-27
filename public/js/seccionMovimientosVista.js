@@ -2063,8 +2063,10 @@ function handleMovimientoCambioLayout(movimiento,fila){
 //paginacion
 function generarFilaTabla(movimiento){
   let fila              = $('#filaEjemploMovimiento').clone().removeAttr('id','');
-  let t_mov             = movimiento.descripcion;
-  let estado_movimiento = movimiento.id_estado_movimiento;
+  const t_mov             = movimiento.descripcion;
+  const estado_movimiento = movimiento.id_estado_movimiento;
+  const fecha = convertirDate(movimiento.fecha);
+  const islas = (movimiento.islas != null)? movimiento.islas : '-';
   let expediente        = '-';
   if(movimiento.nro_exp_org != null){
       expediente        = movimiento.nro_exp_org + '-'
@@ -2073,10 +2075,10 @@ function generarFilaTabla(movimiento){
   }
 
   fila.attr('id', movimiento.id_log_movimiento);
-  fila.find('.fecha_mov').text(convertirDate(movimiento.fecha));
-  fila.find('.nro_exp_mov').text(expediente);
-  fila.find('.islas_mov').text((movimiento.islas != null)? movimiento.islas : '-');
-  fila.find('.tipo_mov').text(t_mov); 
+  fila.find('.fecha_mov').text(fecha).attr('title',fecha);
+  fila.find('.nro_exp_mov').text(expediente).attr('title',expediente);
+  fila.find('.islas_mov').text(islas).attr('title',islas);
+  fila.find('.tipo_mov').text(t_mov).attr('title',t_mov); 
 
   let icono = fila.find('.icono_mov i');
   switch(estado_movimiento){
@@ -2229,4 +2231,31 @@ function modalEliminar(
     },250);
   });
   $('#modalEliminar').modal('show');
+}
+
+//En maquinas hay otra funcion parecida le pongo otro nombre.
+function mensajeExitoMovimientos(
+  opts = {
+    titulo : 'ÉXITO',
+    mensajes : [],
+    mostrarBotones : false,
+    confirmar : function(){},
+    salir : function(){}
+  }
+) {
+  $('#mensajeExito .textoMensaje').empty();
+  $('#mensajeExito .textoMensaje').append($('<h3>').text(opts.titulo));
+  for (let i = 0; i < opts.mensajes.length; i++) {
+      $('#mensajeExito .textoMensaje').append($('<h4>').text(opts.mensajes[i]));
+  }
+  $('#mensajeExito').hide();
+  if(opts.mostrarBotones){
+    $('#mensajeExito').addClass('mostrarBotones');
+  }
+  else{
+    $('#mensajeExito').removeClass('mostrarBotones');
+  }
+  setTimeout(function() {
+      $('#mensajeExito').show();
+  }, 250);
 }
