@@ -727,7 +727,19 @@ function enviarFiscalizar(id_mov,maq,fecha, fin,reingreso){
 };
 //*******************************************************************************************************************************
 
-
+/* 
+ DENOMINACION
+ ###########################
+ ######           ##########
+ ######   ########   #######
+ ######   ##########   #####
+ ######   ##########   #####
+ ######   ##########   #####
+ ######   #########   ######
+ ######   ######     #######
+ ######           ##########
+ ###########################
+*/
 //*************BOTÓN NUEVO DE MOVIMIENTO: DENOMINACION **************************************************
 
 $(document).on('click','.modificarDenominacion',function(){
@@ -1124,10 +1136,9 @@ $(document).on('click','#btn-pausar-denom',function(e){
         break;
       }
     maquinas.push(maquina);
-
-    //USA LA FC DE POST, ENVIANDO EN FALSE EL ATRIBUTO DE CARGA FINALIZADA
-    enviarDenominacion(id_log_movim, maquinas, fecha, false);
-   })
+   });
+  //USA LA FC DE POST, ENVIANDO EN FALSE EL ATRIBUTO DE CARGA FINALIZADA
+  enviarDenominacion(id_log_movim, maquinas, fecha, false);
 });
 
 //FUNCION PARA ENVIAR EL POST AL CONTROLADOR, CON LOS CAMBIOS GENERADOS
@@ -1168,14 +1179,7 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
     },
     error: function (data) {
       var response = data.responseJSON.errors;
-
-      if(typeof response.fecha !== 'undefined'){
-        mostrarErrorValidacion($('#B_fecha_denom'),response.fecha[0],false);
-      }
-      else{
-        $('#mensajeFiscalizacionError2').show();
-        $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
-      }
+      mensajeError(sacarErrores(data));
     },
   });
 };

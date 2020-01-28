@@ -299,6 +299,7 @@ Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@
 Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
 Route::get('movimientos/maquinasEnviadasAFiscalizar/{id_movimiento}','RelevamientoMovimientoController@maquinasEnviadasAFiscalizar');
 Route::get('movimientos/finalizarValidacion/{id}', 'LogMovimientoController@cambiarEstadoFiscalizacionAValidado');
+Route::get('movimientos/eliminarRelevamientos/{id_log_movimiento}','LogMovimientoController@eliminarRelevamientos');
 
 
 /**********

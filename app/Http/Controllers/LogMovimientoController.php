@@ -534,36 +534,36 @@ class LogMovimientoController extends Controller
   }
 
   public function guardarRelevamientosMovimientosMaquinas(Request $req){
+      //Auxiliar con un arreglo vacio asi no tengo que chequear exists constantemente
+      $maquinas = [];
       $validator = Validator::make($req->all(), [
           'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
-          'maquinas' => 'required',
+          'maquinas' => 'nullable',
           'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
           'maquinas.*.id_juego' => 'nullable | exists:juego,id_juego',
           'maquinas.*.porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
           'maquinas.*.denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
           'maquinas.*.id_unidad_medida' => 'nullable | exists:unidad_medida,id_unidad_medida',
           'carga_finalizada'=> 'required'
-      ], array(), self::$atributos)->after(function ($validator){
-        foreach ($validator->getData()['maquinas'] as $maquina) {
-          if($this->maquinaDuplicada($validator->getData()['maquinas'], $maquina['id_maquina'])){
-            $validator->errors()->add('id_maquina', 'Se ha cargado más de una vez al menos una máquina.');
+      ], array(), self::$atributos)->after(function ($validator) use (&$maquinas){
+        $data = $validator->getData();
+        if(!$validator->errors()->any()){
+          if(array_key_exists('maquinas',$data)){
+            foreach ($data['maquinas'] as $maquina) {
+              if($this->maquinaDuplicada($data['maquinas'], $maquina['id_maquina'])){
+                $validator->errors()->add('id_maquina', 'Se ha cargado más de una vez al menos una máquina.');
+              }
+              $maquinas[] = $maquina;
+            }
           }
         }
       })->validate();
-      if(isset($validator))
-      {
-        if ($validator->fails())
-        {
-          return [
-                'errors' => $validator->getMessageBag()->toArray()
-            ];
-        }
-      }
-
-
+      
       $logMov = LogMovimiento::find($req['id_log_movimiento']);
 
       $logMov->estado_relevamiento()->associate(1);//generado
+
+      $this->eliminarRelevamientos($logMov->id_log_movimiento);
 
       $id_usuario = session('id_usuario');
       if($this->noEsControlador($id_usuario,  $logMov)){
@@ -573,7 +573,7 @@ class LogMovimientoController extends Controller
 
       switch ($logMov->id_tipo_movimiento) {
         case 5: //denominacion
-          foreach ($req['maquinas'] as $maquina)
+          foreach ($maquinas as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             // el cambio de denominacion por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
@@ -589,7 +589,7 @@ class LogMovimientoController extends Controller
           }
           break;
         case 6: //% devolucion
-          foreach ($req['maquinas'] as $maquina)
+          foreach ($maquinas as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
@@ -605,7 +605,7 @@ class LogMovimientoController extends Controller
           }
           break;
         case 7: //juego
-          foreach ($req['maquinas'] as $maquina)
+          foreach ($maquinas as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             MTMController::getInstancia()->modificarJuegoConDenYPorc($maquina['id_juego'],$maquina['id_maquina'],$maquina['denominacion'],$maquina['porcentaje_devolucion']);
@@ -622,7 +622,6 @@ class LogMovimientoController extends Controller
       }
 
      if($req['carga_finalizada'] == 'true'){
-
         $this->enviarAFiscalizar2($req['id_log_movimiento'],"false",$req['fecha']); //false porque no es reingreso
         if(!isset($logMov->fiscalizaciones))
         {
@@ -634,14 +633,14 @@ class LogMovimientoController extends Controller
     }
 
     private function maquinaDuplicada($maquinas, $id_maquina){
-      $aux =0;
+      $aux = 0;
       foreach ($maquinas as $maquina) {
         if($maquina['id_maquina'] == $id_maquina){
           $aux++;
         }
-      }
-      if($aux >1){
-        return true;
+        if($aux>1){
+          return true;
+        }
       }
       return false;
     }
@@ -676,7 +675,6 @@ class LogMovimientoController extends Controller
 
   //para poder realizar la carga de los datos
   public function obtenerRelevamientosFiscalizacion($id_fiscalizacion_movimiento){
-
     $maquinas = DB::table('fiscalizacion_movimiento')
                   ->select('maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
                   ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
@@ -690,7 +688,6 @@ class LogMovimientoController extends Controller
     $user = Usuario::find($id_usuario);
     $casino=$maquinas[0]->id_casino;
     return ['relevamientos' => $maquinas ,'cargador' => $user, 'casino' =>$casino, 'usuario_fiscalizador' => $fiscalizacion->fiscalizador];
-
   }
 
   //se usa sólo para cargar los relevamientos - desde los fiscalizadores
@@ -705,7 +702,6 @@ class LogMovimientoController extends Controller
               ->where('maquina.id_maquina','=',$id_maquina)
               ->get()
               ->first();
-
 
     $juegos = (Maquina::find($id_maquina))->juegos;
     $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion],['id_maquina','=',$id_maquina]])->get()->first();
@@ -1345,41 +1341,42 @@ class LogMovimientoController extends Controller
       }
     })->validate();
 
-    //creo un expedienteAux para que cuando el movimiento se muestre en la lista no tenga problemas y se muestre
-    //hay que crearlo a pata en la base de datos del sistema que funciona con los casinos
-    $expedienteAux = Expediente::where(
-      [
-        ['concepto' ,'=','expediente_auxiliar_para_movimientos'],
-        ['id_casino','=',$request['id_casino']]
-      ]
-    )->get()->first();
+    $log = null;
+    DB::transaction(function () use ($request, $user,&$log) {
+        //creo un expedienteAux para que cuando el movimiento se muestre en la lista no tenga problemas y se muestre
+        //hay que crearlo a pata en la base de datos del sistema que funciona con los casinos
+        $expedienteAux = Expediente::where(
+            [
+                ['concepto', '=', 'expediente_auxiliar_para_movimientos'],
+                ['id_casino', '=', $request['id_casino']],
+            ]
+        )->get()->first();
 
-    $logMovimiento = new LogMovimiento;
-    $logMovimiento->tiene_expediente = 0;
-    $logMovimiento->estado_movimiento()->associate(1);//estado = notificado
-    $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-    // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
-    // Recordar que sentido son REINGRESO, EGRESO TEMPORAL y ---
-    // SON UTILIZADOS POR MOVIMIENTOS POR INTERVENCION MTM!
-    $logMovimiento->sentido = "---";
-    $f = date("Y-m-d");
-    $logMovimiento->fecha = $f;
-    $logMovimiento->casino()->associate($request['id_casino']);
-    $logMovimiento->expediente()->associate($expedienteAux->id_expediente);
-    $logMovimiento->save();
-    $logMovimiento->controladores()->attach($user->id_usuario);
-    $logMovimiento->save();
+        $logMovimiento = new LogMovimiento;
+        $logMovimiento->tiene_expediente = 0;
+        $logMovimiento->estado_movimiento()->associate(1); //estado = notificado
+        $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+        // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
+        // Recordar que sentido son REINGRESO, EGRESO TEMPORAL y ---
+        // SON UTILIZADOS POR MOVIMIENTOS POR INTERVENCION MTM!
+        $logMovimiento->sentido = "---";
+        $f = date("Y-m-d");
+        $logMovimiento->fecha = $f;
+        $logMovimiento->casino()->associate($request['id_casino']);
+        $logMovimiento->expediente()->associate($expedienteAux->id_expediente);
+        $logMovimiento->save();
+        $logMovimiento->controladores()->attach($user->id_usuario);
+        $logMovimiento->save();
 
-    $log = DB::table('log_movimiento')
-                ->select('log_movimiento.*','tipo_movimiento.descripcion','casino.id_casino','expediente.*')
-                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                ->join('expediente','expediente.id_expediente','=','log_movimiento.id_expediente')
-                ->where('log_movimiento.id_log_movimiento','=',$logMovimiento->id_log_movimiento)
-                ->get()->first();
-
+        $log = DB::table('log_movimiento')
+            ->select('log_movimiento.*', 'tipo_movimiento.descripcion', 'casino.id_casino', 'expediente.*')
+            ->join('tipo_movimiento', 'tipo_movimiento.id_tipo_movimiento', '=', 'log_movimiento.id_tipo_movimiento')
+            ->join('casino', 'casino.id_casino', '=', 'log_movimiento.id_casino')
+            ->join('expediente', 'expediente.id_expediente', '=', 'log_movimiento.id_expediente')
+            ->where('log_movimiento.id_log_movimiento', '=', $logMovimiento->id_log_movimiento)
+            ->get()->first();
+    });
     return response()->json($log);
-
   }
 
   public function asociarExpediente($id_log_movimiento, $id_expediente){
@@ -1429,13 +1426,15 @@ class LogMovimientoController extends Controller
       }
     })->validate();
 
-    $log->tipo_movimiento()->dissociate();
-    $log->estado_movimiento()->dissociate();
-    $log->expediente()->dissociate();
-    $log->controladores()->detach();
-    LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
-    //$log->log_clicks_movs()->detach();
-    LogMovimiento::destroy($log->id_log_movimiento);
+    DB::transaction(function() use (&$log){
+      $log->tipo_movimiento()->dissociate();
+      $log->estado_movimiento()->dissociate();
+      $log->expediente()->dissociate();
+      $log->controladores()->detach();
+      LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
+      //$log->log_clicks_movs()->detach();
+      LogMovimiento::destroy($log->id_log_movimiento);
+    });
     return 1;
   }
 
@@ -1457,6 +1456,20 @@ class LogMovimientoController extends Controller
 
       return 1;
     }
+  }
+
+  public function eliminarRelevamientos($id_log_movimiento){
+    $log = LogMovimiento::find($id_log_movimiento);
+    if(is_null($log)) return 0;
+
+    $relController = RelevamientoMovimientoController::getInstancia();
+    DB::transaction(function() use ($log,$relController){
+      foreach($log->relevamientos_movimientos as $rel){
+        $relController->eliminarRelevamiento($rel->id_relev_mov);
+      }
+      $log->save();
+    });
+    return 1;
   }
 
 
