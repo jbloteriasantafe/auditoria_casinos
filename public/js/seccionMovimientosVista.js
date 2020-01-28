@@ -209,8 +209,6 @@ $(document).on('click', '.nuevoIngreso', function() {
   var id_movimiento=$(this).parent().parent().attr('id');
   $('.modal-title').text('SELECCIÓN DE TIPO DE CARGA');
   $('input[name="carga"]').attr('checked', false);
-  limpiarModal();
-  habilitarControles(true);
   $('#btn-aceptar-ingreso').prop('disabled',true);
   $('#modalLogMovimiento #cantMaqCargar').hide();
   $('#modalLogMovimiento').find("#id_log_movimiento").val(id_movimiento);
@@ -1753,15 +1751,15 @@ $("#btn-enviar-ingreso").click(function(e){
     dataType: 'json',
 
     success: function (data){
-      $('#mensajeExito h3').text('ENVÍO EXITOSO');
-      $('#mensajeExito p').text('Las máquinas fueron enviadas correctamente');
       $('#modalEnviarFiscalizarIngreso').modal('hide');
-      $('#mensajeExito').show();
+      mensajeExitoMovimientos({
+        titulo: 'ENVÍO EXITOSO',
+        mensajes: ['Las máquinas fueron enviadas correctamente']
+      });
     },
     error: function(data){
-      $('#mensajeError h3').text('ERROR');
-      $('#mensajeError p').text('No hay máquinas seleccionadas');
-      $('#mensajeError').show();
+      console.log(data);
+      mensajeError(sacarErrores(data));
     }
   })
 })
@@ -1933,6 +1931,7 @@ $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
     casino: $('#dtpCasinoMov').val(),
     fecha: $('#fecha_movimiento').val(),
     nro_admin: $('#busqueda_maquina').val(),
+    id_log_movimiento: $('#busqueda_numero').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
@@ -2063,6 +2062,7 @@ function handleMovimientoCambioLayout(movimiento,fila){
 //paginacion
 function generarFilaTabla(movimiento){
   let fila              = $('#filaEjemploMovimiento').clone().removeAttr('id','');
+  const id = movimiento.id_log_movimiento;
   const t_mov             = movimiento.descripcion;
   const estado_movimiento = movimiento.id_estado_movimiento;
   const fecha = convertirDate(movimiento.fecha);
@@ -2074,7 +2074,8 @@ function generarFilaTabla(movimiento){
                         + movimiento.nro_exp_control;
   }
 
-  fila.attr('id', movimiento.id_log_movimiento);
+  fila.attr('id', id);
+  fila.find('.nro_mov').text(id).attr('title',id);
   fila.find('.fecha_mov').text(fecha).attr('title',fecha);
   fila.find('.nro_exp_mov').text(expediente).attr('title',expediente);
   fila.find('.islas_mov').text(islas).attr('title',islas);
@@ -2233,29 +2234,37 @@ function modalEliminar(
   $('#modalEliminar').modal('show');
 }
 
-//En maquinas hay otra funcion parecida le pongo otro nombre.
-function mensajeExitoMovimientos(
-  opts = {
+//Recibe un objeto como deftl.
+function mensajeExitoMovimientos(args) {
+  const deflt = {
     titulo : 'ÉXITO',
     mensajes : [],
     mostrarBotones : false,
+    fijarMensaje : false,
     confirmar : function(){},
     salir : function(){}
-  }
-) {
+  };
+  const noargs = isUndef(args);
+  const titulo = noargs || isUndef(args.titulo)? deflt.titulo : args.titulo;
+  const mensajes = noargs ||isUndef(args.mensajes)? deflt.mensajes : args.mensajes;
+  const mostrarBotones = noargs || isUndef(args.mostrarBotones)? deflt.mostrarBotones : args.mostrarBotones;
+  const fijarMensaje = noargs || isUndef(args.fijarMensaje)? deflt.fijarMensaje : args.fijarMensaje;
+  const confirmar = noargs || isUndef(args.confirmar)? deflt.confirmar : args.confirmar;
+  const salir = noargs || isUndef(args.salir)? deflt.salir : args.salir; 
+
   $('#mensajeExito .textoMensaje').empty();
-  $('#mensajeExito .textoMensaje').append($('<h3>').text(opts.titulo));
-  for (let i = 0; i < opts.mensajes.length; i++) {
-      $('#mensajeExito .textoMensaje').append($('<h4>').text(opts.mensajes[i]));
-  }
+  $('#mensajeExito .textoMensaje').append($('<h3>').text(titulo));
+  mensajes.forEach(function(m){
+    $('#mensajeExito .textoMensaje').append($('<h4>').text(m));
+  });
+  $('#mensajeExito').toggleClass('mostrarBotones',mostrarBotones == true);//Conversion a boolean por si pasa cualquiera.
+  $('#mensajeExito').toggleClass('fijarMensaje',fijarMensaje == true);
   $('#mensajeExito').hide();
-  if(opts.mostrarBotones){
-    $('#mensajeExito').addClass('mostrarBotones');
-  }
-  else{
-    $('#mensajeExito').removeClass('mostrarBotones');
-  }
   setTimeout(function() {
       $('#mensajeExito').show();
   }, 250);
+}
+
+function isUndef(x){
+  return typeof x == 'undefined';
 }

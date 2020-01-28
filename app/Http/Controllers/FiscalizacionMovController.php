@@ -131,6 +131,10 @@ class FiscalizacionMovController extends Controller
       $resultados = $resultados->whereYear('fiscalizacion_movimiento.fecha_envio_fiscalizar' , '=', $fecha[0])
                                ->whereMonth('fiscalizacion_movimiento.fecha_envio_fiscalizar','=', $fecha[1]);
     }
+
+    if(isset($request->id_log_movimiento)){
+      $resultados = $resultados->whereRaw("CAST(log_movimiento.id_log_movimiento as CHAR) regexp ?",'^'.$request->id_log_movimiento);
+    }
     
     $resultados = $resultados->groupBy('fiscalizacion_movimiento.id_fiscalizacion_movimiento','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
     ->when($sort_by,function($query) use ($sort_by){

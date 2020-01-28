@@ -582,6 +582,7 @@ $('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
     fecha: $('#fechaRelMov').val(),
     nro_admin: $('#busqueda_maquina').val(),
     id_casino: $('#B_Casino').val(),
+    id_log_movimiento: $('#busqueda_numero_movimiento').val(),
     page: noTieneValor(page)? 1 : page,
     sort_by: sort_by,
     page_size: noTieneValor(page_size)? 10 : page_size,
@@ -631,6 +632,7 @@ function generarFilaTabla(rel){
   const nota = noTieneValor(rel.identificacion_nota)? '---' : rel.identificacion_nota;
 
   let fila = $('#filaEjemploRelevamiento').clone().attr('id',rel.id_fiscalizacion_movimiento);
+  fila.find('.movimiento').text(rel.id_log_movimiento).attr('title',rel.id_log_movimiento);
   fila.find('.fecha').text(fecha).attr('title',fecha);
   fila.find('.nota').text(nota).attr('title',nota);
   fila.find('.tipo').text(tipo_mov).attr('title',tipo_mov);
@@ -679,3 +681,9 @@ $(document).on('click','#tablaRelevamientosMovimientos thead tr th[value]',funct
   $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
+
+$('#collapseFiltros').keypress(function(e){
+  if(e.charCode == 13){//Enter
+    $('#btn-buscarRelMov').click();
+  }
+})

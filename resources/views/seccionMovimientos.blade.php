@@ -80,6 +80,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       @endforeach
                     </select>
                   </div>
+                  <div class="col-lg-3">
+                    <h5>Nro. de movimiento</h5>
+                    <input id="busqueda_numero" type="text" class="form-control" placeholder="Nro. de movimiento">
+                  </div>
 
                 </div> <!-- row / formulario -->
                 <br>
@@ -109,13 +113,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                       <table id="tablaResultados" class="table table-fixed tablesorter">
                         <thead>
                           <tr>
-                            <th class="col-md-2" value="log_movimiento.fecha" estado="">FECHA <i class="fa fa-sort"></i></th>
-                            <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE <i class="fa fa-sort"></i></th>
+                            <th class="col-md-1" value="log_movimiento.id_log_movimiento" estado="">NÚMERO<i class="fa fa-sort"></i></th>
+                            <th class="col-md-1" value="log_movimiento.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE<i class="fa fa-sort"></i></th>
                             <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
-                            <th class="col-md-2" value="tipo_movimiento.descripcion" estado="">TIPO MOVIMIENTO <i class="fa fa-sort"></i></th>
-                            <th class="col-md-1" value="log_movimiento.id_estado_movimiento" estado="">VALIDADO <i class="fa fa-sort"></i></th>
+                            <th class="col-md-2" value="tipo_movimiento.descripcion" estado="">TIPO MOVIMIENTO<i class="fa fa-sort"></i></th>
+                            <th class="col-md-1" value="log_movimiento.id_estado_movimiento" estado="">ESTADO<i class="fa fa-sort"></i></th>
                             <th class="col-md-3" >ACCIÓN </th>
-
                           </tr>
                         </thead>
                           <tbody  id='cuerpoTabla' style="height: 380px;">
@@ -1569,7 +1573,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
 <table hidden>
   <tr id="filaEjemploMovimiento">
-     <td class="col-xs-2 fecha_mov">99 DIC 9999</td>
+     <td class="col-xs-1 nro_mov">9999999</td>
+     <td class="col-xs-1 fecha_mov">99 DIC 9999</td>
      <td class="col-xs-2 nro_exp_mov">9999-999-9</td>
      <td class="col-xs-2 islas_mov">9999-9999-...</td>
      <td class="col-xs-2 tipo_mov">TIPO9999</td>

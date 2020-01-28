@@ -212,10 +212,14 @@ class LogMovimientoController extends Controller
     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9]);
 
     if(!empty($request->fecha)){
-        $fecha = explode("-", $request->fecha);
-        $resultados = $resultados->whereYear('log_movimiento.fecha' , '=' ,$fecha[0])
-        ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
+      $fecha = explode("-", $request->fecha);
+      $resultados = $resultados->whereYear('log_movimiento.fecha' , '=' ,$fecha[0])
+      ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
     }
+    if(!empty($request->id_log_movimiento)){
+      $resultados = $resultados->whereRaw("CAST(log_movimiento.id_log_movimiento as CHAR) regexp ?",'^'.$request->id_log_movimiento);
+    }
+
     $resultados = $resultados->distinct('log_movimiento.id_log_movimiento','expediente.id_expediente','casino.id_casino','tipo_movimiento.id_tipo_movimiento')
     ->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
@@ -290,41 +294,61 @@ class LogMovimientoController extends Controller
 
   //solo cuando es MOVIMIENTO INGRESO
   public function enviarAFiscalizar(Request $request){
-    //el request envia el log movimiento con las maquinas que se van a relevar efectivamente
-    // 'id_log_movimiento', maquinas, maquinas.*.id_maquina
-    if(!empty($request['maquinas']) || count($request['maquinas']) > 0 ){
-      $logMov = LogMovimiento::find($request['id_log_movimiento']);
-      if(!isset($logMov->fiscalizaciones))
-      {
-        $logMov->estado_movimiento()->associate(2);//fiscalizando
+    $user_request = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $logMov = null;
+    $maquinas = [];
+    $validator = Validator::make($request->all(), [
+      'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
+      'maquinas' => 'nullable|array',
+      'maquinas.*' => 'required|exists:maquina,id_maquina'
+    ], array(), self::$atributos)->after(function ($validator) use ($user_request,&$logMov,&$maquinas){
+      if(!$validator->errors()->any()){
+        $data = $validator->getData();
+        $logMov = LogMovimiento::find($data['id_log_movimiento']);
+        if(!$user_request->usuarioTieneCasino($logMov->id_casino)){
+          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');  
+        }
+        if(!array_key_exists('maquinas',$data)){
+          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.'); 
+        }
+        else foreach($data['maquinas'] as $m){
+          $maq = Maquina::find($m);
+          if(!$user_request->usuarioTieneCasino($maq->id_casino)){
+            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');  
+          }
+          $maquinas[] = $maq;
+        }
       }
-      $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
-      foreach ($request['maquinas'] as $maq) {
-        $maquina = Maquina::find($maq);
-        $maquina->estado_maquina()->associate(1);//Ingreso
-        //crear log maquina
-        LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "MTM enviada a fiscalizar.",1);
-        //busco los relevamientos que se crearon para asociarlos a una fiscalizacion
-        $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $maq],['id_log_movimiento','=',$request['id_log_movimiento']]])->get()->first();
-        $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
-        $relevamiento->save();
-      }
+    })->validate();
 
-      $id_usuario = session('id_usuario');
-      $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$id_usuario );
-      foreach ($usuarios as $user){
-        $u = Usuario::find($user->id_usuario);
-       if($u != null)  $u->notify(new RelevamientoGenerado($fiscalizacion));
-      }
-
-      $date = date('Y-m-d h:i:s', time());
-      $titulo = "Relevamiento Movimientos";
-      $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
-      CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
-      return 1;
+    if(!isset($logMov->fiscalizaciones)){
+      $logMov->estado_movimiento()->associate(2);//fiscalizando
     }
-    return response()->json(['maquinas' => 'No hay máquinas seleccionadas.'], 422);
 
+    $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
+    foreach($maquinas as $m){
+      $m->estado_maquina()->associate(1);//Ingreso
+      //crear log maquina
+      LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, "MTM enviada a fiscalizar.",1);
+      //busco los relevamientos que se crearon para asociarlos a una fiscalizacion
+      $relevamiento = RelevamientoMovimiento::where([
+        ['id_maquina'       ,'=',$m->id_maquina],
+        ['id_log_movimiento','=',$logMov->id_log_movimiento]
+      ])->get()->first();
+      $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
+      $relevamiento->save();
+    }
+    $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
+    foreach ($usuarios as $u){
+      $user = Usuario::find($u->id_usuario);
+      if($user != null) $user->notify(new RelevamientoGenerado($fiscalizacion));
+    }
+
+    $date = date('Y-m-d h:i:s', time());
+    $titulo = "Relevamiento Movimientos";
+    $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
+    CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
+    return 1;
   }
 
   //para los demás movimientos

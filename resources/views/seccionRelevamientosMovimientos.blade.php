@@ -42,8 +42,16 @@ $cas = $usuario['usuario']->casinos;
             <div class="panel-body">
 
               <div class="row">
-
-                <div class="col-lg-3">
+                <div class="col-lg-4">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="B_Casino">
+                    <option value="" selected>Todos</option>
+                    @foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c)
+                    <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-lg-4">
                   <h5>Tipo Movimiento</h5>
                   <select class="form-control" id="B_TipoMovimientoRel">
                     <option value="" selected>Todos</option>
@@ -60,9 +68,8 @@ $cas = $usuario['usuario']->casinos;
                     @endforeach
                     </optgroup>
                   </select>
-
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                   <h5>Fecha</h5>
                   <div class="form-group">
                     <div class='input-group date' id='dtpFechaRM' data-link-field="fechaRelMov" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
@@ -73,31 +80,23 @@ $cas = $usuario['usuario']->casinos;
                     <input class="form-control" type="hidden" id="fechaRelMov" value=""/>
                   </div>
                 </div>
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="B_Casino">
-                    <option value="" selected>Todos</option>
-                    @foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c)
-                    <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
-                    @endforeach
-                  </select>
+                <div class="col-lg-4">
+                  <h5>Nro. de Movimiento</h5>
+                  <input id="busqueda_numero_movimiento" type="text" class="form-control" placeholder="Nro. de movimiento">
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                   <h5>Nro. de Máquina</h5>
                   <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
                 </div>
-
               </div> <!-- row / formulario -->
 
               <br>
 
               <div class="row">
-                <div class="col-md-12">
-                  <center>
+                <div class="col-md-12" style="text-align: center">
                     <button id="btn-buscarRelMov" class="btn btn-infoBuscar" type="button" name="button">
                       <i class="fa fa-fw fa-search"></i> BUSCAR
                     </button>
-                  </center>
                 </div>
               </div> <!-- row / botón buscar -->
 
@@ -119,9 +118,10 @@ $cas = $usuario['usuario']->casinos;
             <table id="tablaRelevamientosMovimientos" class="table table-fixed tablesorter">
               <thead>
                 <th class="col-xs-2" value="fiscalizacion_movimiento.fecha_envio_fiscalizar">FECHA<i class="fa fa-sort"></i></th>
+                <th class="col-xs-1" value="log_movimiento.id_log_movimiento">MOV<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="fiscalizacion_movimiento.identificacion_nota">NOTA<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="tipo_movimiento.descripcion">TIPO DE MOVIMIENTO<i class="fa fa-sort"></i></th>
-                <th class="col-xs-2" value="casino.nombre">CASINO<i class="fa fa-sort"></i></th>
+                <th class="col-xs-1" value="casino.nombre">CASINO<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2" value="maquinas">MAQUINAS<i class="fa fa-sort"></i></th>
                 <th class="col-xs-2">ACCIÓN</th>
               </thead>
@@ -141,9 +141,10 @@ $cas = $usuario['usuario']->casinos;
 <table hidden>
   <tr id="filaEjemploRelevamiento">
     <td class="col-xs-2 fecha">99-99-999</td>
+    <td class="col-xs-1 movimiento">9999999</td>
     <td class="col-xs-2 nota">99999</td>
     <td class="col-xs-2 tipo">TIPO</td>
-    <td class="col-xs-2 casino">CASINO</td>
+    <td class="col-xs-1 casino">CASINO</td>
     <td class="col-xs-2 maquinas">9999,999,9,9,99,,99</td>
     <td class="col-xs-2 accion">
       <button class="btn btn-success btn-generarRelMov" title="GENERAR">

@@ -530,11 +530,12 @@ function generarFilaTabla(relevamiento) {
     let fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
 
     fila.attr('data-id', relevamiento.id_relevamiento_progresivo);
-    fila.find('.fecha').text(relevamiento.fecha_generacion);
-    fila.find('.casino').text(relevamiento.casino);
-    fila.find('.sector').text(relevamiento.sector);
-    fila.find('.subcontrol').text(subrelevamiento);
-    fila.find('.textoEstado').text(relevamiento.estado);
+    fila.find('.movimiento').text(relevamiento.id_log_movimiento).attr('title',relevamiento.id_log_movimiento);
+    fila.find('.fecha').text(relevamiento.fecha_generacion).attr('title',relevamiento.fecha_generacion);
+    fila.find('.casino').text(relevamiento.casino).attr('title',relevamiento.casino);
+    fila.find('.sector').text(relevamiento.sector).attr('title',relevamiento.sector);
+    fila.find('.subcontrol').text(subrelevamiento).attr('title',subrelevamiento);
+    fila.find('.textoEstado').text(relevamiento.estado).attr('title',relevamiento.estado);
     fila.find('button').each(function(idx, c) { $(c).val(relevamiento.id_relevamiento_progresivo); });
     let planilla = fila.find('.planilla').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VER PLANILLA', 'data-delay': '{"show":"300", "hide":"100"}' });
     let carga = fila.find('.carga').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'CARGAR RELEVAMIENTO', 'data-delay': '{"show":"300", "hide":"100"}' });
