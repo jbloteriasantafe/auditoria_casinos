@@ -34,7 +34,7 @@ $(document).ready(function(){
     $('#mensajeError').hide();
 
     //PAGINACION
-    $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
+    $('#btn-buscarMovimiento').trigger('click');
   }
 
  //agregar para que permita seleccionar fecha hasta hoy inclusive
@@ -188,9 +188,8 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
       var movimiento = generarFilaTabla(data);
       $('#cuerpoTabla').append(movimiento);
 
-      var t= $('#herramientasPaginacion').getPageSize();
       //recargo la pág para que aparezca el nuevo movimientos en la tabla de movimientos
-      $('#btn-buscarMovimiento').trigger('click',[1,t,'log_movimiento.fecha','desc']);
+      $('#btn-buscarMovimiento').trigger('click');
 
       //ME PERMITE QUE SE EJECUTE EL COD. QUE MUESTRA LOS NOMBRES DE LOS BOT.
       $('[data-toggle="tooltip"]').tooltip();
@@ -1181,68 +1180,49 @@ $('#btn-borrarTodo').on('click', function() {
 });
 
 function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccionada, unidades, p , juego_activo) {
-  var fila = $('<tr>').attr('id', id_maquina);
-  var accion = $('<button>').addClass('btn btn-danger borrarMaq')
-                              .append($('<i>').addClass('fa fa-fw fa-trash'));
-  var t_mov = $('#modalDenominacion').find('#id_t_mov').val();
-
+  let fila = $('<tr>').attr('id', id_maquina);
+  fila.append($('<td>').text(nro_admin));
+  
   // se busca migrar la denominacion a valores validos, por lo que se la convierte a numerico
-  denFloat=denominacionToFloat(denom)
-  //Se agregan todas las columnas para la fila
-  fila.append($('<td>').text(nro_admin))
-  //TIPO DE MOVIMIENTO ES DENOMINACION:
-  if(t_mov==5){
-    fila.append($('<td>')
-        .append($('<input>')
-        .addClass('denominacion_modificada form-control')
-        .attr("type","number").attr("step","0.01").attr("min","0.01")
-        .val(denFloat)))
-    // se agrega elementos vacios para que sea aceptable visiblemente
-    fila.append($('<td>'));
-    fila.append($('<td>'));
-  };
+  const denFloat = denominacionToFloat(denom);
+  const denominacion_modificada = $('<input>').addClass('denominacion_modificada form-control').attr("type","number")
+  .attr("step","0.01").attr("min","0.01").val(denFloat);
+  const devolucion_modificada = $('<input>').addClass('devolucion_modificada form-control').attr("type","number")
+  .attr("step","0.01").attr("min","80").attr("max","100").val(dev);
+  let juego_modif = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
 
-  //TIPO DE MOVIMIENTO ES %DEVOLUCION:
-  if(t_mov==6){
-    fila.append($('<td>')
-      .append($('<input>')
-      .addClass('devolucion_modificada form-control')
-      .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
-          .val(dev)));
-    // se agrega elementos vacios para que sea aceptable visiblemente
-    fila.append($('<td>'));
-    fila.append($('<td>'));
-  };
-
-  //TIPO DE MOVIMIENTO ES JUEGO:
-  if(t_mov==7){
-    //select de juego
-    var input = $('<input>').addClass('juego_modif form-control').attr('placeholder', "Nombre Juego");
-
-    fila.append($('<td>').append(input)); //falta el denom y el devol
-
-    input.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos','id_juego','nombre_juego',1);
-
-    // setea el valor actual en el buscador de juego
-    input.setearElementoSeleccionado(juego_activo.id_juego,juego_activo.nombre_juego);
-    
-    // agrega denominacion de juego
-    fila.append($('<td>')
-    .append($('<input>')
-    .addClass('denominacion_modificada form-control')
-    .attr("type","number").attr("step","0.01").attr("min","0.01")
-    .val(denFloat)))
-
-    // agrega % dev de juego
-    fila.append($('<td>')
-        .append($('<input>')
-        .addClass('devolucion_modificada form-control')
-        .attr("type","number").attr("step","0.01").attr("min","80").attr("max","100")
-        .val(dev)));
-  };
+  const t_mov = $('#modalDenominacion').find('#id_t_mov').val();
+  switch(t_mov){
+    case "5": {//DENOMINACION
+      fila.append($('<td>').append(denominacion_modificada));
+      // se agrega elementos vacios para que sea aceptable visiblemente
+      fila.append($('<td>'));
+      fila.append($('<td>'));
+    }break;
+    case "6": {//DEVOLUCION
+      fila.append($('<td>').append(devolucion_modificada));
+      // se agrega elementos vacios para que sea aceptable visiblemente
+      fila.append($('<td>'));
+      fila.append($('<td>'));
+    }break;
+    case "7": {//JUEGO
+      fila.append($('<td>').append(juego_modif)); //falta el denom y el devol
+      juego_modif.generarDataList("movimientos/buscarJuegoMovimientos", 'juegos', 'id_juego', 'nombre_juego', 1);
+      // setea el valor actual en el buscador de juego
+      juego_modif.setearElementoSeleccionado(juego_activo.id_juego, juego_activo.nombre_juego);
+      // agrega denominacion de juego
+      fila.append($('<td>').append(denominacion_modificada));
+      // agrega % dev de juego
+      fila.append(devolucion_modificada);
+    } break;
+    default:{
+    }break;
+  }
 
   //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
   if (p==1) {
+    const accion = $('<button>').addClass('btn btn-danger borrarMaq')
+                  .append($('<i>').addClass('fa fa-fw fa-trash'));
     fila.append($('<td>').append(accion));
   }
   //Agregar fila a la tabla
@@ -1253,22 +1233,18 @@ function agregarMDenominacion(id_maquina, nro_admin, denom, dev, unidad_seleccio
 };
 
 $('#todosDen').on('click', function(){
-  var den_comun=$('#denom_comun').val();
-  var tabla= $('#tablaDenominacion tbody > tr');
-  if (den_comun !=""){
-    $.each(tabla, function(index, value){
-      $('.denominacion_modificada').val(den_comun);;
-    });
-  }
+  const den_comun = $('#denom_comun').val();
+  let tabla = $('#tablaDenominacion tbody > tr');
+  if (den_comun != ""){
+    tabla.find('.denominacion_modificada').val(den_comun);;
+  };
 })
 $('#todosDev').on('click', function(){
-  var dev_comun=$('#devol_comun').val();
-  var tabla= $('#tablaDenominacion tbody > tr');
+  const dev_comun = $('#devol_comun').val();
+  let tabla = $('#tablaDenominacion tbody > tr');
   if (dev_comun!=""){
-    $.each(tabla, function(index, value){
-      $('.devolucion_modificada').val(dev_comun);
-    });
-  }
+    tabla.find('.devolucion_modificada').val(dev_comun);
+  };
 })
 //cierra modal y limpio el data list de arriba
 $('#modalDenominacion').on('hidden.bs.modal', function() {
@@ -1277,45 +1253,37 @@ $('#modalDenominacion').on('hidden.bs.modal', function() {
 
 //BOTÓN ENVIAR A FISCALIZAR DE DENOMINACION, DEVOLUCION Y JUEGO
 $(document).on('click','#btn-enviar-denom',function(e){
-  var id_log_movim = $('#modalDenominacion').find('#id_mov_denominacion').val();
-  var tipo =  $('#modalDenominacion').find('#id_t_mov').val();
-  var tabla_maq = $('#tablaDenominacion tbody > tr');
-  var maquinas = [];
-  var fecha = $('#B_fecha_denom').val();
+  const id_log_movim = $('#modalDenominacion').find('#id_mov_denominacion').val();
+  const tipo =  $('#modalDenominacion').find('#id_t_mov').val();
+  const tabla_maq = $('#tablaDenominacion tbody > tr');
+  let maquinas = [];
+  const fecha = $('#B_fecha_denom').val();
 
   $.each(tabla_maq, function(index, value){
+    let maquina = {
+      id_maquina : $(this).attr('id'),
+      id_juego : "",
+      denominacion : "",
+      porcentaje_devolucion : "",
+      id_unidad_medida : ""
+    };
     //Según el tipo de movimiento genera distintos json de máquinas
     switch (tipo) {
       //Tipo Movimiento: DENOMINACION
-      case '5':
-        var maquina={
-          id_maquina: $(this).attr('id'),
-          id_juego:"",
-          denominacion:$(this).find('.denominacion_modificada').val(),
-          porcentaje_devolucion:"",
-          id_unidad_medida:$(this).find('.unidad_denominacion').val(),
-        }
-        break;
+      case '5': {
+        maquina.denominacion = $(this).find('.denominacion_modificada').val();
+        maquina.id_unidad_medida = $(this).find('.unidad_denominacion').val();
+      }break;
       //Tipo Movimiento: % DEVOLUCION
-      case '6':
-        var maquina={
-          id_maquina: $(this).attr('id'),
-          id_juego:"",
-          denominacion:"",
-          porcentaje_devolucion:$(this).find('.devolucion_modificada').val(),
-          id_unidad_medida:"",
-        }
-        break;
+      case '6': {
+        maquina.porcentaje_devolucion = $(this).find('.devolucion_modificada').val();
+      }break;
       //Tipo Movimiento: JUEGO
-      case '7':
-        var maquina={
-          id_maquina: $(this).attr('id'),
-          id_juego:$(this).find('.juego_modif').obtenerElementoSeleccionado(),
-          denominacion:$(this).find('.denominacion_modificada').val(),
-          porcentaje_devolucion:$(this).find('.devolucion_modificada').val(),
-          id_unidad_medida:""
-        }
-        break;
+      case '7': {
+        maquina.id_juego = $(this).find('.juego_modif').obtenerElementoSeleccionado();
+        maquina.denominacion = $(this).find('.denominacion_modificada').val();
+        maquina.porcentaje_devolucion = $(this).find('.devolucion_modificada').val();
+      }break;
     }
     maquinas.push(maquina);
   });
@@ -1325,45 +1293,35 @@ $(document).on('click','#btn-enviar-denom',function(e){
 
 //Pausa la carga de maquinas a fiscalizar
 $(document).on('click','#btn-pausar-denom',function(e){
-  var id_log_movim = $('#modalDenominacion').find('#id_mov_denominacion').val();
-  var tipo =  $('#modalDenominacion').find('#id_t_mov').val();
-  var tabla_maq = $('#tablaDenominacion tbody > tr');
-  var maquinas = [];
-  var fecha = $('#B_fecha_denom').val();
+  const id_log_movim = $('#modalDenominacion').find('#id_mov_denominacion').val();
+  const tipo =  $('#modalDenominacion').find('#id_t_mov').val();
+  const tabla_maq = $('#tablaDenominacion tbody > tr');
+  let maquinas = [];
+  const fecha = $('#B_fecha_denom').val();
 
   $.each(tabla_maq, function(index, value){
+    let maquina = {
+      id_maquina : $(this).attr('id'),
+      id_juego : "",
+      denominacion : "",
+      porcentaje_devolucion : "",
+      id_unidad_medida : ""
+    };
     //Según el tipo de movimiento genera distintos json de máquinas
     switch (tipo) {
         //Tipo Movimiento: DENOMINACION
-        case '5':
-        var maquina={
-          id_maquina: $(this).attr('id'),
-          id_juego:"",
-          denominacion:$(this).find('.denominacion_modificada').val(),
-          porcentaje_devolucion:"",
-          id_unidad_medida:$(this).find('.unidad_denominacion').val(),
-        }
-        break;
+        case '5': {
+          maquina.denominacion = $(this).find('.denominacion_modificada').val();
+          maquina.id_unidad_medida = $(this).find('.unidad_denominacion').val();
+        }break;
         //Tipo Movimiento: % DEVOLUCIÓN
-        case '6':
-        var maquina={
-          id_maquina: $(this).attr('id'),
-          id_juego:"",
-          denominacion:"",
-          porcentaje_devolucion:$(this).find('.devolucion_modificada').val(),
-          id_unidad_medida:""
-        }
-        break;
+        case '6': {
+          maquina.porcentaje_devolucion = $(this).find('.devolucion_modificada').val();
+        }break;
         //Tipo Movimiento: JUEGO
-        case '7':
-          var maquina={
-            id_maquina: $(this).attr('id'),
-            id_juego:$(this).find('.juego_modif').obtenerElementoSeleccionado(),
-            denominacion:"",
-            porcentaje_devolucion:"",
-            id_unidad_medida:""
-          }
-        break;
+        case '7': {
+          maquina.id_juego = $(this).find('.juego_modif').obtenerElementoSeleccionado();
+        }break;
       }
     maquinas.push(maquina);
    });
@@ -1381,7 +1339,7 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
     }
   });
 
-  var formData = {
+  const formData = {
     id_log_movimiento: id_mov,
     maquinas: maq,
     carga_finalizada: fin, //INDICA SI LA CARGA FUE FINALIZADA O NO
@@ -1394,21 +1352,11 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
     data: formData,
     dataType: 'json',
     success: function (data) {
-      if(fin==true){
-        $('#mensajeExito h3').text('ENVÍO');
-        $('#mensajeExito p').text('Las máquinas han sido enviadas correctamente');
-        $('#modalDenominacion').modal('hide');
-        $('#mensajeExito').show();
-      }
-      if(fin==false){
-        $('#mensajeExito h3').text('GUARDADO');
-        $('#mensajeExito p').text('Las máquinas han sido guardadas en el movimiento');
-        $('#modalDenominacion').modal('hide');
-        $('#mensajeExito').show();
-      }
+      if(fin) mensajeExitoMovimientos({titulo: 'ENVÍO', mensajes : ['Las máquinas han sido enviadas correctamente.']});
+      else    mensajeExitoMovimientos({titulo: 'GUARDADO', mensajes : ['Las máquinas han sido guardadas en el movimiento.']});
+      $('#modalDenominacion').modal('hide');
     },
     error: function (data) {
-      var response = data.responseJSON.errors;
       mensajeError(sacarErrores(data));
     },
   });
@@ -1448,11 +1396,9 @@ $(document).on('click','.validarMovimiento',function(){
   $('#modalValidacion .modal-title').text('VALIDAR MÁQUINAS RELEVADAS');
   $('#modalValidacion .modal-header').attr('style','background: #4FC3F7');
 
-  var id_log_movimiento = $(this).parent().parent().attr('id');
-
+  const id_log_movimiento = $(this).parent().parent().attr('id');
   $.get('movimientos/ValidarMovimiento/' + id_log_movimiento, function(data){
-
-      var tablaFiscalizacion=$('#tablaFechasFiscalizacion tbody');
+      let tablaFiscalizacion = $('#tablaFechasFiscalizacion tbody');
 
       for (var i = 0; i < data.length; i++) {
         var fila= $('<tr>');
@@ -1514,8 +1460,8 @@ $(document).on('click','.detalleMov',function(){
   $('#tablaFechasFiscalizacion tbody tr').css('background-color','#FFFFFF');
   $(this).parent().parent().css('background-color', '#E0E0E0');
 
-  var id_fiscalizacion = $(this).attr('data-id-fiscalizacion');
-  var fecha_fiscalizacion = $(this).attr('data-fecha-fisc');
+  const id_fiscalizacion = $(this).attr('data-id-fiscalizacion');
+  const fecha_fiscalizacion = $(this).attr('data-fecha-fisc');
 
   //guardo la fecha de fiscalizacion en el input del modal
   $('#modalValidacion').find('#fecha_fiscalizacion').val(fecha_fiscalizacion);
@@ -1579,10 +1525,10 @@ $(document).on('click','.detalleMov',function(){
 $(document).on('click','.verMaquina1',function(){
   $('#columnaDetalle').show();
   $('.detalleMaq').show();
-  var id_maquina = $(this).attr('data-maquina');
-  var id_fiscalizacion = $(this).attr('data-fiscalizacion');
-  var tablaContadores = $('#tablaValidarIngreso tbody');
-  var id_relevamiento = $(this).attr('data-relevamiento');
+  const id_maquina = $(this).attr('data-maquina');
+  const id_fiscalizacion = $(this).attr('data-fiscalizacion');
+  let tablaContadores = $('#tablaValidarIngreso tbody');
+  const id_relevamiento = $(this).attr('data-relevamiento');
   $('#tablaMaquinasFiscalizacion tbody tr').css('background-color','#FAFAFA');
   $(this).parent().parent().css('background-color', '#E0E0E0');
 
@@ -1745,43 +1691,35 @@ $(document).on('click','.verMaquina1',function(){
 //BOTÓN VALIDAR DENTRO DEL MODAL VALIDAR
 $(document).on('click','#enviarValidar',function(){
   $('#errorValidacion').hide();
-  var id_fiscalizacion = $(this).val();
-  var id_maquina = $('#modalValidacion').find('#maquina').val();
-
-  //BUSCO EL ID DE MOVIMIENTO EN EL MODAL, ESTA EN UN INPUT OCULTO
-  var id_log_movimiento = $('#modalValidacion').find('#id_log_movimiento').val();
-  var fecha_envio_fiscalizar = $('#modalValidacion').find('#fecha_fiscalizacion').val();
-  var id_relevamiento= $('#modalValidacion').find('#relevamiento').val();
-
+  const id_maquina = $('#modalValidacion').find('#maquina').val();
+  const id_relevamiento = $('#modalValidacion').find('#relevamiento').val();
   validar(id_relevamiento, 1,id_maquina);
 });
 
 //cuando cierra el modal de validación, actualizo el listado
 $("#modalValidacion").on('hidden.bs.modal', function () {
-  $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
+  $('#btn-buscarMovimiento').trigger('click');
 })
 //BOTÓN ERROR
 $(document).on('click','#errorValidacion',function(){
-  var id_relevamiento= $('#modalValidacion').find('#relevamiento').val();
+  const id_relevamiento = $('#modalValidacion').find('#relevamiento').val();
   validar(id_relevamiento, 0);
 });
 
 //BOTÓN FINALIZAR VALIDACIÓN
 $(document).on('click','#finalizarValidar',function(){
-  var id_fiscalizacion=$(this).attr('data-fiscalizacion');
+  const id_fiscalizacion = $(this).attr('data-fiscalizacion');
   $.get('movimientos/finalizarValidacion/' + id_fiscalizacion, function(data){
     if (data==1){
       $('#modalValidacion').modal('hide');
-      $('#mensajeExito h3').text('EXITO');
-      $('#mensajeExito p').text('Se ha VALIDADO correctamente el movimiento.');
-      $('#mensajeExito').show();
+      mensajeExitoMovimientos({mensajes: ['Se ha VALIDADO correctamente el movimiento.']})
     }
   })
 });
 
 //POST PARA VALIDAR
 function validar(id_rel, val, id_maquina){
-  var formData = {
+  const formData = {
     id_relev_mov: id_rel,
     validado: val,
   }
@@ -1791,23 +1729,21 @@ function validar(id_rel, val, id_maquina){
     url: 'movimientos/validarTomaRelevamiento',
     data: formData,
     dataType: 'json',
-
     success: function (data) {
       //Deshabilito los botones error y validar
       $('#enviarValidar').hide();
       $('.error').prop('disabled', true);
       $('.detalleMaq').hide();
-      cant_validadas=cant_validadas - 1;
+      cant_validadas = cant_validadas - 1;
 
       $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
         console.log($(this).attr('data-id'));
-        var maq=$(this).attr('data-id');
+        const maq=$(this).attr('data-id');
         console.log('maquina', maq);
 
         if (maq == id_maquina){
           console.log('encontrada', $(this));
-          $(this).append($('<td>')
-            .addClass('col-xs-4')
+          $(this).append($('<td>').addClass('col-xs-4')
             .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50')));
         }
       });
@@ -1839,9 +1775,9 @@ function validar(id_rel, val, id_maquina){
 //-------------------------------------------------------------------------
 //redirigir cambio layout
 $(document).on('click','.redirigir',function(e){
-  var id_movimiento=$(this).parent().parent().attr('id');
+  const id_movimiento=$(this).parent().parent().attr('id');
 
-  var formData= {
+  const formData= {
     id_log_movimiento: id_movimiento
   }
 
@@ -1856,20 +1792,19 @@ $(document).on('click','.redirigir',function(e){
     url: 'movimientos/guardarLogClickMov',
     data: formData,
     dataType: 'json',
-
     success: function (data){
       console.log('Exito!!');
     },
     error: function(data){
       alert('error');
     }
-  })
+  });
 
   window.open('islas','_blank');
 });
 
 $(document).on('click','.print_mov',function(e){
-  var id= $(this).parent().parent().attr('id');
+  const id = $(this).parent().parent().attr('id');
   $.get('movimientos/maquinasEnviadasAFiscalizar/' + id, function(data){
     if (data==0){
       $('#modalAlerta').modal('show');
@@ -1883,9 +1818,9 @@ $(document).on('click','.print_mov',function(e){
 $(document).on('click','.bajaMov',function(e){
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
-  var id_mov=$(this).parent().parent().attr('id');
+  const id_mov = $(this).parent().parent().attr('id');
 
-  var formData= {
+  const formData = {
     id_log_movimiento: id_mov
   }
 
@@ -1952,7 +1887,7 @@ $('.modal').on('shown.bs.modal', function() {
 */
 
 //Busqueda de movimientos
-$('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
+$('#btn-buscarMovimiento').click(function(e,pagina = null,page_size = null,columna = null,orden = null){
   $('#mensajeExito').hide();
   $.ajaxSetup({
     headers: {
@@ -1962,26 +1897,11 @@ $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
 
   e.preventDefault();
 
-  var page_size = (page_size != null) ? page_size : 10;
-  var page_number = (pagina != null) ? pagina : 1;
-  var sort_by = (columna != null) ? {columna,orden} : null;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-
-  //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }
-  else {
-    var size = $('#herramientasPaginacion').getPageSize();
-  }
-
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
-
+  page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
+  page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  columna = (columna != null)? columna : $('#tablaResultados .activa').attr('value');
+  orden = (orden != null)? orden : $('#tablaResultados .activa').attr('estado');
+  const sort_by = (columna != null && orden != null)? { columna: columna, orden: orden } : null;
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
@@ -1995,9 +1915,9 @@ $('#btn-buscarMovimiento').click(function(e,pagina,page_size,columna,orden){
     fecha: $('#fecha_movimiento').val(),
     nro_admin: $('#busqueda_maquina').val(),
     id_log_movimiento: $('#busqueda_numero').val(),
-    page: page_number,
+    page: page_number != null? page_number : 1,
+    page_size: page_size != null? page_size : 10,
     sort_by: sort_by,
-    page_size: page_size,
   }
 
   $.ajax({
@@ -2032,20 +1952,18 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
     console.log('1');
     $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
   }
+  else if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+  }
   else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
-    }
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   }
   $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndiceMov(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
 
-function clickIndiceMov(e,pageNumber,tam){
+function clickIndiceMov(e,pageNumber = null,tam = null){
   if(e != null){
     e.preventDefault();
   }
