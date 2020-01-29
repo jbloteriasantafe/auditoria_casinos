@@ -243,7 +243,7 @@ $(document).on('click','.modificar',function(e,id_maquina){
 })
 
 //Mostrar modal con los datos del Casino cargados
-$(document).on('click','.btn-info',function(){
+$(document).on('click','.detalle',function(){
       limpiarModal();
       //Modificar los colores del modal
       $('.modal-title').text('DETALLES MÁQUINA');

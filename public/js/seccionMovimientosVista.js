@@ -36,12 +36,6 @@ $(document).ready(function(){
     //PAGINACION
     $('#btn-buscarMovimiento').trigger('click',[1,10,'log_movimiento.fecha','desc']);
   }
-  //Para agregar una máquina cuando la busco en un input
-  $('#agregarMaq').click(clickAgregarMaq);
-  $('#agregarMaq2').click(clickAgregarMaqDenominacion);
-  $('#agregarMaqBaja').click(clickAgregarMaqBaja);
-  $('#agregarIslaDen').click(clickAgregarIslaDen);
-  $('#agregarSectorDen').click(clickAgregarSectorDen);
 
  //agregar para que permita seleccionar fecha hasta hoy inclusive
   $(function(){
@@ -110,6 +104,20 @@ $('#btn-minimizar').click(function(){
     $(this).data("minimizar",true);
   }
 });
+
+/* 
+ NUEVO MOVIMIENTO
+ ###########################
+ ####       #######    #####
+ ####    #   ######    #####
+ ####    ##   #####    #####
+ ####    ###   ####    #####
+ ####    ####   ###    #####
+ ####    #####   ##    #####
+ ####    ######   #    #####
+ ####    #######       #####
+ ###########################
+*/
 
 //BOTON GRANDE DE NUEVO INGRESO
 $(document).on('click', '#btn-nuevo-movimiento', function(e){
@@ -204,6 +212,20 @@ $(document).on('click', '#aceptarCasinoIng', function(e) {
   })
 });
 
+/* 
+ INGRESO
+ ###########################
+ ########            #######
+ ########            #######
+ ###########      ##########
+ ###########      ##########
+ ###########      ##########
+ ###########      ##########
+ ########            #######
+ ########            #######
+ ###########################
+*/
+
 //MOSTRAR MODAL PARA INGRESO: BTN NUEVO INGRESO
 $(document).on('click', '.nuevoIngreso', function() {
   var id_movimiento=$(this).parent().parent().attr('id');
@@ -241,6 +263,14 @@ $(document).on('click', '.nuevoIngreso', function() {
   })
 }); //FIN DE EL NUEVO INGRESO
 
+//DETECTAR SI EL TIPO DE CARGA SELECCIONADO ES MANUAL
+$('#tipoManual').click(function(){
+  var s=$('#modalLogMovimiento #tipoManual').val();
+  if(s==1){ //TIPO DE CARGA: MANUAL
+    $('#modalLogMovimiento #cantMaqCargar').show();
+    $('#btn-aceptar-ingreso').prop('disabled',false);
+  }
+})
 //DETECTAR EL TIPO DE CARGA SELECCIONADO ES MASIVA
 $('#tipoCargaSel').click(function(){
   var s=$('#modalLogMovimiento #tipoCargaSel').val();
@@ -250,14 +280,16 @@ $('#tipoCargaSel').click(function(){
   $('#btn-aceptar-ingreso').prop('disabled',false);
 });
 
-//DETECTAR SI EL TIPO DE CARGA SELECCIONADO ES MANUAL
-$('#tipoManual').click(function(){
-  var s=$('#modalLogMovimiento #tipoManual').val();
-  if(s==1){ //TIPO DE CARGA: MANUAL
-    $('#modalLogMovimiento #cantMaqCargar').show();
-    $('#btn-aceptar-ingreso').prop('disabled',false);
-  }
-})
+//minimiza modal SELECCION INDIVIDUAL/MASIVO PARA INGRESOS
+$('#btn-minimizar').click(function(){
+  if($(this).data("minimizar")==true){
+  $('.modal-backdrop').css('opacity','0.1');
+    $(this).data("minimizar",false);
+}else{
+  $('.modal-backdrop').css('opacity','0.5');
+  $(this).data("minimizar",true);
+}
+});
 
 //BOTÓN ACEPTAR dentro del modal ingreso
 $("#btn-aceptar-ingreso").click(function(e){
@@ -370,17 +402,10 @@ function eventoNuevo(movimiento, expediente){
   $('#modalMaquina').modal('show');
 }
 
-//minimiza modal
-$('#btn-minimizar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-      $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+$('#modalMaquina #nro_admin').on("keyup", function(e){
+  var text="NUEVA MÁQUINA TRAGAMONEDAS N°: " + $(this).val();
+  $('#modalMaquina .modal-title').text(text);
 });
-//Fin del ingreso MANUAL
 
 //ABRIR MODAL DE CARGA MASIVA
 $('.cargar2').click(function(e){
@@ -425,6 +450,95 @@ $('#btn-carga-masiva').click(function(){
     },
   });
 }); //FIN DEL POST PARA ENVIAR ARCHIVO DE C. MASIVA
+
+//Enviar a fiscalizar las de ingreso **************************
+$(document).on('click','.enviarIngreso',function(e){
+  var id_log_movimiento = $(this).parent().parent().attr('id');
+  $('.modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
+  $('#tablaMaquinas tbody tr').remove();
+  $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
+  ocultarErrorValidacion($('#B_fecha_ingreso'));
+  $('#B_fecha_ingreso').val('');
+  $.get('movimientos/buscarMaquinasMovimiento/' + id_log_movimiento, function(data){
+    var tablaMaquinas=$('#tablaMaquinas tbody');
+
+    for (var i = 0; i < data.maquinas.length; i++) {
+        var fila = $(document.createElement('tr'));
+
+        fila.attr('id', data.maquinas[i].maquina.id_maquina)
+            .append($('<td>').addClass('col-xs-3').append($('<input>').attr('type','checkbox')))
+            .append($('<td>').addClass('col-xs-9').text(data.maquinas[i].maquina.nro_admin))
+
+        tablaMaquinas.append(fila);
+    }
+  });
+
+  $('#modalEnviarFiscalizarIngreso').modal('show');
+})
+
+//dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
+$("#btn-enviar-ingreso").click(function(e){
+  $('#mensajeError').hide();
+  $('#mensajeExito').hide();
+  var id=$("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
+  var maquinas_seleccionadas=[];
+  var fecha=$('#B_fecha_ingreso').val();
+
+  $('#tablaMaquinas tbody tr').each(function(){
+    var check=$(this).find('td input[type=checkbox]');
+    console.log(check);
+
+    if (check.prop('checked')) {
+        maquinas_seleccionadas.push($(this).attr('id'));
+    }
+  });
+
+  var formData= {
+    id_log_movimiento: id,
+    maquinas: maquinas_seleccionadas,
+    fecha:fecha
+  }
+
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+  });
+
+  $.ajax({
+    type: 'POST',
+    url: 'movimientos/enviarAFiscalizar',
+    data: formData,
+    dataType: 'json',
+
+    success: function (data){
+      $('#modalEnviarFiscalizarIngreso').modal('hide');
+      mensajeExitoMovimientos({
+        titulo: 'ENVÍO EXITOSO',
+        mensajes: ['Las máquinas fueron enviadas correctamente']
+      });
+    },
+    error: function(data){
+      console.log(data);
+      mensajeError(sacarErrores(data));
+    }
+  })
+})
+//FIN ENVIAR A FISCALIZAR INGRESO****************************************
+
+/* 
+ VOLVER A RELEVAR
+ ###########################
+ ####    #############    ##
+ #####    ###########    ###
+ ######    #########    ####
+ #######    #######    #####
+ ########    #####    ######
+ #########    ###    #######
+ ##########    #    ########
+ ############     ##########
+ ###########################
+*/
 
 // **************************************MODAL VOLVER A RELEVAR ********************************************************
 $(document).on('click','.botonToma2',function(){
@@ -505,7 +619,19 @@ function enviarFiscalizarToma2(id_mov,maq){
     }
   });
 };
-
+/* 
+ EGRESO Y CAMBIO LAYOUT (y reingreso?)
+ ########################### ###########################
+ ########            ####### ######                #####
+ ########            ####### ######                #####
+ ########     ############## ######       ##############
+ ########          ######### ######       ##############
+ ########          ######### ######       ##############
+ ########     ############## ######       ##############
+ ########            ####### ######                #####
+ ########            ####### ######                #####
+ ########################### ########################### 
+*/
 // **************************************MODAL NUEVO EGRESO ********************************************************
 
 $(document).on('click','.nuevoEgreso',function(){
@@ -588,7 +714,7 @@ $(document).on('click','.nuevoEgreso',function(){
 });
 
 //click mas para agregar máquinas
-function clickAgregarMaq(e) {
+$('#agregarMaq').click(function(e){
   var id_maquina = $('#inputMaq').attr('data-elemento-seleccionado');
   if (id_maquina != 0) {
     $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maquina, function(data) {
@@ -599,26 +725,24 @@ function clickAgregarMaq(e) {
       console.log('555:',data);
     });
   }
-}
+});
 
 function agregarMaq(id_maquina, nro_admin, marca, modelo, isla, nombre_juego,nro_serie) {
   var tipo=$('#modalLogMovimiento2').find('#tipo_movi').val();
   var fila = $('<tr>').attr('id', id_maquina);
   var accion = $('<button>').addClass('btn btn-danger borrarMaq')
                             .append($('<i>').addClass('fa fa-fw fa-trash'));
+  
+  fila.append($('<td>').text(nro_admin));
+  fila.append($('<td>').text(marca));
+  fila.append($('<td>').text(limpiarNull(modelo)));
   //tipo de movimiento 4: CAMBIO LAYOUT
   if(tipo!=4){
     //Se agregan todas las columnas para la fila
-    fila.append($('<td>').text(nro_admin));
-    fila.append($('<td>').text(marca));
-    fila.append($('<td>').text(modelo));
     fila.append($('<td>').text(nombre_juego));
-    fila.append($('<td>').text(nro_serie));
+    fila.append($('<td>').text(limpiarNull(nro_serie)));
     fila.append($('<td>').append(accion));
   }else{
-    fila.append($('<td>').text(nro_admin));
-    fila.append($('<td>').text(marca));
-    fila.append($('<td>').text(modelo));
     fila.append($('<td>').text(isla));
     fila.append($('<td>').text(nombre_juego));
     fila.append($('<td>').text(nro_serie));
@@ -725,20 +849,127 @@ function enviarFiscalizar(id_mov,maq,fecha, fin,reingreso){
     },
   });
 };
-//*******************************************************************************************************************************
 
+
+//MODAL BAJA MTM EN EL MOVIMIENTO EGRESO/REINGRESO
+
+$(document).on('click','.bajaMTM', function(){
+  const fila = $(this).parent().parent();
+  var casino= fila.attr('data-casino');
+  var id_movimiento= fila.attr('id');
+  var tipo_mov= fila.attr('data-tipo');
+
+  $('.modal-title').text('CARGAR MÁQUINAS PARA EGRESO DEFINITIVO');
+  $('#modalBajaMTM').find('#tipoMovBaja').val(tipo_mov);
+  $('#modalBajaMTM').find('#movimId').val(id_movimiento);
+  mtmParaBaja=[];
+
+  $('#inputMaq3').generarDataList("maquinas/obtenerMTMMovimientos/"  + casino + '/' + tipo_mov + '/' + id_movimiento  ,'maquinas','id_maquina','nro_admin',1,true);
+
+  $('#tablaBajaMTM tbody tr').remove();
+  $('#btn-baja').prop('disabled', false);
+  $('#mensajeExito').hide();
+  $('#modalBajaMTM').modal('show');
+})
+
+//crea tabla
+
+$('#agregarMaqBaja').click(function(e) {
+  var id_maq = $('#inputMaq3').attr('data-elemento-seleccionado');
+  if (id_maq != 0) {
+    $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maq, function(data) {
+      agregarMaqBaja(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca, data.maquina.modelo, 1);
+      $('#inputMaq3').setearElementoSeleccionado(0 , "");
+    });
+  }
+});
+
+function agregarMaqBaja(id_maquina, nro_admin, marca, modelo,p) {
+  var fila = $('<tr>').attr('id', id_maquina);
+  var accion = $('<button>').addClass('btn btn-danger borrarMaqCargada')
+                              .append($('<i>').addClass('fa fa-fw fa-trash'));
+  var t_mov = $('#modalBajaMTM').find('#tipoMovBaja').val();
+
+  //Se agregan todas las columnas para la fila
+  fila.append($('<td>').text(nro_admin))
+  fila.append($('<td>').text(marca))
+  fila.append($('<td>').text(modelo))
+  //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
+  if (p==1) {
+    fila.append($('<td>').append(accion));
+  }
+  //Agregar fila a la tabla
+  $('#tablaBajaMTM tbody').append(fila);
+  //Habilitar botones
+  $('#btn-baja').prop('disabled', false);
+};
+
+//boton borrar en fila
+$(document).on('click','.borrarMaqCargada',function(e){
+  $(this).parent().parent().remove();
+});
+
+//boton borrar en fila
+$(document).on('click','.borrarMaq',function(e){
+  $(this).parent().parent().remove();
+});
+
+//boton ELIMINAR, EN MODAL
+$(document).on('click','#btn-baja',function(e){
+  var tipo=$('#modalBajaMTM').find('#tipoMovBaja').val();
+  var id_log_movimiento = $('#modalBajaMTM').find('#movimId').val();
+
+  var maquinas = $('#tablaBajaMTM tbody > tr');
+
+  $.each(maquinas, function(index, value){
+    var maquina={
+      id_maquina:$(this).attr('id')
+    }
+    mtmParaBaja.push(maquina);
+  });
+
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+  });
+
+  var formData = {
+    maquinas: mtmParaBaja
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: 'movimientos/bajaMTMs',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
+      $('#mensajeExito p').text('Las máquinas han sido eliminadas');
+      $("#modalBajaMTM").modal('hide');
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');
+      $('#mensajeFiscalizacionError').show();
+      $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
+    },
+  });
+});
+
+//*******************************************************************************************************************************
 /* 
- DENOMINACION
- ###########################
- ######           ##########
- ######   ########   #######
- ######   ##########   #####
- ######   ##########   #####
- ######   ##########   #####
- ######   #########   ######
- ######   ######     #######
- ######           ##########
- ###########################
+ DENOMINACION DEVOLUCION JUEGO
+ ########################### ###########################  ########################### 
+ ######           ########## ##      ###################  ########           ########
+ ######   ########   ####### ##  ###   #################  ########           ########
+ ######   ##########   ##### ##  ####   ################  ###########     ###########
+ ######   ##########   ##### ##  ###   ####   #####   ##  ###########     ###########
+ ######   ##########   ##### ##      #######   ###   ###  ###########     ###########
+ ######   ##########   ##### ################   #   ####  #####   ###     ###########
+ ######   ######     ####### #################     #####  #####           ###########
+ ######           ########## ###########################  #######         ###########
+ ########################### ###########################  ########################### 
 */
 //*************BOTÓN NUEVO DE MOVIMIENTO: DENOMINACION **************************************************
 
@@ -851,7 +1082,8 @@ $(document).on('click','.modificarDenominacion',function(){
 });
 
 //crea tabla
-function clickAgregarMaqDenominacion(e) {
+
+$('#agregarMaq2').click(function(e) {
   var id_maq = $('#inputMaq2').attr('data-elemento-seleccionado');
 
   if (id_maq != 0) {
@@ -861,7 +1093,7 @@ function clickAgregarMaqDenominacion(e) {
       $('#inputMaq2').setearElementoSeleccionado(0 , "");
     });
   }
-}
+});
 
 function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,nombre_juego, dev, unidad_seleccionada, unidades, p) {
   var fila = $('<tr>').attr('id', id_maquina);
@@ -915,10 +1147,8 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego,n
   $('#btn-pausar-denom').prop('disabled', false);
 };
 
-
-function clickAgregarIslaDen(e){
+$('#agregarIslaDen').click(function(e){
   var id_isla = $('#inputIslaDen').attr('data-elemento-seleccionado');
-
   if (id_isla != 0) {
     $.get('movimientos/obtenerMaquinasIsla/' + id_isla, function(data) {
       console.log('ff', data);
@@ -929,9 +1159,9 @@ function clickAgregarIslaDen(e){
       $('#inputIslaDen').setearElementoSeleccionado(0 , "");
     });
   }
-}
+});
 
-function clickAgregarSectorDen(e){
+$('#agregarSectorDen').click(function(e){
   var id_isla = $('#inputSectorDen').attr('data-elemento-seleccionado');
 
   if (id_isla != 0) {
@@ -944,7 +1174,7 @@ function clickAgregarSectorDen(e){
       $('#inputSectorDen').setearElementoSeleccionado(0 , "");
     });
   }
-}
+});
 
 $('#btn-borrarTodo').on('click', function() {
   $('#tablaDenominacion tbody tr').remove();
@@ -1184,113 +1414,19 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
   });
 };
 //**********FIN MODAL PARA MODIFICAR JUEGO, DENOMINACION Y DEVOLUCION ******************
-
-
-//MODAL BAJA MTM EN EL MOVIMIENTO EGRESO/REINGRESO
-
-$(document).on('click','.bajaMTM', function(){
-  const fila = $(this).parent().parent();
-  var casino= fila.attr('data-casino');
-  var id_movimiento= fila.attr('id');
-  var tipo_mov= fila.attr('data-tipo');
-
-  $('.modal-title').text('CARGAR MÁQUINAS PARA EGRESO DEFINITIVO');
-  $('#modalBajaMTM').find('#tipoMovBaja').val(tipo_mov);
-  $('#modalBajaMTM').find('#movimId').val(id_movimiento);
-  mtmParaBaja=[];
-
-  $('#inputMaq3').generarDataList("maquinas/obtenerMTMMovimientos/"  + casino + '/' + tipo_mov + '/' + id_movimiento  ,'maquinas','id_maquina','nro_admin',1,true);
-
-  $('#tablaBajaMTM tbody tr').remove();
-  $('#btn-baja').prop('disabled', false);
-  $('#mensajeExito').hide();
-  $('#modalBajaMTM').modal('show');
-})
-
-//crea tabla
-function clickAgregarMaqBaja(e) {
-  var id_maq = $('#inputMaq3').attr('data-elemento-seleccionado');
-  if (id_maq != 0) {
-    $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maq, function(data) {
-      agregarMaqBaja(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca, data.maquina.modelo, 1);
-      $('#inputMaq3').setearElementoSeleccionado(0 , "");
-    });
-  }
-}
-
-function agregarMaqBaja(id_maquina, nro_admin, marca, modelo,p) {
-  var fila = $('<tr>').attr('id', id_maquina);
-  var accion = $('<button>').addClass('btn btn-danger borrarMaqCargada')
-                              .append($('<i>').addClass('fa fa-fw fa-trash'));
-  var t_mov = $('#modalBajaMTM').find('#tipoMovBaja').val();
-
-  //Se agregan todas las columnas para la fila
-  fila.append($('<td>').text(nro_admin))
-  fila.append($('<td>').text(marca))
-  fila.append($('<td>').text(modelo))
-  //"p" indica si ya viene cargada la tabla o no, para agregar o no el boton de borrar
-  if (p==1) {
-    fila.append($('<td>').append(accion));
-  }
-  //Agregar fila a la tabla
-  $('#tablaBajaMTM tbody').append(fila);
-  //Habilitar botones
-  $('#btn-baja').prop('disabled', false);
-};
-
-//boton borrar en fila
-$(document).on('click','.borrarMaqCargada',function(e){
-  $(this).parent().parent().remove();
-});
-
-//boton borrar en fila
-$(document).on('click','.borrarMaq',function(e){
-  $(this).parent().parent().remove();
-});
-
-//boton ELIMINAR, EN MODAL
-$(document).on('click','#btn-baja',function(e){
-  var tipo=$('#modalBajaMTM').find('#tipoMovBaja').val();
-  var id_log_movimiento = $('#modalBajaMTM').find('#movimId').val();
-
-  var maquinas = $('#tablaBajaMTM tbody > tr');
-
-  $.each(maquinas, function(index, value){
-    var maquina={
-      id_maquina:$(this).attr('id')
-    }
-    mtmParaBaja.push(maquina);
-  });
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  var formData = {
-    maquinas: mtmParaBaja
-  }
-
-  $.ajax({
-    type: 'POST',
-    url: 'movimientos/bajaMTMs',
-    data: formData,
-    dataType: 'json',
-    success: function (data) {
-      $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
-      $('#mensajeExito p').text('Las máquinas han sido eliminadas');
-      $("#modalBajaMTM").modal('hide');
-      $('#mensajeExito').show();
-    },
-    error: function (data) {
-      console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');
-      $('#mensajeFiscalizacionError').show();
-      $("#modalLogMovimiento2").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
-    },
-  });
-});
-
+/* 
+ VALIDAR
+ ###########################
+ ###################### ####
+ ####################  #####
+ ###################  ######
+ #################   #######
+ ################   ########
+ #######  #####    #########
+ ########   ##    ##########
+ ##########     ############
+ ###########################
+*/
 // Mostrar modal para VALIDACIÓN de maquinas de ingreso
 
 //BOTÓN VALIDACION, DENTRO DE LA TABLA PRINCIPÁL
@@ -1465,151 +1601,144 @@ $(document).on('click','.verMaquina1',function(){
       $('#enviarValidar').show();
       $('#errorValidacion').show();
     }
-    if (true) {
-      //CARGA CAMPOS INPUT
-      if(data.cargador!=null){ $('#f_cargaMov').val(data.cargador.nombre); }
+    //CARGA CAMPOS INPUT
+    if(data.cargador!=null){ $('#f_cargaMov').val(data.cargador.nombre); }
 
-      $('#f_tomaMov').val(data.fiscalizador.nombre);
-      $('#nro_adminMov').val(data.toma.nro_admin);
-      $('#nro_islaMov').val(data.toma.nro_isla);
-      $('#nro_serieMov').val(data.toma.nro_serie);
-      $('#marcaMov').val(data.toma.marca);
-      $('#modeloMov').val(data.toma.modelo);
-      $('#macMov').val(data.toma.mac);
-      $('#islaRelevadaMov').val(data.toma.nro_isla_relevada);
-      $('#sectorRelevadoMov').val(data.toma.descripcion_sector_relevado);
+    $('#f_tomaMov').val(data.fiscalizador.nombre);
+    $('#nro_adminMov').val(data.toma.nro_admin);
+    $('#nro_islaMov').val(data.toma.nro_isla);
+    $('#nro_serieMov').val(data.toma.nro_serie);
+    $('#marcaMov').val(data.toma.marca);
+    $('#modeloMov').val(data.toma.modelo);
+    $('#macMov').val(data.toma.mac);
+    $('#islaRelevadaMov').val(data.toma.nro_isla_relevada);
+    $('#sectorRelevadoMov').val(data.toma.descripcion_sector_relevado);
 
-      //CARGAR LA TABLA DE CONTADORES, HASTA 6
-      var cont = "cont";
-      var vcont = "vcont";
-      var fila1 = $('<tr>');
+    //CARGAR LA TABLA DE CONTADORES, HASTA 6
+    var cont = "cont";
+    var vcont = "vcont";
+    var fila1 = $('<tr>');
 
-      for (var i = 1; i < 7; i++) {
-        var fila = fila1.clone();
-        var p = data.toma[cont + i];
-        var v = data.toma[vcont + i];
-        if(data.toma1==null){//si toma anterior es null:
-          if(p != null ){ //si toma actual es != null
-            fila.append($('<td>')
-            .addClass('col-xs-6')
-            .text(p))
-              .append($('<td>')
-              .addClass('col-xs-3')
-              .text(v)
-            );
-            $('#toma_actual').show();
-            $('#toma_anterior').hide();
-            $('#toma_check').hide();
-
-            tablaContadores.append(fila);
-          }
-        }
-        else{ //si toma anterior es != null
-          var m = data.toma1[vcont + i];
-          if(p != null){ //si toma nueva es != null
-            fila.append($('<td>')
-                  .addClass('col-xs-6')
-                  .text(p))
+    for (var i = 1; i < 7; i++) {
+      var fila = fila1.clone();
+      var p = data.toma[cont + i];
+      var v = data.toma[vcont + i];
+      if(data.toma1==null){//si toma anterior es null:
+        if(p != null ){ //si toma actual es != null
+          fila.append($('<td>')
+          .addClass('col-xs-6')
+          .text(p))
             .append($('<td>')
-              .addClass('col-xs-3')
-              .text(m) //valor de la toma anterior
-            )
-            .append($('<td>')
-              .addClass('col-xs-3')
-              .text(v) //valor de la toma nueva
-            );
-            if(m == v){
-              fila.append($('<td align="center">')
-                .addClass('col-xs-2')
-                .append($('<span>').text(' '))
-                .addClass('boton_check_toma')
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check-circle-o').css('color','#1DE9B6'))
-                .attr('style', 'font-size:20px')
-                .attr('data-toggle',"tooltip")
-                .attr('data-placement',"top")
-                .attr('title', "OK")
-                .attr('data-delay',{"show":"300", "hide":"100"})
-              );
-              fila.find('.boton_check_toma').hide();
-            }
-            else{
-              fila.append($('<td align="center">')
-                .addClass('col-xs-2')
-                .append($('<span>').text(' '))
-                .addClass('boton_x_toma')
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-times-circle-o').css('color','#D50000'))
-                .attr('style', 'font-size:20px')
-                .attr('data-toggle',"tooltip")
-                .attr('data-placement',"top")
-                .attr('title', "ERROR")
-                .attr('data-delay',{"show":"300", "hide":"100"})
-              );
-              fila.find('.boton_x_toma').hide();
-            }
-            $('#toma_anterior').show();
-            $('#toma_actual').show();
-            $('#toma_check').hide();
-            tablaContadores.append(fila);
-          }
+            .addClass('col-xs-3')
+            .text(v)
+          );
+          $('#toma_actual').show();
+          $('#toma_anterior').hide();
+          $('#toma_check').hide();
+
+          tablaContadores.append(fila);
         }
       }
-      if(data.toma1==null){ //TOMA ANTERIOR ES NULL:
-        //MUESTRO LA TOMA NUEVA
-        $('#juego').val(data.toma.nombre_juego);
-        $('#apuesta').val(data.toma.apuesta_max);
-        $('#cant_lineas').val(data.toma.cant_lineas);
-        $('#devolucion').val(data.toma.porcentaje_devolucion);
-        $('#denominacion').val(data.toma.denominacion);
-        $('#creditos').val(data.toma.cant_creditos);
+      else{ //si toma anterior es != null
+        var m = data.toma1[vcont + i];
+        if(p != null){ //si toma nueva es != null
+          fila.append($('<td>')
+                .addClass('col-xs-6')
+                .text(p))
+          .append($('<td>')
+            .addClass('col-xs-3')
+            .text(m) //valor de la toma anterior
+          )
+          .append($('<td>')
+            .addClass('col-xs-3')
+            .text(v) //valor de la toma nueva
+          );
+          if(m == v){
+            fila.append($('<td align="center">')
+              .addClass('col-xs-2')
+              .append($('<span>').text(' '))
+              .addClass('boton_check_toma')
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check-circle-o').css('color','#1DE9B6'))
+              .attr('style', 'font-size:20px')
+              .attr('data-toggle',"tooltip")
+              .attr('data-placement',"top")
+              .attr('title', "OK")
+              .attr('data-delay',{"show":"300", "hide":"100"})
+            );
+            fila.find('.boton_check_toma').hide();
+          }
+          else{
+            fila.append($('<td align="center">')
+              .addClass('col-xs-2')
+              .append($('<span>').text(' '))
+              .addClass('boton_x_toma')
+              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-times-circle-o').css('color','#D50000'))
+              .attr('style', 'font-size:20px')
+              .attr('data-toggle',"tooltip")
+              .attr('data-placement',"top")
+              .attr('title', "ERROR")
+              .attr('data-delay',{"show":"300", "hide":"100"})
+            );
+            fila.find('.boton_x_toma').hide();
+          }
+          $('#toma_anterior').show();
+          $('#toma_actual').show();
+          $('#toma_check').hide();
+          tablaContadores.append(fila);
+        }
       }
-      else{ //SI TIENE TOMA ANTERIOR:
-        $('#toma2').show(); //MUESTRO TOMA ANTERIOR
-        //COMPLETO TOMA NUEVA QUE SIEMPRE TIENE
-        $('#juego').val(data.toma.nombre_juego);
-        $('#apuesta').val(data.toma.apuesta_max);
-        $('#cant_lineas').val(data.toma.cant_lineas);
-        $('#devolucion').val(data.toma.porcentaje_devolucion);
-        $('#denominacion').val(data.toma.denominacion);
-        $('#creditos').val(data.toma.cant_creditos);
-
-        //Y COMPLETO TOMA ANTERIOR
-        $('#juego1').val(data.toma1.nombre_juego);
-        $('#apuesta1').val(data.toma1.apuesta_max);
-        $('#cant_lineas1').val(data.toma1.cant_lineas);
-        $('#devolucion1').val(data.toma1.porcentaje_devolucion);
-        $('#denominacion1').val(data.toma1.denominacion);
-        $('#creditos1').val(data.toma1.cant_creditos);
-      }
-
-      if( !data.coinciden_juego){
-        mostrarErrorValidacion($('#juego'),data.n_juego,false);
-      }
-      if( !data.coinciden_denominacion){
-        mostrarErrorValidacion($('#denominacion'),data.n_denominacion,false);
-      }
-      if( !data.coinciden_devolucion){
-        mostrarErrorValidacion($('#devolucion'),data.n_devolucion,false);
-      }
-
-      $('#observacionesToma').show();
-      if(data.toma.observaciones!=null){
-        $('#observacionesToma').text(data.toma.observaciones);
-      }
-      else{
-        $('#observacionesToma').text(' ');
-      }
-      //guardo el id_fiscalizacion en el boton enviarValidar
-      $('#modalValidacion').find('#enviarValidar').val(id_fiscalizacion);
-
-      $('.detalleMaq').show();
-      $('.validar').prop('disabled', false);
-      $('.error').prop('disabled',false);
     }
-    else {
-      console.log('No hay datos de la Máquina:', data.toma.nro_admin);
-      $('#msj').text('No hay datos de la Máquina:', data.toma.nro_admin);
-      $("#modalValidacion").animate({ scrollTop: $('#mensajeErrorVal').offset().top }, "slow");
+    if(data.toma1==null){ //TOMA ANTERIOR ES NULL:
+      //MUESTRO LA TOMA NUEVA
+      $('#juego').val(data.toma.nombre_juego);
+      $('#apuesta').val(data.toma.apuesta_max);
+      $('#cant_lineas').val(data.toma.cant_lineas);
+      $('#devolucion').val(data.toma.porcentaje_devolucion);
+      $('#denominacion').val(data.toma.denominacion);
+      $('#creditos').val(data.toma.cant_creditos);
     }
+    else{ //SI TIENE TOMA ANTERIOR:
+      $('#toma2').show(); //MUESTRO TOMA ANTERIOR
+      //COMPLETO TOMA NUEVA QUE SIEMPRE TIENE
+      $('#juego').val(data.toma.nombre_juego);
+      $('#apuesta').val(data.toma.apuesta_max);
+      $('#cant_lineas').val(data.toma.cant_lineas);
+      $('#devolucion').val(data.toma.porcentaje_devolucion);
+      $('#denominacion').val(data.toma.denominacion);
+      $('#creditos').val(data.toma.cant_creditos);
+
+      //Y COMPLETO TOMA ANTERIOR
+      $('#juego1').val(data.toma1.nombre_juego);
+      $('#apuesta1').val(data.toma1.apuesta_max);
+      $('#cant_lineas1').val(data.toma1.cant_lineas);
+      $('#devolucion1').val(data.toma1.porcentaje_devolucion);
+      $('#denominacion1').val(data.toma1.denominacion);
+      $('#creditos1').val(data.toma1.cant_creditos);
+    }
+
+    if( !data.coinciden_juego){
+      mostrarErrorValidacion($('#juego'),data.n_juego,false);
+    }
+    if( !data.coinciden_denominacion){
+      mostrarErrorValidacion($('#denominacion'),data.n_denominacion,false);
+    }
+    if( !data.coinciden_devolucion){
+      mostrarErrorValidacion($('#devolucion'),data.n_devolucion,false);
+    }
+
+    $('#observacionesToma').show();
+    if(data.toma.observaciones!=null){
+      $('#observacionesToma').text(data.toma.observaciones);
+    }
+    else{
+      $('#observacionesToma').text(' ');
+    }
+    //guardo el id_fiscalizacion en el boton enviarValidar
+    $('#modalValidacion').find('#enviarValidar').val(id_fiscalizacion);
+
+    $('.detalleMaq').show();
+    $('.validar').prop('disabled', false);
+    $('.error').prop('disabled',false);
   });
 });
 
@@ -1694,83 +1823,20 @@ function validar(id_rel, val, id_maquina){
   })
 };
 
-//Enviar a fiscalizar las de ingreso **************************
-$(document).on('click','.enviarIngreso',function(e){
-  var id_log_movimiento = $(this).parent().parent().attr('id');
-  $('.modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
-  $('#tablaMaquinas tbody tr').remove();
-  $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
-  ocultarErrorValidacion($('#B_fecha_ingreso'));
-  $('#B_fecha_ingreso').val('');
-  $.get('movimientos/buscarMaquinasMovimiento/' + id_log_movimiento, function(data){
-    var tablaMaquinas=$('#tablaMaquinas tbody');
-
-    for (var i = 0; i < data.maquinas.length; i++) {
-        var fila = $(document.createElement('tr'));
-
-        fila.attr('id', data.maquinas[i].maquina.id_maquina)
-            .append($('<td>').addClass('col-xs-3').append($('<input>').attr('type','checkbox')))
-            .append($('<td>').addClass('col-xs-9').text(data.maquinas[i].maquina.nro_admin))
-
-        tablaMaquinas.append(fila);
-    }
-  });
-
-  $('#modalEnviarFiscalizarIngreso').modal('show');
-})
-
-//dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
-$("#btn-enviar-ingreso").click(function(e){
-  $('#mensajeError').hide();
-  $('#mensajeExito').hide();
-  var id=$("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
-  var maquinas_seleccionadas=[];
-  var fecha=$('#B_fecha_ingreso').val();
-
-  $('#tablaMaquinas tbody tr').each(function(){
-    var check=$(this).find('td input[type=checkbox]');
-    console.log(check);
-
-    if (check.prop('checked')) {
-        maquinas_seleccionadas.push($(this).attr('id'));
-    }
-  });
-
-  var formData= {
-    id_log_movimiento: id,
-    maquinas: maquinas_seleccionadas,
-    fecha:fecha
-  }
-
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
-
-  $.ajax({
-    type: 'POST',
-    url: 'movimientos/enviarAFiscalizar',
-    data: formData,
-    dataType: 'json',
-
-    success: function (data){
-      $('#modalEnviarFiscalizarIngreso').modal('hide');
-      mensajeExitoMovimientos({
-        titulo: 'ENVÍO EXITOSO',
-        mensajes: ['Las máquinas fueron enviadas correctamente']
-      });
-    },
-    error: function(data){
-      console.log(data);
-      mensajeError(sacarErrores(data));
-    }
-  })
-})
-//FIN ENVIAR A FISCALIZAR INGRESO****************************************
-
+/* 
+ OTROS (cosas que no van en las otras secciones)
+ ###########################
+ ########           ########
+ ######               ######
+ #####      #####      #####
+ #####     #######     #####
+ #####     #######     #####
+ #####      #####      #####
+ ######               ######
+ ########           ########
+ ###########################
+*/
 //-------------------------------------------------------------------------
-
 //redirigir cambio layout
 $(document).on('click','.redirigir',function(e){
   var id_movimiento=$(this).parent().parent().attr('id');
@@ -1836,10 +1902,8 @@ $(document).on('click','.bajaMov',function(e){
       data: formData,
       dataType: 'json',
       success: function (response){
+        mensajeExitoMovimientos({titulo:'ELIMINACIÓN EXITOSA',mensajes:['El movimiento fue eliminado correctamente']});
         $('#btn-buscarMovimiento').trigger('click');
-        $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
-        $('#mensajeExito p').text('El Movimientos fue eliminado correctamente');
-        $('#mensajeExito').show();
       },
       error: function(response){
         console.log(response);
@@ -1871,11 +1935,6 @@ $('.modal').on('shown.bs.modal', function() {
   $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
   //Luego se lo cierra
   $('#mensajeExito').hide();
-});
-
-$('#modalMaquina #nro_admin').on("keyup", function(e){
-  var text="NUEVA MÁQUINA TRAGAMONEDAS N°: " + $(this).val();
-  $('#modalMaquina .modal-title').text(text);
 });
 
 /* 
@@ -2244,17 +2303,14 @@ function mensajeExitoMovimientos(args) {
     titulo : 'ÉXITO',
     mensajes : [],
     mostrarBotones : false,
-    fijarMensaje : false,
-    confirmar : function(){},
-    salir : function(){}
+    fijarMensaje : false
   };
+
   const noargs = isUndef(args);
   const titulo = noargs || isUndef(args.titulo)? deflt.titulo : args.titulo;
   const mensajes = noargs ||isUndef(args.mensajes)? deflt.mensajes : args.mensajes;
   const mostrarBotones = noargs || isUndef(args.mostrarBotones)? deflt.mostrarBotones : args.mostrarBotones;
   const fijarMensaje = noargs || isUndef(args.fijarMensaje)? deflt.fijarMensaje : args.fijarMensaje;
-  const confirmar = noargs || isUndef(args.confirmar)? deflt.confirmar : args.confirmar;
-  const salir = noargs || isUndef(args.salir)? deflt.salir : args.salir; 
 
   $('#mensajeExito .textoMensaje').empty();
   $('#mensajeExito .textoMensaje').append($('<h3>').text(titulo));
@@ -2271,4 +2327,8 @@ function mensajeExitoMovimientos(args) {
 
 function isUndef(x){
   return typeof x == 'undefined';
+}
+
+function limpiarNull(x,c = '-'){
+  return x === null? c : x;
 }
