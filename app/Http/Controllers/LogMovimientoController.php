@@ -1273,10 +1273,24 @@ class LogMovimientoController extends Controller
   }
 
   public function guardarTipoCargaYCantMaq(Request $req){
-    $id_usuario = session('id_usuario');
-    $logMov = LogMovimiento::find($req['id_log_movimiento']);
-    if($this->noEsControlador($id_usuario,  $logMov)){
-      $logMov->controladores()->attach($id_usuario);
+    $logMov = null;
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
+    Validator::make($req->all(), [
+      'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
+      'tipoCarga' => 'required|integer|in:1,2',
+      'cantMaq' => 'nullable|integer|min:1'
+    ], array(), self::$atributos)->after(function ($validator) use (&$log,$usuario){
+      if(!$validator->errors()->any()){
+        $logMov = LogMovimiento::find($req['id_log_movimiento']);
+        if(!$user->usuarioTieneCasino($logMov->id_casino)){
+          $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
+        }
+      }
+    })->validate();
+    
+    if($this->noEsControlador($usuario->id_usuario,  $logMov)){
+      $logMov->controladores()->attach($usuario->id_usuario);
       $logMov->save();
     }
     $logMov->tipo_carga = $req['tipoCarga'];

@@ -212,14 +212,15 @@ class EventualidadController extends Controller
         }
     }
 
-    //hacer uno asi similar para sector y para isla
     public function obtenerSectorEnCasino($id_casino, $sector)
     {
-        //dado un casino,devuelve sectores que concuerden con el nombre del sector
-        if ($id_casino == 0) {
-            $id_usuario = session('id_usuario');
-            $casino = Usuario::find($id_usuario)->casinos()->first();
-            $id_casino = $casino->id_casino;
+        $id_usuario = session('id_usuario');
+        $casinos = Usuario::find($id_usuario)->casinos();
+        if ($id_casino == 0){
+            $id_casino = $casinos->first()->id_casino;
+        }
+        else if ($casinos->where('id_casino',$id_casino)->count() == 0){
+            return ['sectores' => []];
         }
         $sectores = Sector::where([['sector.id_casino', '=', $id_casino], ['sector.descripcion', 'like', $sector . '%']])->get();
         foreach ($sectores as $sector) {
@@ -230,11 +231,13 @@ class EventualidadController extends Controller
 
     public function obtenerIslaEnCasino($id_casino, $nro_isla)
     {
-        //dado un casino,devuelve sectores que concuerden con el nro admin dado
+        $id_usuario = session('id_usuario');
+        $casinos = Usuario::find($id_usuario)->casinos();
         if ($id_casino == 0) {
-            $id_usuario = session('id_usuario');
-            $casino = Usuario::find($id_usuario)->casinos()->first();
-            $id_casino = $casino->id_casino;
+            $id_casino = $casinos->first()->id_casino;
+        }
+        else if ($casinos->where('id_casino',$id_casino)->count() == 0){
+            return ['islas' => []];
         }
         $islas = Isla::where([['isla.id_casino', '=', $id_casino], ['isla.nro_isla', 'like', $nro_isla . '%']])->get();
         foreach ($islas as $isla) {
