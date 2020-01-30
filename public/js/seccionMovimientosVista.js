@@ -508,7 +508,7 @@ $("#btn-enviar-ingreso").click(function(e){
 
     success: function (data){
       $('#modalEnviarFiscalizarIngreso').modal('hide');
-      mensajeExitoMovimientos({
+      mensajeExito({
         titulo: 'ENVÍO EXITOSO',
         mensajes: ['Las máquinas fueron enviadas correctamente']
       });
@@ -1342,8 +1342,8 @@ function enviarDenominacion(id_mov,maq,fecha,fin){
     data: formData,
     dataType: 'json',
     success: function (data) {
-      if(fin) mensajeExitoMovimientos({titulo: 'ENVÍO', mensajes : ['Las máquinas han sido enviadas correctamente.']});
-      else    mensajeExitoMovimientos({titulo: 'GUARDADO', mensajes : ['Las máquinas han sido guardadas en el movimiento.']});
+      if(fin) mensajeExito({titulo: 'ENVÍO', mensajes : ['Las máquinas han sido enviadas correctamente.']});
+      else    mensajeExito({titulo: 'GUARDADO', mensajes : ['Las máquinas han sido guardadas en el movimiento.']});
       $('#modalDenominacion').modal('hide');
     },
     error: function (data) {
@@ -1702,7 +1702,7 @@ $(document).on('click','#finalizarValidar',function(){
   $.get('movimientos/finalizarValidacion/' + id_fiscalizacion, function(data){
     if (data==1){
       $('#modalValidacion').modal('hide');
-      mensajeExitoMovimientos({mensajes: ['Se ha VALIDADO correctamente el movimiento.']})
+      mensajeExito({mensajes: ['Se ha VALIDADO correctamente el movimiento.']})
     }
   })
 });
@@ -1827,7 +1827,7 @@ $(document).on('click','.bajaMov',function(e){
       data: formData,
       dataType: 'json',
       success: function (response){
-        mensajeExitoMovimientos({titulo:'ELIMINACIÓN EXITOSA',mensajes:['El movimiento fue eliminado correctamente']});
+        mensajeExito({titulo:'ELIMINACIÓN EXITOSA',mensajes:['El movimiento fue eliminado correctamente']});
         $('#btn-buscarMovimiento').trigger('click');
       },
       error: function(response){
@@ -2130,116 +2130,3 @@ $('#collapseFiltros').keypress(function(e){
  ###                     ###
  ###########################
 */
-
-function denominacionToFloat(den) {
-  if (den=="" || den==null) {
-    return parseFloat(0.01)
-  }
-  denf=den.replace(",",".")
-  return parseFloat(denf)
-}
-
-//Convierte los errores standard de laravel a lenguaje normal.
-function parseErrorMovimientos(response){
-  if(response == 'validation.unique'){
-    return 'El valor tiene que ser único y ya existe el mismo.';
-  }
-  else if(response == 'validation.required'){
-    return 'El campo es obligatorio.'
-  }
-  else if(response == 'validation.max.string'){
-    return 'El valor es muy largo.'
-  }
-  else if(response == 'validation.exists'){
-    return 'El valor no es valido';
-  }
-  else if(response == 'validation.min.numeric'){
-    return 'El valor no es valido';
-  }
-  return response;
-}
-
-//Saca los errores custom de un response y los retorna en una lista.
-function sacarErrores(errorResponse){
-  const errorjson = errorResponse.responseJSON;
-  const keys  = Object.keys(errorjson);
-  let msjs = [];
-  keys.forEach(function(k){
-    const list_msjs = errorjson[k];
-    list_msjs.forEach(function(str){
-      msjs.push(parseErrorMovimientos(str));
-    });
-  });
-  return msjs;
-}
-
-//Toma una lista de strings y los muestra linea tras linea en el modal de errores.
-function mensajeError(errores) {
-  $('#mensajeError .textoMensaje').empty();
-  for (let i = 0; i < errores.length; i++) {
-      $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
-  }
-  $('#mensajeError').hide();
-  setTimeout(function() {
-      $('#mensajeError').show();
-  }, 250);
-}
-
-function modalEliminar(
-  confirmar = function(){},
-  cancelar = function(){},
-  mensaje = "¿Seguro desea eliminar el MOVIMIENTO?"
-)
-{
-  $('#modalEliminar #mensajeEliminar').empty();
-  $('#modalEliminar #mensajeEliminar').append($('<strong>').text(mensaje));
-  $('#modalEliminar .confirmar').off().click(function(){
-    confirmar();
-    setTimeout(function(){
-      $('#modalEliminar').modal('hide');
-    },250);
-  });
-  $('#modalEliminar .cancelar').off().click(function(){
-    cancelar();
-    setTimeout(function(){
-      $('#modalEliminar').modal('hide');
-    },250);
-  });
-  $('#modalEliminar').modal('show');
-}
-
-//Recibe un objeto como deftl.
-function mensajeExitoMovimientos(args) {
-  const deflt = {
-    titulo : 'ÉXITO',
-    mensajes : [],
-    mostrarBotones : false,
-    fijarMensaje : false
-  };
-
-  const noargs = isUndef(args);
-  const titulo = noargs || isUndef(args.titulo)? deflt.titulo : args.titulo;
-  const mensajes = noargs ||isUndef(args.mensajes)? deflt.mensajes : args.mensajes;
-  const mostrarBotones = noargs || isUndef(args.mostrarBotones)? deflt.mostrarBotones : args.mostrarBotones;
-  const fijarMensaje = noargs || isUndef(args.fijarMensaje)? deflt.fijarMensaje : args.fijarMensaje;
-
-  $('#mensajeExito .textoMensaje').empty();
-  $('#mensajeExito .textoMensaje').append($('<h3>').text(titulo));
-  mensajes.forEach(function(m){
-    $('#mensajeExito .textoMensaje').append($('<h4>').text(m));
-  });
-  $('#mensajeExito').toggleClass('mostrarBotones',mostrarBotones == true);//Conversion a boolean por si pasa cualquiera.
-  $('#mensajeExito').toggleClass('fijarMensaje',fijarMensaje == true);
-  $('#mensajeExito').hide();
-  setTimeout(function() {
-      $('#mensajeExito').show();
-  }, 250);
-}
-
-function isUndef(x){
-  return typeof x == 'undefined';
-}
-
-function limpiarNull(x,c = '-'){
-  return x === null? c : x;
-}

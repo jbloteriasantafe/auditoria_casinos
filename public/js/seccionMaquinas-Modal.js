@@ -216,7 +216,7 @@ $('#btn-guardar').click(function(e){
                   const mensaje = 'La máquina se dio de alta correctamente. Queda '
                   +'<span id="cantidad_maquinas_restantes" class="badge" style="background-color:#1DE9B6;Roboto-Regular;font-size:18px;margin-top:-3px;">1</span> '
                   +'máquina pendiente para cargar.';
-                  mensajeExito('ÉXITO DE CARGA',mensaje,true);
+                  mensajeExito({titulo:'ÉXITO DE CARGA',mensajes:[mensaje],fijarMensaje: true,mostrarBotones: true});
                 }
                 else{
                   const mensaje = 'La máquina se dio de alta correctamente. Quedan '
@@ -224,18 +224,16 @@ $('#btn-guardar').click(function(e){
                   + data.cantidad 
                   +'</span> '
                   +'máquinas pendientes para cargar. Los datos de DETALLE MTM serán los de la MTM anterior, para facilitar la carga. Deberá modificar los que corresponda.'
-                  mensajeExito('ÉXITO DE CARGA',mensaje,true);
+                  mensajeExito({titulo:'ÉXITO DE CARGA',mensajes:[mensaje],fijarMensaje: true,mostrarBotones: true});
                 }
               }
               else{
-                mensajeExito('ÉXITO DE CARGA','Se cargaron todas las máquinas con éxito.',false)
+                mensajeExito({titulo:'ÉXITO DE CARGA',mensajes:['Se cargaron todas las máquinas con éxito.']});
               }
         }else{
-          mensajeExito('ÉXITO DE CARGA','Se ha modificado correctamente la máquina.',false);
+          mensajeExito({titulo:'ÉXITO DE CARGA',mensajes:['Se ha modificado correctamente la máquina.']});
         }
-
         $('#mensajeExito').show();
-
       },
       error: function(data){
           console.log('Error:', data);
@@ -278,7 +276,7 @@ $('#btn-guardar').click(function(e){
               errores_popup += "<p>"+error+"</p>";
             }
           });
-          if(errores_popup.length > 0) mostrarError(errores_popup);
+          if(errores_popup.length > 0) mensajeError([errores_popup]);
       }
     });
 });
@@ -535,48 +533,4 @@ function limpiarModaPaqueteJuegos(){
     $('#inputPackActual').val("");
     $('#inputPackActual').attr("data-idPack", -1);
     $('#tablaMtmJuegoPack tbody').empty();
-}
-
-function parseError(response){
-  if(response == 'validation.unique'){
-    return 'El valor tiene que ser único y ya existe el mismo.';
-  }
-  else if(response == 'validation.required'){
-    return 'El campo es obligatorio.'
-  }
-  else if(response == 'validation.max.string'){
-    return 'El valor es muy largo.'
-  }
-  else if(response == 'validation.exists'){
-    return 'El valor no es valido';
-  }
-  else{
-    return response;
-  }
-}
-
-function tieneValor(val){
-  return typeof val !== 'undefined';
-}
-
-function mensajeExito(titulo,parrafo,mostrar_botones){
-  if(mostrar_botones){
-    $('#mensajeExito').addClass('fijarMensaje mostrarBotones');
-  }
-  else{
-    $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  }
-  $('#mensajeExito h3').empty().append(titulo);
-  $('#mensajeExito p').empty().append(parrafo);
-}
-
-function mostrarError(mensaje = '') {
-  $('#mensajeError').hide();
-  setTimeout(function() {
-      $('#mensajeError').find('.textoMensaje')
-          .empty()
-          .append('<h2>ERROR</h2>')
-          .append(mensaje);
-      $('#mensajeError').show();
-  }, 500);
 }

@@ -1648,6 +1648,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
+    <script src="/js/utils.js" type="text/javascript"></script>
 
     <script src="js/inputSpinner.js" type="text/javascript"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
