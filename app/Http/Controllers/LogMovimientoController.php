@@ -983,7 +983,7 @@ class LogMovimientoController extends Controller
       $fiscalizaciones = DB::table('log_movimiento')
                           ->select('fiscalizacion_movimiento.*', 'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion')
                           ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-                          ->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6,7])
+                          //->whereIn('fiscalizacion_movimiento.id_estado_relevamiento',[3,4,5,6,7])
                           //->orWhere('fiscalizacion_movimiento.es_reingreso','=',1)
                           ->where('log_movimiento.id_log_movimiento','=',$id_log_movimiento)
                           ->get();
@@ -1185,6 +1185,9 @@ class LogMovimientoController extends Controller
   public function cambiarEstadoFiscalizacionAValidado($id_fiscalizacion){
     $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
     $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
+    dump($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos));
+    dump($fiscalizacion->relevamientos_movimientos->toArray());
+    dump($logMov->fiscalizaciones->toArray());/*
     if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
        count($fiscalizacion->relevamientos_movimientos)){
       if(isset($logMov->fiscalizaciones))
@@ -1200,7 +1203,7 @@ class LogMovimientoController extends Controller
         $logMov->estado_movimiento()->associate(5);//error
       }
     }
-    $logMov->save();
+    $logMov->save();*/
     return 1;
   }
 
