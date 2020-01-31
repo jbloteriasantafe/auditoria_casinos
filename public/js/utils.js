@@ -53,7 +53,7 @@ function sacarErrores(errorResponse){
 function mensajeError(errores) {
     $('#mensajeError .textoMensaje').empty();
     for (let i = 0; i < errores.length; i++) {
-        $('#mensajeError .textoMensaje').append($('<h4></h4>').text(errores[i]));
+        $('#mensajeError .textoMensaje').append($('<h4></h4>').append(errores[i]));
     }
     $('#mensajeError').hide();
     setTimeout(function() {
@@ -77,7 +77,7 @@ function modalEliminar(
     )
     {
     $('#modalEliminar #mensajeEliminar').empty();
-    $('#modalEliminar #mensajeEliminar').append($('<strong>').text(mensaje));
+    $('#modalEliminar #mensajeEliminar').append($('<strong>').append(mensaje));
     $('#modalEliminar .confirmar').off().click(function(){
         confirmar();
         setTimeout(function(){
@@ -109,9 +109,9 @@ function mensajeExito(args) {
     const fijarMensaje = noargs || isUndef(args.fijarMensaje)? deflt.fijarMensaje : args.fijarMensaje;
 
     $('#mensajeExito .textoMensaje').empty();
-    $('#mensajeExito .textoMensaje').append($('<h3>').text(titulo));
+    $('#mensajeExito .textoMensaje').append($('<h3>').append(titulo));
     mensajes.forEach(function(m){
-        $('#mensajeExito .textoMensaje').append($('<h4>').text(m));
+        $('#mensajeExito .textoMensaje').append($('<h4>').append(m));
     });
     $('#mensajeExito').toggleClass('mostrarBotones',mostrarBotones == true);//Conversion a boolean por si pasa cualquiera.
     $('#mensajeExito').toggleClass('fijarMensaje',fijarMensaje == true);
