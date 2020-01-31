@@ -12,7 +12,6 @@ $(document).on('click', '.nuevoIngreso', function () {
     $('#tipoManual').prop('checked', true).click();
     $('#modalLogMovimiento').modal('show');
 
-
     $.get('movimientos/obtenerDatos/' + id_movimiento, function (data) {
         $('#conceptoExpediente').text(data.expediente.concepto);
         if (data.movimiento.tipo_carga != null) {
@@ -71,7 +70,7 @@ $("#btn-aceptar-ingreso").click(function (e) {
     const cant_maq = $("#cant_maq").val();
     const t_carga = $('input:radio[name=carga]:checked').val();
 
-    if (typeof cant_maq == "undefined") {
+    if (isUndef(cant_maq)) {
         $('#mensajeErrorCarga').text('Debe especificar la cantidad de máquinas que va a cargar');
         $('#mensajeErrorCarga').show();
     }

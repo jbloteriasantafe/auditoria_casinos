@@ -1279,11 +1279,12 @@ class LogMovimientoController extends Controller
     Validator::make($req->all(), [
       'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
       'tipoCarga' => 'required|integer|in:1,2',
-      'cantMaq' => 'nullable|integer|min:1'
-    ], array(), self::$atributos)->after(function ($validator) use (&$log,$usuario){
+      'cantMaq' => 'nullable|required_if:tipoCarga,1|integer|min:1'
+    ], array(), self::$atributos)->after(function ($validator) use (&$logMov,$usuario){
       if(!$validator->errors()->any()){
-        $logMov = LogMovimiento::find($req['id_log_movimiento']);
-        if(!$user->usuarioTieneCasino($logMov->id_casino)){
+        $data = $validator->getData();
+        $logMov = LogMovimiento::find($data['id_log_movimiento']);
+        if(!$usuario->usuarioTieneCasino($logMov->id_casino)){
           $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
         }
       }

@@ -29,6 +29,9 @@ function parseError(response){
     else if(response == 'validation.regex'){
         return 'El valor no es valido.';
     }
+    else if(response == 'validation.required_if'){
+        return 'El valor es requerido';
+    }
     return response;
 }
   
