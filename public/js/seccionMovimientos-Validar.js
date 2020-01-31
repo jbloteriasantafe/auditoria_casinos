@@ -1,6 +1,4 @@
 var cant_validadas=0;
-// Mostrar modal para VALIDACIÓN de maquinas de ingreso
-
 //BOTÓN VALIDACION, DENTRO DE LA TABLA PRINCIPÁL
 $(document).on('click','.validarMovimiento',function(){
     $('#mensajeExito').hide();
@@ -24,34 +22,33 @@ $(document).on('click','.validarMovimiento',function(){
     $.get('movimientos/ValidarMovimiento/' + id_log_movimiento, function(data){
         let tablaFiscalizacion = $('#tablaFechasFiscalizacion tbody');
   
-        for (var i = 0; i < data.length; i++) {
-          let fila = $('<tr>');
-  
-          fila.append(
-              $('<td>').addClass('col-xs-6')
-              .text(data[i].fecha_envio_fiscalizar)
-          );
-          fila.append(
-            $('<td>')
-            .addClass('col-xs-3')
-            .append(
-              $('<button>').append(
-                $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-eye')
+        data.forEach(f => {
+            let fila = $('<tr>');
+            fila.append(
+                $('<td>').addClass('col-xs-6')
+                .text(f.fecha_envio_fiscalizar)
+            );
+            fila.append(
+              $('<td>')
+              .addClass('col-xs-3')
+              .append(
+                $('<button>').append(
+                  $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-eye')
+                )
+                .attr('type','button')
+                .addClass('btn btn-info detalleMov')
+                .attr('data-id-fiscalizacion',f.id_fiscalizacion_movimiento)
+                .attr('data-fecha-fisc', f.fecha_envio_fiscalizar)
               )
-              .attr('type','button')
-              .addClass('btn btn-info detalleMov')
-              .attr('data-id-fiscalizacion',data[i].id_fiscalizacion_movimiento)
-              .attr('data-fecha-fisc', data[i].fecha_envio_fiscalizar)
             )
-          )
-          if(data[i].id_estado_fiscalizacion == 4){
-            fila.append($('<td>')
-                .addClass('col-xs-3')
-                .append($('<i>').addClass('fa fa-fw fa-check finalizado').css('color','#4CAF50')));
-          }
-          $('#finalizarValidar').attr('data-fiscalizacion',data[i].id_fiscalizacion_movimiento);
-          tablaFiscalizacion.append(fila);
-        }
+            if(f.id_estado_fiscalizacion == 4){
+              fila.append($('<td>')
+                  .addClass('col-xs-3')
+                  .append($('<i>').addClass('fa fa-fw fa-check finalizado').css('color','#4CAF50')));
+            }
+            $('#finalizarValidar').attr('data-fiscalizacion',f.id_fiscalizacion_movimiento);
+            tablaFiscalizacion.append(fila);
+        });
         let cantidad=0;
         $('#tablaFechasFiscalizacion tbody tr').each(function(){
           if ($(this).hasClass('finalizado')) {
@@ -99,44 +96,42 @@ $(document).on('click','.validarMovimiento',function(){
       $('#tablaMaquinasFiscalizacion tbody tr').remove();
       let cant_maq_val = 0;
       cant_validadas = data.Maquinas.length;
-      for (var i = 0; i < data.Maquinas.length; i++) {
-          var fila= $('<tr>');
-  
-          fila.attr('data-id',data.Maquinas[i].id_maquina)
+      data.Maquinas.forEach(m => {
+        let fila = $('<tr>');
+        fila.attr('data-id', m.id_maquina)
+        .append(
+          $('<td>').addClass('col-xs-4')
+          .text(m.nro_admin)
+        )
+        fila.append(
+          $('<td>')
+          .addClass('col-xs-4')
           .append(
-            $('<td>').addClass('col-xs-4')
-            .text(data.Maquinas[i].nro_admin)
+            $('<button>')
+            .append(
+              $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
+            )
+            .attr('type','button')
+            .addClass('btn btn-info verMaquina1')
+            .attr('data-maquina', m.id_maquina)
+            .attr('data-fiscalizacion', id_fiscalizacion)
+            .attr('data-relevamiento', m.id_relev_mov)
           )
+        );
+
+        if(m.id_estado_relevamiento == 4){
+          cant_validadas= cant_validadas - 1;
+          cant_maq_val = cant_maq_val + 1;
+          $('#enviarValidar').hide();
           fila.append(
             $('<td>')
             .addClass('col-xs-4')
-            .append(
-              $('<button>')
-              .append(
-                $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-              )
-              .attr('type','button')
-              .addClass('btn btn-info verMaquina1')
-              .attr('data-maquina',data.Maquinas[i].id_maquina)
-              .attr('data-fiscalizacion',id_fiscalizacion)
-              .attr('data-relevamiento', data.Maquinas[i].id_relev_mov)
-            )
+            .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50'))
           );
-  
-          if(data.Maquinas[i].id_estado_relevamiento == 4){
-            cant_validadas= cant_validadas - 1;
-            cant_maq_val = cant_maq_val + 1;
-            $('#enviarValidar').hide();
-            fila.append(
-              $('<td>')
-              .addClass('col-xs-4')
-              .append($('<i>').addClass('fa fa-fw fa-check').css('color','#4CAF50'))
-            );
-          }
-  
-          tablaMaquinasFiscalizacion.append(fila);
-      }
-      var t= $("#tablaMaquinasFiscalizacion tr").length;
+        }
+        tablaMaquinasFiscalizacion.append(fila);
+      });
+      const t = $("#tablaMaquinasFiscalizacion tr").length;
       console.log('t es', t);
       console.log('cant es', cant_maq_val);
       if(cant_maq_val==(t-1)){
@@ -187,10 +182,8 @@ $(document).on('click','.validarMovimiento',function(){
       //CARGAR LA TABLA DE CONTADORES, HASTA 6
       const cont = "cont";
       const vcont = "vcont";
-      let fila1 = $('<tr>');
-  
-      for (var i = 1; i < 7; i++) {
-        let fila = fila1.clone();
+      for (let i = 1; i < 7; i++) {
+        let fila = $('<tr>');
         const p = data.toma[cont + i];
         const v = data.toma[vcont + i];
         if(data.toma1==null){//si toma anterior es null:
@@ -210,7 +203,7 @@ $(document).on('click','.validarMovimiento',function(){
           }
         }
         else{ //si toma anterior es != null
-          var m = data.toma1[vcont + i];
+          let m = data.toma1[vcont + i];
           if(p != null){ //si toma nueva es != null
             fila.append($('<td>')
                   .addClass('col-xs-6')

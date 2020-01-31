@@ -1,18 +1,3 @@
-/* 
- DENOMINACION DEVOLUCION JUEGO
- ########################### ###########################  ########################### 
- ######           ########## ##      ###################  ########           ########
- ######   ########   ####### ##  ###   #################  ########           ########
- ######   ##########   ##### ##  ####   ################  ###########     ###########
- ######   ##########   ##### ##  ###   ####   #####   ##  ###########     ###########
- ######   ##########   ##### ##      #######   ###   ###  ###########     ###########
- ######   ##########   ##### ################   #   ####  #####   ###     ###########
- ######   ######     ####### #################     #####  #####           ###########
- ######           ########## ###########################  #######         ###########
- ########################### ###########################  ########################### 
-*/
-//*************BOTÓN NUEVO DE MOVIMIENTO: DENOMINACION **************************************************
-
 $(document).on('click', '.modificarDenominacion', function () {
     const fila = $(this).parent().parent();
     const casino = fila.attr('data-casino');
@@ -114,7 +99,6 @@ $(document).on('click', '.modificarDenominacion', function () {
     });
 
     $('#modalDenominacion').modal('show');
-    $('#mensajeExito').hide();
     $('#mensajeFiscalizacionError2').hide();
     $('#btn-enviar-denom').val(mov);
 });
@@ -149,11 +133,11 @@ function agregarMaqDenominacion(id_maquina, nro_admin, denom, juegos, id_juego, 
 
         let select = $('<select>').addClass('unidad_denominacion form-control');
 
-        for (var j = 0; j < unidades.length; j++) {
-            const tipo = unidades[j].descripcion;
-            const id = unidades[j].id_unidad_medida;
+        unidades.forEach(u =>{
+            const tipo = u.descripcion;
+            const id = u.id_unidad_medida;
             select.append($('<option>').text(tipo).val(id));
-        }
+        });
         select.val(unidad_seleccionada);
         fila.append($('<td>').append(select));
     };
@@ -189,10 +173,10 @@ $('#agregarIslaDen').click(function (e) {
     if (id_isla != 0) {
         $.get('movimientos/obtenerMaquinasIsla/' + id_isla, function (data) {
             console.log('ff', data);
-            for (var i = 0; i < data.maquinas.length; i++) {
-                agregarMDenominacion(data.maquinas[i].id_maquina, data.maquinas[i].nro_admin, data.maquinas[i].denominacion,
-                    data.maquinas[i].porcentaje_devolucion, data.maquinas[i].id_unidad_medida, data.unidades, 1, data.maquinas[i].juego_obj);
-            }
+            data.maquinas.forEach(m => {
+                agregarMDenominacion(m.id_maquina, m.nro_admin, m.denominacion, m.porcentaje_devolucion, 
+                                     m.id_unidad_medida, data.unidades, 1, m.juego_obj);
+            });
             $('#inputIslaDen').setearElementoSeleccionado(0, "");
         });
     }
@@ -202,11 +186,10 @@ $('#agregarSectorDen').click(function (e) {
     const id_isla = $('#inputSectorDen').attr('data-elemento-seleccionado');
     if (id_isla != 0) {
         $.get('movimientos/obtenerMaquinasSector/' + 0, function (data) {
-            console.log('ff', data);
-            for (var i = 0; i < data.maquinas[i].length; i++) {
-                agregarMDenominacion(data.maquinas[i].id_maquina, data.maquinas[i].nro_admin, data.maquinas[i].denominacion,
-                    data.maquinas[i].porcentaje_devolucion, data.maquinas[i].id_unidad_medida, data.unidades, 1);
-            }
+            data.maquinas.forEach(m => {
+                agregarMDenominacion(m.id_maquina, m.nro_admin, m.denominacion, m.porcentaje_devolucion, 
+                                     m.id_unidad_medida, data.unidades, 1);
+            });
             $('#inputSectorDen').setearElementoSeleccionado(0, "");
         });
     }
@@ -368,8 +351,6 @@ $(document).on('click', '#btn-pausar-denom', function (e) {
 
 //FUNCION PARA ENVIAR EL POST AL CONTROLADOR, CON LOS CAMBIOS GENERADOS
 function enviarDenominacion(id_mov, maq, fecha, fin) {
-    $('#mensajeExito').hide();
-
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')

@@ -1,19 +1,4 @@
 var maq_seleccionadas=[];
-/* 
- EGRESO Y CAMBIO LAYOUT (y reingreso?)
- ########################### ###########################
- ########            ####### ######                #####
- ########            ####### ######                #####
- ########     ############## ######       ##############
- ########          ######### ######       ##############
- ########          ######### ######       ##############
- ########     ############## ######       ##############
- ########            ####### ######                #####
- ########            ####### ######                #####
- ########################### ########################### 
-*/
-// **************************************MODAL NUEVO EGRESO ********************************************************
-
 $(document).on('click', '.nuevoEgreso', function () {
     $('#btn-enviar-egreso').show();
     $('#btn-enviar-toma2').hide();
@@ -41,15 +26,14 @@ $(document).on('click', '.nuevoEgreso', function () {
             $('#tablaMaquinasSeleccionadas tbody tr').remove();
 
             if (data.maquinas.length != 0) {
-                for (var i = 0; i < data.maquinas.length; i++) {
-                    agregarMaq(data.maquinas[i].maquina.id_maquina, data.maquinas[i].maquina.nro_admin,
-                        data.maquinas[i].maquina.marca, data.maquinas[i].maquina.modelo,
-                        data.maquinas[i].maquina.nro_isla);
+                data.maquinas.forEach(m => {
+                    agregarMaq(m.maquina.id_maquina, m.maquina.nro_admin, m.maquina.marca,
+                               m.maquina.modelo,m.maquina.nro_isla);
 
                     $('#inputMaq').setearElementoSeleccionado(0, "");
                     $('#isla_layout').hide();
                     $('#modalLogMovimiento2').modal('show');
-                }//fin FOR
+                });
             }
             else { //no hay máquinas
                 $('#tablaMaquinasSeleccionadas tbody tr').remove();
@@ -71,12 +55,10 @@ $(document).on('click', '.nuevoEgreso', function () {
             $('#tablaMaquinasSeleccionadas tbody tr').remove();
 
             if (data != null) {
-                for (var i = 0; i < data.length; i++) {
-                    agregarMaq(data[i].id_maquina, data[i].nro_admin,
-                        data[i].marca, data[i].modelo, data[i].nro_isla,
-                        data[i].nombre_juego, data[i].nro_serie);
-                }
-
+                data.forEach(m => {
+                    agregarMaq(m.id_maquina, m.nro_admin, m.marca, m.modelo, 
+                               m.nro_isla, m.nombre_juego, m.nro_serie);
+                });
                 $('#modalLogMovimiento2').modal('show');
             }
             else {
@@ -87,8 +69,6 @@ $(document).on('click', '.nuevoEgreso', function () {
             }
         });
     }
-
-    $('#mensajeExito').hide();
     $('#mensajeFiscalizacionError').hide();
     $('#btn-enviar-egreso').val(id_mov);
 });
@@ -203,18 +183,13 @@ function enviarFiscalizar(id_mov, maq, fecha, fin, reingreso) {
         data: formData,
         dataType: 'json',
         success: function (data) {
-            if (fin == true) {
-                $('#mensajeExito h3').text('ÉXITO');
-                $('#mensajeExito p').text('Las máquinas han sido enviadas');
-                $("#modalLogMovimiento2").modal('hide');
-                $('#mensajeExito').show();
+            if(fin){
+                mensajeExito({titulo: 'ÉXITO', mensajes: ['Las máquinas han sido enviadas']});
             }
-            else {
-                $('#mensajeExito h3').text('CARGA PAUSADA');
-                $('#mensajeExito p').text('Las máquinas han sido guardadas correctamente');
-                $("#modalLogMovimiento2").modal('hide');
-                $('#mensajeExito').show();
+            else{
+                mensajeExito({titulo: 'CARGA PAUSADA', mensajes: ['Las máquinas han sido guardadas correctamente']});
             }
+            $("#modalLogMovimiento2").modal('hide');
         },
         error: function (data) {
             let response = data.responseJSON.errors;
@@ -230,9 +205,7 @@ function enviarFiscalizar(id_mov, maq, fecha, fin, reingreso) {
     });
 };
 
-
 //MODAL BAJA MTM EN EL MOVIMIENTO EGRESO/REINGRESO
-
 $(document).on('click', '.bajaMTM', function () {
     const fila = $(this).parent().parent();
     const casino = fila.attr('data-casino');
@@ -247,11 +220,8 @@ $(document).on('click', '.bajaMTM', function () {
 
     $('#tablaBajaMTM tbody tr').remove();
     $('#btn-baja').prop('disabled', false);
-    $('#mensajeExito').hide();
     $('#modalBajaMTM').modal('show');
 })
-
-//crea tabla
 
 $('#agregarMaqBaja').click(function (e) {
     const id_maq = $('#inputMaq3').attr('data-elemento-seleccionado');
@@ -322,10 +292,8 @@ $(document).on('click', '#btn-baja', function (e) {
         data: formData,
         dataType: 'json',
         success: function (data) {
-            $('#mensajeExito h3').text('ELIMINACIÓN EXITOSA');
-            $('#mensajeExito p').text('Las máquinas han sido eliminadas');
+            mensajeExito({titulo: 'ELIMINACIÓN EXITOSA',mensajes: ['Las máquinas han sido eliminadas']});
             $("#modalBajaMTM").modal('hide');
-            $('#mensajeExito').show();
         },
         error: function (data) {
             console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');
@@ -375,8 +343,6 @@ $(document).on('click', '.botonToma2', function () {
 
     $('#btn-pausar').hide();
     $('#modalLogMovimiento2').modal('show');
-
-    $('#mensajeExito').hide();
     $('#mensajeFiscalizacionError').hide();
     $('#btn-enviar-toma2').val(id_mov);
 });
@@ -417,10 +383,8 @@ function enviarFiscalizarToma2(id_mov, maq) {
         data: formData,
         dataType: 'json',
         success: function (data) {
-            $('#mensajeExito h3').text('ÉXITO');
-            $('#mensajeExito p').text('Las máquinas han sido enviadas correctamente');
+            mensajeExito({titulo:'ÉXITO',mensajes:['Las máquinas han sido enviadas correctamente']});
             $("#modalLogMovimiento2").modal('hide');
-            $('#mensajeExito').show();
         },
         error: function (data) {
             console.log('Error: No fue posible enviar a fiscalizar las máquinas cargadas');

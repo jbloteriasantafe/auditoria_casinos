@@ -114,21 +114,19 @@ $(document).on('click', '#btn-nuevo-movimiento', function (e) {
 
   $.get('movimientos/casinosYMovimientosIngresosEgresos', function (data) {
     //carga el select de los casinos del modal
-    for (let i = 0; i < data.casinos.length; i++) {
+    data.casinos.forEach(c => {
       $('#modalCas #selectCasinoIngreso')
         .append($('<option>')
           .prop('disabled', false)
-          .val(data.casinos[i].id_casino)
-          .text(data.casinos[i].nombre_casino))
-    }
+          .val(c.id_casino)
+          .text(c.nombre_casino));
+    });
     //carga el select de los tipos de movimientos del modal
-    for (let i = 0; i < data.tipos_movimientos.length; i++) {
+    data.tipos_movimientos.forEach(t => {
       $('#modalCas #tipo_movimiento_nuevo')
-        .append($('<option>')
-          .prop('disabled', false)
-          .val(data.tipos_movimientos[i].id_tipo_movimiento)
-          .text(data.tipos_movimientos[i].descripcion))
-    };
+        .append($('<option>').prop('disabled', false)
+          .val(t.id_tipo_movimiento).text(t.descripcion));
+    });
   });
 
   $('#modalCas .alerta').each(function () {
@@ -189,9 +187,6 @@ $(document).on('click', '#aceptarCasinoIng', function (e) {
   })
 });
 
-//*******************************************************************************************************************************
-
-//**********FIN MODAL PARA MODIFICAR JUEGO, DENOMINACION Y DEVOLUCION ******************
 /* 
  OTROS (cosas que no van en las otras secciones)
  ###########################
@@ -304,17 +299,7 @@ $('#mensajeExito .confirmar').click(function (e) {
 
 /* Detecta la negativa para seguir cargando máquinas en movimientos */
 $('#mensajeExito .salir').click(function (e) {
-  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  $('#mensajeExito').hide();
-  limpiarModal();
-});
-
-/* Cada vez que se abre un modal */
-$('.modal').on('shown.bs.modal', function () {
-  //Limpiar el mensaje de éxito. Sacar los botones y agregar animación
-  $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
-  //Luego se lo cierra
-  $('#mensajeExito').hide();
+  limpiarModal();//seccionMaquinas-Modal.js
 });
 
 /* 
@@ -374,10 +359,9 @@ $('#btn-buscarMovimiento').click(function (e, pagina = null, page_size = null, c
     success: function (data) {
       $('#herramientasPaginacion').generarTitulo(page_number, page_size, data.logMovimientos.total, clickIndiceMov);
       $('#cuerpoTabla tr').remove();
-      for (var i = 0; i < data.logMovimientos.data.length; i++) {
-        var filaMovimiento = generarFilaTabla(data.logMovimientos.data[i]);
-        $('#cuerpoTabla').append(filaMovimiento);
-      }
+      data.logMovimientos.data.forEach(l => {
+        $('#cuerpoTabla').append(generarFilaTabla(l));
+      });
       //Me permite mostrar los nombres de los botones
       $('[data-toggle="tooltip"]').tooltip();
       $('#herramientasPaginacion').generarIndices(page_number, page_size, data.logMovimientos.total, clickIndiceMov);

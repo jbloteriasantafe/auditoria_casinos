@@ -75,7 +75,6 @@ $("#btn-aceptar-ingreso").click(function (e) {
         $('#mensajeErrorCarga').text('Debe especificar la cantidad de máquinas que va a cargar');
         $('#mensajeErrorCarga').show();
     }
-
     else {
         const formData = {
             id_log_movimiento: id,
@@ -233,17 +232,14 @@ $(document).on('click', '.enviarIngreso', function (e) {
     ocultarErrorValidacion($('#B_fecha_ingreso'));
     $('#B_fecha_ingreso').val('');
     $.get('movimientos/buscarMaquinasMovimiento/' + id_log_movimiento, function (data) {
-        var tablaMaquinas = $('#tablaMaquinas tbody');
-
-        for (var i = 0; i < data.maquinas.length; i++) {
-            var fila = $(document.createElement('tr'));
-
-            fila.attr('id', data.maquinas[i].maquina.id_maquina)
+        let tablaMaquinas = $('#tablaMaquinas tbody');
+        data.maquinas.forEach(m => {
+            let fila = $('<tr>');
+            fila.attr('id', m.maquina.id_maquina)
                 .append($('<td>').addClass('col-xs-3').append($('<input>').attr('type', 'checkbox')))
-                .append($('<td>').addClass('col-xs-9').text(data.maquinas[i].maquina.nro_admin))
-
+                .append($('<td>').addClass('col-xs-9').text(m.maquina.nro_admin))
             tablaMaquinas.append(fila);
-        }
+        });
     });
 
     $('#modalEnviarFiscalizarIngreso').modal('show');
@@ -251,8 +247,6 @@ $(document).on('click', '.enviarIngreso', function (e) {
 
 //dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
 $("#btn-enviar-ingreso").click(function (e) {
-    $('#mensajeError').hide();
-    $('#mensajeExito').hide();
     const id = $("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
     let maquinas_seleccionadas = [];
     const fecha = $('#B_fecha_ingreso').val();
