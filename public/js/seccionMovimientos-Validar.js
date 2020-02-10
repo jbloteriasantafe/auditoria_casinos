@@ -63,6 +63,7 @@ $(document).on('click', '.detalleMov', function () {
 
     //guardo la fecha de fiscalizacion en el input del modal
     $('#modalValidacion').find('#fecha_fiscalizacion').val(fecha_fiscalizacion);
+    $('#finalizarValidar').attr('data-fiscalizacion',id_fiscalizacion);
 
     $.get('movimientos/ValidarFiscalizacion/' + id_fiscalizacion, function (data) {
         if (data.Maquinas.id_estado_fiscalizacion != 4) {
@@ -302,9 +303,15 @@ $(document).on('click', '#errorValidacion', function () {
 $(document).on('click', '#finalizarValidar', function () {
     const id_fiscalizacion = $(this).attr('data-fiscalizacion');
     $.get('movimientos/finalizarValidacion/' + id_fiscalizacion, function (data) {
-        if (data == 1) {
+        if (data == 1) { // Log todo validado
             $('#modalValidacion').modal('hide');
             mensajeExito({ mensajes: ['Se ha VALIDADO correctamente el movimiento.'] })
+        }
+        else if (data == 0){ // Fiscalizacion validada
+            agregarValidadoFiscalizacion(id_fiscalizacion);
+        }
+        else{ // Error
+            mensajeError(['Hay maquinas sin validar o relevar.']);
         }
     })
 });
@@ -375,5 +382,16 @@ function generarFilaFechaFiscalizacion(id,estado,fecha){
             )
         );
     }
+    return fila;
+}
+
+function agregarValidadoFiscalizacion(id){
+    let fila = $('button[data-id-fiscalizacion="'+id+'"]').parent().parent();
+    fila.append(
+        $('<td>').addClass('col-xs-3')
+        .append(
+            $('<i>').addClass('fa fa-fw fa-check finalizado').css('color', '#4CAF50')
+        )
+    );
     return fila;
 }

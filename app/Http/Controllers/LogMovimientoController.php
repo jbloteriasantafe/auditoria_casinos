@@ -1185,33 +1185,36 @@ class LogMovimientoController extends Controller
   public function cambiarEstadoFiscalizacionAValidado($id_fiscalizacion){
     $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
     $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
-    dump($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos));
-    dump($fiscalizacion->relevamientos_movimientos->toArray());
-    dump($logMov->fiscalizaciones->toArray());/*
-    if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos) ==
-       count($fiscalizacion->relevamientos_movimientos)){
-      if(isset($logMov->fiscalizaciones))
+    $validacion = -1;
+    DB::transaction(function() use ($fiscalizacion,$logMov,&$validacion){
+      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos)
+         == 
+         count($fiscalizacion->relevamientos_movimientos))
       {
-        $logMov->estado_movimiento()->associate(4);//validado -- visadooooo lpm!!!MOEXX
         $fiscalizacion->estado_relevamiento()->associate(4);
         $fiscalizacion->save();
+        $validacion = 0; // Se valido la fiscalizacion
       }
-
-    }else{
-      if(!isset($logMov->fiscalizaciones))
+      if($logMov->fiscalizaciones()->where('id_estado_relevamiento',4)->count() 
+         ==
+         $logMov->fiscalizaciones()->count())
       {
-        $logMov->estado_movimiento()->associate(5);//error
+        $logMov->estado_movimiento()->associate(4);
+        $logMov->save();
+        $validacion = 1; // Esta todo validado
       }
-    }
-    $logMov->save();*/
-    return 1;
+    });
+    return $validacion;
   }
 
 
   private function countMaquinasValidadas($relevamientos_movimientos){
     $contador = 0;
     foreach ($relevamientos_movimientos as $relev) {
-      if($relev->id_estado_relevamiento == 4 || $relev->id_estado_relevamiento == 6){
+      if(($relev->id_estado_relevamiento == 4 || $relev->id_estado_relevamiento == 6)
+         ||
+         is_null($relev->maquina) //Puede ser borrada la maquina..., creo que esto andaria (sin probar)
+      ){
         $contador++;
       }
     }
