@@ -31,6 +31,9 @@ footer
     width:200%;
     height:300px;
 }
+.break{
+    word-wrap: break-word;
+}
 </style>
 
   <head>
@@ -153,9 +156,6 @@ footer
                   </td>
                 </tr>
               </table>
-
-
-
               <br>
               <table>
                 <!-- Tabla COIN IN -->
@@ -256,8 +256,36 @@ footer
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if ($relevamiento->toma) {{$relevamiento->toma2_mac}} @else @endif</td>
                 </tr>
               </table>
-
-              <br><br>
+              <br>
+              <table style="table-layout:fixed">
+                <thead>
+                  <tr>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="7%">ISLA/S</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="10.5%">PROGRESIVO</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 1</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 2</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 3</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 4</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 5</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 6</th>
+                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="10.5%">CAUSA NO TOMA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
+                </tr>
+                </tbody>
+              </table>
+              <br>
               <table>
                 <tr>
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">OBSERVACIONES GENERALES</th>
@@ -280,11 +308,11 @@ footer
                     <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
                     <div style="color: #dddddd;">
                     Toma 1:
-                    @for($i = 0; $i<640; $i++)
+                    @for($i = 0; $i<315; $i++)
                     .
                     @endfor
                     Toma 2:
-                    @for($i = 0; $i<640; $i++)
+                    @for($i = 0; $i<315; $i++)
                     .
                     @endfor
                     </p>
@@ -293,7 +321,7 @@ footer
                     @endif
                 </tr>
               </table>
-              <br><br>
+              <br>
               <table>
                 <tr>
                   <th class="tablaInicio" style="padding-top: 50px; border-right: 0px; border-color: gray;"></th>
