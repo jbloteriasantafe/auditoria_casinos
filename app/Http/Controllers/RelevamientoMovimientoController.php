@@ -263,6 +263,23 @@ class RelevamientoMovimientoController extends Controller
          $rel->toma2_descripcion_sector_relevado = null;
       }
      }
+
+     //Progresivos
+     $rel->progresivos = [];
+     foreach($relev_mov->maquina->progresivos as $prog){
+       foreach($prog->pozos as $pozo){
+         $relprog = new \stdClass();
+         $relprog->progresivo = $prog->nombre;
+         $relprog->es_individual = $prog->es_individual;
+         $relprog->pozo = $pozo->descripcion;
+         $relprog->pozo_unico = count($prog->pozos) == 1;
+         $relprog->niveles = [];
+         foreach($pozo->niveles as $nivel){
+           $relprog->niveles[$nivel->nro_nivel]=$nivel->nombre_nivel;
+         }
+         $rel->progresivos[] = $relprog;
+       }
+     }
      return $rel;
    }
 

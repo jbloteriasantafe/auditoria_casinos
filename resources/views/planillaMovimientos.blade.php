@@ -34,6 +34,14 @@ footer
 .break{
     word-wrap: break-word;
 }
+.cabezera{
+  background-color: #dddddd; 
+  border-color: gray;
+}
+.fila{
+  background-color: #fff;
+  border-color: gray;
+}
 </style>
 
   <head>
@@ -257,35 +265,42 @@ footer
                 </tr>
               </table>
               <br>
-              <table style="table-layout:fixed">
+              @if(count($relevamiento->progresivos) > 0)
+              <table style="table-layout:fixed;">
                 <thead>
                   <tr>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="7%">ISLA/S</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="10.5%">PROGRESIVO</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 1</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 2</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 3</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 4</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 5</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;">NIVEL 6</th>
-                    <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;font-size: 60%;" width="10.5%">CAUSA NO TOMA</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">PROGRESIVO</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 1</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 2</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 3</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 4</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 5</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 6</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">CAUSA NO TOMA</th>
                   </tr>
                 </thead>
                 <tbody>
-                <tr>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                  <td class="tablaProgresivos" style="background-color: #fff; border-color: gray;"><div class="break"></div></td>
-                </tr>
+                  @foreach($relevamiento->progresivos as $p)
+                  <tr>
+                    @if($p->es_individual)
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">INDIVIDUAL</div></td>
+                    @else
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->nombre}}{{$p->pozo_unico? ' ' : ' ('.$p->pozo.')'}}</div></td>
+                    @endif
+                    @for($i=0;$i<6;$i++)
+                    @if(array_key_exists($i+1,$p->niveles))
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->niveles[$i+1]}}</div></td>
+                    @else
+                    <td class="tablaProgresivos fila" style="font-size: 60%;background-color: #f5f5f5"><div class="break"></div></td>
+                    @endif
+                    @endfor
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">NOTOMADO NOTOMADO NOTOMADO</div></td>
+                  </tr>
+                  @endforeach
                 </tbody>
               </table>
               <br>
+              @endif
               <table>
                 <tr>
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">OBSERVACIONES GENERALES</th>
