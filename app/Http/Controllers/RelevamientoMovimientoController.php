@@ -264,7 +264,6 @@ class RelevamientoMovimientoController extends Controller
       }
      }
 
-     //Progresivos
      $rel->progresivos = [];
      foreach($relev_mov->maquina->progresivos as $prog){
        foreach($prog->pozos as $pozo){
@@ -274,8 +273,15 @@ class RelevamientoMovimientoController extends Controller
          $relprog->pozo = $pozo->descripcion;
          $relprog->pozo_unico = count($prog->pozos) == 1;
          $relprog->niveles = [];
+         $relprog->valores_niveles = [];
+         $detalle_relev = $toma_relev->detalle_relevamiento_progresivo;
          foreach($pozo->niveles as $nivel){
            $relprog->niveles[$nivel->nro_nivel]=$nivel->nombre_nivel;
+           $relprog->valores_niveles[$nivel->nro_nivel] = '';
+           if(!is_null($detalle_relev)){
+            $relprog->valores_niveles[$nivel->nro_nivel] = $detalle_relev['nivel'.$nivel->nro_nivel];
+            $relprog->tipo_causa_no_toma_progresivo = $detalle_relev->id_tipo_causa_no_toma_progresivo;
+           }
          }
          $rel->progresivos[] = $relprog;
        }

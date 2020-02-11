@@ -42,6 +42,30 @@ footer
   background-color: #fff;
   border-color: gray;
 }
+.cell_fg{
+  position:absolute; 
+  width:100%; 
+  height:100%; 
+  z-index:1;
+}
+
+.cell_bg_1{
+  position:relative; 
+  z-index:0; 
+  color: rgb(120,120,120);
+  font-size: 50%;
+  top: 10px;
+  text-align: right;
+}
+.cell_bg_2{
+  position:absolute; 
+  width:100%; 
+  height:100%; 
+  z-index:0; 
+  color: rgb(180,180,180);
+  text-align:right;
+  font-size: 70%;
+}
 </style>
 
   <head>
@@ -285,16 +309,23 @@ footer
                     @if($p->es_individual)
                     <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">INDIVIDUAL</div></td>
                     @else
-                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->nombre}}{{$p->pozo_unico? ' ' : ' ('.$p->pozo.')'}}</div></td>
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->progresivo}}{{$p->pozo_unico? ' ' : ' ('.$p->pozo.')'}}</div></td>
                     @endif
-                    @for($i=0;$i<6;$i++)
-                    @if(array_key_exists($i+1,$p->niveles))
-                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->niveles[$i+1]}}</div></td>
+                    @for($i=1;$i<7;$i++)
+                    @if(array_key_exists($i,$p->niveles))
+                    <td class="tablaProgresivos fila" style="font-size: 60%;">
+                      <div class="cell_fg break">
+                      {{$p->valores_niveles[$i]}}
+                      </div>
+                      <div class="cell_bg_1 break">
+                      {{$p->es_individual? '' : $p->niveles[$i]}}
+                      </div>
+                    </td>
                     @else
-                    <td class="tablaProgresivos fila" style="font-size: 60%;background-color: #f5f5f5"><div class="break"></div></td>
+                    <td class="tablaProgresivos cabezera" style="font-size: 60%;"></td>
                     @endif
                     @endfor
-                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">NOTOMADO NOTOMADO NOTOMADO</div></td>
+                    <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{is_null($p->tipo_causa_no_toma_progresivo)? '' : $p->tipo_causa_no_toma_progresivo}}</div></td>
                   </tr>
                   @endforeach
                 </tbody>
