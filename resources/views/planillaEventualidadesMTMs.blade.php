@@ -97,38 +97,38 @@ footer
                     print_r($hoy); ?></div>
               <table>
               <tr>
-                <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">TIPO DE MOVIMIENTO</th>
-                <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">SENTIDO</th>
+                <th class="tablaInicio cabezera">TIPO DE MOVIMIENTO</th>
+                <th class="tablaInicio cabezera">SENTIDO</th>
               </tr>
-              <td class="tablaInicio"style="background-color: #dddddd; border-color: gray;">{{$relevamiento->tipo_movimiento}}</td>
-              <td class="tablaInicio"style="background-color: #dddddd; border-color: gray;">{{$relevamiento->sentido}}</td>
+              <td class="tablaInicio cabezera">{{$relevamiento->tipo_movimiento}}</td>
+              <td class="tablaInicio cabezera">{{$relevamiento->sentido}}</td>
               </table>
               <br>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ADMIN</th>
-                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_admin}}</td>
-                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">N° ISLA</th>
-                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->nro_isla}}</td>
-                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">N° SERIE</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;"> {{$relevamiento->nro_serie}}</td>
+                  <th class="tablaInicio cabezera" style="width: 100px; ">N° ADMIN</th>
+                  <td class="tablaInicio cabezera" style="width: 100px; padding-left: 36px; ">{{$relevamiento->nro_admin}}</td>
+                  <th class="tablaInicio cabezera" style="width: 100px; ">N° ISLA</th>
+                  <td class="tablaInicio cabezera" style="width: 100px; padding-left: 36px; ">{{$relevamiento->nro_isla}}</td>
+                  <th class="tablaInicio cabezera" style="width: 100px;">N° SERIE</th>
+                  <td class="tablaInicio cabezera" style="padding-left: 36px; "> {{$relevamiento->nro_serie}}</td>
                 </tr>
 
               </table>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="width: 100px; background-color: #dddddd; border-color: gray;">MARCA</th>
-                  <td class="tablaInicio" style="width: 100px; padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->marca}}</td>
-                  <th class="tablaInicio" style="width: 100px;background-color: #dddddd; border-color: gray;">MODELO</th>
-                  <td class="tablaInicio" style="padding-left: 36px; background-color: #dddddd; border-color: gray;">{{$relevamiento->modelo}}</td>
+                  <th class="tablaInicio cabezera" style="width: 100px; ">MARCA</th>
+                  <td class="tablaInicio cabezera" style="width: 100px; padding-left: 36px; ">{{$relevamiento->marca}}</td>
+                  <th class="tablaInicio cabezera" style="width: 100px;">MODELO</th>
+                  <td class="tablaInicio cabezera" style="padding-left: 36px; ">{{$relevamiento->modelo}}</td>
                 </tr>
 
               </table>
               <br>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA TOMA</th>
-                  <td class="tablaInicio"  style="border-color: gray;padding-left: 36px;">
+                  <th class="tablaInicio cabezera">FECHA Y HORA TOMA</th>
+                  <td class="tablaInicio fila"  style="padding-left: 36px;">
                   @if($relevamiento->fecha_relev_sala != null) 
                   {{$relevamiento->fecha_relev_sala}} 
                   @else 
@@ -141,12 +141,12 @@ footer
 
               <table>
                 <tr>
-                  <th class="tablaInicio" style="width: 60px; border-color: gray; background-color: #dddddd;">SECTOR</th>
-                  <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_descripcion_sector_relevado != null){{$relevamiento->toma1_descripcion_sector_relevado}} @endif</td>
-                  <th class="tablaInicio" style="width: 50px; border-color: gray; background-color: #dddddd;">ISLA</th>
-                  <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_nro_isla_relevada != null){{$relevamiento->toma1_nro_isla_relevada}} @endif</td>
-                  <th class="tablaInicio" style="width: 30px; border-color: gray; background-color: #dddddd;">MAC</th>
-                  <td class="tablaInicio" style="padding-left: 36px; border-color: gray;">@if($relevamiento->toma1_mac != null){{$relevamiento->toma1_mac}} @endif</td>
+                  <th class="tablaInicio cabezera" style="width: 60px;">SECTOR</th>
+                  <td class="tablaInicio fila" style="padding-left: 36px;">@if($relevamiento->toma1_descripcion_sector_relevado != null){{$relevamiento->toma1_descripcion_sector_relevado}} @endif</td>
+                  <th class="tablaInicio cabezera" style="width: 50px;">ISLA</th>
+                  <td class="tablaInicio fila" style="padding-left: 36px;">@if($relevamiento->toma1_nro_isla_relevada != null){{$relevamiento->toma1_nro_isla_relevada}} @endif</td>
+                  <th class="tablaInicio cabezera" style="width: 30px;">MAC</th>
+                  <td class="tablaInicio fila" style="padding-left: 36px;">@if($relevamiento->toma1_mac != null){{$relevamiento->toma1_mac}} @endif</td>
                 </tr>
 
               </table>
@@ -154,73 +154,73 @@ footer
               <table>
                 <!-- Tabla COIN IN -->
                 <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">CONTADORES</th>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">TOMA </th>
+                  <th class="tablaInicio cabezera">CONTADORES</th>
+                  <th class="tablaInicio cabezera">TOMA </th>
                 </tr>
                   <tr class="filaContadores">
 
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont1}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; padding-right: 150px; border-color: gray;">@if($relevamiento->toma1_cont1!=null){{$relevamiento->toma1_cont1}} @endif </td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont1}}</th>
+                    <td class="tablaInicio fila" style="padding-right: 150px;">@if($relevamiento->toma1_cont1!=null){{$relevamiento->toma1_cont1}} @endif </td>
                   </tr>
                   <!-- FIN TABLA COIN IN -->
                   <!-- TABLA COIN OUT -->
                   <tr class="filaContadores">
 
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont2}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_cont2!=null){{$relevamiento->toma1_cont2}} @endif</td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont2}}</th>
+                    <td class="tablaInicio fila"> @if($relevamiento->toma1_cont2!=null){{$relevamiento->toma1_cont2}} @endif</td>
                   </tr>
                   <!-- TABLA ANEXA COIN OUT -->
                   <tr class="filaContadores">
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont3}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_cont3!=null){{$relevamiento->toma1_cont3}} @endif</td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont3}}</th>
+                    <td class="tablaInicio fila"> @if($relevamiento->toma1_cont3!=null){{$relevamiento->toma1_cont3}} @endif</td>
                   </tr>
                   <!-- FIN TABLA ANEXA COIN OUT-->
                   <!-- FIN TABLA COIN OUT -->
                   <!-- TABLA JACKPOT -->
                   <tr class="filaContadores">
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont4}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_cont4!=null){{$relevamiento->toma1_cont4}} @endif</td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont4}}</th>
+                    <td class="tablaInicio fila"> @if($relevamiento->toma1_cont4!=null){{$relevamiento->toma1_cont4}} @endif</td>
                   </tr>
                   <!-- TABLA ANEXA JACKPOTS -->
                   <tr class="filaContadores">
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont5}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_cont5!=null){{$relevamiento->toma1_cont5}} @endif </td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont5}}</th>
+                    <td class="tablaInicio fila"> @if($relevamiento->toma1_cont5!=null){{$relevamiento->toma1_cont5}} @endif </td>
                   </tr>
                   <tr class="filaContadores">
-                    <th class="tablaInicio" style="background-color: #fff; border-color: gray;">{{$relevamiento->nom_cont6}}</th>
-                    <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_cont6!=null){{$relevamiento->toma1_cont6}} @endif </td>
+                    <th class="tablaInicio fila">{{$relevamiento->nom_cont6}}</th>
+                    <td class="tablaInicio fila"> @if($relevamiento->toma1_cont6!=null){{$relevamiento->toma1_cont6}} @endif </td>
                   </tr>
                 </table>
 
               <br>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="border-right: 0px; background-color: #dddddd; border-color: gray;">DATOS</th>
-                  <th class="tablaInicio" style="border-left: 0px; background-color: #dddddd; border-color: gray;">TOMA</th>
+                  <th class="tablaInicio cabezera" style="border-right: 0px; ">DATOS</th>
+                  <th class="tablaInicio cabezera" style="border-left: 0px; ">TOMA</th>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>JUEGO</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; padding-right: 150px; border-color: gray;">@if($relevamiento->toma1_juego != null){{$relevamiento->toma1_juego}} @endif</td>
+                  <td class="tablaInicio fila"><b>JUEGO</b></td>
+                  <td class="tablaInicio fila" style="padding-right: 150px;">@if($relevamiento->toma1_juego != null){{$relevamiento->toma1_juego}} @endif</td>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>APUESTA MÁX</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if($relevamiento->toma1_apuesta_max != null){{$relevamiento->toma1_apuesta_max}} @endif</td>
+                  <td class="tablaInicio fila"><b>APUESTA MÁX</b></td>
+                  <td class="tablaInicio fila">@if($relevamiento->toma1_apuesta_max != null){{$relevamiento->toma1_apuesta_max}} @endif</td>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT LÍNEAS</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if($relevamiento->toma1_cant_lineas != null){{$relevamiento->toma1_cant_lineas}} @endif</td>
+                  <td class="tablaInicio fila"><b>CANT LÍNEAS</b></td>
+                  <td class="tablaInicio fila">@if($relevamiento->toma1_cant_lineas != null){{$relevamiento->toma1_cant_lineas}} @endif</td>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>%DEVOLUCIÓN</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"> @if($relevamiento->toma1_porcentaje_devolucion != null){{$relevamiento->toma1_porcentaje_devolucion}} @endif</td>
+                  <td class="tablaInicio fila"><b>%DEVOLUCIÓN</b></td>
+                  <td class="tablaInicio fila"> @if($relevamiento->toma1_porcentaje_devolucion != null){{$relevamiento->toma1_porcentaje_devolucion}} @endif</td>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>DENOMINACIÓN</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if($relevamiento->toma1_denominacion != null){{$relevamiento->toma1_denominacion}} @endif</td>
+                  <td class="tablaInicio fila"><b>DENOMINACIÓN</b></td>
+                  <td class="tablaInicio fila">@if($relevamiento->toma1_denominacion != null){{$relevamiento->toma1_denominacion}} @endif</td>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;"><b>CANT CRÉDITOS</b></td>
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">@if($relevamiento->toma1_cant_creditos != null){{$relevamiento->toma1_cant_creditos}} @endif</td>
+                  <td class="tablaInicio fila"><b>CANT CRÉDITOS</b></td>
+                  <td class="tablaInicio fila">@if($relevamiento->toma1_cant_creditos != null){{$relevamiento->toma1_cant_creditos}} @endif</td>
 
                 </tr>
 
@@ -278,20 +278,19 @@ footer
               @endif
               <table>
                 <tr>
-                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">OBSERVACIONES GENERALES</th>
+                  <th class="tablaInicio cabezera">OBSERVACIONES GENERALES</th>
                 </tr>
                 <tr>
                   @if($relevamiento->toma1_observ != null)
-                  <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">
+                  <td class="tablaInicio fila" style="height:auto; ">
                     {{$relevamiento->toma1_observ}}
                   </td>
                  @else
-                  <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
+                  <td class="tablaInicio fila">
                   <div style="color: #dddddd;">
                   @for($i = 0; $i<648; $i++)
                   .
                   @endfor
-                  </p>
                   </div>
                   </td>
                 @endif
@@ -300,16 +299,16 @@ footer
               <br>
               <table>
                 <tr>
-                  <th class="tablaInicio" style="padding-top: 50px; border-right: 0px; border-color: gray;"></th>
-                  <th class="tablaInicio" style="border-left: 0px; border-color: gray;"></th>
-                  <th class="tablaInicio" style="border-right: 0px; border-color: gray;"></th>
-                  <th class="tablaInicio" style="border-left: 0px; border-color: gray;"></th>
+                  <th class="tablaInicio fila" style="padding-top: 50px; border-right: 0px;"></th>
+                  <th class="tablaInicio fila" style="border-left: 0px;"></th>
+                  <th class="tablaInicio fila" style="border-right: 0px;"></th>
+                  <th class="tablaInicio fila" style="border-left: 0px;"></th>
                 </tr>
                 <tr>
-                  <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Personal del Concesionario en Sala de Juegos</center></td>
-                  <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Fiscalizador en Sala de Juegos</center></td>
-                  <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Personal del Concesionario en Sala de Juegos</center></td>
-                  <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Fiscalizador en Sala de Juegos</center></td>
+                  <td class="tablaInicio cabezera" style="text-align: center;">Personal del Concesionario en Sala de Juegos</td>
+                  <td class="tablaInicio cabezera" style="text-align: center;">Fiscalizador en Sala de Juegos</td>
+                  <td class="tablaInicio cabezera" style="text-align: center;">Personal del Concesionario en Sala de Juegos</td>
+                  <td class="tablaInicio cabezera" style="text-align: center;">Fiscalizador en Sala de Juegos</td>
                 </tr>
               </table>
               @endforeach

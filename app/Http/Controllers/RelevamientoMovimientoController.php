@@ -601,7 +601,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
      }
 
-     $rel->progresivos = $this->obtenerRelevamientoProgresivo($relevamiento);
+     $rel->progresivos = $this->obtenerRelevamientosProgresivos($relevamiento);
      return $rel;
    }
 }
