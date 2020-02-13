@@ -296,7 +296,7 @@ $cas = $usuario['usuario']->casinos;
                       <thead>
                         <tr>
                           <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                          <th class="col-xs-3"><h6><b>TOMA</b></h6></th>
+                          <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
                         </tr>
                       </thead>
 

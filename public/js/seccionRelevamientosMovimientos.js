@@ -308,7 +308,7 @@ function cargarRelMov(data){
           .text(p))
           .attr('data-contador',p)
           .append($('<td>')
-          .addClass('col-xs-3')
+          .addClass('col-xs-6')
           .append($('<input>')
           .addClass('valorModif form-control')
           .val("").text(' ')));
@@ -350,18 +350,21 @@ function cargarRelMov(data){
     $('#observacionesToma').val(data.toma.observaciones);
   }
 
+  $('#tomaProgresivo tbody').empty();
   if(data.progresivos != null){
     data.progresivos.forEach( prog => {
       let fila = $('#filaEjemploProgresivo').clone().removeAttr('id');
       let nombre = prog.nombre;
       if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
       if(prog.es_individual) nombre = 'INDIVIDUAL';
-      fila.find('.nombreProgresivo').text(nombre).attr('title',nombre);
-      prog.pozo.niveles.forEach((niv,idx) => {
-        fila.find('.nivel'+ niv.nro_nivel).attr('placeholder',niv.nombre_nivel).addClass('conValor');
+      fila.find('.nombreProgresivo').text(nombre).attr('title',nombre).attr('data-id-pozo',prog.pozo.id_pozo);
+      prog.pozo.niveles.forEach( niv => {
+        let nivel = fila.find('.nivel'+ niv.nro_nivel);
+        nivel.attr('placeholder',niv.nombre_nivel).addClass('habilitado');
+        nivel.attr('data-id-nivel',niv.id_nivel_progresivo)
       });
       $('#tomaProgresivo tbody').append(fila);
-      $('#tomaProgresivo tbody input').not('.conValor').attr('disabled',true);
+      $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
     });
   }
 
@@ -399,12 +402,29 @@ $(document).on('click','#guardarRel',function(){
   var islaRelevadaCargar=$('#modalCargarRelMov').find('#islaRelevadaCargar').val();
 
   $.each(tabla, function(index, value){
-
     var cont={
       nombre: $(this).attr('data-contador'),
       valor: $(this).find('.valorModif').val()
     }
     contadores.push(cont);
+  });
+
+  progresivos = [];
+  $('#tomaProgresivo tbody tr').each(function(){
+    let fila = $(this);
+    let obj = {
+      id_pozo : fila.find('.nombreProgresivo').attr('data-id-pozo'),
+      niveles : [],
+      id_tipo_causa_no_toma_progresivo: fila.find('.causaNoToma').val()
+    };
+    $(this).find('input.habilitado').each(function(){
+      obj.niveles.push({
+        id_nivel_progresivo: $(this).attr('data-id-nivel'),
+        val : $(this).val()
+      });
+    });
+
+    progresivos.push(obj);
   });
 
     var formData={
@@ -425,7 +445,8 @@ $(document).on('click','#guardarRel',function(){
       mac:mac,
       isla_relevada: islaRelevadaCargar,
       sectorRelevadoCargar:sectorRelevadoCargar,
-      es_cargaT2: es_cargaT2RelMov
+      es_cargaT2: es_cargaT2RelMov,
+      progresivos: progresivos
     }
 
 
