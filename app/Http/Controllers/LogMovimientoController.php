@@ -36,6 +36,7 @@ use App\Isla;
 use App\Juego;
 use App\TipoMaquina;
 use App\EstadoMaquina;
+use App\TipoCausaNoTomaProgresivo;
 
 
 /*
@@ -670,7 +671,10 @@ class LogMovimientoController extends Controller
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamientos Movimientos','relevamientos_movimientos');
 
-    return view('seccionRelevamientosMovimientos',['casinos' => $usuario->casinos,'tipos_movimientos' => $tiposMovimientos]);
+    return view('seccionRelevamientosMovimientos',
+    ['casinos' => $usuario->casinos,
+    'tipos_movimientos' => $tiposMovimientos,
+    'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
   }
 
   //para poder realizar la carga de los datos
@@ -703,7 +707,8 @@ class LogMovimientoController extends Controller
               ->get()
               ->first();
 
-    $juegos = (Maquina::find($id_maquina))->juegos;
+    $maquina = Maquina::find($id_maquina);
+    $juegos = $maquina->juegos;
     $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion],['id_maquina','=',$id_maquina]])->get()->first();
     $toma=null;
     $fisca = null;
@@ -718,7 +723,21 @@ class LogMovimientoController extends Controller
       // $nombre= Juego::find($toma->juego)->nombre_juego;
     }
 
-    return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma, 'fiscalizador'=> $fisca, 'fecha' => $fecha, 'nombre_juego' => $nombre];
+    $progresivos = [];
+    foreach($maquina->progresivos as $prog){
+      foreach($prog->pozos as $pozo){
+        $pozo_arr = $pozo->toArray();
+        $pozo_arr['es_unico'] = count($prog->pozos) == 1;
+        $pozo_arr['niveles'] = [];
+        foreach($pozo->niveles as $nivel){
+          $pozo_arr['niveles'][] = $nivel_arr = $nivel->toArray();
+        }
+        $prog_arr = $prog->toArray();
+        $prog_arr['pozo'] = $pozo_arr;
+        $progresivos[] = $prog_arr;    
+      }  
+    }
+    return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma, 'fiscalizador'=> $fisca, 'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
   }
 
   public function generarPlanillasRelevamientoMovimiento($id_fiscalizacion_movimiento){

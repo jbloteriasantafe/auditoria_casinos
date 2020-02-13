@@ -38,8 +38,8 @@ class TomaRelevamientoMovimiento extends Model
     return $this->id_toma_relev_mov;
   }
 
-  public function detalle_relevamiento_progresivo(){
-    return $this->hasOne('App\DetalleRelevamientoProgresivo','id_toma_relev_mov','id_toma_relev_mov');
+  public function detalles_relevamiento_progresivo(){
+    return $this->hasMany('App\DetalleRelevamientoProgresivo','id_toma_relev_mov','id_toma_relev_mov');
   }
 
 }

@@ -132,3 +132,11 @@ function tieneValor(val){
 function limpiarNull(x,c = '-'){
     return x === null? c : x;
 }
+
+function limpiarUndef(x,c='-'){
+    return isUndef(x)? c : x;
+}
+
+function limpiarNullUndef(x,c='-'){
+    return x === null || isUndef(x)? c : x;
+}

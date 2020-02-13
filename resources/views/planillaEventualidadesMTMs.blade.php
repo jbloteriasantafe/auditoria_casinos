@@ -31,6 +31,41 @@ footer
     width:200%;
     height:300px;
 }
+.break{
+    word-wrap: break-word;
+}
+.cabezera{
+  background-color: #dddddd; 
+  border-color: gray;
+}
+.fila{
+  background-color: #fff;
+  border-color: gray;
+}
+.cell_fg{
+  position:absolute; 
+  width:100%; 
+  height:100%; 
+  z-index:1;
+}
+
+.cell_bg_1{
+  position:relative; 
+  z-index:0; 
+  color: rgb(120,120,120);
+  font-size: 50%;
+  top: 10px;
+  text-align: right;
+}
+.cell_bg_2{
+  position:absolute; 
+  width:100%; 
+  height:100%; 
+  z-index:0; 
+  color: rgb(180,180,180);
+  text-align:right;
+  font-size: 70%;
+}
 </style>
 
   <head>
@@ -91,10 +126,16 @@ footer
               </table>
               <br>
               <table>
-                <tr><th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA TOMA</th>
+                <tr>
+                  <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">FECHA Y HORA TOMA</th>
+                  <td class="tablaInicio"  style="border-color: gray;padding-left: 36px;">
+                  @if($relevamiento->fecha_relev_sala != null) 
+                  {{$relevamiento->fecha_relev_sala}} 
+                  @else 
+                  _____/_____/_____, _____:_____ 
+                  @endif
+                  </td>
                 </tr>
-                <td class="tablaInicio"  style="border-color: gray;">@if($relevamiento->fecha_relev_sala != null) {{$relevamiento->fecha_relev_sala}} @else ____/____/____, ____:____ @endif </td>
-
               </table>
               <br>
 
@@ -184,30 +225,79 @@ footer
                 </tr>
 
               </table>
+              <br>
 
-              <br><br>
+              @if(count($relevamiento->progresivos) > 0)
+              <table style="table-layout:fixed;">
+                <thead>
+                  <tr>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">PROGRESIVO</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 1</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 2</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 3</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 4</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 5</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL 6</th>
+                    <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">CAUSA NO TOMA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($relevamiento->progresivos as $p)
+                  <tr>
+                    @if($p->es_individual)
+                      <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">INDIVIDUAL</div></td>
+                    @else
+                      <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->progresivo}}{{$p->pozo_unico? ' ' : ' ('.$p->pozo.')'}}</div></td>
+                    @endif
+                    @for($i=1;$i<7;$i++)
+                      @if(array_key_exists($i,$p->niveles) && empty($p->tipo_causa_no_toma_progresivo))
+                        <td class="tablaProgresivos fila" style="font-size: 60%;">
+                          <div class="cell_fg break">
+                          {{empty($p->tipo_causa_no_toma_progresivo)? $p->valores_niveles[$i] : '-'}}
+                          </div>
+                          <div class="cell_bg_1 break">
+                          {{$p->es_individual? '' : $p->niveles[$i]}}
+                          </div>
+                        </td>
+                      @elseif(!empty($p->tipo_causa_no_toma_progresivo))
+                        <td class="tablaProgresivos fila" style="text-align: center;">—</td>
+                      @else
+                        <td class="tablaProgresivos cabezera"></td>
+                      @endif
+                    @endfor
+                    <td class="tablaProgresivos fila" style="font-size: 60%;">
+                      <div class="break">
+                      {{$p->tipo_causa_no_toma_progresivo}}
+                      </div>
+                    </td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+              <br>
+              @endif
               <table>
                 <tr>
                   <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">OBSERVACIONES GENERALES</th>
                 </tr>
                 <tr>
-
                   @if($relevamiento->toma1_observ != null)
-                <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">@if ($relevamiento->toma1_observ != null) {{$relevamiento->toma1_observ}} @endif</td>
-                @else
+                  <td class="tablaInicio" style="height:auto; background-color: #fff; border-color: gray;">
+                    {{$relevamiento->toma1_observ}}
+                  </td>
+                 @else
                   <td class="tablaInicio" style="background-color: #fff; border-color: gray;">
                   <div style="color: #dddddd;">
-                  @for($i = 0; $i<1200; $i++)
+                  @for($i = 0; $i<648; $i++)
                   .
                   @endfor
                   </p>
                   </div>
-                </td>
-                  @endif
-
+                  </td>
+                @endif
                 </tr>
               </table>
-              <br><br>
+              <br>
               <table>
                 <tr>
                   <th class="tablaInicio" style="padding-top: 50px; border-right: 0px; border-color: gray;"></th>

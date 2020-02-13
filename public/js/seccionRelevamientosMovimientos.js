@@ -252,127 +252,120 @@ $(document).on('click','.cargarMaq',function(){
 
 //COMPLETA INPUTS
 function cargarRelMov(data){
+  $('#mensajeExitoCarga').hide();
+  $('#form1').trigger("reset");
+  $('#juegoRel option').remove();
+  $('#tablaCargarRelevamiento tbody tr').remove();
+  var fisc = $('#modalCargarRelMov').find('#id_fiscalizac').val();
+  var maq = $('#modalCargarRelMov').find('#maquina').val();
 
-    $('#mensajeExitoCarga').hide();
-    $('#form1').trigger("reset");
-    $('#juegoRel option').remove();
-    $('#tablaCargarRelevamiento tbody tr').remove();
-    var fisc = $('#modalCargarRelMov').find('#id_fiscalizac').val();
-    var maq = $('#modalCargarRelMov').find('#maquina').val();
+  if(data.fecha != null ){
+    $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
+  }else{
+    var fecha= $('#fechaRel').val();
+    $('#modalCargarRelMov').find('#fechaRel').val(fecha);
+  }
 
-    if(data.fecha != null )
-    {
-      $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
-    }else{
-      var fecha= $('#fechaRel').val();
-      $('#modalCargarRelMov').find('#fechaRel').val(fecha);
+  if(data.fiscalizador != null){
+    $('#fiscaToma').val(data.fiscalizador.nombre);
+    // $('#modalCargarRelMov').find('#fiscalizador').val(data.fiscalizador.id_usuario);
+  }else {
+    $('#fiscaToma').val();
+    // $('#modalCargarRelMov').find('#fiscalizador').val();
+  }
+
+  $('#nro_adminMov').val(data.maquina.nro_admin);
+  $('#nro_islaMov').val(data.maquina.nro_isla);
+  $('#nro_serieMov').val(limpiarNullUndef(data.maquina.nro_serie,''));
+  $('#marcaMov').val(data.maquina.marca);
+  $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
+
+  var cont = "cont";
+  var vcont="vcont"
+  var fila2 = $('<tr>');
+
+  for (var i = 1; i < 7; i++){
+    var fila = fila2.clone();
+    var p = data.maquina[cont + i];
+    if( data.toma != null){
+      var v = data.toma[vcont + i];
     }
-
-    if(data.fiscalizador != null){
-      $('#fiscaToma').val(data.fiscalizador.nombre);
-      // $('#modalCargarRelMov').find('#fiscalizador').val(data.fiscalizador.id_usuario);
-    }else {
-      $('#fiscaToma').val();
-      // $('#modalCargarRelMov').find('#fiscalizador').val();
+    if (v!=null && p!= null) {
+      fila.append($('<td>')
+          .addClass('col-xs-6')
+          .text(p))
+          .attr('data-contador',p)
+          .append($('<td>')
+          .addClass('col-xs-3')
+          .append($('<input>')
+          .addClass('valorModif form-control')
+          .val(v).text(v)));
+      $('#tablaCargarRelevamiento tbody').append(fila);
     }
+    if (v==null && p!= null) {
+      fila.append($('<td>')
+          .addClass('col-xs-6')
+          .text(p))
+          .attr('data-contador',p)
+          .append($('<td>')
+          .addClass('col-xs-3')
+          .append($('<input>')
+          .addClass('valorModif form-control')
+          .val("").text(' ')));
+      $('#tablaCargarRelevamiento tbody').append(fila);
+    }
+  }
 
-    $('#nro_adminMov').val(data.maquina.nro_admin);
-    $('#nro_islaMov').val(data.maquina.nro_isla);
-    $('#nro_serieMov').val(data.maquina.nro_serie);
-    $('#marcaMov').val(data.maquina.marca);
-    $('#modeloMov').val(data.maquina.modelo);
+  if(data.nombre_juego==null){
+    $('#modalCargarRelMov #juegoRel')
+      .append($('<option>')
+      .val(0)
+      .text('Seleccione'));
+    for (var i = 0; i < data.juegos.length; i++) {
+      $('#modalCargarRelMov #juegoRel')
+          .append($('<option>')
+          .val(data.juegos[i].id_juego)
+          .text(data.juegos[i].nombre_juego)
+        );
+    }
+  }
+  else{
+    $('#modalCargarRelMov #juegoRel')
+    .append($('<option>')
+    .val(data.juegos[0].id_juego)
+    .text(data.nombre_juego));
+  }
 
+  if(data.toma==null){
+    var id_juego = $('#modalCargarRelMov #juegoRel option:selected').val();
+  };
 
-    var cont = "cont";
-    var vcont="vcont"
-    var fila2 = $('<tr>');
+  if(data.toma != null){
+    var id_juego = $('#modalCargarRelMov #juegoRel option:selected').val(data.toma.juego);
+    $('#apuesta').val(data.toma.apuesta_max);
+    $('#cant_lineas').val(data.toma.cant_lineas);
+    $('#devolucion').val(data.toma.porcentaje_devolucion);
+    $('#denominacion').val(data.toma.denominacion);
+    $('#creditos').val(data.toma.cant_creditos);
+    $('#observacionesToma').val(data.toma.observaciones);
+  }
 
+  if(data.progresivos != null){
+    data.progresivos.forEach( prog => {
+      let fila = $('#filaEjemploProgresivo').clone().removeAttr('id');
+      let nombre = prog.nombre;
+      if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
+      if(prog.es_individual) nombre = 'INDIVIDUAL';
+      fila.find('.nombreProgresivo').text(nombre).attr('title',nombre);
+      prog.pozo.niveles.forEach((niv,idx) => {
+        fila.find('.nivel'+ niv.nro_nivel).attr('placeholder',niv.nombre_nivel).addClass('conValor');
+      });
+      $('#tomaProgresivo tbody').append(fila);
+      $('#tomaProgresivo tbody input').not('.conValor').attr('disabled',true);
+    });
+  }
 
-    for (var i = 1; i < 7; i++)
-    {
-            var fila = fila2.clone();
-            var p = data.maquina[cont + i];
-
-                  if( data.toma != null){
-                      var v = data.toma[vcont + i];}
-
-                            if (v!=null && p!= null) {
-
-                              fila.append($('<td>')
-                                  .addClass('col-xs-6')
-                                  .text(p))
-                                  .attr('data-contador',p)
-                                  .append($('<td>')
-                                  .addClass('col-xs-3')
-                                  .append($('<input>')
-                                  .addClass('valorModif form-control')
-                                  .val(v).text(v)));
-
-                                $('#tablaCargarRelevamiento tbody').append(fila);
-
-                              }
-
-                              if (v==null && p!= null) {
-
-                                fila.append($('<td>')
-                                    .addClass('col-xs-6')
-                                    .text(p))
-                                    .attr('data-contador',p)
-                                    .append($('<td>')
-                                    .addClass('col-xs-3')
-                                    .append($('<input>')
-                                    .addClass('valorModif form-control')
-                                    .val("").text(' ')));
-
-
-
-                                  $('#tablaCargarRelevamiento tbody').append(fila);
-
-                                }
-
-                              }
-
-                        if(data.nombre_juego==null){
-                            $('#modalCargarRelMov #juegoRel')
-                              .append($('<option>')
-                              .val(0)
-                              .text('Seleccione'))
-
-
-                              for (var i = 0; i < data.juegos.length; i++) {
-                                $('#modalCargarRelMov #juegoRel')
-                                    .append($('<option>')
-                                    .val(data.juegos[i].id_juego)
-                                    .text(data.juegos[i].nombre_juego)
-                                  )};
-
-                                }else{
-
-                                        $('#modalCargarRelMov #juegoRel')
-                                            .append($('<option>')
-                                            .val(data.juegos[0].id_juego)
-                                              .text(data.nombre_juego))
-                                      }
-
-        if(data.toma==null){
-          var id_juego = $('#modalCargarRelMov #juegoRel option:selected').val();
-
-        };
-
-        if(data.toma != null){
-          var id_juego = $('#modalCargarRelMov #juegoRel option:selected').val(data.toma.juego);
-
-            $('#apuesta').val(data.toma.apuesta_max);
-            $('#cant_lineas').val(data.toma.cant_lineas);
-            $('#devolucion').val(data.toma.porcentaje_devolucion);
-            $('#denominacion').val(data.toma.denominacion);
-            $('#creditos').val(data.toma.cant_creditos);
-            $('#observacionesToma').val(data.toma.observaciones);
-          }
-
-            $('#guardarRel').prop('disabled', false);
-
-
+  $('#guardarRel').prop('disabled', false);
 };
 
 //BOTÓN GUARDAR

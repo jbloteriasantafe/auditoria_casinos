@@ -346,10 +346,27 @@ $cas = $usuario['usuario']->casinos;
                   </div>
 
                 </div> <!-- FIN SEGUNDO ROW DE TOMA -->
-
+                <div class="row">
+                  <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;height: 250px;">
+                    <h6>PROGRESIVOS</h6>
+                    <table class="table table-fixed tablaPozos">
+                      <thead>
+                        <tr>
+                          <th width="17%">PROGRESIVO</th>
+                          @for($i=6;$i>0;$i--)
+                          <th width="11%">NIVEL{{$i}}</th>
+                          @endfor
+                          <th width="17%">CAUSA NO TOMA</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
                 <div class="row">
                   <div class="col-lg-12">
-                    <h6>OBSERVACIONES:</h6>
+                    <h6>OBSERVACIONES</h6>
                     <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
                   </div>
                 </div> <!-- FIN ULTIMO row -->
@@ -392,7 +409,24 @@ $cas = $usuario['usuario']->casinos;
   </div> <!-- modal dialog -->
 </div> <!-- modal fade -->
 
-
+<table hidden>
+  <tr id="filaEjemploProgresivo">
+    <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
+    @for ($i=6;$i>0;$i--)
+    <td width="11%">
+      <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+    </td>
+    @endfor
+    <td width="17%">
+      <select class="causaNoToma form-control">
+        <option value="-1"></option>
+        @foreach($causasNoTomaProgresivo as $causa)
+        <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
+        @endforeach
+      </select>
+    </td>
+  </tr>
+</table>
 
 @endsection
 @section('scripts')
@@ -412,4 +446,5 @@ $cas = $usuario['usuario']->casinos;
 
 <script src="js/inputSpinner.js" type="text/javascript"></script>
 <script src="js/lista-datos.js" type="text/javascript"></script>
+<script src="js/utils.js" type="text/javascript"></script>
 @endsection

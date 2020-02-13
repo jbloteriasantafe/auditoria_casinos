@@ -264,30 +264,44 @@ class RelevamientoMovimientoController extends Controller
       }
      }
 
-     $rel->progresivos = [];
-     foreach($relev_mov->maquina->progresivos as $prog){
-       foreach($prog->pozos as $pozo){
-         $relprog = new \stdClass();
-         $relprog->progresivo = $prog->nombre;
-         $relprog->es_individual = $prog->es_individual;
-         $relprog->pozo = $pozo->descripcion;
-         $relprog->pozo_unico = count($prog->pozos) == 1;
-         $relprog->niveles = [];
-         $relprog->valores_niveles = [];
-         $detalle_relev = $toma_relev->detalle_relevamiento_progresivo;
-         foreach($pozo->niveles as $nivel){
-           $relprog->niveles[$nivel->nro_nivel]=$nivel->nombre_nivel;
-           $relprog->valores_niveles[$nivel->nro_nivel] = '';
-           if(!is_null($detalle_relev)){
-            $relprog->valores_niveles[$nivel->nro_nivel] = $detalle_relev['nivel'.$nivel->nro_nivel];
-            $relprog->tipo_causa_no_toma_progresivo = $detalle_relev->id_tipo_causa_no_toma_progresivo;
-           }
-         }
-         $rel->progresivos[] = $relprog;
-       }
-     }
+     $rel->progresivos = $this->obtenerRelevamientosProgresivos($relev_mov,$es_toma_2? 2 : 1);
      return $rel;
    }
+
+    public function obtenerRelevamientosProgresivos($relev_mov,$toma = 1){
+      $toma_relev = $relev_mov->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')
+      ->skip($toma - 1)->first();
+      $maquina = $relev_mov->maquina;
+      $detalles = is_null($toma_relev)? [] : $toma_relev->detalles_relevamiento_progresivo;
+      $progresivos = [];
+      foreach($detalles as $d){
+        $relprog = new \stdClass();
+        $pozo =  $d->pozo()->withTrashed()->first();
+        $relprog->pozo = $pozo->descripcion;
+        $prog = $pozo->progresivo()->withTrashed()->first();
+        $relprog->es_individual = $prog->es_individual;
+        $relprog->pozo_unico = $prog->pozos()->count() == 1;
+        $relprog->progresivo = $prog->nombre;
+        $relprog->niveles = [];
+        $relprog->valores_niveles = [];
+        for($i = 1;$i<=6;$i++){
+          $relprog->valores_niveles[$i] = $d['nivel'.$i];
+          // Si no hay un nivel me quedo con el ultimo eliminado
+          // Puede pasar si es un relevamiento viejo al que se le borro el progresivo
+          $nivel = $pozo->niveles()->withTrashed()
+          ->where('nro_nivel','=',$i)
+          ->orderBy('id_nivel_progresivo','desc')
+          ->orderBy('deleted_at','desc')->first();
+          if(!is_null($nivel)){
+            $relprog->niveles[$nivel->nro_nivel]=$nivel->nombre_nivel;
+          }
+        }
+        $relprog->tipo_causa_no_toma_progresivo = null;
+        if(!is_null($d->tipo_causa_no_toma)) $relprog->tipo_causa_no_toma_progresivo = $d->tipo_causa_no_toma->descripcion;
+        $progresivos[] = $relprog;
+      }
+      return $progresivos;
+    }
 
    //obtiene la toma relevamiento asociada a la primera toma de la maquina
    //id_maquina, para mostrarla junto con la 2da toma.
@@ -586,6 +600,8 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_nro_isla_relevada = $toma_relev->nro_isla_relevada;
        $rel->toma1_descripcion_sector_relevado = $toma_relev->descripcion_sector_relevado;
      }
+
+     $rel->progresivos = $this->obtenerRelevamientoProgresivo($relevamiento);
      return $rel;
    }
 }
