@@ -361,50 +361,27 @@ function cargarDatos (data){
   $('#modeloEv').val(data.maquina.modelo);
 
   //desde aqui genero la tabla de contadores, que son de cant variable.
-  var cont = "cont";
-  var vcont="vcont"
-  var fila2 = $('<tr>');
+  for (let i = 1; i < 7; i++){
+    let fila = $('<tr>');
+    let nombre_cont = data.maquina["cont" + i];
+    if(nombre_cont === null) continue;
 
-  for (var i = 1; i < 7; i++){
-    var fila = fila2.clone();
-    var p = data.maquina[cont + i];
+    let val_cont = null;
     if(data.toma != null){
-      var v = data.toma[vcont + i];
+      val_cont = data.toma["vcont" + i];
     }
 
-    if (v!=null && p!= null) {
-      fila.append($('<td>')
-        .addClass('col-xs-6')
-        .text(p)
-      )
-      .attr('data-contador',p)
-      .append($('<td>')
-        .addClass('col-xs-6')
-        .append($('<input>')
-          .prop('disabled',false)
-          .addClass('valorModif form-control')
-          .val(v).text(v)
-        )
-      );
-      $('#tablaCargarContadores tbody').append(fila);
+    fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
+    fila.attr('data-contador',nombre_cont);
+    fila.append($('<td>').addClass('col-xs-6')
+    .append($('<input>').addClass('valorModif form-control'))
+    );
+    if(val_cont != null){
+      fila.find('input').val(val_cont);
     }
 
-    if (v==null && p!= null) {
-      fila.append($('<td>')
-        .addClass('col-xs-6')
-        .text(p)
-      )
-      .attr('data-contador',p)
-      .append($('<td>')
-        .addClass('col-xs-6')
-        .append($('<input>')
-          .addClass('valorModif form-control')
-          .val("").text(' ')
-        )
-      );
-      $('#tablaCargarContadores tbody').append(fila);
-    }
-  }//fin del for de contadores
+    $('#tablaCargarContadores tbody').append(fila);
+  }
 
   for (var i = 0; i < data.juegos.length; i++) {
     $('#modalCargarMaqEv #juegoEv')
@@ -438,7 +415,7 @@ function cargarDatos (data){
   if(data.tipo_movimiento!=null){
     $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento);
   }
-  
+
   if(data.fiscalizador!=null){
     $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
   }

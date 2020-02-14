@@ -278,40 +278,26 @@ function cargarRelMov(data){
   $('#marcaMov').val(data.maquina.marca);
   $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
 
-  var cont = "cont";
-  var vcont ="vcont"
-  var fila2 = $('<tr>');
+  for (let i = 1; i < 7; i++){
+    let fila = $('<tr>');
+    let nombre_cont = data.maquina["cont" + i];
+    if(nombre_cont === null) continue;
+    
+    let val_cont = null;
+    if(data.toma != null){
+      val_cont = data.toma["vcont" + i];
+    }
 
-  for (var i = 1; i < 7; i++){
-    var fila = fila2.clone();
-    var p = data.maquina[cont + i];
-    if( data.toma != null){
-      var v = data.toma[vcont + i];
+    fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
+    fila.attr('data-contador',nombre_cont);
+    fila.append($('<td>').addClass('col-xs-6')
+    .append($('<input>').addClass('valorModif form-control'))
+    );
+    if(val_cont != null){
+      fila.find('input').val(val_cont);
     }
-    if (v!=null && p!= null) {
-      fila.append($('<td>')
-          .addClass('col-xs-6')
-          .text(p))
-          .attr('data-contador',p)
-          .append($('<td>')
-          .addClass('col-xs-3')
-          .append($('<input>')
-          .addClass('valorModif form-control')
-          .val(v).text(v)));
-      $('#tablaCargarRelevamiento tbody').append(fila);
-    }
-    if (v==null && p!= null) {
-      fila.append($('<td>')
-          .addClass('col-xs-6')
-          .text(p))
-          .attr('data-contador',p)
-          .append($('<td>')
-          .addClass('col-xs-6')
-          .append($('<input>')
-          .addClass('valorModif form-control')
-          .val("").text(' ')));
-      $('#tablaCargarRelevamiento tbody').append(fila);
-    }
+
+    $('#tablaCargarRelevamiento tbody').append(fila);
   }
 
   if(data.nombre_juego==null){
