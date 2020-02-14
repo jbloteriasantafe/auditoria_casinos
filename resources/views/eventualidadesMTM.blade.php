@@ -323,7 +323,7 @@
 
       <div  id="colapsado" class="collapse in">
           <div class="modal-body" style="font-family: Roboto;">
-          <div class="row col-md-12"> <!-- PRIMER FILA-->
+          <div class="row"> <!-- PRIMER FILA-->
             <div class="col-md-3">
               <h5>Fiscalizador Toma: </h5>
               <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
@@ -492,7 +492,7 @@
                   </div>
 
                 </div> <!-- FIN SEGUNDO ROW DE TOMA -->
-
+                @include('movRelProgresivo')
                 <div class="row">
                   <div class="col-lg-12">
                     <h6>OBSERVACIONES:</h6>
@@ -652,7 +652,7 @@
                             <thead>
                               <tr>
                                 <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                                <th class="col-xs-3"><h6><b>TOMA</b></h6></th>
+                                <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -816,8 +816,6 @@
     </tr>
   <tbody>
 </table>
-
-
 
     @endsection
     @section('scripts')

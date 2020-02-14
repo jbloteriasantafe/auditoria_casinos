@@ -211,7 +211,6 @@ $(document).on('click','.borrarMTMCargada',function(e){
 //botón para cargar máquina
 $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#fechaEv').val("");
-  $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
   $('#guardarEv').prop('disabled', true);
   $('#modalCargarMaqEv .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalCargarMaqEv').modal('show');
@@ -221,7 +220,6 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#tablaCargarMTM tbody tr').remove();
   $('#tablaCargarContadores tbody tr').remove();
   $('#modalCargarMaqEv #myModalLabel').text('CARGAR MTMs')
-  $('#fiscalizadorEv').prop('disabled',false);
   $('#select_tevent').prop('disabled',false);
   $('#fechaEv').prop('disabled',false);
   $('#macEv').prop('disabled',false);
@@ -248,40 +246,33 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_log_mov, function(data){
     console.log('88',data);
         var tablaCarga=$('#tablaCargarMTM tbody');
-
         //hay máq cargadas
-
-          for (var i = 0; i < data.maquinas.length; i++) {
-
-            var fila= $('<tr>');
-            var maq= data.maquinas[i].nro_admin;
-
-            var dibujo = 'fa-upload';
-
-            if(data.maquinas[i].estado.id_estado_relevamiento != 1){
-              dibujo = 'fa-pencil-alt';
-            }
-
-            fila.append($('<td>')
-                .addClass('col-xs-8')
-                .text(maq));
-            fila.append($('<td>')
-                .addClass('col-xs-4')
-                .append($('<button>')
-                .append($('<i>')
-                .addClass('fa').addClass('fa-fw').addClass(dibujo))
-                .attr('type','button')
-                .addClass('btn btn-info detalleMTM')
-                .attr('id', data.maquinas[i].id_maquina)
-                .attr('data-relevamiento',data.maquinas[i].id_relevamiento))
-                )
-
+        for (var i = 0; i < data.maquinas.length; i++) {
+          var fila= $('<tr>');
+          var maq= data.maquinas[i].nro_admin;
+          var dibujo = 'fa-upload';
+          if(data.maquinas[i].estado.id_estado_relevamiento != 1){
+            dibujo = 'fa-pencil-alt';
+          }
+          fila.append($('<td>')
+              .addClass('col-xs-8')
+              .text(maq)
+          );
+          fila.append($('<td>')
+              .addClass('col-xs-4')
+              .append($('<button>')
+              .append($('<i>')
+              .addClass('fa').addClass('fa-fw').addClass(dibujo))
+              .attr('type','button')
+              .addClass('btn btn-info detalleMTM')
+              .attr('id', data.maquinas[i].id_maquina)
+              .attr('data-relevamiento',data.maquinas[i].id_relevamiento))
+          );
           tablaCarga.append(fila);
         }
 
         $('#inputTipoMov').val(data.tipo_movimiento);
         $('#inputSentido').val(data.sentido);
-
 
         //completo el ficalizador de carga con datos que me trae el data
         if(data.fiscalizador_carga != null){
@@ -289,26 +280,22 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
           $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val(data.fiscalizador_carga.id_usuario)
         }
         else {
-          $('#fiscaCargaEv').val();
+          $('#fiscaCargaEv').val('');
         }
         //genero la lista para seleccionar un fiscalizador en el input correspondiente
         $('#fiscalizadorEv').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
         $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
-
     })
 });
 
 //boton que cierra el modal, para que cierre los detalles de las mtm
 $('#btn-closeCargar').click(function(e){
-
   $('#detallesMTM').hide();
   $('#btn-buscarEventualidadMTM').trigger('click');
 });
 
 //presiona el ojo de una máquina para cargar los detalles
 $(document).on('click','.detalleMTM',function(){
-
-  $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
   $('#fechaEv').val("");
   $('#macEv').val("");
   $('#islaRelevadaEv').val("");
@@ -322,7 +309,6 @@ $(document).on('click','.detalleMTM',function(){
 
   //HABILITO LOS INPUTS
   $('#fechaEv').prop('disabled',false);
-  $('#fiscalizadorEv').prop('disabled',false);
   $('#apuestaEv').prop('disabled',false);
   $('#devolucionEv').prop('disabled',false);
   $('#denominacionEv').prop('disabled',false);
@@ -335,7 +321,6 @@ $(document).on('click','.detalleMTM',function(){
   $('#macEv').prop('disabled',false);
   $('#islaRelevadaEv').prop('disabled',false);
   $('#sectorRelevadoEv').prop('disabled',false);
-
 
   //BORRO LOS ERRORES
   ocultarErrorValidacion($('#apuestaEv'));
@@ -350,89 +335,75 @@ $(document).on('click','.detalleMTM',function(){
   ocultarErrorValidacion($('#fiscalizadorEv'));
   ocultarErrorValidacion($('#macEv'));
 
-
   $('#modalCargarMaqEv #detallesMTM').show();
   var id_maq=$(this).attr('id');
   console.log('id_maquina', id_maq);
 
   $('#modalCargarMaqEv #id_maq').val(id_maq);
 
-
   var id_rel=$(this).attr('data-relevamiento');
-
-
-    $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
-      cargarDatos(data);
-    })
-
-
+  $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
+    cargarDatos(data);
+  })
 });
 
 
 //funcion para cargar los datos de la maquina, donde c indica si ya viene alguna máq cargada o no(false)
 function cargarDatos (data){
-
   $('#mensajeExitoCarga').hide();
   $('#juegoEv option').remove();
   $('#tablaCargarContadores tbody tr').remove();
-
   //siempre vienen estos datos
-    $('#nro_islaEv').val(data.maquina.nro_isla);
-    $('#inputAdmin').val(data.maquina.nro_admin);
-    $('#nro_serieEv').val(data.maquina.nro_serie);
-    $('#marcaEv').val(data.maquina.marca);
-    $('#modeloEv').val(data.maquina.modelo);
+  $('#nro_islaEv').val(data.maquina.nro_isla);
+  $('#inputAdmin').val(data.maquina.nro_admin);
+  $('#nro_serieEv').val(data.maquina.nro_serie);
+  $('#marcaEv').val(data.maquina.marca);
+  $('#modeloEv').val(data.maquina.modelo);
 
-//desde aqui genero la tabla de contadores, que son de cant variable.
+  //desde aqui genero la tabla de contadores, que son de cant variable.
   var cont = "cont";
   var vcont="vcont"
   var fila2 = $('<tr>');
 
-  for (var i = 1; i < 7; i++)
-  {
-
+  for (var i = 1; i < 7; i++){
     var fila = fila2.clone();
-
     var p = data.maquina[cont + i];
+    if(data.toma != null){
+      var v = data.toma[vcont + i];
+    }
 
-
-      if( data.toma != null){
-
-        var v = data.toma[vcont + i];}
-
-        if (v!=null && p!= null) {
-
-          fila.append($('<td>')
-          .addClass('col-xs-6')
-          .text(p))
-          .attr('data-contador',p)
-          .append($('<td>')
-          .addClass('col-xs-3')
-          .append($('<input>')
+    if (v!=null && p!= null) {
+      fila.append($('<td>')
+        .addClass('col-xs-6')
+        .text(p)
+      )
+      .attr('data-contador',p)
+      .append($('<td>')
+        .addClass('col-xs-6')
+        .append($('<input>')
           .prop('disabled',false)
           .addClass('valorModif form-control')
-          .val(v).text(v))
-        );
+          .val(v).text(v)
+        )
+      );
+      $('#tablaCargarContadores tbody').append(fila);
+    }
 
-        $('#tablaCargarContadores tbody').append(fila);
-
-      }
-
-      if (v==null && p!= null) {
-
-        fila.append($('<td>')
+    if (v==null && p!= null) {
+      fila.append($('<td>')
         .addClass('col-xs-6')
-        .text(p))
-        .attr('data-contador',p)
-        .append($('<td>')
-        .addClass('col-xs-3')
+        .text(p)
+      )
+      .attr('data-contador',p)
+      .append($('<td>')
+        .addClass('col-xs-6')
         .append($('<input>')
-        .addClass('valorModif form-control')
-        .val("").text(' ')));
-
-        $('#tablaCargarContadores tbody').append(fila);
-      }
-
+          .addClass('valorModif form-control')
+          .val("").text(' ')
+        )
+      );
+      $('#tablaCargarContadores tbody').append(fila);
+    }
   }//fin del for de contadores
 
   for (var i = 0; i < data.juegos.length; i++) {
@@ -443,10 +414,14 @@ function cargarDatos (data){
     .text(data.juegos[i].nombre_juego)
   )};
 
-    if(data.fecha != null){ $('#fechaEv').val(data.fecha);}
-    if(data.cargador != null) { $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true); }
+  if(data.fecha != null){ 
+    $('#fechaEv').val(data.fecha);
+  }
+  if(data.cargador != null) { 
+    $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true);
+  }
 
-    if(data.toma != null) {
+  if(data.toma != null) {
     $('#apuestaEv').val(data.toma.apuesta_max);
     $('#devolucionEv').val(data.toma.porcentaje_devolucion);
     $('#denominacionEv').val(data.toma.denominacion);
@@ -456,19 +431,20 @@ function cargarDatos (data){
     $('#macEv').val(data.toma.mac);
     $('#sectorRelevadoEv').val(data.toma.descripcion_sector_relevado);
     $('#islaRelevadaEv').val(data.toma.nro_isla_relevada);
-    }
+  }
 
-    //$('#juegoEv').prop('disabled',true);
-    $('#inputAdmin').prop('disabled',true);
+  $('#inputAdmin').prop('disabled',true);
 
-    if(data.tipo_movimiento!=null){
-      $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento); }
+  if(data.tipo_movimiento!=null){
+    $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento);
+  }
+  
+  if(data.fiscalizador!=null){
+    $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+  }
 
-    if(data.fiscalizador!=null){
-      $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);}
-
-    $('#guardarEv').prop('disabled', false);
-
+  agregarProgresivos(data.progresivos);/*movRelProgresivos.blade.php*/
+  $('#guardarEv').prop('disabled', false);
 };
 
 //BOTÓN GUARDAR dentro del modal cargar eventualidad
@@ -526,6 +502,7 @@ $(document).on('click','#guardarEv',function(){
     mac: mac,
     islaRelevadaEv: islaRelevadaEv,
     sectorRelevadoEv: sectorRelevadoEv,
+    progresivos: obtenerDatosProgresivos() /*movRelProgresivos.blade.php*/
   }
 
 

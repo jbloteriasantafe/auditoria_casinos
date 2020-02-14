@@ -1597,7 +1597,8 @@ class LogMovimientoController extends Controller
               ->first();
 
 
-    $juegos = (Maquina::find($rel->id_maquina))->juegos;
+    $maquina = Maquina::find($rel->id_maquina);
+    $juegos = $maquina->juegos;
 
     $toma=null;
     $fecha = null;
@@ -1618,10 +1619,25 @@ class LogMovimientoController extends Controller
       $nombre= Juego::find($toma->juego)->nombre_juego;
     }
 
+    $progresivos = [];
+    foreach($maquina->progresivos as $prog){
+      foreach($prog->pozos as $pozo){
+        $pozo_arr = $pozo->toArray();
+        $pozo_arr['es_unico'] = count($prog->pozos) == 1;
+        $pozo_arr['niveles'] = [];
+        foreach($pozo->niveles as $nivel){
+          $pozo_arr['niveles'][] = $nivel_arr = $nivel->toArray();
+        }
+        $prog_arr = $prog->toArray();
+        $prog_arr['pozo'] = $pozo_arr;
+        $progresivos[] = $prog_arr;    
+      }  
+    }
+
     return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma,
      'fiscalizador'=> $fisca,'cargador'=> $cargador,
      'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento ,
-     'fecha' => $fecha, 'nombre_juego' => $nombre];
+     'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
 
   }
 
@@ -1746,7 +1762,8 @@ class LogMovimientoController extends Controller
                    'esControlador' => $esControlador/*$esControlador*/,
                    'esSuperUsuario' => $esSuperUsuario,
                    'tiposEventualidadesMTM'=> $tipos,
-                   'casinos' => $casinos]);
+                   'casinos' => $casinos,
+                   'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
 
   }
 

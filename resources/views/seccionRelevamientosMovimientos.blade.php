@@ -182,12 +182,7 @@ $cas = $usuario['usuario']->casinos;
         <div class="row"> <!-- PRIMER FILA-->
           <div class="col-md-4">
             <h5>Fiscalizador Toma: </h5>
-            <div class="row"> <!-- row 2 -->
-              <div class="input-group lista-datos-group">
-                <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
-              </div>
-              <!-- <input id="inputMaq" data-maquina="" class="form-control" type="text" autocomplete="off" placeholder="Buscar máquinas"/> -->
-            </div> <!-- fin row2 -->
+            <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
           </div>
 
           <div class="col-md-4">
@@ -346,24 +341,7 @@ $cas = $usuario['usuario']->casinos;
                   </div>
 
                 </div> <!-- FIN SEGUNDO ROW DE TOMA -->
-                <div class="row">
-                  <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;height: 250px;">
-                    <h6>PROGRESIVOS</h6>
-                    <table class="table table-fixed tablaPozos">
-                      <thead>
-                        <tr>
-                          <th width="17%">PROGRESIVO</th>
-                          @for($i=6;$i>0;$i--)
-                          <th width="11%">NIVEL{{$i}}</th>
-                          @endfor
-                          <th width="17%">CAUSA NO TOMA</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                @include('movRelProgresivo')
                 <div class="row">
                   <div class="col-lg-12">
                     <h6>OBSERVACIONES</h6>
@@ -408,25 +386,6 @@ $cas = $usuario['usuario']->casinos;
     </div> <!-- modal content -->
   </div> <!-- modal dialog -->
 </div> <!-- modal fade -->
-
-<table hidden>
-  <tr id="filaEjemploProgresivo">
-    <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
-    @for ($i=6;$i>0;$i--)
-    <td width="11%">
-      <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
-    </td>
-    @endfor
-    <td width="17%">
-      <select class="causaNoToma form-control">
-        <option value="-1"></option>
-        @foreach($causasNoTomaProgresivo as $causa)
-        <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
-        @endforeach
-      </select>
-    </td>
-  </tr>
-</table>
 
 @endsection
 @section('scripts')
