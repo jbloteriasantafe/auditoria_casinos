@@ -107,6 +107,7 @@ $(document).on('click','.btn-cargarRelMov',function(e){
     $('#modalCargarRelMov').find('#casinoId').val(data.casino);
     $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
     $('#fiscaCarga').val(data.cargador.nombre);
+    $('#fiscaCarga').prop('readonly',true);
     var fila1=$('<tr>');
 
       for (var i = 0; i < data.relevamientos.length; i++)
@@ -179,6 +180,7 @@ $(document).on('click','.btn-cargarT2RelMov',function(e){
     $('#modalCargarRelMov').find('#casinoId').val(data.casino);
     $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
     $('#fiscaCarga').val(data.cargador.nombre);
+    $('#fiscaCarga').prop('readonly',true);
     var fila1=$('<tr>');
 
       for (var i = 0; i < data.relevamientos.length; i++)
