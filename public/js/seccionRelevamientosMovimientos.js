@@ -272,11 +272,7 @@ function cargarRelMov(data){
     $('#fiscaToma').val(data.fiscalizador.nombre);
   }
 
-  $('#nro_adminMov').val(data.maquina.nro_admin);
-  $('#nro_islaMov').val(data.maquina.nro_isla);
-  $('#nro_serieMov').val(limpiarNullUndef(data.maquina.nro_serie,''));
-  $('#marcaMov').val(data.maquina.marca);
-  $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
+  setearDatosMaquina(data.maquina);
 
   agregarContadores(data.maquina,data.toma);
 
@@ -342,9 +338,7 @@ $(document).on('click','#guardarRel',function(){
   var cred= $('#modalCargarRelMov').find('#creditos').val();
   var obs= $('#modalCargarRelMov').find('#observacionesToma').val();
   var tabla2 = $('#tablaMaquinasFiscalizacion tbody > tr');
-  var mac=$('#modalCargarRelMov').find('#macCargar').val();
-  var sectorRelevadoCargar=$('#modalCargarRelMov').find('#sectorRelevadoCargar').val();
-  var islaRelevadaCargar=$('#modalCargarRelMov').find('#islaRelevadaCargar').val();
+  const datosMaquinaToma = obtenerDatosMaquinaToma();
 
     var formData={
       id_fiscalizacion_movimiento: f,
@@ -361,9 +355,9 @@ $(document).on('click','#guardarRel',function(){
       cant_creditos: cred,
       fecha_sala: fecha,
       observaciones: obs,
-      mac:mac,
-      isla_relevada: islaRelevadaCargar,
-      sectorRelevadoCargar:sectorRelevadoCargar,
+      mac: datosMaquinaToma.mac,
+      isla_relevada: datosMaquinaToma.isla,
+      sectorRelevadoCargar: datosMaquinaToma.sector,
       es_cargaT2: es_cargaT2RelMov,
       progresivos: obtenerDatosProgresivos() /*movRelProgresivos.blade.php*/
     }
