@@ -322,28 +322,24 @@
       </div> <!-- modal header -->
 
       <div  id="colapsado" class="collapse in">
-          <div class="modal-body" style="font-family: Roboto;">
+        <div class="modal-body" style="font-family: Roboto;">
           <div class="row"> <!-- PRIMER FILA-->
             <div class="col-md-3">
               <h5>Fiscalizador Toma: </h5>
               <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
             </div>
-
             <div class="col-md-2">
               <h5>Tipo Movimiento</h5>
               <input id="inputTipoMov" class="form-control" type="text" value="" autocomplete="off" readonly="">
             </div>
-
             <div class="col-md-2">
               <h5>Sentido</h5>
               <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
             </div>
-
             <div class="col-md-3">
               <h5>Fiscalizador Carga: </h5>
               <input id="fiscaCargaEv" type="text"class="form-control">
             </div>
-
             <div class="col-md-2">
               <h5>Fecha Ejecución: </h5>
               <div class='input-group date' id='evFecha' data-link-field="fecha_ejecucionEv" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
@@ -354,11 +350,8 @@
               <input type="hidden" id="fecha_ejecucionEv" value=""/>
             </div>
           </div>
-        </div> <!-- FIN PRIMER FILA-->
 
-        <div class="modal-body" style="font-family: Roboto;">
           <div class="row"> <!-- row inicial -->
-
             <div class="col-md-3">
               <h5>Máquinas</h5>
               <table id="tablaCargarMTM" class="table">
@@ -368,7 +361,6 @@
                   </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
               </table>
             </div> <!-- maquinas -->
@@ -378,50 +370,37 @@
               <form id="form1" class="" action="index.html" method="post">
 
                 <div class="row" > <!-- PRIMER ROW DE DETALLE -->
-
                   <div class="col-lg-4">
                     <h5>N° Admin</h5>
-                  <div class="input-group lista-datos-group">
-                      <input id="inputAdmin" type="text"class="form-control">
-                    </div>
+                    <input id="inputAdmin" type="text"class="form-control">
                   </div>
-
                   <div class="col-lg-4">
                     <h5>N° Isla</h5>
                     <input id="nro_islaEv" type="text" class="form-control" readonly="readonly" >
-                    <br>
                   </div> <!-- nro_isla -->
-
                   <div class="col-lg-4">
                     <h5>N° Serie</h5>
                     <input id="nro_serieEv" type="text" class="form-control" readonly="readonly" >
-                    <br>
                   </div> <!-- nro_serie -->
-
                 </div> <!-- primer row DE DETALLE -->
 
                 <div class="row"> <!-- SEGUNDO ROW DE DETALLE -->
-                  <div class="col-lg-4">
+                  <div class="col-lg-6">
                     <h5>Marca</h5>
                     <input id="marcaEv" type="text" class="form-control" readonly="readonly">
-                    <br>
                   </div> <!-- marca -->
-
-                  <div class="col-lg-4">
+                  <div class="col-lg-6">
                     <h5>Modelo</h5>
                     <input id="modeloEv" type="text" class="form-control" readonly="readonly">
-                    <br>
                   </div> <!-- modelo -->
-                  <div class="col-lg-4">
-                    <h5>MAC</h5>
-                    <input id="macEv" type="text" class="form-control">
-                    <br>
-                    <span id="alerta_macEv" class="alertaSpan"></span>
-                  </div>
-
                 </div> <!-- segundo row -->
 
                 <div class="row">
+                  <div class="col-lg-4">
+                    <h5>MAC</h5>
+                    <input id="macEv" type="text" class="form-control">
+                    <span id="alerta_macEv" class="alertaSpan"></span>
+                  </div>
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>
                     <input id="sectorRelevadoEv" type="text" value="" class="form-control">
@@ -434,26 +413,8 @@
                   </div>
                 </div>
 
-                <div class="row"> <!-- TERCER ROW DE DETALLE -->
-
-                  <div id="" class="table-editable">
-
-                    <table id="tablaCargarContadores" class="table">
-                      <thead>
-                        <tr>
-                          <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                          <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-
-                      </tbody>
-                    </table>
-                  </div> <!-- FIN TABLA -->
-
-                </div>  <!-- FIN TERCER ROW DE DETALLE -->
-
+                @include('movRelContadores')
+                
                 <h6>TOMA</h6>
 
                 <div class="row"> <!-- PRIMER ROW DE TOMA -->

@@ -89,7 +89,7 @@ $(document).on('click','.btn-cargarRelMov',function(e){
 
   var id_fiscalizacion = $(this).val();
 
-  $('#tablaCargarRelevamiento tbody tr').remove();
+  $('#tablaCargarContadores tbody tr').remove();
   $('#tablaMaquinasFiscalizacion tbody tr').remove();
   $('.modal-title').text('CARGAR RELEVAMIENTOS');
   $('.modal-header').attr('style','background: #4FC3F7');
@@ -162,7 +162,7 @@ $(document).on('click','.btn-cargarT2RelMov',function(e){
 
   var id_fiscalizacion = $(this).val();
 
-  $('#tablaCargarRelevamiento tbody tr').remove();
+  $('#tablaCargarContadores tbody tr').remove();
   $('#tablaMaquinasFiscalizacion tbody tr').remove();
   $('.modal-title').text('CARGAR RELEVAMIENTOS');
   $('.modal-header').attr('style','background: #4FC3F7');
@@ -257,7 +257,7 @@ function cargarRelMov(data){
   $('#mensajeExitoCarga').hide();
   $('#form1').trigger("reset");
   $('#juegoRel option').remove();
-  $('#tablaCargarRelevamiento tbody tr').remove();
+  $('#tablaCargarContadores tbody tr').remove();
   var fisc = $('#modalCargarRelMov').find('#id_fiscalizac').val();
   var maq = $('#modalCargarRelMov').find('#maquina').val();
 
@@ -278,27 +278,7 @@ function cargarRelMov(data){
   $('#marcaMov').val(data.maquina.marca);
   $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
 
-  for (let i = 1; i < 7; i++){
-    let fila = $('<tr>');
-    let nombre_cont = data.maquina["cont" + i];
-    if(nombre_cont === null) continue;
-    
-    let val_cont = null;
-    if(data.toma != null){
-      val_cont = data.toma["vcont" + i];
-    }
-
-    fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
-    fila.attr('data-contador',nombre_cont);
-    fila.append($('<td>').addClass('col-xs-6')
-    .append($('<input>').addClass('valorModif form-control'))
-    );
-    if(val_cont != null){
-      fila.find('input').val(val_cont);
-    }
-
-    $('#tablaCargarRelevamiento tbody').append(fila);
-  }
+  agregarContadores(data.maquina,data.toma);
 
   if(data.nombre_juego==null){
     $('#modalCargarRelMov #juegoRel')
@@ -347,8 +327,6 @@ $(document).on('click','#guardarRel',function(){
   var y= $('#fiscaToma').obtenerElementoSeleccionado();
     $('#modalCargarRelMov').find('#fiscalizador').val(y);
 
-  var contadores=[];
-  var tabla= $('#tablaCargarRelevamiento tbody > tr');
   var contadores= [];
   var f=$('#modalCargarRelMov').find('#id_fiscalizac').val();
   var mov= $('#modalCargarRelMov').find('#id_log_movimiento').val();
@@ -368,21 +346,13 @@ $(document).on('click','#guardarRel',function(){
   var sectorRelevadoCargar=$('#modalCargarRelMov').find('#sectorRelevadoCargar').val();
   var islaRelevadaCargar=$('#modalCargarRelMov').find('#islaRelevadaCargar').val();
 
-  $.each(tabla, function(index, value){
-    var cont={
-      nombre: $(this).attr('data-contador'),
-      valor: $(this).find('.valorModif').val()
-    }
-    contadores.push(cont);
-  });
-
     var formData={
       id_fiscalizacion_movimiento: f,
       id_cargador: cargador,
       id_fiscalizador: id_fiscalizador,
       estado: 2,
       id_maquina: maq,
-      contadores: contadores,
+      contadores: obtenerdatosContadores(),
       juego: juego,
       apuesta_max: apuesta,
       cant_lineas: lineas,
@@ -473,7 +443,7 @@ $(document).on('click','#guardarRel',function(){
 
         var i = 0;
         var filaError = 0;
-        $('#tablaCargarRelevamiento tbody tr').each(function(){
+        $('#tablaCargarContadores tbody tr').each(function(){
 
         var error=' ';
 

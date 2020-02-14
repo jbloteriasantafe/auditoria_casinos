@@ -352,7 +352,6 @@ $(document).on('click','.detalleMTM',function(){
 function cargarDatos (data){
   $('#mensajeExitoCarga').hide();
   $('#juegoEv option').remove();
-  $('#tablaCargarContadores tbody tr').remove();
   //siempre vienen estos datos
   $('#nro_islaEv').val(data.maquina.nro_isla);
   $('#inputAdmin').val(data.maquina.nro_admin);
@@ -361,28 +360,8 @@ function cargarDatos (data){
   $('#modeloEv').val(data.maquina.modelo);
 
   //desde aqui genero la tabla de contadores, que son de cant variable.
-  for (let i = 1; i < 7; i++){
-    let fila = $('<tr>');
-    let nombre_cont = data.maquina["cont" + i];
-    if(nombre_cont === null) continue;
-
-    let val_cont = null;
-    if(data.toma != null){
-      val_cont = data.toma["vcont" + i];
-    }
-
-    fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
-    fila.attr('data-contador',nombre_cont);
-    fila.append($('<td>').addClass('col-xs-6')
-    .append($('<input>').addClass('valorModif form-control'))
-    );
-    if(val_cont != null){
-      fila.find('input').val(val_cont);
-    }
-
-    $('#tablaCargarContadores tbody').append(fila);
-  }
-
+  agregarContadores(data.maquina,data.toma);
+  
   for (var i = 0; i < data.juegos.length; i++) {
     $('#modalCargarMaqEv #juegoEv')
     .append($('<option>')
@@ -436,7 +415,6 @@ $(document).on('click','#guardarEv',function(){
   var  id_cargador= $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val();
   var  id_fiscalizador= $('#fiscalizadorEv').obtenerElementoSeleccionado();
   var  id_maquina= $('#modalCargarMaqEv').find('#id_maq').val();
-  var  contadores=[];
   var  tipo_movimiento= $('#modalCargarMaqEv #select_tevent option:selected').val();
   var  juego= $('#juegoEv').val();
   var  apuesta_max= $('#apuestaEv').val();
@@ -446,19 +424,9 @@ $(document).on('click','#guardarEv',function(){
   var  cant_creditos= $('#creditosEv').val();
   var  fecha_sala= $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val();
   var  observaciones= $('#observacionesTomaEv').val();
-  var  tabla = $('#tablaCargarContadores tbody > tr');
   var  mac = $('#macEv').val();
   var  islaRelevadaEv = $('#islaRelevadaEv').val();
   var  sectorRelevadoEv = $('#sectorRelevadoEv').val();
-
-  $.each(tabla, function(index, value){
-
-    var cont={
-      nombre: $(this).attr('data-contador'),
-      valor: $(this).find('.valorModif').val()
-    }
-    contadores.push(cont);
-  });
 
   var formData={
     id_log_movimiento: id_log_movimiento,
@@ -466,7 +434,7 @@ $(document).on('click','#guardarEv',function(){
     id_cargador: id_cargador,
     id_fiscalizador: id_fiscalizador,
     id_maquina: id_maquina,
-    contadores: contadores,
+    contadores: obtenerDatosContadores(),
     juego: juego,
     apuesta_max: apuesta_max,
     cant_lineas: cant_lineas,

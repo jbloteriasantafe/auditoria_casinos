@@ -226,79 +226,46 @@ $cas = $usuario['usuario']->casinos;
               <form id="form1" class="" action="index.html" method="post">
 
                 <div class="row" > <!-- PRIMER ROW DE DETALLE -->
-
                   <div class="col-lg-4">
                     <h5>Nro Admin.</h5>
                     <input id="nro_adminMov" type="text"   class="form-control" readonly="readonly">
-                    <br>
                   </div> <!-- nro admin -->
-
                   <div class="col-lg-4">
                     <h5>N° Isla</h5>
-                    <input id="nro_islaMov" type="text" class="form-control" readonly="readonly" >
-                    <br>
+                    <input id="nro_islaMov" type="text" class="form-control" readonly="readonly">
                   </div> <!-- nro_isla -->
-
                   <div class="col-lg-4">
                     <h5>N° Serie</h5>
-                    <input id="nro_serieMov" type="text" class="form-control" readonly="readonly" >
-                    <br>
+                    <input id="nro_serieMov" type="text" class="form-control" readonly="readonly">
                   </div> <!-- nro_serie -->
-
                 </div> <!-- primer row DE DETALLE -->
 
-                <div class="row"> <!-- SEGUNDO ROW DE DETALLE -->
+                <div class="row"> 
                   <div class="col-lg-6">
                     <h5>Marca</h5>
                     <input id="marcaMov" type="text" class="form-control" readonly="readonly">
-                    <br>
                   </div> <!-- marca -->
-
                   <div class="col-lg-6">
                     <h5>Modelo</h5>
                     <input id="modeloMov" type="text" class="form-control" readonly="readonly">
-                    <br>
                   </div> <!-- modelo -->
-
+              </div>
+              <div class="row">
                   <div class="col-lg-4">
                     <h5>MAC</h5>
                     <input id="macCargar" type="text" value="" class="form-control">
-                    <br>
                   </div> <!-- modelo -->
-
                   <div class="col-lg-4">
                     <h5>SECTOR</h5>
                     <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
-                    <br>
                   </div> <!-- SECTOR -->
-
                   <div class="col-lg-4">
                     <h5>ISLA</h5>
                     <input id="islaRelevadaCargar" type="text" value="" class="form-control">
-                    <br>
                   </div>
+                </div>
 
-                </div> <!-- segundo row -->
-
-                <div class="row"> <!-- TERCER ROW DE DETALLE -->
-
-                  <div id="" class="table-editable">
-
-                    <table id="tablaCargarRelevamiento" class="table">
-                      <thead>
-                        <tr>
-                          <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                          <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-
-                      </tbody>
-                    </table>
-                  </div> <!-- FIN TABLA -->
-
-                </div>  <!-- FIN TERCER ROW DE DETALLE -->
+                @include('movRelContadores')
 
                 <h6>TOMA</h6>
 
