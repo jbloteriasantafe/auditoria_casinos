@@ -291,7 +291,7 @@ $(document).on('click','.detalleMTM',function(){
   //HABILITO LOS INPUTS
   $('#fechaEv').prop('disabled',false);
   $('#select_tevent').prop('disabled',false);
-  $('#observacionesTomaEv').prop('disabled',false);
+  $('#observacionesToma').prop('disabled',false);
   habilitarDatosToma(true);
 
   //BORRO LOS ERRORES
@@ -333,7 +333,7 @@ function cargarDatos (data){
   setearDatosMaquinaToma(data.toma);
 
   if(data.toma != null) {
-    $('#observacionesTomaEv').val(data.toma.observaciones);
+    $('#observacionesToma').val(data.toma.observaciones);
   }
 
   $('#nro_adminMov').prop('disabled',true);
@@ -365,7 +365,7 @@ $(document).on('click','#guardarEv',function(){
   const tipo_movimiento = $('#modalCargarMaqEv #select_tevent option:selected').val();
   const datosToma = obtenerDatosToma();
   const fecha_sala= $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val();
-  const observaciones= $('#observacionesTomaEv').val();
+  const observaciones= $('#observacionesToma').val();
   const datosMaquinaToma = obtenerDatosMaquinaToma();
 
   var formData={

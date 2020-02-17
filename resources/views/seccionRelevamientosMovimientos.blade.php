@@ -219,23 +219,7 @@ $cas = $usuario['usuario']->casinos;
               </table>
             </div> <!-- maquinas -->
 
-            <div  id="detalless" class="col-md-9">
-
-              <h6>DETALLES MTM</h6>
-
-              <form id="form1" class="" action="index.html" method="post">
-                @include('movRelDatosMaq')
-                @include('movRelContadores')
-                @include('movRelToma')
-                @include('movRelProgresivo')
-                <div class="row">
-                  <div class="col-lg-12">
-                    <h6>OBSERVACIONES</h6>
-                    <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
-                  </div>
-                </div> <!-- FIN ULTIMO row -->
-              </form>
-            </div> <!-- fin detalle -->
+            @include('divRelevamientoMovimiento')
           </div> <!-- fin ROW INICIAL -->
 
         </div>  <!-- modal body -->

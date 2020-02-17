@@ -81,7 +81,7 @@ $(document).on('click','.btn-cargarRelMov',function(e){
   $('#fechaRel').val('');
   limpiarDatosToma();
   $('#guardarRel').prop('disabled', true);
-  $('#modalCargarRelMov #detalless').hide();
+  $('#modalCargarRelMov #detallesMTM').hide();
   $('#mensajeExitoCarga').hide();
   $('#mensajeErrorCarga').hide();
   $('#modalCargarRelMov').modal('show');
@@ -139,7 +139,7 @@ $(document).on('click','.btn-cargarT2RelMov',function(e){
   $('#form1').trigger("reset");
   $('#fechaRel').val('');
   $('#guardarRel').prop('disabled', true);
-  $('#modalCargarRelMov #detalless').hide();
+  $('#modalCargarRelMov #detallesMTM').hide();
   $('#mensajeExitoCarga').hide();
   $('#mensajeErrorCarga').hide();
   $('#modalCargarRelMov').modal('show');
@@ -194,7 +194,7 @@ $(document).on('click','.cargarMaq',function(){
 
   $.get('movimientos/obtenerMTMFiscalizacion/' + id_maquina + '/' + id_fiscalizacion, function(data){
     cargarRelMov(data);
-    $('#modalCargarRelMov #detalless').show();
+    $('#modalCargarRelMov #detallesMTM').show();
   });
 });
 
@@ -273,7 +273,7 @@ $(document).on('click','#guardarRel',function(){
     success: function (data) {
       console.log('BIEN');
       console.log(data);
-      $('#modalCargarRelMov #detalless').hide();
+      $('#modalCargarRelMov #detallesMTM').hide();
       $('#modalCargarRelMov #fechaRel').val(' ');
       $('#modalCargarRelMov #fiscaToma').val(' ');
       $('#mensajeErrorCarga').hide();
@@ -302,7 +302,7 @@ $(document).on('click','#guardarRel',function(){
         }
       }
       if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
-      
+
       $('#tablaCargarContadores tbody tr').each(function(index){
         const res = response['contadores.'+ index +'.valor'];
         if(!isUndef(res)){

@@ -364,22 +364,9 @@
                 </tbody>
               </table>
             </div> <!-- maquinas -->
-
-            <div  id="detallesMTM" class="col-md-9"  hidden="">
-              <h6>DETALLES</h6>
-              <form id="form1" class="" action="index.html" method="post">
-                @include('movRelDatosMaq')
-                @include('movRelContadores')
-                @include('movRelToma')
-                @include('movRelProgresivo')
-                <div class="row">
-                  <div class="col-lg-12">
-                    <h6>OBSERVACIONES:</h6>
-                    <textarea id="observacionesTomaEv" value="" class="form-control" style="resize:vertical;"></textarea>
-                  </div>
-                </div> <!-- FIN ULTIMO row -->
-              </form>
-            </div> <!-- fin detalle -->
+            
+            
+          @include('divRelevamientoMovimiento')
           </div> <!-- fin ROW INICIAL -->
 
         </div>  <!-- modal body -->
