@@ -34,20 +34,20 @@
 <script type="text/javascript">
 function agregarJuegosToma(nombre_juego,juegos){
     if(nombre_juego==null){
-        $('#modalCargarRelMov #juegoRel')
+        $('#juegoRel')
         .append($('<option>')
-        .val(0)
-        .text('Seleccione'));
-        for (var i = 0; i < juegos.length; i++) {
-        $('#modalCargarRelMov #juegoRel')
-            .append($('<option>')
-            .val(juegos[i].id_juego)
-            .text(juegos[i].nombre_juego)
+            .val(0)
+            .text('Seleccione')
+        );
+        juegos.forEach(j => {
+            $('#juegoRel').append($('<option>')
+                .val(j.id_juego)
+                .text(j.nombre_juego)
             );
-        }
+        });
     }
     else{
-        $('#modalCargarRelMov #juegoRel')
+        $('#juegoRel')
         .append($('<option>')
         .val(juegos[0].id_juego)
         .text(nombre_juego));
@@ -55,7 +55,7 @@ function agregarJuegosToma(nombre_juego,juegos){
 }
 function setearDatosToma(toma){
     if(toma != null){
-        $('#modalCargarRelMov #juegoRel option:selected').val(toma.juego);
+        $('#juegoRel option:selected').val(toma.juego);
         $('#apuesta').val(toma.apuesta_max);
         $('#cant_lineas').val(toma.cant_lineas);
         $('#devolucion').val(toma.porcentaje_devolucion);
@@ -82,5 +82,14 @@ function limpiarDatosToma(){
     ocultarErrorValidacion($('#denominacion'));
     ocultarErrorValidacion($('#devolucion'));
     $('#juegoRel option').remove();
+}
+function habilitarDatosToma(hab){
+  const not = !hab;  
+  $('#apuesta').prop('disabled',not);
+  $('#devolucion').prop('disabled',not);
+  $('#denominacion').prop('disabled',not);
+  $('#creditos').prop('disabled',not);
+  $('#cant_lineas').prop('disabled',not);
+  $('#juegoRel').prop('disabled',not);
 }
 </script>

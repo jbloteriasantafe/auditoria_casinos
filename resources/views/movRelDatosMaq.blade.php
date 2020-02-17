@@ -39,15 +39,6 @@
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
-function deshabilitarDatosMaquina(toggle){
-    $('#macCargar').prop('disabled',toggle);
-    $('#sectorRelevadoCargar').prop('disabled',toggle);
-    $('#islaRelevadaCargar').prop('disabled',toggle);
-    $('#nro_adminMov').prop('disabled',false);
-    $('#macCargar').prop('disabled',false);
-    $('#islaRelevadaCargar').prop('disabled',false);
-    $('#sectorRelevadoCargar').prop('disabled',false);
-}
 function limpiarDatosMaquina(){
     $('#macCargar').val("");
     $('#islaRelevadaCargar').val("");
@@ -67,9 +58,11 @@ function setearDatosMaquina(maquina){
     $('#modeloMov').val(limpiarNullUndef(maquina.modelo,''));
 }
 function setearDatosMaquinaToma(toma){
-    $('#macCargar').val(toma.mac);
-    $('#sectorRelevadoCargar').val(toma.descripcion_sector_relevado);
-    $('#islaRelevadaCargar').val(toma.nro_isla_relevada);
+    if(toma != null){
+        $('#macCargar').val(toma.mac);
+        $('#sectorRelevadoCargar').val(toma.descripcion_sector_relevado);
+        $('#islaRelevadaCargar').val(toma.nro_isla_relevada);
+    }
 }
 function obtenerDatosMaquinaToma(){
     let mac = $('#macCargar').val();

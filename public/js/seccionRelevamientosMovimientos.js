@@ -68,7 +68,7 @@ $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
-    es_cargaT2RelMov=0;
+  es_cargaT2RelMov=0;
   e.preventDefault();
 
   const id_fiscalizacion = $(this).val();
@@ -267,75 +267,74 @@ $(document).on('click','#guardarRel',function(){
 
 
   $.ajax({
-      type: 'POST',
-      url: 'movimientos/cargarTomaRelevamiento',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log('BIEN');
-        console.log(data);
-        $('#modalCargarRelMov #detalless').hide();
-        $('#modalCargarRelMov #fechaRel').val(' ');
-        $('#modalCargarRelMov #fiscaToma').val(' ');
-        $('#mensajeErrorCarga').hide();
-        //se agrega una tilde en azul a la máq cargada, dentro del mismo modal
-        $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
-        $('#mensajeExitoCarga').show();
-        $('#modalCargarRelMov .cargarMaq').prop('disabled', false);
-        $('#guardarRel').prop('disabled', true);
-      },
+    type: 'POST',
+    url: 'movimientos/cargarTomaRelevamiento',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      console.log('BIEN');
+      console.log(data);
+      $('#modalCargarRelMov #detalless').hide();
+      $('#modalCargarRelMov #fechaRel').val(' ');
+      $('#modalCargarRelMov #fiscaToma').val(' ');
+      $('#mensajeErrorCarga').hide();
+      //se agrega una tilde en azul a la máq cargada, dentro del mismo modal
+      $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
+      $('#mensajeExitoCarga').show();
+      $('#modalCargarRelMov .cargarMaq').prop('disabled', false);
+      $('#guardarRel').prop('disabled', true);
+    },
 
-      error: function (data)
+    error: function (data){
+      console.log('ERROR');
+      console.log(data);
+
+      const response = JSON.parse(data.responseText);
+      if(    typeof response.apuesta_max !== 'undefined'
+            || typeof response.cant_lineas !== 'undefined'
+            || typeof response.cant_creditos !== 'undefined'
+            || typeof response.devolucion !== 'undefined'
+            || typeof response.denominacion!== 'undefined'
+            || typeof response.juego !== 'undefined'
+            || typeof response.id_fiscalizador !== 'undefined'
+            || typeof response.fecha_sala !== 'undefined')
       {
-        console.log('ERROR');
-        console.log(data);
+        $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      }
 
-        const response = JSON.parse(data.responseText);
-        if(    typeof response.apuesta_max !== 'undefined'
-             || typeof response.cant_lineas !== 'undefined'
-             || typeof response.cant_creditos !== 'undefined'
-             || typeof response.devolucion !== 'undefined'
-             || typeof response.denominacion!== 'undefined'
-             || typeof response.juego !== 'undefined'
-             || typeof response.id_fiscalizador !== 'undefined'
-             || typeof response.fecha_sala !== 'undefined')
-        {
-          $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
-        }
+      if(typeof response.apuesta_max !== 'undefined'){
+        mostrarErrorValidacion($('#apuesta'),response.apuesta_max[0]);
+      }
+      if(typeof response.cant_lineas !== 'undefined'){
+        mostrarErrorValidacion($('#cant_lineas'),response.cant_lineas[0]);
+      }
+      if(typeof response.cant_creditos !== 'undefined'){
+        mostrarErrorValidacion($('#creditos'),response.cant_creditos[0]);
+      }
+      if(typeof response.porcentaje_devolucion !== 'undefined'){
+        mostrarErrorValidacion($('#devolucion'),response.porcentaje_devolucion[0]);
+      }
+      if(typeof response.denominacion !== 'undefined'){
+          mostrarErrorValidacion($('#denominacion'),response.denominacion[0]);
+      }
+      if(typeof response.juego !== 'undefined'){
+        mostrarErrorValidacion($('#juegoRel'),response.juego[0]);
+      }
+      if(typeof response.id_fiscalizador !== 'undefined'){
+        mostrarErrorValidacion($('#fiscaToma'),response.id_fiscalizador[0]);
+      }
+      if(typeof response.fecha_sala !== 'undefined'){
+        mostrarErrorValidacion($('#fechaRel'),response.fecha_sala[0]);
+      }
+      if(typeof response.contadores !== 'undefined'){
+        $('#mensajeErrorCarga').show();
+      }
 
-        if(typeof response.apuesta_max !== 'undefined'){
-          mostrarErrorValidacion($('#apuesta'),response.apuesta_max[0]);
+      $('#tablaCargarContadores tbody tr').each(function(index,element){
+        if(typeof response['contadores.'+ index +'.valor'] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('.valorModif'),response['contadores.'+ index +'.valor'][0]);
         }
-        if(typeof response.cant_lineas !== 'undefined'){
-          mostrarErrorValidacion($('#cant_lineas'),response.cant_lineas[0]);
-        }
-        if(typeof response.cant_creditos !== 'undefined'){
-          mostrarErrorValidacion($('#creditos'),response.cant_creditos[0]);
-        }
-        if(typeof response.porcentaje_devolucion !== 'undefined'){
-          mostrarErrorValidacion($('#devolucion'),response.porcentaje_devolucion[0]);
-        }
-        if(typeof response.denominacion !== 'undefined'){
-            mostrarErrorValidacion($('#denominacion'),response.denominacion[0]);
-        }
-        if(typeof response.juego !== 'undefined'){
-          mostrarErrorValidacion($('#juegoRel'),response.juego[0]);
-        }
-        if(typeof response.id_fiscalizador !== 'undefined'){
-          mostrarErrorValidacion($('#fiscaToma'),response.id_fiscalizador[0]);
-        }
-        if(typeof response.fecha_sala !== 'undefined'){
-          mostrarErrorValidacion($('#fechaRel'),response.fecha_sala[0]);
-        }
-        if(typeof response.contadores !== 'undefined'){
-          $('#mensajeErrorCarga').show();
-        }
-
-        $('#tablaCargarContadores tbody tr').each(function(index,element){
-          if(typeof response['contadores.'+ index +'.valor'] !== 'undefined'){
-            mostrarErrorValidacion($(this).find('.valorModif'),response['contadores.'+ index +'.valor'][0]);
-        }
-      }); //fin del each
+      });
     }
   });
 });
@@ -423,7 +422,7 @@ function clickIndice(e,pageNumber,tam){
     e.preventDefault();
   }
 
-  const tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
   const columna = $('#tablatablaRelevamientosMovimientosResultados .activa').attr('value');
   const orden = $('#tablaRelevamientosMovimientos .activa').attr('estado');
   $('#btn-buscarRelMov').trigger('click',[pageNumber,tam,columna,orden]);

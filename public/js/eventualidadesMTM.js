@@ -207,7 +207,6 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#guardarEv').prop('disabled', true);
   $('#modalCargarMaqEv .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalCargarMaqEv').modal('show');
-  $('#juegoEv option').remove();
   $('#mensajeExitoCarga').hide();
   $('#mensajeCargarMTMarga').hide();
   $('#tablaCargarMTM tbody tr').remove();
@@ -215,16 +214,11 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#modalCargarMaqEv #myModalLabel').text('CARGAR MTMs')
   $('#select_tevent').prop('disabled',false);
   $('#fechaEv').prop('disabled',false);
-  deshabilitarDatosMaquina(false);
 
   //BORRO LOS ERRORES
-  ocultarErrorValidacion($('#apuestaEv'));
-  ocultarErrorValidacion($('#creditosEv'));
-  ocultarErrorValidacion($('#denominacionEv'));
-  ocultarErrorValidacion($('#devolucionEv'));
-  ocultarErrorValidacion($('#apuestaEv'));
+
+  limpiarDatosToma();
   ocultarErrorValidacion($('#fiscalizadorEv'));
-  ocultarErrorValidacion($('#cant_lineasEv'));
   ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
   ocultarErroresDatosMaquina();
@@ -289,7 +283,6 @@ $(document).on('click','.detalleMTM',function(){
   $('#fechaEv').val("");
   limpiarDatosMaquina();
   $('#guardarEv').prop('disabled', true);
-  $('#juegoEv option').remove();
   $('#mensajeErrorCargaEv').hide();
   $('#mensajeExitoCarga').hide();
   $('#modalCargarMaqEv #form1').trigger("reset");
@@ -297,27 +290,14 @@ $(document).on('click','.detalleMTM',function(){
 
   //HABILITO LOS INPUTS
   $('#fechaEv').prop('disabled',false);
-  $('#apuestaEv').prop('disabled',false);
-  $('#devolucionEv').prop('disabled',false);
-  $('#denominacionEv').prop('disabled',false);
-  $('#creditosEv').prop('disabled',false);
-  $('#cant_lineasEv').prop('disabled',false);
   $('#select_tevent').prop('disabled',false);
   $('#observacionesTomaEv').prop('disabled',false);
-  $('#juegoEv').prop('disabled',false);
-  deshabilitarDatosMaquina(false);
+  habilitarDatosToma(true);
 
   //BORRO LOS ERRORES
-  ocultarErrorValidacion($('#apuestaEv'));
-  ocultarErrorValidacion($('#creditosEv'));
-  ocultarErrorValidacion($('#denominacionEv'));
-  ocultarErrorValidacion($('#devolucionEv'));
-  ocultarErrorValidacion($('#apuestaEv'));
   ocultarErrorValidacion($('#fiscalizadorEv'));
-  ocultarErrorValidacion($('#cant_lineasEv'));
   ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
-  ocultarErrorValidacion($('#fiscalizadorEv'));
   ocultarErroresDatosMaquina();
 
   $('#modalCargarMaqEv #detallesMTM').show();
@@ -336,20 +316,11 @@ $(document).on('click','.detalleMTM',function(){
 //funcion para cargar los datos de la maquina, donde c indica si ya viene alguna máq cargada o no(false)
 function cargarDatos (data){
   $('#mensajeExitoCarga').hide();
-  $('#juegoEv option').remove();
+  limpiarDatosToma();
   //siempre vienen estos datos
   setearDatosMaquina(data.maquina);
-
-  //desde aqui genero la tabla de contadores, que son de cant variable.
   agregarContadores(data.maquina,data.toma);
-
-  for (var i = 0; i < data.juegos.length; i++) {
-    $('#modalCargarMaqEv #juegoEv')
-    .append($('<option>')
-    .prop('disabled',false)
-    .val(data.juegos[i].id_juego)
-    .text(data.juegos[i].nombre_juego)
-  )};
+  agregarJuegosToma(null,data.juegos);
 
   if(data.fecha != null){ 
     $('#fechaEv').val(data.fecha);
@@ -358,14 +329,11 @@ function cargarDatos (data){
     $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true);
   }
 
+  setearDatosToma(data.toma);
+  setearDatosMaquinaToma(data.toma);
+
   if(data.toma != null) {
-    $('#apuestaEv').val(data.toma.apuesta_max);
-    $('#devolucionEv').val(data.toma.porcentaje_devolucion);
-    $('#denominacionEv').val(data.toma.denominacion);
-    $('#creditosEv').val(data.toma.cant_creditos);
-    $('#cant_lineasEv').val(data.toma.cant_creditos);
     $('#observacionesTomaEv').val(data.toma.observaciones);
-    setearDatosMaquinaToma(data.toma);
   }
 
   $('#nro_adminMov').prop('disabled',true);
@@ -389,20 +357,15 @@ $(document).on('click','#guardarEv',function(){
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  var  id_log_movimiento = $('#modalCargarMaqEv').find('#id_mov').val();
-  var id_maq = $('#modalCargarMaqEv').find('#id_maq').val();
-  var  id_cargador= $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val();
-  var  id_fiscalizador= $('#fiscalizadorEv').obtenerElementoSeleccionado();
-  var  id_maquina= $('#modalCargarMaqEv').find('#id_maq').val();
-  var  tipo_movimiento= $('#modalCargarMaqEv #select_tevent option:selected').val();
-  var  juego= $('#juegoEv').val();
-  var  apuesta_max= $('#apuestaEv').val();
-  var  cant_lineas= $('#cant_lineasEv').val();
-  var  dev= $('#devolucionEv').val();
-  var  denominacion= $('#denominacionEv').val();
-  var  cant_creditos= $('#creditosEv').val();
-  var  fecha_sala= $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val();
-  var  observaciones= $('#observacionesTomaEv').val();
+  const id_log_movimiento = $('#modalCargarMaqEv').find('#id_mov').val();
+  const id_maq = $('#modalCargarMaqEv').find('#id_maq').val();
+  const id_cargador = $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val();
+  const id_fiscalizador = $('#fiscalizadorEv').obtenerElementoSeleccionado();
+  const id_maquina = $('#modalCargarMaqEv').find('#id_maq').val();
+  const tipo_movimiento = $('#modalCargarMaqEv #select_tevent option:selected').val();
+  const datosToma = obtenerDatosToma();
+  const fecha_sala= $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val();
+  const observaciones= $('#observacionesTomaEv').val();
   const datosMaquinaToma = obtenerDatosMaquinaToma();
 
   var formData={
@@ -412,12 +375,12 @@ $(document).on('click','#guardarEv',function(){
     id_fiscalizador: id_fiscalizador,
     id_maquina: id_maquina,
     contadores: obtenerDatosContadores(),
-    juego: juego,
-    apuesta_max: apuesta_max,
-    cant_lineas: cant_lineas,
-    porcentaje_devolucion: dev,
-    denominacion: denominacion,
-    cant_creditos: cant_creditos,
+    juego: datosToma.juego,
+    apuesta_max: datosToma.apuesta,
+    cant_lineas: datosToma.cant_lineas,
+    porcentaje_devolucion: datosToma.devolucion,
+    denominacion: datosToma.denominacion,
+    cant_creditos: datosToma.creditos,
     fecha_sala: fecha_sala,
     tipo_movimiento: tipo_movimiento,
     observaciones: observaciones,
@@ -451,13 +414,12 @@ $(document).on('click','#guardarEv',function(){
 
       $('#modalCargarMaqEv #tablaCargarMTM').find('.detalleMTM').attr('id',data.id_relevamiento);
       //BORRO LOS ERRORES
-      ocultarErrorValidacion($('#apuestaEv'));
-      ocultarErrorValidacion($('#creditosEv'));
-      ocultarErrorValidacion($('#denominacionEv'));
-      ocultarErrorValidacion($('#devolucionEv'));
-      ocultarErrorValidacion($('#apuestaEv'));
+      ocultarErrorValidacion($('#apuesta'));
+      ocultarErrorValidacion($('#creditos'));
+      ocultarErrorValidacion($('#denominacion'));
+      ocultarErrorValidacion($('#devolucion'));
       ocultarErrorValidacion($('#fiscalizadorEv'));
-      ocultarErrorValidacion($('#cant_lineasEv'));
+      ocultarErrorValidacion($('#cant_lineas'));
       ocultarErrorValidacion($('#select_tevent'));
       ocultarErrorValidacion($('#fechaEv'));
       ocultarErroresDatosMaquina();
@@ -507,21 +469,21 @@ $(document).on('click','#guardarEv',function(){
       }
 
       if(typeof response.apuesta_max !== 'undefined'){
-        mostrarErrorValidacion($('#apuestaEv'),response.apuesta_max[0]);
+        mostrarErrorValidacion($('#apuesta'),response.apuesta_max[0]);
       }
       if(typeof response.cant_lineas !== 'undefined'){
-        mostrarErrorValidacion($('#cant_lineasEv'),response.cant_lineas[0]);
+        mostrarErrorValidacion($('#cant_lineas'),response.cant_lineas[0]);
       }
       if(typeof response.cant_creditos !== 'undefined'){
-        mostrarErrorValidacion($('#creditosEv'),response.cant_creditos[0]);
+        mostrarErrorValidacion($('#creditos'),response.cant_creditos[0]);
         // $('#fecha').popover('show');
         // $('.popover').addClass('popAlerta');
       }
       if(typeof response.porcentaje_devolucion !== 'undefined'){
-        mostrarErrorValidacion($('#devolucionEv'),response.porcentaje_devolucion[0]);
+        mostrarErrorValidacion($('#devolucion'),response.porcentaje_devolucion[0]);
       }
       if(typeof response.denominacion !== 'undefined'){
-        mostrarErrorValidacion($('#denominacionEv'),response.denominacion[0]);
+        mostrarErrorValidacion($('#denominacion'),response.denominacion[0]);
       }
       if(typeof response.juego !== 'undefined'){
         mostrarErrorValidacion($('#juegoEv'),response.juego[0]);
