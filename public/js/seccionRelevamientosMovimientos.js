@@ -259,12 +259,11 @@ $(document).on('click','#guardarRel',function(){
     fecha_sala: fecha,
     observaciones: obs,
     mac: datosMaquinaToma.mac,
-    isla_relevada:  isla,
+    isla_relevada:  datosMaquinaToma.isla,
     sectorRelevadoCargar: datosMaquinaToma.sector,
     es_cargaT2: es_cargaT2RelMov,
     progresivos: obtenerDatosProgresivos() /*movRelProgresivos.blade.php*/
   }
-
 
   $.ajax({
     type: 'POST',
@@ -288,51 +287,26 @@ $(document).on('click','#guardarRel',function(){
     error: function (data){
       console.log('ERROR');
       console.log(data);
-
-      const response = JSON.parse(data.responseText);
-      if(    typeof response.apuesta_max !== 'undefined'
-            || typeof response.cant_lineas !== 'undefined'
-            || typeof response.cant_creditos !== 'undefined'
-            || typeof response.devolucion !== 'undefined'
-            || typeof response.denominacion!== 'undefined'
-            || typeof response.juego !== 'undefined'
-            || typeof response.id_fiscalizador !== 'undefined'
-            || typeof response.fecha_sala !== 'undefined')
-      {
-        $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      const response = data.responseJSON;
+      const errores = { 
+        'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
+        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'),'id_fiscalizador' : $('#fiscaToma'),
+        'fecha_sala' : $('#fechaRel'), 'denominacion' : $('#denominacion'), 'sectorRelevadoCargar' : $('#sectorRelevadoCargar'),
+        'isla_relevada' :  $('#islaRelevadaCargar')
+      };
+      let err = false;
+      for(const key in errores){
+        if(!isUndef(response[key])){
+          mostrarErrorValidacion(errores[key],parseError(response[key][0]));
+          err = true;
+        }
       }
-
-      if(typeof response.apuesta_max !== 'undefined'){
-        mostrarErrorValidacion($('#apuesta'),response.apuesta_max[0]);
-      }
-      if(typeof response.cant_lineas !== 'undefined'){
-        mostrarErrorValidacion($('#cant_lineas'),response.cant_lineas[0]);
-      }
-      if(typeof response.cant_creditos !== 'undefined'){
-        mostrarErrorValidacion($('#creditos'),response.cant_creditos[0]);
-      }
-      if(typeof response.porcentaje_devolucion !== 'undefined'){
-        mostrarErrorValidacion($('#devolucion'),response.porcentaje_devolucion[0]);
-      }
-      if(typeof response.denominacion !== 'undefined'){
-          mostrarErrorValidacion($('#denominacion'),response.denominacion[0]);
-      }
-      if(typeof response.juego !== 'undefined'){
-        mostrarErrorValidacion($('#juegoRel'),response.juego[0]);
-      }
-      if(typeof response.id_fiscalizador !== 'undefined'){
-        mostrarErrorValidacion($('#fiscaToma'),response.id_fiscalizador[0]);
-      }
-      if(typeof response.fecha_sala !== 'undefined'){
-        mostrarErrorValidacion($('#fechaRel'),response.fecha_sala[0]);
-      }
-      if(typeof response.contadores !== 'undefined'){
-        $('#mensajeErrorCarga').show();
-      }
-
-      $('#tablaCargarContadores tbody tr').each(function(index,element){
-        if(typeof response['contadores.'+ index +'.valor'] !== 'undefined'){
-          mostrarErrorValidacion($(this).find('.valorModif'),response['contadores.'+ index +'.valor'][0]);
+      if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      
+      $('#tablaCargarContadores tbody tr').each(function(index){
+        const res = response['contadores.'+ index +'.valor'];
+        if(!isUndef(res)){
+          mostrarErrorValidacion($(this).find('.valorModif'),parseError(res[0]));
         }
       });
     }

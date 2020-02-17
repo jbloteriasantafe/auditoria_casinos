@@ -32,6 +32,9 @@ function parseError(response){
     else if(response == 'validation.required_if'){
         return 'El valor es requerido';
     }
+    else if(response == 'validation.required_with'){
+        return 'El valor es requerido';
+    }
     return response;
 }
   
