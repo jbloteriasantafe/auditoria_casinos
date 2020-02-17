@@ -37,6 +37,7 @@
     </div>
 </div>
 
+<script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
 function deshabilitarDatosMaquina(toggle){
     $('#macCargar').prop('disabled',toggle);

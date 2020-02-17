@@ -226,45 +226,7 @@ $cas = $usuario['usuario']->casinos;
               <form id="form1" class="" action="index.html" method="post">
                 @include('movRelDatosMaq')
                 @include('movRelContadores')
-
-                <h6>TOMA</h6>
-
-                <div class="row"> <!-- PRIMER ROW DE TOMA -->
-                  <div class="col-lg-4">
-                    <h5>JUEGO</h5>
-                    <select id="juegoRel" class="form-control" name="">
-                      <option value=""></option>
-                    </select>
-                    <br>
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>APUESTA MÁX</h5>
-                    <input id="apuesta" type="text" value="" class="form-control">
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>CANT LÍNEAS</h5>
-                    <input id="cant_lineas" type="text" value="" class="form-control">
-                  </div>
-                </div> <!-- FIN PRIMER ROW DE TOMA -->
-
-                <div class="row"> <!-- SEGUNDO ROW DE TOMA -->
-
-                  <div class="col-lg-4">
-                    <h5>% DEVOLUCIÓN</h5>
-                    <input id="devolucion" type="text" value="" class="form-control">
-                  </div>
-
-                  <div class="col-lg-4">
-                    <h5>DENOMINACIÓN</h5>
-                    <input id="denominacion" type="text" value="" class="form-control">
-                  </div>
-
-                  <div class="col-lg-4">
-                    <h5>CANT CRÉDITOS</h5>
-                    <input id="creditos" type="text" value="" class="form-control">
-                  </div>
-
-                </div> <!-- FIN SEGUNDO ROW DE TOMA -->
+                @include('movRelToma')
                 @include('movRelProgresivo')
                 <div class="row">
                   <div class="col-lg-12">

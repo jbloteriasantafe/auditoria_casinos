@@ -370,9 +370,10 @@
               <form id="form1" class="" action="index.html" method="post">
                 @include('movRelDatosMaq')
                 @include('movRelContadores')
+                @include('movRelToma')
+                <!--
                 <h6>TOMA</h6>
-
-                <div class="row"> <!-- PRIMER ROW DE TOMA -->
+                <div class="row"> 
                   <div class="col-lg-4">
                     <h5>JUEGO</h5>
                     <select id="juegoEv" class="form-control" name="">
@@ -388,9 +389,8 @@
                     <h5>CANT LÍNEAS</h5>
                     <input id="cant_lineasEv" type="text" value="" class="form-control">
                   </div>
-                </div> <!-- FIN PRIMER ROW DE TOMA -->
-
-                <div class="row"> <!-- SEGUNDO ROW DE TOMA -->
+                </div> 
+                <div class="row"> 
                   <div class="col-lg-4">
                     <h5>% DEVOLUCIÓN</h5>
                     <input id="devolucionEv" type="text" value="" class="form-control">
@@ -405,7 +405,7 @@
                     <h5>CANT CRÉDITOS</h5>
                     <input id="creditosEv" type="text" value="" class="form-control">
                   </div>
-                </div> <!-- FIN SEGUNDO ROW DE TOMA -->
+                </div>  -->
                 @include('movRelProgresivo')
                 <div class="row">
                   <div class="col-lg-12">
