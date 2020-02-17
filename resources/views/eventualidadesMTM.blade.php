@@ -368,32 +368,15 @@
             
           @include('divRelevamientoMovimiento')
           </div> <!-- fin ROW INICIAL -->
-
         </div>  <!-- modal body -->
 
         <div class="modal-footer">
-
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
           <input id="id_maq" type="text" name="" value="" hidden="">
           <input id="id_fiscaliz_carga" type="text" name="" value="" hidden="">
           <input id=id_mov type="text" name="" value="" hidden="">
           <button id="guardarEv" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-
-
-          <div id="mensajeExitoCarga" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50;">EXITO</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Los datos se han guardado correctamente</span>
-          </div> <!-- mensaje -->
-          <div id="mensajeErrorCargaEv" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No se han cargado todos los contadores.</span>
-          </div> <!-- mensaje -->
-
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
     </div> <!-- modal content -->
