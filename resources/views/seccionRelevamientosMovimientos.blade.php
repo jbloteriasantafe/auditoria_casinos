@@ -233,7 +233,6 @@ $cas = $usuario['usuario']->casinos;
           <input id="id_fiscalizac" type="text" name="" value="" hidden="">
           <input id="relevamiento" type="text" name="" value="" hidden="">
           <input id="maquina" type="text" name="" value="" hidden>
-          <input id="fiscalizador" type="text" name="" value="" hidden="">
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
 

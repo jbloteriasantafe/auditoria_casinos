@@ -1545,14 +1545,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-              <div class="modal-header">
+              <div class="modal-header" style="background-color:#ef3e42;color:white;">
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
+                <h3>ADVERTENCIA</h3>
               </div>
 
               <div  id="colapsado" class="collapse in">
-              <div class="modal-body" style="color:#fff; background-color:#EF5350;">
+              <div class="modal-body">
                 <form id="frmEliminar" name="frmJuego" class="form-horizontal" novalidate="">
                     <div class="form-group error ">
                         <div id="mensajeEliminar" class="col-xs-12">

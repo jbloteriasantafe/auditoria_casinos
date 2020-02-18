@@ -1,13 +1,4 @@
-var eventoAEliminar;
-var mtmEv=[];
 $(document).ready(function(){
-  $('#herramientasPaginacion').generarTitulo(1,10,40,function(){});
-  $('#herramientasPaginacion').generarTitulo(1,10,40,function(){});
-  let t = $('#tablaResultadosEvMTM tbody > tr .fecha_eventualidad');
-  $.each(t, function(){
-    console.log($(this));
-    $(this).text(convertirDate($(this).text()));
-  });
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -19,15 +10,6 @@ $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Intervenciones MTM');
   $('#opcIntervencionesMTM').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcIntervencionesMTM').addClass('opcionesSeleccionado');
-
-  $('#mensajeExito').hide();
-  $('#mensajeError').hide();
-
-  $('#B_TipoMovEventualidad').val("");
-  $('#B_fecha_ev').val("");
-  $('#B_CasinoEv').val("");
-
-  $('#agregarMTMEv').click(clickAgregarMTMEv);
 
   $('#evFecha').datetimepicker({
     todayBtn:  1,
@@ -59,8 +41,8 @@ $(document).ready(function(){
    });
 
    $('#btn-buscarEventualidadMTM').trigger('click');
-   $('#detallesMTM').hide();
 });
+
 $('#cantidad').on('keypress',function(e){
     if(e.which == 13) {
       e.preventDefault();
@@ -76,17 +58,12 @@ $('#fechaEv').on('change', function (e) {
 $(document).on('click','#btn-nueva-evmaquina',function(e){
   e.preventDefault();
   $('#tablaMTM tbody tr').remove();
-  $('#tipoMov option').remove();
-
-  //get para obtener los tipos de mov y llenar el select:
   $.get('eventualidadesMTM/tiposMovIntervMTM', function(data){
-    $('#modalNuevaEvMTM .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-    $('#modalNuevaEvMTM').modal('show');
+    $('#tipoMov option').remove();
     data.tipos_movimientos.forEach(tm => {
-      $('#modalNuevaEvMTM #tipoMov').append(
-        $('<option>').val(data.tipos_movimientos[i].id_tipo_movimiento).text(data.tipos_movimientos[i].descripcion)
-      );
+      $('#modalNuevaEvMTM #tipoMov').append($('<option>').val(tm.id_tipo_movimiento).text(tm.descripcion));
     });
+    $('#modalNuevaEvMTM').modal('show');
   });
 
   const casino = 0; //@TODO: Permitir elegir el casino.
@@ -94,7 +71,7 @@ $(document).on('click','#btn-nueva-evmaquina',function(e){
   $('#modalNuevaEvMTM').find('#btn-impr').prop('disabled',true);
 });
 
-function clickAgregarMTMEv(e) {
+$('#agregarMTMEv').click(function(e) {
   const id_maq = $('#inputMTM').attr('data-elemento-seleccionado');
   if (id_maq != 0) {
     $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maq, function(data) {
@@ -102,7 +79,7 @@ function clickAgregarMTMEv(e) {
       $('#inputMTM').setearElementoSeleccionado(0 , "");
     });
   }
-}
+});
 
 function agregarMTMEv(id_maquina, nro_admin) {
   let fila = $('<tr>').attr('id', id_maquina);
@@ -118,30 +95,21 @@ function agregarMTMEv(id_maquina, nro_admin) {
 
 //botón imprimir dentro del modal
 $(document).on('click','#btn-impr',function(e){
-  mtmEv=[];
-  $('#mensajeExito').hide();
-  $('#mensajeCargarMTM').hide();
-
-  const id_tipo_mov = $('#modalNuevaEvMTM').find('#tipoMov').val();
-  //guardo en la variable todas las máq de la tabla
-  let maquinas = $('#tablaMTM tbody > tr');
-
-  //recorro el array de máquinas, recupero su id, lo guardo en la var global mtmEv
-  $.each(maquinas, function(){
-    const maquina={
-      id_maquina : $(this).attr('id')
-    }
-    mtmEv.push(maquina);
-  });
-
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
   });
 
+  let mtmEv = [];
+  $('#tablaMTM tbody > tr').each(function(){
+    const maquina={
+      id_maquina : $(this).attr('id')
+    }
+    mtmEv.push(maquina);
+  });
   const formData = {
-    id_tipo_movimiento: id_tipo_mov,
+    id_tipo_movimiento: $('#modalNuevaEvMTM').find('#tipoMov').val(),
     maquinas: mtmEv,
     sentido: $('#sentidoMov').val()
   };
@@ -152,32 +120,26 @@ $(document).on('click','#btn-impr',function(e){
     data: formData,
     dataType: 'json',
     success: function (data) {
-      $('#mensajeCargarMTM').hide();
-      $('#mensajeExito h3').text('CARGA EXITOSA');
+      mensajeExito({titulo: 'CARGA EXITOSA', mensajes : ['La Intervención fue creada EXITOSAMENTE']});
       $("#modalNuevaEvMTM").modal('hide');
-      $('#mensajeExito h3').text('ÉXITO');
-      $('#mensajeExito p').text('La Intervención fue creada EXITOSAMENTE');
-      $('#mensajeExito').show();
       $('#btn-buscarEventualidadMTM').trigger('click');
-
       //1 si la planilla es generada desde el modal de carga,
       //y va a ser 0 si se genera desde el boton imprimir de la pag ppal
       window.open('eventualidadesMTM/imprimirEventualidadMTM/' + data + '/' + 1,'_blank');
     },
     error: function (data) {
       console.log('Error:',data);
-      var response = JSON.parse(data.responseText);
-      if(typeof response.tipo_movimiento !== 'undefined'
-      || typeof response.maquinas !== 'undefined')
-      {
-        $("#modalNuevaEvMTM").animate({ scrollTop: 0 }, "slow");
-      }
+      var response = data.responseJSON;
+      let err = false;
       if(typeof response.tipo_movimiento !== 'undefined'){
         mostrarErrorValidacion($('#tipomov'),response.tipo_movimiento[0]);
+        err = true;
       }
       if(typeof response.maquinas !== 'undefined'){
-        $('#mensajeCargarMTM').show();
+        mensajeError(['Debe asignar máquinas a la intervención.']);
+        err = true;
       }
+      if(err) $("#modalNuevaEvMTM").animate({ scrollTop: 0 }, "slow");
     }
   });
 });
@@ -190,68 +152,59 @@ $(document).on('click','.borrarMTMCargada',function(e){
 $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#fechaEv').val("");
   $('#guardarEv').prop('disabled', true);
-  $('#modalCargarMaqEv .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-  $('#modalCargarMaqEv').modal('show');
-  $('#mensajeCargarMTMarga').hide();
-  $('#tablaCargarMTM tbody tr').remove();
-  $('#tablaCargarContadores tbody tr').remove();
-  $('#modalCargarMaqEv #myModalLabel').text('CARGAR MTMs')
-  $('#select_tevent').prop('disabled',false);
+  $('#modalCargarMaqEv #detallesMTM').hide();
   $('#fechaEv').prop('disabled',false);
 
   //BORRO LOS ERRORES
-
   ocultarErrorValidacion($('#fiscalizadorEv'));
-  ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
 
   const id_log_mov = $(this).val();
   $('#modalCargarMaqEv #id_mov').val(id_log_mov);
-  $('#modalCargarMaqEv #select_tevent option').remove();
 
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_log_mov, function(data){
     console.log('88',data);
-        var tablaCarga=$('#tablaCargarMTM tbody');
-        //hay máq cargadas
-        data.maquinas.forEach(m => {
-          let fila = $('<tr>');
-          const maq = m.nro_admin;
-          let dibujo = 'fa-upload';
-          if(m.estado.id_estado_relevamiento != 1){
-            dibujo = 'fa-pencil-alt';
-          }
-          fila.append($('<td>')
-              .addClass('col-xs-8')
-              .text(maq)
-          );
-          fila.append($('<td>')
-              .addClass('col-xs-4')
-              .append($('<button>')
-              .append($('<i>')
-              .addClass('fa').addClass('fa-fw').addClass(dibujo))
-              .attr('type','button')
-              .addClass('btn btn-info detalleMTM')
-              .attr('id', m.id_maquina)
-              .attr('data-relevamiento', m.id_relevamiento))
-          );
-          tablaCarga.append(fila);
-        });
+    data.maquinas.forEach(m => {
+      let fila = $('<tr>');
+      const maq = m.nro_admin;
+      let dibujo = 'fa-upload';
+      if(m.estado.id_estado_relevamiento != 1){
+        dibujo = 'fa-pencil-alt';
+      }
+      fila.append($('<td>')
+          .addClass('col-xs-8')
+          .text(maq)
+      );
+      fila.append($('<td>')
+          .addClass('col-xs-4')
+          .append($('<button>')
+          .append($('<i>')
+          .addClass('fa').addClass('fa-fw').addClass(dibujo))
+          .attr('type','button')
+          .addClass('btn btn-info detalleMTM')
+          .attr('id', m.id_maquina)
+          .attr('data-relevamiento', m.id_relevamiento))
+      );
+      $('#tablaCargarMTM tbody').append(fila);
+    });
 
-        $('#inputTipoMov').val(data.tipo_movimiento);
-        $('#inputSentido').val(data.sentido);
+    $('#inputTipoMov').val(data.tipo_movimiento);
+    $('#inputSentido').val(data.sentido);
 
-        //completo el ficalizador de carga con datos que me trae el data
-        if(data.fiscalizador_carga != null){
-          $('#fiscaCargaEv').val(data.fiscalizador_carga.nombre).prop('disabled',true);
-          $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val(data.fiscalizador_carga.id_usuario)
-        }
-        else {
-          $('#fiscaCargaEv').val('');
-        }
-        //genero la lista para seleccionar un fiscalizador en el input correspondiente
-        $('#fiscalizadorEv').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
-        $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
-    })
+    //completo el ficalizador de carga con datos que me trae el data
+    if(data.fiscalizador_carga != null){
+      $('#fiscaCargaEv').val(data.fiscalizador_carga.nombre).prop('disabled',true);
+      $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val(data.fiscalizador_carga.id_usuario)
+    }
+    else {
+      $('#fiscaCargaEv').val('');
+    }
+    //genero la lista para seleccionar un fiscalizador en el input correspondiente
+    $('#fiscalizadorEv').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
+    $('#fiscalizadorEv').setearElementoSeleccionado(0,"");
+
+    $('#modalCargarMaqEv').modal('show');
+  })
 });
 
 //boton que cierra el modal, para que cierre los detalles de las mtm
@@ -269,12 +222,10 @@ $(document).on('click','.detalleMTM',function(){
 
   //HABILITO LOS INPUTS
   $('#fechaEv').prop('disabled',false);
-  $('#select_tevent').prop('disabled',false);
   $('#observacionesToma').prop('disabled',false);
 
   //BORRO LOS ERRORES
   ocultarErrorValidacion($('#fiscalizadorEv'));
-  ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
 
   $('#modalCargarMaqEv #detallesMTM').show();
@@ -291,9 +242,6 @@ $(document).on('click','.detalleMTM',function(){
     if(data.cargador != null) { 
       $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true);
     }
-    if(data.tipo_movimiento!=null){
-      $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento);
-    }
     if(data.fiscalizador!=null){
       $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
     }
@@ -306,38 +254,27 @@ $(document).on('click','.detalleMTM',function(){
 $(document).on('click','#guardarEv',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const id_log_movimiento = $('#modalCargarMaqEv').find('#id_mov').val();
   const id_maq = $('#modalCargarMaqEv').find('#id_maq').val();
-  const id_cargador = $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val();
-  const id_fiscalizador = $('#fiscalizadorEv').obtenerElementoSeleccionado();
-  const id_maquina = $('#modalCargarMaqEv').find('#id_maq').val();
-  const tipo_movimiento = $('#modalCargarMaqEv #select_tevent option:selected').val();
-  const datosToma = obtenerDatosToma();
-  const fecha_sala= $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val();
-  const observaciones= $('#observacionesToma').val();
-  const datosMaquinaToma = obtenerDatosMaquinaToma();
-
-  const formData={
-    id_log_movimiento: id_log_movimiento,
+  const datos = obtenerDatosDivRelevamiento();
+  const formData = {
+    id_log_movimiento: $('#modalCargarMaqEv').find('#id_mov').val(),
     id_maquina: id_maq,
-    id_cargador: id_cargador,
-    id_fiscalizador: id_fiscalizador,
-    id_maquina: id_maquina,
-    contadores: obtenerDatosContadores(),
-    juego: datosToma.juego,
-    apuesta_max: datosToma.apuesta,
-    cant_lineas: datosToma.cant_lineas,
-    porcentaje_devolucion: datosToma.devolucion,
-    denominacion: datosToma.denominacion,
-    cant_creditos: datosToma.creditos,
-    fecha_sala: fecha_sala,
-    tipo_movimiento: tipo_movimiento,
-    observaciones: observaciones,
-    mac: datosMaquinaToma.mac,
-    islaRelevadaEv: datosMaquinaToma.isla,
-    sectorRelevadoEv: datosMaquinaToma.sector,
-    progresivos: obtenerDatosProgresivos() /*movRelProgresivos.blade.php*/
-  }
+    id_cargador: $('#modalCargarMaqEv').find('#id_fiscaliz_carga').val(),
+    id_fiscalizador: $('#fiscalizadorEv').obtenerElementoSeleccionado(),
+    contadores: datos.contadores,
+    juego: datos.juego,
+    apuesta_max: datos.apuesta,
+    cant_lineas: datos.cant_lineas,
+    porcentaje_devolucion: datos.devolucion,
+    denominacion: datos.denominacion,
+    cant_creditos: datos.creditos,
+    fecha_sala: $('#modalCargarMaqEv').find('#fecha_ejecucionEv').val(),
+    observaciones: datos.observaciones,
+    mac: datos.mac,
+    islaRelevadaEv: datos.isla_rel,
+    sectorRelevadoEv: datos.sector,
+    progresivos: datos.progresivos
+  };
 
   $.ajax({
     type: 'POST',
@@ -348,7 +285,6 @@ $(document).on('click','#guardarEv',function(){
       $('#modalCargarMaqEv #detallesMTM').hide();
       $('#modalCargarMaqEv #fechaEv').val(' ');
       $('#modalCargarMaqEv #fiscalizadorEv').val(' ');
-      $('#modalCargarMaqEv #select_tevent').val('');
       mensajeExito({titulo:'ÉXITO DE CARGA'});
       $('#'+id_log_movimiento).find('.btn_borrarEvmtm').remove();
       $('#'+id_log_movimiento).find('.btn_validarEvmtm').show();
@@ -359,7 +295,6 @@ $(document).on('click','#guardarEv',function(){
       $('#modalCargarMaqEv #tablaCargarMTM').find('.detalleMTM').attr('id',data.id_relevamiento);
       //BORRO LOS ERRORES
       ocultarErrorValidacion($('#fiscalizadorEv'));
-      ocultarErrorValidacion($('#select_tevent'));
       ocultarErrorValidacion($('#fechaEv'));
 
       var boton = $('#modalCargarMaqEv')
@@ -385,52 +320,22 @@ $(document).on('click','#guardarEv',function(){
       console.log('ERROR');
       console.log(data);
 
-      var response = JSON.parse(data.responseText);
-
-      if(    typeof response.apuesta_max !== 'undefined'
-      || typeof response.cant_lineas !== 'undefined'
-      || typeof response.cant_creditos !== 'undefined'
-      || typeof response.devolucion !== 'undefined'
-      || typeof response.denominacion!== 'undefined'
-      || typeof response.juego !== 'undefined'
-      || typeof response.id_fiscalizador !== 'undefined'
-      || typeof response.fecha_sala !== 'undefined'
-      || typeof response.tipo_movimiento !== 'undefined'
-      || typeof response.mac !== 'undefined')
-      {
-        $("#modalCargarMaqEv").animate({ scrollTop: 0 }, "slow");
+      const response = data.responseJSON;
+      const errores = { 
+        'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
+        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
+        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
+        'id_fiscalizador' : $('#fiscalizadorEv'),'fecha_sala' : $('#fechaEv')
+      };
+      let err = false;
+      for(const key in errores){
+        if(!isUndef(response[key])){
+          mostrarErrorValidacion(errores[key],parseError(response[key][0]));
+          err = true;
+        }
       }
 
-      if(typeof response.apuesta_max !== 'undefined'){
-        mostrarErrorValidacion($('#apuesta'),response.apuesta_max[0]);
-      }
-      if(typeof response.cant_lineas !== 'undefined'){
-        mostrarErrorValidacion($('#cant_lineas'),response.cant_lineas[0]);
-      }
-      if(typeof response.cant_creditos !== 'undefined'){
-        mostrarErrorValidacion($('#creditos'),response.cant_creditos[0]);
-      }
-      if(typeof response.porcentaje_devolucion !== 'undefined'){
-        mostrarErrorValidacion($('#devolucion'),response.porcentaje_devolucion[0]);
-      }
-      if(typeof response.denominacion !== 'undefined'){
-        mostrarErrorValidacion($('#denominacion'),response.denominacion[0]);
-      }
-      if(typeof response.juego !== 'undefined'){
-        mostrarErrorValidacion($('#juegoEv'),response.juego[0]);
-      }
-      if(typeof response.id_fiscalizador !== 'undefined'){
-        mostrarErrorValidacion($('#fiscalizadorEv'),response.id_fiscalizador[0]);
-      }
-      if(typeof response.fecha_sala !== 'undefined'){
-        mostrarErrorValidacion($('#fechaEv'),response.fecha_sala[0]);
-      }
-      if(typeof response.tipo_movimiento !== 'undefined'){
-        mostrarErrorValidacion($('#select_tevent'),response.tipo_movimiento[0]);
-      }
-      if(typeof response.mac !== 'undefined'){
-        mostrarErrorValidacion($('#macCargar'),err);
-      }
+      if(err) $("#modalCargarMaqEv").animate({ scrollTop: 0 }, "slow");
 
       $('#tablaCargarContadores tbody tr').each(function(index){
         const res = response['contadores.'+ index +'.valor'];
@@ -444,11 +349,6 @@ $(document).on('click','#guardarEv',function(){
 
 //BOTÓN DE VALIDAR EN CADA FILA
 $(document).on('click','.btn_validarEvmtm',function(){
-  //oculto msjs
-  $('#mensajeExito').hide();
-  $('#mensajeErrorVal').hide();
-  $('#mensajeExitoValidacion').hide();
-
   //Modificar los colores del modal
   $('#modalValidacionEventualidadMTM .modal-title').text('VALIDAR MÁQUINAS');
   $('#modalValidacionEventualidadMTM .modal-header').attr('style','background: #4FC3F7');
@@ -529,11 +429,8 @@ $(document).on('click','.verMaquinaEv',function(){
   $('#modalValidacionEventualidadMTM').find('#maquina').val(id_maquina);
   $('#modalValidacionEventualidadMTM').find('#maquina').attr('numadmin',numadmin);
   $('#modalValidacionEventualidadMTM').find('#relevamiento').val(id_relevamiento);
-  $('#mensajeExitoValidacion').hide();
   $('#sectorRelevadoVal').val('');
   $('#islaRelevadaVal').val('');
-
-  // $('#mensajeExitoValidacion').hide();
 
   $('#tablaValidarContadores tbody tr').remove();
   $.get('eventualidadesMTM/obtenerMTMEv/' + id_relevamiento, function(data){
@@ -623,7 +520,7 @@ $(document).on('click', '#enviarValidarEv', function(){
       dataType: 'json',
       success: function (data) {
         if(data.id_estado_relevamiento == 4){
-          $('#mensajeExitoValidacion').show();
+          mensajeExito({mensajes: 'Se valido la intervención.'});
           $('#enviarValidarEv').hide();
           $('#errorValidarEv').hide();
           $('#tablaMaquinasFiscalizacion tbody tr').each(function(){
@@ -642,6 +539,7 @@ $(document).on('click', '#enviarValidarEv', function(){
       },
       error: function (data) {
         console.log('Error:', data);
+        mensajeError(['Error al validar la intervención.']);
       }
     });
 });
@@ -736,11 +634,10 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscarEventualidadMTM').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-
-
 $("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
     $('#btn-buscarEventualidadMTM').trigger('click');
 });
+
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event,controlador,superusuario){
   const estado = event.id_estado_movimiento;
@@ -777,41 +674,38 @@ function generarFilaTabla(event,controlador,superusuario){
   return fila;
 };
 
-//botón de eliminar que esta dentro del modal de cargar en la lista de maquinas, sectores e islas
 $(document).on('click','.btn_borrarEvmtm',function(e){
-  //se abre un modal de advertencia
-  $('#modalEliminarEventualidadMTM').modal('show');
-  eventoAEliminar= $(this);
-});
-
-//Si presiona el botón eliminar dentro del modal de advertencia
-$('#btn-eliminarEventMTM').click(function (e){
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+  const id_log_movimiento = $(this).val();
+  let fila = $(this).parent().parent();
+  modalEliminar(function(){
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+    });
+   
+    const formData = {
+      id_log_movimiento: id_log_movimiento
     }
-  });
-
-  e.preventDefault();
-
-  const formData = {
-    id_log_movimiento: eventoAEliminar.val()
-  }
-
-  $.ajax({
-    type: 'POST',
-    url: 'eventualidadesMTM/eliminarEventualidadMTM',
-    data: formData,
-    dataType: 'json',
-    success: function (data) {
-      console.log('success', data);
-      eventoAEliminar.parent().parent().remove();
-      $('#modalEliminarEventualidadMTM').modal('hide');
-    },
-    error: function (data) {
-      console.log('Error:', data);
-    }
-  });
+  
+    $.ajax({
+      type: 'POST',
+      url: 'eventualidadesMTM/eliminarEventualidadMTM',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        console.log('success', data);
+        fila.remove();
+        mensajeExito({mensajes : ['Se elimino la intervención.']});
+      },
+      error: function (data) {
+        console.log('Error:', data);
+        mensajeError(['No se ha podido eliminar la intervención.']);
+      }
+    });
+  },
+  function(){},
+  "¿Seguro desea eliminar la intervención?")
 });
 
 $(document).on('click','#tablaResultadosEvMTM thead tr th[value]',function(e){

@@ -1,10 +1,4 @@
 $(document).ready(function(){
-  var t= $('#tablaRelevamientosMovimientos tbody > tr .fechaRelMov');
-  $.each(t, function(index, value){
-    console.log($(this));
-    $(this).text(convertirDate($(this).text()));
-  });
-
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -44,10 +38,7 @@ $(document).ready(function(){
     container:$('main section'),
   });
 
-  $('#B_TipoMovimientoRel').val("");
-  $('#busqueda_maquina').val("");
   $('#btn-buscarRelMov').click();
-  $('#herramientasPaginacion').generarTitulo(1,10,10,clickIndice);
 });
 
 $('#fechaRel').on('change', function (e) {
@@ -62,6 +53,13 @@ $('#fechaRelMov').on('change', function (e) {
 $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
   const id_fiscalizacion= $(this).val();
   window.open('movimientos/generarPlanillasRelevamientoMovimiento/' + id_fiscalizacion,'_blank');
+});
+
+$(document).on('click','.btn-cargarRelMov',function(e){
+  mostrarFiscalizacion($(this).val(),false);
+});
+$(document).on('click','.btn-cargarT2RelMov',function(e){
+  mostrarFiscalizacion($(this).val(),true);
 });
 
 function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
@@ -111,14 +109,6 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
   });
 }
 
-$(document).on('click','.btn-cargarRelMov',function(e){
-  mostrarFiscalizacion($(this).val(),false);
-});
-
-$(document).on('click','.btn-cargarT2RelMov',function(e){
-  mostrarFiscalizacion($(this).val(),true);
-});
-
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
 $(document).on('click','.cargarMaq',function(){
   const id_maquina= $(this).val();
@@ -148,38 +138,28 @@ $(document).on('click','.cargarMaq',function(){
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const y = $('#fiscaToma').obtenerElementoSeleccionado();
-  $('#modalCargarRelMov').find('#fiscalizador').val(y);
-
-  const f = $('#modalCargarRelMov').find('#id_fiscalizac').val();
-  const cargador = $('#modalCargarRelMov').find('#fiscaCarga').attr('data-id');
-  const id_fiscalizador = $('#modalCargarRelMov').find('#fiscalizador').val();
-  const fecha = $('#modalCargarRelMov').find('#fecha_ejecucionRel').val();
   const maq = $('#modalCargarRelMov').find('#maquina').val();
-  const datosToma = obtenerDatosToma();
-  const obs = $('#modalCargarRelMov').find('#observacionesToma').val();
-  const datosMaquinaToma = obtenerDatosMaquinaToma();
-
-  const formData={
-    id_fiscalizacion_movimiento: f,
-    id_cargador: cargador,
-    id_fiscalizador: id_fiscalizador,
-    estado: 2,
-    id_maquina: maq,
-    contadores: obtenerDatosContadores(),
-    juego: datosToma.juego,
-    apuesta_max: datosToma.apuesta,
-    cant_lineas: datosToma.lineas,
-    porcentaje_devolucion: datosToma.devolucion,
-    denominacion: datosToma.denominacion,
-    cant_creditos: datosToma.creditos,
-    fecha_sala: fecha,
-    observaciones: obs,
-    mac: datosMaquinaToma.mac,
-    isla_relevada:  datosMaquinaToma.isla,
-    sectorRelevadoCargar: datosMaquinaToma.sector,
-    es_cargaT2: $('#guardarRel').attr('es-segunda-toma'),
-    progresivos: obtenerDatosProgresivos()
+  const datos = obtenerDatosDivRelevamiento();
+  const formData = {
+    id_fiscalizacion_movimiento: $('#modalCargarRelMov').find('#id_fiscalizac').val(),
+    id_cargador:                 $('#modalCargarRelMov').find('#fiscaCarga').attr('data-id'),
+    id_fiscalizador:             $('#fiscaToma').obtenerElementoSeleccionado(),
+    estado:                      2,
+    id_maquina:                  maq,
+    contadores:                  datos.contadores,
+    juego:                       datos.juego,
+    apuesta_max:                 datos.apuesta,
+    cant_lineas:                 datos.lineas,
+    porcentaje_devolucion:       datos.devolucion,
+    denominacion:                datos.denominacion,
+    cant_creditos:               datos.creditos,
+    fecha_sala:                  $('#modalCargarRelMov').find('#fecha_ejecucionRel').val(),
+    observaciones:               datos.observaciones,
+    mac:                         datos.mac,
+    isla_relevada:               datos.isla_rel,
+    sectorRelevadoCargar:        datos.sector_rel,
+    es_cargaT2:                  $('#guardarRel').attr('es-segunda-toma'),
+    progresivos:                 datos.progresivos
   }
 
   $.ajax({
@@ -206,9 +186,9 @@ $(document).on('click','#guardarRel',function(){
       const response = data.responseJSON;
       const errores = { 
         'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
-        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'),'id_fiscalizador' : $('#fiscaToma'),
-        'fecha_sala' : $('#fechaRel'), 'denominacion' : $('#denominacion'), 'sectorRelevadoCargar' : $('#sectorRelevadoCargar'),
-        'isla_relevada' :  $('#islaRelevadaCargar')
+        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'),'denominacion' : $('#denominacion'),
+        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'),'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
+        'id_fiscalizador' : $('#fiscaToma'), 'fecha_sala' : $('#fechaRel')
       };
       let err = false;
       for(const key in errores){

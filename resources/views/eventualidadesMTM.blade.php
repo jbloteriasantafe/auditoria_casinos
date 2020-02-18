@@ -208,7 +208,7 @@
 <div class="modal fade" id="modalNuevaEvMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 70%">
     <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color:#D50000">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title modalVerMas" id="myModalLabel">CARGA DE MÁQUINAS PARA INTERVENCIÓN MTM</h3>
@@ -263,52 +263,42 @@
 
         </div> <!-- colapsado -->
       </div> <!-- modal body -->
-
       <div class="modal-footer">
         <button id="btn-impr" type="button" class="btn btn-default" value="" >IMPRIMIR</button>
         <button id="boton-cancelar-evMTM" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-
-        <div id="mensajeCargarMTM" hidden>
-          <br>
-          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-          <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Debe seleccionar las máquinas que pertenecen a esta intervención</span>
-        </div> <!-- mensaje -->
-
       </div> <!-- modal footer -->
-
     </div> <!-- modal content -->
   </div> <!-- modal dialog -->
 </div> <!-- modal fade -->
 
 
 <!-- *****************Modal Eliminar ****************************************** -->
-<div class="modal fade" id="modalEliminarEventualidadMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header" style="background-color:#ef3e42;color:white;">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-            <h3>ADVERTENCIA</h3>
+<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header" style="background-color:#ef3e42;color:white;">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3>ADVERTENCIA</h3>
+              </div>
+              <div  id="colapsado" class="collapse in">
+              <div class="modal-body">
+                <form id="frmEliminar" name="frmJuego" class="form-horizontal" novalidate="">
+                    <div class="form-group error ">
+                        <div id="mensajeEliminar" class="col-xs-12">
+                          <strong>¿Seguro desea eliminar la INTERVENCIÓN MTM?</strong>
+                        </div>
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-dangerEliminar confirmar" id="btn-eliminarModal" value="0">ELIMINAR</button>
+                <button type="button" class="btn btn-default cancelar" data-dismiss="modal">CANCELAR</button>
+              </div>
+            </div>
           </div>
-
-          <div class="modal-body franjaRojaModal">
-            <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                <div class="form-group error ">
-                  <div class="col-xs-12">
-                      <strong id="titulo-modal-eliminar">¿Seguro desea eliminar la INTERVENCIÓN MTM?</strong>
-                  </div>
-                </div>
-            </form>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarEventMTM" value="0">ELIMINAR</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-          </div>
-      </div>
-    </div>
-</div>
-
+        </div>
+  </div>
 
 <!--********************* Modal para CARGAR MTM*****************************-->
 
@@ -615,21 +605,7 @@
             <input id="maquina" type="text" name="" value="" hidden>
               <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >CANCELAR</button>
               <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value="" > VISAR </button>
-
-              <div id="mensajeErrorVal" hidden>
-                  <br>
-                  <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-                  <br>
-                  <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;"></span>
-              </div> <!-- mensaje -->
-              <div id="mensajeExitoValidacion" hidden>
-                  <br>
-                  <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50 ;">EXITO</span>
-                  <br>
-                  <span  style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La acción se ha realizado correctamente</span>
-              </div> <!-- mensaje -->
             </div>
-
            </div>
       </div>
     </div>

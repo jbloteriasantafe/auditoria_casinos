@@ -133,110 +133,54 @@
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
-function obtenerDatosMaquinaToma(){
-    let mac = $('#macCargar').val();
-    let islaRelevadaCargar = $('#islaRelevadaCargar').val();
-    let sectorRelevadoCargar = $('#sectorRelevadoCargar').val();
-    return {mac:mac,isla: islaRelevadaCargar,sector:sectorRelevadoCargar};
-}
-
-//CONTADORES
-function agregarContadores(maquina,toma){
-    for (let i = 1; i < 7; i++){
-        let fila = $('<tr>');
-        let nombre_cont = maquina["cont" + i];
-        if(nombre_cont === null) continue;
-
-        let val_cont = null;
-        if(toma != null){
-            val_cont = toma["vcont" + i];
-        }
-
-        fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
-        fila.attr('data-contador',nombre_cont);
-        fila.append($('<td>').addClass('col-xs-6')
-        .append($('<input>').addClass('valorModif form-control'))
-        );
-        if(val_cont != null){
-            fila.find('input').val(val_cont);
-        }
-
-        $('#tablaCargarContadores tbody').append(fila);
-    }
-}
-function obtenerDatosContadores(){
-    let tabla = $('#tablaCargarContadores tbody > tr');
-    let contadores=[];
-    $.each(tabla, function(index, value){
+function obtenerDatosDivRelevamiento(){
+    let contadores= [];
+    $('#tablaCargarContadores tbody tr').each(function(){
         const cont={
             nombre: $(this).attr('data-contador'),
             valor: $(this).find('.valorModif').val()
         }
         contadores.push(cont);
     });
-    return contadores;
-}
 
-// TOMA
+    let progresivos = [];
+    $('#tomaProgresivo tbody tr').each(function(){
+        let fila = $(this);
+        let obj = {
+            id_pozo : fila.find('.nombreProgresivo').attr('data-id-pozo'),
+            niveles : [],
+            id_tipo_causa_no_toma_progresivo: fila.find('.causaNoToma').val()
+        };
+        $(this).find('input.habilitado').each(function(){
+            obj.niveles.push({
+                id_nivel_progresivo: $(this).attr('data-id-nivel'),
+                val : $(this).val()
+            });
+        });
+        progresivos.push(obj);
+    });
 
-function obtenerDatosToma(){
     return {
+        nro_admin: $('#nro_adminMov').val(),
+        isla_maq: $('#nro_islaMov').val(),
+        nro_serie: $('#nro_serieMov').val(),
+        marca: $('#marcaMov').val(),
+        modelo: $('#modeloMov').val(),
+        //Valores relevados
+        mac: $('#macCargar').val(),
+        isla_rel: $('#islaRelevadaCargar').val(),
+        sector_rel: $('#sectorRelevadoCargar').val(),
+        contadores: contadores,
         juego: $('#juegoRel').val(),
         apuesta: $('#apuesta').val(),
         lineas: $('#cant_lineas').val(),
         devolucion: $('#devolucion').val(),
         denominacion: $('#denominacion').val(), 
-        creditos: $('#creditos').val()
+        creditos: $('#creditos').val(),
+        progresivos: progresivos,
+        observaciones: $('#observacionesToma').val()
     };
 }
-
-// PROGRESIVOS
-
-function agregarProgresivos(progresivos){
-  if(progresivos === null || progresivos.length == 0){
-    $('#sinProgresivos').show();
-    $('#tablaProgresivos').hide();
-    return;
-  }
-  $('#sinProgresivos').hide();
-  $('#tablaProgresivos').show();
-  progresivos.forEach( prog => {
-    let fila = $('#filaEjemploProgresivo').clone().removeAttr('id');
-    let nombre = prog.nombre;
-    if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
-    if(prog.es_individual) nombre = 'INDIVIDUAL';
-    fila.find('.nombreProgresivo').text(nombre).attr('title',nombre).attr('data-id-pozo',prog.pozo.id_pozo);
-    prog.pozo.niveles.forEach( niv => {
-      let nivel = fila.find('.nivel'+ niv.nro_nivel);
-      nivel.attr('placeholder',niv.nombre_nivel).addClass('habilitado');
-      nivel.attr('data-id-nivel',niv.id_nivel_progresivo)
-    });
-    $('#tomaProgresivo tbody').append(fila);
-    $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
-  });
-}
-
-function obtenerDatosProgresivos(){
-  progresivos = [];
-  $('#tomaProgresivo tbody tr').each(function(){
-    let fila = $(this);
-    let obj = {
-      id_pozo : fila.find('.nombreProgresivo').attr('data-id-pozo'),
-      niveles : [],
-      id_tipo_causa_no_toma_progresivo: fila.find('.causaNoToma').val()
-    };
-    $(this).find('input.habilitado').each(function(){
-      obj.niveles.push({
-        id_nivel_progresivo: $(this).attr('data-id-nivel'),
-        val : $(this).val()
-      });
-    });
-
-    progresivos.push(obj);
-  });
-  return progresivos;
-}
-
 function limpiarDivRelevamiento(){
     ocultarErrorValidacion($('#juegoRel'));
     ocultarErrorValidacion($('#apuesta'));
@@ -263,7 +207,52 @@ function limpiarDivRelevamiento(){
     $('#observacionesToma').val('');
     $('#tomaProgresivo tbody').empty();
 }
+function agregarContadores(maquina,toma){
+    for (let i = 1; i < 7; i++){
+        let fila = $('<tr>');
+        let nombre_cont = maquina["cont" + i];
+        if(nombre_cont === null) continue;
 
+        let val_cont = null;
+        if(toma != null){
+            val_cont = toma["vcont" + i];
+        }
+
+        fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
+        fila.attr('data-contador',nombre_cont);
+        fila.append($('<td>').addClass('col-xs-6')
+        .append($('<input>').addClass('valorModif form-control'))
+        );
+        if(val_cont != null){
+            fila.find('input').val(val_cont);
+        }
+
+        $('#tablaCargarContadores tbody').append(fila);
+    }
+}
+function agregarProgresivos(progresivos){
+  if(progresivos === null || progresivos.length == 0){
+    $('#sinProgresivos').show();
+    $('#tablaProgresivos').hide();
+    return;
+  }
+  $('#sinProgresivos').hide();
+  $('#tablaProgresivos').show();
+  progresivos.forEach( prog => {
+    let fila = $('#filaEjemploProgresivo').clone().removeAttr('id');
+    let nombre = prog.nombre;
+    if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
+    if(prog.es_individual) nombre = 'INDIVIDUAL';
+    fila.find('.nombreProgresivo').text(nombre).attr('title',nombre).attr('data-id-pozo',prog.pozo.id_pozo);
+    prog.pozo.niveles.forEach( niv => {
+      let nivel = fila.find('.nivel'+ niv.nro_nivel);
+      nivel.attr('placeholder',niv.nombre_nivel).addClass('habilitado');
+      nivel.attr('data-id-nivel',niv.id_nivel_progresivo)
+    });
+    $('#tomaProgresivo tbody').append(fila);
+    $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
+  });
+}
 function setearDivRelevamiento(data){
     limpiarDivRelevamiento();
     //siempre vienen estos datos
