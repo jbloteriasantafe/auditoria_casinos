@@ -84,9 +84,9 @@
                 <input id="creditos" type="text" value="" class="form-control">
             </div>
         </div>
+        <h6>PROGRESIVOS</h6>
         <div class="row">
             <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;max-height: 250px;">
-                <h6>PROGRESIVOS</h6>
                 <h5 id="sinProgresivos" hidden>La maquina no posee progresivos asignados</h5>
                 <table class="table table-fixed" id="tablaProgresivos">
                     <thead>
@@ -121,9 +121,9 @@
                 </td>
             </tr>
         </table>
+        <h6>OBSERVACIONES</h6>
         <div class="row">
             <div class="col-lg-12">
-                <h6>OBSERVACIONES</h6>
                 <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
             </div>
         </div> <!-- FIN ULTIMO row -->
@@ -133,33 +133,6 @@
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
-//DATOS DE LA MAQUINA
-
-function limpiarDatosMaquina(){
-    $('#macCargar').val("");
-    $('#islaRelevadaCargar').val("");
-    $('#sectorRelevadoCargar').val("");
-}
-function ocultarErroresDatosMaquina(){
-    ocultarErrorValidacion($('#macCargar'));
-}
-function mostrarErrorDatosMaquinaMac(err){
-    mostrarErrorValidacion($('#macCargar'),err);
-}
-function setearDatosMaquina(maquina){
-    $('#nro_islaMov').val(maquina.nro_isla);
-    $('#nro_adminMov').val(maquina.nro_admin);
-    $('#nro_serieMov').val(limpiarNullUndef(maquina.nro_serie,''));
-    $('#marcaMov').val(maquina.marca);
-    $('#modeloMov').val(limpiarNullUndef(maquina.modelo,''));
-}
-function setearDatosMaquinaToma(toma){
-    if(toma != null){
-        $('#macCargar').val(toma.mac);
-        $('#sectorRelevadoCargar').val(toma.descripcion_sector_relevado);
-        $('#islaRelevadaCargar').val(toma.nro_isla_relevada);
-    }
-}
 function obtenerDatosMaquinaToma(){
     let mac = $('#macCargar').val();
     let islaRelevadaCargar = $('#islaRelevadaCargar').val();
@@ -168,9 +141,7 @@ function obtenerDatosMaquinaToma(){
 }
 
 //CONTADORES
-
 function agregarContadores(maquina,toma){
-    $('#tablaCargarContadores tbody').empty();
     for (let i = 1; i < 7; i++){
         let fila = $('<tr>');
         let nombre_cont = maquina["cont" + i];
@@ -208,38 +179,6 @@ function obtenerDatosContadores(){
 
 // TOMA
 
-function agregarJuegosToma(nombre_juego,juegos){
-    if(nombre_juego==null){
-        $('#juegoRel')
-        .append($('<option>')
-            .val(0)
-            .text('Seleccione')
-        );
-        juegos.forEach(j => {
-            $('#juegoRel').append($('<option>')
-                .val(j.id_juego)
-                .text(j.nombre_juego)
-            );
-        });
-    }
-    else{
-        $('#juegoRel')
-        .append($('<option>')
-        .val(juegos[0].id_juego)
-        .text(nombre_juego));
-    }
-}
-function setearDatosToma(toma){
-    if(toma != null){
-        $('#juegoRel option:selected').val(toma.juego);
-        $('#apuesta').val(toma.apuesta_max);
-        $('#cant_lineas').val(toma.cant_lineas);
-        $('#devolucion').val(toma.porcentaje_devolucion);
-        $('#denominacion').val(toma.denominacion);
-        $('#creditos').val(toma.cant_creditos);
-        $('#observacionesToma').val(toma.observaciones);
-    }
-}
 function obtenerDatosToma(){
     return {
         juego: $('#juegoRel').val(),
@@ -250,29 +189,10 @@ function obtenerDatosToma(){
         creditos: $('#creditos').val()
     };
 }
-function limpiarDatosToma(){
-    ocultarErrorValidacion($('#juegoRel'));
-    ocultarErrorValidacion($('#apuesta'));
-    ocultarErrorValidacion($('#cant_lineas'));
-    ocultarErrorValidacion($('#creditos'));
-    ocultarErrorValidacion($('#denominacion'));
-    ocultarErrorValidacion($('#devolucion'));
-    $('#juegoRel option').remove();
-}
-function habilitarDatosToma(hab){
-  const not = !hab;  
-  $('#apuesta').prop('disabled',not);
-  $('#devolucion').prop('disabled',not);
-  $('#denominacion').prop('disabled',not);
-  $('#creditos').prop('disabled',not);
-  $('#cant_lineas').prop('disabled',not);
-  $('#juegoRel').prop('disabled',not);
-}
 
 // PROGRESIVOS
 
 function agregarProgresivos(progresivos){
-  $('#tomaProgresivo tbody').empty();
   if(progresivos === null || progresivos.length == 0){
     $('#sinProgresivos').show();
     $('#tablaProgresivos').hide();
@@ -315,5 +235,61 @@ function obtenerDatosProgresivos(){
     progresivos.push(obj);
   });
   return progresivos;
+}
+
+function limpiarDivRelevamiento(){
+    ocultarErrorValidacion($('#juegoRel'));
+    ocultarErrorValidacion($('#apuesta'));
+    ocultarErrorValidacion($('#cant_lineas'));
+    ocultarErrorValidacion($('#creditos'));
+    ocultarErrorValidacion($('#denominacion'));
+    ocultarErrorValidacion($('#devolucion'));
+    $('#nro_islaMov').val('');
+    $('#nro_adminMov').val('');
+    $('#nro_serieMov').val('');
+    $('#marcaMov').val('');
+    $('#modeloMov').val('');
+    $('#tablaCargarContadores tbody').empty();
+    $('#juegoRel').empty();
+    $('#apuesta').val('');
+    $('#cant_lineas').val('');
+    $('#devolucion').val('');
+    $('#denominacion').val('');
+    $('#creditos').val('');
+    $('#observacionesToma').val('');
+    $('#macCargar').val('');
+    $('#sectorRelevadoCargar').val('');
+    $('#islaRelevadaCargar').val('');
+    $('#observacionesToma').val('');
+    $('#tomaProgresivo tbody').empty();
+}
+
+function setearDivRelevamiento(data){
+    limpiarDivRelevamiento();
+    //siempre vienen estos datos
+    $('#nro_islaMov').val(data.maquina.nro_isla);
+    $('#nro_adminMov').val(data.maquina.nro_admin);
+    $('#nro_serieMov').val(limpiarNullUndef(data.maquina.nro_serie,''));
+    $('#marcaMov').val(data.maquina.marca);
+    $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
+    agregarContadores(data.maquina,data.toma);
+    $('#juegoRel').append($('<option>').val(0).text('Seleccione'));
+    data.juegos.forEach(j => {
+        $('#juegoRel').append($('<option>').val(j.id_juego).text(j.nombre_juego));
+    });
+    if(data.toma != null){
+        $('#juegoRel').val(data.toma.juego);
+        $('#apuesta').val(data.toma.apuesta_max);
+        $('#cant_lineas').val(data.toma.cant_lineas);
+        $('#devolucion').val(data.toma.porcentaje_devolucion);
+        $('#denominacion').val(data.toma.denominacion);
+        $('#creditos').val(data.toma.cant_creditos);
+        $('#observacionesToma').val(data.toma.observaciones);
+        $('#macCargar').val(data.toma.mac);
+        $('#sectorRelevadoCargar').val(data.toma.descripcion_sector_relevado);
+        $('#islaRelevadaCargar').val(data.toma.nro_isla_relevada);
+        $('#observacionesToma').val(data.toma.observaciones);
+    }
+    agregarProgresivos(data.progresivos);
 }
 </script>

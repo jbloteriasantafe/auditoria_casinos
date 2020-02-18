@@ -172,10 +172,10 @@ $cas = $usuario['usuario']->casinos;
 <div class="modal fade" id="modalCargarRelMov" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 90%">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" style="background: #4FC3F7">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title modalVerMas" id="myModalLabel">Cargar Relevamiento</h3>
+        <h3 class="modal-title modalVerMas" id="myModalLabel">CARGAR RELEVAMIENTOS</h3>
       </div> <!-- modal header -->
 
       <div  id="colapsado" class="collapse in">
@@ -244,13 +244,6 @@ $cas = $usuario['usuario']->casinos;
             <br>
             <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Los datos se han guardado correctamente</span>
           </div> <!-- mensaje -->
-          <div id="mensajeErrorCarga" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No se han cargado todos los contadores.</span>
-          </div> <!-- mensaje -->
-
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
     </div> <!-- modal content -->

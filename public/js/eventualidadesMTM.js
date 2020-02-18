@@ -59,6 +59,7 @@ $(document).ready(function(){
    });
 
    $('#btn-buscarEventualidadMTM').trigger('click');
+   $('#detallesMTM').hide();
 });
 $('#cantidad').on('keypress',function(e){
     if(e.which == 13) {
@@ -200,11 +201,9 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
 
   //BORRO LOS ERRORES
 
-  limpiarDatosToma();
   ocultarErrorValidacion($('#fiscalizadorEv'));
   ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
-  ocultarErroresDatosMaquina();
 
   const id_log_mov = $(this).val();
   $('#modalCargarMaqEv #id_mov').val(id_log_mov);
@@ -264,7 +263,6 @@ $('#btn-closeCargar').click(function(e){
 //presiona el ojo de una máquina para cargar los detalles
 $(document).on('click','.detalleMTM',function(){
   $('#fechaEv').val("");
-  limpiarDatosMaquina();
   $('#guardarEv').prop('disabled', true);
   $('#modalCargarMaqEv #form1').trigger("reset");
   $('#tablaCargarContadores tbody tr').remove();
@@ -273,13 +271,11 @@ $(document).on('click','.detalleMTM',function(){
   $('#fechaEv').prop('disabled',false);
   $('#select_tevent').prop('disabled',false);
   $('#observacionesToma').prop('disabled',false);
-  habilitarDatosToma(true);
 
   //BORRO LOS ERRORES
   ocultarErrorValidacion($('#fiscalizadorEv'));
   ocultarErrorValidacion($('#select_tevent'));
   ocultarErrorValidacion($('#fechaEv'));
-  ocultarErroresDatosMaquina();
 
   $('#modalCargarMaqEv #detallesMTM').show();
   const id_maq = $(this).attr('id');
@@ -289,46 +285,22 @@ $(document).on('click','.detalleMTM',function(){
 
   const id_rel = $(this).attr('data-relevamiento');
   $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
-    cargarDatos(data);
+    if(data.fecha != null){ 
+      $('#fechaEv').val(data.fecha);
+    }
+    if(data.cargador != null) { 
+      $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true);
+    }
+    if(data.tipo_movimiento!=null){
+      $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento);
+    }
+    if(data.fiscalizador!=null){
+      $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+    }
+    $('#guardarEv').prop('disabled', false);
+    setearDivRelevamiento(data);
   })
 });
-
-
-//funcion para cargar los datos de la maquina, donde c indica si ya viene alguna máq cargada o no(false)
-function cargarDatos (data){
-  limpiarDatosToma();
-  //siempre vienen estos datos
-  setearDatosMaquina(data.maquina);
-  agregarContadores(data.maquina,data.toma);
-  agregarJuegosToma(null,data.juegos);
-
-  if(data.fecha != null){ 
-    $('#fechaEv').val(data.fecha);
-  }
-  if(data.cargador != null) { 
-    $('#fiscaCargaEv').val(data.cargador.nombre).prop('disabled',true);
-  }
-
-  setearDatosToma(data.toma);
-  setearDatosMaquinaToma(data.toma);
-
-  if(data.toma != null) {
-    $('#observacionesToma').val(data.toma.observaciones);
-  }
-
-  $('#nro_adminMov').prop('disabled',true);
-
-  if(data.tipo_movimiento!=null){
-    $('#select_tevent').val(data.tipo_movimiento.id_tipo_movimiento);
-  }
-
-  if(data.fiscalizador!=null){
-    $('#fiscalizadorEv').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
-  }
-
-  agregarProgresivos(data.progresivos);
-  $('#guardarEv').prop('disabled', false);
-};
 
 //BOTÓN GUARDAR dentro del modal cargar eventualidad
 $(document).on('click','#guardarEv',function(){
@@ -377,7 +349,6 @@ $(document).on('click','#guardarEv',function(){
       $('#modalCargarMaqEv #fechaEv').val(' ');
       $('#modalCargarMaqEv #fiscalizadorEv').val(' ');
       $('#modalCargarMaqEv #select_tevent').val('');
-      limpiarDatosMaquina();
       mensajeExito({titulo:'ÉXITO DE CARGA'});
       $('#'+id_log_movimiento).find('.btn_borrarEvmtm').remove();
       $('#'+id_log_movimiento).find('.btn_validarEvmtm').show();
@@ -387,11 +358,9 @@ $(document).on('click','#guardarEv',function(){
 
       $('#modalCargarMaqEv #tablaCargarMTM').find('.detalleMTM').attr('id',data.id_relevamiento);
       //BORRO LOS ERRORES
-      limpiarDatosToma();
       ocultarErrorValidacion($('#fiscalizadorEv'));
       ocultarErrorValidacion($('#select_tevent'));
       ocultarErrorValidacion($('#fechaEv'));
-      ocultarErroresDatosMaquina();
 
       var boton = $('#modalCargarMaqEv')
       .find('.detalleMTM[id='+id_maq+']')[0];
@@ -460,7 +429,7 @@ $(document).on('click','#guardarEv',function(){
         mostrarErrorValidacion($('#select_tevent'),response.tipo_movimiento[0]);
       }
       if(typeof response.mac !== 'undefined'){
-        mostrarErrorDatosMaquinaMac(response.mac[0]);
+        mostrarErrorValidacion($('#macCargar'),err);
       }
 
       $('#tablaCargarContadores tbody tr').each(function(index){
@@ -491,7 +460,6 @@ $(document).on('click','.btn_validarEvmtm',function(){
   $('#toma2').hide();
   $('.validarEv').prop('disabled', true);
   $('.errorEv').prop('disabled',true);
-  $('#observacionesToma').hide();
   $('#observacionesAdmin').val('');
   //oculto botones de error y validacion porque voy a visar de a una
   $('#enviarValidarEv').hide();
@@ -589,7 +557,7 @@ $(document).on('click','.verMaquinaEv',function(){
     for (let i = 1; i < 7; i++) {
       let fila = $('<tr>');
       const p = data.maquina["cont" + i];
-      const v = data.toma["vcont" + i];
+      let v = data.toma["vcont" + i];
       if(v == null){
         v="-"
       }

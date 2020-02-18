@@ -1,4 +1,3 @@
-var es_cargaT2RelMov=0;
 $(document).ready(function(){
   var t= $('#tablaRelevamientosMovimientos tbody > tr .fechaRelMov');
   $.each(t, function(index, value){
@@ -61,36 +60,28 @@ $('#fechaRelMov').on('change', function (e) {
 
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
 $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
-  es_cargaT2RelMov=0;
-  e.preventDefault();
   const id_fiscalizacion= $(this).val();
   window.open('movimientos/generarPlanillasRelevamientoMovimiento/' + id_fiscalizacion,'_blank');
 });
 
-$(document).on('click','.btn-cargarRelMov',function(e){
-  es_cargaT2RelMov=0;
-  e.preventDefault();
-
-  const id_fiscalizacion = $(this).val();
-
-  $('#tablaCargarContadores tbody tr').remove();
-  $('#tablaMaquinasFiscalizacion tbody tr').remove();
-  $('.modal-title').text('CARGAR RELEVAMIENTOS');
-  $('.modal-header').attr('style','background: #4FC3F7');
-  $('#form1').trigger("reset");
+function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
+  const estado_listo = es_segunda_toma? 7 : 3;
   $('#fechaRel').val('');
-  limpiarDatosToma();
-  $('#guardarRel').prop('disabled', true);
+  $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
   $('#modalCargarRelMov #detallesMTM').hide();
-  $('#mensajeExitoCarga').hide();
-  $('#mensajeErrorCarga').hide();
-  $('#modalCargarRelMov').modal('show');
 
   $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
     $('#modalCargarRelMov').find('#casinoId').val(data.casino);
     $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
     $('#fiscaCarga').val(data.cargador.nombre);
     $('#fiscaCarga').prop('readonly',true);
+    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
+    $('#fiscaToma').setearElementoSeleccionado(0,"");
+    if(data.usuario_fiscalizador){
+      $('#fiscaToma').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
+    }
+
+    $('#tablaMaquinasFiscalizacion tbody').empty();
     data.relevamientos.forEach(r => {
       let fila = $('<tr>');
       fila.append($('<td>')
@@ -112,123 +103,49 @@ $(document).on('click','.btn-cargarRelMov',function(e){
         .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
           .attr('value', r.id_maquina))
       );
-      fila.find('.listo').toggle(r.id_estado_relevamiento == 3);
+      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
       $('#tablaMaquinasFiscalizacion tbody').append(fila);
     });
 
-    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
-    $('#fiscaToma').setearElementoSeleccionado(0,"");
-    if(data.usuario_fiscalizador){
-      $('#fiscaToma').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
-    }
-  })
+    $('#modalCargarRelMov').modal('show');
+  });
+}
+
+$(document).on('click','.btn-cargarRelMov',function(e){
+  mostrarFiscalizacion($(this).val(),false);
 });
 
-
-//cargar toma2
 $(document).on('click','.btn-cargarT2RelMov',function(e){
-  es_cargaT2RelMov=1;
-  e.preventDefault();
-
-  const id_fiscalizacion = $(this).val();
-
-  $('#tablaCargarContadores tbody tr').remove();
-  $('#tablaMaquinasFiscalizacion tbody tr').remove();
-  $('.modal-title').text('CARGAR RELEVAMIENTOS');
-  $('.modal-header').attr('style','background: #4FC3F7');
-  $('#form1').trigger("reset");
-  $('#fechaRel').val('');
-  $('#guardarRel').prop('disabled', true);
-  $('#modalCargarRelMov #detallesMTM').hide();
-  $('#mensajeExitoCarga').hide();
-  $('#mensajeErrorCarga').hide();
-  $('#modalCargarRelMov').modal('show');
-
-  $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
-    $('#modalCargarRelMov').find('#casinoId').val(data.casino);
-    $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
-    $('#fiscaCarga').val(data.cargador.nombre);
-    $('#fiscaCarga').prop('readonly',true);
-    data.relevamientos.forEach(r => {
-      let fila = $('<tr>');
-      fila.append($('<td>')
-        .addClass('col-xs-5')
-        .text(r.nro_admin)
-      );
-      fila.append($('<td>')
-        .addClass('col-xs-3')
-        .append($('<button>')
-          .append($('<i>')
-            .addClass('fa').addClass('fa-fw').addClass('fa-upload')
-          ).attr('type','button')
-          .addClass('btn btn-info cargarMaq')
-          .attr('value', r.id_maquina)
-          .attr('data-fisc', id_fiscalizacion))
-      );
-      fila.append($('<td>')
-        .addClass('col-xs-3')
-        .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
-          .attr('value', r.id_maquina))
-      );
-
-      fila.find('.listo').toggle(r.id_estado_relevamiento == 7);
-      $('#tablaMaquinasFiscalizacion tbody').append(fila);
-    });
-
-    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
-    $('#fiscaToma').setearElementoSeleccionado(0,"");
-    if(data.usuario_fiscalizador){
-      $('#fiscaToma').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
-    }
-  })
-
+  mostrarFiscalizacion($(this).val(),true);
 });
 
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
 $(document).on('click','.cargarMaq',function(){
-  $('#mensajeExitoCarga').hide();
   const id_maquina= $(this).val();
   const id_fiscalizacion= $(this).attr('data-fisc');
   $('#modalCargarRelMov').find('#id_fiscalizac').val(id_fiscalizacion);
   $('#modalCargarRelMov').find('#maquina').val(id_maquina);
 
   $.get('movimientos/obtenerMTMFiscalizacion/' + id_maquina + '/' + id_fiscalizacion, function(data){
-    cargarRelMov(data);
+    if(data.fecha != null){
+      $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
+    }
+    else{
+      const fecha = $('#fechaRel').val();
+      $('#modalCargarRelMov').find('#fechaRel').val(fecha);
+    }
+    if(data.fiscalizador != null){
+      $('#fiscaToma').val(data.fiscalizador.nombre);
+    }
+    $('#guardarRel').prop('disabled', false);
+    
+    setearDivRelevamiento(data);
     $('#modalCargarRelMov #detallesMTM').show();
   });
 });
 
-//COMPLETA INPUTS
-function cargarRelMov(data){
-  $('#mensajeExitoCarga').hide();
-  $('#form1').trigger("reset");
-  $('#tablaCargarContadores tbody tr').remove();
-
-  if(data.fecha != null){
-    $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
-  }
-  else{
-    const fecha = $('#fechaRel').val();
-    $('#modalCargarRelMov').find('#fechaRel').val(fecha);
-  }
-
-  if(data.fiscalizador != null){
-    $('#fiscaToma').val(data.fiscalizador.nombre);
-  }
-
-  setearDatosMaquina(data.maquina);
-  agregarContadores(data.maquina,data.toma);
-  limpiarDatosToma();
-  agregarJuegosToma(data.nombre_juego,data.juegos);
-  setearDatosToma(data.toma);
-  agregarProgresivos(data.progresivos);/*movRelProgresivos.blade.php*/
-
-  $('#guardarRel').prop('disabled', false);
-};
-
 //BOTÓN GUARDAR
 $(document).on('click','#guardarRel',function(){
-  $('#mensajeErrorCarga').hide();
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   const y = $('#fiscaToma').obtenerElementoSeleccionado();
@@ -261,8 +178,8 @@ $(document).on('click','#guardarRel',function(){
     mac: datosMaquinaToma.mac,
     isla_relevada:  datosMaquinaToma.isla,
     sectorRelevadoCargar: datosMaquinaToma.sector,
-    es_cargaT2: es_cargaT2RelMov,
-    progresivos: obtenerDatosProgresivos() /*movRelProgresivos.blade.php*/
+    es_cargaT2: $('#guardarRel').attr('es-segunda-toma'),
+    progresivos: obtenerDatosProgresivos()
   }
 
   $.ajax({
@@ -276,10 +193,9 @@ $(document).on('click','#guardarRel',function(){
       $('#modalCargarRelMov #detallesMTM').hide();
       $('#modalCargarRelMov #fechaRel').val(' ');
       $('#modalCargarRelMov #fiscaToma').val(' ');
-      $('#mensajeErrorCarga').hide();
       //se agrega una tilde en azul a la máq cargada, dentro del mismo modal
       $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
-      $('#mensajeExitoCarga').show();
+      mensajeExito({mensajes :['Los datos se han guardado correctamente']});
       $('#modalCargarRelMov .cargarMaq').prop('disabled', false);
       $('#guardarRel').prop('disabled', true);
     },
@@ -314,7 +230,6 @@ $(document).on('click','#guardarRel',function(){
 });
 
 $(document).on('click','.btn-eliminarFiscal',function(){
-  es_cargaT2RelMov=0;
   const id=$(this).val();
   console.log(id);
 
@@ -336,7 +251,6 @@ function noTieneValor(val){
 
 //Busqueda de eventos
 $('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
-  es_cargaT2RelMov=0;
   $.ajaxSetup({
     headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
