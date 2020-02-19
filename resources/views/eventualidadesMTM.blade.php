@@ -302,7 +302,7 @@
 
 <!--********************* Modal para CARGAR MTM*****************************-->
 
-<div class="modal fade" id="modalCargarMaqEv" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalCargarRelMov" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 90%">
     <div class="modal-content">
       <div class="modal-header" style="background: #6dc7be;">

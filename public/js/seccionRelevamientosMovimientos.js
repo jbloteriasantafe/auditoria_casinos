@@ -66,7 +66,7 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
   const estado_listo = es_segunda_toma? 7 : 3;
   $('#fechaRel').val('');
   $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
-  $('#modalCargarRelMov #detallesMTM').hide();
+  $('#detallesMTM').hide();
 
   $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
     $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
@@ -92,11 +92,11 @@ $(document).on('click','.cargarMaq',function(){
 
   $.get('movimientos/obtenerMTMFiscalizacion2/' + $(this).attr('data-rel'), function(data){
     if(data.fecha != null){
-      $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
+      $('#fechaRel').val(data.fecha);
     }
     else{
       const fecha = $('#fechaRel').val();
-      $('#modalCargarRelMov').find('#fechaRel').val(fecha);
+      $('#fechaRel').val(fecha);
     }
     if(data.fiscalizador != null){
       $('#fiscaToma').val(data.fiscalizador.nombre);
@@ -104,7 +104,7 @@ $(document).on('click','.cargarMaq',function(){
     $('#guardarRel').prop('disabled', false);
     
     setearDivRelevamiento(data);
-    $('#modalCargarRelMov #detallesMTM').show();
+    $('#detallesMTM').show();
   });
 });
 
@@ -143,13 +143,13 @@ $(document).on('click','#guardarRel',function(){
     success: function (data) {
       console.log('BIEN');
       console.log(data);
-      $('#modalCargarRelMov #detallesMTM').hide();
-      $('#modalCargarRelMov #fechaRel').val(' ');
-      $('#modalCargarRelMov #fiscaToma').val(' ');
+      $('#detallesMTM').hide();
+      $('#fechaRel').val(' ');
+      $('#fiscaToma').val(' ');
       //se agrega una tilde en azul a la máq cargada, dentro del mismo modal
       $('#tablaCargarMTM').find('.listo[value="'+formData.id_maquina+'"]').show();
       mensajeExito({mensajes :['Los datos se han guardado correctamente']});
-      $('#modalCargarRelMov .cargarMaq').prop('disabled', false);
+      $('#tablaCargarMTM .cargarMaq').prop('disabled', false);
       $('#guardarRel').prop('disabled', true);
     },
 

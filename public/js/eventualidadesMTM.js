@@ -22,7 +22,7 @@ $(document).ready(function(){
     minView: 0,
     ignoreReadonly: true,
     minuteStep: 5,
-    container: $('#modalCargarMaqEv'),
+    container: $('#modalCargarRelMov'),
   });
 
   $('#dtpFechaEv').datetimepicker({
@@ -48,7 +48,7 @@ $('#cantidad').on('keypress',function(e){
     }
 });
 
-$('#fechaEv').on('change', function (e) {
+$('#fechaRel').on('change', function (e) {
   $(this).trigger('focusin');
 })
 
@@ -150,7 +150,7 @@ $(document).on('click','.borrarMTMCargada',function(e){
 $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#fechaRel').val("");
   $('#guardarRel').prop('disabled', true);
-  $('#modalCargarMaqEv #detallesMTM').hide();
+  $('#detallesMTM').hide();
 
   //BORRO LOS ERRORES
   ocultarErrorValidacion($('#fiscaToma'));
@@ -177,7 +177,7 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
     $('#inputTipoMov').val(data.tipo_movimiento);
     $('#inputSentido').val(data.sentido);
     cargarRelevamientos(data.maquinas,{3 : 'fa-pencil-alt'},-1,-1);
-    $('#modalCargarMaqEv').modal('show');
+    $('#modalCargarRelMov').modal('show');
   })
 });
 
@@ -191,7 +191,6 @@ $('#btn-closeCargar').click(function(e){
 $(document).on('click','.cargarMaq',function(){
   $('#fechaRel').val("");
   $('#guardarRel').prop('disabled', true);
-  $('#modalCargarMaqEv #form1').trigger("reset");
   $('#tablaCargarContadores tbody tr').remove();
 
   //HABILITO LOS INPUTS
@@ -201,7 +200,7 @@ $(document).on('click','.cargarMaq',function(){
   ocultarErrorValidacion($('#fiscaToma'));
   ocultarErrorValidacion($('#fechaRel'));
 
-  $('#modalCargarMaqEv #detallesMTM').show();
+  $('#detallesMTM').show();
   const id_maq = $(this).attr('id');
   console.log('id_maquina', id_maq);
 
@@ -264,20 +263,20 @@ $(document).on('click','#guardarRel',function(){
 
       $('#guardarRel').prop('disabled', true);
 
-      $('#modalCargarMaqEv #tablaCargarMTM').find('.cargarMaq').attr('id',data.id_relevamiento);
+      $('#tablaCargarMTM').find('.cargarMaq').attr('id',data.id_relevamiento);
       //BORRO LOS ERRORES
       ocultarErrorValidacion($('#fiscaToma'));
       ocultarErrorValidacion($('#fechaRel'));
 
-      var boton = $('#modalCargarMaqEv')
+      var boton = $('#modalCargarRelMov')
       .find('.cargarMaq[id='+formData.id_maquina+']')[0];
       $(boton).empty();
       $(boton).append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
 
-      var cantbotones = $('#modalCargarMaqEv')
+      var cantbotones = $('#modalCargarRelMov')
       .find('.cargarMaq').size();
 
-      var cantlapices = $('#modalCargarMaqEv')
+      var cantlapices = $('#modalCargarRelMov')
       .find('.cargarMaq').find('.fa-pencil-alt').size();
 
       //Actualizo el boton de la pantalla principal
@@ -303,7 +302,7 @@ $(document).on('click','#guardarRel',function(){
           err2 = true;
         }
       }
-      if(err1 || err2) $("#modalCargarMaqEv").animate({ scrollTop: 0 }, "slow");
+      if(err1 || err2) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
     }
   })
 });
