@@ -313,10 +313,10 @@
 
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
-          <div class="row"> <!-- PRIMER FILA-->
+          <div class="row">
             <div class="col-md-3">
-              <h5>Fiscalizador Toma: </h5>
-              <input id="fiscalizadorEv" class="form-control" type="text" value="" autocomplete="off">
+              <h5>Fiscalizador Carga: </h5>
+              <input id="fiscaCarga" type="text"class="form-control">
             </div>
             <div class="col-md-2">
               <h5>Tipo Movimiento</h5>
@@ -327,26 +327,24 @@
               <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
             </div>
             <div class="col-md-3">
-              <h5>Fiscalizador Carga: </h5>
-              <input id="fiscaCargaEv" type="text"class="form-control">
+              <h5>Fiscalizador Toma: </h5>
+              <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
             </div>
             <div class="col-md-2">
               <h5>Fecha Ejecución: </h5>
-              <div class='input-group date' id='evFecha' data-link-field="fecha_ejecucionEv" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
-                <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaEv"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
+              <div class='input-group date' id='relFecha' data-link-field="fecha_ejecucionRel" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
                 <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                 <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
               </div>
-              <input type="hidden" id="fecha_ejecucionEv" value=""/>
+              <input type="hidden" id="fecha_ejecucionRel" value=""/>
             </div>
           </div>
           @include('divRelevamientoMovimiento')
         </div>  <!-- modal body -->
 
         <div class="modal-footer">
-          <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
-          <input id="id_fiscaliz_carga" type="text" name="" value="" hidden="">
-          <button id="guardarEv" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
+          <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->

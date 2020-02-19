@@ -77,6 +77,8 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
     if(data.fiscalizador){
       $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
     }
+    $('#inputTipoMov').val(data.tipo_movimiento);
+    $('#inputSentido').val(data.sentido);
     cargarRelevamientos(data.relevamientos,{},id_fiscalizacion,estado_listo);
     $('#modalCargarRelMov').modal('show');
   });

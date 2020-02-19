@@ -180,19 +180,24 @@ $cas = $usuario['usuario']->casinos;
 
       <div  id="colapsado" class="collapse in">
           <div class="modal-body" style="font-family: Roboto;">
-
           <div class="row"> 
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <h5>Fiscalizador Carga: </h5>
+              <input id="fiscaCarga" type="text"class="form-control">
+            </div>
+            <div class="col-md-2">
+              <h5>Tipo Movimiento</h5>
+              <input id="inputTipoMov" class="form-control" type="text" value="" autocomplete="off" readonly="">
+            </div>
+            <div class="col-md-2">
+              <h5>Sentido</h5>
+              <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+            </div>
+            <div class="col-md-3">
               <h5>Fiscalizador Toma: </h5>
               <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
             </div>
-            <div class="col-md-4">
-              <h5>Fiscalizador Carga: </h5>
-              <div class="row">
-                <input id="fiscaCarga" type="text"class="form-control">
-              </div> 
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
               <h5>Fecha Ejecución: </h5>
               <div class='input-group date' id='relFecha' data-link-field="fecha_ejecucionRel" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
                 <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
@@ -210,12 +215,6 @@ $cas = $usuario['usuario']->casinos;
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-          <div id="mensajeExitoCarga" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50;">EXITO</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Los datos se han guardado correctamente</span>
-          </div> <!-- mensaje -->
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
     </div> <!-- modal content -->
