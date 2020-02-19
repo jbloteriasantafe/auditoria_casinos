@@ -1,134 +1,148 @@
-<div  id="detallesMTM" class="col-md-9">
-    <h6>DETALLES MTM</h6>
-    <form id="form1" class="" action="index.html" method="post">
-    <div class="row" >
-            <div class="col-lg-4">
-                <h5>Nro Admin.</h5>
-                <input id="nro_adminMov" type="text"   class="form-control" readonly="readonly">
-            </div>
-            <div class="col-lg-4">
-                <h5>N° Isla</h5>
-                <input id="nro_islaMov" type="text" class="form-control" readonly="readonly">
-            </div>
-            <div class="col-lg-4">
-                <h5>N° Serie</h5>
-                <input id="nro_serieMov" type="text" class="form-control" readonly="readonly">
-            </div>
-        </div> 
-        <div class="row"> 
-            <div class="col-lg-6">
-                <h5>Marca</h5>
-                <input id="marcaMov" type="text" class="form-control" readonly="readonly">
-            </div>
-            <div class="col-lg-6">
-                <h5>Modelo</h5>
-                <input id="modeloMov" type="text" class="form-control" readonly="readonly">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-4">
-                <h5>MAC</h5>
-                <input id="macCargar" type="text" value="" class="form-control">
-            </div>
-            <div class="col-lg-4">
-                <h5>SECTOR</h5>
-                <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
-            </div>
-            <div class="col-lg-4">
-                <h5>ISLA</h5>
-                <input id="islaRelevadaCargar" type="text" value="" class="form-control">
-            </div>
-        </div>
-        <div class="row">
-            <div id="" class="table-editable">
-                <table id="tablaCargarContadores" class="table">
-                    <thead>
-                        <tr>
-                            <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                            <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div> 
-        </div>
-        <h6>TOMA</h6>
-        <div class="row"> 
-            <div class="col-lg-4">
-                <h5>JUEGO</h5>
-                <select id="juegoRel" class="form-control" name="">
-                    <option value=""></option>
-                </select>
-            </div>
-            <div class="col-lg-4">
-                <h5>APUESTA MÁX</h5>
-                <input id="apuesta" type="text" value="" class="form-control">
-            </div>
-            <div class="col-lg-4">
-                <h5>CANT LÍNEAS</h5>
-                <input id="cant_lineas" type="text" value="" class="form-control">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-4">
-                <h5>% DEVOLUCIÓN</h5>
-                <input id="devolucion" type="text" value="" class="form-control">
-            </div>
-            <div class="col-lg-4">
-                <h5>DENOMINACIÓN</h5>
-                <input id="denominacion" type="text" value="" class="form-control">
-            </div>
-            <div class="col-lg-4">
-                <h5>CANT CRÉDITOS</h5>
-                <input id="creditos" type="text" value="" class="form-control">
-            </div>
-        </div>
-        <h6>PROGRESIVOS</h6>
-        <div class="row">
-            <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;max-height: 250px;">
-                <h5 id="sinProgresivos" hidden>La maquina no posee progresivos asignados</h5>
-                <table class="table table-fixed" id="tablaProgresivos">
-                    <thead>
-                        <tr>
-                            <th width="17%">PROGRESIVO</th>
-                            @for($i=6;$i>0;$i--)
-                            <th width="11%">NIVEL{{$i}}</th>
-                            @endfor
-                            <th width="17%">CAUSA NO TOMA</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <table hidden>
-            <tr id="filaEjemploProgresivo">
-                <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
-                @for ($i=6;$i>0;$i--)
-                <td width="11%">
-                <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
-                </td>
-                @endfor
-                <td width="17%">
-                <select class="causaNoToma form-control">
-                    <option value="-1"></option>
-                    @foreach($causasNoTomaProgresivo as $causa)
-                    <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
-                    @endforeach
-                </select>
-                </td>
+<div class="row"> <!-- row inicial -->
+    <div class="col-md-3">
+        <h5>Máquinas</h5>
+        <table id="tablaCargarMTM" class="table">
+        <thead>
+            <tr>
+            <th> </th>
             </tr>
+        </thead>
+        <tbody>
+        </tbody>
         </table>
-        <h6>OBSERVACIONES</h6>
-        <div class="row">
-            <div class="col-lg-12">
-                <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
+    </div> <!-- maquinas -->
+    <div  id="detallesMTM" class="col-md-9">
+        <h6>DETALLES MTM</h6>
+        <form id="form1" class="" action="index.html" method="post">
+        <div class="row" >
+                <div class="col-lg-4">
+                    <h5>Nro Admin.</h5>
+                    <input id="nro_adminMov" type="text"   class="form-control" readonly="readonly">
+                </div>
+                <div class="col-lg-4">
+                    <h5>N° Isla</h5>
+                    <input id="nro_islaMov" type="text" class="form-control" readonly="readonly">
+                </div>
+                <div class="col-lg-4">
+                    <h5>N° Serie</h5>
+                    <input id="nro_serieMov" type="text" class="form-control" readonly="readonly">
+                </div>
+            </div> 
+            <div class="row"> 
+                <div class="col-lg-6">
+                    <h5>Marca</h5>
+                    <input id="marcaMov" type="text" class="form-control" readonly="readonly">
+                </div>
+                <div class="col-lg-6">
+                    <h5>Modelo</h5>
+                    <input id="modeloMov" type="text" class="form-control" readonly="readonly">
+                </div>
             </div>
-        </div> <!-- FIN ULTIMO row -->
-    </form>
-</div> <!-- fin detalle -->
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5>MAC</h5>
+                    <input id="macCargar" type="text" value="" class="form-control">
+                </div>
+                <div class="col-lg-4">
+                    <h5>SECTOR</h5>
+                    <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
+                </div>
+                <div class="col-lg-4">
+                    <h5>ISLA</h5>
+                    <input id="islaRelevadaCargar" type="text" value="" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div id="" class="table-editable">
+                    <table id="tablaCargarContadores" class="table">
+                        <thead>
+                            <tr>
+                                <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
+                                <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div> 
+            </div>
+            <h6>TOMA</h6>
+            <div class="row"> 
+                <div class="col-lg-4">
+                    <h5>JUEGO</h5>
+                    <select id="juegoRel" class="form-control" name="">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <div class="col-lg-4">
+                    <h5>APUESTA MÁX</h5>
+                    <input id="apuesta" type="text" value="" class="form-control">
+                </div>
+                <div class="col-lg-4">
+                    <h5>CANT LÍNEAS</h5>
+                    <input id="cant_lineas" type="text" value="" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5>% DEVOLUCIÓN</h5>
+                    <input id="devolucion" type="text" value="" class="form-control">
+                </div>
+                <div class="col-lg-4">
+                    <h5>DENOMINACIÓN</h5>
+                    <input id="denominacion" type="text" value="" class="form-control">
+                </div>
+                <div class="col-lg-4">
+                    <h5>CANT CRÉDITOS</h5>
+                    <input id="creditos" type="text" value="" class="form-control">
+                </div>
+            </div>
+            <h6>PROGRESIVOS</h6>
+            <div class="row">
+                <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;max-height: 250px;">
+                    <h5 id="sinProgresivos" hidden>La maquina no posee progresivos asignados</h5>
+                    <table class="table table-fixed" id="tablaProgresivos">
+                        <thead>
+                            <tr>
+                                <th width="17%">PROGRESIVO</th>
+                                @for($i=6;$i>0;$i--)
+                                <th width="11%">NIVEL{{$i}}</th>
+                                @endfor
+                                <th width="17%">CAUSA NO TOMA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <table hidden>
+                <tr id="filaEjemploProgresivo">
+                    <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
+                    @for ($i=6;$i>0;$i--)
+                    <td width="11%">
+                    <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                    </td>
+                    @endfor
+                    <td width="17%">
+                    <select class="causaNoToma form-control">
+                        <option value="-1"></option>
+                        @foreach($causasNoTomaProgresivo as $causa)
+                        <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
+                        @endforeach
+                    </select>
+                    </td>
+                </tr>
+            </table>
+            <h6>OBSERVACIONES</h6>
+            <div class="row">
+                <div class="col-lg-12">
+                    <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
+                </div>
+            </div> <!-- FIN ULTIMO row -->
+        </form>
+    </div> <!-- fin detalle -->
+</div>
 
 
 <script src="js/utils.js" type="text/javascript"></script>
@@ -280,5 +294,59 @@ function setearDivRelevamiento(data){
         $('#observacionesToma').val(data.toma.observaciones);
     }
     agregarProgresivos(data.progresivos);
+}
+function mostrarErroresDiv(response){
+    const errores = { 
+        'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
+        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
+        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar')
+    };
+    let err = false;
+    for(const key in errores){
+        if(!isUndef(response[key])){
+            mostrarErrorValidacion(errores[key],parseError(response[key][0]));
+            err = true;
+        }
+    }
+    $('#tablaCargarContadores tbody tr').each(function(index){
+        const res = response['contadores.'+ index +'.valor'];
+        if(!isUndef(res)){
+            mostrarErrorValidacion($(this).find('.valorModif'),parseError(res[0]));
+            err = true;
+        }
+    });
+    return err;
+}
+function cargarRelevamientos(relevamientos,dibujos = {},id_fiscalizacion = -1,estado_listo = -1){
+    $('#tablaCargarMTM tbody').empty();
+    relevamientos.forEach(r => {
+      let fila = $('<tr>');
+      let dibujo = 'fa-upload';
+      const id_estado = r.estado.id_estado_relevamiento;
+      if(!isUndef(dibujos[id_estado])) dibujo = dibujos[id_estado];
+      fila.append($('<td>')
+          .addClass('col-xs-5')
+          .text(r.nro_admin)
+      );
+      fila.append($('<td>')
+          .addClass('col-xs-3')
+          .append($('<button>')
+          .append($('<i>')
+          .addClass('fa').addClass('fa-fw').addClass(dibujo))
+          .attr('type','button')
+          .addClass('btn btn-info cargarMaq')
+          .attr('id', r.id_maquina)
+          .attr('data-rel', r.id_relevamiento)
+          .attr('data-fisc', id_fiscalizacion)
+        )
+      );
+      fila.append($('<td>')
+        .addClass('col-xs-3')
+        .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
+          .attr('value', r.id_maquina))
+      );
+      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
+      $('#tablaCargarMTM tbody').append(fila);
+    });
 }
 </script>

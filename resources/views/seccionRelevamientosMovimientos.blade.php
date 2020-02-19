@@ -203,40 +203,13 @@ $cas = $usuario['usuario']->casinos;
             </div>
             <br>
           </div>
-
-          <div class="row"> <!-- row inicial -->
-            <div class="col-md-3">
-              <h5>Máquinas</h5>
-              <table id="tablaMaquinasFiscalizacion" class="table">
-                <thead>
-                  <tr>
-                    <th> </th>
-                  </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-              </table>
-            </div> <!-- maquinas -->
-
-            @include('divRelevamientoMovimiento')
-          </div> <!-- fin ROW INICIAL -->
-
+          @include('divRelevamientoMovimiento')
         </div>  <!-- modal body -->
 
         <div class="modal-footer">
-
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
-          <input id="id_log_movimiento" type="text" name="" value="" hidden>
-          <input id="casinoId" type="text" name="" value="" hidden="">
-          <input id="fecha_fiscalizacion" type="text" name="" value="" hidden>
-          <input id="id_fiscalizac" type="text" name="" value="" hidden="">
-          <input id="relevamiento" type="text" name="" value="" hidden="">
-          <input id="maquina" type="text" name="" value="" hidden>
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-
-
           <div id="mensajeExitoCarga" hidden>
             <br>
             <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50;">EXITO</span>

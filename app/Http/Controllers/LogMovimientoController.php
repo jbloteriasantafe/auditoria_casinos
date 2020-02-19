@@ -678,7 +678,7 @@ class LogMovimientoController extends Controller
   }
 
   //para poder realizar la carga de los datos
-  public function obtenerRelevamientosFiscalizacion($id_fiscalizacion_movimiento){
+  public function obtenerRelevamientosFiscalizacion($id_fiscalizacion_movimiento){//@DEPRECATED
     $maquinas = DB::table('fiscalizacion_movimiento')
                   ->select('maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
                   ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
@@ -694,8 +694,28 @@ class LogMovimientoController extends Controller
     return ['relevamientos' => $maquinas ,'cargador' => $user, 'casino' =>$casino, 'usuario_fiscalizador' => $fiscalizacion->fiscalizador];
   }
 
+  //Formato nuevo de lo mismo de arriba, mas parecido a relevamientosEvMTM
+  public function obtenerRelevamientosFiscalizacion2($id_fiscalizacion_movimiento){
+    $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion_movimiento);
+    $log = $fiscalizacion->log_movimiento;
+    $relevamientos = $fiscalizacion->relevamientos_movimientos;
+    $relevamientos_arr = array();
+    foreach ($relevamientos as $rel) {
+      $relevamientos_arr[] =  [
+                            'id_relevamiento' => $rel->id_relev_mov,
+                            'estado'          => $rel->estado_relevamiento,
+                            'nro_admin'       => $rel->maquina->nro_admin,
+                            'id_maquina'      => $rel->maquina->id_maquina
+                          ];
+    }
+    $id_usuario = session('id_usuario');
+    $user = Usuario::find($id_usuario);
+    return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
+            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 'casino' => $log->casino];
+  }
+
   //se usa sólo para cargar los relevamientos - desde los fiscalizadores
-  public function obtenerMTMFiscalizacion($id_maquina, $id_fiscalizacion){
+  public function obtenerMTMFiscalizacion($id_maquina, $id_fiscalizacion){ //@DEPRECATED
     $mtm = DB::table('maquina')
               ->select('maquina.*','isla.nro_isla','formula.*')
               ->leftJoin('isla','isla.id_isla','=','maquina.id_isla')
@@ -738,6 +758,10 @@ class LogMovimientoController extends Controller
       }  
     }
     return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma, 'fiscalizador'=> $fisca, 'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
+  }
+
+  public function obtenerMTMFiscalizacion2($id_relevamiento){
+    return $this->obtenerMTMEv($id_relevamiento);
   }
 
   public function generarPlanillasRelevamientoMovimiento($id_fiscalizacion_movimiento){
@@ -1637,7 +1661,6 @@ class LogMovimientoController extends Controller
      'fiscalizador'=> $fisca,'cargador'=> $cargador,
      'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento ,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
-
   }
 
   //al final se va a mostrar estatico, pero si se puede buscar algunos viejos con los filtros

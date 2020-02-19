@@ -68,55 +68,27 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
   $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
   $('#modalCargarRelMov #detallesMTM').hide();
 
-  $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
-    $('#modalCargarRelMov').find('#casinoId').val(data.casino);
+  $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
     $('#fiscaCarga').attr('data-id',data.cargador.id_usuario);
     $('#fiscaCarga').val(data.cargador.nombre);
     $('#fiscaCarga').prop('readonly',true);
-    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino,'usuarios' ,'id_usuario','nombre',1,false);
+    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
     $('#fiscaToma').setearElementoSeleccionado(0,"");
-    if(data.usuario_fiscalizador){
-      $('#fiscaToma').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
+    if(data.fiscalizador){
+      $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
     }
-
-    $('#tablaMaquinasFiscalizacion tbody').empty();
-    data.relevamientos.forEach(r => {
-      let fila = $('<tr>');
-      fila.append($('<td>')
-        .addClass('col-xs-5')
-        .text(r.nro_admin)
-      );
-      fila.append($('<td>')
-        .addClass('col-xs-3')
-        .append($('<button>')
-          .append($('<i>')
-            .addClass('fa').addClass('fa-fw').addClass('fa-upload')
-          ).attr('type','button')
-          .addClass('btn btn-info cargarMaq')
-          .attr('value', r.id_maquina)
-          .attr('data-fisc', id_fiscalizacion))
-      );
-      fila.append($('<td>')
-        .addClass('col-xs-3')
-        .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
-          .attr('value', r.id_maquina))
-      );
-      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
-      $('#tablaMaquinasFiscalizacion tbody').append(fila);
-    });
-
+    cargarRelevamientos(data.relevamientos,{},id_fiscalizacion,estado_listo);
     $('#modalCargarRelMov').modal('show');
   });
 }
 
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
 $(document).on('click','.cargarMaq',function(){
-  const id_maquina= $(this).val();
-  const id_fiscalizacion= $(this).attr('data-fisc');
-  $('#modalCargarRelMov').find('#id_fiscalizac').val(id_fiscalizacion);
-  $('#modalCargarRelMov').find('#maquina').val(id_maquina);
+  const id_fiscalizacion = $(this).attr('data-fisc');
+  $('#guardarRel').attr('data-fisc',id_fiscalizacion);
+  $('#guardarRel').attr('data-maq',$(this).attr('id'));
 
-  $.get('movimientos/obtenerMTMFiscalizacion/' + id_maquina + '/' + id_fiscalizacion, function(data){
+  $.get('movimientos/obtenerMTMFiscalizacion2/' + $(this).attr('data-rel'), function(data){
     if(data.fecha != null){
       $('#modalCargarRelMov').find('#fechaRel').val(data.fecha);
     }
@@ -138,14 +110,13 @@ $(document).on('click','.cargarMaq',function(){
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const maq = $('#modalCargarRelMov').find('#maquina').val();
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
-    id_fiscalizacion_movimiento: $('#modalCargarRelMov').find('#id_fiscalizac').val(),
-    id_cargador:                 $('#modalCargarRelMov').find('#fiscaCarga').attr('data-id'),
+    id_fiscalizacion_movimiento: $('#guardarRel').attr('data-fisc'),
+    id_cargador:                 $('#fiscaCarga').attr('data-id'),
     id_fiscalizador:             $('#fiscaToma').obtenerElementoSeleccionado(),
     estado:                      2,
-    id_maquina:                  maq,
+    id_maquina:                  $('#guardarRel').attr('data-maq'),
     contadores:                  datos.contadores,
     juego:                       datos.juego,
     apuesta_max:                 datos.apuesta,
@@ -174,7 +145,7 @@ $(document).on('click','#guardarRel',function(){
       $('#modalCargarRelMov #fechaRel').val(' ');
       $('#modalCargarRelMov #fiscaToma').val(' ');
       //se agrega una tilde en azul a la máq cargada, dentro del mismo modal
-      $('#tablaMaquinasFiscalizacion').find('.listo[value="'+maq+'"]').show();
+      $('#tablaCargarMTM').find('.listo[value="'+formData.id_maquina+'"]').show();
       mensajeExito({mensajes :['Los datos se han guardado correctamente']});
       $('#modalCargarRelMov .cargarMaq').prop('disabled', false);
       $('#guardarRel').prop('disabled', true);
@@ -184,27 +155,18 @@ $(document).on('click','#guardarRel',function(){
       console.log('ERROR');
       console.log(data);
       const response = data.responseJSON;
-      const errores = { 
-        'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
-        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'),'denominacion' : $('#denominacion'),
-        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'),'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
+      const errores = {
         'id_fiscalizador' : $('#fiscaToma'), 'fecha_sala' : $('#fechaRel')
       };
-      let err = false;
+      const err1 = mostrarErroresDiv(response);
+      let err2 = false;
       for(const key in errores){
         if(!isUndef(response[key])){
           mostrarErrorValidacion(errores[key],parseError(response[key][0]));
-          err = true;
+          err2 = true;
         }
       }
-      if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
-
-      $('#tablaCargarContadores tbody tr').each(function(index){
-        const res = response['contadores.'+ index +'.valor'];
-        if(!isUndef(res)){
-          mostrarErrorValidacion($(this).find('.valorModif'),parseError(res[0]));
-        }
-      });
+      if(err1 || err2) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
     }
   });
 });

@@ -305,7 +305,7 @@
 <div class="modal fade" id="modalCargarMaqEv" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 90%">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" style="background: #6dc7be;">
         <button id="btn-closeCargar" type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title modalVerMas" id="myModalLabel">CARGAR MTM</h3>
@@ -340,31 +340,12 @@
               <input type="hidden" id="fecha_ejecucionEv" value=""/>
             </div>
           </div>
-
-          <div class="row"> <!-- row inicial -->
-            <div class="col-md-3">
-              <h5>Máquinas</h5>
-              <table id="tablaCargarMTM" class="table">
-                <thead>
-                  <tr>
-                    <th> </th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div> <!-- maquinas -->
-            
-            
           @include('divRelevamientoMovimiento')
-          </div> <!-- fin ROW INICIAL -->
         </div>  <!-- modal body -->
 
         <div class="modal-footer">
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
-          <input id="id_maq" type="text" name="" value="" hidden="">
           <input id="id_fiscaliz_carga" type="text" name="" value="" hidden="">
-          <input id=id_mov type="text" name="" value="" hidden="">
           <button id="guardarEv" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
         </div> <!-- modal footer -->
