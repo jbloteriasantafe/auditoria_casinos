@@ -11,20 +11,6 @@ $(document).ready(function(){
   $('#opcIntervencionesMTM').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcIntervencionesMTM').addClass('opcionesSeleccionado');
 
-  $('#relFecha').datetimepicker({
-    todayBtn:  1,
-    language:  'es',
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy, HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 0,
-    ignoreReadonly: true,
-    minuteStep: 5,
-    container: $('#modalCargarRelMov'),
-  });
-
   $('#dtpFechaEv').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -148,34 +134,12 @@ $(document).on('click','.borrarMTMCargada',function(e){
 
 //botón para cargar máquina
 $(document).on('click', '.btn_cargarEvmtm', function(){
-  $('#fechaRel').val("");
   $('#guardarRel').prop('disabled', true);
-  $('#detallesMTM').hide();
-
-  //BORRO LOS ERRORES
-  ocultarErrorValidacion($('#fiscaToma'));
-  ocultarErrorValidacion($('#fechaRel'));
-
-  const id_log_mov = $(this).val();
-  $('#guardarRel').attr('data-mov',id_log_mov);
-
-  $.get('eventualidadesMTM/relevamientosEvMTM/' + id_log_mov, function(data){
+  esconderDetalleRelevamiento();
+  $.get('eventualidadesMTM/relevamientosEvMTM/' + $(this).val(), function(data){
     console.log('88',data);
-    //completo el ficalizador de carga con datos que me trae el data
-    if(data.fiscalizador_carga != null){
-      $('#fiscaCarga').val(data.fiscalizador_carga.nombre);
-      $('#fiscaCarga').prop('disabled',true);
-      $('#fiscaCarga').attr('data-id',data.fiscalizador_carga.id_usuario);
-    }
-    else {
-      $('#fiscaCarga').val('');
-      $('#fiscaCarga').removeAttr('data-id');
-    }
-    //genero la lista para seleccionar un fiscalizador en el input correspondiente
-    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + data.casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
-    $('#fiscaToma').setearElementoSeleccionado(0,"");
-    $('#inputTipoMov').val(data.tipo_movimiento);
-    $('#inputSentido').val(data.sentido);
+    setearUsuariosCargaToma(data.casino,data.fiscalizador_carga,null);
+    setearTipoMovimiento(data.tipo_movimiento,data.sentido);
     cargarRelevamientos(data.maquinas,{3 : 'fa-pencil-alt'},-1,-1);
     $('#modalCargarRelMov').modal('show');
   })
@@ -189,33 +153,12 @@ $('#btn-closeCargar').click(function(e){
 
 //presiona el ojo de una máquina para cargar los detalles
 $(document).on('click','.cargarMaq',function(){
-  $('#fechaRel').val("");
-  $('#guardarRel').prop('disabled', true);
-  $('#tablaCargarContadores tbody tr').remove();
-
-  //HABILITO LOS INPUTS
-  $('#observacionesToma').prop('disabled',false);
-
-  //BORRO LOS ERRORES
-  ocultarErrorValidacion($('#fiscaToma'));
-  ocultarErrorValidacion($('#fechaRel'));
-
-  $('#detallesMTM').show();
-
   const id_rel = $(this).attr('data-rel');
-  $('#guardarRel').attr('data-rel',id_rel);
+  $('#guardarRel').attr('data-rel', id_rel);
   $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
-    if(data.fecha != null){ 
-      $('#fechaRel').val(data.fecha);
-    }
-    if(data.cargador != null) { 
-      $('#fiscaCarga').val(data.cargador.nombre).prop('disabled',true);
-    }
-    if(data.fiscalizador!=null){
-      $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
-    }
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
+    mostrarDetalleRelevamiento();
   })
 });
 
@@ -225,22 +168,22 @@ $(document).on('click','#guardarRel',function(){
 
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
-    id_relev_mov: $('#guardarRel').attr('data-rel'),
-    id_cargador: $('#fiscaCarga').attr('data-id'),
-    id_fiscalizador: $('#fiscaToma').obtenerElementoSeleccionado(),
-    contadores: datos.contadores,
-    juego: datos.juego,
-    apuesta_max: datos.apuesta,
-    cant_lineas: datos.cant_lineas,
+    id_relev_mov:          $('#guardarRel').attr('data-rel'),
+    id_cargador:           datos.usuario_carga.id_usuario,
+    id_fiscalizador:       datos.usuario_toma.id_usuario,
+    contadores:            datos.contadores,
+    juego:                 datos.juego,
+    apuesta_max:           datos.apuesta,
+    cant_lineas:           datos.cant_lineas,
     porcentaje_devolucion: datos.devolucion,
-    denominacion: datos.denominacion,
-    cant_creditos: datos.creditos,
-    fecha_sala: $('#fecha_ejecucionRel').val(),
-    observaciones: datos.observaciones,
-    mac: datos.mac,
-    islaRelevadaEv: datos.isla_rel,
-    sectorRelevadoEv: datos.sector_rel,
-    progresivos: datos.progresivos
+    denominacion:          datos.denominacion,
+    cant_creditos:         datos.creditos,
+    fecha_sala:            datos.fecha_ejecucion,
+    observaciones:         datos.observaciones,
+    mac:                   datos.mac,
+    islaRelevadaEv:        datos.isla_rel,
+    sectorRelevadoEv:      datos.sector_rel,
+    progresivos:           datos.progresivos
   };
 
   $.ajax({
@@ -249,56 +192,18 @@ $(document).on('click','#guardarRel',function(){
     data: formData,
     dataType: 'json',
     success: function (data){
-      $('##detallesMTM').hide();
-      $('#fechaRel').val(' ');
-      $('#fiscaToma').val(' ');
-      mensajeExito({titulo:'ÉXITO DE CARGA'});
-      $('#'+formData.id_log_movimiento).find('.btn_borrarEvmtm').remove();
-      $('#'+formData.id_log_movimiento).find('.btn_validarEvmtm').show();
-      $('#'+formData.id_log_movimiento).find('.btn_imprimirEvmtm').show();
-
       $('#guardarRel').prop('disabled', true);
-
-      $('#tablaCargarMTM').find('.cargarMaq').attr('id',data.id_relevamiento);
+      esconderDetalleRelevamiento();
+      limpiarDivRelevamiento();
+      mensajeExito({titulo:'ÉXITO DE CARGA'});
       //BORRO LOS ERRORES
-      ocultarErrorValidacion($('#fiscaToma'));
-      ocultarErrorValidacion($('#fechaRel'));
-
-      var boton = $('#modalCargarRelMov')
-      .find('.cargarMaq[id='+formData.id_maquina+']')[0];
-      $(boton).empty();
-      $(boton).append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
-
-      var cantbotones = $('#modalCargarRelMov')
-      .find('.cargarMaq').size();
-
-      var cantlapices = $('#modalCargarRelMov')
-      .find('.cargarMaq').find('.fa-pencil-alt').size();
-
-      //Actualizo el boton de la pantalla principal
-      //Todos fueron cargados.
-      if(cantbotones == cantlapices){
-        var btn_menu = $('.btn_cargarEvmtm[value='+formData.id_log_movimiento+']');
-        btn_menu.empty();
-        btn_menu.append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'));
-      }
+      cambiarDibujoMaquina(formData.id_maquina,'fa fa-fw fa-pencil-alt');
+      $('#btn-buscarEventualidadMTM').click();
     },
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      const response = data.responseJSON;
-      const err1 = mostrarErroresDiv(response);
-      const errores = { 
-        'id_fiscalizador' : $('#fiscaToma'),'fecha_sala' : $('#fechaRel')
-      };
-      let err2 = false;
-      for(const key in errores){
-        if(!isUndef(response[key])){
-          mostrarErrorValidacion(errores[key],parseError(response[key][0]));
-          err2 = true;
-        }
-      }
-      if(err1 || err2) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      mostrarErroresDiv(data.responseJSON);
     }
   })
 });

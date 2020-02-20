@@ -1848,7 +1848,7 @@ class LogMovimientoController extends Controller
       'cant_lineas' => 'nullable|numeric|max:100000',
       'porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
       'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-      'cant_creditos' => 'nullable|numeric| max:100',
+      'cant_creditos' => 'nullable|numeric|max:100',
       'fecha_sala' => 'required|date',//fecha con dia y hora
       'observaciones' => 'nullable|max:800',
       'mac' => 'nullable|max:100',
@@ -1859,28 +1859,25 @@ class LogMovimientoController extends Controller
       if($data['juego']==0 ){
         $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
       }
-      $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
-      $log = $relevamiento->log_movimiento;
     })->validate();
     
-    $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+    $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
     $log = $relevamiento->log_movimiento;
     $cant_rels = count($log->relevamientos_movimientos);
 
-    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
-      $request['juego'] , $request['apuesta_max'], $request['cant_lineas'], $request['porcentaje_devolucion'], $request['denominacion'] ,
-      $request['cant_creditos'], $request['fecha_sala'], $request['observaciones'],
-      $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento'],
-      $request['sectorRelevadoEv'],$request['islaRelevadaEv']
+    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv(
+      $relevamiento->maquina->id_maquina, $request['contadores'], $request['juego'], 
+      $request['apuesta_max'],  $request['cant_lineas'],   $request['porcentaje_devolucion'], 
+      $request['denominacion'], $request['cant_creditos'], $request['fecha_sala'], 
+      $request['observaciones'],$request['id_cargador'],   $request['id_fiscalizador'], 
+      $request['mac'],$log->id_log_movimiento, $request['sectorRelevadoEv'], $request['islaRelevadaEv']
     );
-
-    $id_usuario = session('id_usuario');
 
     if($this->cargaFinalizadaEvMTM($log)){
       $log->estado_movimiento()->associate(1);//notificado
       $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
       // notificaciones
-      $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,$id_usuario);
+      $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,session('id_usuario'));
       foreach ($usuarios as $user){
         $u = Usuario::find($user->id_usuario);
         if($u != null)  $u->notify(new NuevaIntervencionMTM($log));

@@ -1,3 +1,31 @@
+<div>
+<div class="row"> 
+    <div class="col-md-3">
+        <h5>Fiscalizador Carga: </h5>
+        <input id="fiscaCarga" type="text"class="form-control">
+    </div>
+    <div class="col-md-2">
+        <h5>Tipo Movimiento</h5>
+        <input id="inputTipoMov" class="form-control" type="text" value="" autocomplete="off" readonly="">
+    </div>
+    <div class="col-md-2">
+        <h5>Sentido</h5>
+        <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+    </div>
+    <div class="col-md-3">
+        <h5>Fiscalizador Toma: </h5>
+        <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
+    </div>
+    <div class="col-md-2">
+        <h5>Fecha Ejecución: </h5>
+        <div class='input-group date' id='relFecha' data-link-field="fecha_ejecucionRel" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii:ss">
+        <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
+        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+        </div>
+        <input type="hidden" id="fecha_ejecucionRel" value=""/>
+    </div>
+</div>
 <div class="row"> <!-- row inicial -->
     <div class="col-md-3">
         <h5>Máquinas</h5>
@@ -143,6 +171,7 @@
         </form>
     </div> <!-- fin detalle -->
 </div>
+</div>
 
 
 <script src="js/utils.js" type="text/javascript"></script>
@@ -180,7 +209,11 @@ function obtenerDatosDivRelevamiento(){
         nro_serie: $('#nro_serieMov').val(),
         marca: $('#marcaMov').val(),
         modelo: $('#modeloMov').val(),
+        //Usuarios
+        usuario_carga: {nombre: $('#fiscaCarga').val(), id_usuario: $('#fiscaCarga').attr('data-id')},
+        usuario_toma:  {nombre: $('#fiscaToma').val() , id_usuario: $('#fiscaToma').obtenerElementoSeleccionado()},
         //Valores relevados
+        fecha_ejecucion: $('#fecha_ejecucionRel').val(),
         mac: $('#macCargar').val(),
         isla_rel: $('#islaRelevadaCargar').val(),
         sector_rel: $('#sectorRelevadoCargar').val(),
@@ -192,7 +225,7 @@ function obtenerDatosDivRelevamiento(){
         denominacion: $('#denominacion').val(), 
         creditos: $('#creditos').val(),
         progresivos: progresivos,
-        observaciones: $('#observacionesToma').val()
+        observaciones: $('#observacionesToma').val(),
     };
 }
 function limpiarDivRelevamiento(){
@@ -202,6 +235,10 @@ function limpiarDivRelevamiento(){
     ocultarErrorValidacion($('#creditos'));
     ocultarErrorValidacion($('#denominacion'));
     ocultarErrorValidacion($('#devolucion'));
+    ocultarErrorValidacion($('#fiscaToma'));
+    ocultarErrorValidacion($('#fechaRel'));
+    $('#fechaRel').val('');
+    $('#fiscaToma').val('');
     $('#nro_islaMov').val('');
     $('#nro_adminMov').val('');
     $('#nro_serieMov').val('');
@@ -220,6 +257,20 @@ function limpiarDivRelevamiento(){
     $('#islaRelevadaCargar').val('');
     $('#observacionesToma').val('');
     $('#tomaProgresivo tbody').empty();
+    $('#relFecha').datetimepicker('destroy');
+    $('#relFecha').datetimepicker({
+        todayBtn:  1,
+        language:  'es',
+        autoclose: 1,
+        todayHighlight: 1,
+        pickerPosition: "bottom-left",
+        format: 'YYYY-MM-DD HH:II:SS',
+        startView: 2,
+        minView: 0,
+        ignoreReadonly: true,
+        minuteStep: 5,
+        container: $('#modalCargarRelMov'),
+    });
 }
 function agregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
@@ -294,12 +345,22 @@ function setearDivRelevamiento(data){
         $('#observacionesToma').val(data.toma.observaciones);
     }
     agregarProgresivos(data.progresivos);
+    if(data.fecha != null){
+        $('#relFecha').datetimepicker('setDate',new Date(data.fecha));
+    }
+    if(data.cargador != null) { 
+        $('#fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
+    }
+    if(data.fiscalizador != null){
+        $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+    }
 }
 function mostrarErroresDiv(response){
     const errores = { 
         'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
         'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
-        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar')
+        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
+        'id_fiscalizador' : $('#fiscaToma'),'fecha_sala' : $('#fechaRel')
     };
     let err = false;
     for(const key in errores){
@@ -315,6 +376,7 @@ function mostrarErroresDiv(response){
             err = true;
         }
     });
+    if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
     return err;
 }
 function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
@@ -347,5 +409,43 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
       fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
       $('#tablaCargarMTM tbody').append(fila);
     });
+}
+function esconderDetalleRelevamiento(){
+    $('#relFecha').parent().hide();
+    $('#fiscaToma').parent().hide();
+    $('#detallesMTM').hide();
+}
+function mostrarDetalleRelevamiento(){
+    $('#relFecha').parent().show();
+    $('#fiscaToma').parent().show();
+    $('#detallesMTM').show();
+}
+function setearUsuariosCargaToma(casino,cargador,fiscalizador){
+    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
+    $('#fiscaToma').setearElementoSeleccionado(0,"");
+    $('#fiscaCarga').val('');
+    $('#fiscaCarga').removeAttr('data-id');
+
+    if(cargador){
+        $('#fiscaCarga').attr('data-id',cargador.id_usuario);
+        $('#fiscaCarga').val(cargador.nombre);
+        $('#fiscaCarga').prop('readonly',true);
+    }
+    if(fiscalizador){
+      $('#fiscaToma').setearElementoSeleccionado(fiscalizador.id_usuario,fiscalizador.nombre);
+    }
+}
+function setearTipoMovimiento(tipo_movimiento,sentido){
+    $('#inputTipoMov').val(tipo_movimiento);
+    $('#inputSentido').val(sentido);
+}
+function marcarListaMaquina(id_maquina){
+    $('#tablaCargarMTM').find('.listo[value="'+id_maquina+'"]').show();
+}
+function cambiarDibujoMaquina(id_maquina,dibujo){
+    let boton = $('#modalCargarRelMov')
+    .find('.cargarMaq[id='+id_maquina+']')[0];
+    $(boton).empty();
+    $(boton).append($('<i>').addClass(dibujo));
 }
 </script>
