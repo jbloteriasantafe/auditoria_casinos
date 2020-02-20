@@ -79,17 +79,14 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
     }
     $('#inputTipoMov').val(data.tipo_movimiento);
     $('#inputSentido').val(data.sentido);
-    cargarRelevamientos(data.relevamientos,{},id_fiscalizacion,estado_listo);
+    cargarRelevamientos(data.relevamientos,{},estado_listo);
     $('#modalCargarRelMov').modal('show');
   });
 }
 
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
 $(document).on('click','.cargarMaq',function(){
-  const id_fiscalizacion = $(this).attr('data-fisc');
-  $('#guardarRel').attr('data-fisc',id_fiscalizacion);
-  $('#guardarRel').attr('data-maq',$(this).attr('id'));
-
+  $('#guardarRel').attr('data-rel',$(this).attr('data-rel'));
   $.get('movimientos/obtenerMTMFiscalizacion2/' + $(this).attr('data-rel'), function(data){
     if(data.fecha != null){
       $('#fechaRel').val(data.fecha);
@@ -114,11 +111,10 @@ $(document).on('click','#guardarRel',function(){
 
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
-    id_fiscalizacion_movimiento: $('#guardarRel').attr('data-fisc'),
+    id_relev_mov:                $('#guardarRel').attr('data-rel'),
     id_cargador:                 $('#fiscaCarga').attr('data-id'),
     id_fiscalizador:             $('#fiscaToma').obtenerElementoSeleccionado(),
     estado:                      2,
-    id_maquina:                  $('#guardarRel').attr('data-maq'),
     contadores:                  datos.contadores,
     juego:                       datos.juego,
     apuesta_max:                 datos.apuesta,

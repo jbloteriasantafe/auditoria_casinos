@@ -802,11 +802,9 @@ class LogMovimientoController extends Controller
 
   public function cargarTomaRelevamiento(Request $request){
     $validator =Validator::make($request->all(), [
-        'id_fiscalizacion_movimiento' => 'required|exists:fiscalizacion_movimiento,id_fiscalizacion_movimiento',
+        'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
         'id_cargador' => 'nullable|exists:usuario,id_usuario',
         'id_fiscalizador' => 'required|exists:usuario,id_usuario',
-        'id_maquina' => 'required|exists:maquina,id_maquina',
-        'id_relevamiento' => 'nullable|exists:relevamiento_movimiento,id_relev_mov',
         'contadores' => 'required',
         'contadores.*.nombre' =>'nullable',
         'contadores.*.valor' => ['required_with:contadores.*.nombre','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
@@ -820,82 +818,26 @@ class LogMovimientoController extends Controller
         'cant_creditos' => 'required|numeric| max:100',
         'fecha_sala' => 'required|date',//fecha con dia y hora
         'observaciones' => 'nullable|max:280',
-        'mac' => 'nullable | max:100'
+        'mac' => 'nullable|max:100'
     ], array(), self::$atributos)->after(function($validator){
       if($validator->getData()['juego']==0 ){
           $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
       }
-      $maquina = Maquina::find($validator->getData()['id_maquina']);
-      $aux=1;
-      $formula = $maquina->formula;
-      $contadores =$validator->getData()['contadores'];
+      $data = $validator->getData();
+      $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+      $formula = $relevamiento->maquina->formula;
+      $contadores = $data['contadores'];
       //PARA VALIDAR SI ESTAN TODOS LOS CONTADORES CARGADOS QUE TIENE LA MTM EN LA FORMULA
-      foreach ($contadores as $cont) {
-
-          switch ($aux)
-          {
-            case 1:
-              if($formula->cont1 !=null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            case 2:
-              if($formula->cont2 != null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            case 3:
-              if($formula->cont3 !=null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            case 4:
-              if($formula->cont4 !=null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            case 5:
-              if($formula->cont5 !=null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            case 6:
-              if($formula->cont6 !=null && $cont['valor'] == "")
-              {
-                $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-              }
-              break;
-            default:
-              # code...
-              break;
-          }
-          $aux++;
+      for($i=1;$i<=6;$i++){
+        if($formula['cont'.$i] != null && array_key_exists($i,$contadores) && $contadores[$i]['valor']  == ""){
+          $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
         }
+      }
+    })->validate();
 
-    })->validate();//FIN VALIDACION DEL REQUEST
-
-     if(isset($validator))
-      {
-        if ($validator->fails())
-        {
-          return [
-                'errors' => $validator->getMessageBag()->toArray()
-            ];
-        }
-     }
-
-    $fiscalizacion = FiscalizacionMov::find($request->id_fiscalizacion_movimiento);
-
-    if(!empty($request->id_log_movimiento)){
-      $logMov = LogMovimiento::find($request->id_log_movimiento);
-    }else{
-      $logMov = $fiscalizacion->log_movimiento;
-    }
+    $relevamiento = RelevamientoMovimiento::find($request->id_rel_mov);
+    $fiscalizacion = $relevamiento->fiscalizacion;
+    $logMov = $fiscalizacion->log_movimiento;
 
     if($fiscalizacion->id_estado_relevamiento == 1){//si estaba generado pasa a cargando
       if(!isset($logMov->fiscalizaciones))
@@ -905,14 +847,12 @@ class LogMovimientoController extends Controller
       $fiscalizacion->estado_relevamiento()->associate(2);
     }
 
-
-
     if(!isset($fiscalizacion->cargador)){
       $fiscalizacion->cargador()->associate($request->id_cargador);
       $fiscalizacion->fiscalizador()->associate( $request->id_fiscalizador);
     }
 
-      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamiento($request->id_maquina ,
+    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamiento($request->id_maquina,
       $request['contadores'],
       $request['juego'] ,
       $request['apuesta_max'],
@@ -926,7 +866,8 @@ class LogMovimientoController extends Controller
       $request['sectorRelevadoCargar'],
       $request->id_fiscalizacion_movimiento,
       $request->id_cargador,
-      $request->id_fiscalizador, $request['mac'],$request['es_cargaT2']);
+      $request->id_fiscalizador, $request['mac'],$request['es_cargaT2']
+    );
 
     //si es primera toma
     if($fiscalizacion->id_estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
@@ -957,11 +898,10 @@ class LogMovimientoController extends Controller
       }
     }
 
-      $fiscalizacion->save();
-      $logMov->save();
+    $fiscalizacion->save();
+    $logMov->save();
 
-    return ['codigo'=>1];
-
+    return ['codigo' => 1];
   }
 
   private function cargaFinalizada($fiscalizacion){
@@ -983,8 +923,6 @@ class LogMovimientoController extends Controller
   }
 
   public function crearPlanillaEventualidades(){// CREAR Y GUARDAR RELEVAMIENTO
-
-
     $view = View::make('planillaEventualidades');
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -1901,134 +1839,58 @@ class LogMovimientoController extends Controller
 
   public function cargarEventualidadMTM(Request $request){
     // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
-
     $validator =Validator::make($request->all(), [
-        'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
-        'id_cargador' => 'nullable|exists:usuario,id_usuario',
-        'id_fiscalizador' => 'required|exists:usuario,id_usuario',
-        'id_maquina' => 'required|exists:maquina,id_maquina',
-        'juego' => 'required',
-        'apuesta_max' => 'nullable| numeric| max:900000',
-        'cant_lineas' => 'nullable|numeric| max:100000',
-        'porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'cant_creditos' => 'nullable|numeric| max:100',
-        'fecha_sala' => 'required|date',//fecha con dia y hora
-        'observaciones' => 'nullable|max:800',
-        'mac' => 'nullable | max:100',
-        'sectorRelevadoEv' => 'required',
-        'islaRelevadaEv' => 'required'
-
+      'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
+      'id_cargador' => 'nullable|exists:usuario,id_usuario',
+      'id_fiscalizador' => 'required|exists:usuario,id_usuario',
+      'juego' => 'required',
+      'apuesta_max' => 'nullable|numeric|max:900000',
+      'cant_lineas' => 'nullable|numeric|max:100000',
+      'porcentaje_devolucion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+      'denominacion' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'cant_creditos' => 'nullable|numeric| max:100',
+      'fecha_sala' => 'required|date',//fecha con dia y hora
+      'observaciones' => 'nullable|max:800',
+      'mac' => 'nullable|max:100',
+      'sectorRelevadoEv' => 'required',
+      'islaRelevadaEv' => 'required'
     ], array(), self::$atributos)->after(function($validator){
-        if($validator->getData()['juego']==0 ){
-            $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
-        }
+      $data = $validator->getData();
+      if($data['juego']==0 ){
+        $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
+      }
+      $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+      $log = $relevamiento->log_movimiento;
+    })->validate();
+    
+    $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+    $log = $relevamiento->log_movimiento;
+    $cant_rels = count($log->relevamientos_movimientos);
 
-        $log = LogMovimiento::find($validator->getData()['id_log_movimiento']);
-
-
-
-        $maquina = Maquina::find($validator->getData()['id_maquina']);
-        $aux=1;
-        $formula = $maquina->formula;
-        $contadores =$validator->getData()['contadores'];
-        //por cada contador valido que esté cargado si es que la formula tenía
-        //ese contador
-        /*
-        foreach ($contadores as $cont)
-        {
-            switch ($aux)
-            {
-              case 1:
-                if($formula->cont1 !=null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              case 2:
-                if($formula->cont2 != null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              case 3:
-                if($formula->cont3 !=null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              case 4:
-                if($formula->cont4 !=null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              case 5:
-                if($formula->cont5 !=null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              case 6:
-                if($formula->cont6 !=null && $cont['valor'] == "")
-                {
-                  $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
-                }
-                break;
-              default:
-                # code...
-                break;
-            }
-            $aux++;
-        }
-        */
-      })->validate();
-
-
-
-     if(isset($validator))
-      {
-        if ($validator->fails())
-        {
-          return [
-                'errors' => $validator>getMessageBag()->toArray()
-            ];
-        }
-     }
-
-
-     $log = LogMovimiento::find($request['id_log_movimiento']);
-     //$log->tipo_movimiento()->associate($request['tipo_movimiento']);
-     $cant_rels =count($log->relevamientos_movimientos);
-
-
-
-     //dump($request);
-     RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
+    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoEv( $request['id_maquina'] , $request['contadores'],
       $request['juego'] , $request['apuesta_max'], $request['cant_lineas'], $request['porcentaje_devolucion'], $request['denominacion'] ,
       $request['cant_creditos'], $request['fecha_sala'], $request['observaciones'],
       $request['id_cargador'], $request['id_fiscalizador'], $request['mac'],$request['id_log_movimiento'],
       $request['sectorRelevadoEv'],$request['islaRelevadaEv']
-      );
+    );
 
+    $id_usuario = session('id_usuario');
 
-      $id_usuario = session('id_usuario');
-
-     if($this->cargaFinalizadaEvMTM($log)){
-       $log->estado_movimiento()->associate(1);//notificado
-       $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
-       // notificaciones
-       $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,$id_usuario);
-       foreach ($usuarios as $user){
-         $u = Usuario::find($user->id_usuario);
+    if($this->cargaFinalizadaEvMTM($log)){
+      $log->estado_movimiento()->associate(1);//notificado
+      $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
+      // notificaciones
+      $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,$id_usuario);
+      foreach ($usuarios as $user){
+        $u = Usuario::find($user->id_usuario);
         if($u != null)  $u->notify(new NuevaIntervencionMTM($log));
-       }
-     }else{
-       $log->estado_movimiento()->associate(8);//cargando
-       $log->estado_relevamiento()->associate(2);
+      }
+     }
+     else{
+      $log->estado_movimiento()->associate(8);//cargando
+      $log->estado_relevamiento()->associate(2);
      }
      $log->save();
-
      return 1;
   }
 

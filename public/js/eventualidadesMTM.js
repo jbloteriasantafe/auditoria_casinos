@@ -201,12 +201,9 @@ $(document).on('click','.cargarMaq',function(){
   ocultarErrorValidacion($('#fechaRel'));
 
   $('#detallesMTM').show();
-  const id_maq = $(this).attr('id');
-  console.log('id_maquina', id_maq);
-
-  $('#guardarRel').attr('data-maq',id_maq);
 
   const id_rel = $(this).attr('data-rel');
+  $('#guardarRel').attr('data-rel',id_rel);
   $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
     if(data.fecha != null){ 
       $('#fechaRel').val(data.fecha);
@@ -228,8 +225,7 @@ $(document).on('click','#guardarRel',function(){
 
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
-    id_log_movimiento: $('#guardarRel').attr('data-mov'),
-    id_maquina: $('#guardarRel').attr('data-maq'),
+    id_relev_mov: $('#guardarRel').attr('data-rel'),
     id_cargador: $('#fiscaCarga').attr('data-id'),
     id_fiscalizador: $('#fiscaToma').obtenerElementoSeleccionado(),
     contadores: datos.contadores,

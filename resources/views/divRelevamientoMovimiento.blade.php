@@ -317,7 +317,7 @@ function mostrarErroresDiv(response){
     });
     return err;
 }
-function cargarRelevamientos(relevamientos,dibujos = {},id_fiscalizacion = -1,estado_listo = -1){
+function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
     $('#tablaCargarMTM tbody').empty();
     relevamientos.forEach(r => {
       let fila = $('<tr>');
@@ -337,7 +337,6 @@ function cargarRelevamientos(relevamientos,dibujos = {},id_fiscalizacion = -1,es
           .addClass('btn btn-info cargarMaq')
           .attr('id', r.id_maquina)
           .attr('data-rel', r.id_relevamiento)
-          .attr('data-fisc', id_fiscalizacion)
         )
       );
       fila.append($('<td>')
