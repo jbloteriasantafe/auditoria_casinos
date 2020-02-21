@@ -8,33 +8,21 @@ function denominacionToFloat(den) {
 
 //Convierte los errores standard de laravel a lenguaje normal.
 function parseError(response){
-    if(response == 'validation.unique'){
-        return 'El valor tiene que ser único y ya existe el mismo.';
-    }
-    else if(response == 'validation.required'){
-        return 'El campo es obligatorio.'
-    }
-    else if(response == 'validation.max.string'){
-        return 'El valor es muy largo.'
-    }
-    else if(response == 'validation.exists'){
-        return 'El valor no es valido.';
-    }
-    else if(response == 'validation.min.numeric'){
-        return 'El valor no es valido.';
-    }
-    else if(response == 'validation.integer'){
-        return 'El valor tiene que ser un número entero.';
-    }
-    else if(response == 'validation.regex'){
-        return 'El valor no es valido.';
-    }
-    else if(response == 'validation.required_if'){
-        return 'El valor es requerido';
-    }
-    else if(response == 'validation.required_with'){
-        return 'El valor es requerido';
-    }
+    errors = {
+        'validation.unique'       :'El valor tiene que ser único y ya existe el mismo.',
+        'validation.required'     :'El campo es obligatorio.',
+        'validation.max.string'   :'El valor es muy largo.',
+        'validation.exists'       :'El valor no es valido.',
+        'validation.min.numeric'  :'El valor no es valido.',
+        'validation.integer'      :'El valor tiene que ser un número entero.',
+        'validation.regex'        :'El valor no es valido.',
+        'validation.required_if'  :'El valor es requerido.',
+        'validation.required_with':'El valor es requerido.',
+        'validation.before'       :'El valor supera el limite.',
+        'validation.after'        :'El valor precede el limite.',
+        'validation.max.numeric'  :'El valor supera el limite.',
+    };
+    if(response in errors) return errors[response];
     return response;
 }
   

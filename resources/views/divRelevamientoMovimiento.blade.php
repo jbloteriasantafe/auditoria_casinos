@@ -18,12 +18,11 @@
     </div>
     <div class="col-md-2">
         <h5>Fecha Ejecución: </h5>
-        <div class='input-group date' id='relFecha' data-link-field="fecha_ejecucionRel" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii:ss">
-        <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel"  data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" />
-        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+        <div class='input-group date' id='relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
+            <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
+            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
         </div>
-        <input type="hidden" id="fecha_ejecucionRel" value=""/>
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
@@ -176,6 +175,20 @@
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
+function initDivRelevamientoMovimiento(){
+    $('#relFecha').datetimepicker({
+        todayBtn:  1,
+        language:  'es',
+        autoclose: 1,
+        todayHighlight: 1,
+        pickerPosition: "bottom-left",
+        startView: 1,
+        minView: 0,
+        minuteStep: 5,
+        ignoreReadonly: true,
+        maxDate: 0
+    });
+}
 function obtenerDatosDivRelevamiento(){
     let contadores= [];
     $('#tablaCargarContadores tbody tr').each(function(){
@@ -213,7 +226,7 @@ function obtenerDatosDivRelevamiento(){
         usuario_carga: {nombre: $('#fiscaCarga').val(), id_usuario: $('#fiscaCarga').attr('data-id')},
         usuario_toma:  {nombre: $('#fiscaToma').val() , id_usuario: $('#fiscaToma').obtenerElementoSeleccionado()},
         //Valores relevados
-        fecha_ejecucion: $('#fecha_ejecucionRel').val(),
+        fecha_ejecucion: $('#fechaRel').val(),
         mac: $('#macCargar').val(),
         isla_rel: $('#islaRelevadaCargar').val(),
         sector_rel: $('#sectorRelevadoCargar').val(),
@@ -257,20 +270,8 @@ function limpiarDivRelevamiento(){
     $('#islaRelevadaCargar').val('');
     $('#observacionesToma').val('');
     $('#tomaProgresivo tbody').empty();
-    $('#relFecha').datetimepicker('destroy');
-    $('#relFecha').datetimepicker({
-        todayBtn:  1,
-        language:  'es',
-        autoclose: 1,
-        todayHighlight: 1,
-        pickerPosition: "bottom-left",
-        format: 'YYYY-MM-DD HH:II:SS',
-        startView: 2,
-        minView: 0,
-        ignoreReadonly: true,
-        minuteStep: 5,
-        container: $('#modalCargarRelMov'),
-    });
+    $('#relFecha').datetimepicker('update','');
+    $('#fechaRel').val('');
 }
 function agregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
@@ -359,7 +360,7 @@ function mostrarErroresDiv(response){
     const errores = { 
         'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
         'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
-        'sectorRelevadoCargar' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
+        'sector_relevado' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
         'id_fiscalizador' : $('#fiscaToma'),'fecha_sala' : $('#fechaRel')
     };
     let err = false;

@@ -25,6 +25,7 @@ $(document).ready(function(){
   });
 
   $('#btn-buscarRelMov').click();
+  initDivRelevamientoMovimiento();
 });
 
 $('#fechaRel').on('change', function (e) {
@@ -93,7 +94,7 @@ $(document).on('click','#guardarRel',function(){
     observaciones:               datos.observaciones,
     mac:                         datos.mac,
     isla_relevada:               datos.isla_rel,
-    sectorRelevadoCargar:        datos.sector_rel,
+    sector_relevado:             datos.sector_rel,
     progresivos:                 datos.progresivos
   }
 

@@ -809,7 +809,7 @@ class LogMovimientoController extends Controller
         'contadores.*.nombre' =>'nullable',
         'contadores.*.valor' => ['required_with:contadores.*.nombre','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'juego' => 'required|exists:juego,id_juego',
-        'sectorRelevadoCargar' => 'required',
+        'sector_relevado' => 'required',
         'isla_relevada' => 'required',
         'apuesta_max' => 'required|numeric|max:900000',
         'cant_lineas' => 'required|numeric|max:100000',
@@ -833,6 +833,14 @@ class LogMovimientoController extends Controller
           $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
         }
       }
+      $fiscalizacion = $relevamiento->fiscalizacion;
+      $fecha_limite_inferior = null;
+      $fecha_sala = strtotime($data['fecha_sala']);
+      if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
+      else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
+      $fecha_limite_inferior = strtotime($fecha_limite_inferior);
+      if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
+      if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
     })->validate();
 
     $relevamiento = RelevamientoMovimiento::find($request->id_rel_mov);
@@ -863,7 +871,7 @@ class LogMovimientoController extends Controller
       $request['fecha_sala'],
       $request['observaciones'],
       $request['isla_relevada'],
-      $request['sectorRelevadoCargar'],
+      $request['sector_relevado'],
       $request->id_fiscalizacion_movimiento,
       $request->id_cargador,
       $request->id_fiscalizador, $request['mac'],$request['es_cargaT2']
@@ -1852,12 +1860,23 @@ class LogMovimientoController extends Controller
       'fecha_sala' => 'required|date',//fecha con dia y hora
       'observaciones' => 'nullable|max:800',
       'mac' => 'nullable|max:100',
-      'sectorRelevadoEv' => 'required',
-      'islaRelevadaEv' => 'required'
+      'sector_relevado' => 'required',
+      'isla_relevada' => 'required'
     ], array(), self::$atributos)->after(function($validator){
-      $data = $validator->getData();
-      if($data['juego']==0 ){
-        $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
+      if(count($validator->errors()) == 0){
+        $data = $validator->getData();
+        if($data['juego']==0 ){
+          $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
+        }
+        $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+        $fiscalizacion = $relevamiento->fiscalizacion;
+        $fecha_limite_inferior = null;
+        $fecha_sala = strtotime($data['fecha_sala']);
+        if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
+        else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
+        $fecha_limite_inferior = strtotime($fecha_limite_inferior);
+        if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
+        if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
       }
     })->validate();
     
@@ -1870,7 +1889,7 @@ class LogMovimientoController extends Controller
       $request['apuesta_max'],  $request['cant_lineas'],   $request['porcentaje_devolucion'], 
       $request['denominacion'], $request['cant_creditos'], $request['fecha_sala'], 
       $request['observaciones'],$request['id_cargador'],   $request['id_fiscalizador'], 
-      $request['mac'],$log->id_log_movimiento, $request['sectorRelevadoEv'], $request['islaRelevadaEv']
+      $request['mac'],$log->id_log_movimiento, $request['sector_relevado'], $request['isla_relevada']
     );
 
     if($this->cargaFinalizadaEvMTM($log)){

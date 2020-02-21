@@ -25,6 +25,7 @@ $(document).ready(function(){
   });
 
    $('#btn-buscarEventualidadMTM').trigger('click');
+   initDivRelevamientoMovimiento();
 });
 
 $('#cantidad').on('keypress',function(e){
@@ -181,8 +182,8 @@ $(document).on('click','#guardarRel',function(){
     fecha_sala:            datos.fecha_ejecucion,
     observaciones:         datos.observaciones,
     mac:                   datos.mac,
-    islaRelevadaEv:        datos.isla_rel,
-    sectorRelevadoEv:      datos.sector_rel,
+    isla_relevada:         datos.isla_rel,
+    sector_relevado:       datos.sector_rel,
     progresivos:           datos.progresivos
   };
 
