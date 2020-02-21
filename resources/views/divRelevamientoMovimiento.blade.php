@@ -242,36 +242,14 @@ function obtenerDatosDivRelevamiento(){
     };
 }
 function limpiarDivRelevamiento(){
-    ocultarErrorValidacion($('#juegoRel'));
-    ocultarErrorValidacion($('#apuesta'));
-    ocultarErrorValidacion($('#cant_lineas'));
-    ocultarErrorValidacion($('#creditos'));
-    ocultarErrorValidacion($('#denominacion'));
-    ocultarErrorValidacion($('#devolucion'));
-    ocultarErrorValidacion($('#fiscaToma'));
-    ocultarErrorValidacion($('#fechaRel'));
-    $('#fechaRel').val('');
-    $('#fiscaToma').val('');
-    $('#nro_islaMov').val('');
-    $('#nro_adminMov').val('');
-    $('#nro_serieMov').val('');
-    $('#marcaMov').val('');
-    $('#modeloMov').val('');
+    $('#modalCargarRelMov .alerta').each(function(){
+        ocultarErrorValidacion($(this));
+    });
+    $('#modalCargarRelMov input').not('#inputTipoMov,#inputSentido').val('');
     $('#tablaCargarContadores tbody').empty();
     $('#juegoRel').empty();
-    $('#apuesta').val('');
-    $('#cant_lineas').val('');
-    $('#devolucion').val('');
-    $('#denominacion').val('');
-    $('#creditos').val('');
-    $('#observacionesToma').val('');
-    $('#macCargar').val('');
-    $('#sectorRelevadoCargar').val('');
-    $('#islaRelevadaCargar').val('');
-    $('#observacionesToma').val('');
     $('#tomaProgresivo tbody').empty();
     $('#relFecha').datetimepicker('update','');
-    $('#fechaRel').val('');
 }
 function agregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
