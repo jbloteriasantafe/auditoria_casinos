@@ -318,214 +318,12 @@
 
         <div class="modal-footer">
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
-          <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+          <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">SALIR</button>
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
     </div> <!-- modal content -->
   </div> <!-- modal dialog -->
 </div> <!-- modal fade -->
-
-
-
-<!-- **************MODAL DE VALIDACIÓN **********************-->
-<div class="modal fade" id="modalValidacionEventualidadMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog" style="width: 90%">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-              <h3 class="modal-title modalVerMas" id="myModalLabel">VISAR MTMs</h3>
-            </div>
-          <div id="colapsado" class="collapse in">
-            <div class="modal-body" style="font-family: Roboto;">
-              <div class="row">
-                <div class="col-md-3">
-                  <h5>Máquinas</h5>
-                  <table id="tablaMaquinasFiscalizacion" class="table">
-                    <thead>
-                      <tr>
-                        <th> </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-md-9">
-                  <div class="detalleMaqVal">
-                    <h5>DETALLES</h5>
-                    <div class="row">
-                      <div class="col-lg-3">
-                        <h5>Tipo Mov.</h5>
-                        <input id="tipo_movVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div>
-                      <div class="col-lg-3">
-                        <h5>Fecha</h5>
-                        <input id="fecha_Val" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div> 
-                      <div class="col-lg-3">
-                        <h5>Fiscalizador Toma</h5>
-                        <input id="f_tomaVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div> 
-                      <div class="col-lg-3">
-                        <h5>Fiscalizador Carga</h5>
-                        <input id="f_cargaVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div> 
-                    </div>
-                    <div class="row" >
-                      <div class="col-lg-4">
-                        <h5>Nro Admin.</h5>
-                        <input id="nro_adminVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div> 
-                      <div class="col-lg-4">
-                        <h5>N° Isla</h5>
-                        <input id="nro_islaVal" type="text" class="form-control" readonly="readonly" >
-                        <br>
-                      </div> 
-                      <div class="col-lg-4">
-                        <h5>N° Serie</h5>
-                        <input id="nro_serieVal" type="text" class="form-control" readonly="readonly" >
-                        <br>
-                      </div>
-                    </div> 
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <h5>Marca</h5>
-                        <input id="marcaVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div> 
-                      <div class="col-lg-4">
-                        <h5>Modelo</h5>
-                        <input id="modeloVal" type="text" class="form-control" readonly="readonly">
-                        <br>
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>MAC</h5>
-                        <input id="macVal" type="text" class="form-control">
-                        <br>
-                        <span id="alerta_macVal" class="alertaSpan"></span>
-                      </div>
-                    </div> 
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <h5>SECTOR</h5>
-                        <input id="sectorRelevadoVal" type="text" value="" class="form-control">
-                        <br>
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>ISLA</h5>
-                        <input id="islaRelevadaVal" type="text" value="" class="form-control">
-                        <br>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <table id="tablaValidarContadores" class="table">
-                        <thead>
-                          <tr>
-                            <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                            <th class="col-xs-6"><h6><b>TOMA</b></h6></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                      </table>
-                    </div>  
-                    <h6>TOMA</h6>
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <h5>JUEGO</h5>
-                          <input id="juego" type="text" class="form-control" readonly="readonly">
-                          <br>
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>APUESTA MÁX</h5>
-                        <input id="apuesta" type="text" class="form-control" readonly="readonly">
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>CANT LÍNEAS</h5>
-                        <input id="cant_lineas" type="text" class="form-control" readonly="readonly">
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <h5>% DEVOLUCIÓN</h5>
-                        <input id="devolucion" type="text" class="form-control" readonly="readonly">
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>DENOMINACIÓN</h5>
-                        <input id="denominacion" type="text" class="form-control" readonly="readonly">
-                      </div>
-                      <div class="col-lg-4">
-                        <h5>CANT CRÉDITOS</h5>
-                        <input id="creditos" type="text" class="form-control" readonly="readonly">
-                      </div>
-                    </div>
-                    <div id="toma2">
-                      <h6>TOMA 1</h6>
-                      <div class="row">
-                        <div class="col-lg-4">
-                          <h5>JUEGO</h5>
-                          <input id="juego1" type="text" class="form-control" readonly="readonly">
-                          <br>
-                        </div>
-                        <div class="col-lg-4">
-                          <h5>APUESTA MÁX</h5>
-                          <input id="apuesta1" type="text" class="form-control" readonly="readonly">
-                        </div>
-                        <div class="col-lg-4">
-                          <h5>CANT LÍNEAS</h5>
-                          <input id="cant_lineas1" type="text" class="form-control" readonly="readonly">
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-4">
-                          <h5>% DEVOLUCIÓN</h5>
-                          <input id="devolucion1" type="text" class="form-control" readonly="readonly">
-                        </div>
-                        <div class="col-lg-4">
-                          <h5>DENOMINACIÓN</h5>
-                          <input id="denominacion1" type="text" class="form-control" readonly="readonly">
-                        </div>
-                        <div class="col-lg-4">
-                          <h5>CANT CRÉDITOS</h5>
-                          <input id="creditos1" type="text" class="form-control" readonly="readonly">
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-lg-12">
-                        <h6>OBSERVACIONES:</h6>
-                        <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
-                    </div>
-                    @if($esControlador == 1 || $esSuperUsuario)
-                    <div class="col-lg-12">
-                      <h6>OBSERVACIONES ADMIN:</h6>
-                      <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
-                    </div>
-                    @endif
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
-            <input id="id_log_movimiento" type="text" name="" value="" hidden>
-            <input id="fecha_fiscalizacion" type="text" name="" value="" hidden>
-            <input id="relevamiento" type="text" name="" value="" hidden>
-            <input id="maquina" type="text" name="" value="" hidden>
-              <button id="errorValidacionEv" type="button" class="btn btn-default errorEv"  data-dismiss="modal" >CANCELAR</button>
-              <button id="enviarValidarEv" type="button" class="btn btn-default validarEv" value="" > VISAR </button>
-            </div>
-           </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <table hidden>
   <thead></thead>
@@ -540,6 +338,9 @@
       <td class="col-xs-1 casino">INVALIDO</td>
       <td class="col-xs-1 isla">999999</td>
       <td class="col-xs-3 accion">
+        <button class="btn btn-info btn_verEvmtm" title="VER">
+          <i class="fa fa-fw fa-search"></i>
+        </button>
         <button class="btn btn-info btn_imprimirEvmtm" title="IMPRIMIR">
           <i class="fa fa-fw fa-print"></i>
         </button>

@@ -189,7 +189,7 @@ $cas = $usuario['usuario']->casinos;
         <div class="modal-footer">
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
-          <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
+          <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">SALIR</button>
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
     </div> <!-- modal content -->

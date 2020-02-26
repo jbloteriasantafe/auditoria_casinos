@@ -6,29 +6,13 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
 
 <div id="divRelevamientoMovimiento">
 <div class="row"> 
-    <div class="col-md-3">
-        <h5>Fiscalizador Carga: </h5>
-        <input id="fiscaCarga" type="text"class="form-control">
-    </div>
-    <div class="col-md-2">
+    <div class="col-md-4 col-md-offset-2">
         <h5>Tipo Movimiento</h5>
         <input id="inputTipoMov" class="form-control" type="text" autocomplete="off" readonly="">
     </div>
-    <div class="col-md-2">
+    <div class="col-md-4">
         <h5>Sentido</h5>
         <input id="inputSentido" class="form-control" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
-    </div>
-    <div class="col-md-3">
-        <h5>Fiscalizador Toma: </h5>
-        <input id="fiscaToma" class="form-control editable" type="text" autocomplete="off">
-    </div>
-    <div class="col-md-2">
-        <h5>Fecha Ejecución: </h5>
-        <div class='input-group date' id='relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
-            <input type='text' class="form-control editable" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
-            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-        </div>
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
@@ -45,6 +29,24 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
         </table>
     </div> <!-- maquinas -->
     <div  id="detallesMTM" class="col-md-9">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Fiscalizador Carga: </h5>
+                <input id="fiscaCarga" type="text" class="form-control" disabled="true">
+            </div>
+            <div class="col-md-4">
+                <h5>Fiscalizador Toma: </h5>
+                <input id="fiscaToma" class="form-control editable" type="text" autocomplete="off">
+            </div>
+            <div class="col-md-4">
+                <h5>Fecha Ejecución: </h5>
+                <div class='input-group date' id='relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
+                    <input type='text' class="form-control editable" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
+                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+        </div>
         <h6>DETALLES MTM</h6>
         <form id="form1" class="" action="index.html" method="post">
         <div class="row" >
@@ -133,7 +135,7 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
             <h6>PROGRESIVOS</h6>
             <div class="row">
                 <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;max-height: 250px;">
-                    <h5 id="sinProgresivos" hidden>La maquina no posee progresivos asignados</h5>
+                    <h5 id="sinProgresivos" hidden>La toma no posee progresivos asignados</h5>
                     <table class="table table-fixed" id="tablaProgresivos">
                         <thead>
                             <tr>
@@ -181,23 +183,22 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
                     <textarea id="observacionesToma" class="form-control editable" style="resize:vertical;"></textarea>
                 </div>
             </div> <!-- FIN ULTIMO row -->
+            <div class="validacion">
             @if($divRelMov_user->es_controlador)
-            <h6>OBSERVACIONES ADMIN:</h6>
-            <div class="row">
-                <div class="col-lg-12">
-                    <textarea id="observacionesAdmin" class="form-control editable"  maxlength="200" style="resize:vertical;"></textarea>
+                <h6>OBSERVACIONES ADMIN:</h6>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
+                    </div>
                 </div>
-            </div>
-            <hr>
-            <div class="row">
-                <div class="col-lg-1 col-lg-offset-10">
-                    <button id="vErronea" type="button" class="btn btn-danger"><b>ERROR</b></button>
+                <hr>
+                <div class="row">
+                    <div class="col-lg-1 col-lg-offset-11">
+                        <button type="button" class="btn btn-success validar"><b>VISAR</b></button>
+                    </div>
                 </div>
-                <div class="col-lg-1">
-                    <button id="vCorrecta" type="button" class="btn btn-success"><b>VISAR</b></button>
-                </div>
-            </div>
             @endif
+            </div>
         </form>
     </div> <!-- fin detalle -->
 </div>
@@ -270,6 +271,7 @@ function obtenerDatosDivRelevamiento(){
         creditos: $('#creditos').val(),
         progresivos: progresivos,
         observaciones: $('#observacionesToma').val(),
+        observacionesAdm: $('#observacionesAdmin').val()
     };
 }
 function limpiarDivRelevamiento(){
@@ -395,9 +397,10 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
             )
         );
         fila.append($('<td>')
-            .addClass('col-xs-3')
-            .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
-            .attr('value', id_maquina))
+            .addClass('col-xs-3 listo')
+            .attr('data-maq', id_maquina)
+            .attr('data-rel', id_relevamiento)
+            .append($('<i>').addClass('fa fa-fw fa-check faFinalizado'))
         );
     };
     $('#tablaCargarMTM tbody').empty();
@@ -419,7 +422,7 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
           agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,0);
       }
 
-      fila.find('.listo').parent().toggle(r.id_estado_relevamiento == estado_listo);
+      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
       $('#tablaCargarMTM tbody').append(fila);
     });
 }
@@ -442,7 +445,6 @@ function setearUsuariosCargaToma(casino,cargador,fiscalizador){
     if(cargador){
         $('#fiscaCarga').attr('data-id',cargador.id_usuario);
         $('#fiscaCarga').val(cargador.nombre);
-        $('#fiscaCarga').prop('readonly',true);
     }
     if(fiscalizador){
       $('#fiscaToma').setearElementoSeleccionado(fiscalizador.id_usuario,fiscalizador.nombre);
@@ -452,8 +454,11 @@ function setearTipoMovimiento(tipo_movimiento,sentido){
     $('#inputTipoMov').val(tipo_movimiento);
     $('#inputSentido').val(sentido);
 }
-function marcarListaMaquina(id_maquina){
-    $('#tablaCargarMTM').find('.listo[value="'+id_maquina+'"]').show();
+function marcarListaMaquina(id_maquina,estado = true){
+    $('#tablaCargarMTM').find('.listo[data-maq="'+id_maquina+'"]').toggle(estado);
+}
+function marcarListaMaquinaPorIdRel(id_relev,estado = true){
+    $('#tablaCargarMTM').find('.listo[data-rel="'+id_relev+'"]').toggle(estado);
 }
 function cambiarDibujoMaquina(id_maquina,dibujo){
     let boton = $('#modalCargarRelMov')
@@ -461,8 +466,21 @@ function cambiarDibujoMaquina(id_maquina,dibujo){
     $(boton).empty();
     $(boton).append($('<i>').addClass(dibujo));
 }
-function divRelHabilitarEdicion(editable){
-    $('#divRelevamientoMovimiento .editable').attr('disabled',!editable);
-    $('#relFecha .input-group-addon').toggle(editable)
+function divRelSetearModo(modo){
+    if(modo == "VER"){
+        $('#divRelevamientoMovimiento .editable').attr('disabled',true);
+        $('#relFecha .input-group-addon').hide();
+        $('#divRelevamientoMovimiento .validacion').hide();
+    }
+    else if(modo == "CARGAR"){
+        $('#divRelevamientoMovimiento .editable').removeAttr('disabled');
+        $('#relFecha .input-group-addon').show();
+        $('#divRelevamientoMovimiento .validacion').hide();
+    }
+    else if(modo == "VALIDAR"){
+        $('#divRelevamientoMovimiento .editable').attr('disabled',true);
+        $('#relFecha .input-group-addon').hide();
+        $('#divRelevamientoMovimiento .validacion').show();
+    }
 }
 </script>

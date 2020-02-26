@@ -43,25 +43,34 @@ $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
-  mostrarFiscalizacion($(this).val(),false,true);
-});
-$(document).on('click','.btn-cargarT2RelMov',function(e){
-  mostrarFiscalizacion($(this).val(),true,true);
-});
-$(document).on('click','.btn-verRelMov',function(e){
-  mostrarFiscalizacion($(this).val(),false,false);
+  $('#modalCargarRelMov .modal-title').text('CARGAR RELEVAMIENTOS');
+  $('#modalCargarRelMov .modal-header').attr('style','background: #6dc7be');
+  mostrarFiscalizacion($(this).val(),false,"CARGAR");
 });
 
-function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma,editable){
+$(document).on('click','.btn-cargarT2RelMov',function(e){
+  $('#modalCargarRelMov .modal-title').text('CARGAR RELEVAMIENTOS - SEGUNDA TOMA');
+  $('#modalCargarRelMov .modal-header').attr('style','background: #6dc7be');
+  mostrarFiscalizacion($(this).val(),false,"CARGAR");
+});
+$(document).on('click','.btn-verRelMov',function(e){
+  $('#modalCargarRelMov .modal-title').text('VER RELEVAMIENTOS');
+  $('#modalCargarRelMov .modal-header').attr('style','background: #4FC3F7');
+  mostrarFiscalizacion($(this).val(),false,"VER");
+});
+
+function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma,modo){
   $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
-  $('#guardarRel').toggle(editable);
+  $('#guardarRel').toggle(modo == "CARGAR");
   esconderDetalleRelevamiento();
   $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
     setearUsuariosCargaToma(data.casino,data.cargador,data.fiscalizador);
     setearTipoMovimiento(data.tipo_movimiento,data.sentido);
+    let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
+    if(modo == "CARGAR") dibujos = {};
     const estado_listo = es_segunda_toma? 7 : 3;
-    cargarRelevamientos(data.relevamientos,{},estado_listo);
-    divRelHabilitarEdicion(editable);
+    cargarRelevamientos(data.relevamientos,dibujos,estado_listo);
+    divRelSetearModo(modo);
     $('#modalCargarRelMov').modal('show');
   });
 }
