@@ -43,20 +43,25 @@ $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
-  mostrarFiscalizacion($(this).val(),false);
+  mostrarFiscalizacion($(this).val(),false,true);
 });
 $(document).on('click','.btn-cargarT2RelMov',function(e){
-  mostrarFiscalizacion($(this).val(),true);
+  mostrarFiscalizacion($(this).val(),true,true);
+});
+$(document).on('click','.btn-verRelMov',function(e){
+  mostrarFiscalizacion($(this).val(),false,false);
 });
 
-function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
+function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma,editable){
   $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
+  $('#guardarRel').toggle(editable);
   esconderDetalleRelevamiento();
   $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
     setearUsuariosCargaToma(data.casino,data.cargador,data.fiscalizador);
     setearTipoMovimiento(data.tipo_movimiento,data.sentido);
     const estado_listo = es_segunda_toma? 7 : 3;
     cargarRelevamientos(data.relevamientos,{},estado_listo);
+    divRelHabilitarEdicion(editable);
     $('#modalCargarRelMov').modal('show');
   });
 }
@@ -64,8 +69,9 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma){
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
 $(document).on('click','.cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
+  const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);
-  $.get('movimientos/obtenerMTMFiscalizacion2/' + id_rel, function(data){
+  $.get('movimientos/obtenerMTMFiscalizacion2/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
     mostrarDetalleRelevamiento();

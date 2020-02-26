@@ -141,7 +141,7 @@ $(document).on('click', '.btn_cargarEvmtm', function(){
     console.log('88',data);
     setearUsuariosCargaToma(data.casino,data.fiscalizador_carga,null);
     setearTipoMovimiento(data.tipo_movimiento,data.sentido);
-    cargarRelevamientos(data.maquinas,{3 : 'fa-pencil-alt'},-1,-1);
+    cargarRelevamientos(data.relevamientos,{3 : 'fa-pencil-alt'},-1,-1);
     $('#modalCargarRelMov').modal('show');
   })
 });

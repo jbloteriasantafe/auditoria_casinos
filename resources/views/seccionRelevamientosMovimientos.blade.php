@@ -147,6 +147,9 @@ $cas = $usuario['usuario']->casinos;
     <td class="col-xs-1 casino">CASINO</td>
     <td class="col-xs-2 maquinas">9999,999,9,9,99,,99</td>
     <td class="col-xs-2 accion">
+      <button class="btn btn-success btn-verRelMov" title="VER">
+        <i class="fa fa-fw fa-search"></i>
+      </button>
       <button class="btn btn-success btn-generarRelMov" title="GENERAR">
         <i class="far fa-file"></i>
       </button>
@@ -179,7 +182,7 @@ $cas = $usuario['usuario']->casinos;
       </div> <!-- modal header -->
 
       <div  id="colapsado" class="collapse in">
-          <div class="modal-body" style="font-family: Roboto;">
+        <div class="modal-body">
           @include('divRelevamientoMovimiento')
         </div>  <!-- modal body -->
 

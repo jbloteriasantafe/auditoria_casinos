@@ -1,4 +1,10 @@
-<div>
+<?php
+use App\Http\Controllers\UsuarioController;
+$divRelMov_ucontrol = UsuarioController::getInstancia(); 
+$divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
+?>
+
+<div id="divRelevamientoMovimiento">
 <div class="row"> 
     <div class="col-md-3">
         <h5>Fiscalizador Carga: </h5>
@@ -6,20 +12,20 @@
     </div>
     <div class="col-md-2">
         <h5>Tipo Movimiento</h5>
-        <input id="inputTipoMov" class="form-control" type="text" value="" autocomplete="off" readonly="">
+        <input id="inputTipoMov" class="form-control" type="text" autocomplete="off" readonly="">
     </div>
     <div class="col-md-2">
         <h5>Sentido</h5>
-        <input id="inputSentido" class="form-control" type="text" value="" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+        <input id="inputSentido" class="form-control" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
     </div>
     <div class="col-md-3">
         <h5>Fiscalizador Toma: </h5>
-        <input id="fiscaToma" class="form-control" type="text" value="" autocomplete="off">
+        <input id="fiscaToma" class="form-control editable" type="text" autocomplete="off">
     </div>
     <div class="col-md-2">
         <h5>Fecha Ejecución: </h5>
         <div class='input-group date' id='relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
-            <input type='text' class="form-control" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
+            <input type='text' class="form-control editable" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
             <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
             <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
         </div>
@@ -68,15 +74,15 @@
             <div class="row">
                 <div class="col-lg-4">
                     <h5>MAC</h5>
-                    <input id="macCargar" type="text" value="" class="form-control">
+                    <input id="macCargar" type="text" class="form-control editable">
                 </div>
                 <div class="col-lg-4">
                     <h5>SECTOR</h5>
-                    <input id="sectorRelevadoCargar" type="text" value="" class="form-control">
+                    <input id="sectorRelevadoCargar" type="text" class="form-control editable">
                 </div>
                 <div class="col-lg-4">
                     <h5>ISLA</h5>
-                    <input id="islaRelevadaCargar" type="text" value="" class="form-control">
+                    <input id="islaRelevadaCargar" type="text" class="form-control editable">
                 </div>
             </div>
             <div class="row">
@@ -97,31 +103,31 @@
             <div class="row"> 
                 <div class="col-lg-4">
                     <h5>JUEGO</h5>
-                    <select id="juegoRel" class="form-control" name="">
+                    <select id="juegoRel" class="form-control editable">
                         <option value=""></option>
                     </select>
                 </div>
                 <div class="col-lg-4">
                     <h5>APUESTA MÁX</h5>
-                    <input id="apuesta" type="text" value="" class="form-control">
+                    <input id="apuesta" type="text" class="form-control editable">
                 </div>
                 <div class="col-lg-4">
                     <h5>CANT LÍNEAS</h5>
-                    <input id="cant_lineas" type="text" value="" class="form-control">
+                    <input id="cant_lineas" type="text" class="form-control editable">
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-4">
                     <h5>% DEVOLUCIÓN</h5>
-                    <input id="devolucion" type="text" value="" class="form-control">
+                    <input id="devolucion" type="text" class="form-control editable">
                 </div>
                 <div class="col-lg-4">
                     <h5>DENOMINACIÓN</h5>
-                    <input id="denominacion" type="text" value="" class="form-control">
+                    <input id="denominacion" type="text" class="form-control editable">
                 </div>
                 <div class="col-lg-4">
                     <h5>CANT CRÉDITOS</h5>
-                    <input id="creditos" type="text" value="" class="form-control">
+                    <input id="creditos" type="text" class="form-control editable">
                 </div>
             </div>
             <h6>PROGRESIVOS</h6>
@@ -148,11 +154,11 @@
                     <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
                     @for ($i=6;$i>0;$i--)
                     <td width="11%">
-                    <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                    <input class="nivel{{$i}} form-control editable" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                     </td>
                     @endfor
                     <td width="17%">
-                    <select class="causaNoToma form-control">
+                    <select class="causaNoToma form-control editable">
                         <option value="-1"></option>
                         @foreach($causasNoTomaProgresivo as $causa)
                         <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
@@ -161,12 +167,37 @@
                     </td>
                 </tr>
             </table>
+            <table hidden>
+                <tr id="filaEjemploContador">
+                    <td class="col-xs-6 cont" data-contador=""></td>
+                    <td class="col-xs-6">
+                        <input class="form-control editable vcont valorModif">
+                    </td>
+                </tr>
+            </table>
             <h6>OBSERVACIONES</h6>
             <div class="row">
                 <div class="col-lg-12">
-                    <textarea id="observacionesToma" value="" class="form-control" style="resize:vertical;"></textarea>
+                    <textarea id="observacionesToma" class="form-control editable" style="resize:vertical;"></textarea>
                 </div>
             </div> <!-- FIN ULTIMO row -->
+            @if($divRelMov_user->es_controlador)
+            <h6>OBSERVACIONES ADMIN:</h6>
+            <div class="row">
+                <div class="col-lg-12">
+                    <textarea id="observacionesAdmin" class="form-control editable"  maxlength="200" style="resize:vertical;"></textarea>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-lg-1 col-lg-offset-10">
+                    <button id="vErronea" type="button" class="btn btn-danger"><b>ERROR</b></button>
+                </div>
+                <div class="col-lg-1">
+                    <button id="vCorrecta" type="button" class="btn btn-success"><b>VISAR</b></button>
+                </div>
+            </div>
+            @endif
         </form>
     </div> <!-- fin detalle -->
 </div>
@@ -253,24 +284,15 @@ function limpiarDivRelevamiento(){
 }
 function agregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
-        let fila = $('<tr>');
+        let fila = $('#filaEjemploContador').clone().removeAttr('id');
         let nombre_cont = maquina["cont" + i];
         if(nombre_cont === null) continue;
-
         let val_cont = null;
         if(toma != null){
             val_cont = toma["vcont" + i];
         }
-
-        fila.append($('<td>').addClass('col-xs-6').text(nombre_cont));
-        fila.attr('data-contador',nombre_cont);
-        fila.append($('<td>').addClass('col-xs-6')
-        .append($('<input>').addClass('valorModif form-control'))
-        );
-        if(val_cont != null){
-            fila.find('input').val(val_cont);
-        }
-
+        fila.find('.cont').text(nombre_cont).attr('data-contador',nombre_cont);
+        fila.find('.vcont').val(val_cont != null? val_cont : '');
         $('#tablaCargarContadores tbody').append(fila);
     }
 }
@@ -359,6 +381,25 @@ function mostrarErroresDiv(response){
     return err;
 }
 function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
+    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,toma){
+        fila.append($('<td>')
+            .addClass('col-xs-3')
+            .append($('<button>')
+            .append($('<i>')
+            .addClass('fa').addClass('fa-fw').addClass(dibujo))
+            .attr('type','button')
+            .addClass('btn btn-info cargarMaq')
+            .attr('id', id_maquina)
+            .attr('data-rel', id_relevamiento)
+            .attr('toma',toma)
+            )
+        );
+        fila.append($('<td>')
+            .addClass('col-xs-3')
+            .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
+            .attr('value', id_maquina))
+        );
+    };
     $('#tablaCargarMTM tbody').empty();
     relevamientos.forEach(r => {
       let fila = $('<tr>');
@@ -369,23 +410,16 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
           .addClass('col-xs-5')
           .text(r.nro_admin)
       );
-      fila.append($('<td>')
-          .addClass('col-xs-3')
-          .append($('<button>')
-          .append($('<i>')
-          .addClass('fa').addClass('fa-fw').addClass(dibujo))
-          .attr('type','button')
-          .addClass('btn btn-info cargarMaq')
-          .attr('id', r.id_maquina)
-          .attr('data-rel', r.id_relevamiento)
-        )
-      );
-      fila.append($('<td>')
-        .addClass('col-xs-3')
-        .append($('<i>').addClass('fa fa-fw fa-check faFinalizado').addClass('listo')
-          .attr('value', r.id_maquina))
-      );
-      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
+      let i = 0;//Multiples tomas estan deprecadas pero esto está por compatibilidad para atras
+      for(;i<r.tomas;i++){
+          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,i+1);
+      }
+      //El relevamiento no tiene tomas, se va a crear una cuando le mande guardar.
+      if(i == 0){
+          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,0);
+      }
+
+      fila.find('.listo').parent().toggle(r.id_estado_relevamiento == estado_listo);
       $('#tablaCargarMTM tbody').append(fila);
     });
 }
@@ -426,5 +460,9 @@ function cambiarDibujoMaquina(id_maquina,dibujo){
     .find('.cargarMaq[id='+id_maquina+']')[0];
     $(boton).empty();
     $(boton).append($('<i>').addClass(dibujo));
+}
+function divRelHabilitarEdicion(editable){
+    $('#divRelevamientoMovimiento .editable').attr('disabled',!editable);
+    $('#relFecha .input-group-addon').toggle(editable)
 }
 </script>

@@ -705,13 +705,15 @@ class LogMovimientoController extends Controller
                             'id_relevamiento' => $rel->id_relev_mov,
                             'estado'          => $rel->estado_relevamiento,
                             'nro_admin'       => $rel->maquina->nro_admin,
-                            'id_maquina'      => $rel->maquina->id_maquina
+                            'id_maquina'      => $rel->maquina->id_maquina,
+                            'tomas'           => $rel->toma_relevamiento_movimiento()->count()
                           ];
     }
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
-            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 'casino' => $log->casino];
+            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 
+            'casino' => $log->casino];
   }
 
   //se usa sólo para cargar los relevamientos - desde los fiscalizadores
@@ -760,8 +762,8 @@ class LogMovimientoController extends Controller
     return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma, 'fiscalizador'=> $fisca, 'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
   }
 
-  public function obtenerMTMFiscalizacion2($id_relevamiento){
-    return $this->obtenerMTMEv($id_relevamiento);
+  public function obtenerMTMFiscalizacion2($id_relevamiento,$nro_toma = 1){
+    return $this->obtenerMTMEv($id_relevamiento,$nro_toma);
   }
 
   public function generarPlanillasRelevamientoMovimiento($id_fiscalizacion_movimiento){
@@ -1553,7 +1555,7 @@ class LogMovimientoController extends Controller
   //INTERVENCIONES MTM
 
   //se usa en el validar eventualidades
-  public function obtenerMTMEv($id_relevamiento){
+  public function obtenerMTMEv($id_relevamiento,$nro_toma = 1){
     $rel = RelevamientoMovimiento::find($id_relevamiento);
 
     $mtm = DB::table('maquina')
@@ -1569,11 +1571,11 @@ class LogMovimientoController extends Controller
     $maquina = Maquina::find($rel->id_maquina);
     $juegos = $maquina->juegos;
 
-    $toma=null;
+    $toma = null;
     $fecha = null;
     $fisca = null;//fisca que hizp la toma del relevamiento
     $cargador = null;//fisca cargador
-    $nombre= null;
+    $nombre = null;
 
     if($rel->id_fisca != null) $fisca = Usuario::find($rel->id_fisca);
     if($rel->id_cargador != null){
@@ -1582,10 +1584,13 @@ class LogMovimientoController extends Controller
       $cargador = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     }
 
-    if(count($rel->toma_relevamiento_movimiento) >0){
-      $toma=$rel->toma_relevamiento_movimiento->first();
-      $fecha = $rel->fecha_relev_sala;
-      $nombre= Juego::find($toma->juego)->nombre_juego;
+    if($nro_toma <= 0) $nro_toma = 1;
+    if($rel->toma_relevamiento_movimiento()->count() > 0){
+      $toma = $rel->toma_relevamiento_movimiento()->skip($nro_toma - 1)->first();
+      if(!is_null($toma)){
+        $fecha = $rel->fecha_relev_sala;
+        $nombre= Juego::find($toma->juego)->nombre_juego;
+      }
     }
 
     $progresivos = [];
@@ -1958,17 +1963,20 @@ class LogMovimientoController extends Controller
   public function relevamientosEvMTM($id_log_mov){
     $log = LogMovimiento::find($id_log_mov);
     $relevamientos = $log->relevamientos_movimientos;
-    $maquinas = array();
+    $relevamientos_arr = array();
     foreach ($relevamientos as $rel) {
-      $maquinas[] = ['id_relevamiento' => $rel->id_relev_mov,
-                      'estado' => $rel->estado_relevamiento,
+      $relevamientos_arr[] = [
+                     'id_relevamiento' => $rel->id_relev_mov,
+                     'estado' => $rel->estado_relevamiento,
                      'nro_admin' => $rel->maquina->nro_admin,
-                     'id_maquina' => $rel->maquina->id_maquina
+                     'id_maquina' => $rel->maquina->id_maquina,
+                     'tomas' => $rel->toma_relevamiento_movimiento()->count()
                    ];
     }
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
-    return ['maquinas'=>$maquinas,'fiscalizador_carga'=> $user,'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido,
+    return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => null,
+            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido,
             'casino' => $log->casino];
   }
 
