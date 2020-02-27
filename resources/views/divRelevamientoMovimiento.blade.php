@@ -383,7 +383,7 @@ function mostrarErroresDiv(response){
     return err;
 }
 function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
-    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,toma){
+    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,nro_toma){
         fila.append($('<td>')
             .addClass('col-xs-3')
             .append($('<button>')
@@ -391,9 +391,9 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
             .addClass('fa').addClass('fa-fw').addClass(dibujo))
             .attr('type','button')
             .addClass('btn btn-info cargarMaq')
-            .attr('id', id_maquina)
+            .attr('data-maq', id_maquina)
             .attr('data-rel', id_relevamiento)
-            .attr('toma',toma)
+            .attr('toma',nro_toma)
             )
         );
         fila.append($('<td>')
@@ -462,7 +462,7 @@ function marcarListaMaquinaPorIdRel(id_relev,estado = true){
 }
 function cambiarDibujoMaquina(id_maquina,dibujo){
     let boton = $('#modalCargarRelMov')
-    .find('.cargarMaq[id='+id_maquina+']')[0];
+    .find('.cargarMaq[data-maq='+id_maquina+']')[0];
     $(boton).empty();
     $(boton).append($('<i>').addClass(dibujo));
 }

@@ -295,11 +295,14 @@ $('#mensajeExito .confirmar').click(function (e) {
   setTimeout(function () {
     if (ultimo_boton_carga != null) ultimo_boton_carga.click();
   }, 150);
+  $('#btn-buscarMovimiento').click();
 });
 
 /* Detecta la negativa para seguir cargando máquinas en movimientos */
 $('#mensajeExito .salir').click(function (e) {
   limpiarModal();//seccionMaquinas-Modal.js
+  $('#mensajeExito').hide();
+  $('#btn-buscarMovimiento').click();
 });
 
 /* 

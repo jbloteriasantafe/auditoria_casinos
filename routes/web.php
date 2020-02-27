@@ -265,13 +265,9 @@ Route::get('movimientos/casinosYMovimientos','LogMovimientoController@casinosYMo
 Route::get('movimientos/casinosYMovimientosIngresosEgresos','LogMovimientoController@casinosYMovimientosIngresosEgresos');
 Route::get('movimientos','LogMovimientoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_movimientos');
 Route::post('movimientos/buscarLogsMovimientos','LogMovimientoController@buscarLogsMovimientos');
-Route::post('movimientos/generarRelevamientosMovimientosIngreso', 'LogMovimientoController@generarRelevamientosMovimientosIngreso');
 Route::post('movimientos/enviarAFiscalizar', 'LogMovimientoController@enviarAFiscalizar');
 Route::get('movimientos/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
 Route::post('movimientos/guardarMaquina', 'MTMController@guardarMaquina');
-Route::get('movimientos/guardarLogMovimiento/{id_controlador}/{id_expediente}/{cantidad_maq}','LogMovimientoController@guardarLogMovimiento');
-Route::get('movimientos/generarPlanillaMovimientos','LogMovimientoController@generarPlanillaMovimientos');
-Route::get('movimientos/generarPlanillaEventualidades','LogMovimientoController@generarPlanillaEventualidades');
 Route::post('movimientos/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
 Route::post('movimientos/guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');
 Route::get('movimientos/buscarMaquinasMovimiento/{id}','LogMovimientoController@buscarMaquinasMovimiento');
@@ -310,7 +306,7 @@ Relevamientos
 
 Route::get('relevamientos_movimientos','LogMovimientoController@obtenerFiscalizaciones')->middleware('tiene_permiso:ver_seccion_relevamientos_movimientos');
 Route::post('relevamientos_movimientos/buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
-Route::get('relevamientos_movimientos/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacion');
+Route::get('relevamientos_movimientos/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacionParcial');
 /**********
 Eventualidades ->intervenciones tecnicas
 ***********/

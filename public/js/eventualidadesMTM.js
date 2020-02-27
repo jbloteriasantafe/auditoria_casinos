@@ -169,7 +169,9 @@ $('#btn-closeCargar').click(function(e){
 //presiona el ojo de una máquina para cargar los detalles
 $(document).on('click','.cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
+  const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);
+  $('#guardarRel').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
@@ -184,6 +186,7 @@ $(document).on('click','#guardarRel',function(){
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
     id_relev_mov:          $('#guardarRel').attr('data-rel'),
+    toma:                  $('#guardarRel').attr('toma'),
     id_cargador:           datos.usuario_carga.id_usuario,
     id_fiscalizador:       datos.usuario_toma.id_usuario,
     contadores:            datos.contadores,

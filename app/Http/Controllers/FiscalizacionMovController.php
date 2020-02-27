@@ -12,9 +12,11 @@ use App\TipoMovimiento;
 use App\TomaRelevamientoMovimiento;
 use App\LogMovimiento;
 use App\Nota;
+use App\Evento;
 use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\TomaRelevamientoMovimientoController;
 use Validator;
 
 class FiscalizacionMovController extends Controller
@@ -170,6 +172,24 @@ class FiscalizacionMovController extends Controller
       $fiscalizacion->nota()->dissociate;
     }
     $fiscalizacion->destroy;
+    return 1;
+  }
+  public function eliminarFiscalizacionParcial($id){
+    $fiscalizacion = FiscalizacionMov::find($id);
+    DB::transaction(function() use ($fiscalizacion){
+      if(isset($fiscalizacion->relevamientos_movimientos)){
+        foreach($fiscalizacion->relevamientos_movimientos as $rel){
+          $rel->id_fiscalizacion_movimiento = null;
+          $rel->estado_relevamiento()->associate(1);
+          $rel->save();
+          foreach($rel->toma_relevamiento_movimiento as $toma){
+            TomaRelevamientoMovimientoController::getInstancia()->limpiarToma($toma->id_toma_relev_mov);
+          }
+        }
+      }
+      Evento::where('id_fiscalizacion_movimiento',$fiscalizacion->id_fiscalizacion_movimiento)->delete();
+      $fiscalizacion->delete();
+    });
     return 1;
   }
 

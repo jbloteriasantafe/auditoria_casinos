@@ -18,7 +18,7 @@ class TomaRelevamientoMovimiento extends Model
                             'mac','vcont1','vcont2','vcont3','vcont4','vcont5',
                             'vcont6','vcont7','vcont8', 'juego', 'apuesta_max',
                             'cant_lineas', 'porcentaje_devolucion', 'denominacion',
-                             'cant_creditos', 'observaciones','nro_admnin',
+                             'cant_creditos', 'observaciones','nro_admin',
                              'modelo', 'nro_serie','nro_isla','marca',
                              'descripcion_sector_relevado','nro_isla_relevada','toma_reingreso');
   public $timestamps = false;

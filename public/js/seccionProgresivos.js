@@ -923,9 +923,14 @@ $('#btn-agregarMaquinaIndividual').click(function() {
     const nro_admin = $('#input-maquina-individual').val();
     if(id_casino == null || nro_admin.length == 0) return;
     $.get('/progresivos/buscarMaquinas/'+id_casino+'/'+nro_admin,function(data){
-        if(data.maquinas.length == 0) return;
-        const m = data.maquinas[0];
-        if(m.nro_admin != nro_admin) return;
+        let m = null;
+        for(let i = 0;i<data.maquinas.length;i++){
+            if(data.maquinas[i].nro_admin == nro_admin){
+                m = data.maquinas[i];
+                break;
+            }
+        }
+        if(m === null) return;
         $('#input-maquina-individual').setearElementoSeleccionado(0, "");
         const selector_maquina = 'data-id='+m.id_maquina;
         const esta_en_la_tabla = $('#contenedorMaquinasIndividual .tablaMaquinasIndividual tr['+selector_maquina+']').length != 0;
@@ -987,9 +992,14 @@ $('#btn-agregarMaquina').click(function() {
     const nro_admin = $('#input-maquina').val();
     if(id_casino == null || nro_admin.length == 0) return;
     $.get('/progresivos/buscarMaquinas/'+id_casino+'/'+nro_admin,function(data){
-        if(data.maquinas.length == 0) return;
-        const m = data.maquinas[0];
-        if(m.nro_admin != nro_admin) return;
+        let m = null;
+        for(let i = 0;i<data.maquinas.length;i++){
+            if(data.maquinas[i].nro_admin == nro_admin){
+                m = data.maquinas[i];
+                break;
+            }
+        }
+        if(m === null) return;
         $('#input-maquina').setearElementoSeleccionado(0, "");
         const selector_maquina = 'data-id='+m.id_maquina;
         const esta_en_la_tabla = $('#contenedorMaquinas .tablaMaquinas tr['+selector_maquina+']').length != 0;

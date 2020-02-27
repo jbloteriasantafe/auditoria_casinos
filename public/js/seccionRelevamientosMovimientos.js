@@ -80,6 +80,7 @@ $(document).on('click','.cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);
+  $('#guardarRel').attr('toma', toma);
   $.get('movimientos/obtenerMTMFiscalizacion2/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
@@ -94,6 +95,7 @@ $(document).on('click','#guardarRel',function(){
   const datos = obtenerDatosDivRelevamiento();
   const formData = {
     id_relev_mov:                $('#guardarRel').attr('data-rel'),
+    toma:                        $('#guardarRel').attr('toma'),
     es_cargaT2:                  $('#guardarRel').attr('es-segunda-toma'),
     estado:                      2,
     id_cargador:                 datos.usuario_carga.id_usuario,
@@ -250,7 +252,6 @@ function generarFilaTabla(rel){
   }
   if(estado > 2){
     fila.find('.btn-imprimirRelMov').show();
-    fila.find('.btn-eliminarFiscal').show();
     fila.find('.btn-generarRelMov').hide();
     fila.find('.btn-cargarRelMov').hide();
     if(estado < 7 && estado != 4 && tipo_mov != 'INGRESO' && tipo_mov != 'EGRESO/REINGRESOS'){
@@ -259,6 +260,8 @@ function generarFilaTabla(rel){
       fila.find('.btn-cargarT2RelMov').hide();
     }
   }
+
+  fila.find('.btn-eliminarFiscal').show();
 
   return fila;
 };

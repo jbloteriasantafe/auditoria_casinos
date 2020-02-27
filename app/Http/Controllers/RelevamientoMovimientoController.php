@@ -36,13 +36,21 @@ class RelevamientoMovimientoController extends Controller
   //crea los relevamientos_movimientos cuando el controlador selecciono las maquinas que desea relevar
 
    public function crearRelevamientoMovimiento($id_log_mov, $maquina){
-     $relevMov = new RelevamientoMovimiento;
-     $relevMov->log_movimiento()->associate($id_log_mov);
-     $relevMov->maquina()->associate($maquina->id_maquina);
-     $relevMov->nro_admin = $maquina->nro_admin;
-     $relevMov->estado_relevamiento()->associate(1);//generado
-     $relevMov->save();
-     return $relevMov;
+      $relevMov = null;
+      DB::transaction(function() use($id_log_mov,$maquina,&$relevMov){
+        $relevMov = new RelevamientoMovimiento;
+        $relevMov->log_movimiento()->associate($id_log_mov);
+        $relevMov->maquina()->associate($maquina->id_maquina);
+        $relevMov->nro_admin = $maquina->nro_admin;
+        $relevMov->estado_relevamiento()->associate(1);//generado
+        $relevMov->save();
+        $toma = TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($maquina->id_maquina,$relevMov->id_relev_mov,[],
+        null,null,null,
+        null,null,null,
+        null,null,null,
+        null,null,0);
+      });
+      return $relevMov;
    }
 
    public function maquinasEnviadasAFiscalizar($id_log_mov){
@@ -475,33 +483,6 @@ class RelevamientoMovimientoController extends Controller
      $rel->cargador()->dissociate();
      RelevamientoMovimiento::destroy($id_relev_mov);
    }
-
-   /*
-   public function generarRelevamientoEventualidad($request){
-     $relevamiento = $this->crearRelevamientoMovimiento($request->id_log_movimiento, $request->id_maquina);
-     $relevamiento->estado_relevamiento()->associate(3);//finalizado
-     $relevamiento->fecha_relev_sala = $request['fecha_sala'];
-     $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
-     $relevamiento->fiscalizador()->associate($request['id_fiscalizador']);
-     $relevamiento->cargador()->associate($request['id_cargador']);
-     $relevamiento->save();
-     TomaRelevamientoMovimientoController::getInstancia()
-                                          ->crearTomaRelevamiento($request->id_maquina ,
-                                                   $relevamiento->id_relev_mov,
-                                                   $request->contadores,
-                                                   $request->juego,
-                                                   $request->apuesta_max,
-                                                   $request->cant_lineas,
-                                                   $request->porcentaje_devolucion,
-                                                   $request->denominacion ,
-                                                   $request->cant_creditos,
-                                                   $request->fecha_sala,
-                                                  $request->observaciones,
-                                                $request->mac,$request->,"");
-    return $relevamiento->id_relev_mov;
-
-  }*/
-
 
    public function relevamientosIntervencionesMTM($id_mtm,$nro,$id_log_movimiento,$tipo_movimiento,$sentido,$tipo,$cas){
      $rel= new \stdClass();

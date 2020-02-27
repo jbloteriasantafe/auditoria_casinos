@@ -338,6 +338,17 @@ class LogMovimientoController extends Controller
       ])->get()->first();
       $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
       $relevamiento->save();
+      // Puede ser que haya agregado progresivos entre la creacion de la maquina y enviar a fiscalizar
+      // Por lo que rehago las tomas, lamentablemente se hace asi porque habria que reescribir mucho
+      foreach($relevamiento->toma_relevamiento_movimiento as $toma){
+        $toma->detalles_relevamiento_progresivo()->delete();
+        $toma->delete();
+      }
+      TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($m->id_maquina,$relevamiento->id_relev_mov,[],
+      null,null,null,
+      null,null,null,
+      null,null,null,
+      null,null,0);
     }
     $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
     foreach ($usuarios as $u){
@@ -732,20 +743,35 @@ class LogMovimientoController extends Controller
     $maquina = Maquina::find($id_maquina);
     $juegos = $maquina->juegos;
     $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion],['id_maquina','=',$id_maquina]])->get()->first();
-    $toma=null;
+    $toma = $relevamiento->toma_relevamiento_movimiento;
     $fisca = null;
-    $fecha = null;
+    $fecha = $relevamiento->fecha_relev_sala;
     $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
     $fisca = $fiscalizacion->fiscalizador;
-    $nombre= null;
-    if(isset($relevamiento->toma_relevamiento_movimiento)){
-      // $toma=$relevamiento->toma_relevamiento_movimiento;
-      // //dd($toma);
-      // $fecha = $relevamiento->fecha_relev_sala;
-      // $nombre= Juego::find($toma->juego)->nombre_juego;
+    $nombre = null;
+    $progresivos = [];
+    if(!is_null($toma)){
+      if(!is_null($toma->juego)){
+        $nombre = Juego::find($toma->juego)->nombre_juego;
+      }
+      foreach($toma->detalles_relevamiento_progresivo as $detProg){
+        $pozo = $detProg->pozo;
+        $prog = $pozo->progresivo;
+        $pozo_arr = $pozo->toArray();
+        $prog_arr = $prog->toArray();
+
+        $pozo_arr['es_unico'] = $prog->pozos()->count() == 1;
+        $pozo_arr['niveles'] = [];
+        foreach($pozo->niveles as $nivel){
+          $pozo_arr['niveles'][] = $nivel->toArray();
+        }
+        $pozo_arr['det_rel_prog'] = $detProg->toArray();
+
+        $prog_arr['pozo'] = $pozo_arr;
+        $progresivos[] = $prog_arr;
+      }
     }
 
-    $progresivos = [];
     foreach($maquina->progresivos as $prog){
       foreach($prog->pozos as $pozo){
         $pozo_arr = $pozo->toArray();
@@ -955,12 +981,6 @@ class LogMovimientoController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
 
-  }
-
-  public function generarPlanillaMovimientos(){
-    $dompdf = $this->crearPlanillaMovimientos();
-
-    return $dompdf->stream("Movimientos.pdf", Array('Attachment'=>0));
   }
 
   //para el controlador///////////////////////////////////////////////////////
@@ -1576,6 +1596,7 @@ class LogMovimientoController extends Controller
     $fisca = null;//fisca que hizp la toma del relevamiento
     $cargador = null;//fisca cargador
     $nombre = null;
+    $progresivos = [];
 
     if($rel->id_fisca != null) $fisca = Usuario::find($rel->id_fisca);
     if($rel->id_cargador != null){
@@ -1585,28 +1606,30 @@ class LogMovimientoController extends Controller
     }
 
     if($nro_toma <= 0) $nro_toma = 1;
-    if($rel->toma_relevamiento_movimiento()->count() > 0){
+    if($rel->toma_relevamiento_movimiento()->count() >= $nro_toma){
       $toma = $rel->toma_relevamiento_movimiento()->skip($nro_toma - 1)->first();
-      if(!is_null($toma)){
-        $fecha = $rel->fecha_relev_sala;
-        $nombre= Juego::find($toma->juego)->nombre_juego;
+      $fecha = $rel->fecha_relev_sala;
+      if(!is_null($toma->juego)){
+        $nombre = Juego::find($toma->juego)->nombre_juego;
+      }
+      foreach($toma->detalles_relevamiento_progresivo as $detProg){
+        $pozo = $detProg->pozo;
+        $prog = $pozo->progresivo;
+        $pozo_arr = $pozo->toArray();
+        $prog_arr = $prog->toArray();
+
+        $pozo_arr['es_unico'] = $prog->pozos()->count() == 1;
+        $pozo_arr['niveles'] = [];
+        foreach($pozo->niveles as $nivel){
+          $pozo_arr['niveles'][] = $nivel->toArray();
+        }
+        $pozo_arr['det_rel_prog'] = $detProg->toArray();
+
+        $prog_arr['pozo'] = $pozo_arr;
+        $progresivos[] = $prog_arr;
       }
     }
 
-    $progresivos = [];
-    foreach($maquina->progresivos as $prog){
-      foreach($prog->pozos as $pozo){
-        $pozo_arr = $pozo->toArray();
-        $pozo_arr['es_unico'] = count($prog->pozos) == 1;
-        $pozo_arr['niveles'] = [];
-        foreach($pozo->niveles as $nivel){
-          $pozo_arr['niveles'][] = $nivel_arr = $nivel->toArray();
-        }
-        $prog_arr = $prog->toArray();
-        $prog_arr['pozo'] = $pozo_arr;
-        $progresivos[] = $prog_arr;    
-      }  
-    }
 
     return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma,
      'fiscalizador'=> $fisca,'cargador'=> $cargador,
@@ -1783,9 +1806,10 @@ class LogMovimientoController extends Controller
 
   //suponiendo que me va a enviar un array con los ids de maquina
   public function nuevaEventualidadMTM( Request $request){
-    $validator =Validator::make($request->all(), [
+    $validator = Validator::make($request->all(), [
         'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
         'maquinas' => 'required',
+        'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
         'sentido' => ['required','string',Rule::in(['EGRESO TEMPORAL', 'REINGRESO'])]
     ], array(), self::$atributos)->after(function($validator){
       $data = $validator->getData();
@@ -1803,14 +1827,6 @@ class LogMovimientoController extends Controller
       }
     })->validate();
 
-    if(isset($validator)){
-      if ($validator->fails()){
-        return [
-              'errors' => $validator->getMessageBag()->toArray()
-          ];
-      }
-    }
-
     $logMovimiento = null;
     DB::beginTransaction();
     try{
@@ -1825,10 +1841,11 @@ class LogMovimientoController extends Controller
   
       foreach ($request['maquinas'] as $mtm) {
         $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm['id_maquina']],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
+        // Deberia entrar siempre, a menos que mande varias veces la misma maquina
         if($relevamiento == null){
-          $maq =Maquina::find($mtm['id_maquina']);
-         RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
-         $this->guardarIslasMovimiento($logMovimiento,$maq);
+          $maq = Maquina::find($mtm['id_maquina']);
+          $relevamiento = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
+          $this->guardarIslasMovimiento($logMovimiento,$maq);
         }
       }
   
@@ -2106,16 +2123,4 @@ class LogMovimientoController extends Controller
 
     return ['maquina' => $m,'unidades' => $unidades , 'juego_activo' => $juego_activo];
 }
-
-  ///////////PRUEBAS////////////////////////////////////////////////////////////
-
-  public function pruebasVarias(Request $req){
-    //  NotaController::getInstancia()->guardarNota($req);
-
-    return $this->guardarRelevamientoMovimientoIngreso(624,4666);
-    //return ExpedienteController::getInstancia()->obtenerExpediente(1747);
-
-  }
-
-
 }
