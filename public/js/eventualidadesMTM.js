@@ -39,9 +39,7 @@ $('#fechaRel').on('change', function (e) {
   $(this).trigger('focusin');
 })
 
-//botón grande para generar la nueva eventualidad de máquina
-$(document).on('click','#btn-nueva-evmaquina',function(e){
-  e.preventDefault();
+function initModalNuevaEvMTM(){
   $('#tablaMTM tbody tr').remove();
   $.get('eventualidadesMTM/tiposMovIntervMTM', function(data){
     $('#tipoMov option').remove();
@@ -51,9 +49,18 @@ $(document).on('click','#btn-nueva-evmaquina',function(e){
     $('#modalNuevaEvMTM').modal('show');
   });
 
-  const casino = 0; //@TODO: Permitir elegir el casino.
+  const casino = $('#casinoNuevaEvMTM').val();
   $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
   $('#modalNuevaEvMTM').find('#btn-impr').prop('disabled',true);
+}
+//botón grande para generar la nueva eventualidad de máquina
+$(document).on('click','#btn-nueva-evmaquina',function(e){
+  e.preventDefault();
+  initModalNuevaEvMTM();
+});
+
+$('#casinoNuevaEvMTM').change(function(){
+  initModalNuevaEvMTM();
 });
 
 $('#agregarMTMEv').click(function(e) {
@@ -96,7 +103,8 @@ $(document).on('click','#btn-impr',function(e){
   const formData = {
     id_tipo_movimiento: $('#modalNuevaEvMTM').find('#tipoMov').val(),
     maquinas: mtmEv,
-    sentido: $('#sentidoMov').val()
+    sentido: $('#sentidoMov').val(),
+    id_casino: $('#casinoNuevaEvMTM').val()
   };
 
   $.ajax({
@@ -122,6 +130,10 @@ $(document).on('click','#btn-impr',function(e){
       }
       if(typeof response.maquinas !== 'undefined'){
         mensajeError(['Debe asignar máquinas a la intervención.']);
+        err = true;
+      }
+      if(typeof response.id_casino !== 'undefined'){
+        mostrarErrorValidacion($('#casinoNuevaEvMTM'),parseError(response.id_casino[0]));
         err = true;
       }
       if(err) $("#modalNuevaEvMTM").animate({ scrollTop: 0 }, "slow");
@@ -172,7 +184,7 @@ $(document).on('click','.cargarMaq',function(){
   const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
-  $.get('eventualidadesMTM/obtenerMTMEv/' + id_rel, function(data){
+  $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
     mostrarDetalleRelevamiento();

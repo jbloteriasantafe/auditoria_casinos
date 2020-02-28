@@ -267,7 +267,7 @@ class NotaController extends Controller
       $nota->tipo_movimiento()->dissociate();
       $log = $nota->log_movimiento();
       $nota->log_movimiento()->dissociate();
-      $logMovsController->eliminarMovimientoNota($log);
+      $logMovsController->eliminarMovimientoExpediente($log->id_log_movimiento);
     }
     $nota->expediente()->dissociate();
     return 1;

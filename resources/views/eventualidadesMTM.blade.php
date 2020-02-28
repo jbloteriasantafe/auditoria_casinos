@@ -218,24 +218,29 @@
         <div  id="colapsado" class="collapse in">
 
           <div class="row"> <!-- ROW 1 -->
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <h5>Casino</h5>
+              <select class="form-control" id="casinoNuevaEvMTM">
+                @foreach ($casinos as $casino)
+                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-3">
               <h5>Agregar Máquina</h5>
-
-              <div class="row">
-                <div class="input-group lista-datos-group">
-                  <input id="inputMTM" class="form-control" type="text" value="" autocomplete="off">
-                  <span class="input-group-btn">
-                    <button id="agregarMTMEv" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                  </span>
-                </div>
+              <div class="input-group lista-datos-group">
+                <input id="inputMTM" class="form-control" type="text" value="" autocomplete="off">
+                <span class="input-group-btn">
+                  <button id="agregarMTMEv" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                </span>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h5>Tipo Movimiento</h5>
               <select class="form-control" id="tipoMov">
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h5>SENTIDO</h5>
               <select class="form-control" id="sentidoMov">
                 <option value="EGRESO TEMPORAL">EGRESO TEMPORAL</option>

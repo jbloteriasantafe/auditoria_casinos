@@ -81,7 +81,7 @@ $(document).on('click','.cargarMaq',function(){
   const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
-  $.get('movimientos/obtenerMTMFiscalizacion2/' + id_rel + '/' + toma, function(data){
+  $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', false);
     setearDivRelevamiento(data);
     mostrarDetalleRelevamiento();
