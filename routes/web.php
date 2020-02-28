@@ -327,17 +327,13 @@ Eventualidades MTM ->intervenciones tecnicas mtm
 ***********/
 Route::get('eventualidadesMTM','LogMovimientoController@todasEventualidadesMTMs')->middleware('tiene_permiso:ver_seccion_eventualidades_MTM');//buscar todo
 Route::post('eventualidadesMTM/nuevaEventualidadMTM','LogMovimientoController@nuevaEventualidadMTM');
-Route::get('eventualidadesMTM/maquinasACargar/{id_mov}', 'LogMovimientoController@maquinasACargar');
-Route::get('eventualidadesMTM/obtenerDatosMTMEv/{id_maq}', 'LogMovimientoController@obtenerDatosMTMEv');
 Route::post('eventualidadesMTM/cargarEventualidadMTM', 'LogMovimientoController@cargarEventualidadMTM');
 Route::get('eventualidadesMTM/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
-Route::get('eventualidadesMTM/validarEventualidad/{id_log_mov}', 'LogMovimientoController@validarEventualidad');
 Route::post('eventualidadesMTM/eliminarEventualidadMTM', 'LogMovimientoController@eliminarEventualidadMTM');
 Route::get('eventualidadesMTM/tiposMovIntervMTM', 'LogMovimientoController@tiposMovIntervMTM');
 Route::get('eventualidadesMTM/relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
 Route::get('eventualidadesMTM/imprimirEventualidadMTM/{id_mov}/{esNueva}','LogMovimientoController@imprimirEventualidadMTM');
-Route::get('eventualidadesMTM/visar/{id_relevamiento}', 'LogMovimientoController@validarRelevamientoEventualidad');
-Route::post('eventualidadesMTM/visarConObservacion/', 'LogMovimientoController@validarRelevamientoEventualidadConObserv');
+Route::post('eventualidadesMTM/visarConObservacion/', 'LogMovimientoController@visarConObservacion');
 
 
 /******

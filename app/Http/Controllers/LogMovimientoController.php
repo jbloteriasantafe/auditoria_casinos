@@ -236,14 +236,7 @@ class LogMovimientoController extends Controller
   }
 
   public function noEsControlador($id_usuario , $logMov){
-    $resultado = true;
-    foreach ($logMov->controladores as $controlador) {
-      if($controlador->id_usuario == $id_usuario){
-        $resultado = false;
-        break;
-      }
-    }
-    return $resultado;
+    return $logMov->controladores()->where('controlador_movimiento.id_controlador_movimiento',$id_usuario)->count() == 0;
   }
 
   public function guardarLogMovimientoExpediente($id_expediente,$id_tipo_movimiento){
@@ -1620,84 +1613,20 @@ class LogMovimientoController extends Controller
 
   //al final se va a mostrar estatico, pero si se puede buscar algunos viejos con los filtros
   public function todasEventualidadesMTMs(){//type: get
-
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    foreach ($usuario->casinos as $casino) {
-      $casinos[] = $casino->id_casino;
-    }
-
-    $resultados= DB::table('log_movimiento')
-                    ->select('log_movimiento.*','tipo_movimiento.*',
-                      'estado_movimiento.descripcion as estado_descripcion',
-                      'casino.*',
-                      'tipo_movimiento.*')
-                    ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-                    ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                    ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
-                    ->whereNull('log_movimiento.id_expediente')
-                    ->where('log_movimiento.tiene_expediente','=',0)
-                    ->whereIn('log_movimiento.id_casino',$casinos)
-                    ->orderBy('log_movimiento.fecha','DES')
-                    ->take(30)
-                    ->get();
-
-      $tipos = TipoMovimiento::whereNotIn('id_tipo_movimiento',[1,8,9])->get();//egreso , cambio_layout , denominacion , % devolucion , juego
-      $casinos = $usuario->casinos;
-      $esControlador=UsuarioController::getInstancia()->usuarioEsControlador($usuario);
-      $esSuperUsuario=$usuario->es_superusuario;
-
-      UsuarioController::getInstancia()->agregarSeccionReciente('Intervenciones MTM' , 'eventualidadesMTM');
-
-      return view('eventualidadesMTM',
-                  ['eventualidades'=>$resultados,
-                   'esControlador' => $esControlador/*$esControlador*/,
-                   'esSuperUsuario' => $esSuperUsuario,
-                   'tiposEventualidadesMTM'=> $tipos,
-                   'casinos' => $casinos,
-                   'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
-
-  }
-
-  //para generar una nueva eventualidad por los fiscalizadores, en la cual afectan
-  // a los datos de la maquina, como juego %dev.. etc
-  public function maquinasACargar($id , $fecha=null){
-    $log = LogMovimiento::find($id);
-    $tipos = TipoMovimiento::whereNotIn('id_tipo_movimiento',[1,8])->get();
-    $id_usuario = session('id_usuario');
-    $user = Usuario::find($id_usuario); //es el usuario que se va a mostrar como que esta cargando
-    // a la hora de cargar la eventualidad
-
-    if($fecha != null){
-      //sirve para ambos formatos de fecha
-      $string = 1;
-      if (DateTime::createFromFormat('Y-m-d G:i:s', $fecha) !== FALSE) {
-        $string = "relevamiento_movimiento.fecha_relev_sala = '" . $fecha . "'";
-      }
-      if (DateTime::createFromFormat('Y-m-d', $fecha) !== FALSE) {
-        $string = "DATE(relevamiento_movimiento.fecha_relev_sala) = " . $fecha;
-      }
-      $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
-        ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-        ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-        ->where('log_movimiento.id_log_movimiento','=',$id)
-        ->whereRaw($string)
-        ->get();
-    }else{
-      $maquinas = DB::table('log_movimiento')
-        ->select('relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento','maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
-        ->join('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-        ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-        ->where('log_movimiento.id_log_movimiento','=',$id)
-        ->get();
-    }
-
-    return ['tiposEventualidadesMTM'=>$tipos,
-            'cantidad_maquinas'=> $log->cant_maquinas,
-            'casino'=> $log->id_casino,
-            'fiscalizador_carga'=> $user,
-            'relevamientos' => $maquinas];
+    UsuarioController::getInstancia()->agregarSeccionReciente('Intervenciones MTM' , 'eventualidadesMTM');
+    //egreso , cambio_layout , denominacion , % devolucion , juego
+    $tipos = TipoMovimiento::whereNotIn('id_tipo_movimiento',[1,8,9])->get();
+    return view('eventualidadesMTM',
+      [
+        'eventualidades'         => [],
+        'esControlador'          => $usuario->es_controlador,
+        'esSuperUsuario'         => $usuario->es_superusuario,
+        'tiposEventualidadesMTM' => $tipos,
+        'casinos'                => $usuario->casinos,
+        'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()
+      ]
+    );
   }
 
   //suponiendo que me va a enviar un array con los ids de maquina
@@ -1815,31 +1744,17 @@ class LogMovimientoController extends Controller
       $request['mac'],$log->id_log_movimiento, $request['sector_relevado'], $request['isla_relevada']
     );
 
-    if($this->cargaFinalizadaEvMTM($log)){
-      $log->estado_movimiento()->associate(1);//notificado
-      $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
-      // notificaciones
-      $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,session('id_usuario'));
-      foreach ($usuarios as $user){
-        $u = Usuario::find($user->id_usuario);
-        if($u != null)  $u->notify(new NuevaIntervencionMTM($log));
-      }
-     }
-     else{
-      $log->estado_movimiento()->associate(8);//cargando
-      $log->estado_relevamiento()->associate(2);
-     }
-     $log->save();
-     return 1;
-  }
-
-  private function cargaFinalizadaEvMTM($logMovimiento){
-    foreach ($logMovimiento->relevamientos_movimientos as $relevamiento) {
-      if(count($relevamiento->toma_relevamiento_movimiento) == 0){
-        return false;
-      }
+    //@TODO: Agregar una forma de guardar temporalmente, estado mov 8, estado rel 2
+    $log->estado_movimiento()->associate(1);//notificado
+    $log->estado_relevamiento()->associate(3);//finalizado (de cargar)
+    // notificaciones
+    $usuarios = UsuarioController::getInstancia()->obtenerControladores($log->id_casino,session('id_usuario'));
+    foreach ($usuarios as $user){
+      $u = Usuario::find($user->id_usuario);
+      if($u != null)  $u->notify(new NuevaIntervencionMTM($log));
     }
-    return true;
+    $log->save();
+    return 1;
   }
 
   public function tiposMovIntervMTM(){
@@ -1898,64 +1813,36 @@ class LogMovimientoController extends Controller
             'casino' => $log->casino];
   }
 
-  public function obtenerDatosMTMEv($id_relev_mov){
-    $relev = RelevamientoMovimiento::find($id_relev_mov);
-    $mtm= Maquina::find($relev->id_maquina);
-    $f = $mtm->formula;
-    return ['mtm' => $mtm, 'formula'=> $f, 'juegos'=> $mtm->juegos,
-     'isla'=> $mtm->isla];
-  }
 
-  //no se usa como pretendía, pero se usa
-  public function validarEventualidad($id_movimiento){
-    $logMovimiento = LogMovimiento::find($id_movimiento);
-    return ['maquinas'=> $logMovimiento->relevamientos_movimientos];
-  }
+  // visarConObservacion valida un relevamiento que nace de una intervencion de MTM
+  public function visarConObservacion(Request $request){
+    $relev_mov = null;
+    $logMov = null;
+    $id_usuario = session('id_usuario');
 
-  public function validarRelevamientoEventualidad($id_relev_mov){
-    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
-    $id_usuario = session('id_usuario');
-    $relev_mov = RelevamientoMovimiento::find($id_relev_mov);
-    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
-    $id_usuario = session('id_usuario');
-    if($this->noEsControlador($id_usuario,  $logMov)){
+    $validator = Validator::make($request->all(), [
+      'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
+      'nro_toma' => 'nullable',
+      'observacion' => 'nullable|string',
+    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relev_mov,$id_usario){
+      if(count($validator->errors()) == 0){
+        $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
+        $logMov = $relev_mov->log_movimiento;
+        if(!Usuario::find($id_usuario)->usuarioTieneCasino($logMov->id_casino)){
+          $validator->errors->add('id_relev_mov','El usuario no puede acceder a ese movimiento.');
+        }
+      }
+    })->validate();
+
+    if($this->noEsControlador($id_usuario,$logMov)){
       $logMov->controladores()->attach($id_usuario);
       $logMov->save();
     }
     //a las tomas de los relevamientos las marco como validadas
-    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, 1);//retorna las observaciones de la toma
-    $maquina = $relev_mov->maquina;
-    $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
-              ->where('id_estado_relevamiento','=',4 )->get();
-    //dd([count($logMov->relevamientos_movimientos),count($relss)]);
-    if(count($logMov->relevamientos_movimientos) == count($relss)){
-      $logMov->estado_relevamiento()->associate(4);
-      $logMov->estado_movimiento()->associate(4);
-      $logMov->save();
-    }
+    RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relev_mov, 1, $request->observacion);
 
-    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
-  }
-
-  // validarRelevamientoEventualidadConObserv valida un relevamiento que nace de una intervencion de MTM
-  // tambien se agrega observaciones del administrador, esto se guarda dentro del campo observacion unico del modelo
-  // con una bandera de descripcion de admin
-  public function validarRelevamientoEventualidadConObserv(Request $request){
-    // TODO validar la nueva observacion
-    //el request contiene id_relev_mov,los datos del relev_mov (), $validado (1 o 0)
-    $id_usuario = session('id_usuario');
-    $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
-    $logMov = LogMovimiento::find($relev_mov->id_log_movimiento);
-    $id_usuario = session('id_usuario');
-    if($this->noEsControlador($id_usuario,  $logMov)){
-      $logMov->controladores()->attach($id_usuario);
-      $logMov->save();
-    }
-    //a las tomas de los relevamientos las marco como validadas
-    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relev_mov, 1, $request->observacion);//retorna las observaciones de la toma
-    $maquina = $relev_mov->maquina;
     $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
-              ->where('id_estado_relevamiento','=',4 )->get();
+              ->where('id_estado_relevamiento','=',4)->get();
     //dd([count($logMov->relevamientos_movimientos),count($relss)]);
     if(count($logMov->relevamientos_movimientos) == count($relss)){
       $logMov->estado_relevamiento()->associate(4);
