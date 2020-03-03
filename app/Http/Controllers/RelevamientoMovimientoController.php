@@ -328,73 +328,6 @@ class RelevamientoMovimientoController extends Controller
      return $relevamiento;
    }
 
-
-   //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
-   public function cargarTomaRelevamiento( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones,$islaRelevadaCargar, $sectorRelevadoCargar, $id_fiscalizacion_movimiento, $id_cargador, $id_fisca, $mac,
-    $es_toma_reingreso){
-
-     $relevamiento = RelevamientoMovimiento::where([['id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
-     $relevamiento->estado_relevamiento()->associate(3);//finalizado
-
-     if($es_toma_reingreso){
-       $relevamiento->fecha_relev_sala_dos = $fecha_sala;
-       $relevamiento->fecha_carga_dos =  date('Y-m-d h:i:s', time());
-     }else{
-       $relevamiento->fecha_relev_sala = $fecha_sala;
-       $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
-     }
-
-     $relevamiento->fiscalizador()->associate($id_fisca);
-     $relevamiento->cargador()->associate($id_cargador);
-     $relevamiento->save();
-
-
-     if($es_toma_reingreso == 0 && count($relevamiento->toma_relevamiento_movimiento) == 0){
-        //caso en el que es la 1era vez que toma
-
-         TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
-         $relevamiento->id_relev_mov,
-         $contadores,
-         $juego ,
-         $apuesta_max,
-         $cant_lineas,
-         $porcentaje_devolucion,
-         $denominacion ,
-         $cant_creditos,
-         $fecha_sala,
-         $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
-       }else{ //cuando el fisca vuelve a mandar a guardar y ya estaba creada
-         if($es_toma_reingreso == 1 && count($relevamiento->toma_relevamiento_movimiento) == 1){
-           TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($id_maquina ,
-           $relevamiento->id_relev_mov,
-           $contadores,
-           $juego ,
-           $apuesta_max,
-           $cant_lineas,
-           $porcentaje_devolucion,
-           $denominacion ,
-           $cant_creditos,
-           $fecha_sala,
-           $observaciones,$mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
-         }else{//caso en el que simplemente está editando la toma
-           TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
-           $relevamiento->toma_relevamiento_movimiento,
-           $contadores,
-           $juego ,
-           $apuesta_max,
-           $cant_lineas,
-           $porcentaje_devolucion,
-           $denominacion ,
-           $cant_creditos,
-           $fecha_sala,
-           $observaciones, $mac,$islaRelevadaCargar, $sectorRelevadoCargar,$es_toma_reingreso);
-         }
-
-       }
-       //no se puede automatizar la eleccion de si es toma 1 o toma 2 o si está modificando o ke
-   }
-
   public function cargarTomaRelevamientoProgs(
     $id_relevamiento, $nro_toma, $id_cargador, $id_fiscalizador, $fecha_sala,
     $mac, $sector_relevado, $isla_relevada, $contadores, $juego, $apuesta_max,
@@ -461,46 +394,6 @@ class RelevamientoMovimientoController extends Controller
     return 0;
   }
 
-   //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
-   public function cargarTomaRelevamientoEv( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
-    $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento , $s, $i){
-     $relevamiento = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
-     $relevamiento->estado_relevamiento()->associate(3);//finalizado
-     $relevamiento->fecha_relev_sala = $fecha_sala;
-     $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
-     $relevamiento->fiscalizador()->associate($id_fisca);
-     $relevamiento->cargador()->associate($id_cargador);
-     $relevamiento->save();
-
-     if(count($relevamiento->toma_relevamiento_movimiento) == 0){
-         TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento(
-         $id_maquina ,
-         $relevamiento->id_relev_mov,
-         $contadores,
-         $juego ,
-         $apuesta_max,
-         $cant_lineas,
-         $porcentaje_devolucion,
-         $denominacion ,
-         $cant_creditos,
-         $fecha_sala,
-         $observaciones,$mac,$s,$i,0);
-       }else{
-
-         TomaRelevamientoMovimientoController::getInstancia()->editarTomaRelevamiento(
-         $relevamiento->toma_relevamiento_movimiento,
-         $contadores,
-         $juego ,
-         $apuesta_max,
-         $cant_lineas,
-         $porcentaje_devolucion,
-         $denominacion ,
-         $cant_creditos,
-         $fecha_sala,
-         $observaciones, $mac,$s,$i,0);
-
-       }
-   }
 
    //el controlador valida la toma, si encuentra un error la marca con error.
    public function validarRelevamientoToma($relevamiento, $validado){

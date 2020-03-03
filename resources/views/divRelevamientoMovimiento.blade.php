@@ -391,13 +391,14 @@ function mostrarErroresDiv(response){
         }
     });
     $('#tablaProgresivos tbody tr').each(function(index){
-        const res = response['progresivos.'+ index];
-        if(!isUndef(res)){
-            const msg = parseError(res[0]);
-            $(this).find('input:not([disabled])').each(function(){
-                if($(this).val().length == 0) mostrarErrorValidacion($(this),msg);
-            });
-            err = true;
+        const progresivo = 'progresivos.'+ index;
+        for(let i = 1;i <= {{$maxlvl}};i++){
+            const res = response[progresivo + '.niveles.' + (i-1) + '.val'];
+            if(!isUndef(res)){
+                const msg = parseError(res[0]);
+                mostrarErrorValidacion($(this).find('.nivel'+i),msg);
+                err = true;
+            }
         }
     });
     if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");

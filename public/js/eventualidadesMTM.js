@@ -204,7 +204,7 @@ $(document).on('click','#guardarRel',function(){
     contadores:            datos.contadores,
     juego:                 datos.juego,
     apuesta_max:           datos.apuesta,
-    cant_lineas:           datos.cant_lineas,
+    cant_lineas:           datos.lineas,
     porcentaje_devolucion: datos.devolucion,
     denominacion:          datos.denominacion,
     cant_creditos:         datos.creditos,
