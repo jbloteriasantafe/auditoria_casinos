@@ -344,18 +344,20 @@ footer
                 </tr>
                 <tr>
                   @if($relevamiento->toma2_observ != null)
-                    <td class="tablaInicio fila" style="height:auto; ">@if ($relevamiento->toma)
+                    <td class="tablaInicio fila" style="height:auto; ">
+                    @if ($relevamiento->toma)
                       Toma 1:
-                                                                                                                {{$relevamiento->toma1_observ}}
-                                                                                                                <br> Toma 2:
-                                                                                                                {{$relevamiento->toma2_observ}}
-                                                                                                             @else
-                                                                                                                  @if ($relevamiento->toma2_observ != null)
-                                                                                                                    {{$relevamiento->toma2_observ}}
-                                                                                                                  @else
-                                                                                                                    {{$relevamiento->toma1_observ}}
-                                                                                                                  @endif</td>
-                                                                                                              @endif
+                      {{$relevamiento->toma1_observ}}
+                      <br>
+                      Toma 2:
+                      {{$relevamiento->toma2_observ}}
+                    @else
+                      @if ($relevamiento->toma2_observ != null)
+                        {{$relevamiento->toma2_observ}}
+                      @else
+                        {{$relevamiento->toma1_observ}}
+                      @endif</td>
+                  @endif
                   @else
                     <td class="tablaInicio fila">
                     <div style="color: #dddddd;">
@@ -370,7 +372,7 @@ footer
                     </p>
                     </div>
                   </td>
-                    @endif
+                  @endif
                 </tr>
               </table>
               <br>

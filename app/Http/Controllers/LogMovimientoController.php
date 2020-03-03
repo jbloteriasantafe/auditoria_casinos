@@ -37,6 +37,7 @@ use App\Juego;
 use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\TipoCausaNoTomaProgresivo;
+use App\Pozo;
 
 
 /*
@@ -756,115 +757,165 @@ class LogMovimientoController extends Controller
 
   }
 
+  // 2/03/2020 - Octavio
+  // Si alguna vez ocurre que hay progresivos con mas de 6 niveles, no van a ser mas validos muchos de los algoritmos
+  // Esto va a suceder porque si bien se tenia en cuenta que sea expandible en un principio
+  // hay dos limitaciones:
+  // - Detalle progresivo solo tiene 6 valores (trivial de solucionar, modificar la estructura de la tabla y cambiar los limites)
+  // - Los ADM cargaron todos los niveles al reves (al nivel mas alto le asignaron el 1), el resultado es que no 
+  //   son homogeneos los progresivos (si un progresivo tiene 4 niveles, su nivel mas alto tiene el valor nro_nivel 1
+  //   y si otro tiene 6 niveles, su nivel mas alto tiene el valor nro_nivel 1 tambien).
+  // Este ultimo punto no fue considerado mucho a la hora de programar la parte de relevamiento de progresivos
+  // porque paso en produccion (aunque los ADM fueron debidamente informados con un manual). 
+  // La idea es hacerlo a partir de ahora para que en el caso de que ocurra no haya que cambiar muchas cosas
+  // Ej tabla detalle_relevamiento_progresivo
+  // nivel1 | nivel2 | nivel3 | nivel4 | nivel5 | nivel6
+  // 6      | 5      | 4      | 3      | 2      | 1
+  // 4      | 3      | 2      | 1      | null   | null
+  // 7      | 6      | 5      | 4      | 3      | 2     <- te quedas corto, agregar una columna nivel7
+  // AHORA, si bien CONCEPTUALMENTE los niveles 1 en realidad son los maximos, en la bd estan cargados con nro_nivel = 1
+  // por lo que se los puede asignar directamente, pero hay que tener en cuenta lo de la tercer fila 
+  // y si en algun momento se hacen informes/pruebas.
   public function cargarTomaRelevamiento(Request $request){
     $validator =Validator::make($request->all(), [
-        'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
-        'id_cargador' => 'nullable|exists:usuario,id_usuario',
-        'id_fiscalizador' => 'required|exists:usuario,id_usuario',
+        'id_relev_mov' => 'required|integer|exists:relevamiento_movimiento,id_relev_mov',
+        'toma' => 'required|integer|min:0',
+        'id_cargador' => 'nullable|integer|exists:usuario,id_usuario',
+        'id_fiscalizador' => 'required|integer|exists:usuario,id_usuario',
         'contadores' => 'required',
         'contadores.*.nombre' =>'nullable',
         'contadores.*.valor' => ['required_with:contadores.*.nombre','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'juego' => 'required|exists:juego,id_juego',
-        'sector_relevado' => 'required',
-        'isla_relevada' => 'required',
+        'juego' => 'required|integer|exists:juego,id_juego',
         'apuesta_max' => 'required|numeric|max:900000',
         'cant_lineas' => 'required|numeric|max:100000',
         'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
         'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'cant_creditos' => 'required|numeric| max:100',
-        'fecha_sala' => 'required|date',//fecha con dia y hora
+        'cant_creditos' => 'required|numeric|max:100',
+        'fecha_sala' => 'required|date',
         'observaciones' => 'nullable|max:280',
-        'mac' => 'nullable|max:100'
+        'mac' => 'nullable|max:100',
+        'sector_relevado' => 'required',
+        'isla_relevada' => 'required',
+        'progresivos' => 'sometimes|array',
+        'progresivos.*.id_pozo' => 'required|integer|exists:pozo,id_pozo',
+        'progresivos.*.id_tipo_causa_no_toma_progresivo' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
+        'progresivos.*.niveles' => 'sometimes|array',
+        'progresivos.*.niveles.*.id_nivel_progresivo' => 'nullable|integer|exists:nivel_progresivo,id_nivel_progresivo',
+        'progresivos.*.niveles.*.val' => 'nullable|numeric|min:0'
     ], array(), self::$atributos)->after(function($validator){
-      if($validator->getData()['juego']==0 ){
-          $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
-      }
-      $data = $validator->getData();
-      $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
-      $formula = $relevamiento->maquina->formula;
-      $contadores = $data['contadores'];
-      //PARA VALIDAR SI ESTAN TODOS LOS CONTADORES CARGADOS QUE TIENE LA MTM EN LA FORMULA
-      for($i=1;$i<=6;$i++){
-        if($formula['cont'.$i] != null && array_key_exists($i,$contadores) && $contadores[$i]['valor']  == ""){
-          $validator->errors()->add('contadores', 'No se han cargado todos los contadores.');
+      if(!$validator->errors()->any()){
+        if($validator->getData()['juego']==0 ){
+            $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
+        }
+        $data = $validator->getData();
+        $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+        $fiscalizacion = $relevamiento->fiscalizacion;
+        $fecha_limite_inferior = null;
+        $fecha_sala = strtotime($data['fecha_sala']);
+        if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
+        else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
+        $fecha_limite_inferior = strtotime($fecha_limite_inferior);
+        if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
+        if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
+        $progresivos = $data['progresivos'];
+        foreach($progresivos as $idx_p => $p){
+          $pozo = Pozo::find($p['id_pozo']);
+          $causaNoToma = $p['id_tipo_causa_no_toma_progresivo'];
+          if(is_null($causaNoToma)){
+            $valores = [];
+            foreach($pozo->niveles as $idx => $n){
+              $valores[$n->id_nivel_progresivo] = null;
+            }
+            foreach($p['niveles'] as $n){
+              $valores[$n['id_nivel_progresivo']] = $n['val'];
+            }
+            foreach($valores as $id => $val){
+              if(is_null($val)){
+                $validator->errors()->add('progresivos.'.$idx_p,'required');
+                break;
+              }
+            }
+          }
         }
       }
-      $fiscalizacion = $relevamiento->fiscalizacion;
-      $fecha_limite_inferior = null;
-      $fecha_sala = strtotime($data['fecha_sala']);
-      if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
-      else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
-      $fecha_limite_inferior = strtotime($fecha_limite_inferior);
-      if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
-      if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
     })->validate();
+    DB::beginTransaction();
+    try{
+      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
+      $fiscalizacion = $relevamiento->fiscalizacion;
+      $logMov = $fiscalizacion->log_movimiento;
 
-    $relevamiento = RelevamientoMovimiento::find($request->id_rel_mov);
-    $fiscalizacion = $relevamiento->fiscalizacion;
-    $logMov = $fiscalizacion->log_movimiento;
-
-    if($fiscalizacion->id_estado_relevamiento == 1){//si estaba generado pasa a cargando
-      if(!isset($logMov->fiscalizaciones))
-      {
-        $logMov->estado_movimiento()->associate(2);//fiscalizando
+      if($fiscalizacion->id_estado_relevamiento == 1){//si estaba generado pasa a cargando
+        if(!isset($logMov->fiscalizaciones)){
+          $logMov->estado_movimiento()->associate(2);//fiscalizando
+        }
+        $fiscalizacion->estado_relevamiento()->associate(2);
       }
-      $fiscalizacion->estado_relevamiento()->associate(2);
-    }
 
-    if(!isset($fiscalizacion->cargador)){
-      $fiscalizacion->cargador()->associate($request->id_cargador);
-      $fiscalizacion->fiscalizador()->associate( $request->id_fiscalizador);
-    }
-
-    RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamiento($request->id_maquina,
-      $request['contadores'],
-      $request['juego'] ,
-      $request['apuesta_max'],
-      $request['cant_lineas'] ,
-      $request['porcentaje_devolucion'],
-      $request['denominacion'] ,
-      $request['cant_creditos'],
-      $request['fecha_sala'],
-      $request['observaciones'],
-      $request['isla_relevada'],
-      $request['sector_relevado'],
-      $request->id_fiscalizacion_movimiento,
-      $request->id_cargador,
-      $request->id_fiscalizador, $request['mac'],$request['es_cargaT2']
-    );
-
-    //si es primera toma
-    if($fiscalizacion->id_estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
-    {//si existe una toma de relevamiento por cada relevamiento -> finalizado
-      $logMov->id_estado_movimiento= 3;//fiscalizado
-      $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
-      $fiscalizacion->estado_relevamiento()->associate(3);
-      $id_usuario = session('id_usuario');
-      $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
-      foreach ($usuarios as $user){
-        $u = Usuario::find($user->id_usuario);
-       if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
+      if(!isset($fiscalizacion->cargador)){
+        $fiscalizacion->cargador()->associate($request->id_cargador);
+        $fiscalizacion->fiscalizador()->associate($request->id_fiscalizador);
       }
-      CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
-    }
 
-    //la fiscalizacion esta cargada en la toma 1 y puede estar visada, y verifico que las tomas2 esten cargadas
-    if($fiscalizacion->id_estado_relevamiento > 2 && $this->cargaFinalizadaToma2($fiscalizacion) && $logMov->id_tipo_movimiento != 1){
-      $logMov->id_estado_movimiento= 3;//fiscalizado
-      $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
-      $fiscalizacion->estado_relevamiento()->associate(7);//se cargo toma 2 pero no se validó
-      //rel. visado (?) le pongo ese pero es para distinguir que es la toma 2 que ya esta cargada
-      $id_usuario = session('id_usuario');
-      $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
-      foreach ($usuarios as $user){
-        $u = Usuario::find($user->id_usuario);
-       if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
+      $nro_toma = $request->toma <= 0? 1 : $request->toma;
+      RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoProgs(
+        $request->id_relev_mov,
+        $nro_toma,
+        $request->id_cargador,
+        $request->id_fiscalizador,
+        $request['fecha_sala'],
+        $request['mac'],
+        $request['sector_relevado'],
+        $request['isla_relevada'],
+        $request['contadores'],
+        $request['juego'],
+        $request['apuesta_max'],
+        $request['cant_lineas'] ,
+        $request['porcentaje_devolucion'],
+        $request['denominacion'],
+        $request['cant_creditos'],
+        $request['progresivos'],
+        $request['observaciones']
+      );
+
+      //si es primera toma
+      if($fiscalizacion->id_estado_relevamiento != 3 && $this->cargaFinalizada($fiscalizacion))
+      {//si existe una toma de relevamiento por cada relevamiento -> finalizado
+        $logMov->id_estado_movimiento= 3;//fiscalizado
+        $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
+        $fiscalizacion->estado_relevamiento()->associate(3);
+        $id_usuario = session('id_usuario');
+        $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
+        foreach ($usuarios as $user){
+          $u = Usuario::find($user->id_usuario);
+        if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
+        }
+        CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
       }
+
+      //la fiscalizacion esta cargada en la toma 1 y puede estar visada, y verifico que las tomas2 esten cargadas
+      if($fiscalizacion->id_estado_relevamiento > 2 && $this->cargaFinalizadaToma2($fiscalizacion) && $logMov->id_tipo_movimiento != 1){
+        $logMov->id_estado_movimiento= 3;//fiscalizado
+        $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
+        $fiscalizacion->estado_relevamiento()->associate(7);//se cargo toma 2 pero no se validó
+        //rel. visado (?) le pongo ese pero es para distinguir que es la toma 2 que ya esta cargada
+        $id_usuario = session('id_usuario');
+        $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
+        foreach ($usuarios as $user){
+          $u = Usuario::find($user->id_usuario);
+        if($u != null) $u->notify(new RelevamientoCargado($fiscalizacion));
+        }
+      }
+
+      $fiscalizacion->save();
+      $logMov->save();
     }
-
-    $fiscalizacion->save();
-    $logMov->save();
-
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
+      return ['codigo' => 0];
+    }
+    DB::commit();
     return ['codigo' => 1];
   }
 
@@ -1699,7 +1750,7 @@ class LogMovimientoController extends Controller
 
   public function cargarEventualidadMTM(Request $request){
     // Se cambia el validador para permitir ser nullos los datos, ya que cierta eventualiadades no ofrece la informacion suficente
-    $validator =Validator::make($request->all(), [
+    $validator = Validator::make($request->all(), [
       'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
       'id_cargador' => 'nullable|exists:usuario,id_usuario',
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
@@ -1767,18 +1818,16 @@ class LogMovimientoController extends Controller
   public function imprimirEventualidadMTM($id_log_mov, $tipo){
     $rels= array();
     $log = LogMovimiento::find($id_log_mov);
-    $i = 0;
     $casino = $log->casino;
-    foreach ($log->relevamientos_movimientos as $relev) {
+    foreach ($log->relevamientos_movimientos as $idx => $relev) {
       $rels[] = RelevamientoMovimientoController::getInstancia()
       ->relevamientosIntervencionesMTM( $relev->id_maquina,
-                                        $i,
+                                        $idx,
                                         $log->id_log_movimiento,
                                         $log->tipo_movimiento->descripcion,
                                         $log->sentido,
                                         $tipo,
                                         $casino);
-      $i++;
     }
 
     $view = View::make('planillaEventualidadesMTMs', compact('rels'));
@@ -1824,9 +1873,9 @@ class LogMovimientoController extends Controller
       'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
       'nro_toma' => 'nullable',
       'observacion' => 'nullable|string',
-    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relev_mov,$id_usario){
+    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relev_mov,$id_usuario){
       if(count($validator->errors()) == 0){
-        $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
+        $relev_mov = RelevamientoMovimiento::find($validator->getData()['id_relev_mov']);
         $logMov = $relev_mov->log_movimiento;
         if(!Usuario::find($id_usuario)->usuarioTieneCasino($logMov->id_casino)){
           $validator->errors->add('id_relev_mov','El usuario no puede acceder a ese movimiento.');

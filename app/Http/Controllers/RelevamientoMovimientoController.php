@@ -13,6 +13,8 @@ use App\Expediente;
 use App\RelevamientoMovimiento;
 use App\EstadoMovimiento;
 use App\FiscalizacionMov;
+use App\DetalleRelevamientoProgresivo;
+use App\NivelProgresivo;
 use Illuminate\Support\Facades\DB;
 use Response;
 use PDF;
@@ -393,6 +395,72 @@ class RelevamientoMovimientoController extends Controller
        //no se puede automatizar la eleccion de si es toma 1 o toma 2 o si está modificando o ke
    }
 
+  public function cargarTomaRelevamientoProgs(
+    $id_relevamiento, $nro_toma, $id_cargador, $id_fiscalizador, $fecha_sala,
+    $mac, $sector_relevado, $isla_relevada, $contadores, $juego, $apuesta_max,
+    $cant_lineas, $porcentaje_devolucion, $denominacion, $cant_creditos, 
+    $progresivos, $observaciones
+  ){
+    $relevamiento = RelevamientoMovimiento::find($id_relevamiento);
+    $relevamiento->estado_relevamiento()->associate(3);//finalizado
+    $relevamiento->fecha_relev_sala = $fecha_sala;
+    $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
+    $relevamiento->fiscalizador()->associate($id_fiscalizador);
+    $relevamiento->cargador()->associate($id_cargador);
+    $relevamiento->save();
+
+    if($relevamiento->toma_relevamiento_movimiento()->count() == 0){//Si por algun motivo no tiene tomas, le creo una vacia
+      TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($relevamiento->id_maquina,$relevamiento->id_relev_mov,[],
+      null,null,null,
+      null,null,null,
+      null,null,null,
+      null,null,0);
+    }
+
+    $toma = $relevamiento->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->skip($nro_toma - 1)->first();
+    if(is_null($toma)) return -1;
+
+    $toma->mac = $mac;
+    $toma->descripcion_sector_relevado = $sector_relevado;
+    $toma->nro_isla_relevada = $isla_relevada;
+    foreach($contadores as $idx => $c){
+      $toma['vcont'.($idx+1)] = $c['valor'];
+    }
+    $toma->juego = $juego;
+    $toma->apuesta_max = $apuesta_max;
+    $toma->cant_lineas = $cant_lineas;
+    $toma->porcentaje_devolucion = $porcentaje_devolucion;
+    $toma->denominacion = $denominacion;
+    $toma->cant_creditos = $cant_creditos;
+    $toma->observaciones = $observaciones;
+    $toma->save();
+
+    $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
+    foreach($progresivos as $pozo){
+      // No deberia haber multiples relevamientos del mismo pozo para una toma.
+      $detalle_prog = $toma->detalles_relevamiento_progresivo()->where('detalle_relevamiento_progresivo.id_pozo','=',$pozo['id_pozo'])->first();
+      $causaNoToma = $pozo['id_tipo_causa_no_toma_progresivo'];
+      $detalle_prog['id_tipo_causa_no_toma_progresivo'] = $causaNoToma;
+      for($i = 1;$i<=$maxlvl;$i++){
+        $detalle_prog['nivel'.$i] = null;
+      }
+      if(is_null($causaNoToma)){
+        foreach($pozo['niveles'] as $nivel){
+          $nivelbd = NivelProgresivo::find($nivel['id_nivel_progresivo']);
+          $nro_nivel = $nivelbd->nro_nivel;
+          if($nro_nivel <= $maxlvl){
+            $detalle_prog['nivel'.$nro_nivel] = $nivel['val'];
+          }
+          else{
+            throw new Exception('ERROR SE SUPERO LA CANTIDAD DE NIVELES CARGABLES, AGREGAR UN NIVEL A LA TABLA (y al modelo)');
+          }
+        }
+      }
+      $detalle_prog->save();
+    }
+    return 0;
+  }
+
    //guarda la toma del relevamiento por maquina, sea que la haya modificado o es nueva
    public function cargarTomaRelevamientoEv( $id_maquina , $contadores, $juego , $apuesta_max, $cant_lineas, $porcentaje_devolucion, $denominacion ,
     $cant_creditos, $fecha_sala, $observaciones, $id_cargador, $id_fisca, $mac, $id_log_movimiento , $s, $i){
@@ -462,9 +530,9 @@ class RelevamientoMovimientoController extends Controller
   }
 
   if ($obsAdmin!="") {
-    $toma->observaciones = $toma->observaciones . " \n . ***Observaciones Admin**** :  \n" . $obsAdmin;
+    $toma->observaciones = $toma->observaciones."\n\n***Observaciones Admin****:\n\n".$obsAdmin;
   }
-  
+
   $relevamiento->save();
   $toma->save();
   return $toma->observaciones;
@@ -563,7 +631,7 @@ class RelevamientoMovimientoController extends Controller
        $rel->toma1_cont7 = $toma_relev->vcont7;
        $rel->toma1_cont8 = $toma_relev->vcont8;
        $juego = Juego::find($toma_relev->juego);
-       $rel->toma1_juego = $juego->nombre_juego;
+       $rel->toma1_juego = is_null($juego)? '' : $juego->nombre_juego;
        $rel->toma1_apuesta_max = $toma_relev->apuesta_max;
        $rel->toma1_cant_lineas = $toma_relev->cant_lineas;
        $rel->toma1_porcentaje_devolucion = $toma_relev->porcentaje_devolucion;

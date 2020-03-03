@@ -45,22 +45,17 @@ $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
 $(document).on('click','.btn-cargarRelMov',function(e){
   $('#modalCargarRelMov .modal-title').text('CARGAR RELEVAMIENTOS');
   $('#modalCargarRelMov .modal-header').attr('style','background: #6dc7be');
-  mostrarFiscalizacion($(this).val(),false,"CARGAR");
+  mostrarFiscalizacion($(this).val(),"CARGAR");
 });
 
-$(document).on('click','.btn-cargarT2RelMov',function(e){
-  $('#modalCargarRelMov .modal-title').text('CARGAR RELEVAMIENTOS - SEGUNDA TOMA');
-  $('#modalCargarRelMov .modal-header').attr('style','background: #6dc7be');
-  mostrarFiscalizacion($(this).val(),false,"CARGAR");
-});
 $(document).on('click','.btn-verRelMov',function(e){
   $('#modalCargarRelMov .modal-title').text('VER RELEVAMIENTOS');
   $('#modalCargarRelMov .modal-header').attr('style','background: #4FC3F7');
-  mostrarFiscalizacion($(this).val(),false,"VER");
+  mostrarFiscalizacion($(this).val(),"VER");
 });
 
-function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma,modo){
-  $('#guardarRel').prop('disabled', true).attr('es-segunda-toma',es_segunda_toma? 1 : 0);
+function mostrarFiscalizacion(id_fiscalizacion,modo){
+  $('#guardarRel').prop('disabled', true);
   $('#guardarRel').toggle(modo == "CARGAR");
   esconderDetalleRelevamiento();
   $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
@@ -68,8 +63,7 @@ function mostrarFiscalizacion(id_fiscalizacion,es_segunda_toma,modo){
     setearTipoMovimiento(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
     if(modo == "CARGAR") dibujos = {};
-    const estado_listo = es_segunda_toma? 7 : 3;
-    cargarRelevamientos(data.relevamientos,dibujos,estado_listo);
+    cargarRelevamientos(data.relevamientos,dibujos,3);
     divRelSetearModo(modo);
     $('#modalCargarRelMov').modal('show');
   });
@@ -96,8 +90,6 @@ $(document).on('click','#guardarRel',function(){
   const formData = {
     id_relev_mov:                $('#guardarRel').attr('data-rel'),
     toma:                        $('#guardarRel').attr('toma'),
-    es_cargaT2:                  $('#guardarRel').attr('es-segunda-toma'),
-    estado:                      2,
     id_cargador:                 datos.usuario_carga.id_usuario,
     id_fiscalizador:             datos.usuario_toma.id_usuario,
     contadores:                  datos.contadores,
@@ -115,6 +107,7 @@ $(document).on('click','#guardarRel',function(){
     progresivos:                 datos.progresivos
   }
 
+  divRelMovLimpiarErrores();
   $.ajax({
     type: 'POST',
     url: 'movimientos/cargarTomaRelevamiento',
@@ -248,17 +241,11 @@ function generarFilaTabla(rel){
   const estado = rel.id_estado_relevamiento;
   if(estado < 3){
     fila.find('.btn-imprimirRelMov').hide();
-    fila.find('.btn-cargarT2RelMov').hide();
   }
   if(estado > 2){
     fila.find('.btn-imprimirRelMov').show();
     fila.find('.btn-generarRelMov').hide();
     fila.find('.btn-cargarRelMov').hide();
-    if(estado < 7 && estado != 4 && tipo_mov != 'INGRESO' && tipo_mov != 'EGRESO/REINGRESOS'){
-      fila.find('.btn-cargarT2RelMov').show();
-    }else{
-      fila.find('.btn-cargarT2RelMov').hide();
-    }
   }
 
   fila.find('.btn-eliminarFiscal').show();

@@ -1,7 +1,9 @@
 <?php
 use App\Http\Controllers\UsuarioController;
+use App\DetalleRelevamientoProgresivo;
 $divRelMov_ucontrol = UsuarioController::getInstancia(); 
 $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
+$maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 ?>
 
 <div id="divRelevamientoMovimiento">
@@ -140,7 +142,7 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
                         <thead>
                             <tr>
                                 <th width="17%">PROGRESIVO</th>
-                                @for($i=6;$i>0;$i--)
+                                @for($i=1;$i<=$maxlvl;$i++)
                                 <th width="11%">NIVEL{{$i}}</th>
                                 @endfor
                                 <th width="17%">CAUSA NO TOMA</th>
@@ -154,14 +156,14 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
             <table hidden>
                 <tr id="filaEjemploProgresivo">
                     <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
-                    @for ($i=6;$i>0;$i--)
+                    @for ($i=1;$i<=$maxlvl;$i++)
                     <td width="11%">
-                    <input class="nivel{{$i}} form-control editable" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                        <input class="nivel{{$i}} form-control editable" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}">
                     </td>
                     @endfor
                     <td width="17%">
                     <select class="causaNoToma form-control editable">
-                        <option value="-1"></option>
+                        <option value=""></option>
                         @foreach($causasNoTomaProgresivo as $causa)
                         <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
                         @endforeach
@@ -274,10 +276,13 @@ function obtenerDatosDivRelevamiento(){
         observacionesAdm: $('#observacionesAdmin').val()
     };
 }
-function limpiarDivRelevamiento(){
+function divRelMovLimpiarErrores(){
     $('#modalCargarRelMov .alerta').each(function(){
         ocultarErrorValidacion($(this));
     });
+}
+function limpiarDivRelevamiento(){
+    divRelMovLimpiarErrores();
     $('#modalCargarRelMov input').not('#inputTipoMov,#inputSentido').val('');
     $('#tablaCargarContadores tbody').empty();
     $('#juegoRel').empty();
@@ -317,6 +322,12 @@ function agregarProgresivos(progresivos){
       nivel.attr('placeholder',niv.nombre_nivel).addClass('habilitado');
       nivel.attr('data-id-nivel',niv.id_nivel_progresivo)
     });
+    const rel_prog = prog.pozo.det_rel_prog;
+    const causaNoToma = rel_prog.id_tipo_causa_no_toma_progresivo;
+    fila.find('.causaNoToma').val(causaNoToma);
+    for(let i = 1;i <= {{$maxlvl}} && causaNoToma === null;i++){
+        fila.find('.nivel'+i).val(rel_prog['nivel'+i]);
+    }
     $('#tomaProgresivo tbody').append(fila);
     $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
   });
@@ -335,7 +346,7 @@ function setearDivRelevamiento(data){
         $('#juegoRel').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
     if(data.toma != null){
-        $('#juegoRel').val(data.toma.juego);
+        $('#juegoRel').val(data.toma.juego? data.toma.juego : 0);
         $('#apuesta').val(data.toma.apuesta_max);
         $('#cant_lineas').val(data.toma.cant_lineas);
         $('#devolucion').val(data.toma.porcentaje_devolucion);
@@ -376,6 +387,16 @@ function mostrarErroresDiv(response){
         const res = response['contadores.'+ index +'.valor'];
         if(!isUndef(res)){
             mostrarErrorValidacion($(this).find('.valorModif'),parseError(res[0]));
+            err = true;
+        }
+    });
+    $('#tablaProgresivos tbody tr').each(function(index){
+        const res = response['progresivos.'+ index];
+        if(!isUndef(res)){
+            const msg = parseError(res[0]);
+            $(this).find('input:not([disabled])').each(function(){
+                if($(this).val().length == 0) mostrarErrorValidacion($(this),msg);
+            });
             err = true;
         }
     });

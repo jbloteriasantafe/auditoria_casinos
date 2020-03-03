@@ -282,8 +282,8 @@ footer
                 </tr>
                 <tr>
                   @if($relevamiento->toma1_observ != null)
-                  <td class="tablaInicio fila" style="height:auto; ">
-                    {{$relevamiento->toma1_observ}}
+                  <td class="tablaInicio fila">
+                    <div class="break">{{$relevamiento->toma1_observ}}</div>
                   </td>
                  @else
                   <td class="tablaInicio fila">

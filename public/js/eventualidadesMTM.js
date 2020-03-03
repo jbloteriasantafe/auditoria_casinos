@@ -155,7 +155,7 @@ function mostrarFiscalizacion(id_mov,modo){
     setearTipoMovimiento(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
     if(modo == "CARGAR") dibujos = {3 : 'fa-pencil-alt'};
-    cargarRelevamientos(data.relevamientos,dibujos,-1,-1);
+    cargarRelevamientos(data.relevamientos,dibujos,-1);
     divRelSetearModo(modo);
     $('#modalCargarRelMov').modal('show');
   })
@@ -216,6 +216,7 @@ $(document).on('click','#guardarRel',function(){
     progresivos:           datos.progresivos
   };
 
+  divRelMovLimpiarErrores();
   $.ajax({
     type: 'POST',
     url: 'eventualidadesMTM/cargarEventualidadMTM',
@@ -266,7 +267,7 @@ $(document).on('click','#divRelevamientoMovimiento .validar',function(){
       if(data.id_estado_relevamiento == 4){
         limpiarDivRelevamiento();
         mensajeExito({titulo:'ÉXITO DE VALIDACIÓN'});
-        marcarListaMaquinaPorIdRel(id_relev_mov);
+        marcarListaMaquinaPorIdRel(formData.id_relev_mov);
       };
     },
     error: function (data) {

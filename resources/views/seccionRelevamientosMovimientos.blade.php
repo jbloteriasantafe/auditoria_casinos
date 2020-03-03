@@ -156,9 +156,6 @@ $cas = $usuario['usuario']->casinos;
       <button class="btn btn-success btn-cargarRelMov" title="CARGAR">
         <i class="fa fa-fw fa-upload"></i>
       </button>
-      <button class="btn btn-success btn-cargarT2RelMov" title="CARGAR TOMA 2">
-        <i class="fa fa-fw fa-retweet"></i>
-      </button>
       <button class="btn btn-success btn-imprimirRelMov" title="IMPRIMIR">
         <i class="fas fa-fw fa-print"></i>
       </button>
