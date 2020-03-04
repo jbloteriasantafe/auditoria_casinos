@@ -114,12 +114,9 @@
         <tr>
           <th class="tablaInicio" style="background-color: #dddddd" width="7%">ISLA/S</th>
           <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">PROGRESIVO</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
+          <th class="tablaInicio" style="background-color: #dddddd">NIVEL {{$i}}</th>
+          @endfor
           <th class="tablaInicio" style="background-color: #dddddd;" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
@@ -134,12 +131,12 @@
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
-          @for ($i=0; $i<6; $i++)
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
         <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
         <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['causa_no_toma_progresivo']}}</div></td>
         @else
-          @for ($i=1; $i<7; $i++)
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
             @if (strlen($detalle['nombre_nivel' . $i])>0)
         <td class="tablaProgresivos" style="background-color: white">
           <div class="cell_fg break">
@@ -180,12 +177,9 @@
           <th class="tablaInicio" style="background-color: #dddddd" width="7%">ISLA</th>
           <th class="tablaInicio" style="background-color: #dddddd" width="7%">MÁQ.</th>
           <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">PROGRESIVO</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 1</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 2</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 3</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 4</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 5</th>
-          <th class="tablaInicio" style="background-color: #dddddd">NIVEL 6</th>
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
+          <th class="tablaInicio" style="background-color: #dddddd">NIVEL {{$i}}</th>
+          @endfor
           <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
@@ -202,12 +196,12 @@
         @endif
 
         @if ($detalle['causa_no_toma_progresivo'] != -1)
-          @for ($i=0; $i<6; $i++)
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
             <td class="tablaProgresivos" style="background-color: white"> - </td>
           @endfor
           <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['causa_no_toma_progresivo']}}</div></td>
         @else
-          @for ($i=1; $i<7; $i++)
+          @for($i=1;$i<=$otros_datos_relevamiento_progresivo['maxlvl'];$i++)
             @if (strlen($detalle['nombre_nivel' . $i])>0)
               <td class="tablaProgresivos" style="background-color: white"><div class="break">{{$detalle['nivel' . $i]}}</div></td>
             @else

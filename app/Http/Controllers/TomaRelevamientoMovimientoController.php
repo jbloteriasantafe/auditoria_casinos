@@ -43,10 +43,11 @@ class TomaRelevamientoMovimientoController extends Controller
   $fecha_sala,
   $observaciones, $mac,
   $sectorRelevadoCargar,
-  $islaRelevadaCargar, $es_toma_2){
+  $islaRelevadaCargar){
     $mtm = Maquina::find($id_maquina);
 
     $toma = new TomaRelevamientoMovimiento;
+
     //los datos que obtiene de maquina no se si son realmente utiles
     $toma->nro_admin = $mtm->nro_admin;
     $toma->modelo = $mtm->modelo;
@@ -56,32 +57,12 @@ class TomaRelevamientoMovimientoController extends Controller
     $toma->mac = $mac;
     $toma->nro_isla_relevada = $islaRelevadaCargar;
     $toma->descripcion_sector_relevado = $sectorRelevadoCargar;
-    $toma->toma_reingreso = $es_toma_2;//pone uno si es que habia antes una sola toma relev mov
+    $toma->toma_reingreso = 0; //Mas de una toma esta DEPRECADO!
 
-    //hay muchos if porque no encontré una forma mejor y rapida ->cami
-    if(isset($contadores[0]['valor'])){
-      $toma->vcont1= $contadores[0]['valor'];
-    }
-    if(isset($contadores[1]['valor'])){
-        $toma->vcont2= $contadores[1]['valor'];
-    }
-    if(isset($contadores[2]['valor'])){
-      $toma->vcont3= $contadores[2]['valor'];
-    }
-    if(isset($contadores[3]['valor'])){
-      $toma->vcont4= $contadores[3]['valor'];
-    }
-    if(isset($contadores[4]['valor'])){
-      $toma->vcont5= $contadores[4]['valor'];
-    }
-    if(isset($contadores[5]['valor'])){
-      $toma->vcont6= $contadores[5]['valor'];
-    }
-    if(isset($contadores[6]['valor'])){
-      $toma->vcont7= $contadores[6]['valor'];
-    }
-    if(isset($contadores[7]['valor'])){
-      $toma->vcont8= $contadores[7]['valor'];
+    foreach($contadores as $idx => $cont){
+      if(isset($cont['valor'])){
+        $toma['vcont'.($idx+1)] = $cont['valor'];
+      }
     }
 
     $toma->juego= $juego;
@@ -112,85 +93,6 @@ class TomaRelevamientoMovimientoController extends Controller
       }
     }
     return $toma;
-  }
-
-  //permite editar la toma relevamiento
-  public function editarTomaRelevamiento(
-  $tomas,
-  $contadores,
-  $juego ,
-  $apuesta_max,
-  $cant_lineas,
-  $porcentaje_devolucion,
-  $denominacion ,
-  $cant_creditos,
-  $fecha_sala,
-  $observaciones,
-  $mac,
-  $sectorRelevadoCargar,
-  $islaRelevadaCargar,
-  $es_toma_reingreso){
-
-
-    //detecto que la toma que esta modificando es la primera porque el rel tiene cargada una sola
-      if(count($tomas) == 1){
-        $toma = $tomas[0];
-        $this->completar($toma, $contadores,$juego ,$apuesta_max,
-        $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-        $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso);
-      }else{//debe ser la otra
-        foreach ($tomas as $toma) {
-          if($toma->toma_reingreso == 1){//la busco distinguiendo su atributo
-            $this->completar($toma, $contadores,$juego ,$apuesta_max,
-            $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-            $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso);
-          }
-        }
-      }
-    }
-
-
-  private function completar($toma, $contadores,$juego ,$apuesta_max,
-  $cant_lineas,$porcentaje_devolucion,$denominacion ,$cant_creditos,
-  $fecha_sala,$observaciones, $mac,$sectorRelevadoCargar,$islaRelevadaCargar,$es_toma_reingreso){
-
-    if(isset($contadores[0]['valor'])){
-    $toma->vcont1= $contadores[0]['valor'];
-    }
-    if(isset($contadores[1]['valor'])){
-        $toma->vcont2= $contadores[1]['valor'];
-    }
-    if(isset($contadores[2]['valor'])){
-      $toma->vcont3= $contadores[2]['valor'];
-    }
-    if(isset($contadores[3]['valor'])){
-      $toma->vcont4= $contadores[3]['valor'];
-    }
-    if(isset($contadores[4]['valor'])){
-      $toma->vcont5= $contadores[4]['valor'];
-    }
-    if(isset($contadores[5]['valor'])){
-      $toma->vcont6= $contadores[5]['valor'];
-    }
-    if(isset($contadores[6]['valor'])){
-      $toma->vcont7= $contadores[6]['valor'];
-    }
-    if(isset($contadores[7]['valor'])){
-      $toma->vcont8= $contadores[7]['valor'];
-    }
-    $toma->juego= $juego;
-    $toma->apuesta_max= $apuesta_max;
-    $toma->cant_lineas= $cant_lineas;
-    $toma->porcentaje_devolucion= $porcentaje_devolucion;
-    $toma->denominacion= $denominacion;
-    $toma->cant_creditos= $cant_creditos;
-    $toma->observaciones = $observaciones;
-    $toma->mac = $mac;
-    $toma->nro_isla_relevada = $islaRelevadaCargar;
-    $toma->descripcion_sector_relevado = $sectorRelevadoCargar;
-
-    $toma->save();
-
   }
 
   public function limpiarToma($id_toma_relev_mov){

@@ -7,12 +7,13 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
+use App\DetalleRelevamientoProgresivo;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
 $puede_eliminar = $user->es_administrador || $user->es_superusuario;
 $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
-$niveles = 6;
+$niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
 ?>
 
 @section('estilos')
@@ -392,7 +393,7 @@ $niveles = 6;
                             <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
                             <td class="col-xs-2 maquinas">MAQUINA1/MAQUINA2/...</td>
                             <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
-                            @for ($i=1;$i<=6;$i++)
+                            @for ($i=1;$i<=$niveles;$i++)
                             <td class="col-xs-1">
                               <input disabled="disabled" class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
                             </td>

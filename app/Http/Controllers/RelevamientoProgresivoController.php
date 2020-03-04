@@ -382,7 +382,8 @@ class RelevamientoProgresivoController extends Controller
       'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? 
       (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) 
       : "",
-      'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion
+      'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion,
+      'maxlvl' => (new DetalleRelevamientoProgresivo)->max_lvl
     );
 
     $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
@@ -483,9 +484,10 @@ class RelevamientoProgresivoController extends Controller
     //PHP te hace copias en vez de referencias
     //Y no pude hacer andar el array con &
     //Un foreach seria mucho mas facil...
+    $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     for($didx=0;$didx<sizeof($detalles);$didx++){
       if(array_key_exists('niveles',$detalles[$didx])){
-        for($n = 0;$n<6;$n++){
+        for($n = 0;$n<$maxlvl;$n++){
           if(array_key_exists($n,$detalles[$didx]['niveles'])){
             $aux = $detalles[$didx]['niveles'][$n]['valor'];
             $value = is_numeric($aux)? $aux : NULL;

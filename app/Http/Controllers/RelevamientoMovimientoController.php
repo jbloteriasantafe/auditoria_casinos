@@ -50,7 +50,7 @@ class RelevamientoMovimientoController extends Controller
         null,null,null,
         null,null,null,
         null,null,null,
-        null,null,0);
+        null,null);
       });
       return $relevMov;
    }
@@ -294,7 +294,8 @@ class RelevamientoMovimientoController extends Controller
         $relprog->progresivo = $prog->nombre;
         $relprog->niveles = [];
         $relprog->valores_niveles = [];
-        for($i = 1;$i<=6;$i++){
+        $maxlvl = $d->max_lvl;
+        for($i = 1;$i<=$maxlvl;$i++){
           $relprog->valores_niveles[$i] = $d['nivel'.$i];
           // Si no hay un nivel me quedo con el ultimo eliminado
           // Puede pasar si es un relevamiento viejo al que se le borro el progresivo
@@ -347,7 +348,7 @@ class RelevamientoMovimientoController extends Controller
       null,null,null,
       null,null,null,
       null,null,null,
-      null,null,0);
+      null,null);
     }
 
     $toma = $relevamiento->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->skip($nro_toma - 1)->first();
@@ -393,7 +394,6 @@ class RelevamientoMovimientoController extends Controller
     }
     return 0;
   }
-
 
    //el controlador valida la toma, si encuentra un error la marca con error.
    public function validarRelevamientoToma($relevamiento, $validado){
