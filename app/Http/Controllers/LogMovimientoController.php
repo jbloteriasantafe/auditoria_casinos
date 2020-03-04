@@ -729,36 +729,69 @@ class LogMovimientoController extends Controller
       $logMov->estado_movimiento()->associate(2);//fiscalizando
     }
     $logMov->save();
-    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
     $casino = $logMov->casino;
+
     $relevamientos = array();
-    $count = 0;
-
-    foreach($fiscalizacionMov->relevamientos_movimientos as $relev_mov){
-      $relevamientos[] = RelevamientoMovimientoController::getInstancia()->generarPlanillaMaquina($relev_mov,$tipoMovimiento, $casino, $fiscalizacionMov->fecha_envio_fiscalizar,$fiscalizacionMov->id_estado_relevamiento,$count++,$fiscalizacionMov->es_reingreso);
+    $relController = RelevamientoMovimientoController::getInstancia();
+    foreach($fiscalizacionMov->relevamientos_movimientos as $idx => $relev){
+      $relevamientos[] = $relController->generarPlanillaMaquina(
+        $relev,
+        $logMov->tipo_movimiento->descripcion,
+        $logMov->sentido,
+        $casino,
+        $fiscalizacionMov->fecha_envio_fiscalizar,
+        $fiscalizacionMov->id_estado_relevamiento
+      );
     }
 
-    $toma=null;
-    if($tipoMovimiento != 'EGRESO/REINGRESOS'){
-      $toma=1;
-    }else{
-      $toma=2;
-    }
-    $view = View::make('planillaMovimientos', compact('relevamientos'));
+    $tipo_planilla = "movimientos";
+    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $toma."/".$casino->codigo."/".$fiscalizacionMov->fecha_envio_fiscalizar, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$fiscalizacionMov->fecha_envio_fiscalizar, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
 
   }
 
+  //tipo: si es 1 = es nueva la planilla, si es 2 es que se imprime con la carga completa
+  public function imprimirEventualidadMTM($id_log_mov){
+    $log = LogMovimiento::find($id_log_mov);
+    $casino = $log->casino;
+
+    $relevamientos= array();
+    $relController = RelevamientoMovimientoController::getInstancia();
+    foreach ($log->relevamientos_movimientos as $idx => $relev) {
+      $relevamientos[] = $relController->generarPlanillaMaquina(
+        $relev,
+        $log->tipo_movimiento->descripcion,
+        $log->sentido,
+        $casino,
+        $log->fecha,
+        $log->id_estado_relevamiento
+      );
+    }
+
+    $tipo_planilla = "intervenciones";
+    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$log->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
   // 2/03/2020 - Octavio
   // Si alguna vez ocurre que hay progresivos con mas de 6 niveles, no van a ser mas validos muchos de los algoritmos
+  // (trate de cambiarlo pero puede ser que se me haya quedado colgado algo en frontend)
   // Esto va a suceder porque si bien se tenia en cuenta que sea expandible en un principio
   // hay dos limitaciones:
   // - Detalle progresivo solo tiene 6 valores (trivial de solucionar, modificar la estructura de la tabla y cambiar los limites)
@@ -1724,34 +1757,6 @@ class LogMovimientoController extends Controller
     $tipos = TipoMovimiento::where('puede_reingreso',1)->orWhere('puede_egreso_temporal',1)
     ->where('deprecado',0)->get();
     return ['tipos_movimientos' => $tipos];
-  }
-
-  //tipo: si es 1 = es nueva la planilla, si es 2 es que se imprime con la carga completa
-  public function imprimirEventualidadMTM($id_log_mov, $tipo){
-    $rels= array();
-    $log = LogMovimiento::find($id_log_mov);
-    $casino = $log->casino;
-    foreach ($log->relevamientos_movimientos as $idx => $relev) {
-      $rels[] = RelevamientoMovimientoController::getInstancia()
-      ->relevamientosIntervencionesMTM( $relev->id_maquina,
-                                        $idx,
-                                        $log->id_log_movimiento,
-                                        $log->tipo_movimiento->descripcion,
-                                        $log->sentido,
-                                        $tipo,
-                                        $casino);
-    }
-
-    $view = View::make('planillaEventualidadesMTMs', compact('rels'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$log->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
   public function relevamientosEvMTM($id_log_mov){

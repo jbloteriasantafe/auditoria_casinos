@@ -118,7 +118,7 @@ $(document).on('click','#btn-impr',function(e){
       $('#btn-buscarEventualidadMTM').trigger('click');
       //1 si la planilla es generada desde el modal de carga,
       //y va a ser 0 si se genera desde el boton imprimir de la pag ppal
-      window.open('eventualidadesMTM/imprimirEventualidadMTM/' + data + '/' + 1,'_blank');
+      window.open('eventualidadesMTM/imprimirEventualidadMTM/' + data,'_blank');
     },
     error: function (data) {
       console.log('Error:',data);
@@ -281,7 +281,7 @@ $(document).on('click','#divRelevamientoMovimiento .validar',function(){
 $(document).on('click', '.btn_imprimirEvmtm', function(){
   const id_mov = $(this).val();
   //le envío 0 para que identifique que es la planilla completa
-  window.open('eventualidadesMTM/imprimirEventualidadMTM/' + id_mov + '/' + 0,'_blank');
+  window.open('eventualidadesMTM/imprimirEventualidadMTM/' + id_mov,'_blank');
 });
 
 //Busqueda de eventos
