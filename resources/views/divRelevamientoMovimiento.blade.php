@@ -6,21 +6,21 @@ $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
 $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 ?>
 
-<div id="divRelevamientoMovimiento">
+<div id="divRelMov">
 <div class="row"> 
     <div class="col-md-4 col-md-offset-2">
         <h5>Tipo Movimiento</h5>
-        <input id="inputTipoMov" class="form-control" type="text" autocomplete="off" readonly="">
+        <input class="form-control tipoMov" type="text" autocomplete="off" readonly="">
     </div>
     <div class="col-md-4">
         <h5>Sentido</h5>
-        <input id="inputSentido" class="form-control" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+        <input class="form-control sentidoMov" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
     <div class="col-md-3">
         <h5>Máquinas</h5>
-        <table id="tablaCargarMTM" class="table">
+        <table class="table tablaMTM">
         <thead>
             <tr>
             <th> </th>
@@ -30,68 +30,68 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
         </tbody>
         </table>
     </div> <!-- maquinas -->
-    <div  id="detallesMTM" class="col-md-9">
+    <div class="col-md-9 detalleRel">
         <div class="row">
             <div class="col-md-4">
                 <h5>Fiscalizador Carga: </h5>
-                <input id="fiscaCarga" type="text" class="form-control" disabled="true">
+                <input type="text" class="form-control fiscaCarga" disabled="true">
             </div>
             <div class="col-md-4">
                 <h5>Fiscalizador Toma: </h5>
-                <input id="fiscaToma" class="form-control editable" type="text" autocomplete="off">
+                <input class="form-control editable fiscaToma" type="text" autocomplete="off">
             </div>
             <div class="col-md-4">
                 <h5>Fecha Ejecución: </h5>
-                <div class='input-group date' id='relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
-                    <input type='text' class="form-control editable" placeholder="Fecha de ejecución del relevamiento" id="fechaRel" data-trigger="manual" data-toggle="popover" data-placement="top" />
+                <div class='input-group date relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
+                    <input type='text' class="form-control editable fechaRel" placeholder="Fecha de ejecución del relevamiento" data-trigger="manual" data-toggle="popover" data-placement="top" />
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
             </div>
         </div>
         <h6>DETALLES MTM</h6>
-        <form id="form1" class="" action="index.html" method="post">
+        <form class="" action="index.html" method="post">
         <div class="row" >
                 <div class="col-lg-4">
                     <h5>Nro Admin.</h5>
-                    <input id="nro_adminMov" type="text"   class="form-control" readonly="readonly">
+                    <input type="text" class="form-control nro_admin" readonly="readonly">
                 </div>
                 <div class="col-lg-4">
                     <h5>N° Isla</h5>
-                    <input id="nro_islaMov" type="text" class="form-control" readonly="readonly">
+                    <input type="text" class="form-control nro_isla" readonly="readonly">
                 </div>
                 <div class="col-lg-4">
                     <h5>N° Serie</h5>
-                    <input id="nro_serieMov" type="text" class="form-control" readonly="readonly">
+                    <input type="text" class="form-control nro_serie" readonly="readonly">
                 </div>
             </div> 
             <div class="row"> 
                 <div class="col-lg-6">
                     <h5>Marca</h5>
-                    <input id="marcaMov" type="text" class="form-control" readonly="readonly">
+                    <input type="text" class="form-control marca" readonly="readonly">
                 </div>
                 <div class="col-lg-6">
                     <h5>Modelo</h5>
-                    <input id="modeloMov" type="text" class="form-control" readonly="readonly">
+                    <input id="" type="text" class="form-control modelo" readonly="readonly">
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-4">
                     <h5>MAC</h5>
-                    <input id="macCargar" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable mac">
                 </div>
                 <div class="col-lg-4">
                     <h5>SECTOR</h5>
-                    <input id="sectorRelevadoCargar" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable sector_rel">
                 </div>
                 <div class="col-lg-4">
                     <h5>ISLA</h5>
-                    <input id="islaRelevadaCargar" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable isla_rel">
                 </div>
             </div>
             <div class="row">
-                <div id="" class="table-editable">
-                    <table id="tablaCargarContadores" class="table">
+                <div class="table-editable tablaCont">
+                    <table id="" class="table">
                         <thead>
                             <tr>
                                 <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
@@ -107,38 +107,38 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
             <div class="row"> 
                 <div class="col-lg-4">
                     <h5>JUEGO</h5>
-                    <select id="juegoRel" class="form-control editable">
+                    <select class="form-control editable juego">
                         <option value=""></option>
                     </select>
                 </div>
                 <div class="col-lg-4">
                     <h5>APUESTA MÁX</h5>
-                    <input id="apuesta" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable apuesta">
                 </div>
                 <div class="col-lg-4">
                     <h5>CANT LÍNEAS</h5>
-                    <input id="cant_lineas" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable cant_lineas">
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-4">
                     <h5>% DEVOLUCIÓN</h5>
-                    <input id="devolucion" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable devolucion">
                 </div>
                 <div class="col-lg-4">
                     <h5>DENOMINACIÓN</h5>
-                    <input id="denominacion" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable denominacion">
                 </div>
                 <div class="col-lg-4">
                     <h5>CANT CRÉDITOS</h5>
-                    <input id="creditos" type="text" class="form-control editable">
+                    <input type="text" class="form-control editable creditos">
                 </div>
             </div>
             <h6>PROGRESIVOS</h6>
             <div class="row">
-                <div class="col-lg-12" id="tomaProgresivo" style="overflow: scroll;max-height: 250px;">
-                    <h5 id="sinProgresivos" hidden>La toma no posee progresivos asignados</h5>
-                    <table class="table table-fixed" id="tablaProgresivos">
+                <div class="col-lg-12" style="overflow: scroll;max-height: 250px;">
+                    <h5 class="sinProg" hidden>La toma no posee progresivos asignados</h5>
+                    <table class="table table-fixed tablaProg">
                         <thead>
                             <tr>
                                 <th width="17%">PROGRESIVO</th>
@@ -154,7 +154,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                 </div>
             </div>
             <table hidden>
-                <tr id="filaEjemploProgresivo">
+                <tr class="filaEjProg">
                     <td class="nombreProgresivo" width="17%">PROGRESIVO99</td>
                     @for ($i=1;$i<=$maxlvl;$i++)
                     <td width="11%">
@@ -172,7 +172,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                 </tr>
             </table>
             <table hidden>
-                <tr id="filaEjemploContador">
+                <tr class="filaEjCont">
                     <td class="col-xs-6 cont" data-contador=""></td>
                     <td class="col-xs-6">
                         <input class="form-control editable vcont valorModif">
@@ -182,7 +182,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
             <h6>OBSERVACIONES</h6>
             <div class="row">
                 <div class="col-lg-12">
-                    <textarea id="observacionesToma" class="form-control editable" style="resize:vertical;"></textarea>
+                    <textarea id="" class="form-control editable observaciones" style="resize:vertical;"></textarea>
                 </div>
             </div> <!-- FIN ULTIMO row -->
             <div class="validacion">
@@ -190,7 +190,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                 <h6>OBSERVACIONES ADMIN:</h6>
                 <div class="row">
                     <div class="col-lg-12">
-                        <textarea id="observacionesAdmin" class="form-control"  maxlength="200" style="resize:vertical;"></textarea>
+                        <textarea id="" class="form-control observacionesAdm"  maxlength="200" style="resize:vertical;"></textarea>
                     </div>
                 </div>
                 <hr>
@@ -209,8 +209,12 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
+let divRM = null;
 function divRelMovInit(){
-    $('#relFecha').datetimepicker({
+    // Si alguna vez se necesitan multiples divRelMovs habra que hacer que se pase como argumento a todas las funciones
+    // No tan complicado...
+    divRM = $('#divRelMov');
+    divRM.find('.relFecha').datetimepicker({
         todayBtn:  1,
         language:  'es',
         autoclose: 1,
@@ -225,7 +229,7 @@ function divRelMovInit(){
 }
 function divRelMovObtenerDatos(){
     let contadores= [];
-    $('#tablaCargarContadores tbody tr').each(function(){
+    divRM.find('.tablaCont tbody tr').each(function(){
         const cont={
             nombre: $(this).attr('data-contador'),
             valor: $(this).find('.valorModif').val()
@@ -234,7 +238,7 @@ function divRelMovObtenerDatos(){
     });
 
     let progresivos = [];
-    $('#tomaProgresivo tbody tr').each(function(){
+    divRM.find('.tablaProg tbody tr').each(function(){
         let fila = $(this);
         let obj = {
             id_pozo : fila.find('.nombreProgresivo').attr('data-id-pozo'),
@@ -251,47 +255,47 @@ function divRelMovObtenerDatos(){
     });
 
     return {
-        nro_admin: $('#nro_adminMov').val(),
-        isla_maq: $('#nro_islaMov').val(),
-        nro_serie: $('#nro_serieMov').val(),
-        marca: $('#marcaMov').val(),
-        modelo: $('#modeloMov').val(),
+        nro_admin: divRM.find('.nro_admin').val(),
+        isla_maq: divRM.find('.nro_isla').val(),
+        nro_serie: divRM.find('.nro_serie').val(),
+        marca: divRM.find('.marca').val(),
+        modelo: divRM.find('.modelo').val(),
         //Usuarios
-        usuario_carga: {nombre: $('#fiscaCarga').val(), id_usuario: $('#fiscaCarga').attr('data-id')},
-        usuario_toma:  {nombre: $('#fiscaToma').val() , id_usuario: $('#fiscaToma').obtenerElementoSeleccionado()},
+        usuario_carga: {nombre: divRM.find('.fiscaCarga').val(), id_usuario: divRM.find('.fiscaCarga').attr('data-id')},
+        usuario_toma:  {nombre: divRM.find('.fiscaToma').val() , id_usuario: divRM.find('.fiscaToma').obtenerElementoSeleccionado()},
         //Valores relevados
-        fecha_ejecucion: $('#fechaRel').val(),
-        mac: $('#macCargar').val(),
-        isla_rel: $('#islaRelevadaCargar').val(),
-        sector_rel: $('#sectorRelevadoCargar').val(),
+        fecha_ejecucion: divRM.find('.fechaRel').val(),
+        mac: divRM.find('.mac').val(),
+        isla_rel: divRM.find('.isla_rel').val(),
+        sector_rel: divRM.find('.sector_rel').val(),
         contadores: contadores,
-        juego: $('#juegoRel').val(),
-        apuesta: $('#apuesta').val(),
-        lineas: $('#cant_lineas').val(),
-        devolucion: $('#devolucion').val(),
-        denominacion: $('#denominacion').val(), 
-        creditos: $('#creditos').val(),
+        juego: divRM.find('.juego').val(),
+        apuesta: divRM.find('.apuesta').val(),
+        lineas: divRM.find('.cant_lineas').val(),
+        devolucion: divRM.find('.devolucion').val(),
+        denominacion: divRM.find('.denominacion').val(), 
+        creditos: divRM.find('.creditos').val(),
         progresivos: progresivos,
-        observaciones: $('#observacionesToma').val(),
-        observacionesAdm: $('#observacionesAdmin').val()
+        observaciones: divRM.find('.observaciones').val(),
+        observacionesAdm: divRM.find('.observacionesAdm').val()
     };
 }
 function divRelMovLimpiarErrores(){
-    $('#modalCargarRelMov .alerta').each(function(){
+    divRM.find('.alerta').each(function(){
         ocultarErrorValidacion($(this));
     });
 }
 function divRelMovLimpiar(){
     divRelMovLimpiarErrores();
-    $('#modalCargarRelMov input').not('#inputTipoMov,#inputSentido').val('');
-    $('#tablaCargarContadores tbody').empty();
-    $('#juegoRel').empty();
-    $('#tomaProgresivo tbody').empty();
-    $('#relFecha').datetimepicker('update','');
+    divRM.find('input').not('.tipoMov,.sentidoMov').val('');
+    divRM.find('.tablaCont tbody').empty();
+    divRM.find('.juego').empty();
+    divRM.find('.tablaProg tbody').empty();
+    divRM.find('.relFecha').datetimepicker('update','');
 }
 function divRelMovAgregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
-        let fila = $('#filaEjemploContador').clone().removeAttr('id');
+        let fila = divRM.find('.filaEjCont').clone().removeClass('filaEjCont');
         let nombre_cont = maquina["cont" + i];
         if(nombre_cont === null) continue;
         let val_cont = null;
@@ -300,19 +304,19 @@ function divRelMovAgregarContadores(maquina,toma){
         }
         fila.find('.cont').text(nombre_cont).attr('data-contador',nombre_cont);
         fila.find('.vcont').val(val_cont != null? val_cont : '');
-        $('#tablaCargarContadores tbody').append(fila);
+        divRM.find('.tablaCont tbody').append(fila);
     }
 }
 function divRelMovAgregarProgresivos(progresivos){
   if(progresivos === null || progresivos.length == 0){
-    $('#sinProgresivos').show();
-    $('#tablaProgresivos').hide();
+    divRM.find('.sinProg').show();
+    divRM.find('.tablaProg').hide();
     return;
   }
-  $('#sinProgresivos').hide();
-  $('#tablaProgresivos').show();
+  divRM.find('.sinProg').hide();
+  divRM.find('.tablaProg').show();
   progresivos.forEach( prog => {
-    let fila = $('#filaEjemploProgresivo').clone().removeAttr('id');
+    let fila = divRM.find('.filaEjProg').clone().removeClass('filaEjProg');
     let nombre = prog.nombre;
     if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
     if(prog.es_individual) nombre = 'INDIVIDUAL';
@@ -328,53 +332,53 @@ function divRelMovAgregarProgresivos(progresivos){
     for(let i = 1;i <= {{$maxlvl}} && causaNoToma === null;i++){
         fila.find('.nivel'+i).val(rel_prog['nivel'+i]);
     }
-    $('#tomaProgresivo tbody').append(fila);
-    $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
+    divRM.find('.tablaProg tbody').append(fila);
+    divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled',true);
   });
 }
 function divRelMovSetear(data){
     divRelMovLimpiar();
     //siempre vienen estos datos
-    $('#nro_islaMov').val(data.maquina.nro_isla);
-    $('#nro_adminMov').val(data.maquina.nro_admin);
-    $('#nro_serieMov').val(limpiarNullUndef(data.maquina.nro_serie,''));
-    $('#marcaMov').val(data.maquina.marca);
-    $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
+    divRM.find('.nro_isla').val(data.maquina.nro_isla);
+    divRM.find('.nro_admin').val(data.maquina.nro_admin);
+    divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
+    divRM.find('.marca').val(data.maquina.marca);
+    divRM.find('.modelo').val(limpiarNullUndef(data.maquina.modelo,''));
     divRelMovAgregarContadores(data.maquina,data.toma);
-    $('#juegoRel').append($('<option>').val(0).text('Seleccione'));
+    divRM.find('.juego').append($('<option>').val(0).text('Seleccione'));
     data.juegos.forEach(j => {
-        $('#juegoRel').append($('<option>').val(j.id_juego).text(j.nombre_juego));
+        divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
     if(data.toma != null){
-        $('#juegoRel').val(data.toma.juego? data.toma.juego : 0);
-        $('#apuesta').val(data.toma.apuesta_max);
-        $('#cant_lineas').val(data.toma.cant_lineas);
-        $('#devolucion').val(data.toma.porcentaje_devolucion);
-        $('#denominacion').val(data.toma.denominacion);
-        $('#creditos').val(data.toma.cant_creditos);
-        $('#observacionesToma').val(data.toma.observaciones);
-        $('#macCargar').val(data.toma.mac);
-        $('#sectorRelevadoCargar').val(data.toma.descripcion_sector_relevado);
-        $('#islaRelevadaCargar').val(data.toma.nro_isla_relevada);
-        $('#observacionesToma').val(data.toma.observaciones);
+        divRM.find('.juego').val(data.toma.juego? data.toma.juego : 0);
+        divRM.find('.apuesta').val(data.toma.apuesta_max);
+        divRM.find('.cant_lineas').val(data.toma.cant_lineas);
+        divRM.find('.devolucion').val(data.toma.porcentaje_devolucion);
+        divRM.find('.denominacion').val(data.toma.denominacion);
+        divRM.find('.creditos').val(data.toma.cant_creditos);
+        divRM.find('.observaciones').val(data.toma.observaciones);
+        divRM.find('.mac').val(data.toma.mac);
+        divRM.find('.sector_rel').val(data.toma.descripcion_sector_relevado);
+        divRM.find('.isla_rel').val(data.toma.nro_isla_relevada);
+        divRM.find('.observaciones').val(data.toma.observaciones);
     }
     divRelMovAgregarProgresivos(data.progresivos);
     if(data.fecha != null){
-        $('#relFecha').datetimepicker('setDate',new Date(data.fecha));
+        divRM.find('.relFecha').datetimepicker('setDate',new Date(data.fecha));
     }
     if(data.cargador != null) { 
-        $('#fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
+        divRM.find('.fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
     }
     if(data.fiscalizador != null){
-        $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+        divRM.find('.fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
     }
 }
 function divRelMovMostrarErrores(response){
     const errores = { 
-        'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
-        'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
-        'sector_relevado' : $('#sectorRelevadoCargar'), 'isla_relevada' :  $('#islaRelevadaCargar'), 'mac' : $('#macCargar'),
-        'id_fiscalizador' : $('#fiscaToma'),'fecha_sala' : $('#fechaRel')
+        'apuesta_max' : divRM.find('.apuesta'),'cant_lineas' : divRM.find('.cant_lineas'), 'cant_creditos' : divRM.find('.creditos'),
+        'porcentaje_devolucion' : divRM.find('.devolucion'),'juego' : divRM.find('.juego'), 'denominacion' : divRM.find('.denominacion'),
+        'sector_relevado' : divRM.find('.sector_rel'), 'isla_relevada' :  divRM.find('.isla_rel'), 'mac' : divRM.find('.mac'),
+        'id_fiscalizador' : divRM.find('.fiscaToma'),'fecha_sala' : divRM.find('.fechaRel')
     };
     let err = false;
     for(const key in errores){
@@ -383,14 +387,14 @@ function divRelMovMostrarErrores(response){
             err = true;
         }
     }
-    $('#tablaCargarContadores tbody tr').each(function(index){
+    divRM.find('.tablaCont tbody tr').each(function(index){
         const res = response['contadores.'+ index +'.valor'];
         if(!isUndef(res)){
             mostrarErrorValidacion($(this).find('.valorModif'),parseError(res[0]));
             err = true;
         }
     });
-    $('#tablaProgresivos tbody tr').each(function(index){
+    divRM.find('.tablaProg tbody tr').each(function(index){
         const progresivo = 'progresivos.'+ index;
         for(let i = 1;i <= {{$maxlvl}};i++){
             const res = response[progresivo + '.niveles.' + (i-1) + '.val'];
@@ -401,7 +405,6 @@ function divRelMovMostrarErrores(response){
             }
         }
     });
-    if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
     return err;
 }
 function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
@@ -425,7 +428,7 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
             .append($('<i>').addClass('fa fa-fw fa-check faFinalizado'))
         );
     };
-    $('#tablaCargarMTM tbody').empty();
+    divRM.find('.tablaMTM tbody').empty();
     relevamientos.forEach(r => {
       let fila = $('<tr>');
       let dibujo = 'fa-upload';
@@ -445,64 +448,63 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
       }
 
       fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
-      $('#tablaCargarMTM tbody').append(fila);
+      divRM.find('.tablaMTM tbody').append(fila);
     });
 }
 function divRelMovEsconderDetalleRelevamiento(){
-    $('#relFecha').parent().hide();
-    $('#fiscaToma').parent().hide();
-    $('#detallesMTM').hide();
+    divRM.find('.relFecha').parent().hide();
+    divRM.find('.fiscaToma').parent().hide();
+    divRM.find('.detalleRel').hide();
 }
 function divRelMovMostrarDetalleRelevamiento(){
-    $('#relFecha').parent().show();
-    $('#fiscaToma').parent().show();
-    $('#detallesMTM').show();
+    divRM.find('.relFecha').parent().show();
+    divRM.find('.fiscaToma').parent().show();
+    divRM.find('.detalleRel').show();
 }
 function divRelMovSetearUsuarios(casino,cargador,fiscalizador){
-    $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
-    $('#fiscaToma').setearElementoSeleccionado(0,"");
-    $('#fiscaCarga').val('');
-    $('#fiscaCarga').removeAttr('data-id');
+    divRM.find('.fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
+    divRM.find('.fiscaToma').setearElementoSeleccionado(0,"");
+    divRM.find('.fiscaCarga').val('');
+    divRM.find('.fiscaCarga').removeAttr('data-id');
 
     if(cargador){
-        $('#fiscaCarga').attr('data-id',cargador.id_usuario);
-        $('#fiscaCarga').val(cargador.nombre);
+        divRM.find('.fiscaCarga').attr('data-id',cargador.id_usuario);
+        divRM.find('.fiscaCarga').val(cargador.nombre);
     }
     if(fiscalizador){
-      $('#fiscaToma').setearElementoSeleccionado(fiscalizador.id_usuario,fiscalizador.nombre);
+      divRM.find('.fiscaToma').setearElementoSeleccionado(fiscalizador.id_usuario,fiscalizador.nombre);
     }
 }
 function divRelMovSetearTipo(tipo_movimiento,sentido){
-    $('#inputTipoMov').val(tipo_movimiento);
-    $('#inputSentido').val(sentido);
+    divRM.find('.tipoMov').val(tipo_movimiento);
+    divRM.find('.sentidoMov').val(sentido);
 }
 function divRelMovMarcarListaMaq(id_maquina,estado = true){
-    $('#tablaCargarMTM').find('.listo[data-maq="'+id_maquina+'"]').toggle(estado);
+    divRM.find('.tablaMTM').find('.listo[data-maq="'+id_maquina+'"]').toggle(estado);
 }
 function divRelMovMarcarListoRel(id_relev,estado = true){
-    $('#tablaCargarMTM').find('.listo[data-rel="'+id_relev+'"]').toggle(estado);
+    divRM.find('.tablaMTM').find('.listo[data-rel="'+id_relev+'"]').toggle(estado);
 }
 function divRelMovCambiarDibujoMaq(id_maquina,dibujo){
-    let boton = $('#modalCargarRelMov')
-    .find('.cargarMaq[data-maq='+id_maquina+']')[0];
+    let boton = divRM.find('.cargarMaq[data-maq='+id_maquina+']')[0];
     $(boton).empty();
     $(boton).append($('<i>').addClass(dibujo));
 }
 function divRelMovSetearModo(modo){
     if(modo == "VER"){
-        $('#divRelevamientoMovimiento .editable').attr('disabled',true);
-        $('#relFecha .input-group-addon').hide();
-        $('#divRelevamientoMovimiento .validacion').hide();
+        divRM.find('.editable').attr('disabled',true);
+        divRM.find('.relFecha .input-group-addon').hide();
+        divRM.find('.validacion').hide();
     }
     else if(modo == "CARGAR"){
-        $('#divRelevamientoMovimiento .editable').removeAttr('disabled');
-        $('#relFecha .input-group-addon').show();
-        $('#divRelevamientoMovimiento .validacion').hide();
+        divRM.find('.editable').removeAttr('disabled');
+        divRM.find('.relFecha .input-group-addon').show();
+        divRM.find('.validacion').hide();
     }
     else if(modo == "VALIDAR"){
-        $('#divRelevamientoMovimiento .editable').attr('disabled',true);
-        $('#relFecha .input-group-addon').hide();
-        $('#divRelevamientoMovimiento .validacion').show();
+        divRM.find('.editable').attr('disabled',true);
+        divRM.find('.relFecha .input-group-addon').hide();
+        divRM.find('.validacion').show();
     }
 }
 </script>

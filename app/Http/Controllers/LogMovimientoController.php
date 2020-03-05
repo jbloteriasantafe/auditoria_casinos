@@ -865,7 +865,7 @@ class LogMovimientoController extends Controller
             $strprog = 'progresivos.'.$idx_p;
             foreach($valores as $id => $val){
               if($val<0){
-                $validator->errors()->add($strprog.'.niveles.'.(-$val-1).'.val','required');
+                $validator->errors()->add($strprog.'.niveles.'.(-$val-1).'.val','validation.required');
               }
             }
           }

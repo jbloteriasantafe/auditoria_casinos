@@ -28,10 +28,6 @@ $(document).ready(function(){
   divRelMovInit();
 });
 
-$('#fechaRel').on('change', function (e) {
-  $(this).trigger('focusin');
-})
-
 $('#fechaRelMov').on('change', function (e) {
   $(this).trigger('focusin');
 })
@@ -126,7 +122,9 @@ $(document).on('click','#guardarRel',function(){
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      divRelMovMostrarErrores(data.responseJSON);
+      if(divRelMovMostrarErrores(data.responseJSON)){
+        $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      }
     }
   });
 });

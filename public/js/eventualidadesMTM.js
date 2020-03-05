@@ -35,10 +35,6 @@ $('#cantidad').on('keypress',function(e){
     }
 });
 
-$('#fechaRel').on('change', function (e) {
-  $(this).trigger('focusin');
-})
-
 function initModalNuevaEvMTM(){
   $('#tablaMTM tbody tr').remove();
   $.get('eventualidadesMTM/tiposMovIntervMTM', function(data){
@@ -174,7 +170,7 @@ $(document).on('click','.btn_verEvmtm',function(){
 
 //boton que cierra el modal, para que cierre los detalles de las mtm
 $('#btn-closeCargar').click(function(e){
-  $('#detallesMTM').hide();
+  $('#divRelMov .detalleRel').hide();
   $('#btn-buscarEventualidadMTM').trigger('click');
 });
 
@@ -234,7 +230,9 @@ $(document).on('click','#guardarRel',function(){
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      divRelMovMostrarErrores(data.responseJSON);
+      if(divRelMovMostrarErrores(data.responseJSON)){
+        $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+      }
     }
   })
 });
@@ -246,7 +244,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
   mostrarFiscalizacion($(this).val(),"VALIDAR");
 });
 
-$(document).on('click','#divRelevamientoMovimiento .validar',function(){
+$(document).on('click','#divRelMov .validar',function(){
   $.ajaxSetup({
     headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
