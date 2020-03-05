@@ -209,7 +209,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 <script src="js/utils.js" type="text/javascript"></script>
 <script type="text/javascript">
-function initDivRelevamientoMovimiento(){
+function divRelMovInit(){
     $('#relFecha').datetimepicker({
         todayBtn:  1,
         language:  'es',
@@ -223,7 +223,7 @@ function initDivRelevamientoMovimiento(){
         maxDate: 0
     });
 }
-function obtenerDatosDivRelevamiento(){
+function divRelMovObtenerDatos(){
     let contadores= [];
     $('#tablaCargarContadores tbody tr').each(function(){
         const cont={
@@ -281,7 +281,7 @@ function divRelMovLimpiarErrores(){
         ocultarErrorValidacion($(this));
     });
 }
-function limpiarDivRelevamiento(){
+function divRelMovLimpiar(){
     divRelMovLimpiarErrores();
     $('#modalCargarRelMov input').not('#inputTipoMov,#inputSentido').val('');
     $('#tablaCargarContadores tbody').empty();
@@ -289,7 +289,7 @@ function limpiarDivRelevamiento(){
     $('#tomaProgresivo tbody').empty();
     $('#relFecha').datetimepicker('update','');
 }
-function agregarContadores(maquina,toma){
+function divRelMovAgregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
         let fila = $('#filaEjemploContador').clone().removeAttr('id');
         let nombre_cont = maquina["cont" + i];
@@ -303,7 +303,7 @@ function agregarContadores(maquina,toma){
         $('#tablaCargarContadores tbody').append(fila);
     }
 }
-function agregarProgresivos(progresivos){
+function divRelMovAgregarProgresivos(progresivos){
   if(progresivos === null || progresivos.length == 0){
     $('#sinProgresivos').show();
     $('#tablaProgresivos').hide();
@@ -332,15 +332,15 @@ function agregarProgresivos(progresivos){
     $('#tomaProgresivo tbody input').not('.habilitado').attr('disabled',true);
   });
 }
-function setearDivRelevamiento(data){
-    limpiarDivRelevamiento();
+function divRelMovSetear(data){
+    divRelMovLimpiar();
     //siempre vienen estos datos
     $('#nro_islaMov').val(data.maquina.nro_isla);
     $('#nro_adminMov').val(data.maquina.nro_admin);
     $('#nro_serieMov').val(limpiarNullUndef(data.maquina.nro_serie,''));
     $('#marcaMov').val(data.maquina.marca);
     $('#modeloMov').val(limpiarNullUndef(data.maquina.modelo,''));
-    agregarContadores(data.maquina,data.toma);
+    divRelMovAgregarContadores(data.maquina,data.toma);
     $('#juegoRel').append($('<option>').val(0).text('Seleccione'));
     data.juegos.forEach(j => {
         $('#juegoRel').append($('<option>').val(j.id_juego).text(j.nombre_juego));
@@ -358,7 +358,7 @@ function setearDivRelevamiento(data){
         $('#islaRelevadaCargar').val(data.toma.nro_isla_relevada);
         $('#observacionesToma').val(data.toma.observaciones);
     }
-    agregarProgresivos(data.progresivos);
+    divRelMovAgregarProgresivos(data.progresivos);
     if(data.fecha != null){
         $('#relFecha').datetimepicker('setDate',new Date(data.fecha));
     }
@@ -369,7 +369,7 @@ function setearDivRelevamiento(data){
         $('#fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
     }
 }
-function mostrarErroresDiv(response){
+function divRelMovMostrarErrores(response){
     const errores = { 
         'apuesta_max' : $('#apuesta'),'cant_lineas' : $('#cant_lineas'), 'cant_creditos' : $('#creditos'),
         'porcentaje_devolucion' : $('#devolucion'),'juego' : $('#juegoRel'), 'denominacion' : $('#denominacion'),
@@ -404,7 +404,7 @@ function mostrarErroresDiv(response){
     if(err) $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
     return err;
 }
-function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
+function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
     const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,nro_toma){
         fila.append($('<td>')
             .addClass('col-xs-3')
@@ -448,17 +448,17 @@ function cargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
       $('#tablaCargarMTM tbody').append(fila);
     });
 }
-function esconderDetalleRelevamiento(){
+function divRelMovEsconderDetalleRelevamiento(){
     $('#relFecha').parent().hide();
     $('#fiscaToma').parent().hide();
     $('#detallesMTM').hide();
 }
-function mostrarDetalleRelevamiento(){
+function divRelMovMostrarDetalleRelevamiento(){
     $('#relFecha').parent().show();
     $('#fiscaToma').parent().show();
     $('#detallesMTM').show();
 }
-function setearUsuariosCargaToma(casino,cargador,fiscalizador){
+function divRelMovSetearUsuarios(casino,cargador,fiscalizador){
     $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
     $('#fiscaToma').setearElementoSeleccionado(0,"");
     $('#fiscaCarga').val('');
@@ -472,23 +472,23 @@ function setearUsuariosCargaToma(casino,cargador,fiscalizador){
       $('#fiscaToma').setearElementoSeleccionado(fiscalizador.id_usuario,fiscalizador.nombre);
     }
 }
-function setearTipoMovimiento(tipo_movimiento,sentido){
+function divRelMovSetearTipo(tipo_movimiento,sentido){
     $('#inputTipoMov').val(tipo_movimiento);
     $('#inputSentido').val(sentido);
 }
-function marcarListaMaquina(id_maquina,estado = true){
+function divRelMovMarcarListaMaq(id_maquina,estado = true){
     $('#tablaCargarMTM').find('.listo[data-maq="'+id_maquina+'"]').toggle(estado);
 }
-function marcarListaMaquinaPorIdRel(id_relev,estado = true){
+function divRelMovMarcarListoRel(id_relev,estado = true){
     $('#tablaCargarMTM').find('.listo[data-rel="'+id_relev+'"]').toggle(estado);
 }
-function cambiarDibujoMaquina(id_maquina,dibujo){
+function divRelMovCambiarDibujoMaq(id_maquina,dibujo){
     let boton = $('#modalCargarRelMov')
     .find('.cargarMaq[data-maq='+id_maquina+']')[0];
     $(boton).empty();
     $(boton).append($('<i>').addClass(dibujo));
 }
-function divRelSetearModo(modo){
+function divRelMovSetearModo(modo){
     if(modo == "VER"){
         $('#divRelevamientoMovimiento .editable').attr('disabled',true);
         $('#relFecha .input-group-addon').hide();

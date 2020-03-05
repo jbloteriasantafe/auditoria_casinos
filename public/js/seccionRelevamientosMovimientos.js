@@ -25,7 +25,7 @@ $(document).ready(function(){
   });
 
   $('#btn-buscarRelMov').click();
-  initDivRelevamientoMovimiento();
+  divRelMovInit();
 });
 
 $('#fechaRel').on('change', function (e) {
@@ -57,14 +57,14 @@ $(document).on('click','.btn-verRelMov',function(e){
 function mostrarFiscalizacion(id_fiscalizacion,modo){
   $('#guardarRel').prop('disabled', true);
   $('#guardarRel').toggle(modo == "CARGAR");
-  esconderDetalleRelevamiento();
+  divRelMovEsconderDetalleRelevamiento();
   $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
-    setearUsuariosCargaToma(data.casino,data.cargador,data.fiscalizador);
-    setearTipoMovimiento(data.tipo_movimiento,data.sentido);
+    divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
+    divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
     if(modo == "CARGAR") dibujos = {};
-    cargarRelevamientos(data.relevamientos,dibujos,3);
-    divRelSetearModo(modo);
+    divRelMovCargarRelevamientos(data.relevamientos,dibujos,3);
+    divRelMovSetearModo(modo);
     $('#modalCargarRelMov').modal('show');
   });
 }
@@ -77,8 +77,8 @@ $(document).on('click','.cargarMaq',function(){
   $('#guardarRel').attr('toma', toma);
   $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', false);
-    setearDivRelevamiento(data);
-    mostrarDetalleRelevamiento();
+    divRelMovSetear(data);
+    divRelMovMostrarDetalleRelevamiento();
   });
 });
 
@@ -86,7 +86,7 @@ $(document).on('click','.cargarMaq',function(){
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const datos = obtenerDatosDivRelevamiento();
+  const datos = divRelMovObtenerDatos();
   const formData = {
     id_relev_mov:                $('#guardarRel').attr('data-rel'),
     toma:                        $('#guardarRel').attr('toma'),
@@ -116,8 +116,8 @@ $(document).on('click','#guardarRel',function(){
     success: function (data) {
       console.log('BIEN');
       console.log(data);
-      esconderDetalleRelevamiento();
-      marcarListaMaquina(formData.id_maquina);
+      divRelMovEsconderDetalleRelevamiento();
+      divRelMovMarcarListaMaq(formData.id_maquina);
       mensajeExito({mensajes :['Los datos se han guardado correctamente']});
       $('#guardarRel').prop('disabled', true);
       $('#btn-buscarRelMov').click();
@@ -126,7 +126,7 @@ $(document).on('click','#guardarRel',function(){
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      mostrarErroresDiv(data.responseJSON);
+      divRelMovMostrarErrores(data.responseJSON);
     }
   });
 });

@@ -25,7 +25,7 @@ $(document).ready(function(){
   });
 
    $('#btn-buscarEventualidadMTM').trigger('click');
-   initDivRelevamientoMovimiento();
+   divRelMovInit();
 });
 
 $('#cantidad').on('keypress',function(e){
@@ -148,15 +148,15 @@ $(document).on('click','.borrarMTMCargada',function(e){
 function mostrarFiscalizacion(id_mov,modo){
   $('#guardarRel').prop('disabled', true);
   $('#guardarRel').toggle(modo == "CARGAR");
-  esconderDetalleRelevamiento();
+  divRelMovEsconderDetalleRelevamiento();
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
     console.log('88',data);
-    setearUsuariosCargaToma(data.casino,data.fiscalizador_carga,null);
-    setearTipoMovimiento(data.tipo_movimiento,data.sentido);
+    divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
+    divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
     if(modo == "CARGAR") dibujos = {3 : 'fa-pencil-alt'};
-    cargarRelevamientos(data.relevamientos,dibujos,-1);
-    divRelSetearModo(modo);
+    divRelMovCargarRelevamientos(data.relevamientos,dibujos,-1);
+    divRelMovSetearModo(modo);
     $('#modalCargarRelMov').modal('show');
   })
 }
@@ -186,8 +186,8 @@ $(document).on('click','.cargarMaq',function(){
   $('#guardarRel').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
     $('#guardarRel').prop('disabled', false);
-    setearDivRelevamiento(data);
-    mostrarDetalleRelevamiento();
+    divRelMovSetear(data);
+    divRelMovMostrarDetalleRelevamiento();
   })
 });
 
@@ -195,7 +195,7 @@ $(document).on('click','.cargarMaq',function(){
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const datos = obtenerDatosDivRelevamiento();
+  const datos = divRelMovObtenerDatos();
   const formData = {
     id_relev_mov:          $('#guardarRel').attr('data-rel'),
     toma:                  $('#guardarRel').attr('toma'),
@@ -224,17 +224,17 @@ $(document).on('click','#guardarRel',function(){
     dataType: 'json',
     success: function (data){
       $('#guardarRel').prop('disabled', true);
-      esconderDetalleRelevamiento();
-      limpiarDivRelevamiento();
+      divRelMovEsconderDetalleRelevamiento();
+      divRelMovLimpiar();
       mensajeExito({titulo:'ÉXITO DE CARGA'});
       //BORRO LOS ERRORES
-      cambiarDibujoMaquina(formData.id_maquina,'fa fa-fw fa-pencil-alt');
+      divRelMovCambiarDibujoMaq(formData.id_maquina,'fa fa-fw fa-pencil-alt');
       $('#btn-buscarEventualidadMTM').click();
     },
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      mostrarErroresDiv(data.responseJSON);
+      divRelMovMostrarErrores(data.responseJSON);
     }
   })
 });
@@ -255,7 +255,7 @@ $(document).on('click','#divRelevamientoMovimiento .validar',function(){
 
   const formData = {
     id_relev_mov: $('#guardarRel').attr('data-rel'),
-    observacion: obtenerDatosDivRelevamiento().observacionesAdm,
+    observacion: divRelMovObtenerDatos().observacionesAdm,
   }
 
   $.ajax({
@@ -265,9 +265,9 @@ $(document).on('click','#divRelevamientoMovimiento .validar',function(){
     dataType: 'json',
     success: function (data) {
       if(data.id_estado_relevamiento == 4){
-        limpiarDivRelevamiento();
+        divRelMovLimpiar();
         mensajeExito({titulo:'ÉXITO DE VALIDACIÓN'});
-        marcarListaMaquinaPorIdRel(formData.id_relev_mov);
+        divRelMovMarcarListoRel(formData.id_relev_mov);
       };
     },
     error: function (data) {
