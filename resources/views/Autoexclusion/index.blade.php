@@ -14,8 +14,6 @@ $puede_eliminar = $user->es_administrador || $user->es_superusuario;
 $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 ?>
 
-
-
 @section('estilos')
 <link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="/css/lista-datos.css">
@@ -68,14 +66,33 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                 <a href="" id="btn-agregar-ae" style="text-decoration: none;">
                   <div class="panel panel-default panelBotonNuevo">
                       <center>
-                        <img class="imgNuevo" src="/img/logos/informes_bingo_white.png">
+                        <img class="imgNuevo" src="/img/logos/logo_autoexclusion.png">
                       </center>
                       <div class="backgroundNuevo"></div>
                       <div class="row">
                           <div class="col-xs-12">
                             <center>
                               <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">Agregar AE</h4>
+                              <h4 class="txtNuevo">Agregar / Editar Autoexcluido</h4>
+                            </center>
+                          </div>
+                      </div>
+                  </div>
+                </a>
+          </div>
+
+          <div class="col-xl-12 col-md-4">
+                <a href="" id="btn-subir-solicitud-ae" style="text-decoration: none;">
+                  <div class="panel panel-default panelBotonNuevo">
+                      <center>
+                        <img class="imgNuevo" src="/img/logos/expedientes_white.png">
+                      </center>
+                      <div class="backgroundNuevo"></div>
+                      <div class="row">
+                          <div class="col-xs-12">
+                            <center>
+                              <h5 class="txtLogo">+</h5>
+                              <h4 class="txtNuevo">Subir solicitud de autoexclusión</h4>
                             </center>
                           </div>
                       </div>
@@ -125,6 +142,8 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                 @endforeach
                             </select>
                         </div>
+                      </div>
+                      <div class="row">
                         <div class="col-md-3">
                           <h5>Fecha autoexclusión</h5>
                           <div class="input-group date" id="dtpFechaAutoexclusion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
@@ -200,7 +219,14 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                         <td class="col-xs-2 fecha_ae"></td>
                         <td class="col-xs-2 acciones">
                           <button id="btnVerMas" class="btn btn-info info" type="button" value="">
-                            <i class="fa fa-fw fa-search-plus"></i></button>
+                            <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                          <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="">
+                            <i class="far fa-fw fa-file-alt"></i>
+                          </button>
+                          <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="">
+                            <i class="fa fa-fw fa-print"></i>
+                          </button>
                           <span></span>
                         </td>
                       </tr>
@@ -229,7 +255,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
                 <div  id="colapsado" class="collapse in">
                  <div class="modal-body modal-Cuerpo">
-                  <form id="frmAgregarAE" name="frmAgregarAE" class="form-horizontal" novalidate="">
+                  <form id="frmAgregarAE" name="frmAgregarAE" class="form-horizontal" novalidate=" method="post"" enctype="multipart/form-data">
                       <div class="form-group error">
                           <div class="col-lg-12">
                             <div id="columna" class="row">
@@ -297,12 +323,10 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                     <div class="col-lg-6">
                                       <h5>PROVINCIA</h5>
                                       <input id="nombre_provincia" name="nombre_provincia" type="text" class="form-control"  placeholder="" value="" required>
-                                      <!-- <input id="id_provincia" name="id_provincia" type="text" class="form-control"  placeholder="" value="" required> -->
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>LOCALIDAD</h5>
                                       <input id="nombre_localidad" name="nombre_localidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required>
-                                      <!-- <input id="id_localidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required> -->
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>TELEFONO</h5>
@@ -335,7 +359,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                     </div>
                                   </div>
                                 <div class="col-lg-12">
-                                    <h6>Datos Persona de Contacto <span style="font-size: 12px">(OPCIONAL)</span></h6>
+                                    <h6>Datos Persona de Contacto</h6>
                                 </div>
                                   <div class="col-lg-6">
                                     <h5>NOMBRE Y APELLIDO</h5>
@@ -348,12 +372,10 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                   <div class="col-lg-6">
                                     <h5>PROVINCIA</h5>
                                     <input id="nombre_provincia_vinculo" name="nombre_provincia_vinculo" type="text" class="form-control"  placeholder="" value="" required>
-                                    <!-- <input id="id_provincia_vinculo" name="id_provincia_vinculo" type="text" class="form-control"  placeholder="" value="" required> -->
                                   </div>
                                   <div class="col-lg-6">
                                     <h5>LOCALIDAD</h5>
                                     <input id="nombre_localidad_vinculo" name="nombre_localidad_vinculo" type="text" class="form-control"  placeholder="" value="" required>
-                                    <!-- <input id="id_localidad_vinculo" name="id_localidad_vinculo" type="text" class="form-control"  placeholder="" value="" required> -->
                                   </div>
                                   <div class="col-lg-6">
                                     <h5>TELEFONO</h5>
@@ -402,7 +424,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                         </div>
                                         <div class="col-lg-6">
                                           <h5>PERMITIR RENOVACIÓN DESDE</h5>
-                                          <input id="fecha_renovacion" name="fecha_renovacion" type="text" class="form-control" style="color: red; font-weight: 800;" placeholder="" value="" disabled="" required>
+                                          <input id="fecha_renovacion" name="fecha_renovacion" type="text" class="form-control" placeholder="" value="" disabled="" required>
                                         </div>
                                         <div class="col-lg-6">
                                           <h5>FECHA CIERRE DEFINITIVO</h5>
@@ -411,7 +433,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                       </div>
                                   <div class="col-lg-6">
                                     <h5>FOTO #1</h5>
-                                    <input id="foto1" data-borrado="false" type="file" name="">
+                                    <input id="foto1" type="file" name="foto1">
                                   </div>
                                   <div class="col-lg-6">
                                     <h5>FOTO #2</h5>
@@ -737,6 +759,31 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                       </div>
                     </div><br>
 
+                    <!-- ver mas: archivos importados -->
+                    <div class="archivosImportados">
+                        <h6>Archivos importados</h6>
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <h5>FOTO #1</h5>
+                            <button id="verMasFoto1" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>FOTO #2</h5>
+                            <button id="verMasFoto2" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-lg-6">
+                              <h5>SCAN DNI</h5>
+                              <button id="verMasScanDni" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>SOLICITUD AUTOEXCLUSION</h5>
+                            <button id="verMasSolicitudAutoexclusion" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                          </div>
+                        </div>
+                    </div><br>
+
                     <!-- ver mas: información de encuesta -->
                     <div class="infoEncuesta">
                         <h6>Encuesta</h6>
@@ -821,6 +868,41 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
     </div>
 
 
+    <!--MODAL SUBIR SOLICITUD AE -->
+    <div class="modal fade" id="modalSubirSolicitudAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog" style="width: 37%">
+             <div class="modal-content">
+               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                 <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <h3 class="modal-title" style="background-color: #6dc7be;">| SUBIR SOLICITUD AUTOEXCLUSIÓN</h3>
+                </div>
+
+                <div  id="colapsadoCrear" class="collapse in">
+                <div class="modal-body modalCuerpo">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <h5>NÚMERO DE DOCUMENTO</h5>
+                        <input id="nroDniSubirSolicitudAE" name="nroDniSubirSolicitudAE" type="text" class="form-control"  placeholder="" value="" required>
+                        <br>
+                      </div>
+                      <div class="col-md-6">
+                        <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
+                        <input id="solicitudAE" type="file" name="solicitudAE">
+                        <br>
+                      </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-successAceptar" id="btn-subir-archivo" value="nuevo">SUBIR ARCHIVO</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+
+
 
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
@@ -849,12 +931,6 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
     <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
     <!-- CSS file -->
     <link rel="stylesheet" href="/js/Autoexclusion/EasyAutocomplete/easy-autocomplete.min.css">
-
-    <!-- <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js" charset="utf-8"></script> -->
-
-    <script src="/js/Bingo/lista-datos.js" type="text/javascript"></script>
-
-
     <!-- Custom input Bootstrap -->
     <script src="/js/fileinput.min.js" type="text/javascript"></script>
     <script src="/js/locales/es.js" type="text/javascript"></script>
@@ -862,6 +938,4 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-
     @endsection

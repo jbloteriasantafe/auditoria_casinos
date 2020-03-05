@@ -888,7 +888,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
 
                           <li>
-                            <div id="opcVencimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                            <div id="opcVencimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/vencimientos'" style="cursor: pointer;">
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('usuario','iconoUsuarios')
                               </span>
@@ -897,7 +897,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
 
                           <li>
-                            <div id="opcAutoxeclusionesFinalizadas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
+                            <div id="opcAutoexclusionesFinalizadas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusionesFinalizadas'" style="cursor: pointer;">
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('usuario','iconoUsuarios')
                               </span>
@@ -906,7 +906,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
 
                           <li>
-                            <div id="barraInformesAutxoeclusion" class="opcionesHover" data-target="#informesAutoexcluidos" data-toggle="collapse" href="#">
+                            <div id="barraInformesAutoexclusion" class="opcionesHover" data-target="#informesAutoexcluidos" data-toggle="collapse" href="#">
                               <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
                                 </span>
@@ -919,13 +919,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="informesAutoexcluidos">
                               <li>
-                                <div id="opcListadoAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
+                                <div id="opcListadoAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" style="cursor: pointer;">
                                   <span>Listado de AE</span>
                                 </div>
                               </li>
 
                               <li>
-                                <div id="opcGaleriaImagenesAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
+                                <div id="opcGaleriaImagenesAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/galeriaImagenesAutoexcluidos'" href="#" style="cursor: pointer;">
                                   <span>Galería de imagenes</span>
                                 </div>
                               </li>

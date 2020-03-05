@@ -6,3 +6,4 @@
 /app/Http/Controllers/pruebaController.php
 /public/Mesas/*
 /database
+/public/importacionesAutoexcluidos/*

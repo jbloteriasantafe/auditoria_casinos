@@ -1,0 +1,239 @@
+@extends('includes.dashboard')
+@section('headerLogo')
+<span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
+@endsection
+
+<?php
+use Illuminate\Http\Request;
+use App\Http\Controllers\UsuarioController;
+use\App\http\Controllers\RelevamientoAmbientalController;
+$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
+$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
+$puede_eliminar = $user->es_administrador || $user->es_superusuario;
+$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
+?>
+
+@section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css">
+<link rel="stylesheet" href="/css/lista-datos.css">
+<link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+<link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
+<link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="/css/animacionCarga.css">
+
+
+<!--plugins que voy probando -->
+<link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
+
+<style>
+.page {
+  display: none;
+}
+.active {
+  display: inherit;
+}
+.easy-autocomplete{
+width:initial!important
+}
+
+/* Make circles that indicate the steps of the form: */
+.step {
+height: 15px;
+width: 15px;
+margin: 0 2px;
+background-color: #bbbbbb;
+border: none;
+border-radius: 50%;
+display: inline-block;
+opacity: 0.5;
+}
+
+/* Mark the active step: */
+.step.actived {
+opacity: 1;
+}
+
+/* Mark the steps that are finished and valid: */
+.step.finish {
+background-color: #4CAF50;
+}
+
+#gallery {
+  width: 720px;
+}
+
+</style>
+@endsection
+
+@section('contenidoVista')
+
+    <div class="col-xl-9">
+
+        <!-- FILTROS DE BÚSQUEDA -->
+        <div class="row">
+            <div class="col-md-12">
+                <div id="contenedorFiltros" class="panel panel-default" >
+                  <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+                    <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
+                  </div>
+                  <div id="collapseFiltros" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-md-4">
+                            <h5>Apellido</h5>
+                            <input class="form-control" id="buscadorApellido" value=""/>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>DNI</h5>
+                            <input class="form-control" id="buscadorDni" value=""/>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Casino</h5>
+                            <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                                <option value="0">-Todos los Casinos-</option>
+                                @foreach ($casinos as $casino)
+                                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                      </div><br>
+
+                      <div class="row">
+                        <center>
+                          <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                        </center>
+                      </div>
+                      <br>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-12">
+
+              <!-- Galería de imágenes -->
+              <div class="col-md-8">
+                <div id="wrapper">
+            			<div id="followbox"></div>
+              			<div id="content">
+              				<div id="gallery-wrapper">
+
+              					<div id="viewer-wrapper">
+              						<div id="gallery-viewer">
+              							<!-- <img alt="Placeholder" src="images/placeholder.png"> -->
+              						</div><!-- #gallery-viewer -->
+              					</div><!-- #viewer-wrapper" -->
+
+                        <!--
+              					 <div id="viewer-nav">
+              						<a id="gallery-viewer-next" href="#">next</a>
+              						<a id="gallery-viewer-prev" href="#">previous</a>
+              					</div>
+                        -->
+
+              					<div id="thumbs-nav">
+              						<a id="gallery-next" href="#">next</a>
+                          <a id="gallery-prev" href="#">previous</a>
+                          <p id="gallery-pos">Página 1 de 2</p>
+              					</div>
+
+              					<div id="thumbs-wrapper">
+              						<div id="gallery" style="width:720px">
+              						</div><!-- #gallery -->
+              					</div><!-- #thumbs-wrapper -->
+
+              				</div><!-- #gallery-wrapper -->
+              			</div><!-- #content -->
+            		</div><!-- #wrapper -->
+              </div>
+
+
+                <!-- Detalles del AE seleccionado -->
+                <div class="col-md-4" style="float:right">
+                  <div class="panel panel-default">
+
+                      <div class="panel-heading">
+                        <h4>DETALLES DEL AE SELECCIONADO</h4>
+                      </div>
+
+                      <div class="panel-body">
+                        <div class="row">
+                          <div class="col-lg-12">
+                            <h5 style="display:inline-block">APELLIDO </h5>
+                            <span id="apellido" style="margin-top:8px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">NOMBRES </h5>
+                            <span id="nombres" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">DNI </h5>
+                            <span id="dni" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">CASINO </h5>
+                            <span id="casino" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">ESTADO </h5>
+                            <span id="estado" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">FECHA AE </h5>
+                            <span id="fecha_ae" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">VENCIMIENTO 1° PERÍODO </h5>
+                            <span id="vencimiento" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">FECHA FINALIZACIÓN </h5>
+                            <span id="fecha_finalizacion" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">FECHA CIERRE </h5>
+                            <span id="fecha_cierre" style="margin-top:6px; margin-left: 15px;"></span>
+                            <br>
+                          </div>
+                        </div>
+                      </div> <!-- panel-body -->
+                  </div> <!-- panel -->
+                </div>
+
+          </div>
+        </div>
+
+
+    </div> <!-- row principal -->
+
+
+  <!-- token -->
+  <meta name="_token" content="{!! csrf_token() !!}" />
+  @endsection
+
+
+  <!-- Comienza modal de ayuda -->
+  @section('tituloDeAyuda')
+  <h3 class="modal-title2" style="color: #fff;">| SESIONES</h3>
+  @endsection
+  @section('contenidoAyuda')
+  <div class="col-md-12">
+    <h5>Tarjeta de Sesiones</h5>
+    <p>
+      Agregar nuevos autoexluidos, revocar autoexclusiones, ver listado y estados.
+  </div>
+  @endsection
+  <!-- Termina modal de ayuda -->
+
+
+  @section('scripts')
+  <!-- JavaScript paginacion -->
+  <script src="js/paginacion.js" charset="utf-8"></script>
+  <!-- JavaScript personalizado -->
+
+
+  <!-- Custom input Bootstrap -->
+  <script src="/js/fileinput.min.js" type="text/javascript"></script>
+  <script src="/js/locales/es.js" type="text/javascript"></script>
+  <script src="/themes/explorer/theme.js" type="text/javascript"></script>
+  <!-- DateTimePicker JavaScript -->
+  <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+  <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+
+
+
+  <script type="text/javascript" src="js/jquery.jfollow.js"></script>
+  <script type="text/javascript" src="js/jquery.imagesloaded.min.js"></script>
+  <script type="text/javascript" src="js/jquery.ImageGallery.js"></script>
+
+  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js" charset="utf-8"></script>
+  @endsection

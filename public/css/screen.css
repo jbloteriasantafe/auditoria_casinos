@@ -1,0 +1,260 @@
+/*
+
+Image Gallery
+Scott Stadt
+Last Revised: 3/25/13
+
+Color Pallette
+---------------------------
+
+bg   0%:			#135578
+bg  20%:			#043959
+bg  50%:			#115175
+bg 100%:			#043959
+
+btn light blue:		#4c96b3
+btn dark blue:		#3686a1
+btn light pink:		#a85e7f
+btn dark pink:		#a0335d
+
+*/
+
+/* -------- Document -------- */
+
+html {
+	font-family: 'Lato', sans-serif;
+	color: #fff;
+	background-attachment: fixed;
+	background-image: linear-gradient(bottom, #135578 0%, #043959 20%, #115175 50%, #043959 100%);
+	background-image: -o-linear-gradient(bottom, #135578 0%, #043959 20%, #115175 50%, #043959 100%);
+	background-image: -moz-linear-gradient(bottom, #135578 0%, #043959 20%, #115175 50%, #043959 100%);
+	background-image: -webkit-linear-gradient(bottom, #135578 0%, #043959 20%, #115175 50%, #043959 100%);
+	background-image: -ms-linear-gradient(bottom, #135578 0%, #043959 20%, #115175 50%, #043959 100%);
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0, #135578),
+		color-stop(0.2, #043959),
+		color-stop(0.5, #115175),
+		color-stop(1, #043959)
+	);
+}
+
+body {
+	height: 100%;
+	/* background-image: url('/img/bg_highlight.png'); */
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+#wrapper {
+	/* width: 960px; */
+	margin: 0 auto;
+	padding-bottom: 50px;
+	overflow: hidden;
+}
+
+#header {
+	width: 960px;
+	height: 50px;
+}
+
+#content {
+	float: left;
+	width: 730px;
+}
+
+/* -------- Typography -------- */
+
+h1 {
+	font-weight: normal;
+	margin-left: 20px;
+}
+
+/* -------- Navigation -------- */
+
+#followbox {
+	float: right;
+	margin: 0;
+	padding: 0;
+	height: 0;
+	width: 200px;
+}
+
+#nav-wrapper {
+	float: right;
+	height: 620px;
+	width: 200px;
+	margin-bottom: 50px;
+}
+
+ul#nav {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#nav a {
+	color: #fff;
+	text-decoration: none;
+	font-size: 20px;
+	font-weight: lighter;
+	display: block;
+	width: 200px;
+	height: 155px;
+	padding-top: 45px;
+	margin-bottom: 10px;
+	background-image: linear-gradient(bottom, #3686a1, #4c96b3);
+	background-image: -o-linear-gradient(bottom, #3686a1, #4c96b3);
+	background-image: -moz-linear-gradient(bottom, #3686a1, #4c96b3);
+	background-image: -webkit-linear-gradient(bottom, #3686a1, #4c96b3);
+	background-image: -ms-linear-gradient(bottom, #3686a1, #4c96b3);
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0, #3686a1),
+		color-stop(1, #4c96b3)
+	);
+}
+
+#nav a:hover {
+	background-image: linear-gradient(bottom, #a0335d, #a85e7f);
+	background-image: -o-linear-gradient(bottom, #a0335d, #a85e7f);
+	background-image: -moz-linear-gradient(bottom, #a0335d, #a85e7f);
+	background-image: -webkit-linear-gradient(bottom, #a0335d, #a85e7f);
+	background-image: -ms-linear-gradient(bottom, #a0335d, #a85e7f);
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0, #a0335d),
+		color-stop(1, #a85e7f)
+	);
+}
+
+#nav p {
+	width: 100%;
+	text-align: center;
+}
+
+#nav img {
+	display: block;
+	margin: 0 auto;
+}
+
+/* -------- Links -------- */
+
+a {
+	text-decoration: none;
+	color: #438fab;
+}
+
+a:hover {
+	color: #a54a6f;
+}
+
+/* -------- Gallery -------- */
+
+#thumbs-wrapper, #viewer-wrapper, #setup-wrapper {
+	padding: 5px;
+}
+
+#thumbs-wrapper, #viewer-wrapper, #setup-wrapper, #viewer-nav, #thumbs-nav {
+	background-color: rgba(0,0,0,0.2);
+}
+
+#viewer-wrapper {
+	height: 348px;
+}
+
+#gallery-viewer {
+	height: 100%;
+}
+
+#gallery-viewer img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+#viewer-nav, #thumbs-nav {
+	height: 30px;
+}
+
+#viewer-nav {
+	margin-top: 2px;
+}
+
+#thumbs-nav {
+	margin-top: 10px;
+	margin-bottom: 2px;
+}
+
+#thumbs-nav p {
+	width: 50%;
+	text-align: center;
+	margin: 0 auto;
+	line-height: 30px;
+}
+
+#gallery-next, #gallery-viewer-next, #gallery-prev, #gallery-viewer-prev {
+	text-indent: -9999px;
+	margin: 6.5px 25px;
+	height: 17px;
+	width: 16px;
+	background-image: url('/img/spt_arrows.png');
+	background-repeat: no-repeat;
+}
+
+#gallery-next, #gallery-viewer-next {
+	background-position: -16px 0;
+	float: right;
+}
+
+#gallery-prev, #gallery-viewer-prev {
+	float: left;
+}
+
+.thumbnail {
+	float: left;
+	width: 140px;
+	height: 138px;
+	border: 1px solid black;
+}
+
+/* -------- Setup -------- */
+
+#setup-wrapper p, pre, dl {
+	font-size: 12px;
+	font-weight: normal;
+}
+
+pre {
+	padding: 20px;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+code {
+	font-weight: normal;
+}
+
+dd {
+	margin-bottom: 10px;
+}
+
+.gallery-labels {
+	margin-left: 10px;
+}
+
+.fotoMiniatura {
+		max-width: 100%;
+		max-height: 100%;
+		display: block;
+}
