@@ -270,10 +270,8 @@ Route::post('movimientos/guardarMaquina', 'MTMController@guardarMaquina');
 Route::post('movimientos/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
 Route::post('movimientos/guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');
 Route::get('movimientos/buscarMaquinasMovimiento/{id}','LogMovimientoController@buscarMaquinasMovimiento');
-Route::get('movimientos/ValidarMovimiento/{id}', 'LogMovimientoController@ValidarMovimiento');
-Route::get('movimientos/ValidarFiscalizacion/{id}', 'LogMovimientoController@ValidarFiscalizacion');
+Route::get('movimientos/obtenerFiscalizacionesMovimiento/{id}', 'LogMovimientoController@obtenerFiscalizacionesMovimiento');
 Route::get('movimientos/ValidarMaquinaFiscalizacion/{id}', 'LogMovimientoController@ValidarMaquinaFiscalizacion');
-Route::post('movimientos/validarTomaRelevamiento', 'LogMovimientoController@validarTomaRelevamiento');
 Route::post('movimientos/guardarRelevamientosMovimientosMaquinas', 'LogMovimientoController@guardarRelevamientosMovimientosMaquinas');
 Route::post('movimientos/guardarLogClickMov', 'LogMovimientoController@guardarLogClickMov');
 Route::get('movimientos/mostrarMaquinasMovimientoLogClick/{id}','LogMovimientoController@mostrarMaquinasMovimientoLogClick');
@@ -294,7 +292,6 @@ Route::get('movimientos/obtenerMTM/{id_maquina}','LogMovimientoController@obtene
 Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@obtenerMaquinasIsla');
 Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
 Route::get('movimientos/maquinasEnviadasAFiscalizar/{id_movimiento}','RelevamientoMovimientoController@maquinasEnviadasAFiscalizar');
-Route::get('movimientos/finalizarValidacion/{id}', 'LogMovimientoController@cambiarEstadoFiscalizacionAValidado');
 Route::get('movimientos/eliminarRelevamientos/{id_log_movimiento}','LogMovimientoController@eliminarRelevamientos');
 
 

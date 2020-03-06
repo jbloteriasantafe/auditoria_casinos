@@ -30,27 +30,6 @@ class LogMaquinaController extends Controller
       return self::$instance;
   }
 
-
-
-public function guardarLogMaquina(Request $req){
-
-  /*Validator::make($request->all(), [
-    'id_fiscalizador' => 'nullable|exists:usuario ,id_usuario',
-    'observaciones' => 'nullable|alpha| max:100',
-    'fecha' => 'required|date',
-    'sector' => 'nullable|alpha| max:100',
-    'islas' => 'nullable|alpha| max:100',
-    'maquinas' => 'nullable|alpha| max:100',
-    'file' => 'sometimes|mimes:pdf',
-    'id_tipo_movimiento' => 'required |exists:tipo_movimiento ,id_tipo_movimiento',
-
-  ], array(), self::$atributos)->after(function ($validator){
-      //$validator->getData()['descripcion'] get campo de validador
-  })->validate();
-*/
-
-}
-
   public function registrarMovimiento($id_maquina, $razon,$id_tipo_movimiento){
     $maquina = Maquina::find($id_maquina);
     $log = new LogMaquina;
@@ -71,7 +50,5 @@ public function guardarLogMaquina(Request $req){
     $log->porcentaje_devolucion = $maquina->porcentaje_devolucion;
     $log->estado_maquina()->associate($maquina->id_estado_maquina);
     $log->save();
-
   }
-
 }

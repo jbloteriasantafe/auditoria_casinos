@@ -254,10 +254,12 @@
         <td class="tablaInicio fila" style="height:auto; ">
         @if(count($relevamiento->tomas) > 1)
           <i>TOMA {{$idx_toma + 1}}:</i>
-          <br>
+          <br />
         @endif
         @if($toma->observ != null)
-          {{$toma->observ}}
+          <div class="break">
+          {!! nl2br($toma->observ) !!}
+          </div>
         @else
           <div style="color: #dddddd;">
           @for($i = 0; $i<648; $i++)

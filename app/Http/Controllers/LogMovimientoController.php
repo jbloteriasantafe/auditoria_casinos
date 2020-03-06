@@ -158,13 +158,15 @@ class LogMovimientoController extends Controller
     $tipos = TipoMaquina::all();
     $monedas = TipoMoneda::all();
     $gabinetes = TipoGabinete::all();
-    $tipo_progresivos = ['LINKEADO', 'INDIVIDUAL'];
     $estados = EstadoMaquina::all();
     $logs = LogMovimiento::whereIn('id_casino',$casinos)->orderBy('fecha','DESC')->get();
     $casinos=$usuario['usuario']->casinos;
     $tiposMovimientos = TipoMovimiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Asignación Movimientos' ,'movimientos');
-    return view('seccionMovimientos',['logMovimientos'=>$logs , 'tiposMovimientos' => $tiposMovimientos,'monedas'=>$monedas , 'unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 'gabinetes' => $gabinetes , 'tipo_progresivos' => $tipo_progresivos, 'estados' => $estados]);
+    return view('seccionMovimientos',[ 
+      'logMovimientos'=>$logs , 'tiposMovimientos' => $tiposMovimientos,'monedas'=>$monedas , 
+      'unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 
+      'gabinetes' => $gabinetes , 'estados' => $estados, 'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
   }
 
 
@@ -718,7 +720,7 @@ class LogMovimientoController extends Controller
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
             'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 
-            'casino' => $log->casino];
+            'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion];
   }
 
   public function generarPlanillasRelevamientoMovimiento($id_fiscalizacion_movimiento){
@@ -850,7 +852,9 @@ class LogMovimientoController extends Controller
         $fecha_limite_inferior = strtotime($fecha_limite_inferior);
         if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
         if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
-        $progresivos = $data['progresivos'];
+
+        $progresivos = [];
+        if(array_key_exists('progresivos',$data)) $progresivos = $data['progresivos'];
         foreach($progresivos as $idx_p => $p){
           $pozo = Pozo::find($p['id_pozo']);
           $causaNoToma = $p['id_tipo_causa_no_toma_progresivo'];
@@ -937,13 +941,13 @@ class LogMovimientoController extends Controller
         if($u != null) $u->notify(new $notificacion($fiscalizacion));
       }
       if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
+      DB::commit();
     }
     catch(Exception $e){
       DB::rollBack();
       throw $e;
       return ['codigo' => 0];
     }
-    DB::commit();
     return ['codigo' => 1];
   }
 
@@ -974,26 +978,18 @@ class LogMovimientoController extends Controller
 
   //para el controlador///////////////////////////////////////////////////////
   //deberia enviar las cosas suficientes como para poder mostrar para validar
-  public function ValidarMovimiento($id_log_movimiento){
+  public function obtenerFiscalizacionesMovimiento($id_log_movimiento){
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      foreach($usuario->casinos as $casino){
+            $casinos [] = $casino->id_casino;
+      }
       $fiscalizaciones = DB::table('log_movimiento')
                           ->select('fiscalizacion_movimiento.*', 'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion')
                           ->join('fiscalizacion_movimiento','fiscalizacion_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
                           ->where('log_movimiento.id_log_movimiento','=',$id_log_movimiento)
+                          ->whereIn('log_movimiento.id_casino',$casinos)
                           ->get();
       return $fiscalizaciones;
-  }
-
-  public function ValidarFiscalizacion($id_fiscalizacion_movimiento){
-    $fiscalizacionMov = FiscalizacionMov::find($id_fiscalizacion_movimiento);
-    $maquinas = DB::table('fiscalizacion_movimiento')
-                    ->select('relevamiento_movimiento.id_maquina','maquina.nro_admin',
-                    'fiscalizacion_movimiento.id_estado_relevamiento as id_estado_fiscalizacion',
-                    'relevamiento_movimiento.id_relev_mov','relevamiento_movimiento.id_estado_relevamiento')
-                    ->join('relevamiento_movimiento', 'relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
-                    ->join('maquina','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
-                    ->where('fiscalizacion_movimiento.id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento)
-                    ->get();
-    return ['Maquinas' => $maquinas];
   }
 
   public function ValidarMaquinaFiscalizacion($id_relevamiento){
@@ -1095,108 +1091,6 @@ class LogMovimientoController extends Controller
                   ->take(25)
                   ->get();
   }
-
-
-
-  //valida las tomas de los relevamientos y ejecutar las acciones sobre ellas
-  public function validarTomaRelevamiento(Request $request){
-    //el request contiene id_relev_mov
-    $id_usuario = session('id_usuario');
-    $relev_mov = RelevamientoMovimiento::find($request->id_relev_mov);
-    $fiscalizacion = FiscalizacionMov::find($relev_mov->id_fiscalizacion_movimiento);
-    $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
-    $id_usuario = session('id_usuario');
-    if($this->noEsControlador($id_usuario,  $logMov)){
-      $logMov->controladores()->attach($id_usuario);
-      $logMov->save();
-    }
-
-    //creo un array para guardar el id_isla para cambiar el estado de relevamiento del log isla
-    $islas = array();
-
-    //a las tomas de los relevamientos las marco como validadas
-    $razon = RelevamientoMovimientoController::getInstancia()->validarRelevamientoToma($relev_mov, $request->validado);//retorna las observaciones de la toma
-    $maquina = $relev_mov->maquina;
-
-
-      //cambio el estado de la máquina
-      switch ($logMov->id_tipo_movimiento) {
-        case 1: // ingreso
-        //esto se cambió en el comit "no se"
-            $maquina->estado_maquina()->associate(1);
-            $maquina->save();
-            //crear log maquina
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Ingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 2: //egreso
-            $maquina->estado_maquina()->associate(4); 	///Egreso Temporal
-            $maquina->save();
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Egreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 3://reingreso
-            $maquina->estado_maquina()->associate(2);//reingreso
-            $maquina->save();
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 4: //cambio layout
-            //cambiar estado en isla->log_isla //lo hace el controlador desde la
-            // seccion gestionar islas porque sino es muy lento y no es seguro encontrar el log.
-            //el estado de la maquina no cambia
-            //  $islas[] = $maquina->id_isla;
-            //el log maquina se creo en IslaController
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Cambio de isla validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 5: //denominacion
-            //crear log maquina
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Cambio de denominacion validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 6: //% devolucion
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Cambio de % devolución validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 7: //juego
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Cambio de juego validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        case 8: //egreso/reingreso
-            $maquina->estado_maquina()->associate(2);//reingreso
-            $maquina->save();
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, "Reingreso validado. Observaciones: ".$razon,$logMov->id_tipo_movimiento);
-            break;
-        default:
-
-        break;
-
-      }
-
-
-      return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
-  }
-
-
-  public function cambiarEstadoFiscalizacionAValidado($id_fiscalizacion){
-    $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion);
-    $logMov = LogMovimiento::find($fiscalizacion->id_log_movimiento);
-    $validacion = -1;
-    DB::transaction(function() use ($fiscalizacion,$logMov,&$validacion){
-      if($this->countMaquinasValidadas($fiscalizacion->relevamientos_movimientos)
-         == 
-         count($fiscalizacion->relevamientos_movimientos))
-      {
-        $fiscalizacion->estado_relevamiento()->associate(4);
-        $fiscalizacion->save();
-        $validacion = 0; // Se valido la fiscalizacion
-      }
-      if($logMov->fiscalizaciones()->where('id_estado_relevamiento',4)->count() 
-         ==
-         $logMov->fiscalizaciones()->count())
-      {
-        $logMov->estado_movimiento()->associate(4);
-        $logMov->save();
-        $validacion = 1; // Esta todo validado
-      }
-    });
-    return $validacion;
-  }
-
 
   private function countMaquinasValidadas($relevamientos_movimientos){
     $contador = 0;
@@ -1360,8 +1254,6 @@ class LogMovimientoController extends Controller
         $logMovimiento->estado_movimiento()->associate(1); //estado = notificado
         $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
         // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
-        // Recordar que sentido son REINGRESO, EGRESO TEMPORAL y ---
-        // SON UTILIZADOS POR MOVIMIENTOS POR INTERVENCION MTM!
         $logMovimiento->sentido = "---";
         $f = date("Y-m-d");
         $logMovimiento->fecha = $f;
@@ -1648,7 +1540,7 @@ class LogMovimientoController extends Controller
         // en el mismo dia aparezcan despues, ordenamos por ID.
         return $query->orderBy($sort_by['columna'],$sort_by['orden'])->orderBy('log_movimiento.id_log_movimiento','desc');
       });
-
+      $resultados = $resultados->groupBy('log_movimiento.id_log_movimiento');
       $resultados = $resultados->paginate($request->page_size,['log_movimiento.id_log_movimiento']);
 
       $tipos = TipoMovimiento::where('puede_reingreso',1)->orWhere('puede_egreso_temporal',1)
@@ -1739,12 +1631,12 @@ class LogMovimientoController extends Controller
 
       $logMovimiento->casino()->associate($request['id_casino']);
       $logMovimiento->save();
+      DB::commit();
     }
     catch(Exception $e){
       DB::rollBack();
       return null;
     }
-    DB::commit();
 
     return $logMovimiento->id_log_movimiento;
   }
@@ -1782,7 +1674,8 @@ class LogMovimientoController extends Controller
 
   // visarConObservacion valida un relevamiento que nace de una intervencion de MTM
   public function visarConObservacion(Request $request){
-    $relev_mov = null;
+    $relevMov = null;
+    $fisMov = null;
     $logMov = null;
     $id_usuario = session('id_usuario');
 
@@ -1790,33 +1683,88 @@ class LogMovimientoController extends Controller
       'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
       'nro_toma' => 'nullable',
       'observacion' => 'nullable|string',
-    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relev_mov,$id_usuario){
+      'estado' => ['required', Rule::in(['valido', 'error']) ]
+    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relevMov,$id_usuario){
       if(count($validator->errors()) == 0){
-        $relev_mov = RelevamientoMovimiento::find($validator->getData()['id_relev_mov']);
-        $logMov = $relev_mov->log_movimiento;
+        $relevMov = RelevamientoMovimiento::find($validator->getData()['id_relev_mov']);
+        $logMov = $relevMov->log_movimiento;
         if(!Usuario::find($id_usuario)->usuarioTieneCasino($logMov->id_casino)){
           $validator->errors->add('id_relev_mov','El usuario no puede acceder a ese movimiento.');
         }
       }
     })->validate();
 
-    if($this->noEsControlador($id_usuario,$logMov)){
-      $logMov->controladores()->attach($id_usuario);
-      $logMov->save();
-    }
-    //a las tomas de los relevamientos las marco como validadas
-    RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relev_mov, 1, $request->observacion);
+    DB::beginTransaction();
+    try{
+      if($this->noEsControlador($id_usuario,$logMov)){
+        $logMov->controladores()->attach($id_usuario);
+        $logMov->save();
+      }
+      //a las tomas de los relevamientos las marco como validadas
+      RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relevMov, $request->estado == 'valido'? 1 : 0, $request->observacion);
 
-    $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
-              ->where('id_estado_relevamiento','=',4)->get();
-    //dd([count($logMov->relevamientos_movimientos),count($relss)]);
-    if(count($logMov->relevamientos_movimientos) == count($relss)){
-      $logMov->estado_relevamiento()->associate(4);
-      $logMov->estado_movimiento()->associate(4);
-      $logMov->save();
-    }
+      if(!is_null($relevMov->id_fiscalizacion_movimiento)){
+        $relss = RelevamientoMovimiento::where('id_fiscalizacion_movimiento','=',$relevMov->id_fiscalizacion_movimiento)
+        ->whereIn('id_estado_relevamiento',[4,6])->get();
+        $fisMov = $relevMov->fiscalizacion;
+        if($fisMov->relevamientos_movimientos()->count() == count($relss)){
+          $fisMov->estado_relevamiento()->associate(4);
+          $fisMov->save();
+          $fisValidada = true;
+        }
+      }
 
-    return ['id_estado_relevamiento'=> $relev_mov->id_estado_relevamiento];
+      $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
+                ->whereIn('id_estado_relevamiento',[4,6])->get();
+
+      if($logMov->relevamientos_movimientos()->count() == count($relss)){
+        $logMov->estado_relevamiento()->associate(4);
+        $logMov->estado_movimiento()->associate(4);
+        $logMov->save();
+        $logValidado = true;
+        $map = [
+          1  => ['nuevo_estado' => 1, 'texto' => "Ingreso validado."], // Deprecado
+          2  => ['nuevo_estado' => 4, 'texto' => "Egreso validado."], // Deprecado
+          3  => ['nuevo_estado' => 2, 'texto' => "Reingreso validado."], // Deprecado
+          8  => ['nuevo_estado' => 2, 'texto' => "Reingreso validado."], // Deprecado
+          9  => ['texto' => "--- validado."], // Deprecado
+          11 => ['nuevo_estado' => 1, 'texto' => "Ingreso inicial validado."],
+          12 => ['nuevo_estado' => 3, 'texto' => "Egreso definitivo validado."],
+          4  => ['texto' => "Cambio de isla validado."],
+          5  => ['texto' => "Cambio de denominacion validado."],
+          6  => ['texto' => "Cambio de % devolución validado."],
+          7  => ['texto' => "Cambio de juego validado."],
+          10 => ['texto' => "Actualización de firmware validada."],
+        ];
+        //Si fue VALIDADO el relevamiento genero un LogMaquina
+        if($relevMov->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
+          $maquina = $relevMov->maquina;
+          $accion = $map[$logMov->id_tipo_movimiento];
+          if(array_key_exists('nuevo_estado',$accion)){
+            $maquina->estado_maquina()->associate($accion['nuevo_estado']);
+            $maquina->save();
+          }
+          $razon = $accion['texto']." \n";
+          $tomas = $relevMov->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
+          $multiples_tomas = $relevMov->toma_relevamiento_movimiento()->count() > 1;
+          //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
+          foreach($tomas as $idx => $toma){
+            if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
+            $razon = $razon . $toma->observaciones . " \n";
+          }
+          LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
+        }
+      }
+      DB::commit();
+    }
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
+    }
+    return ['relError'    => $relevMov->id_estado_relevamiento == 6,
+            'relValidado' => $relevMov->id_estado_relevamiento == 4,
+            'logValidado' => $logMov->id_estado_relevamiento == 4, 
+            'fisValidada' => !is_null($fisMov) && $fisMov->id_estado_relevamiento == 4 ];
   }
 
   ///////////PARA DENOMINACION Y DEVOLUCION/////////////////////////////////////

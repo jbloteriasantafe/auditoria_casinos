@@ -244,6 +244,7 @@ class RelevamientoMovimientoController extends Controller
     $toma->save();
 
     $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
+    $progresivos = is_null($progresivos)? [] : $progresivos;
     foreach($progresivos as $pozo){
       // No deberia haber multiples relevamientos del mismo pozo para una toma.
       $detalle_prog = $toma->detalles_relevamiento_progresivo()->where('detalle_relevamiento_progresivo.id_pozo','=',$pozo['id_pozo'])->first();

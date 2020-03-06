@@ -66,7 +66,7 @@ function mostrarFiscalizacion(id_fiscalizacion,modo){
 }
 
 //SELECCIONA UNA MÁQUINA PARA VER SU DETALLE
-$(document).on('click','.cargarMaq',function(){
+$(document).on('click','#divRelMov .cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
   $('#guardarRel').attr('data-rel', id_rel);

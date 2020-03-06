@@ -82,6 +82,7 @@ $(document).ready(function(){
   });
 
   limpiarModal();
+  divRelMovInit();
 }); //FIN DEL DOCUMENT READY
 
 /* 

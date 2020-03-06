@@ -505,12 +505,32 @@ class informesController extends Controller
     substr($columnas_str,1)//saco la coma
     ."
     order by l.fecha desc";
-    
-    //dump($query);
-    
+        
     $parametros = ['id_maquina' => $id_maquina];
     $logs = DB::select(DB::raw($query),$parametros);
-            
+    usort($logs,function($a,$b){
+      //Comparo primero por fecha y si son iguales por el id mas chico.
+      //Se simplificaria si tuviera hora minuto segundo...
+      $fecha_a = strtotime($a->fecha);
+      $fecha_b = strtotime($a->fecha);
+      if($fecha_a < $fecha_b) return 1;
+      else if($fecha_a > $fecha_b) return -1;
+
+      $ids_a = explode('/',$a->ids_logs_maquinas);
+      $ids_b = explode('/',$b->ids_logs_maquinas);
+      $smallest_a = $ids_a[0];
+      $smallest_b = $ids_b[0];
+      foreach($ids_a as $ida){
+        if($ida < $smallest_a) $smallest_a = $ida;
+      }
+      foreach($ids_b as $idb){
+        if($idb < $smallest_b) $smallest_b = $idb;
+      }
+      if($smallest_a < $smallest_b) return 1;
+      else if($smallest_a > $smallest_b) return -1;
+      return 0;
+    });
+
     while($fin){
       $estado = $this->checkEstadoMaquina($fecha, $maquina->id_maquina);
       $aux= new \stdClass();

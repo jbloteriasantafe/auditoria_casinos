@@ -702,186 +702,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
               </table>
             </div> <!-- tablafechas -->
-
-            <div id="columnaMaq" class="col-md-2" style="border-left:2px solid #4FC3F7; border-right:2px solid #4FC3F7;" hidden>
-              <h6><b>MÁQUINAS</b></h6>
-              <table id="tablaMaquinasFiscalizacion" class="table">
-                <thead>
-                  <tr>
-                    <th> </th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div> <!-- maquinas -->
-
-            <div id="columnaDetalle" class="col-md-8" hidden>
-              <h6><b>DETALLES</b></h6>
-              <div class="detalleMaq" >
-
-                <div class="row" >
-
-                  <div class="col-lg-3">
-                    <h5>Fiscalizador Toma</h5>
-                    <input id="f_tomaMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- Fisca toma -->
-
-                  <div class="col-lg-3">
-                    <h5>Fiscalizador Carga</h5>
-                    <input id="f_cargaMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- fisca carga-->
-                </div>
-
-                <div class="row" >
-                  <div class="col-lg-4">
-                    <h5>Nro Admin.</h5>
-                    <input id="nro_adminMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- nro admin -->
-                  <div class="col-lg-4">
-                    <h5>N° Isla</h5>
-                    <input id="nro_islaMov" type="text" class="form-control" readonly="readonly" >
-                    <br>
-                  </div> <!-- nro_isla -->
-                  <div class="col-lg-4">
-                    <h5>N° Serie</h5>
-                    <input id="nro_serieMov" type="text" class="form-control" readonly="readonly" >
-                    <br>
-                  </div> <!-- nro_serie -->
-                </div> <!-- primer row -->
-
-                <div class="row">
-                  <div class="col-lg-6">
-                    <h5>Marca</h5>
-                    <input id="marcaMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- marca -->
-                  <div class="col-lg-6">
-                    <h5>Modelo</h5>
-                    <input id="modeloMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- modelo -->
-                  <div class="col-lg-6">
-                    <h5>MAC</h5>
-                    <input id="macMov" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div> <!-- mac -->
-
-                  <div class="col-lg-4">
-                    <h5>SECTOR</h5>
-                    <input id="sectorRelevadoMov" type="text" value="" class="form-control">
-                    <br>
-                  </div> <!-- SECTOR -->
-
-                  <div class="col-lg-4">
-                    <h5>ISLA</h5>
-                    <input id="islaRelevadaMov" type="text" value="" class="form-control">
-                    <br>
-                  </div>
-                </div> <!-- segundo row -->
-
-                <div class="row">
-                  <table id="tablaValidarIngreso" class="table">
-                    <thead>
-                      <tr>
-                        <th class="col-xs-6"><h6><b>CONTADORES</b></h6></th>
-                        <th id="toma_anterior" class="col-xs-3" hidden=""><h6>TOMA ANTERIOR</h6></th>
-                        <th id="toma_nueva" class="col-xs-3" hidden=""><h6>TOMA ACTUAL</h6></th>
-                        <th id="toma_check" class="col-xs-2" hidden=""><h6>CHECK</h6></th>
-                        <th class="col-xs-2"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                  </table>
-                </div>  <!-- tercer row -->
-
-                <div id="toma2">
-                  <br>
-                  <h6>TOMA ANTERIOR</h6>
-
-                  <div class="row">
-                    <div class="col-lg-4">
-                      <h5>JUEGO</h5>
-                      <input id="juego1" type="text" class="form-control" readonly="readonly">
-                      <br>
-                    </div>
-                    <div class="col-lg-4">
-                      <h5>APUESTA MÁX</h5>
-                      <input id="apuesta1" type="text" class="form-control" readonly="readonly">
-                    </div>
-                    <div class="col-lg-4">
-                      <h5>CANT LÍNEAS</h5>
-                      <input id="cant_lineas1" type="text" class="form-control" readonly="readonly">
-                    </div>
-                  </div>  <!-- sexto row -->
-
-                  <div class="row">
-                    <div class="col-lg-4">
-                      <h5>% DEVOLUCIÓN</h5>
-                      <input id="devolucion1" type="text" class="form-control" readonly="readonly">
-                    </div>
-                    <div class="col-lg-4">
-                      <h5>DENOMINACIÓN</h5>
-                      <input id="denominacion1" type="text" class="form-control" readonly="readonly">
-                    </div>
-                    <div class="col-lg-4">
-                      <h5>CANT CRÉDITOS</h5>
-                      <input id="creditos1" type="text" class="form-control" readonly="readonly">
-                    </div>
-                  </div>  <!-- septimo row -->
-
-                </div>
-
-                <br>
-                <h6>TOMA ACTUAL</h6>
-                <div class="row">
-                  <div class="col-lg-4">
-                    <h5>JUEGO</h5>
-                    <input id="juego" type="text" class="form-control" readonly="readonly">
-                    <br>
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>APUESTA MÁX</h5>
-                    <input id="apuesta" type="text" class="form-control" readonly="readonly">
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>CANT LÍNEAS</h5>
-                    <input id="cant_lineas" type="text" class="form-control" readonly="readonly">
-                  </div>
-                </div> <!-- cuarto row -->
-
-                <div class="row">
-                  <div class="col-lg-4">
-                    <h5>% DEVOLUCIÓN</h5>
-                    <input id="devolucion" type="text" class="form-control" readonly="readonly">
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>DENOMINACIÓN</h5>
-                    <input id="denominacion" type="text" class="form-control" readonly="readonly">
-                  </div>
-                  <div class="col-lg-4">
-                    <h5>CANT CRÉDITOS</h5>
-                    <input id="creditos" type="text" class="form-control" readonly="readonly">
-                  </div>
-                </div> <!-- quinto row -->
-
-
-                <div class="row">
-                  <div class="col-lg-12">
-                    <h6>OBSERVACIONES:</h6>
-                    <textarea id="observacionesToma" class="form-control" readonly="readonly" style="resize:vertical;"></textarea>
-                  </div>
-                </div>
-              </div>
-            </div> <!-- fin row de detalle -->
+            <div class="col-md-10">
+            @include('divRelevamientoMovimiento')
+            </div>
           </div>  <!-- fin row inicial -->
 
           <div class="modal-footer">
@@ -893,7 +719,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
               <button id="errorValidacion" type="button" class="btn btn-default error" >ERROR</button>
               <button id="enviarValidar" type="button" class="btn btn-default validar" value=""> VALIDAR </button>
               <button id="finalizarValidar" type="button" class="btn btn-default" value="" data-fiscalizacion="" hidden=> FINALIZAR VALIDACIÓN </button>
-
 
               <div id="mensajeErrorVal" hidden>
                 <br>

@@ -144,12 +144,13 @@ $(document).on('click','.borrarMTMCargada',function(e){
 function mostrarFiscalizacion(id_mov,modo){
   $('#guardarRel').prop('disabled', true);
   $('#guardarRel').toggle(modo == "CARGAR");
+  $('#guardarRel').attr('modo',modo);
   divRelMovEsconderDetalleRelevamiento();
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
     console.log('88',data);
     divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
-    let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
+    let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus',6 : 'fa-search-plus'};
     if(modo == "CARGAR") dibujos = {3 : 'fa-pencil-alt'};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,-1);
     divRelMovSetearModo(modo);
@@ -175,9 +176,10 @@ $('#btn-closeCargar').click(function(e){
 });
 
 //presiona el ojo de una máquina para cargar los detalles
-$(document).on('click','.cargarMaq',function(){
+$(document).on('click','#divRelMov .cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
+  divRelMovSetearModo(modo);
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
@@ -244,7 +246,7 @@ $(document).on('click','.btn_validarEvmtm',function(){
   mostrarFiscalizacion($(this).val(),"VALIDAR");
 });
 
-$(document).on('click','#divRelMov .validar',function(){
+function validar(estado){
   $.ajaxSetup({
     headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -254,6 +256,7 @@ $(document).on('click','#divRelMov .validar',function(){
   const formData = {
     id_relev_mov: $('#guardarRel').attr('data-rel'),
     observacion: divRelMovObtenerDatos().observacionesAdm,
+    estado: estado
   }
 
   $.ajax({
@@ -262,17 +265,32 @@ $(document).on('click','#divRelMov .validar',function(){
     data: formData,
     dataType: 'json',
     success: function (data) {
-      if(data.id_estado_relevamiento == 4){
+      if(data.relError || data.relValidado){
         divRelMovLimpiar();
-        mensajeExito({titulo:'ÉXITO DE VALIDACIÓN'});
+        const mensaje = data.relError? 'Relevamiento marcado erroneo.': 'Relevamiento marcado valido.';
+        mensajeExito({titulo:'ÉXITO DE VALIDACIÓN',mensajes:[mensaje]});
         divRelMovMarcarListoRel(formData.id_relev_mov);
+        divRelMovLimpiar();
+        divRelMovEsconderDetalleRelevamiento();
       };
+      if(data.logValidado){
+        $('#btn-buscarEventualidadMTM').click();
+        $("#modalCargarRelMov").modal('hide');
+      }
     },
     error: function (data) {
       console.log('Error:', data);
       mensajeError(['Error al validar la intervención.']);
     }
   });
+}
+
+$(document).on('click','#divRelMov .validar',function(){
+  validar('valido');
+});
+
+$(document).on('click','#divRelMov .error',function(){
+  validar('error');
 });
 
 //botón impŕimir de la tab la principal

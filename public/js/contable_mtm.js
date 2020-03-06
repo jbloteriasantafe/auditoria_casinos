@@ -130,20 +130,16 @@ $('#btn-buscarMTM').click(function(e) {
         //Si hay movimientos
         if (data.movimientos.length) {
             $('#mensajeMovimiento').hide();
-
-            $('#mov .fecha').text(limpiarNull(data.movimientos[0].fecha));
-            $('#mov .razon').text(limpiarNull(data.movimientos[0].razon));
-            $('#mov .boton', movimiento).attr('title', movimientoAString(data.movimientos[0]));
-
-            for (var i = 1; i < data.movimientos.length; i++) {
-                var movimiento = $('#mov').clone();
+            data.movimientos.forEach(m =>{
+                let movimiento = $('#mov').clone();
                 movimiento.addClass('clonado');
                 movimiento.show();
-                $('.fecha', movimiento).text(limpiarNull(data.movimientos[i].fecha));
-                $('.razon', movimiento).text(limpiarNull(data.movimientos[i].razon));
-                $('.boton', movimiento).attr('title', movimientoAString(data.movimientos[i]));
+                $('.fecha', movimiento).text(limpiarNull(m.fecha));
+                $('.boton', movimiento).attr('title', movimientoAString(m));
+                let razon = limpiarNull(m.razon);
+                $('.razon', movimiento).empty().append(razon.split('\n').join('<br />'));
                 $('#listaMovimientos').append(movimiento);
-            }
+            });
             $('[data-toggle="tooltip"]').tooltip();
         } else {
             $('#mensajeMovimiento').show();

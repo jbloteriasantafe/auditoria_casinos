@@ -195,8 +195,11 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="col-lg-1 col-lg-offset-11">
-                        <button type="button" class="btn btn-success validar"><b>VISAR</b></button>
+                    <div class="col-lg-1 col-lg-offset-10">
+                        <button type="button" class="btn btn-danger error"><b>ERROR</b></button>
+                    </div>
+                    <div class="col-lg-1">
+                        <button type="button" class="btn btn-success validar"><b>VALIDAR</b></button>
                     </div>
                 </div>
             @endif
@@ -408,7 +411,7 @@ function divRelMovMostrarErrores(response){
     return err;
 }
 function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
-    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,nro_toma){
+    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,nro_toma,estado_rel){
         fila.append($('<td>')
             .addClass('col-xs-3')
             .append($('<button>')
@@ -419,6 +422,7 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
             .attr('data-maq', id_maquina)
             .attr('data-rel', id_relevamiento)
             .attr('toma',nro_toma)
+            .attr('data-estado-rel', estado_rel)
             )
         );
         fila.append($('<td>')
@@ -440,11 +444,11 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
       );
       let i = 0;//Multiples tomas estan deprecadas pero esto está por compatibilidad para atras
       for(;i<r.tomas;i++){
-          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,i+1);
+          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,i+1,r.estado.id_estado_relevamiento);
       }
       //El relevamiento no tiene tomas, se va a crear una cuando le mande guardar.
       if(i == 0){
-          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,0);
+          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,0,1);
       }
 
       fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
@@ -484,6 +488,7 @@ function divRelMovMarcarListaMaq(id_maquina,estado = true){
 }
 function divRelMovMarcarListoRel(id_relev,estado = true){
     divRM.find('.tablaMTM').find('.listo[data-rel="'+id_relev+'"]').toggle(estado);
+    divRM.find('.tablaMTM').find('.cargarMaq[data-rel="'+id_relev+'"]').parent().toggle(!estado);
 }
 function divRelMovCambiarDibujoMaq(id_maquina,dibujo){
     let boton = divRM.find('.cargarMaq[data-maq='+id_maquina+']')[0];

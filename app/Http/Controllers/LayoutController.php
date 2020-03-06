@@ -1279,14 +1279,13 @@ class LayoutController extends Controller
                   .'.zip';
       Zipper::make($nombreZip)->add($arregloRutas)->close();
       File::delete($arregloRutas);
+      DB::commit();
     }
     catch(Exception $e){
       DB::rollBack();
       throw $e;
     }
-    DB::commit();
     return [ 'url_zip' => '/layouts/descargarLayoutTotalZip/'.$nombreZip];
-
   }
 
 

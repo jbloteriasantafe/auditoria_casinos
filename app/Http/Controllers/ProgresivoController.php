@@ -459,13 +459,13 @@ class ProgresivoController extends Controller
 
         $nivel_progresivo->save();
       }
+      DB::commit();
     }
     catch(Exception $e){
       DB::rollBack();
       throw $e;
     }
 
-    DB::commit();
   }
 
   private function obtenerIndividuales($id_casino = null,$desde = null,$hasta = null,$not_id_maq = null){
