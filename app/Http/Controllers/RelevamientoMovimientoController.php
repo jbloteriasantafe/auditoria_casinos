@@ -103,6 +103,7 @@ class RelevamientoMovimientoController extends Controller
      $rel->juego = $maquina->juego_activo->nombre_juego;
      $rel->porcentaje_devolucion = $maquina->porcentaje_devolucion;
      $rel->denominacion = $maquina->denominacion;
+     $rel->estado = $relev_mov->estado_relevamiento->descripcion;
 
      $formula = $maquina->formula;
      if(isset($formula)){

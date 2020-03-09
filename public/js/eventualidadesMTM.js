@@ -141,23 +141,21 @@ $(document).on('click','.borrarMTMCargada',function(e){
   $(this).parent().parent().remove();
 });
 
-function mostrarFiscalizacion(id_mov,modo){
+function mostrarFiscalizacion(id_mov,modo,refrescando = false){
   $('#guardarRel').prop('disabled', true);
-  $('#guardarRel').toggle(modo == "CARGAR");
-  $('#guardarRel').attr('modo',modo);
+  $('#guardarRel').attr('modo',modo).toggle(modo == "CARGAR");
+  $('#guardarRel').attr('data-mov',id_mov);
   divRelMovEsconderDetalleRelevamiento();
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
-    console.log('88',data);
     divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus',6 : 'fa-search-plus'};
-    if(modo == "CARGAR") dibujos = {3 : 'fa-pencil-alt'};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,-1);
-    divRelMovSetearModo(modo);
-    $('#modalCargarRelMov').modal('show');
+    divRelMovSetearModo("VER");
+    if(!refrescando) $('#modalCargarRelMov').modal('show');
   })
 }
-//botón para cargar máquina
+//botón para cargar intervencion
 $(document).on('click', '.btn_cargarEvmtm', function(){
   $('#modalCargarRelMov .modal-title').text('CARGAR MAQUINAS');
   $('#modalCargarRelMov .modal-header').attr('style','background: #6dc7be');
@@ -175,15 +173,32 @@ $('#btn-closeCargar').click(function(e){
   $('#btn-buscarEventualidadMTM').trigger('click');
 });
 
-//presiona el ojo de una máquina para cargar los detalles
+//presiona el boton de una máquina para cargar los detalles
 $(document).on('click','#divRelMov .cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
-  divRelMovSetearModo(modo);
+  const modo_ventana = $('#guardarRel').attr('modo');
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
-    $('#guardarRel').prop('disabled', false);
+    $('#guardarRel').prop('disabled', true).hide();
+    const estado_rel = data.relevamiento.id_estado_relevamiento;
+    if (modo_ventana == "CARGAR"){
+      //GENERADO || CARGANDO || SIN RELEVAR
+      if(estado_rel == 1 || estado_rel == 2 || estado_rel == 5){
+        divRelMovSetearModo("CARGAR");
+        $('#guardarRel').prop('disabled', false).show();
+      }
+      else divRelMovSetearModo("VER");
+    }
+    else if(modo_ventana == "VALIDAR"){
+      //FINALIZADO
+      if(estado_rel != 3) divRelMovSetearModo("VER");
+      else divRelMovSetearModo("VALIDAR");
+    }
+    else{ //VER por defecto
+      divRelMovSetearModo("VER");
+    }
     divRelMovSetear(data);
     divRelMovMostrarDetalleRelevamiento();
   })
@@ -222,11 +237,15 @@ $(document).on('click','#guardarRel',function(){
     dataType: 'json',
     success: function (data){
       $('#guardarRel').prop('disabled', true);
-      divRelMovEsconderDetalleRelevamiento();
-      divRelMovLimpiar();
       mensajeExito({titulo:'ÉXITO DE CARGA'});
-      //BORRO LOS ERRORES
-      divRelMovCambiarDibujoMaq(formData.id_maquina,'fa fa-fw fa-pencil-alt');
+      if(!data.movFinalizado){
+        divRelMovEsconderDetalleRelevamiento();
+        divRelMovLimpiar();
+        mostrarFiscalizacion($('#guardarRel').attr('data-mov'),$('#guardarRel').attr('modo'),true);
+      }
+      else{
+        $('#modalCargarRelMov').modal('hide')
+      }
       $('#btn-buscarEventualidadMTM').click();
     },
     error: function (data){
@@ -380,22 +399,23 @@ $("#modalValidacionEventualidadMTM").on('hidden.bs.modal', function () {
 
 //Se generan filas en la tabla principal con las eventualidades encontradas
 function generarFilaTabla(event,controlador,superusuario){
-  const estado = event.id_estado_movimiento;
+  const estado = event.id_estado_relevamiento;
   let fila = $('#filaEjemploTablaEventualidades').clone().removeAttr('id');
   fila.attr('id',event.id_log_movimiento);
   fila.find('.fecha').text(convertirDate(event.fecha)).attr('title',event.fecha);
   fila.find('.tipo').text(event.descripcion).attr('title',event.descripcion);
   fila.find('.sentido').text(event.sentido).attr('title',event.sentido);
-  fila.find('.estado').attr('title',event.estado_descripcion);
+  fila.find('.estado').attr('title',event.estado_rel_descripcion);
   let iclass = 'fa-exclamation';
   let color = 'rgb(255,255,0)';
   let icon = fila.find('.estado i');
   icon.removeClass('fa-exclamation');
-  if(estado == 1)      { iclass = 'fa-envelope'  ; color = 'rgb(66,133,244)' ;} // Notificado
+
+  if(estado == 1) { iclass = 'fa-plus'      ; color = 'rgb(150,150,150)';} // Generado
+  else if(estado == 2) { iclass = 'fa-pencil-alt'; color = 'rgb(244,160,0)'  ;} // Cargando
+  else if(estado == 3)      { iclass = 'fa-check'  ; color = 'rgb(66,133,244)' ;} // Finalizado
   else if(estado == 4) { iclass = 'fa-check'     ; color = 'rgb(76,175,80)'  ;} // Validado
-  else if(estado == 6) { iclass = 'fa-plus'      ; color = 'rgb(150,150,150)';} // Creado
-  else if(estado == 8) { iclass = 'fa-pencil-alt'; color = 'rgb(244,160,0)'  ;} // Cargando
-  else                 { iclass = 'fa-times'     ; color = 'rgb(239,83,80)'  ;} // Cualquier otro
+  else                 { iclass = 'fa-minus'     ; color = 'rgb(0,0,0)'  ;} // Cualquier otro
   icon.addClass(iclass).css('color',color);
   fila.find('.estado').attr('title',event.estado_descripcion);
   fila.find('.casino').text(event.nombre).attr('title',event.nombre);
@@ -404,9 +424,12 @@ function generarFilaTabla(event,controlador,superusuario){
   if(estado == 1) fila.find('.accion .btn_cargarEvmtm i').removeClass('fa-upload').addClass('fa-pencil-alt');
   fila.find('button').attr('data-casino',event.id_casino).val(event.id_log_movimiento);
 
-  fila.find('.btn_validarEvmtm').toggle((estado == 3 || event.id_estado_relevamiento == 3) && (superusuario || controlador));
-  fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 6 || estado == 8);
-  if(event.deprecado==1) fila.find('td').css('color','rgb(150,150,150)');
+  fila.find('.btn_validarEvmtm').toggle(estado == 3 && (superusuario || controlador));
+  fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 2 );
+  if(event.deprecado==1 || estado > 4){
+    fila.find('td').css('color','rgb(150,150,150)');
+    fila.find('button').not('.btn_verEvmtm,.btn_imprimirEvmtm,.btn_borrarEvmtm').remove();
+  }
 
   return fila;
 };

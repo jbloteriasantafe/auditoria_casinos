@@ -32,15 +32,19 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     </div> <!-- maquinas -->
     <div class="col-md-9 detalleRel">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-lg-3">
+                <h5>Estado</h5>
+                <input type="text" class="form-control estado" readonly="readonly">
+            </div>
+            <div class="col-md-3">
                 <h5>Fiscalizador Carga: </h5>
                 <input type="text" class="form-control fiscaCarga" disabled="true">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <h5>Fiscalizador Toma: </h5>
                 <input class="form-control editable fiscaToma" type="text" autocomplete="off">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <h5>Fecha Ejecución: </h5>
                 <div class='input-group date relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
                     <input type='text' class="form-control editable fechaRel" placeholder="Fecha de ejecución del relevamiento" data-trigger="manual" data-toggle="popover" data-placement="top" />
@@ -258,6 +262,8 @@ function divRelMovObtenerDatos(){
     });
 
     return {
+        estado_relevamiento: divRM.find('.estado').val(),
+        id_estado_relevamiento: divRM.find('.estado').attr('data-id'),
         nro_admin: divRM.find('.nro_admin').val(),
         isla_maq: divRM.find('.nro_isla').val(),
         nro_serie: divRM.find('.nro_serie').val(),
@@ -295,6 +301,7 @@ function divRelMovLimpiar(){
     divRM.find('.juego').empty();
     divRM.find('.tablaProg tbody').empty();
     divRM.find('.relFecha').datetimepicker('update','');
+    divRM.find('textarea').val('');
 }
 function divRelMovAgregarContadores(maquina,toma){
     for (let i = 1; i < 7; i++){
@@ -342,6 +349,8 @@ function divRelMovAgregarProgresivos(progresivos){
 function divRelMovSetear(data){
     divRelMovLimpiar();
     //siempre vienen estos datos
+    divRM.find('.estado').val(data.estado.descripcion)
+    .attr('data-id',data.estado.id_estado_relevamiento);
     divRM.find('.nro_isla').val(data.maquina.nro_isla);
     divRM.find('.nro_admin').val(data.maquina.nro_admin);
     divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
@@ -422,7 +431,6 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
             .attr('data-maq', id_maquina)
             .attr('data-rel', id_relevamiento)
             .attr('toma',nro_toma)
-            .attr('data-estado-rel', estado_rel)
             )
         );
         fila.append($('<td>')

@@ -90,11 +90,13 @@
     <div class="camposInfo" style="right:0px;"><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></div>
     <table>
       <th class="tablaInicio cabezera" style="width: 20%;">TIPO DE MOVIMIENTO</th>
-      <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->tipo_movimiento}}</td>
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento->tipo_movimiento}}</td>
       @if(isset($relevamiento->sentido))
       <th class="tablaInicio cabezera" style="width: 10%">SENTIDO</th>
-      <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->sentido}}</td>
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento->sentido}}</td>
       @endif
+      <th class="tablaInicio cabezera" style="width: 10%;">ESTADO</th>
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{strtoupper($relevamiento->estado)}}</td>
     </table>
     <br>
     <table>

@@ -876,40 +876,10 @@ class LogMovimientoController extends Controller
         }
       }
     })->validate();
+    $fisFinalizada = false;
+    $movFinalizado = false;
     DB::beginTransaction();
-    try{
-      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
-      $fiscalizacion = $relevamiento->fiscalizacion;
-      $logMov = $relevamiento->log_movimiento;
-      $es_intervencion = is_null($fiscalizacion);
-      if(!$es_intervencion){
-        if($fiscalizacion->id_estado_relevamiento == 1){//si estaba generado pasa a cargando
-          if(!isset($logMov->fiscalizaciones)){
-            $logMov->estado_movimiento()->associate(2);//fiscalizando
-          }
-          $fiscalizacion->estado_relevamiento()->associate(2);
-        }
-
-        if(!isset($fiscalizacion->cargador)){
-          $fiscalizacion->cargador()->associate($request->id_cargador);
-          $fiscalizacion->fiscalizador()->associate($request->id_fiscalizador);
-        }
-        if($fiscalizacion->id_estado_relevamiento != 3)
-        {//si existe una toma de relevamiento por cada relevamiento -> finalizado
-          $logMov->id_estado_movimiento = 3;//fiscalizado
-          $logMov->estado_relevamiento()->associate(3);//finalizado ==cargado
-          $fiscalizacion->estado_relevamiento()->associate(3);
-        }
-        $fiscalizacion->save();
-      }
-      else{
-        // @TODO: Agregar una forma de guardar temporalmente, estado mov 8, estado rel 2
-        $logMov->estado_movimiento()->associate(1);//notificado
-        $logMov->estado_relevamiento()->associate(3);//finalizado (de cargar)
-      }
-
-      $logMov->save();
-
+    try{ // @TODO: Agregar una forma de guardar temporalmente, estado mov 8, estado rel 2
       $nro_toma = $request->toma <= 0? 1 : $request->toma;
       RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoProgs(
         $request->id_relev_mov,
@@ -931,16 +901,44 @@ class LogMovimientoController extends Controller
         $request['observaciones']
       );
 
-
-      $id_usuario = session('id_usuario');
-      $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
-      //Estos son TIPOS de PHP
-      $notificacion = $es_intervencion? 'NuevaIntervencionMTM' : 'RelevamientoCargado';
-      foreach ($usuarios as $user){
-        $u = Usuario::find($user->id_usuario);
-        if($u != null) $u->notify(new $notificacion($fiscalizacion));
+      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
+      $fiscalizacion = $relevamiento->fiscalizacion;
+      $logMov = $relevamiento->log_movimiento;
+      $es_intervencion = is_null($fiscalizacion);
+      if(!$es_intervencion){
+        if($fiscalizacion->relevamientos_movimientos()->count() // 3 = finalizado
+        == $fiscalizacion->relevamientos_movimientos()->whereIn('relevamiento_movimiento.id_estado_relevamiento',[3])->count()){
+          $fiscalizacion->estado_relevamiento()->associate(3); // Finalizado
+          $fisFinalizada = true;
+        }
+        else{
+          $fiscalizacion->estado_relevamiento()->associate(2); // Cargando
+        }
+        $fiscalizacion->save();
       }
-      if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
+
+      if($logMov->relevamientos_movimientos()->count() // 3 = finalizado
+      == $logMov->relevamientos_movimientos()->whereIn('relevamiento_movimiento.id_estado_relevamiento',[3])->count()){
+        $logMov->estado_relevamiento()->associate(3); // Finalizado
+        $logMov->estado_movimiento()->associate(1);  // Notificado
+        $movFinalizado = true;
+      }
+      else{
+        $logMov->estado_relevamiento()->associate(2); // Cargando
+        $logMov->estado_movimiento()->associate(2); // Fiscalizando 
+      }
+      $logMov->save();
+
+      if($fisFinalizada || $movFinalizado){
+        $id_usuario = session('id_usuario');
+        $usuarios = UsuarioController::getInstancia()->obtenerControladores($logMov->casino->id_casino, $id_usuario);
+        $notificacion = $es_intervencion? 'NuevaIntervencionMTM' : 'RelevamientoCargado'; //Estos son TIPOS de PHP
+        foreach ($usuarios as $user){
+          $u = Usuario::find($user->id_usuario);
+          if($u != null) $u->notify(new $notificacion($fiscalizacion));
+        }
+        if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
+      }
       DB::commit();
     }
     catch(Exception $e){
@@ -948,7 +946,7 @@ class LogMovimientoController extends Controller
       throw $e;
       return ['codigo' => 0];
     }
-    return ['codigo' => 1];
+    return ['fisFinalizada' => $fisFinalizada, 'movFinalizado' => $movFinalizado];
   }
 
   public function crearPlanillaEventualidades(){// CREAR Y GUARDAR RELEVAMIENTO
@@ -1464,13 +1462,12 @@ class LogMovimientoController extends Controller
     }
 
 
-    return ['maquina' => $mtm, 'juegos'=> $juegos,'toma'=>$toma,
-     'fiscalizador'=> $fisca,'cargador'=> $cargador,
-     'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento ,
+    return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
+     'fiscalizador' => $fisca,'cargador' => $cargador,
+     'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
   }
 
-  //al final se va a mostrar estatico, pero si se puede buscar algunos viejos con los filtros
   public function buscarEventualidadesMTMs(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
@@ -1518,12 +1515,14 @@ class LogMovimientoController extends Controller
 
       $resultados= DB::table('log_movimiento')
       ->select('log_movimiento.*','tipo_movimiento.*',
-        'estado_movimiento.descripcion as estado_descripcion',
+        'estado_movimiento.descripcion as estado_mov_descripcion',
+        'estado_relevamiento.descripcion as estado_rel_descripcion',
         'casino.*',
         'tipo_movimiento.*')
       ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
       ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
       ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
+      ->leftJoin('estado_relevamiento','log_movimiento.id_estado_relevamiento','=','estado_relevamiento.id_estado_relevamiento')
       ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
       ->whereIn('log_movimiento.id_casino',$casinos)
       ->where($reglas)
