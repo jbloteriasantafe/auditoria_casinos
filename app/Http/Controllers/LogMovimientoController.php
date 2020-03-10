@@ -320,11 +320,11 @@ class LogMovimientoController extends Controller
 
     if(!isset($logMov->fiscalizaciones)){
       $logMov->estado_movimiento()->associate(2);//fiscalizando
+      $logMov->save();
     }
 
     $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
     foreach($maquinas as $m){
-      $m->estado_maquina()->associate(1);//Ingreso
       //crear log maquina
       LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, "MTM enviada a fiscalizar.",1);
       //busco los relevamientos que se crearon para asociarlos a una fiscalizacion
@@ -394,11 +394,6 @@ class LogMovimientoController extends Controller
 
    }
 
-  public function getAll(){
-    $todos=LogMovimiento::all();
-    return $todos;
-  }
-
   //crear los relevamientos movimientos por cada máquina que el controlador creó  para fiscalizar
   public function guardarRelevamientoMovimientoIngreso($id_log_mov,$id_maquina){
     $logMov = LogMovimiento::find($id_log_mov);
@@ -441,7 +436,7 @@ class LogMovimientoController extends Controller
     $log_mov->save();
   }
 
-  private function generarToma2($id_log_movimiento,$maquinas,$fecha){
+  private function generarToma2($id_log_movimiento,$maquinas,$fecha){ /* DEPRECATED */
     $logMov = LogMovimiento::find($id_log_movimiento);
     $logMov->estado_relevamiento()->associate(1);//generado
     $id_usuario = session('id_usuario');
@@ -460,7 +455,7 @@ class LogMovimientoController extends Controller
 
   //MOVIMIETOS: EGRESO, REINGRESO, CAMBIO LAYOUT
 
-  public function guardarRelevamientosMovimientos(Request $request){
+  public function guardarRelevamientosMovimientos(Request $request){ /* DEPRECATED */
     Validator::make($request->all(), [
         'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
         'maquinas' => 'required',
@@ -522,7 +517,7 @@ class LogMovimientoController extends Controller
   }
 
   //compara si la maquina id_maquina fue eliminada de $maquinas
-  private function fueEliminada($id_maquina,$maquinas){
+  private function fueEliminada($id_maquina,$maquinas){ /* DEPRECATED */
     $aux = true;
     foreach ($maquinas as $id) {
       if($id_maquina == $id){
@@ -534,14 +529,7 @@ class LogMovimientoController extends Controller
 
   //MOVIMIETOS: DENOMINACION, % DEVOLUCION, JUEGO
 
-  public function datosMaquina($id_maquina){
-    $maq = Maquina::find($id_maquina);
-
-    //juegos contiene: id_juego,nombre_juego
-    return ['juegos' => $maq->juegos , 'denominacion' => $maq->denominacion, 'porcentaje_devolucion' => $maq->porcentaje_devolucion];
-  }
-
-  public function guardarRelevamientosMovimientosMaquinas(Request $req){
+  public function guardarRelevamientosMovimientosMaquinas(Request $req){ /* DEPRECATED */
       //Auxiliar con un arreglo vacio asi no tengo que chequear exists constantemente
       $maquinas = [];
       $validator = Validator::make($req->all(), [
@@ -585,7 +573,6 @@ class LogMovimientoController extends Controller
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
             // el cambio de denominacion por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
-            // MTMController::getInstancia()->modificarDenominacionYUnidad($maquina['id_unidad_medida'],$maquina['denominacion'],$maquina['id_maquina']);
             MTMController::getInstancia()->modificarDenominacionJuego($maquina['denominacion'],$maquina['id_maquina']);
             $maq= Maquina::find($maquina['id_maquina']);
             // TODO evaluar el caso de dos relevamientos para la misma mtm
@@ -600,8 +587,6 @@ class LogMovimientoController extends Controller
           foreach ($maquinas as $maquina)
           {
             $logMov = LogMovimiento::find($logMov->id_log_movimiento);
-            // el cambio de %dev por procedimiento es la denominacion de juego, se comenta esta funcionalidad que afectaba a la mtm
-            // MTMController::getInstancia()->modificarDevolucion($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
             MTMController::getInstancia()->modificarDevolucionJuego($maquina['porcentaje_devolucion'],$maquina['id_maquina']);
 
             $maq= Maquina::find($maquina['id_maquina']);
@@ -640,7 +625,7 @@ class LogMovimientoController extends Controller
       return 1;
     }
 
-    private function maquinaDuplicada($maquinas, $id_maquina){
+    private function maquinaDuplicada($maquinas, $id_maquina){ /* DEPRECATED */
       $aux = 0;
       foreach ($maquinas as $maquina) {
         if($maquina['id_maquina'] == $id_maquina){
@@ -653,7 +638,7 @@ class LogMovimientoController extends Controller
       return false;
     }
 
-    private function noTieneRelevamientoCreado($id_maquina,$id_log_movimiento){
+    private function noTieneRelevamientoCreado($id_maquina,$id_log_movimiento){ /* DEPRECATED */
       $maquina = RelevamientoMovimiento::where([['id_log_movimiento','=',$id_log_movimiento],['id_maquina','=',$id_maquina]])->get()->first();
       if($maquina==null){
         return true;
@@ -684,25 +669,9 @@ class LogMovimientoController extends Controller
     'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
   }
 
-  //para poder realizar la carga de los datos
-  public function obtenerRelevamientosFiscalizacion($id_fiscalizacion_movimiento){//@DEPRECATED
-    $maquinas = DB::table('fiscalizacion_movimiento')
-                  ->select('maquina.id_maquina','maquina.nro_admin','maquina.id_casino','relevamiento_movimiento.id_estado_relevamiento')
-                  ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
-                  ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-                  ->where('fiscalizacion_movimiento.id_fiscalizacion_movimiento','=',$id_fiscalizacion_movimiento)
-                  ->get();
-    $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion_movimiento);
-
-
-    $id_usuario = session('id_usuario');
-    $user = Usuario::find($id_usuario);
-    $casino=$maquinas[0]->id_casino;
-    return ['relevamientos' => $maquinas ,'cargador' => $user, 'casino' =>$casino, 'usuario_fiscalizador' => $fiscalizacion->fiscalizador];
-  }
 
   //Formato nuevo de lo mismo de arriba, mas parecido a relevamientosEvMTM
-  public function obtenerRelevamientosFiscalizacion2($id_fiscalizacion_movimiento){
+  public function obtenerRelevamientosFiscalizacion($id_fiscalizacion_movimiento){
     $fiscalizacion = FiscalizacionMov::find($id_fiscalizacion_movimiento);
     $log = $fiscalizacion->log_movimiento;
     $relevamientos = $fiscalizacion->relevamientos_movimientos;
@@ -757,10 +726,8 @@ class LogMovimientoController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-
   }
 
-  //tipo: si es 1 = es nueva la planilla, si es 2 es que se imprime con la carga completa
   public function imprimirEventualidadMTM($id_log_mov){
     $log = LogMovimiento::find($id_log_mov);
     $casino = $log->casino;
@@ -947,31 +914,6 @@ class LogMovimientoController extends Controller
       return ['codigo' => 0];
     }
     return ['fisFinalizada' => $fisFinalizada, 'movFinalizado' => $movFinalizado];
-  }
-
-  public function crearPlanillaEventualidades(){// CREAR Y GUARDAR RELEVAMIENTO
-    $view = View::make('planillaEventualidades');
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    // $dompdf->getCanvas()->page_text(20, 815, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf;
-  }
-
-  public function crearPlanillaMovimientos(){// CREAR Y GUARDAR RELEVAMIENTO
-    $view = View::make('planillaMovimientos');
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    // $dompdf->getCanvas()->page_text(20, 815, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf;
-
   }
 
   //para el controlador///////////////////////////////////////////////////////
@@ -1249,7 +1191,8 @@ class LogMovimientoController extends Controller
 
         $logMovimiento = new LogMovimiento;
         $logMovimiento->tiene_expediente = 0;
-        $logMovimiento->estado_movimiento()->associate(1); //estado = notificado
+        $logMovimiento->estado_relevamiento()->associate(1); // Generado
+        $logMovimiento->estado_movimiento()->associate(1); // Notificado
         $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
         // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
         $logMovimiento->sentido = "---";
@@ -1709,7 +1652,6 @@ class LogMovimientoController extends Controller
         if($fisMov->relevamientos_movimientos()->count() == count($relss)){
           $fisMov->estado_relevamiento()->associate(4);
           $fisMov->save();
-          $fisValidada = true;
         }
       }
 
@@ -1720,7 +1662,6 @@ class LogMovimientoController extends Controller
         $logMov->estado_relevamiento()->associate(4);
         $logMov->estado_movimiento()->associate(4);
         $logMov->save();
-        $logValidado = true;
         $map = [
           1  => ['nuevo_estado' => 1, 'texto' => "Ingreso validado."], // Deprecado
           2  => ['nuevo_estado' => 4, 'texto' => "Egreso validado."], // Deprecado
@@ -1762,7 +1703,7 @@ class LogMovimientoController extends Controller
     }
     return ['relError'    => $relevMov->id_estado_relevamiento == 6,
             'relValidado' => $relevMov->id_estado_relevamiento == 4,
-            'logValidado' => $logMov->id_estado_relevamiento == 4, 
+            'movValidado' => $logMov->id_estado_relevamiento == 4, 
             'fisValidada' => !is_null($fisMov) && $fisMov->id_estado_relevamiento == 4 ];
   }
 

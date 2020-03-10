@@ -293,8 +293,10 @@ $(document).on('click', '.bajaMov', function (e) {
 $('#mensajeExito .confirmar').click(function (e) {
   $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
   $('#mensajeExito').hide();
+  const id_mov = $(this).attr('data-ultimo-mov',mov);
+  const ultimo_boton_carga = $('#'+id_mov).find('.boton_cargar');
   setTimeout(function () {
-    if (ultimo_boton_carga != null) ultimo_boton_carga.click();
+    if (ultimo_boton_carga.length > 0) ultimo_boton_carga.click();
   }, 150);
   $('#btn-buscarMovimiento').click();
 });

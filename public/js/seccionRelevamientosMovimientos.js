@@ -54,7 +54,7 @@ function mostrarFiscalizacion(id_fiscalizacion,modo){
   $('#guardarRel').prop('disabled', true);
   $('#guardarRel').toggle(modo == "CARGAR");
   divRelMovEsconderDetalleRelevamiento();
-  $.get('movimientos/obtenerRelevamientosFiscalizacion2/' + id_fiscalizacion, function(data){
+  $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
     divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};

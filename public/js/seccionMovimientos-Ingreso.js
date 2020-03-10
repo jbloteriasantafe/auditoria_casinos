@@ -1,4 +1,3 @@
-var ultimo_boton_carga = null;
 //MOSTRAR MODAL PARA INGRESO: BTN NUEVO INGRESO
 $(document).on('click', '.nuevoIngreso', function () {
     const id_movimiento = $(this).parent().parent().attr('id');
@@ -123,7 +122,7 @@ $(document).on('click', '.boton_cargar', function (e) {
     if (boton.parent().parent().attr('data-carga') == 1) {
         //muestra tab de maquinas y oculto el resto
         $.get('movimientos/obtenerDatos/' + mov, function (data) {
-            ultimo_boton_carga = boton;
+            $('#mensajeExito .confirmar').attr('data-ultimo-mov',mov);
             eventoNuevo(data.movimiento, data.expediente);
         })
     }

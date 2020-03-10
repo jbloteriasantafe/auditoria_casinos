@@ -278,8 +278,7 @@ Route::get('movimientos/mostrarMaquinasMovimientoLogClick/{id}','LogMovimientoCo
 Route::post('movimientos/guardarRelevamientosMovimientos','LogMovimientoController@guardarRelevamientosMovimientos');
 Route::post('movimientos/bajaMTMs', 'LogMovimientoController@bajaMTMs');
 Route::get('movimientos/generarPlanillasRelevamientoMovimiento/{id}','LogMovimientoController@generarPlanillasRelevamientoMovimiento');
-Route::get('movimientos/obtenerRelevamientosFiscalizacion/{id}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
-Route::get('movimientos/obtenerRelevamientosFiscalizacion2/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion2');
+Route::get('movimientos/obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
 Route::get('movimientos/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
 Route::post('movimientos/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
 Route::post('movimientos/nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');

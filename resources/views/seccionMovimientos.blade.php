@@ -1450,11 +1450,11 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <!-- JavaScript paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
+    <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-DenominacionDevolucionJuego.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-EgresoCambioLayoutVRelevar.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Ingreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Validar.js" charset="utf-8"></script>
-    <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>

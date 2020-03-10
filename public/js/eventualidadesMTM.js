@@ -284,22 +284,25 @@ function validar(estado){
     data: formData,
     dataType: 'json',
     success: function (data) {
+      let mensaje = '';
       if(data.relError || data.relValidado){
-        divRelMovLimpiar();
-        const mensaje = data.relError? 'Relevamiento marcado erroneo.': 'Relevamiento marcado valido.';
-        mensajeExito({titulo:'ÉXITO DE VALIDACIÓN',mensajes:[mensaje]});
-        divRelMovMarcarListoRel(formData.id_relev_mov);
-        divRelMovLimpiar();
-        divRelMovEsconderDetalleRelevamiento();
+          divRelMovLimpiar();
+          if(data.relError) mensaje = 'Relevamiento marcado erroneo.';
+          else mensaje = 'Relevamiento marcado valido.';
+          divRelMovMarcarListoRel(formData.id_relev_mov);
+          divRelMovLimpiar();
+          divRelMovEsconderDetalleRelevamiento();
       };
-      if(data.logValidado){
-        $('#btn-buscarEventualidadMTM').click();
-        $("#modalCargarRelMov").modal('hide');
+      if(data.movValidado){
+          mensaje = 'Intervencion visada.';
+          $('#btn-buscarEventualidadMTM').click();
+          $("#modalCargarRelMov").modal('hide');
       }
+      mensajeExito({titulo:'ÉXITO',mensajes:[mensaje]});
     },
     error: function (data) {
       console.log('Error:', data);
-      mensajeError(['Error al validar la intervención.']);
+      mensajeError(['Error al visar la intervención.']);
     }
   });
 }
