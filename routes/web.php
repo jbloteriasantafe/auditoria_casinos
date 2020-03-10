@@ -290,8 +290,9 @@ Route::get('movimientos/obtenerMovimiento/{id}','LogMovimientoController@obtener
 Route::get('movimientos/obtenerMTM/{id_maquina}','LogMovimientoController@obtenerMaquina');
 Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@obtenerMaquinasIsla');
 Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
-Route::get('movimientos/maquinasEnviadasAFiscalizar/{id_movimiento}','RelevamientoMovimientoController@maquinasEnviadasAFiscalizar');
+Route::get('movimientos/imprimirMovimiento/{id_movimiento}','LogMovimientoController@imprimirMovimiento');
 Route::get('movimientos/eliminarRelevamientos/{id_log_movimiento}','LogMovimientoController@eliminarRelevamientos');
+Route::post('movimientos/visarConObservacion/', 'LogMovimientoController@visarConObservacion');
 
 
 /**********

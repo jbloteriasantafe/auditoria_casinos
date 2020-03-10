@@ -236,17 +236,18 @@ $(document).on('click','#guardarRel',function(){
     data: formData,
     dataType: 'json',
     success: function (data){
+      divRelMovEsconderDetalleRelevamiento();
+      divRelMovLimpiar();
+      divRelMovMarcarListaMaq(formData.id_maquina);
+      mensajeExito({mensajes :['Los datos se han cargado correctamente']});
       $('#guardarRel').prop('disabled', true);
-      mensajeExito({titulo:'ÉXITO DE CARGA'});
-      if(!data.movFinalizado){
-        divRelMovEsconderDetalleRelevamiento();
-        divRelMovLimpiar();
-        mostrarFiscalizacion($('#guardarRel').attr('data-mov'),$('#guardarRel').attr('modo'),true);
+      $('#btn-buscarEventualidadMTM').click();
+      if(data.movFinalizado){
+        $('#modalCargarRelMov').modal('hide');
       }
       else{
-        $('#modalCargarRelMov').modal('hide')
+        mostrarFiscalizacion($('#guardarRel').attr('data-mov'),$('#guardarRel').attr('modo'),true);
       }
-      $('#btn-buscarEventualidadMTM').click();
     },
     error: function (data){
       console.log('ERROR');

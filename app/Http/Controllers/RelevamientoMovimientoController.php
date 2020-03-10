@@ -55,38 +55,8 @@ class RelevamientoMovimientoController extends Controller
       return $relevMov;
    }
 
-   public function maquinasEnviadasAFiscalizar($id_log_mov){
-     $logMov = LogMovimiento::find($id_log_mov);
-     $fiscalizaciones = FiscalizacionMov::where([
-                                          ['id_log_movimiento','=',$id_log_mov],
-                                          ['id_estado_relevamiento','=',1]])
-                                          ->get();
 
-      if(count($fiscalizaciones) == 0){
-        return 0;
-      }
-      $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
-      $casino = $logMov->casino;
-      $relevamientos = array();
-      $count = 0;
-      foreach ($fiscalizaciones as $fiscalizacion) {
-        foreach($fiscalizacion->relevamientos_movimientos as $relev_mov){
-          $relevamientos[] = $this->generarPlanillaMaquina($relev_mov,$tipoMovimiento, $casino, $fiscalizacion->fecha_envio_fiscalizar,$fiscalizacion->id_estado_relevamiento,$count++,$fiscalizacion->es_reingreso);
-        }
-     }
-     $view = View::make('planillaMovimientos', compact('relevamientos'));
-     $dompdf = new Dompdf();
-     $dompdf->set_paper('A4', 'portrait');
-     $dompdf->loadHtml($view->render());
-     $dompdf->render();
-     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-     $dompdf->getCanvas()->page_text(20, 815, $casino->codigo, $font, 10, array(0,0,0));
-     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-   }
-
-   public function generarPlanillaMaquina($relev_mov, $tipo_movimiento, $sentido, $casino , $fecha_envio, $estado_relevamiento){
+   public function generarPlanillaMaquina($relev_mov, $tipo_movimiento, $sentido, $casino){
      $rel= new \stdClass();
      $maquina = $relev_mov->maquina;
      $rel->tipo_movimiento = $tipo_movimiento;
@@ -164,7 +134,6 @@ class RelevamientoMovimientoController extends Controller
       $rel->tomas[] = $t;
      }
 
-     $rel->fecha = $fecha_envio;
      return $rel;
    }
 

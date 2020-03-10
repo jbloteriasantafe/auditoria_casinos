@@ -1,56 +1,20 @@
 //BOTÓN VALIDACION, DENTRO DE LA TABLA PRINCIPÁL
 $(document).on('click', '.validarMovimiento', function () {
-    $('#mensajeExito').hide();
     $('#tablaFechasFiscalizacion tbody tr').remove();
     $('#tablaMaquinasFiscalizacion tbody tr').remove();
-    $('#mensajeErrorVal').hide();
-    $('#mensajeExitoValidacion').hide();
-    $('#columnaMaq').hide();
-    $('#columnaDetalle').hide();
-
-    //oculto los dos botones de guardar
-    $('#enviarValidar').hide();
-    $('#errorValidacion').hide();
-    $('#finalizarValidar').hide();
-
-    //Modificar los colores del modal
-    $('#modalValidacion .modal-title').text('VALIDAR MÁQUINAS RELEVADAS');
-    $('#modalValidacion .modal-header').attr('style', 'background: #4FC3F7');
-
+    
     const id_log_movimiento = $(this).parent().parent().attr('id');
     $.get('movimientos/obtenerFiscalizacionesMovimiento/' + id_log_movimiento, function (data) {
         let tablaFiscalizacion = $('#tablaFechasFiscalizacion tbody');
         data.forEach(f => {
-            $('#finalizarValidar').attr('data-fiscalizacion', f.id_fiscalizacion_movimiento);
             let fila = generarFilaFechaFiscalizacion(f.id_fiscalizacion_movimiento,f.id_estado_fiscalizacion,f.fecha_envio_fiscalizar);
             tablaFiscalizacion.append(fila);
         });
-        let cantidad = 0;
-        $('#tablaFechasFiscalizacion tbody tr').each(function () {
-            if ($(this).hasClass('finalizado')) {
-                cantidad = cantidad + 1;
-            }
-        });
-        if (cantidad == data.length) {
-            $('#finalizarValidar').show();
-        }
-        $('#mensajeErrorVal').hide();
-        $('.detalleMaq').hide();
-        $('#toma2').hide();
-        $('.error').prop('disabled', true);
-        $('#observacionesToma').hide();
-
-        //guardo el id del movimiento en el input del modal
-        $('#modalValidacion').find('#id_log_movimiento').val(id_log_movimiento);
         $('#modalValidacion').modal('show');
-        $('#mensajeExito').hide();
     });
 });
 
-function validarFiscalizacion(id_fiscalizacion){
-    //$('#guardarRel').prop('disabled', true);
-    //$('#guardarRel').toggle(modo == "CARGAR");
-    $('#finalizarValidar').attr('data-fiscalizacion',id_fiscalizacion);
+function mostrarFiscalizacion(id_fiscalizacion){
     divRelMovEsconderDetalleRelevamiento();
     $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
       divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
@@ -64,18 +28,15 @@ function validarFiscalizacion(id_fiscalizacion){
 
 //BOTON PARA VER EL LISTADO DE LAS MÁQUINAS FISCALIZADAS ESA FECHA
 $(document).on('click', '.detalleMov', function () {
-    validarFiscalizacion($(this).attr('data-id-fiscalizacion'));
+    mostrarFiscalizacion($(this).attr('data-id-fiscalizacion'));
 });
 
 $(document).on('click','#divRelMov .cargarMaq',function(){
     const id_rel = $(this).attr('data-rel');
     const toma = $(this).attr('toma');
-    const estado = $(this).attr('data-estado-rel');
-    divRelMovSetearModo(estado == 4? 'VER' : 'VALIDAR');
-    //$('#guardarRel').attr('data-rel', id_rel);
-    //$('#guardarRel').attr('toma', toma);
+    $('#modalValidacion').attr('data-rel', id_rel);
     $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
-      //$('#guardarRel').prop('disabled', false);
+      divRelMovSetearModo(data.relevamiento.id_estado_relevamiento == 3? 'VALIDAR' : 'VER');
       divRelMovSetear(data);
       divRelMovMostrarDetalleRelevamiento();
     });
@@ -83,38 +44,20 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
 
 //BOTÓN VALIDAR DENTRO DEL MODAL VALIDAR
 $(document).on('click', '#divRelMov .validar', function () {
-    $('#errorValidacion').hide();
-    const id_relevamiento = $('#modalValidacion').find('#relevamiento').val();
+    const id_relevamiento = $('#modalValidacion').attr('data-rel');
     validar(id_relevamiento, 'valido');
+});
+
+//BOTÓN ERROR
+$(document).on('click', '#divRelMov .error', function () {
+    const id_relevamiento = $('#modalValidacion').attr('data-rel');
+    validar(id_relevamiento, 'error');
 });
 
 //cuando cierra el modal de validación, actualizo el listado
 $("#modalValidacion").on('hidden.bs.modal', function () {
     $('#btn-buscarMovimiento').trigger('click');
 })
-
-//BOTÓN ERROR
-$(document).on('click', '#divRelMov .error', function () {
-    const id_relevamiento = $('#modalValidacion').find('#relevamiento').val();
-    validar(id_relevamiento, 'error');
-});
-
-//BOTÓN FINALIZAR VALIDACIÓN
-$(document).on('click', '#finalizarValidar', function () {
-    const id_fiscalizacion = $(this).attr('data-fiscalizacion');
-    $.get('movimientos/finalizarValidacion/' + id_fiscalizacion, function (data) {
-        if (data == 1) { // Log todo validado
-            $('#modalValidacion').modal('hide');
-            mensajeExito({ mensajes: ['Se ha VALIDADO correctamente el movimiento.'] })
-        }
-        else if (data == 0){ // Fiscalizacion validada
-            agregarValidadoFiscalizacion(id_fiscalizacion);
-        }
-        else{ // Error
-            mensajeError(['Hay maquinas sin validar o relevar.']);
-        }
-    })
-});
 
 //POST PARA VALIDAR
 function validar(id_rel, val) {

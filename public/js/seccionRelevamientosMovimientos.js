@@ -50,18 +50,18 @@ $(document).on('click','.btn-verRelMov',function(e){
   mostrarFiscalizacion($(this).val(),"VER");
 });
 
-function mostrarFiscalizacion(id_fiscalizacion,modo){
+function mostrarFiscalizacion(id_fiscalizacion,modo,refrescando = false){
   $('#guardarRel').prop('disabled', true);
-  $('#guardarRel').toggle(modo == "CARGAR");
+  $('#guardarRel').attr('modo',modo).toggle(modo == "CARGAR");
+  $('#guardarRel').attr('data-fis',id_fiscalizacion);
   divRelMovEsconderDetalleRelevamiento();
   $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
     divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
-    if(modo == "CARGAR") dibujos = {};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,3);
-    divRelMovSetearModo(modo);
-    $('#modalCargarRelMov').modal('show');
+    divRelMovSetearModo("VER");
+    if(!refrescando) $('#modalCargarRelMov').modal('show');
   });
 }
 
@@ -69,10 +69,23 @@ function mostrarFiscalizacion(id_fiscalizacion,modo){
 $(document).on('click','#divRelMov .cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
+  const modo_ventana = $('#guardarRel').attr('modo');
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
   $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
-    $('#guardarRel').prop('disabled', false);
+    $('#guardarRel').prop('disabled', true).hide();
+    const estado_rel = data.relevamiento.id_estado_relevamiento;
+    if (modo_ventana == "CARGAR"){
+      //GENERADO || CARGANDO || SIN RELEVAR
+      if(estado_rel == 1 || estado_rel == 2 || estado_rel == 5){
+        divRelMovSetearModo("CARGAR");
+        $('#guardarRel').prop('disabled', false).show();
+      }
+      else divRelMovSetearModo("VER");
+    }
+    else{ //VER por defecto
+      divRelMovSetearModo("VER");
+    }
     divRelMovSetear(data);
     divRelMovMostrarDetalleRelevamiento();
   });
@@ -113,10 +126,17 @@ $(document).on('click','#guardarRel',function(){
       console.log('BIEN');
       console.log(data);
       divRelMovEsconderDetalleRelevamiento();
+      divRelMovLimpiar();
       divRelMovMarcarListaMaq(formData.id_maquina);
-      mensajeExito({mensajes :['Los datos se han guardado correctamente']});
+      mensajeExito({mensajes :['Los datos se han cargado correctamente']});
       $('#guardarRel').prop('disabled', true);
       $('#btn-buscarRelMov').click();
+      if(data.fisFinalizada){
+        $('#modalCargarRelMov').modal('hide');
+      }
+      else{
+        mostrarFiscalizacion($('#guardarRel').attr('data-mov'),$('#guardarRel').attr('modo'),true);
+      }
     },
 
     error: function (data){
@@ -247,6 +267,18 @@ function generarFilaTabla(rel){
   }
 
   fila.find('.btn-eliminarFiscal').show();
+
+  let iclass = 'fa-exclamation';
+  let color = 'rgb(255,255,0)';
+  let icon = fila.find('.estado i');
+  icon.removeClass('fa-exclamation');
+  if(estado == 1) { iclass = 'fa-plus'      ; color = 'rgb(150,150,150)';} // Generado
+  else if(estado == 2) { iclass = 'fa-pencil-alt'; color = 'rgb(244,160,0)'  ;} // Cargando
+  else if(estado == 3)      { iclass = 'fa-check'  ; color = 'rgb(66,133,244)' ;} // Finalizado
+  else if(estado == 4) { iclass = 'fa-check'     ; color = 'rgb(76,175,80)'  ;} // Validado
+  else                 { iclass = 'fa-minus'     ; color = 'rgb(0,0,0)'  ;} // Cualquier otro
+  fila.find('.estado').attr('title',rel.estado_descripcion);
+  icon.addClass(iclass).css('color',color);
 
   return fila;
 };

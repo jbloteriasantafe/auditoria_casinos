@@ -5,28 +5,21 @@ $(document).ready(function(){
   $('#collapseFiltros #B_TipoMovimiento').val("0");
   $('#collapseFiltros #dtpFechaMov').val("");
   $('#collapseFiltros #dtpCasinoMov').val("0");
-  $('#busqueda_maquina').val("");
 
-  if(window.location.pathname == '/movimientos'){
-    $('#barraMaquinas').attr('aria-expanded','true');
-    $('#maquinas').removeClass();
-    $('#maquinas').addClass('subMenu1 collapse in');
-    $('#procedimientos').removeClass();
-    $('#procedimientos').addClass('subMenu2 collapse in');
-    $('#movimientos').removeClass();
-    $('#movimientos').addClass('subMenu3 collapse in');
+  $('#barraMaquinas').attr('aria-expanded','true');
+  $('#maquinas').removeClass();
+  $('#maquinas').addClass('subMenu1 collapse in');
+  $('#procedimientos').removeClass();
+  $('#procedimientos').addClass('subMenu2 collapse in');
+  $('#movimientos').removeClass();
+  $('#movimientos').addClass('subMenu3 collapse in');
 
-    $('.tituloSeccionPantalla').text('Asignación de movimientos a relevar');
-    $('#opcAsignacion').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-    $('#opcAsignacion').addClass('opcionesSeleccionado');
+  $('.tituloSeccionPantalla').text('Asignación de movimientos a relevar');
+  $('#opcAsignacion').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
+  $('#opcAsignacion').addClass('opcionesSeleccionado');
 
-    $('#mensajeExito').hide();
-    $('#mensajeError').hide();
-
-    //PAGINACION
-    $('#btn-buscarMovimiento').trigger('click');
-  }
-
+  //PAGINACION
+  $('#btn-buscarMovimiento').trigger('click');
  //agregar para que permita seleccionar fecha hasta hoy inclusive
   $(function(){
     $('#dtpFechaMov').datetimepicker({
@@ -246,12 +239,12 @@ $('#btn-minimizar').click(function () {
 
 $(document).on('click', '.print_mov', function (e) {
   const id = $(this).parent().parent().attr('id');
-  $.get('movimientos/maquinasEnviadasAFiscalizar/' + id, function (data) {
+  $.get('movimientos/imprimirMovimiento/' + id, function (data) {
     if (data == 0) {
       $('#modalAlerta').modal('show');
     }
     else {
-      window.open('movimientos/maquinasEnviadasAFiscalizar/' + id, '_blank');
+      window.open('movimientos/imprimirMovimiento/' + id, '_blank');
     }
   })
 });
@@ -293,7 +286,7 @@ $(document).on('click', '.bajaMov', function (e) {
 $('#mensajeExito .confirmar').click(function (e) {
   $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
   $('#mensajeExito').hide();
-  const id_mov = $(this).attr('data-ultimo-mov',mov);
+  const id_mov = $(this).attr('data-ultimo-mov');
   const ultimo_boton_carga = $('#'+id_mov).find('.boton_cargar');
   setTimeout(function () {
     if (ultimo_boton_carga.length > 0) ultimo_boton_carga.click();
@@ -411,12 +404,8 @@ function handleMovimientoIngreso(movimiento, fila) {
   fila.find('.boton_nuevo').addClass('nuevoIngreso');
   fila.find('.boton_fiscalizar').addClass('enviarIngreso');
   fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.boton_modificar').remove();
-  fila.find('.boton_redirigir').remove();
   fila.find('.boton_cargar').hide();
-  fila.find('.boton_baja').remove();
   fila.find('.baja_mov').addClass('bajaMov');
-  fila.find('.boton_toma2').remove();
   const estado_movimiento = movimiento.id_estado_movimiento;
   const tiene_maquinas = movimiento.cant_maquinas !== null && movimiento.cant_maquinas != 0;
   if (estado_movimiento == 8 || tiene_maquinas) {
@@ -438,39 +427,13 @@ function handleMovimientoEgreso(movimiento, fila) {
   fila.find('.boton_cargar').remove();
   fila.find('.boton_fiscalizar').remove();
   fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.boton_modificar').remove();
-  fila.find('.boton_redirigir').remove();
-  fila.find('.boton_baja').addClass('bajaMTM');
   fila.find('.baja_mov').addClass('bajaMov');
-  fila.find('.boton_toma2').remove();
   const estado_movimiento = movimiento.id_estado_movimiento;
   if (estado_movimiento == 4 || estado_movimiento == 5) {
     fila.find('.bajaMTM').hide();
   } else {
     fila.find('.bajaMTM').prop('disabled', false);
   };
-}
-function handleMovimientoPorcDevolucion_Denominacion_Juego(movimiento, fila) {
-  fila.find('.boton_nuevo').remove();
-  fila.find('.boton_cargar').remove();
-  fila.find('.boton_fiscalizar').remove();
-  fila.find('.boton_modificar').addClass('modificarDenominacion');
-  fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.boton_redirigir').remove();
-  fila.find('.boton_baja').remove();
-  fila.find('.baja_mov').addClass('bajaMov');
-  fila.find('.boton_toma2').addClass('botonToma2');
-}
-function handleMovimientoCambioLayout(movimiento, fila) {
-  fila.find('.boton_cargar').remove();
-  fila.find('.boton_nuevo').addClass('nuevoEgreso');
-  fila.find('.boton_fiscalizar').remove();
-  fila.find('.boton_redirigir').addClass('redirigir');
-  fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.boton_modificar').remove();
-  fila.find('.boton_baja').remove();
-  fila.find('.baja_mov').addClass('bajaMov');
-  fila.find('.boton_toma2').addClass('botonToma2');
 }
 
 //paginacion
@@ -530,26 +493,20 @@ function generarFilaTabla(movimiento) {
   fila.attr('data-tipo', movimiento.id_tipo_movimiento);
   fila.attr('data-estado', movimiento.id_estado_movimiento);
 
-  const handlers = {
-    "INGRESO": handleMovimientoIngreso,
-    "EGRESO": handleMovimientoEgreso,
-    "EGRESO/REINGRESOS": handleMovimientoEgreso,
-    "% DEVOLUCIÓN": handleMovimientoPorcDevolucion_Denominacion_Juego,
-    "DENOMINACIÓN": handleMovimientoPorcDevolucion_Denominacion_Juego,
-    "JUEGO": handleMovimientoPorcDevolucion_Denominacion_Juego,
-    "CAMBIO LAYOUT": handleMovimientoCambioLayout,
+  const handlers = { //Esto era mas grande por eso una tabla, quedo asi.
     "INGRESO INICIAL": handleMovimientoIngreso,
     "EGRESO DEFINITIVO": handleMovimientoEgreso
   };
 
   if (t_mov in handlers) handlers[t_mov](movimiento, fila);
-  else fila.find('button,span').not('.print_mov').remove();
+  const es_intervencion_mtm = movimiento.puede_reingreso || movimiento.ṕuede_egreso_temporal;
+  if(!(t_mov in handlers) || movimiento.deprecado || es_intervencion_mtm){
+    fila.find('td').css('color', 'rgb(150,150,150)');
+    fila.find('button').not('.print_mov,.baja_mov').remove();
+  }
 
   fila.find('.validarMovimiento').toggle(estado_movimiento == 3);
   fila.find('.boton_toma2').toggle(estado_movimiento > 2);
-
-  const es_intervencion_mtm = movimiento.puede_reingreso || movimiento.ṕuede_egreso_temporal;
-  if (movimiento.deprecado || es_intervencion_mtm) fila.find('td').css('color', 'rgb(150,150,150)');
 
   return fila;
 }

@@ -103,23 +103,24 @@ class FiscalizacionMovController extends Controller
       $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
     }
 
-    $sort_by = ['columna' => 'fiscalizacion.id_fiscalizacion_movimiento', 'orden' => 'DESC'];
-    if(!empty($request->sort_by)){
+    $sort_by = ['columna' => 'fiscalizacion_movimiento.id_fiscalizacion_movimiento', 'orden' => 'DESC'];
+    if(!empty($request->sort_by) && !empty($request->sort_by['orden']) && !empty($request->sort_by['columna'])){
       $sort_by = $request->sort_by;
     }
     $page_size = 10;
-    if(!empty($request->sort_by)){
+    if(!empty($request->page_size)){
       $page_size = $request->page_size;
     }
 
     $resultados = DB::table('fiscalizacion_movimiento')
-    ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre')
+    ->select('fiscalizacion_movimiento.*','tipo_movimiento.*','casino.nombre','estado_relevamiento.descripcion as estado_descripcion')
     ->selectRaw("GROUP_CONCAT(DISTINCT(maquina.nro_admin) ORDER BY maquina.nro_admin ASC SEPARATOR ', ') as maquinas")
     ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
     ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
     ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
     ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
     ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
+    ->leftJoin('estado_relevamiento','estado_relevamiento.id_estado_relevamiento','=','fiscalizacion_movimiento.id_estado_relevamiento')
     ->whereIn('log_movimiento.id_casino',$casinos)
     ->whereNotNull('log_movimiento.id_expediente')
     ->where($reglas);
@@ -151,16 +152,13 @@ class FiscalizacionMovController extends Controller
   public function eliminarFiscalizacion($id){
     $fiscalizacion = FiscalizacionMov::find($id);
     if(isset($fiscalizacion->relevamientos_movimientos)){
-
       foreach ($fiscalizacion->relevamientos_movimientos as $rel) {
         if(isset($rel->toma_relevamiento_movimiento)){
         $rel->toma_relevamiento_movimiento()->delete();
         }
         $rel->delete();
     }}
-
     if(isset($fiscalizacion->cargador)){
-
       $fiscalizacion->cargador()->dissociate();
       $fiscalizacion->fiscalizador()->dissociate();
     }
@@ -169,9 +167,9 @@ class FiscalizacionMovController extends Controller
     }
     $fiscalizacion->estado_relevamiento()->dissociate();
     if(isset($fiscalizacion->nota)){
-      $fiscalizacion->nota()->dissociate;
+      $fiscalizacion->nota()->dissociate();
     }
-    $fiscalizacion->destroy;
+    $fiscalizacion->destroy();
     return 1;
   }
   public function eliminarFiscalizacionParcial($id){

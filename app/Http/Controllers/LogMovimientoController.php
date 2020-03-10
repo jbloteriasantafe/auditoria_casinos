@@ -695,23 +695,16 @@ class LogMovimientoController extends Controller
   public function generarPlanillasRelevamientoMovimiento($id_fiscalizacion_movimiento){
     $fiscalizacionMov = FiscalizacionMov::find($id_fiscalizacion_movimiento);
     $logMov = $fiscalizacionMov->log_movimiento;
-    if(!isset($logMov->fiscalizaciones))
-    {
-      $logMov->estado_movimiento()->associate(2);//fiscalizando
-    }
-    $logMov->save();
     $casino = $logMov->casino;
-
+    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
     $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
     foreach($fiscalizacionMov->relevamientos_movimientos as $idx => $relev){
       $relevamientos[] = $relController->generarPlanillaMaquina(
         $relev,
-        $logMov->tipo_movimiento->descripcion,
+        $tipoMovimiento,
         $logMov->sentido,
-        $casino,
-        $fiscalizacionMov->fecha_envio_fiscalizar,
-        $fiscalizacionMov->id_estado_relevamiento
+        $casino
       );
     }
 
@@ -731,17 +724,15 @@ class LogMovimientoController extends Controller
   public function imprimirEventualidadMTM($id_log_mov){
     $log = LogMovimiento::find($id_log_mov);
     $casino = $log->casino;
-
-    $relevamientos= array();
+    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
+    $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
     foreach ($log->relevamientos_movimientos as $idx => $relev) {
       $relevamientos[] = $relController->generarPlanillaMaquina(
         $relev,
-        $log->tipo_movimiento->descripcion,
+        $tipoMovimiento,
         $log->sentido,
-        $casino,
-        $log->fecha,
-        $log->id_estado_relevamiento
+        $casino
       );
     }
 
@@ -753,6 +744,36 @@ class LogMovimientoController extends Controller
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$log->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
+  public function imprimirMovimiento($id_log_mov){
+    $logMov = LogMovimiento::find($id_log_mov);
+    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
+    $casino = $logMov->casino;
+    $relevamientos = array();
+    $relController = RelevamientoMovimientoController::getInstancia();
+    foreach ($logMov->fiscalizaciones as $fiscalizacion) {
+      foreach($fiscalizacion->relevamientos_movimientos as $idx => $relev){
+        $relevamientos[] = $relController->generarPlanillaMaquina(
+          $relev,
+          $tipoMovimiento,
+          $logMov->sentido,
+          $casino
+        );
+      }
+    }
+
+    $tipo_planilla = "movimientos";
+    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));

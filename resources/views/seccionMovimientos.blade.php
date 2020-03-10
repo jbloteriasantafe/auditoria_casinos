@@ -709,31 +709,10 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
             @include('divRelevamientoMovimiento')
             </div>
           </div>  <!-- fin row inicial -->
-
+          <br/>
           <div class="modal-footer">
-              <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
-              <input id="id_log_movimiento" type="text" name="" value="" hidden>
-              <input id="fecha_fiscalizacion" type="text" name="" value="" hidden>
-              <input id="relevamiento" type="text" name="" value="" hidden>
-              <input id="maquina" type="text" name="" value="" hidden>
-              <button id="errorValidacion" type="button" class="btn btn-default error" >ERROR</button>
-              <button id="enviarValidar" type="button" class="btn btn-default validar" value=""> VALIDAR </button>
-              <button id="finalizarValidar" type="button" class="btn btn-default" value="" data-fiscalizacion="" hidden=> FINALIZAR VALIDACIÓN </button>
-
-              <div id="mensajeErrorVal" hidden>
-                <br>
-                <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-                <br>
-                <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;"></span>
-              </div> <!-- mensaje -->
-              <div id="mensajeExitoValidacion" hidden>
-                <br>
-                <span style="font-family:'Roboto-Black'; font-size:16px; color:#4CAF50 ;">EXITO</span>
-                <br>
-                <span  style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">La VALIDACIÓN se ha realizado correctamente</span>
-              </div> <!-- mensaje -->
-            </div>
-
+            <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">SALIR</button>    
+          </div>
           </div> <!-- modal body -->
       </div> <!--  modal colap-->
     </div>  <!-- modal content -->
@@ -1407,9 +1386,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
        <i class="fas fa-fw fa-times" style="color: #EF5350;"></i>
      </td>
      <td class="col-xs-3 botones_mov">
-        <button type="button" class="btn btn-warning boton_redirigir" title="REDIRIGIR">
-          <i class="fas fa-fw fa-external-link-square-alt"></i>
-        </button>
         <button type="button" class="btn boton_nuevo" title="NUEVO">
           <i class="far fa-fw fa-file-alt"></i>
         </button>
@@ -1419,23 +1395,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         <button type="button" class="btn btn-success boton_fiscalizar" title="ENVIAR A FISCALIZAR">
           <i class="fa fa-fw fa-paper-plane"></i>
         </button>
-        <button type="button" class="btn btn-warning boton_modificar" title="MODIFICAR">
-          <i class="fas fa-fw fa-pencil-alt"></i>
-        </button>
         <button type="button" class="btn btn-success boton_validar" title="VALIDAR">
           <i class="fa fa-fw fa-check"></i>
         </button>
-        <button type="button" class="btn btn-danger boton_baja" title="BAJA MTM">
-          <i class="fa fa-fw fa-ban"></i>
-        </button>
-        <button type="button" class="btn boton_toma2" title="VOLVER A RELEVAR">
-          <i class="fa fa-fw fa-retweet"></i>
+        <button type="button" class="btn print_mov" title="IMPRIMIR MOV">
+          <i class="fas fa-fw fa-print"></i>
         </button>
         <button type="button" class="btn btn-danger baja_mov" title="BAJA MOV">
           <i class="fas fa-fw fa-trash"></i>
-        </button>
-        <button type="button" class="btn print_mov" title="IMPRIMIR MOV">
-          <i class="fas fa-fw fa-print"></i>
         </button>
      </td>
   </tr>
@@ -1451,8 +1418,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
     <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
-    <script src="/js/seccionMovimientos-DenominacionDevolucionJuego.js" charset="utf-8"></script>
-    <script src="/js/seccionMovimientos-EgresoCambioLayoutVRelevar.js" charset="utf-8"></script>
+    <script src="/js/seccionMovimientos-Egreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Ingreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Validar.js" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
