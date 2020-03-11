@@ -220,51 +220,6 @@ class MTMController extends Controller
 
   }
 
-  public function obtenerMTMEnCasinoMovimientos($id_casino,$id_mov,$nro_admin){
-      //dado un casino y un log movimiento,devuelve maquinas que concuerden con el nro admin dado
-      //usado para busqueda de maquinas, restando las maquinas que ya hayan sido
-      //enviadas a fiscalizar
-      $mtms_mov= DB::table('relevamiento_movimiento')
-                      ->select('maquina.id_maquina')
-                      ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
-                      ->where('maquina.nro_admin' , 'like' , $nro_admin . '%')
-                      ->where('relevamiento_movimiento.id_log_movimiento','=',$id_mov)
-                      ->get();
-
-      $mtms = array();
-      foreach ($mtms_mov as $mtm) {
-        $mtms[]=$mtm->id_maquina;
-      }
-
-
-      $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->whereNotIn('maquina.id_maquina',$mtms)->get();
-      foreach ($maquinas as $maquina) {
-        $maquina->nro_admin = $maquina->nro_admin;
-      }
-      return ['maquinas' => $maquinas];
-  }
-  //se usa para egreso y reingresos
-  public function obtenerMTMMovimientos($id_casino,$tipo_movimiento,$id_log_mov, $nro_admin){
-      //dado un casino,devuelve maquinas que concuerden con el nro admin dado
-      //usado para busqueda de maquinas, segun el log movimiento y su tipo
-
-      if($tipo_movimiento == 8){
-        $maquinas = DB::table('relevamiento_movimiento')
-                      ->select('maquina.*')
-                      ->join('maquina','maquina.id_maquina','=', 'relevamiento_movimiento.id_maquina')
-                      ->join('log_movimiento', 'log_movimiento.id_log_movimiento','=', 'relevamiento_movimiento.id_log_movimiento')
-                      ->where('maquina.nro_admin','like',$nro_admin.'%')
-                      ->where('relevamiento_movimiento.id_log_movimiento' , $id_log_mov)
-                      ->groupBy('relevamiento_movimiento.id_maquina')
-                      ->havingRaw('COUNT(relevamiento_movimiento.id_maquina) < 2') //para que traiga solo las que todavia NO furon relevadas por 2da vez
-                      ->distinct('maquina.id_maquina')
-                      ->get();
-      }else{
-        $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-      }
-
-      return ['maquinas' => $maquinas];
-  }
 
   public function desasociarFormula($id_formula){
      $MTMS=Formula::find($id_formula)->maquinas;

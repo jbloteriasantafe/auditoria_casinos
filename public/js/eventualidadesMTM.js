@@ -46,7 +46,7 @@ function initModalNuevaEvMTM(){
   });
 
   const casino = $('#casinoNuevaEvMTM').val();
-  $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
+  $('#inputMTM').generarDataList("eventualidadesMTM/obtenerMTMEnCasino/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
   $('#modalNuevaEvMTM').find('#btn-impr').prop('disabled',true);
 }
 //botón grande para generar la nueva eventualidad de máquina
@@ -62,7 +62,7 @@ $('#casinoNuevaEvMTM').change(function(){
 $('#agregarMTMEv').click(function(e) {
   const id_maq = $('#inputMTM').attr('data-elemento-seleccionado');
   if (id_maq != 0) {
-    $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maq, function(data) {
+    $.get('http://' + window.location.host +"/eventualidadesMTM/obtenerMTM/" + id_maq, function(data) {
       agregarMTMEv(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca, data.maquina.modelo, 1);
       $('#inputMTM').setearElementoSeleccionado(0 , "");
     });
@@ -232,7 +232,7 @@ $(document).on('click','#guardarRel',function(){
   divRelMovLimpiarErrores();
   $.ajax({
     type: 'POST',
-    url: 'eventualidadesMTM/cargarEventualidadMTM',
+    url: 'eventualidadesMTM/cargarTomaRelevamiento',
     data: formData,
     dataType: 'json',
     success: function (data){

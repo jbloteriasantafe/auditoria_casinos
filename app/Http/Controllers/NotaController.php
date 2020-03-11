@@ -65,22 +65,14 @@ class NotaController extends Controller
     $nota->identificacion = $request['identificacion'];
     $nota->save();
 
-    //crear log movimiento unicamente si no es reingreso
-
     if(!empty($request['id_tipo_movimiento']) || $request['id_tipo_movimiento']!= 0 ){
       if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
           $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
           $nota->save();
-          // Se quita la integracion de expediente con movimientos
-          // $log = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$request['id_tipo_movimiento']);
       }else{//es REINGRESO
           $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
           $nota->save();
-          // Se quita la integracion de expediente con movimientos
-          //$log = LogMovimientoController::getInstancia()->generarReingreso($id_expediente);
       }
-      // Se quita la integracion de expediente con movimientos
-      //$nota->log_movimiento()->associate($log->id_log_movimiento);
     }
     $nota->save();
   }
@@ -88,9 +80,7 @@ class NotaController extends Controller
   ///asociar nota con movimiento existente! no crearlos
   public function guardarNotaConMovimiento($request, $id_expediente, $id_casino)// se usa desde expedienteController
   {
-
     $log_id = intval($request['id_log_movimiento']);
-    //$logMovsController = new LogMovimientoController(); 
     $nota = new Nota;
 
     $nota->fecha = $request['fecha'];
@@ -102,19 +92,15 @@ class NotaController extends Controller
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
 
-
-
     $logMov =LogMovimientoController::getInstancia()->asociarExpediente($log_id, $id_expediente);
     $nota->tipo_movimiento()->associate($logMov->id_tipo_movimiento);
-
-      $nota->save();
+    $nota->save();
   }
 
   //para no impactar en los movimientos-> se crea la disposicion pero en realidad
   //el movimiento esta asociado a una nota
   public function guardarNotaParaDisposicionConMov($id_expediente, $id_casino,$nro_disposicion,$id_tipo_movimiento)// se usa desde expedienteController
   {
-
     $nota = new Nota;
     $nota->expediente()->associate($id_expediente);
     $nota->casino()->associate($id_casino); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
@@ -124,12 +110,6 @@ class NotaController extends Controller
     $nota->identificacion = 'Disposición Nro '.$nro_disposicion;
     $nota->es_disposicion = 1;
     $nota->save();
-
-
-    // Se quita la integracion de expediente con movimientos
-    // $idl = LogMovimientoController::getInstancia()->guardarLogMovimientoExpediente($id_expediente,$id_tipo_movimiento);
-    // $nota->log_movimiento()->associate(intval($idl->id_log_movimiento));
-    // $nota->save();
     return $nota->id_nota;
   }
 
@@ -160,27 +140,6 @@ class NotaController extends Controller
         DisposicionController::getInstancia()->guardarDisposicionNota($disp,$nota->id_nota);
       }
     }
-
-/*
-
-    $controlador=DB::table('casino')
-                  ->join('usuario_tiene_casino' , 'casino.id_casino', '=', 'usuario_tiene_casino.id_casino')
-                  ->join('usuario', 'usuario.id_usuario','=', 'usuario_tiene_casino.id_usuario')
-                  ->join('usuario_tiene_rol', 'usuario_tiene_rol.id_usuario', '=', 'usuario.id_usuario' )
-                  ->join('rol', 'rol.id_rol','=', 'usuario_tiene_rol.id_rol')
-                  ->where('casino.id_casino' ,'=', $request['id_casino'])
-                  ->where('rol.descripcion','LIKE','CONTROL')
-                  ->get()
-                  ->first();*/
-
-    //crear log movimiento unicamente si no es reingreso
-    // if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
-    //     LogMovimientoController::getInstancia()->guardarLogMovimientoNota($nota->id_nota );
-    // }else{//es REINGRESO
-    //     LogMovimientoController::getInstancia()->generarReingreso($request['id_expediente'], $nota->id_nota);
-    // }
-
-    //return ['nota' => $nota ];
   }
 
   public function eliminarNota($id)
@@ -206,8 +165,7 @@ class NotaController extends Controller
         return ['eliminable' => 0, 'nota' => $nota];
       }
     }
-      return ['eliminable' => 1, 'nota' => $nota];
-
+    return ['eliminable' => 1, 'nota' => $nota];
   }
 
   public function buscarNotas(Request $request){

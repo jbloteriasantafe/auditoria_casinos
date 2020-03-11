@@ -1,20 +1,20 @@
 //MOSTRAR MODAL PARA INGRESO: BTN NUEVO INGRESO
 $(document).on('click', '.nuevoIngreso', function () {
     const id_movimiento = $(this).parent().parent().attr('id');
-    $('#modalLogMovimiento .modal-title').text('SELECCIÓN DE TIPO DE CARGA');
+    $('#modalIngresoElegirTipo .modal-title').text('SELECCIÓN DE TIPO DE CARGA');
     $('input[name="carga"]').attr('checked', false);
     $('#btn-aceptar-ingreso').prop('disabled', true);
-    $('#modalLogMovimiento #cantMaqCargar').hide();
-    $('#modalLogMovimiento').find("#id_log_movimiento").val(id_movimiento);
+    $('#modalIngresoElegirTipo #cantMaqCargar').hide();
+    $('#modalIngresoElegirTipo').find("#id_log_movimiento").val(id_movimiento);
     //estilo de modal, y lo muestra
-    $('#modalLogMovimiento .modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
+    $('#modalIngresoElegirTipo .modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
     $('#tipoManual').prop('checked', true).click();
-    $('#modalLogMovimiento').modal('show');
+    $('#modalIngresoElegirTipo').modal('show');
 
     $.get('movimientos/obtenerDatos/' + id_movimiento, function (data) {
         $('#conceptoExpediente').text(data.expediente.concepto);
         if (data.movimiento.tipo_carga != null) {
-            $('#modalLogMovimiento #cantMaqCargar').show();
+            $('#modalIngresoElegirTipo #cantMaqCargar').show();
             if (data.movimiento.tipo_carga == 1) {
                 $('#tipoManual').prop('checked', true).prop('disabled', true);
                 $('#tipoCargaSel').prop('disabled', true);
@@ -36,17 +36,17 @@ $(document).on('click', '.nuevoIngreso', function () {
 
 //DETECTAR SI EL TIPO DE CARGA SELECCIONADO ES MANUAL
 $('#tipoManual').click(function () {
-    const s = $('#modalLogMovimiento #tipoManual').val();
+    const s = $('#modalIngresoElegirTipo #tipoManual').val();
     if (s == 1) { //TIPO DE CARGA: MANUAL
-        $('#modalLogMovimiento #cantMaqCargar').show();
+        $('#modalIngresoElegirTipo #cantMaqCargar').show();
         $('#btn-aceptar-ingreso').prop('disabled', false);
     }
 })
 //DETECTAR EL TIPO DE CARGA SELECCIONADO ES MASIVA
 $('#tipoCargaSel').click(function () {
-    const s = $('#modalLogMovimiento #tipoCargaSel').val();
+    const s = $('#modalIngresoElegirTipo #tipoCargaSel').val();
     if (s == 2) { //TIPO DE CARGA: MASIVA
-        $('#modalLogMovimiento #cantMaqCargar').hide();
+        $('#modalIngresoElegirTipo #cantMaqCargar').hide();
     }
     $('#btn-aceptar-ingreso').prop('disabled', false);
 });
@@ -97,7 +97,7 @@ $("#btn-aceptar-ingreso").click(function (e) {
                 //seteo en el btn de carga el tipo de carga
                 fila.attr("data-carga", data.tipo_carga);
 
-                $('#modalLogMovimiento').modal('hide');
+                $('#modalIngresoElegirTipo').modal('hide');
                 fila.find('.boton_cargar').show();
                 $('#' + id).find('.nuevoIngreso').attr('style', 'display:none');;
             },
@@ -229,7 +229,7 @@ $(document).on('click', '.enviarIngreso', function (e) {
     $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
     ocultarErrorValidacion($('#B_fecha_ingreso'));
     $('#B_fecha_ingreso').val('');
-    $.get('movimientos/buscarMaquinasMovimiento/' + id_log_movimiento, function (data) {
+    $.get('movimientos/obtenerMaquinasMovimiento/' + id_log_movimiento, function (data) {
         let tablaMaquinas = $('#tablaMaquinas tbody');
         data.maquinas.forEach(m => {
             let fila = $('<tr>');

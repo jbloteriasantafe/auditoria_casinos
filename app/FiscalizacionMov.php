@@ -54,4 +54,11 @@ class FiscalizacionMov extends Model
     return $this->id_fiscalizacion_movimiento;
   }
 
+  public function relevamientosCompletados($estado = 3){
+    $total = $this->relevamientos_movimientos()->count();
+    $completados = $this->relevamientos_movimientos()
+    ->where('relevamiento_movimiento.id_estado_relevamiento','=',$estado)->count();
+    return $total == $completados;
+  }
+
 }

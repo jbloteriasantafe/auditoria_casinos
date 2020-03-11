@@ -48,19 +48,6 @@ $(document).ready(function(){
     });
   });
   $(function(){
-    $('#dtpFechaEgreso').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'yyyy-mm-dd',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-      container:$('#modalLogMovimiento2'),
-    });
-  });
-  $(function(){
     $('#dtpFechaIngreso').datetimepicker({
       language:  'es',
       todayBtn:  1,
@@ -195,37 +182,6 @@ $(document).on('click', '#aceptarCasinoIng', function (e) {
  ###########################
 */
 //-------------------------------------------------------------------------
-//redirigir cambio layout
-$(document).on('click', '.redirigir', function (e) {
-  const id_movimiento = $(this).parent().parent().attr('id');
-
-  const formData = {
-    id_log_movimiento: id_movimiento
-  }
-
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
-
-  $.ajax({
-    type: 'POST',
-    url: 'movimientos/guardarLogClickMov',
-    data: formData,
-    dataType: 'json',
-    success: function (data) {
-      console.log('Exito!!');
-    },
-    error: function (data) {
-      alert('error');
-    }
-  });
-
-  window.open('islas', '_blank');
-});
-
-
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function () {
   if ($(this).data("minimizar") == true) {

@@ -17,151 +17,140 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
 @section('contenidoVista')
 
-  <div class="row">
-    <div class="col-xl-9">
-      <!-- FILTROS -->
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-              <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-            </div>
-
-            <div id="collapseFiltros" class="panel-collapse collapse">
-              <div class="panel-body">
-                <div class="row">
-                  <div class="col-lg-3">
-                    <h5>Nro. de Máquina</h5>
-                    <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
-                  </div>
-                  <div class="col-lg-3">
-                    <h5>Número de expediente</h5>
-                    <div class="input-group triple-input">
-                      <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
-                      <input id="B_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
-                      <input id="B_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
-                    </div>
-                  </div>
-                  <div class="col-lg-3">
-                    <h5>Tipo Movimiento</h5>
-                    <select class="form-control" id="B_TipoMovimiento">
-                      <option value="0" selected>- Seleccione tipo movimiento -</option>
-                      @foreach ($tiposMovimientos as $tm)
-                      @if(!$tm->es_intervencion_mtm && !$tm->deprecado)
-                      <option value="{{$tm->id_tipo_movimiento}}">{{$tm->descripcion}}</option>
-                      @endif
-                      @endforeach
-                      <optgroup style="color:red;" label="Fuera de uso">
-                      @foreach ($tiposMovimientos as $tm)
-                      @if($tm->es_intervencion_mtm || $tm->deprecado)
-                      <option value="{{$tm->id_tipo_movimiento}}" style="color:red;">{{$tm->descripcion}}</option>
-                      @endif
-                      @endforeach
-                      </optgroup>
-                    </select>
-                  </div>
-                  <div class="col-lg-3">
-                    <h5>Fecha</h5>
-                    <div class="form-group">
-                      <div class='input-group date' id='dtpFechaMov' data-link-field="fecha_movimiento" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                        <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=""/>
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                      </div>
-                      <input class="form-control" type="hidden" id="fecha_movimiento" value=""/>
-                    </div>
-                  </div>
-                  <div class="col-lg-3">
-                    <h5>Casino</h5>
-                    <select class="form-control" id="dtpCasinoMov">
-                      <option value="0" selected>- Seleccione casino -</option>
-                      @foreach ($usuario['usuario']->casinos as $casino)
-                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                      @endforeach
-                    </select>
-                  </div>
-                  <div class="col-lg-3">
-                    <h5>Nro. de movimiento</h5>
-                    <input id="busqueda_numero" type="text" class="form-control" placeholder="Nro. de movimiento">
-                  </div>
-
-                </div> <!-- row / formulario -->
-                <br>
-                <div class="row">
-                  <div class="col-md-12">
-                    <center>
-                      <button id="btn-buscarMovimiento" class="btn btn-infoBuscar" type="button" name="button">
-                        <i class="fa fa-fw fa-search"></i> BUSCAR
-                      </button>
-                    </center>
-                  </div>
-                </div> <!-- row / botón buscar -->
-              </div> <!-- panel-body -->
-            </div> <!-- collapse -->
-          </div> <!-- .panel-default -->
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-
-            <!-- TABLA -->
-            <div class="row">
-                <div class="col-md-12">
-                  <div class="panel panel-default">
-                    <div class="panel-heading">
-                      <h4>ÚLTIMOS MOVIMIENTOS</h4>
-                    </div>
-                    <div class="panel-body">
-                      <table id="tablaResultados" class="table table-fixed tablesorter">
-                        <thead>
-                          <tr>
-                            <th class="col-md-1" value="log_movimiento.id_log_movimiento" estado="">NÚMERO<i class="fa fa-sort"></i></th>
-                            <th class="col-md-1" value="log_movimiento.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                            <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE<i class="fa fa-sort"></i></th>
-                            <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
-                            <th class="col-md-2" value="tipo_movimiento.descripcion" estado="">TIPO MOVIMIENTO<i class="fa fa-sort"></i></th>
-                            <th class="col-md-1" value="log_movimiento.id_estado_movimiento" estado="">ESTADO<i class="fa fa-sort"></i></th>
-                            <th class="col-md-3" >ACCIÓN </th>
-                          </tr>
-                        </thead>
-                          <tbody  id='cuerpoTabla' style="height: 380px;">
-                        </tbody>
-                      </table>
-                      <!--Comienzo indices paginacion-->
-                      <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-                      </div>
-                    </div>
-                  </div>
-            </div> <!-- .row / TABLA -->
+<div class="row">
+  <div class="col-xl-9">
+    <!-- FILTROS -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
           </div>
-      <div class="col-xl-3">
-
-              <!-- Botón nuevo Ingreso -->
-          <div class="row">
-              <div class="col-lg-12">
-                 <a href="" id="btn-nuevo-movimiento" style="text-decoration: none;">
-                  <div class="panel panel-default panelBotonNuevo">
-                      <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-                      <div class="backgroundNuevo"></div>
-                      <div class="row">
-                          <div class="col-xs-12">
-                            <center>
-                                <h5 class="txtLogo">+</h5>
-                                <h4 class="txtNuevo">NUEVO MOVIMIENTO</h4>
-                            </center>
-                          </div>
-                      </div>
+          <div id="collapseFiltros" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-3">
+                  <h5>Nro. de Máquina</h5>
+                  <input id="busqueda_maquina" type="text" class="form-control" placeholder="Nro. de máquina">
+                </div>
+                <div class="col-lg-3">
+                  <h5>Número de expediente</h5>
+                  <div class="input-group triple-input">
+                    <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
+                    <input id="B_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
+                    <input id="B_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
                   </div>
-                 </a>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Tipo Movimiento</h5>
+                  <select class="form-control" id="B_TipoMovimiento">
+                    <option value="0" selected>- Seleccione tipo movimiento -</option>
+                    @foreach ($tiposMovimientos as $tm)
+                    @if(!$tm->es_intervencion_mtm && !$tm->deprecado)
+                    <option value="{{$tm->id_tipo_movimiento}}">{{$tm->descripcion}}</option>
+                    @endif
+                    @endforeach
+                    <optgroup style="color:red;" label="Fuera de uso">
+                    @foreach ($tiposMovimientos as $tm)
+                    @if($tm->es_intervencion_mtm || $tm->deprecado)
+                    <option value="{{$tm->id_tipo_movimiento}}" style="color:red;">{{$tm->descripcion}}</option>
+                    @endif
+                    @endforeach
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Fecha</h5>
+                  <div class="form-group">
+                    <div class='input-group date' id='dtpFechaMov' data-link-field="fecha_movimiento" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                      <input type='text' class="form-control" placeholder="Fecha de Movimiento" id="B_fecha_mov" value=""/>
+                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                    </div>
+                    <input class="form-control" type="hidden" id="fecha_movimiento" value=""/>
+                  </div>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Casino</h5>
+                  <select class="form-control" id="dtpCasinoMov">
+                    <option value="0" selected>- Seleccione casino -</option>
+                    @foreach ($usuario['usuario']->casinos as $casino)
+                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-lg-3">
+                  <h5>Nro. de movimiento</h5>
+                  <input id="busqueda_numero" type="text" class="form-control" placeholder="Nro. de movimiento">
+                </div>
+              </div> <!-- row / formulario -->
+              <br>
+              <div class="row">
+                <div class="col-md-12" style="text-align: center">
+                  <button id="btn-buscarMovimiento" class="btn btn-infoBuscar" type="button" name="button">
+                    <i class="fa fa-fw fa-search"></i> BUSCAR
+                  </button>
+                </div>
+              </div> <!-- row / botón buscar -->
+            </div> <!-- panel-body -->
+          </div> <!-- collapse -->
+        </div> <!-- .panel-default -->
+      </div> <!-- .col-md-12 -->
+    </div> <!-- .row / FILTROS -->
+    <!-- TABLA -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>ÚLTIMOS MOVIMIENTOS</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultados" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-md-1" value="log_movimiento.id_log_movimiento" estado="">NÚMERO<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" value="log_movimiento.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" value="tipo_movimiento.descripcion" estado="">TIPO MOVIMIENTO<i class="fa fa-sort"></i></th>
+                  <th class="col-md-1" value="log_movimiento.id_estado_movimiento" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" >ACCIÓN </th>
+                </tr>
+              </thead>
+              <tbody id='cuerpoTabla' style="height: 380px;">
+              </tbody>
+            </table>
+            <div id="herramientasPaginacion" class="row zonaPaginacion">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- .row / TABLA -->
+  </div> <!-- col-xl-9 -->
+  <div class="col-xl-3">
+    <!-- Botón nuevo Ingreso -->
+    <div class="row">
+      <div class="col-lg-12">
+        <a href="" id="btn-nuevo-movimiento" style="text-decoration: none;">
+          <div class="panel panel-default panelBotonNuevo">
+            <img class="imgNuevo" src="/img/logos/informes_white.png" style="text-align: center">
+            <div class="backgroundNuevo">
+            </div>
+            <div class="row">
+              <div class="col-xs-12" style="text-align: center">
+                <h5 class="txtLogo">+</h5>
+                <h4 class="txtNuevo">NUEVO MOVIMIENTO</h4>
               </div>
-          </div> <!-- .row -->
-
-      </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
-
-
-
-   <!-- ********************* MODALES ************************************ -->
+            </div>
+          </div>
+        </a>
+      </div>
+    </div> <!-- .row -->
+  </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
+</div>
 
 <!-- **************Modal para ingresos*****************************-->
-<div class="modal fade" id="modalLogMovimiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalIngresoElegirTipo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
       <div class="modal-content">
           <div class="modal-header" >
@@ -174,8 +163,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
             <div class="modal-body" style="font-family: Roboto;">
                 <form id="frmLog" name="frmLog" class="form-horizontal" novalidate="">
-
-
                     <div class="row">
                           <div class="col-md-12">
                             <br>
@@ -186,51 +173,37 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                     </div>
                       <br>
                     <div  class="row">
-                        <div class="col-md-6">
-                              <center>
-                                <h5>CARGA MANUAL</h5>
-                                <input id="tipoManual" type="radio" name="carga" value="1">
-                              </center>
+                        <div class="col-md-6" style="text-align: center">
+                          <h5>CARGA MANUAL</h5>
+                          <input id="tipoManual" type="radio" name="carga" value="1">
                         </div>
-                        <div class="col-md-6">
-                              <center>
-                                <h5>CARGA MASIVA</h5>
-                                <input id="tipoCargaSel" type="radio" name="carga" value="2" >
-                              </center>
+                        <div class="col-md-6" style="text-align: center">
+                          <h5>CARGA MASIVA</h5>
+                          <input id="tipoCargaSel" type="radio" name="carga" value="2">
                         </div>
                     </div>
                       <br>
                       <div id="cantMaqCargar" class="row">
-                            <div class="col-md-8 col-md-offset-2">
-                                <center>
-                                <h5>Cantidad de máquinas a ingresar</h5>
-                                <div class="input-group number-spinner">
-                                  <span class="input-group-btn">
-                                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
-                                  </span>
-                                  <input id="cant_maq" type="text" class="form-control text-center" value="1">
-                                  <span class="input-group-btn">
-                                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
-                                  </span>
-                                </div>
-                                </center>
+                            <div class="col-md-8 col-md-offset-2" style="text-align: center">
+                              <h5>Cantidad de máquinas a ingresar</h5>
+                              <div class="input-group number-spinner">
+                                <span class="input-group-btn">
+                                  <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
+                                </span>
+                                <input id="cant_maq" type="text" class="form-control text-center" value="1">
+                                <span class="input-group-btn">
+                                  <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
+                                </span>
+                              </div>
                             </div>
                       </div>
-
-                      <br><br>
-
-
-
-                      <br><br>
                   </form>
                 </div>
-
                 <div class="modal-footer">
                   <input id="id_log_movimiento" type="text" name="" value="" hidden=true>
                   <button id="btn-aceptar-ingreso" type="button" class="btn btn-guardar btn-successAceptar" >ACEPTAR</button>
                   <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
                 </div>
-
                 <div id="mensajeErrorCarga" hidden>
                     <br>
                     <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
@@ -281,8 +254,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div>
 </div>
 
-
-<!-- ***************Modal de ENVIAR A FISCALIZAR INGRESOS***************-->
 <div class="modal fade" id="modalEnviarFiscalizarIngreso" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 70%">
     <div class="modal-content">
@@ -339,41 +310,27 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div> <!-- modal-content -->
   </div> <!-- modal-dialog -->
 </div> <!-- modal -->
-
-
-  <!-- *************Modal para otros movimientos: egreso ***********************************-->
-<div class="modal fade" id="modalLogMovimiento2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+ 
+<div class="modal fade" id="modalEgresoElegirMaquinas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 70%">
     <div class="modal-content">
       <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title modalVerMas" id="myModalLabel">CARGAR MÁQUINAS</h3>
+        <h3 class="modal-title modalVerMas" id="myModalLabel">CARGAR MÁQUINAS A EGRESAR</h3>
       </div>
 
       <div class="modal-body" style="">
         <div  id="colapsado" class="collapse in">
-
           <div class="row"> <!-- ROW 1 -->
             <div class="col-md-6">
               <h6>Agregar Máquina</h6>
-
               <div class="row">
                 <div class="input-group lista-datos-group">
                   <input id="inputMaq" class="form-control" type="text" value="" autocomplete="off" placeholder="Ingrese el número de la máquina" >
                   <span class="input-group-btn">
                     <button id="agregarMaq" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                   </span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6" >
-              <h6>Fecha: </h6>
-              <div class="form-group">
-                <div class='input-group date' id='dtpFechaEgreso' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_egreso" value=""/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
             </div>
@@ -405,278 +362,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
       </div> <!-- modal body -->
 
       <div class="modal-footer">
-        <input id="tipo_movi" type="text" name="" value="" hidden="">
-        <input id="mov" type="text" name="" value="" hidden="">
-        <button id="btn-pausar" type="button" class="btn btn-default" data-dismiss="modal">PAUSAR CARGA</button>
         <button id="boton-cancelar" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-        <button id="btn-enviar-egreso" type="button" class="btn btn-default" value="" >ENVIAR A FISCALIZAR</button>
-
-        <button id="btn-enviar-toma2" type="button" class="btn btn-default" value="" >ENVIAR A FISCALIZAR</button>
-
-        <div id="mensajeFiscalizacionError" hidden>
-          <br>
-          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-          <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No fue posible enviar a fiscalizar las máquinas cargadas.</span>
-        </div> <!-- mensaje -->
-
+        <button id="btn-enviar-egreso" type="button" class="btn btn-default" value="" >CARGAR MÁQUINAS</button>
       </div> <!-- modal footer -->
     </div> <!-- modal-content -->
   </div> <!-- modal dialog -->
 </div> <!-- modal fade -->
-
-
-<!-- **************modal Para DENOMINACION ************************-->
-<div class="modal fade" id="modalDenominacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 70%">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #ff9d2d;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title modalVerMas" id="myModalLabel"></h3>
-      </div>
-
-      <div class="modal-body" style="">
-         <div  id="colapsado" class="collapse in">
-
-           <div class="row"> <!-- ROW 1 -->
-             <div class="col-xl-12">
-               <div class="row">
-
-                   <div class="col-md-4">
-                      <h6>Agregar Máquina</h6>
-                      <div class="row">
-
-                         <div class="input-group">
-                           <input id="inputMaq2" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro. Admin">
-                           <span class="input-group-btn">
-                             <button id="agregarMaq2" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                           </span>
-                         </div>
-                       </div>
-                     </div>
-
-                   <div class="col-md-4" id="busqIsla">
-                     <h6>Seleccionar Isla</h6>
-                     <div class="row">
-
-                       <div class="input-group">
-                         <input id="inputIslaDen" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro Isla">
-                         <span class="input-group-btn">
-                           <button id="agregarIslaDen" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                         </span>
-                       </div>
-
-                    </div>
-                   </div>
-                   {{-- Se saca el movimiento por sector porque son demsiadas mtm para ser manipuladas en un modal --}}
-                   {{-- <div class="col-md-4" id="busqSector">
-                     <h6>Seleccionar Sector</h6>
-                     <div class="row">
-
-                       <div class="input-group">
-                         <input id="inputSectorDen" class="form-control" type="text" value="" autocomplete="off" placeholder="Nro Sector">
-                         <span class="input-group-btn">
-                           <button id="agregarSectorDen" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                         </span>
-                       </div>
-
-                     </div>
-                   </div> --}}
-                   <div class="col-md-4" >
-                     <h6>Fecha: </h6>
-                     <div class="form-group">
-                       <div class='input-group date' id='dtpFechaMDenom' data-link-field="fecha_cierre" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                         <input type='text' class="form-control" placeholder="Fecha a fiscalizar" id="B_fecha_denom" value=""/>
-                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                       </div>
-                     </div>
-                   </div>
-               </div> <!-- row -->
-
-             </div>
-           </div>
-
-
-          <div class="row">
-
-            <div class="row">
-              <br>
-
-              <div class="col-md-4">
-                <h5 id="nuevaDen" hidden="" >Nueva Denominación: </h5> <input class="form-control" type="number" step=0.01 min=0.01 name="" value="" id="denom_comun" hidden>
-              </div>
-              {{-- <div class="col-md-4">
-                  <h5 id="nuevaUni" hidden="">Unidad de Medida: </h5>
-                  <select class="form-control" name="" id="unidad_comun">
-                     <option value="0">- Seleccione unidad -</option>
-                     <option value="1">CRED</option>
-                     <option value="2">PESOS</option>
-                   </select>
-              </div> --}}
-              <div class="col-md-4">
-                <h5 id="aplicar" style="color:white !important;"  hidden>fgfdgfhgfh</h5>
-                <button id="todosDen" class="btn btn-default" type="button" name="button" hidden="">
-                  <i class="fa fa-fw fa-check"></i>Aplicar a todas
-                </button>
-
-              </div>
-
-            </div>
-
-            <div class="row">
-
-              <div class="col-md-4">
-              <h5 id="nuevaDev" hidden="">Nueva Devolución: </h5> <input type="number" step="0.01" min="80.01" max="100" name="" value="" id="devol_comun" hidden>
-              </div>
-
-              <div class="col-md-4">
-                  <h5 id="aplicar1" style="color:white !important;">fgfdgfhgfh </h5>
-                  <button id="todosDev" class="btn btn-default" type="button" name="button" hidden="">
-                    <i class="fa fa-fw fa-check"></i> Aplicar a todas
-                  </button>
-              </div>
-
-            </div>
-
-          </div>
-          <br>
-
-          <style media="screen">
-              #btn-borrarTodo {
-                  background-color: #ccc !important;
-                  color:white;
-                  font-family: Roboto-Condensed;
-                  font-weight: bold;
-              }
-              #btn-borrarTodo:hover {
-                  background-color: #EF5350 !important;
-              }
-
-              #tablaDenominacion tbody tr td:nth-child(4){
-                text-align: center;
-              }
-
-          </style>
-
-          <div class="row">
-            <div class="col-xs-12">
-              <table id="tablaDenominacion" class="table">
-                <thead>
-                  <tr>
-                    <th class="col-xs-2" >MTM A MODIFICAR</th>
-                    <th id="segunda_columna" class="col-xs-3"></th>
-                    <th id="tercer_columna" class="col-xs-3"></th>
-                    <th id="cuarta_columna" class="col-xs-3"></th>
-                    <th class="col-xs-1" >
-                      <button id="btn-borrarTodo" type="button" name="button" class="btn btn-default" style="border-radius:0px;">
-                          BORRAR TODOS
-                      </button>
-
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-              </table>
-            </div>
-          </div> <!-- fin row -->
-
-        </div> <!-- colapsado -->
-
-      </div> <!-- modal body -->
-
-        <div class="modal-footer">
-          <input id="id_t_mov" type="text" name="" value="" hidden="">
-          <input id="id_mov_denominacion" type="text" name="" value="" hidden="">
-          <button id="btn-pausar-denom" type="button" class="btn btn-default" data-dismiss="modal">PAUSAR CARGA</button>
-          <button id="btn-enviar-denom" type="button" class="btn btn-default" value="" >APLICAR Y   ENVIAR A FISCALIZAR</button>
-          <button id="boton-cancelar-denom" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-
-          <div id="mensajeFiscalizacionError2" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-            <br>
-            <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No fue posible enviar a fiscalizar las máquinas cargadas.</span>
-          </div> <!-- mensaje -->
-        </div> <!-- modal footer -->
-
-      </div> <!-- modal content -->
-    </div> <!-- modal dialog -->
-</div> <!-- modal fade -->
-
-
-<!-- ************************modal eliminar mtm ******************************-->
-<div class="modal fade" id="modalBajaMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 70%">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color:#D50000">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title modalVerMas" id="myModalLabel">MOVIMIENTOS</h3>
-      </div>
-
-      <div class="modal-body" style="">
-        <div  id="colapsado" class="collapse in">
-
-          <div class="row"> <!-- ROW 1 -->
-            <div class="col-md-8">
-              <h5>Agregar Máquina</h5>
-
-              <div class="row">
-                <div class="input-group lista-datos-group">
-                  <input id="inputMaq3" class="form-control" type="text" value="" autocomplete="off">
-                  <span class="input-group-btn">
-                    <button id="agregarMaqBaja" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <br>
-          </div> <!-- FIN ROW 1 -->
-
-          <div class="row"> <!-- ROW 2 -->
-            <div class="col-md=6">
-              <h6>MÁQUINAS SELECCIONADAS</h6>
-              <table id="tablaBajaMTM" class="table">
-                <thead>
-                  <tr>
-                    <th width="20%">NÚMERO</th>
-                    <th width="30%">MARCA</th>
-                    <th width="30%">MODELO</th>
-                    <th width="20%">ACCIÓN</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-          </div> <!-- FIN ROW 2 -->
-
-        </div> <!-- colapsado -->
-      </div> <!-- modal body -->
-
-      <div class="modal-footer">
-        <input id="movimId" type="text" name="" value="" hidden="">
-        <input id="tipoMovBaja" type="text" name="" value="" hidden="">
-        <button id="btn-baja" type="button" class="btn btn-default" value="" >ELIMINAR</button>
-        <button id="boton-cancelar-baja" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-
-        <div id="mensajeBaja" hidden>
-          <br>
-          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-          <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">No fue posible enviar a fiscalizar las máquinas cargadas.</span>
-        </div> <!-- mensaje -->
-
-      </div> <!-- modal footer -->
-
-    </div> <!-- modal content -->
-  </div> <!-- modal dialog -->
-</div> <!-- modal fade -->
-
 
   <!--********************* Modal para VALIDACIÓN *****************************-->
 <div class="modal fade" id="modalValidacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -976,9 +667,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                 <thead>
                                   <tr>
                                       <th width="15%">ISLA</th>
-                                      <!--
-                                      <th width="15%">SUBISLA</th>
-                                      -->
                                       <th width="15%">MÁQUINAS</th>
                                       <th width="20%">CASINO</th>
                                       <th width="20%">SECTOR</th>
@@ -990,9 +678,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                       <td id="activa_nro_isla">
                                         <span class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:-3px;">999999</span>
                                       </td>
-                                      <!--
-                                      <td id="activa_sub_isla">99999</td>
-                                      -->
                                       <td id="activa_cantidad_maquinas">99999999999</td>
                                       <td id="activa_casino">INVALIDO</td>
                                       <td id="activa_zona">INVALIDO</td>
@@ -1022,10 +707,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                             <div class="col-xs-2">
                                 <h5>Nro Isla</h5>
                             </div>
-                            <!-- Comento porque no se esta usando
-                            <div class="col-xs-2">
-                                <h5>Sub Isla</h5>
-                            </div> -->
                             <div class="col-xs-2">
                                 <h5>Cant. Máquinas</h5>
                             </div>
@@ -1074,13 +755,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                                   <br>
                                   <span id="alerta_nro_isla" class="alertaSpan"></span>
                                 </div>
-                                <!--
-                                <div class="col-md-3">
-                                  <h5>Sub isla</h5>
-                                  <input id="sub_isla" type="text" class="form-control" placeholder="Número de isla">
-                                  <br>
-                                  <span id="alerta_nro_isla" class="alertaSpan"></span>
-                                </div>-->
                             </div>
 
                             <br><br>
@@ -1378,14 +1052,14 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 <table hidden>
   <tr id="filaEjemploMovimiento">
      <td class="col-xs-1 nro_mov">9999999</td>
-     <td class="col-xs-1 fecha_mov">99 DIC 9999</td>
+     <td class="col-xs-2 fecha_mov">99 DIC 9999</td>
      <td class="col-xs-2 nro_exp_mov">9999-999-9</td>
      <td class="col-xs-2 islas_mov">9999-9999-...</td>
      <td class="col-xs-2 tipo_mov">TIPO9999</td>
      <td class="col-xs-1 icono_mov" style="text-align: center;">
        <i class="fas fa-fw fa-times" style="color: #EF5350;"></i>
      </td>
-     <td class="col-xs-3 botones_mov">
+     <td class="col-xs-2 botones_mov">
         <button type="button" class="btn boton_nuevo" title="NUEVO">
           <i class="far fa-fw fa-file-alt"></i>
         </button>
@@ -1417,6 +1091,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <!-- JavaScript paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
+    <script src="/js/divRelevamientoMovimiento.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Egreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Ingreso.js" charset="utf-8"></script>

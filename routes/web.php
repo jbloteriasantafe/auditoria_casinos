@@ -236,10 +236,8 @@ Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
 Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
 Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
 Route::get('maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
-Route::get('maquinas/obtenerMTMMovimientos/{id_casino}/{id_tipo}/{id_mov}/{admin}','MTMController@obtenerMTMMovimientos');
 Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
 Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
-Route::get('maquinas/obtenerMTMEnCasinoMovimientos/{id_casino}/{id_mov}/{id_maq}','MTMController@obtenerMTMEnCasinoMovimientos');
 
 
 /**********
@@ -261,47 +259,43 @@ Route::post('islas/actualizarListaMaquinas','IslaController@actualizarListaMaqui
 /**********
 Movimientos
 ***********/
-Route::get('movimientos/casinosYMovimientosIngresosEgresos','LogMovimientoController@casinosYMovimientosIngresosEgresos');
-Route::get('movimientos','LogMovimientoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_movimientos');
-Route::post('movimientos/buscarLogsMovimientos','LogMovimientoController@buscarLogsMovimientos');
-Route::post('movimientos/enviarAFiscalizar', 'LogMovimientoController@enviarAFiscalizar');
-Route::get('movimientos/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
-Route::post('movimientos/guardarMaquina', 'MTMController@guardarMaquina');
-Route::post('movimientos/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
-Route::post('movimientos/guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');
-Route::get('movimientos/buscarMaquinasMovimiento/{id}','LogMovimientoController@buscarMaquinasMovimiento');
-Route::get('movimientos/obtenerFiscalizacionesMovimiento/{id}', 'LogMovimientoController@obtenerFiscalizacionesMovimiento');
-Route::get('movimientos/ValidarMaquinaFiscalizacion/{id}', 'LogMovimientoController@ValidarMaquinaFiscalizacion');
-Route::post('movimientos/guardarRelevamientosMovimientosMaquinas', 'LogMovimientoController@guardarRelevamientosMovimientosMaquinas');
-Route::post('movimientos/guardarLogClickMov', 'LogMovimientoController@guardarLogClickMov');
-Route::get('movimientos/mostrarMaquinasMovimientoLogClick/{id}','LogMovimientoController@mostrarMaquinasMovimientoLogClick');
-Route::post('movimientos/guardarRelevamientosMovimientos','LogMovimientoController@guardarRelevamientosMovimientos');
-Route::post('movimientos/bajaMTMs', 'LogMovimientoController@bajaMTMs');
-Route::get('movimientos/generarPlanillasRelevamientoMovimiento/{id}','LogMovimientoController@generarPlanillasRelevamientoMovimiento');
-Route::get('movimientos/obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
-Route::get('movimientos/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
-Route::post('movimientos/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
-Route::post('movimientos/nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
-Route::post('movimientos/eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
-Route::post('movimientos/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
-Route::get('movimientos/obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
-Route::get('movimientos/buscarJuegoMovimientos/{nombre_juego}', 'JuegoController@buscarJuegoMovimientos');
-Route::get('movimientos/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
-Route::get('movimientos/obtenerMTM/{id_maquina}','LogMovimientoController@obtenerMaquina');
-Route::get('movimientos/obtenerMaquinasIsla/{id_isla}','LogMovimientoController@obtenerMaquinasIsla');
-Route::get('movimientos/obtenerMaquinasSector/{id_sector}','LogMovimientoController@obtenerMaquinasSector');
-Route::get('movimientos/imprimirMovimiento/{id_movimiento}','LogMovimientoController@imprimirMovimiento');
-Route::get('movimientos/eliminarRelevamientos/{id_log_movimiento}','LogMovimientoController@eliminarRelevamientos');
-Route::post('movimientos/visarConObservacion/', 'LogMovimientoController@visarConObservacion');
+Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_seccion_movimientos'], function () {
+  Route::get( '/','LogMovimientoController@movimientos');
+  Route::get( '/casinosYMovimientosIngresosEgresos','LogMovimientoController@casinosYMovimientosIngresosEgresos');
+  Route::post('/buscarLogsMovimientos','LogMovimientoController@buscarLogsMovimientos');
+  Route::post('/enviarAFiscalizar', 'LogMovimientoController@enviarAFiscalizar');
+  Route::get( '/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
+  Route::post('/guardarMaquina', 'MTMController@guardarMaquina');
+  Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
+  Route::post('/guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');
+  Route::get( '/obtenerMaquinasMovimiento/{id}','LogMovimientoController@obtenerMaquinasMovimiento');
+  Route::get( '/obtenerFiscalizacionesMovimiento/{id}', 'LogMovimientoController@obtenerFiscalizacionesMovimiento');
+  Route::get( '/imprimirFiscalizacion/{id}','LogMovimientoController@imprimirFiscalizacion');
+  Route::get( '/obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
+  Route::get( '/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
+  Route::post('/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::post('/nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
+  Route::post('/eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
+  Route::post('/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
+  Route::get( '/obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
+  Route::get( '/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
+  Route::get( '/imprimirMovimiento/{id_movimiento}','LogMovimientoController@imprimirMovimiento');
+  Route::post('/visarConObservacion', 'LogMovimientoController@visarConObservacion');
+  Route::get( '/obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
+  Route::get( '/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+});
+
 
 
 /**********
 Relevamientos
 ***********/
+Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos_movimientos'], function () {
+  Route::get( '/','LogMovimientoController@relevamientosMovimientos');
+  Route::post('/buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
+  Route::get( '/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacionParcial');
+});
 
-Route::get('relevamientos_movimientos','LogMovimientoController@obtenerFiscalizaciones')->middleware('tiene_permiso:ver_seccion_relevamientos_movimientos');
-Route::post('relevamientos_movimientos/buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
-Route::get('relevamientos_movimientos/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacionParcial');
 /**********
 Eventualidades ->intervenciones tecnicas
 ***********/
@@ -322,15 +316,19 @@ Route::get('eventualidades/leerArchivoEventualidad/{id}','EventualidadController
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
 ***********/
-Route::get('eventualidadesMTM','LogMovimientoController@todasEventualidadesMTMs')->middleware('tiene_permiso:ver_seccion_eventualidades_MTM');//buscar todo
-Route::post('eventualidadesMTM/nuevaEventualidadMTM','LogMovimientoController@nuevaEventualidadMTM');
-Route::post('eventualidadesMTM/cargarEventualidadMTM', 'LogMovimientoController@cargarEventualidadMTM');
-Route::get('eventualidadesMTM/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
-Route::post('eventualidadesMTM/eliminarEventualidadMTM', 'LogMovimientoController@eliminarEventualidadMTM');
-Route::get('eventualidadesMTM/tiposMovIntervMTM', 'LogMovimientoController@tiposMovIntervMTM');
-Route::get('eventualidadesMTM/relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
-Route::get('eventualidadesMTM/imprimirEventualidadMTM/{id_mov}','LogMovimientoController@imprimirEventualidadMTM');
-Route::post('eventualidadesMTM/visarConObservacion/', 'LogMovimientoController@visarConObservacion');
+Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver_seccion_eventualidades_MTM'], function () {
+  Route::get( '/','LogMovimientoController@eventualidadesMTM');
+  Route::post('/nuevaEventualidadMTM','LogMovimientoController@nuevaEventualidadMTM');
+  Route::post('/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::get( '/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
+  Route::post('/eliminarEventualidadMTM', 'LogMovimientoController@eliminarEventualidadMTM');
+  Route::get( '/tiposMovIntervMTM', 'LogMovimientoController@tiposMovIntervMTM');
+  Route::get( '/relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
+  Route::get( '/imprimirEventualidadMTM/{id_mov}','LogMovimientoController@imprimirEventualidadMTM');
+  Route::post('/visarConObservacion', 'LogMovimientoController@visarConObservacion');
+  Route::get( '/obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
+  Route::get( '/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+});
 
 
 /******

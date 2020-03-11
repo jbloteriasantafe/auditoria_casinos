@@ -134,9 +134,7 @@ $cas = $usuario['usuario']->casinos;
         </div>
       </div>
     </div>
-
-
-  </div> <!-- .col-xl-9  | COLUMNA IZQUIERDA - FILTRO Y TABLA -->
+  </div> 
 </div> <!-- row inicial-->
 
 <table hidden>
@@ -202,6 +200,7 @@ $cas = $usuario['usuario']->casinos;
 
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
+<script src="js/divRelevamientoMovimiento.js" charset="utf-8"></script>
 <script src="js/seccionRelevamientosMovimientos.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

@@ -4,12 +4,17 @@ $(document).on('click', '.validarMovimiento', function () {
     $('#tablaMaquinasFiscalizacion tbody tr').remove();
     
     const id_log_movimiento = $(this).parent().parent().attr('id');
+    const tipo_mov = $(this).parent().parent().find('.tipo_mov').text();
     $.get('movimientos/obtenerFiscalizacionesMovimiento/' + id_log_movimiento, function (data) {
         let tablaFiscalizacion = $('#tablaFechasFiscalizacion tbody');
         data.forEach(f => {
             let fila = generarFilaFechaFiscalizacion(f.id_fiscalizacion_movimiento,f.id_estado_fiscalizacion,f.fecha_envio_fiscalizar);
             tablaFiscalizacion.append(fila);
         });
+        divRelMovLimpiar();
+        divRelMovCargarRelevamientos([],{},-1);
+        divRelMovEsconderDetalleRelevamiento();
+        divRelMovSetearTipo(tipo_mov,'---');
         $('#modalValidacion').modal('show');
     });
 });

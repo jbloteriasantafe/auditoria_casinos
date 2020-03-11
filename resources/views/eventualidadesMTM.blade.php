@@ -18,20 +18,13 @@
     <!-- FILTROS -->
     <div class="row">
       <div class="col-md-12">
-
-
         <div class="panel panel-default">
-
           <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
             <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
           </div>
-
           <div id="collapseFiltros" class="panel-collapse collapse">
-
             <div class="panel-body">
-
               <div class="row">
-
                 <div class="row">
                 <div class="col-lg-4">
                   <h5>Tipo Movimiento</h5>
@@ -44,7 +37,7 @@
                     @endforeach
                     <optgroup style="color:red;" label="Fuera de uso">
                     @foreach ($tiposEventualidadesMTM as $t_ev)
-                    @if($t_ev->deprecado)
+                    @if(!$t_ev->es_intervencion_mtm || $t_ev->deprecado)
                     <option value="{{$t_ev->id_tipo_movimiento}}" style="color:red;">{{$t_ev->descripcion}}</option>
                     @endif
                     @endforeach
@@ -86,16 +79,13 @@
                     <h5>Nro. de Máquina</h5>
                     <input id="B_mtmEv" type="text" class="form-control" placeholder="Nro. de máquina">
                   </div>
-
                   <div class="col-lg-4">
                     <h5>Nro. de Isla</h5>
                     <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
                   </div>
                 </div>
               </div> <!-- row / formulario -->
-
               <br>
-
               <div class="row">
                 <div class="col-md-12">
                   <center>
@@ -105,15 +95,8 @@
                   </center>
                 </div>
               </div> <!-- row / botón buscar -->
-
-
-
-
             </div> <!-- panel-body -->
           </div> <!-- collapse -->
-
-
-
         </div> <!-- .panel-default -->
       </div> <!-- .col-md-12 -->
     </div> <!-- .row / FILTROS -->
@@ -369,8 +352,8 @@
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
+    <script src="js/divRelevamientoMovimiento.js" charset="utf-8"></script>
     <script src="js/eventualidadesMTM.js" charset="utf-8"></script>
-
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>

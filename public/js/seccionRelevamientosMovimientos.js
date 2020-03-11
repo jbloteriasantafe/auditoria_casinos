@@ -35,7 +35,7 @@ $('#fechaRelMov').on('change', function (e) {
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
 $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
   const id_fiscalizacion= $(this).val();
-  window.open('movimientos/generarPlanillasRelevamientoMovimiento/' + id_fiscalizacion,'_blank');
+  window.open('movimientos/imprimirFiscalizacion/' + id_fiscalizacion,'_blank');
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
