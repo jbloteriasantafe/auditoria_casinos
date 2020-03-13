@@ -35,6 +35,7 @@ function agregarMaq(id_maquina, nro_admin, marca, modelo, isla, nombre_juego, nr
     fila.append($('<td>').text(nro_admin));
     fila.append($('<td>').text(marca));
     fila.append($('<td>').text(limpiarNull(modelo)));
+    fila.append($('<td>').text(isla));
     fila.append($('<td>').text(nombre_juego));
     fila.append($('<td>').text(limpiarNull(nro_serie)));
     fila.append($('<td>').append(accion));

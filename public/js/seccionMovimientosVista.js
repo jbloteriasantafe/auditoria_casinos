@@ -57,7 +57,7 @@ $(document).ready(function(){
       pickerPosition: "bottom-left",
       startView: 4,
       minView: 2,
-      container:$('#modalEnviarFiscalizarIngreso'),
+      container:$('#modalEnviarFiscalizar'),
     });
   });
 
@@ -393,7 +393,7 @@ function setearEstadoFila(fila, estado, tipo) {
       fila.find('.boton_validar').hide();
       const icono = $('<i>').addClass('fas').addClass('fa-chalkboard-teacher').css('color',color.amarillo);
       fila.find('.icono_mov i').replaceWith(icono);
-    };
+    };break;
     case 'FISCALIZADO':{ 
       fila.find('.boton_nuevo').hide();
       fila.find('.boton_cargar').hide();

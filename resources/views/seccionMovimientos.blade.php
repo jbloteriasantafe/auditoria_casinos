@@ -254,13 +254,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div>
 </div>
 
-<div class="modal fade" id="modalEnviarFiscalizarIngreso" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalEnviarFiscalizar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 70%">
     <div class="modal-content">
       <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title modalVerMas" id="myModalLabel"></h3>
+        <h3 class="modal-title modalVerMas" id="myModalLabel">SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR</h3>
       </div>
 
       <div  id="colapsado" class="collapse in">
@@ -301,7 +301,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         </div> <!-- fin del body -->
 
         <div class="modal-footer">
-          <input id="id_log_movimiento" type="text" name="" value="" hidden>
           <button id="btn-enviar-ingreso" type="button" class="btn btn-guardar btn-successAceptar" >ENVIAR A FISCALIZAR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
         </div>
@@ -338,19 +337,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
           </div> <!-- FIN ROW 1 -->
           <br>
           <div class="row"> <!-- ROW 2 -->
-            <div class="col-md=6">
+            <div class="col-md-12">
               <h6>MÁQUINAS SELECCIONADAS</h6>
               <br>
               <table id="tablaMaquinasSeleccionadas" class="table">
                 <thead>
                   <tr>
-                    <th width="10%">NÚMERO</th>
-                    <th width="20%">MARCA</th>
-                    <th width="10%">MODELO</th>
-                    <th id="isla_layout" width="10%">ISLA</th>
-                    <th width="30%">JUEGO</th>
-                    <th width="10%">SERIE</th>
-                    <th width="10%">ACCIÓN</th>
+                    <th class="col-md-1">NÚMERO</th>
+                    <th class="col-md-1">MARCA</th>
+                    <th class="col-md-2">MODELO</th>
+                    <th class="col-md-1">ISLA</th>
+                    <th class="col-md-3">JUEGO</th>
+                    <th class="col-md-3">SERIE</th>
+                    <th class="col-md-1">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody>

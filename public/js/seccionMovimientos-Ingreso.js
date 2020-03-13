@@ -218,10 +218,8 @@ $('#btn-carga-masiva').click(function () {
 
 $(document).on('click', '.boton_fiscalizar', function (e) {
     const id_log_movimiento = $(this).parent().parent().attr('id');
-    $('#modalEnviarFiscalizarIngreso .modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
     $('#tablaMaquinas tbody tr').remove();
-    $('#modalEnviarFiscalizarIngreso #id_log_movimiento').val(id_log_movimiento);
-    ocultarErrorValidacion($('#B_fecha_ingreso'));
+    $('#btn-enviar-ingreso').attr('data-mov-id',id_log_movimiento);
     $('#B_fecha_ingreso').val('');
     $.get('movimientos/obtenerMaquinasMovimiento/' + id_log_movimiento, function (data) {
         let tablaMaquinas = $('#tablaMaquinas tbody');
@@ -232,14 +230,13 @@ $(document).on('click', '.boton_fiscalizar', function (e) {
                 .append($('<td>').addClass('col-xs-9').text(m.maquina.nro_admin))
             tablaMaquinas.append(fila);
         });
+        $('#modalEnviarFiscalizar').modal('show');
     });
-
-    $('#modalEnviarFiscalizarIngreso').modal('show');
 })
 
 //dentro del modal de ingreso, presiona el boton "Enviar a Fiscalizar"
 $("#btn-enviar-ingreso").click(function (e) {
-    const id = $("#modalEnviarFiscalizarIngreso #id_log_movimiento").val();
+    const id = $('#btn-enviar-ingreso').attr('data-mov-id');
     let maquinas_seleccionadas = [];
     const fecha = $('#B_fecha_ingreso').val();
 
@@ -271,7 +268,7 @@ $("#btn-enviar-ingreso").click(function (e) {
         dataType: 'json',
 
         success: function (data) {
-            $('#modalEnviarFiscalizarIngreso').modal('hide');
+            $('#modalEnviarFiscalizar').modal('hide');
             mensajeExito({
                 titulo: 'ENVÍO EXITOSO',
                 mensajes: ['Las máquinas fueron enviadas correctamente']

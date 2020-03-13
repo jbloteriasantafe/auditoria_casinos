@@ -423,11 +423,15 @@ class LogMovimientoController extends Controller
     $relevamientos = $fiscalizacion->relevamientos_movimientos;
     $relevamientos_arr = array();
     foreach ($relevamientos as $rel) {
+      //Si se borra el ingreso antes que el egreso (casi nunca pasaria por que se le asignaria un expediente)
+      //Hay que obtener los softdeletes por las dudas...
+      $maquina = $rel->maquina()->withTrashed()->first();
+      $nro_admin = is_null($rel->maquina)? $maquina->nro_admin . ' (ELIM.)' : $maquina->nro_admin;
       $relevamientos_arr[] =  [
                             'id_relevamiento' => $rel->id_relev_mov,
                             'estado'          => $rel->estado_relevamiento,
-                            'nro_admin'       => $rel->maquina->nro_admin,
-                            'id_maquina'      => $rel->maquina->id_maquina,
+                            'nro_admin'       => $nro_admin,
+                            'id_maquina'      => $maquina->id_maquina,
                             'tomas'           => $rel->toma_relevamiento_movimiento()->count()
                           ];
     }
@@ -829,7 +833,7 @@ class LogMovimientoController extends Controller
     {
       foreach($logMovimiento->relevamientos_movimientos as $relev){
         $mtm = $relev->maquina;
-        MTMController::getInstancia()->asociarExpediente($mtm->id_maquina, $id_expediente);
+        if(!is_null($mtm)) MTMController::getInstancia()->asociarExpediente($mtm->id_maquina, $id_expediente);
       }
     }
 
@@ -958,9 +962,7 @@ class LogMovimientoController extends Controller
               ->get()
               ->first();
 
-
-    $maquina = Maquina::find($rel->id_maquina);
-    $juegos = $maquina->juegos;
+    $juegos = $rel->maquina()->withTrashed()->first()->juegos;
 
     $toma = null;
     $fecha = null;
@@ -1002,6 +1004,7 @@ class LogMovimientoController extends Controller
     }
 
 
+    $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
      'fiscalizador' => $fisca,'cargador' => $cargador,
      'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
@@ -1015,7 +1018,7 @@ class LogMovimientoController extends Controller
           'fecha' => 'nullable|date_format:Y-m-d',
           'id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
           'id_casino' => 'nullable|exists:casino,id_casino',
-          'mtm' => 'nullable|exists:nro_admin,maquina',
+          'mtm' => 'nullable|exists:maquina,nro_admin',
           'sentido' => 'nullable|string'
       ], array(), self::$atributos)->after(function ($validator){})->validate();
 
@@ -1188,11 +1191,13 @@ class LogMovimientoController extends Controller
     $relevamientos = $log->relevamientos_movimientos;
     $relevamientos_arr = array();
     foreach ($relevamientos as $rel) {
+      $maquina = $rel->maquina()->withTrashed()->first();
+      $nro_admin = is_null($rel->maquina)? $maquina->nro_admin . ' (ELIM.)' : $maquina->nro_admin;
       $relevamientos_arr[] = [
                      'id_relevamiento' => $rel->id_relev_mov,
                      'estado' => $rel->estado_relevamiento,
-                     'nro_admin' => $rel->maquina->nro_admin,
-                     'id_maquina' => $rel->maquina->id_maquina,
+                     'nro_admin' => $nro_admin,
+                     'id_maquina' => $maquina->id_maquina,
                      'tomas' => $rel->toma_relevamiento_movimiento()->count()
                    ];
     }
@@ -1270,7 +1275,7 @@ class LogMovimientoController extends Controller
         ];
         //Si fue VALIDADO el relevamiento genero un LogMaquina
         if($relevMov->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
-          $maquina = $relevMov->maquina;
+          $maquina = $relevMov->maquina()->withTrashed()->first();
           $accion = $map[$logMov->id_tipo_movimiento];
           if(array_key_exists('nuevo_estado',$accion)){
             $maquina->estado_maquina()->associate($accion['nuevo_estado']);
