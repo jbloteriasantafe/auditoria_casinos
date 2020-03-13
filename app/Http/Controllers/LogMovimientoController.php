@@ -39,65 +39,123 @@ use App\EstadoMaquina;
 use App\TipoCausaNoTomaProgresivo;
 use App\Pozo;
 
-
 /*
-* Este controlador manipula las secciones de:
-* Asignacion de movimientos mtm, relevamientos , intervenciones MTM
-* Los relevamientos tambien son manipulados en su controlador, pero inician aquí
+# Nueva forma de trabajo de MOVIMIENTOS (Marzo 2020 - Octavio)
+¿Que es un movimiento?
+Es un evento que ocurre sobre la maquina en la cual se relevan ciertos datos de la maquina, 
+estos son (y se dividen en):
+  - Manejados por Asignacion/Relevamiento: 
+    - INGRESO INICIAL
+    - EGRESO DEFINITIVO
+  - Manejados por Intervenciones MTM:
+    - CAMBIO LAYOUT
+    - DENOMINACION
+    - % DEVOLUCION
+    - JUEGO
+    - ACTUALIZACION FIRMWARE
+    A su vez, las intervenciones tienen un SENTIDO que puede ser EGRESO TEMPORAL o REINGRESO
+
+## Asignacion/Relevamiento
+Estos son los movimientos iniciales y finales de la maquina, se manejan de forma distinta porque cambian
+los datos de la maquina.
+### INGRESO INICIAL
+Para crear una maquina nueva, se le cargan todos los datos y al dar aceptar llama a guardarMaquina (en MTMController)
+Este a su vez llama a guardarRelevamientoMovimientoIngreso en este modulo que lo asigna al movimiento.
+### EGRESO DEFINITIVO
+Para dar de baja una maquina, NO ES LO MISMO QUE ELIMINARLA!
+Los nro_admin NO SE REUSAN por lo que cuando se la da de baja, se le cambia el estado a EGRESO DEFINITO pero la maquina
+sigue en el sistema.
+### Funcionamiento General
+Se crea el movimiento, si es ingreso lo mas probable es que sea de tipo CARGA INDIVIDUAL (carga masiva es con un CSV).
+Se le asignan las maquinas. 
+Una vez cargadas el admin le genera un FISCALIZAMIENTO con una fecha a elección.
+Este fiscalizamiento es visible por los fiscalizadores desde la pantalla de RELEVAMIENTO.
+Lo imprimen, relevan los datos de la maquina, lo cargan al sistema.
+Una vez cargado en asignación el movimiento se encontrara en estado FISCALIZADO en ASIGNACION,
+a partir de esto se lo VALIDA.
+Un relevamiento puede tener muchas fiscalizaciones, por lo que el menu aparece divido por fiscalizaciones y maquinas,
+el admin lo verifica y lo valida al relevamiento, si es valido cambia el estado de la maquina.
+
+## Intervenciones MTM
+Tambien llamadas eventualidades MTM (anteriormente), ocurren de forma no planeada (generalmente).
+Son cuando se tiene que cambiar de isla una maquina, el juego, etc y hay que dejar constancia del cambio en el sistema.
+SON EXACTAMENTE LO MISMO, excepto que:
+ - No cambian el estado de la maquina.
+ - Es todo una misma "fiscalizacion", no se puede dividir en distintas fechas.
+ - Son las mismas tablas que los movimientos anteriores, pero se los diferencia por un par de cosas (mas adelante explico).
+ - Tiene un SENTIDO, entonces por ejemplo si ocurre un CAMBIO DE FIRMWARE:
+  - Se crea una intervencion para el EGRESO TEMPORAL, con los datos relevados antes de apagar la maquina.
+  - Una vez cambiado el firmware se crea una intervencion para el REINGRESO, con los datos relevados despues de prender la maquina.
+  - Estos datos en principio deberian dar los mismos (esto es lo que verifica).
+El fiscalizador crea la intervencion, la releva y la carga. Luego el ADMIN desde la misma pantalla lo valida.
+
+## Manejo de tablas y tipos de datos
+Estos son los datos principales que se manejan en este controlador:
+ - log_movimiento (LogMovimiento)
+ - fiscalizacion_movimiento (FiscalizacionMov)
+ - relevamiento_movimiento (RelevamientoMovimiento)
+ - toma_relev_mov (TomaRelevamientoMovimiento)
+ - detalle_relevamiento_progresivo (DetalleRelevamientoProgresivo)
+Otros menores que quedaron mas por legacy:
+ - log_maquina (LogMaquina)
+ - log_clicks_mov (LogClicksMov)
+
+El log_movimiento es la estructura principal, es el movimiento en si (no importa si es por asignacion o intervencion).
+Se diferencian entre esas dos categorias porque la intervencion no posee un expediente asignado.
+Una asignacion en principio tampoco (generalmente se le asigna muucho mas tarde que de la creacion del mismo), pero
+se le asigna uno concepto "expediente_auxiliar_para_movimientos" (hay uno por casino) para diferenciarlo inicialmente.
+Una fiscalizacion_movimiento es creada cuando el admin envia a fiscalizar (las intervenciones MTM NO TIENEN!).
+El relevamiento_movimiento es creado al principio con el movimiento (incluso antes de ser enviado a fiscalizar) 
+y es UNO POR MAQUINA.
+La toma_relev_mov es la que tiene los datos de relevamiento y se crea con el relevamiento. Estan en tablas separados
+porque en un principio los relevamientos tenian 2 tomas, esto se lo cambio a que haya uno solo por relevamiento por 
+lo que es redundante; podria estar en la misma tabla.
+El detalle_relevamiento_progresivo es el que tiene los datos del relevamiento (pero la parte de los progresivos),
+puede haber varios por toma ya que una maquina puede estar enlazado en varios progresivos. Es reusado de la parte
+de RELEVAMIENTOS PROGRESIVOS y se diferencian entre si en que un detalle_relevamiento_progresivo de un relevamiento_progresivo
+tiene el id_toma_relev_mov en NULL (y viceversa).
+
+log_maquina es creado cuando se valida el relevamiento para luego ser visto en Informes MTM -> MTM, en principio es redundante
+porque podria generarse dinamicamente.
+log_clicks_mov es de antes cuando se necesitaba un expediente para las intervenciones y se logeaba los cambios de isla, no es
+importante.
+
+Entonces la estructura de un movimiento de ingreso inicial y egreso definitivo es
+(rel4 no fue enviada a fiscalizar todavia)
+   +------------------------------------+
+   |                                    |
+┌──────┐     ┌──────┐     ┌──────┐      |
+│ log  │---> │ fis1 │---> │ rel1 │ <----+
+└──────┘     └──────┘     └──────┘      |
+      |      ┌──────┐     ┌──────┐      |
+      +----> │ fis2 │---> │ rel2 │ <----+
+             └──────┘     └──────┘      |
+                   |      ┌──────┐      |
+                   +----> │ rel3 │ <----+
+                          └──────┘      |
+                          ┌──────┐      |
+                          │ rel4 │ <----+
+                          └──────┘
+Para una intervencionMTM
+┌──────┐     ┌──────┐ 
+│ log  │---> │ rel1 │
+└──────┘     └──────┘
+      |      ┌──────┐
+      +----> │ rel2 │
+      |      └──────┘
+      |      ┌──────┐
+      +----> │ rel3 │
+             └──────┘
+
+A su vez un relevamiento
+┌──────┐     ┌──────┐                  ┌───────────┐
+│ rel  │---> │toma1 │ ------------+--> │ det_prog1 │
+└──────┘     └──────┘             |    └───────────┘
+       |     ┌─────────────────┐  |    ┌───────────┐
+       +---> │toma2(deprecado) │  +--> │ det_prog2 │
+             └─────────────────┘       └───────────┘
 */
 
-
-/*
-  ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.
-  ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.ALERTA.
-  en este controlador se manejan la asignacion de movimientos y las intervenciones MTMs
-  hoy 25/10/18 se pretende crear un nuevo tipo de movimiento,el cual contemple la
-  intervencion fisica de mtms (la cual NO AFECTA NINGUN ATRIBUTO DE LAS MTMS ->
-  no agrega valor)
-  para hacerlo, debería crearse este nuevo tipo, configurar por todos lados
-  (en los blades y js de movimientos y
-  de eventualidades mtm (actual intervencion mtm))
-  el tema es que -> la solucion posible es agregar este tipo y un campo de
-  observacion en el log movimiento
-  (para que el controlador / admin escriba loo que se le cante)
-
-  ---
-  descripcion de las funciones que hay:
-
-  primero aparecen todas las funciones de asignacion.
-  luego unas para consultar si el movimiento está relacionado con un expediente
-  (que se usa en el controller de expedientes)
-  mas abajo (ya en el fondo), esta lo de IntervencionesMTM (LLAMADO ASI EN LAS PANTALLAS)
-  pero internamente son las eventualidades de MTM-> que por alguna razon el expediente
-  no se cargó aún y los fisca tienen la obligacion de relevarlos
-
-*/
-
-/*
-  ¿Cómo funciona LA ASIGNACION DE MTMS?
-  se puede crear un movimiento desde ASIGNACION (sin expediente), y luego se lo asocia a uno desde la seccion expedientes.
-  o bien, el caminito normal es:
-  en expediente se crea una nota o disposicion (que en realidad tiene asociada una nota para evitar mas cambios)
-  en estos objetos se le asocia en log movimiento. con un tipo.
-  luego sigue el paso a paso una vez enviado a moex.
-  el tema es que SIEMPRE se crearán primero los RELEVAMIENTOS_MOVIMIENTOS.
-  QUE SON 1 POR MTM. que a su vez tiene una toma_relevamiento_movimiento (que se crea cuando el fisca la va a cargar)
-  UNA VEZ DETERMINADAS LAS MÁQUINAS QUE PERTENECEN AL MOV.
-  se las puede ENVIAR A FISCALIZAR. entonces, como se puede enviarlas por tandas
-  se asocian los relevamientos movimientos a una fiscalizacion_movimiento.
-
-  -->en IntervencionesMTM la fiscalizacion_movimiento no se crea, porque no es necesaria.
-
-  paciencia-.
-*/
-
-
-/*
- para agregar la posibilidad de carga de retoma de todos los movimientos:
- se debería crear la fiscalización con #esGFJ
-
-
-*/
 class LogMovimientoController extends Controller
 {
 
@@ -1228,7 +1286,7 @@ class LogMovimientoController extends Controller
         if(!Usuario::find($id_usuario)->usuarioTieneCasino($logMov->id_casino)){
           $validator->errors->add('id_relev_mov','El usuario no puede acceder a ese movimiento.');
         }
-        if($log_mov->tipo_movimiento->deprecado){
+        if($logMov->tipo_movimiento->deprecado){
           $validator->errors->add('id_relev_mov','Este tipo de movimiento esta deprecado.');
         }
         if($logMov->sentido == '---' && $logMov->tipo_movimiento->es_intervencion_mtm){
