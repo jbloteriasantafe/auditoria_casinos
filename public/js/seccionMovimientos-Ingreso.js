@@ -92,14 +92,8 @@ $("#btn-aceptar-ingreso").click(function (e) {
             data: formData,
             dataType: 'json',
             success: function (data) {
-                //Busco la fila que contiene el id del movimiento indicado
-                let fila = $("#tablaResultados tbody").find('#' + id);
-                //seteo en el btn de carga el tipo de carga
-                fila.attr("data-carga", data.tipo_carga);
-
                 $('#modalIngresoElegirTipo').modal('hide');
-                fila.find('.boton_cargar').show();
-                $('#' + id).find('.nuevoIngreso').attr('style', 'display:none');;
+                $('#btn-buscarMovimiento').click();
             },
             error: function (data) {
                 mensajeError(sacarErrores(data));
@@ -119,7 +113,8 @@ $(document).on('click', '.boton_cargar', function (e) {
 
     //Ver que tipo de carga de máqunas se hace.
     //MANUAL
-    if (boton.parent().parent().attr('data-carga') == 1) {
+    const fila = boton.parent().parent();
+    if (fila.attr('data-tipo-carga') == 1) {
         //muestra tab de maquinas y oculto el resto
         $.get('movimientos/obtenerDatos/' + mov, function (data) {
             $('#mensajeExito .confirmar').attr('data-ultimo-mov',mov);
@@ -127,7 +122,7 @@ $(document).on('click', '.boton_cargar', function (e) {
         })
     }
     //MASIVA
-    else {
+    else if (fila.attr('data-tipo-carga') == 2) {
         $('#modalCargaMasiva .modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be;');
         $('#modalCargaMasiva').modal('show');
     }
@@ -221,8 +216,7 @@ $('#btn-carga-masiva').click(function () {
     });
 }); //FIN DEL POST PARA ENVIAR ARCHIVO DE C. MASIVA
 
-//Enviar a fiscalizar las de ingreso **************************
-$(document).on('click', '.enviarIngreso', function (e) {
+$(document).on('click', '.boton_fiscalizar', function (e) {
     const id_log_movimiento = $(this).parent().parent().attr('id');
     $('#modalEnviarFiscalizarIngreso .modal-title').text('SELECCIÓN DE MTMs PARA ENVÍO A FISCALIZAR');
     $('#tablaMaquinas tbody tr').remove();

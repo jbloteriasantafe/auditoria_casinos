@@ -1,5 +1,5 @@
 //BOTÓN VALIDACION, DENTRO DE LA TABLA PRINCIPÁL
-$(document).on('click', '.validarMovimiento', function () {
+$(document).on('click', '.boton_validar', function () {
     $('#tablaFechasFiscalizacion tbody tr').remove();
     $('#tablaMaquinasFiscalizacion tbody tr').remove();
     

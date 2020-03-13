@@ -283,6 +283,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/visarConObservacion', 'LogMovimientoController@visarConObservacion');
   Route::get( '/obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
   Route::get( '/obtenerMTM/{id}', 'MTMController@obtenerMTM');
+  Route::post('/cargarMaquinasMovimiento','LogMovimientoController@cargarMaquinasMovimiento');
 });
 
 

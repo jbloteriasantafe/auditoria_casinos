@@ -67,12 +67,12 @@ function enviarFiscalizar(id_mov, maq) {
 
     const formData = {
         id_log_movimiento: id_mov,
-        maquinas: maq
+        maquinas: Array.from(new Set(maq)), //Sacar repetidos
     };
 
     $.ajax({
         type: 'POST',
-        url: 'movimientos/cargarMaquinasEgreso',
+        url: 'movimientos/cargarMaquinasMovimiento',
         data: formData,
         dataType: 'json',
         success: function (data) {
@@ -80,9 +80,7 @@ function enviarFiscalizar(id_mov, maq) {
             $("#modalEgresoElegirMaquinas").modal('hide');
         },
         error: function (data) {
-            let response = data.responseJSON.errors;
-            mensajeError([]);
-            $("#modalEgresoElegirMaquinas").animate({ scrollTop: $('#mensajeFiscalizacionError').offset().top }, "slow");
+            mensajeError(['Error al cargar el movimiento.']);
         },
     });
 };

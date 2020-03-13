@@ -234,7 +234,7 @@ class LogMovimientoController extends Controller
     return $logMov->controladores()->where('controlador_movimiento.id_controlador_movimiento',$id_usuario)->count() == 0;
   }
 
-  //solo cuando es MOVIMIENTO INGRESO
+  //solo cuando es MOVIMIENTO por ASIGNACION osea INGRESO INICIAL o EGRESO DEFINITO (12/03/20)
   public function enviarAFiscalizar(Request $request){
     $user_request = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $logMov = null;
@@ -304,43 +304,8 @@ class LogMovimientoController extends Controller
     return 1;
   }
 
-  //para los demás movimientos
-  private function enviarAFiscalizar2($id_log_movimiento,$es_reingreso,$fecha){
-     //el request envia el log movimiento con las maquinas que se van a relevar efectivamente
-     // 'id_log_movimiento', maquinas, maquinas.*.id_maquina
-     $logMov = LogMovimiento::find($id_log_movimiento);
-     if(!isset($logMov->fiscalizaciones))
-     {
-       $logMov->estado_movimiento()->associate(2);//fiscalizando
-     }
-     $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento,$es_reingreso, $fecha);
-
-     foreach ($logMov->relevamientos_movimientos as $relevamiento) {
-        if($relevamiento->fiscalizacion == null){ //por las dudas verifico que sea nulo
-           $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
-           $relevamiento->save();
-        }
-     }
-     $id_usuario = session('id_usuario');
-
-     $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$id_usuario);
-     foreach ($usuarios as $user){
-       $u = Usuario::find($user->id_usuario);
-
-       if($u != null){
-       $u->notify(new RelevamientoGenerado($fiscalizacion));}
-     }
-
-     $date = date('Y-m-d h:i:s', time());
-     $titulo = "Relevamiento Movimientos";
-     $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
-     CalendarioController::getInstancia()
-     ->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
-
-   }
-
   //crear los relevamientos movimientos por cada máquina que el controlador creó  para fiscalizar
-  public function guardarRelevamientoMovimientoIngreso($id_log_mov,$id_maquina){ //Usado en MTM controller
+  public function guardarRelevamientoMovimientoIngreso($id_log_mov,$id_maquina){ //Usado en MTM controller llamado, cuando das GUARDAR en un ingreso
     $logMov = LogMovimiento::find($id_log_mov);
     $logMov->estado_relevamiento()->associate(1);//generado
     $id_usuario = session('id_usuario');
@@ -356,6 +321,54 @@ class LogMovimientoController extends Controller
     $r = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($id_log_mov, $mtm);
 
     return  $logMov->cant_maquinas;
+  }
+
+  public function cargarMaquinasMovimiento(Request $request){// A un movimiento le cargo maquinas (les crea relevamientos), usado solo en EGRESO DEFINITIVO (12/03/20)
+    $user_request = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $logMov = null;
+    $maquinas = [];
+    $validator = Validator::make($request->all(),
+    [
+      'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
+      'maquinas' => 'nullable|array',
+      'maquinas.*' => 'required|exists:maquina,id_maquina'
+    ], array(), self::$atributos)->after(function($validator) use ($user_request,&$logMov,&$maquinas){
+      if(!$validator->errors()->any()){
+        $data = $validator->getData();
+        $logMov = LogMovimiento::find($data['id_log_movimiento']);
+        if(!$user_request->usuarioTieneCasino($logMov->id_casino)){
+          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');  
+        }
+        if(!array_key_exists('maquinas',$data)){
+          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.'); 
+        }
+        else foreach($data['maquinas'] as $m){
+          $maq = Maquina::find($m['id_maquina']);
+          if(!$user_request->usuarioTieneCasino($maq->id_casino)){
+            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');  
+          }
+          $maquinas[] = $maq;
+        }
+        if($logMov->relevamientos_movimientos()->count() > 0){
+          $validator->errors()->add('id_log_movimiento','El movimiento ya tiene maquinas cargadas.');
+        }
+      }
+    })->validate();
+
+    DB::transaction(function() use ($logMov,$maquinas,$user_request){
+      $logMov->estado_relevamiento()->associate(1);//generado
+      $logMov->estado_movimiento()->associate(7);//MTM cargadas
+      if($this->noEsControlador($user_request->id_usuario,  $logMov)){
+        $logMov->controladores()->attach($user_request->id_usuario);
+      }
+      foreach($maquinas as $mtm){
+        $this->guardarIslasMovimiento($logMov, $mtm);
+        RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMov->id_log_movimiento, $mtm);
+      }
+      $logMov->save();
+    });
+    
+    return 1;
   }
 
   //guarda que islas fueron afectadas en el movimiento para que se muestren en
@@ -497,6 +510,14 @@ class LogMovimientoController extends Controller
           $casino
         );
       }
+    }
+    foreach($logMov->relevamientos_movimientos()->whereNull('relevamiento_movimiento.id_fiscalizacion_movimiento')->get() as $idx => $relev){
+      $relevamientos[] = $relController->generarPlanillaMaquina(
+        $relev,
+        $tipoMovimiento . ' [SIN FISC.]',
+        $logMov->sentido,
+        $casino
+      );
     }
 
     $tipo_planilla = "movimientos";
@@ -775,7 +796,7 @@ class LogMovimientoController extends Controller
         $logMovimiento = new LogMovimiento;
         $logMovimiento->tiene_expediente = 0;
         $logMovimiento->estado_relevamiento()->associate(1); // Generado
-        $logMovimiento->estado_movimiento()->associate(1); // Notificado
+        $logMovimiento->estado_movimiento()->associate(6); // Notificado
         $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
         // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
         $logMovimiento->sentido = "---";
@@ -821,7 +842,8 @@ class LogMovimientoController extends Controller
     $log = LogMovimiento::find($id_log_movimiento);
     if($log->fiscalizaciones()->count() > 0 && !$eliminarConFiscalizaciones) return 0;
     if($log->relevamientos_movimientos()->count() > 0 && !$eliminarConRelevamientos) return 0;
-    if($log->tiene_expediente == 1 && !$eliminarConExpediente) return 0;
+    $tiene_exp = !is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos';
+    if($tiene_exp && !$eliminarConExpediente) return 0;
     DB::transaction(function() use($log){
       $log->tipo_movimiento()->dissociate();
       $log->estado_movimiento()->dissociate();
@@ -836,13 +858,13 @@ class LogMovimientoController extends Controller
           }
           $toma->delete();
         }
-        RelevamientoMovimiento::destroy($rel->id_relev_mov);
+        $rel->delete();
       }
       foreach($log->fiscalizaciones as $f){
         $f->delete();
       }
       LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
-      LogMovimiento::destroy($log->id_log_movimiento);
+      $log->delete();
     });
     return 1;
   }
@@ -858,15 +880,14 @@ class LogMovimientoController extends Controller
         if(!$user->usuarioTieneCasino($log->id_casino)){
           $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
         }
+        if(!is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos'){
+          $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
+        }
       }
     })->validate();
     return $this->eliminarMov($request->id_log_movimiento,true,true,false);
   }
 
-  /*
-    Unicamente se usa desde el boton eliminar que aparece en el tipo de mov INGRESO
-    si no tiene relevamientos creados o no tiene expediente, se puede eliminar
-  */
   public function eliminarMovimiento(Request $request){
     $validator = Validator::make($request->all(),
     ['id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento'], array(), self::$atributos)
@@ -878,16 +899,26 @@ class LogMovimientoController extends Controller
         if(!$user->usuarioTieneCasino($log->id_casino)){
           $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
         }
-        if($log->relevamientos_movimientos->count() > 0){
-          $validator->errors()->add('id_log_movimiento','El movimiento ya fue enviado a fiscalizar.');
-        }
-        if($log->tiene_expediente == 1){
+        if(!is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos'){
           $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
         }
       }
     })->validate();
 
-    return $this->eliminarMov($request->id_log_movimiento,false,false,false);
+    $ret = 0;
+    DB::transaction(function() use($request,&$ret){
+      //Si es un ingreso inicial borro las maquinas para que no de NRO ADMIN duplicado al intentar cargar de vuelta
+      $log = LogMovimiento::find($request->id_log_movimiento);
+      if($log->tipo_movimiento->descripcion == 'INGRESO INICIAL'){
+        $mtmcontrol = MTMController::getInstancia();
+        foreach($log->relevamientos_movimientos as $rel){
+          dump($rel->toArray());
+          $mtmcontrol->eliminarMTM($rel->id_maquina);//Soft delete, no deberia dar problemas por clave foranea
+        }
+      }
+      $ret = $this->eliminarMov($request->id_log_movimiento,true,true,false);
+    });
+    return $ret;
   }
 
   public function eliminarMovimientoExpediente($id_log_movimiento){

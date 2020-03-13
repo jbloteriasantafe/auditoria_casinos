@@ -655,12 +655,13 @@ class MTMController extends Controller
   //ELIMINA LOGICAMENTE LA MAQUINA. deleted_at != null
   public function eliminarMTM($id){
     $MTM=Maquina::find($id);
+    if(is_null($MTM)) return ['MTM'=> $MTM ];
     $MTM->formula()->dissociate();
     $MTM->gliSoftOld()->dissociate();
     $MTM->gliHard()->dissociate();
     $MTM->estado_maquina()->associate(3);
     $razon = "La maquina se eliminó definitivamente.";
-    LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,2);//tipo mov EGRESO
+    LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon,3);//tipo mov EGRESO
     $MTM->delete(); //SE MARCA COMO ELIMINANDO
 
     return ['MTM'=> $MTM ];

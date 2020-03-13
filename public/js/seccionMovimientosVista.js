@@ -205,7 +205,7 @@ $(document).on('click', '.print_mov', function (e) {
   })
 });
 
-$(document).on('click', '.bajaMov', function (e) {
+$(document).on('click', '.baja_mov', function (e) {
   $('#mensajeExito').hide();
   $('#mensajeError').hide();
   const id_mov = $(this).parent().parent().attr('id');
@@ -356,40 +356,88 @@ function clickIndiceMov(e, pageNumber = null, tam = null) {
   $('#btn-buscarMovimiento').trigger('click', [pageNumber, tam, columna, orden]);
 }
 
-function handleMovimientoIngreso(movimiento, fila) {
-  fila.find('.boton_nuevo').addClass('nuevoIngreso');
-  fila.find('.boton_fiscalizar').addClass('enviarIngreso');
-  fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.boton_cargar').hide();
-  fila.find('.baja_mov').addClass('bajaMov');
-  const estado_movimiento = movimiento.id_estado_movimiento;
-  const tiene_maquinas = movimiento.cant_maquinas !== null && movimiento.cant_maquinas != 0;
-  if (estado_movimiento == 8 || tiene_maquinas) {
-    fila.find('.boton_cargar').show();
-    fila.find('.nuevoIngreso').attr('style', 'display:none');
-    fila.find('.enviarIngreso').show();
-    fila.attr('data-carga', 1);
+function setearEstadoFila(fila, estado, tipo) {
+  const color = {
+    verde : 'rgb(102,187,106)',
+    rojo : 'rgb(219,68,55)',
+    azul : 'rgb(66,133,244)',
+    gris : 'rgb(150,150,150)',
+    amarillo : 'rgb(244,160,0)'
   }
-  if (movimiento.cant_maquinas == 0) {
-    fila.find('.enviarIngreso').show();
-    fila.find('.boton_cargar').attr('style', 'display:none');
+
+  if(tipo == 'INGRESO INICIAL'){
+    fila.find('.boton_nuevo').addClass('nuevoIngreso');
   }
-  fila.find('.nuevoIngreso').toggle(estado_movimiento == 1);
-  fila.find('.enviarIngreso').toggle(estado_movimiento == 8);
-  fila.find('.enviarIngreso').toggle(estado_movimiento != 1);
-}
-function handleMovimientoEgreso(movimiento, fila) {
-  fila.find('.boton_nuevo').addClass('nuevoEgreso');
-  fila.find('.boton_cargar').remove();
-  fila.find('.boton_fiscalizar').remove();
-  fila.find('.boton_validar').addClass('validarMovimiento');
-  fila.find('.baja_mov').addClass('bajaMov');
-  const estado_movimiento = movimiento.id_estado_movimiento;
-  if (estado_movimiento == 4 || estado_movimiento == 5) {
-    fila.find('.bajaMTM').hide();
-  } else {
-    fila.find('.bajaMTM').prop('disabled', false);
-  };
+  else if(tipo == 'EGRESO DEFINITIVO'){
+    fila.find('.boton_nuevo').addClass('nuevoEgreso');
+  }
+  else{
+    fila.find('button').not('.print_mov,.baja_mov').remove();
+    fila.find('td').css('color',color.gris).css('font-style','italic');
+  }
+
+  switch(estado){
+    case 'NOTIFICADO':
+    case 'CREADO':{ 
+      fila.find('.boton_nuevo').show();
+      fila.find('.boton_cargar').hide();
+      fila.find('.boton_fiscalizar').hide();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-plus').css('color',color.gris);
+      fila.find('.icono_mov i').replaceWith(icono);
+    }break;
+    case 'FISCALIZANDO':{ 
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').show();
+      fila.find('.boton_fiscalizar').show();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-chalkboard-teacher').css('color',color.amarillo);
+      fila.find('.icono_mov i').replaceWith(icono);
+    };
+    case 'FISCALIZADO':{ 
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').hide();
+      fila.find('.boton_fiscalizar').hide();
+      fila.find('.boton_validar').show();
+      const icono = $('<i>').addClass('fas').addClass('fa-chalkboard-teacher').css('color',color.verde);
+      fila.find('.icono_mov i').replaceWith(icono);
+    }break;
+    case 'VALIDADO':{
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').hide();
+      fila.find('.boton_fiscalizar').hide();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-check').css('color',color.verde);
+      fila.find('.icono_mov i').replaceWith(icono); 
+    }break;
+    case 'ERROR':{
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').hide();
+      fila.find('.boton_fiscalizar').hide();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-times').css('color',color.rojo);
+      fila.find('.icono_mov i').replaceWith(icono);
+    }break;
+    case 'MTM CARGADAS':{ 
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').hide();
+      fila.find('.boton_fiscalizar').show();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-check').css('color',color.azul);
+      fila.find('.icono_mov i').replaceWith(icono);
+    }break;
+    case 'CARGANDO':{ 
+      fila.find('.boton_nuevo').hide();
+      fila.find('.boton_cargar').show();
+      fila.find('.boton_fiscalizar').show();
+      fila.find('.boton_validar').hide();
+      const icono = $('<i>').addClass('fas').addClass('fa-user-edit').css('color',color.amarillo);
+      fila.find('.icono_mov i').replaceWith(icono);
+    }break;
+    default:{
+      fila.find('button').not('.print_mov,.baja_mov').remove()
+    }break;
+  }
 }
 
 //paginacion
@@ -397,7 +445,6 @@ function generarFilaTabla(movimiento) {
   let fila = $('#filaEjemploMovimiento').clone().removeAttr('id', '');
   const id = movimiento.id_log_movimiento;
   const t_mov = movimiento.descripcion;
-  const estado_movimiento = movimiento.id_estado_movimiento;
   const fecha = convertirDate(movimiento.fecha);
   const islas = (movimiento.islas != null) ? movimiento.islas : '-';
   let expediente = '-';
@@ -413,57 +460,13 @@ function generarFilaTabla(movimiento) {
   fila.find('.nro_exp_mov').text(expediente).attr('title', expediente);
   fila.find('.islas_mov').text(islas).attr('title', islas);
   fila.find('.tipo_mov').text(t_mov).attr('title', t_mov);
-
-  let icono = fila.find('.icono_mov i');
-  switch (estado_movimiento) {
-    case 1: {//NOTIFICADO
-      icono = $('<i>').addClass('fas').addClass('fa-envelope')
-        .css('color', 'rgb(66,133,244)').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    case 2: {//FISCALIZANDO
-      icono = $('<i>').addClass('fas').addClass('fa-edit')
-        .css('color', 'rgb(244,160,0)').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    case 3: {//FISCALIZADO
-      icono = $('<i>').addClass('fas').addClass('fa-file-alt')
-        .css('color', '#66BB6A').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    case 4: {//VALIDADO
-      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check')
-        .css('color', '#66BB6A').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    case 6: {//CREADO
-      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-plus')
-        .css('color', 'rgb(150,150,150)').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    case 8: {//CARGANDO
-      icono = $('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-        .css('color', 'rgb(244,160,0)').css('margin-left', ' auto').css('margin-right', 'auto');
-    } break;
-    default: {
-    } break;
-  }
-  fila.find('.icono_mov i').replaceWith(icono);
-  fila.find('.icono_mov').attr('title', movimiento.estado)
+  fila.find('.icono_mov').parent().attr('title', movimiento.estado);
   fila.attr('data-casino', movimiento.id_casino);
   fila.attr('data-tipo', movimiento.id_tipo_movimiento);
   fila.attr('data-estado', movimiento.id_estado_movimiento);
-
-  const handlers = { //Esto era mas grande por eso una tabla, quedo asi.
-    "INGRESO INICIAL": handleMovimientoIngreso,
-    "EGRESO DEFINITIVO": handleMovimientoEgreso
-  };
-
-  if (t_mov in handlers) handlers[t_mov](movimiento, fila);
-  const es_intervencion_mtm = movimiento.puede_reingreso || movimiento.ṕuede_egreso_temporal;
-  if(!(t_mov in handlers) || movimiento.deprecado || es_intervencion_mtm){
-    fila.find('td').css('color', 'rgb(150,150,150)');
-    fila.find('button').not('.print_mov,.baja_mov').remove();
-  }
-
-  fila.find('.validarMovimiento').toggle(estado_movimiento == 3);
-  fila.find('.boton_toma2').toggle(estado_movimiento > 2);
-
+  fila.attr('data-tipo-carga', movimiento.tipo_carga);
+  console.log('Agregando fila',movimiento.id_estado_movimiento,movimiento.estado);
+  setearEstadoFila(fila,movimiento.estado,t_mov);
   return fila;
 }
 

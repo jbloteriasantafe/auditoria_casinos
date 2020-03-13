@@ -58,11 +58,12 @@ class RelevamientoMovimientoController extends Controller
 
    public function generarPlanillaMaquina($relev_mov, $tipo_movimiento, $sentido, $casino){
      $rel= new \stdClass();
-     $maquina = $relev_mov->maquina;
+     $maquina = $relev_mov->maquina()->withTrashed()->first();
      $rel->tipo_movimiento = $tipo_movimiento;
      $rel->sentido = $sentido === '---'? null : $sentido;
      $rel->fecha_relev_sala = $relev_mov->fecha_relev_sala;
      $rel->nro_admin = $maquina->nro_admin;
+     if(!is_null($maquina->deleted_at)) $rel->nro_admin .= ' (ELIM.)';
      $isla = Isla::find($maquina->id_isla);
      $rel->nro_isla = is_null($isla)? '' : $isla->nro_isla;
      $rel->nro_serie =  $maquina->nro_serie;
