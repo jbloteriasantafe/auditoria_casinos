@@ -228,7 +228,6 @@ $(document).on('click', '.baja_mov', function (e) {
       dataType: 'json',
       success: function (response) {
         mensajeExito({ titulo: 'ELIMINACIÓN EXITOSA', mensajes: ['El movimiento fue eliminado correctamente'] });
-        $('#btn-buscarMovimiento').trigger('click');
       },
       error: function (response) {
         console.log(response);
@@ -238,6 +237,11 @@ $(document).on('click', '.baja_mov', function (e) {
   });
 });
 
+$(document).on('click', '.ver_fiscalizaciones', function(){
+  const id_mov = $(this).parent().parent().attr('id');
+  window.open('relevamientos_movimientos/' + id_mov, '_blank');
+})
+
 /* Detecta la confirmación para seguir cargando máquinas en movimientos */
 $('#mensajeExito .confirmar').click(function (e) {
   $('#mensajeExito').removeClass('fijarMensaje mostrarBotones');
@@ -246,16 +250,18 @@ $('#mensajeExito .confirmar').click(function (e) {
   const ultimo_boton_carga = $('#'+id_mov).find('.boton_cargar');
   setTimeout(function () {
     if (ultimo_boton_carga.length > 0) ultimo_boton_carga.click();
-  }, 150);
-  $('#btn-buscarMovimiento').click();
+  }, 400);
 });
 
 /* Detecta la negativa para seguir cargando máquinas en movimientos */
 $('#mensajeExito .salir').click(function (e) {
   limpiarModal();//seccionMaquinas-Modal.js
   $('#mensajeExito').hide();
-  $('#btn-buscarMovimiento').click();
 });
+
+$('#mensajeExito,#mensajeError').on('show',function(){
+  $('#btn-buscarMovimiento').click();;
+})
 
 /* 
  TABLA BUSQUEDA PRINCIPAL
@@ -372,7 +378,7 @@ function setearEstadoFila(fila, estado, tipo) {
     fila.find('.boton_nuevo').addClass('nuevoEgreso');
   }
   else{
-    fila.find('button').not('.print_mov,.baja_mov').remove();
+    fila.find('button').not('.print_mov,.baja_mov,.ver_fiscalizaciones').remove();
     fila.find('td').css('color',color.gris).css('font-style','italic');
   }
 
@@ -429,13 +435,13 @@ function setearEstadoFila(fila, estado, tipo) {
     case 'CARGANDO':{ 
       fila.find('.boton_nuevo').hide();
       fila.find('.boton_cargar').show();
-      fila.find('.boton_fiscalizar').show();
+      fila.find('.boton_fiscalizar').hide();
       fila.find('.boton_validar').hide();
       const icono = $('<i>').addClass('fas').addClass('fa-user-edit').css('color',color.amarillo);
       fila.find('.icono_mov i').replaceWith(icono);
     }break;
     default:{
-      fila.find('button').not('.print_mov,.baja_mov').remove()
+      fila.find('button').not('.print_mov,.baja_mov,.ver_fiscalizaciones').remove()
     }break;
   }
 }
@@ -455,6 +461,7 @@ function generarFilaTabla(movimiento) {
   }
 
   fila.attr('id', id);
+  fila.find('.casino').text(movimiento.nombre).attr('title',movimiento.nombre);
   fila.find('.nro_mov').text(id).attr('title', id);
   fila.find('.fecha_mov').text(fecha).attr('title', fecha);
   fila.find('.nro_exp_mov').text(expediente).attr('title', expediente);

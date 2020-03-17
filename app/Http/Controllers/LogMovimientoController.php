@@ -321,11 +321,6 @@ class LogMovimientoController extends Controller
       }
     })->validate();
 
-    if(!isset($logMov->fiscalizaciones)){
-      $logMov->estado_movimiento()->associate(2);//fiscalizando
-      $logMov->save();
-    }
-
     $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
     foreach($maquinas as $m){
       //crear log maquina
@@ -349,6 +344,10 @@ class LogMovimientoController extends Controller
       null,null,null,
       null,null,0);
     }
+    if($logMov->cant_maquinas == 0){
+      $logMov->estado_movimiento()->associate(2);//fiscalizando
+      $logMov->save();
+    }
     $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
     foreach ($usuarios as $u){
       $user = Usuario::find($u->id_usuario);
@@ -371,6 +370,9 @@ class LogMovimientoController extends Controller
       $logMov->controladores()->attach($id_usuario);
     }
     $logMov->cant_maquinas = $logMov->cant_maquinas - 1; // cree una maquina, resto de las que quedan
+    if($logMov->cant_maquinas == 0){
+      $logMov->estado_movimiento()->associate(7); //MTMs cargadas
+    }
     $logMov->save();
 
     $mtm = Maquina::find($id_maquina);
@@ -454,15 +456,10 @@ class LogMovimientoController extends Controller
 
   public function relevamientosMovimientos($id_casino = 0){
     $casinos= array();
-    if($id_casino == 0){
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach($usuario->casinos as $casino){
-            $casinos [] = $casino->id_casino;
-      }
-    }else{
-      $casinos[] = $id_casino;
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    foreach($usuario->casinos as $casino){
+          $casinos [] = $casino->id_casino;
     }
-
     $tiposMovimientos = TipoMovimiento::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamientos Movimientos','relevamientos_movimientos');
@@ -751,8 +748,6 @@ class LogMovimientoController extends Controller
     return ['fisFinalizada' => $fisFinalizada, 'movFinalizado' => $movFinalizado];
   }
 
-  //para el controlador///////////////////////////////////////////////////////
-  //deberia enviar las cosas suficientes como para poder mostrar para validar
   public function obtenerFiscalizacionesMovimiento($id_log_movimiento){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       foreach($usuario->casinos as $casino){

@@ -270,7 +270,6 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');
   Route::get( '/obtenerMaquinasMovimiento/{id}','LogMovimientoController@obtenerMaquinasMovimiento');
   Route::get( '/obtenerFiscalizacionesMovimiento/{id}', 'LogMovimientoController@obtenerFiscalizacionesMovimiento');
-  Route::get( '/imprimirFiscalizacion/{id}','LogMovimientoController@imprimirFiscalizacion');
   Route::get( '/obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get( '/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
@@ -293,8 +292,13 @@ Relevamientos
 ***********/
 Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos_movimientos'], function () {
   Route::get( '/','LogMovimientoController@relevamientosMovimientos');
+  Route::get('/{id}','LogMovimientoController@relevamientosMovimientos');
   Route::post('/buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
   Route::get( '/eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacionParcial');
+  Route::get( '/imprimirFiscalizacion/{id}','LogMovimientoController@imprimirFiscalizacion');
+  Route::get( '/obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
+  Route::get( '/obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
+  Route::post('/cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
 });
 
 /**********

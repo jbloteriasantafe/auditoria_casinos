@@ -41,12 +41,13 @@ function sacarErrores(errorResponse){
 }
   
 //Toma una lista de strings y los muestra linea tras linea en el modal de errores.
-function mensajeError(errores) {
+function mensajeError(errores = []) {
     $('#mensajeError .textoMensaje').empty();
     for (let i = 0; i < errores.length; i++) {
         $('#mensajeError .textoMensaje').append($('<h4></h4>').append(errores[i]));
     }
     $('#mensajeError').hide();
+    $('#mensajeError').trigger('show');
     setTimeout(function() {
         $('#mensajeError').show();
     }, 250);
@@ -107,6 +108,7 @@ function mensajeExito(args) {
     $('#mensajeExito').toggleClass('mostrarBotones',mostrarBotones == true);//Conversion a boolean por si pasa cualquiera.
     $('#mensajeExito').toggleClass('fijarMensaje',fijarMensaje == true);
     $('#mensajeExito').hide();
+    $('#mensajeExito').trigger('show');
     setTimeout(function() {
         $('#mensajeExito').show();
     }, 250);

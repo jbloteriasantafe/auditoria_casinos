@@ -186,7 +186,16 @@ class FiscalizacionMovController extends Controller
         }
       }
       Evento::where('id_fiscalizacion_movimiento',$fiscalizacion->id_fiscalizacion_movimiento)->delete();
+      $log = $fiscalizacion->log_movimiento;
       $fiscalizacion->delete();
+      if(!is_null($log)){//Nunca deberia pasar que sea null, pero lo agrego por las dudas
+        //Si tiene fiscalizaciones FISCALIZANDO, si no MTM CARGADAS
+        $estado = 7;//MTM cargadas
+        if($log->fiscalizaciones()->count() > 0) $estado = 2;//FISCALIZANDO
+        else if(!is_null($log->cant_maquinas) && $log->cant_maquinas > 0) $estado = 8;//CARGANDO
+        $log->estado_movimiento()->associate($estado);
+        $log->save();
+      }
     });
     return 1;
   }

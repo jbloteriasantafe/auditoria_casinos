@@ -24,6 +24,11 @@ $(document).ready(function(){
     container:$('main section'),
   });
 
+  const url = window.location.pathname.split("/");
+  if(url.length >= 3) {
+    const id_mov = url[2];
+    $('#busqueda_numero_movimiento').val(id_mov);
+  }
   $('#btn-buscarRelMov').click();
   divRelMovInit();
 });
@@ -35,7 +40,7 @@ $('#fechaRelMov').on('change', function (e) {
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
 $(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
   const id_fiscalizacion= $(this).val();
-  window.open('movimientos/imprimirFiscalizacion/' + id_fiscalizacion,'_blank');
+  window.open('/relevamientos_movimientos/imprimirFiscalizacion/' + id_fiscalizacion,'_blank');
 });
 
 $(document).on('click','.btn-cargarRelMov',function(e){
@@ -55,7 +60,7 @@ function mostrarFiscalizacion(id_fiscalizacion,modo,refrescando = false){
   $('#guardarRel').attr('modo',modo).toggle(modo == "CARGAR");
   $('#guardarRel').attr('data-fis',id_fiscalizacion);
   divRelMovEsconderDetalleRelevamiento();
-  $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
+  $.get('/relevamientos_movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
     divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
@@ -72,7 +77,7 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
   const modo_ventana = $('#guardarRel').attr('modo');
   $('#guardarRel').attr('data-rel', id_rel);
   $('#guardarRel').attr('toma', toma);
-  $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
+  $.get('/relevamientos_movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', true).hide();
     const estado_rel = data.relevamiento.id_estado_relevamiento;
     if (modo_ventana == "CARGAR"){
@@ -119,7 +124,7 @@ $(document).on('click','#guardarRel',function(){
   divRelMovLimpiarErrores();
   $.ajax({
     type: 'POST',
-    url: 'movimientos/cargarTomaRelevamiento',
+    url: '/relevamientos_movimientos/cargarTomaRelevamiento',
     data: formData,
     dataType: 'json',
     success: function (data) {
@@ -153,7 +158,7 @@ $(document).on('click','.btn-eliminarFiscal',function(){
   const id=$(this).val();
   console.log(id);
 
-  $.get('relevamientos_movimientos/eliminarFiscalizacion/' + id,function(data){
+  $.get('/relevamientos_movimientos/eliminarFiscalizacion/' + id,function(data){
     if(data==1){
       $('#mensajeExito h3').text('ÉXITO DE ELIMINACIÓN');
       $('#mensajeExito p').text(' ');
@@ -205,7 +210,7 @@ $('#btn-buscarRelMov').click(function(e,pagina,tam,columna,orden){
 
   $.ajax({
     type: 'POST',
-    url: 'relevamientos_movimientos/buscarFiscalizaciones',
+    url: '/relevamientos_movimientos/buscarFiscalizaciones',
     data: formData,
     dataType: 'json',
 
