@@ -38,7 +38,7 @@ $('#fechaRelMov').on('change', function (e) {
 })
 
 //SELECCIONA EL BOTÓN QUE ABRE EL MODAL DE CARGA
-$(document).on('click','.btn-generarRelMov, .btn-imprimirRelMov',function(e){
+$(document).on('click','.btn-imprimirRelMov',function(e){
   const id_fiscalizacion= $(this).val();
   window.open('/relevamientos_movimientos/imprimirFiscalizacion/' + id_fiscalizacion,'_blank');
 });
@@ -262,15 +262,11 @@ function generarFilaTabla(rel){
   if(rel.es_controlador != 1){fila.find('.btn-eliminarFiscal').hide();}
 
   const estado = rel.id_estado_relevamiento;
-  if(estado < 3){
-    fila.find('.btn-imprimirRelMov').hide();
-  }
   if(estado > 2){
-    fila.find('.btn-imprimirRelMov').show();
-    fila.find('.btn-generarRelMov').hide();
     fila.find('.btn-cargarRelMov').hide();
   }
 
+  fila.find('.btn-imprimirRelMov').show();
   fila.find('.btn-eliminarFiscal').show();
 
   let iclass = 'fa-exclamation';
@@ -284,6 +280,12 @@ function generarFilaTabla(rel){
   else                 { iclass = 'fa-minus'     ; color = 'rgb(0,0,0)'  ;} // Cualquier otro
   fila.find('.estado').attr('title',rel.estado_descripcion);
   icon.addClass(iclass).css('color',color);
+
+  //INGRESO INICIAL Y EGRESO DEFINITIVO
+  if(rel.id_tipo_movimiento != 11 && rel.id_tipo_movimiento != 12){
+    fila.find('button').not('.btn-imprimirRelMov,.btn-eliminarFiscal,.btn-verRelMov').remove();
+    fila.find('td').css('color','rgb(150,150,150)').css('font-style','italic');
+  }
 
   return fila;
 };
