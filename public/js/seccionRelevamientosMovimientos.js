@@ -281,8 +281,8 @@ function generarFilaTabla(rel){
   fila.find('.estado').attr('title',rel.estado_descripcion);
   icon.addClass(iclass).css('color',color);
 
-  //INGRESO INICIAL Y EGRESO DEFINITIVO
-  if(rel.id_tipo_movimiento != 11 && rel.id_tipo_movimiento != 12){
+  //Si el tipo de mov tiene direccion o es deprecado lo pongo en gris
+  if(rel.puede_reingreso != 0 || rel.puede_egreso_temporal != 0 || rel.deprecado == 1){
     fila.find('button').not('.btn-imprimirRelMov,.btn-eliminarFiscal,.btn-verRelMov').remove();
     fila.find('td').css('color','rgb(150,150,150)').css('font-style','italic');
   }

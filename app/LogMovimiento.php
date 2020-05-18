@@ -66,11 +66,16 @@ class LogMovimiento extends Model
     return $this->id_log_movimiento;
   }
 
-  public function relevamientosCompletados($estado = 3){
+  public function relevamientosCompletados($intervencion_mtm,$estado = 3){
     $total = $this->relevamientos_movimientos()->count();
     $completados = $this->relevamientos_movimientos()
-    ->where('relevamiento_movimiento.id_estado_relevamiento','=',$estado)
-    ->whereNotNull('relevamiento_movimiento.id_fiscalizacion_movimiento')->count();
+    ->where('relevamiento_movimiento.id_estado_relevamiento','=',$estado);
+    if($intervencion_mtm){
+      $completados = $completados->whereNull('relevamiento_movimiento.id_fiscalizacion_movimiento')->count();
+    } 
+    else{
+      $completados = $completados->whereNotNull('relevamiento_movimiento.id_fiscalizacion_movimiento')->count();
+    }
     return $total == $completados;
   }
 

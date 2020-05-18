@@ -717,7 +717,7 @@ class LogMovimientoController extends Controller
         $fiscalizacion->save();
       }
 
-      if($logMov->relevamientosCompletados(3)){
+      if($logMov->relevamientosCompletados($es_intervencion,3)){
         $logMov->estado_relevamiento()->associate(3); // Finalizado
         $logMov->estado_movimiento()->associate(3);  // Notificado
         $movFinalizado = true;
@@ -918,6 +918,7 @@ class LogMovimientoController extends Controller
         $rel->delete();
       }
       foreach($log->fiscalizaciones as $f){
+        if(!is_null($f->evento)) $f->evento->delete();
         $f->delete();
       }
       LogClicksMovController::getInstancia()->eliminar($log->id_log_movimiento);
@@ -927,28 +928,15 @@ class LogMovimientoController extends Controller
   }
 
   public function eliminarEventualidadMTM(Request $request){
-    $validator = Validator::make($request->all(),
-    ['id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento'], array(), self::$atributos)
-    ->after(function($validator){
-      if(!$validator->errors()->any()){ //Si el log_movimiento existe
-        $data = $validator->getData();
-        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-        $log = LogMovimiento::find($data['id_log_movimiento']);
-        if(!$user->usuarioTieneCasino($log->id_casino)){
-          $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
-        }
-        if(!is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos'){
-          $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
-        }
-      }
-    })->validate();
-    return $this->eliminarMov($request->id_log_movimiento,true,true,false);
+    return $this->eliminarMovimiento($request,true);
   }
 
-  public function eliminarMovimiento(Request $request){
+  public function eliminarMovimiento(Request $request,$validar_es_intervencion = false){
+    /* Las intervenciones MTM se pueden eliminar libremente
+     * Los ingresos solo si se es el unico que queda. Los egresos ponen la maquina en inhabilitada */
     $validator = Validator::make($request->all(),
     ['id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento'], array(), self::$atributos)
-    ->after(function($validator){
+    ->after(function($validator) use ($validar_es_intervencion){
       if(!$validator->errors()->any()){ //Si el log_movimiento existe
         $data = $validator->getData();
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -956,24 +944,50 @@ class LogMovimientoController extends Controller
         if(!$user->usuarioTieneCasino($log->id_casino)){
           $validator->errors()->add('id_casino','El usuario no puede acceder a ese casino.');
         }
+        if(!$user->es_administrador && !$user->es_superusuario){
+          $validator->errors()->add('id_usuario','El usuario no puede realizar esa accion.');
+        }
         if(!is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos'){
           $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
+        }
+        if($validar_es_intervencion && !$log->tipo_movimiento->es_intervencion_mtm){
+          $validator->errors()->add('id_tipo_movimiento','No puede eliminar un movimiento que no es una intervencion.');
+        }
+        if(!$log->tipo_movimiento->es_intervencion_mtm && is_null($log->id_expediente)){
+          $validator->errors()->add('id_tipo_movimiento','Movimiento incosistente, no se puede eliminar.');
+        }
+        //No sigo validando si ya me dieron error los de arriba
+        if($validator->errors()->any()) return;
+        $tipo_mov = $log->tipo_movimiento->id_tipo_movimiento;
+        //INGRESO o INGRESO INICIAL
+        if($tipo_mov == 1 || $tipo_mov == 11){
+          foreach($log->relevamientos_movimientos as $rel){
+            $maquina = $rel->maquina;
+            if($maquina->relevamiento_movimiento()->count() > 1){
+              $validator->errors()->add('maquina','La maquina '.$maquina->nro_admin.' tiene movimientos.');
+            }
+          }
         }
       }
     })->validate();
 
     $ret = 0;
-    DB::transaction(function() use($request,&$ret){
-      //Si es un ingreso inicial borro las maquinas para que no de NRO ADMIN duplicado al intentar cargar de vuelta
+    DB::transaction(function() use (&$ret,$request){
       $log = LogMovimiento::find($request->id_log_movimiento);
-      if($log->tipo_movimiento->descripcion == 'INGRESO INICIAL'){
-        $mtmcontrol = MTMController::getInstancia();
+      $tipo_mov = $log->tipo_movimiento->id_tipo_movimiento;
+      if($tipo_mov == 1 || $tipo_mov == 11){//Borrando un ingreso
         foreach($log->relevamientos_movimientos as $rel){
-          dump($rel->toArray());
-          $mtmcontrol->eliminarMTM($rel->id_maquina);//Soft delete, no deberia dar problemas por clave foranea
+          MTMController::getInstancia()->eliminarMTM($rel->maquina->id_maquina);
         }
       }
-      $ret = $this->eliminarMov($request->id_log_movimiento,true,true,false);
+      else if($tipo_mov == 2 ||  $tipo_mov == 12){//Borrando un egreso
+        foreach($log->relevamientos_movimientos as $rel){
+          $maquina = $rel->maquina;
+          $maquina->id_estado_maquina = 6;//INHABILITADA
+          $maquina->save();
+        }
+      }
+      $ret = $this->eliminarMov($log->id_log_movimiento,true,true,false);
     });
     return $ret;
   }
@@ -1262,8 +1276,7 @@ class LogMovimientoController extends Controller
   }
 
 
-  // visarConObservacion valida un relevamiento que nace de una intervencion de MTM
-  public function visarConObservacion(Request $request){
+  public function visarConObservacion(Request $request){//@TODO: Borrar maquina si fue ERROR e INGRESO?
     $relevMov = null;
     $fisMov = null;
     $logMov = null;
@@ -1326,23 +1339,24 @@ class LogMovimientoController extends Controller
           7  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de juego validado."],
           10 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización de firmware validada."],
         ];
-        //Si fue VALIDADO el relevamiento genero un LogMaquina
-        if($relevMov->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
-          $maquina = $relevMov->maquina()->withTrashed()->first();
-          $accion = $map[$logMov->id_tipo_movimiento];
-          if(array_key_exists('nuevo_estado',$accion)){
-            $maquina->estado_maquina()->associate($accion['nuevo_estado']);
-            $maquina->save();
+        foreach($logMov->relevamientos_movimientos as $rel){
+          if($rel->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
+            $maquina = $rel->maquina()->withTrashed()->first();
+            $accion = $map[$logMov->id_tipo_movimiento];
+            if(array_key_exists('nuevo_estado',$accion)){
+              $maquina->estado_maquina()->associate($accion['nuevo_estado']);
+              $maquina->save();
+            }
+            $razon = $accion['texto']." \n";
+            $tomas = $rel->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
+            $multiples_tomas = $rel->toma_relevamiento_movimiento()->count() > 1;
+            //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
+            foreach($tomas as $idx => $toma){
+              if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
+              $razon = $razon . $toma->observaciones . " \n";
+            }
+            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
           }
-          $razon = $accion['texto']." \n";
-          $tomas = $relevMov->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
-          $multiples_tomas = $relevMov->toma_relevamiento_movimiento()->count() > 1;
-          //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
-          foreach($tomas as $idx => $toma){
-            if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
-            $razon = $razon . $toma->observaciones . " \n";
-          }
-          LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
         }
       }
       DB::commit();

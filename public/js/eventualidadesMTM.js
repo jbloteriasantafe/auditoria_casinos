@@ -425,12 +425,14 @@ function generarFilaTabla(event,controlador,superusuario){
   fila.find('.casino').text(event.nombre).attr('title',event.nombre);
   const islas = event.islas === null? '-' : event.islas;
   fila.find('.isla').text(islas).attr('title',islas);
-  if(estado == 1) fila.find('.accion .btn_cargarEvmtm i').removeClass('fa-upload').addClass('fa-pencil-alt');
   fila.find('button').attr('data-casino',event.id_casino).val(event.id_log_movimiento);
 
   fila.find('.btn_validarEvmtm').toggle(estado == 3 && (superusuario || controlador));
   fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 2 );
-  if(event.deprecado==1 || estado > 4){
+  if((event.puede_reingreso == 0 && event.puede_egreso_temporal == 0) 
+  || event.deprecado == 1
+  || event.sentido == '---' 
+  || estado > 4){
     fila.find('td').css('color','rgb(150,150,150)');
     fila.find('button').not('.btn_verEvmtm,.btn_imprimirEvmtm,.btn_borrarEvmtm').remove();
   }

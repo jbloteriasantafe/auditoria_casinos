@@ -111,13 +111,13 @@ $cas = $usuario['usuario']->casinos;
       <div class="panel-body">
         <table id="tablaRelevamientosMovimientos" class="table table-fixed tablesorter">
           <thead>
-            <th class="col-xs-1" value="fiscalizacion_movimiento.fecha_envio_fiscalizar">FECHA<i class="fa fa-sort"></i></th>
-            <th class="col-xs-1" value="log_movimiento.id_log_movimiento">MOV<i class="fa fa-sort"></i></th>
-            <th class="col-xs-2" value="fiscalizacion_movimiento.identificacion_nota">NOTA<i class="fa fa-sort"></i></th>
-            <th class="col-xs-1" value="estado_relevamiento.descripcion">ESTADO<i class="fa fa-sort"></i></th>
-            <th class="col-xs-2" value="tipo_movimiento.descripcion">TIPO DE MOVIMIENTO<i class="fa fa-sort"></i></th>
             <th class="col-xs-1" value="casino.nombre">CASINO<i class="fa fa-sort"></i></th>
+            <th class="col-xs-1" value="log_movimiento.id_log_movimiento">MOV<i class="fa fa-sort"></i></th>
+            <th class="col-xs-1" value="fiscalizacion_movimiento.fecha_envio_fiscalizar">FECHA<i class="fa fa-sort"></i></th>
+            <th class="col-xs-2" value="fiscalizacion_movimiento.identificacion_nota">NOTA<i class="fa fa-sort"></i></th> 
             <th class="col-xs-2" value="maquinas">MAQUINAS<i class="fa fa-sort"></i></th>
+            <th class="col-xs-2" value="tipo_movimiento.descripcion">TIPO DE MOVIMIENTO<i class="fa fa-sort"></i></th>
+            <th class="col-xs-1" value="estado_relevamiento.descripcion">ESTADO<i class="fa fa-sort"></i></th>
             <th class="col-xs-2">ACCIÓN</th>
           </thead>
           <tbody id="cuerpoTablaRel" style="height: 380px;">
@@ -131,21 +131,18 @@ $cas = $usuario['usuario']->casinos;
 
 <table hidden>
   <tr id="filaEjemploRelevamiento">
-    <td class="col-xs-1 fecha">99-99-999</td>
+    <td class="col-xs-1 casino">CASINO</td>
     <td class="col-xs-1 movimiento">9999999</td>
+    <td class="col-xs-1 fecha">99-99-999</td>
     <td class="col-xs-2 nota">99999</td>
+    <td class="col-xs-2 maquinas">9999,999,9,9,99,,99</td>
+    <td class="col-xs-2 tipo">TIPO</td>
     <td class="col-xs-1 estado">
         <i class="fas fa-fw fa-exclamation" style="color: rgb(255,255,0);align: center;"></i>
     </td>
-    <td class="col-xs-2 tipo">TIPO</td>
-    <td class="col-xs-1 casino">CASINO</td>
-    <td class="col-xs-2 maquinas">9999,999,9,9,99,,99</td>
     <td class="col-xs-2 accion">
       <button class="btn btn-success btn-verRelMov" title="VER">
         <i class="fa fa-fw fa-search"></i>
-      </button>
-      <button class="btn btn-success btn-generarRelMov" title="GENERAR">
-        <i class="far fa-file"></i>
       </button>
       <button class="btn btn-success btn-cargarRelMov" title="CARGAR">
         <i class="fa fa-fw fa-upload"></i>

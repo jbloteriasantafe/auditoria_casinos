@@ -133,8 +133,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <div class="row">
       <div class="col-lg-12">
         <a href="" id="btn-nuevo-movimiento" style="text-decoration: none;">
-          <div class="panel panel-default panelBotonNuevo col-md-12">
-            <img class="imgNuevo col-md-offset-4" src="/img/logos/informes_white.png">
+          <div class="panel panel-default panelBotonNuevo">
+            <img class="imgNuevo" src="/img/logos/informes_white.png" style="display: block;margin: 0 auto;">
             <div class="backgroundNuevo">
             </div>
             <div class="row">
