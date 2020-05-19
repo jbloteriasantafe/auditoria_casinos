@@ -1161,7 +1161,7 @@ class LectorCSVController extends Controller
     $pdo->exec($query);
 
     $query = sprintf(" INSERT INTO beneficio (id_casino,fecha,coinin,coinout,valor,porcentaje_devolucion,cantidad_maquinas,promedio_por_maquina,id_tipo_moneda)
-                       SELECT 3,fecha,coinin,coinout,valor,(coinout/coinin),'%d',(valor/'%d'),'%d'
+                       SELECT 3,fecha,coinin,coinout,valor,IF(coinin = 0,0,coinout/coinin),'%d',(valor/'%d'),'%d'
                        FROM beneficio_temporal
                        WHERE id_beneficio = '%d'
                          AND fecha IS NOT NULL
