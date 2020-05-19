@@ -74,6 +74,18 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
+  $('#mesInfoImportacion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 3,
+    minView: 3,
+    ignoreReadonly: true,
+  });
+
   if($('#casino_busqueda option').length == 2 ){
     $('#casino_busqueda option:eq(1)').prop('selected', true);
   }
@@ -127,15 +139,26 @@ $('#monedaInfoImportacion').change(function() {
     cargarTablasImportaciones('3', id_moneda);
 });
 
+$('#buscarInfoImportacion').on('click',function(){
+  var id_casino = $('#casinoInfoImportacion').val();
+  var id_moneda = $('#monedaInfoImportacion').val();
+  if(id_casino != '3'){
+    cargarTablasImportaciones(id_casino, '1'); //El 1 es PESOS
+  }
+  else{
+    cargarTablaImportaciones(id_casino,id_moneda);
+  }
+});
+
 function limpiarBodysImportaciones() {
     $('.tablaBody tr').not('#moldeFilaImportacion').remove();
     $('.tablaBody').hide();
 }
 
 function cargarTablasImportaciones(casino, moneda) {
-
-
-    $.get('importaciones/' + casino, function(data) {
+    const fecha = $('#mes_info_hidden').val();
+    const url = fecha.size == 0? '' : ('/' + fecha);
+    $.get('importaciones/' + casino + url, function(data) {
         var tablaBody;
 
         console.log("Casino: ", casino);

@@ -279,7 +279,7 @@ class ImportacionController extends Controller
 
 
 
-  public function estadoImportacionesDeCasino($id_casino){
+  public function estadoImportacionesDeCasino($id_casino,$fecha_busqueda = null){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
     Validator::make([
          'id_casino' => $id_casino,
@@ -290,7 +290,12 @@ class ImportacionController extends Controller
 
     })->validate();
 
-    $fecha= date('Y-m-d');//hoy
+    $fecha = date('Y-m-d');
+    if(!is_null($fecha_busqueda)){
+      $aux = new \DateTime($fecha_busqueda);
+      $aux->modify('last day of this month');
+      $fecha = $aux->format('Y-m-d');
+    }
 
     $no_es_fin = true;
     $i= $suma = 0;
@@ -317,7 +322,7 @@ class ImportacionController extends Controller
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
       $i++;
-      $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days'));
+      $fecha = date('Y-m-d' , strtotime($fecha . ' - 1 days'));
       if($i == 30) $no_es_fin = false;//final
     }
     return ['arreglo' => $arreglo];

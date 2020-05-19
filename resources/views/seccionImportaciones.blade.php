@@ -96,12 +96,23 @@ $id_usuario = session('id_usuario');
                               </div>
                               <div class="panel-body">
                                   <div class="row">
+                                      <div class="col-md-1" id="buscarInfoImportacion" type="button">
+                                        <button class="btn btn-info"><i class="fa fa-fw fa-search"></i></button>
+                                      </div>
                                       <div class="col-md-3">
                                         <select id="casinoInfoImportacion" class="form-control" name="">
                                             @foreach ($casinos as $casino)
                                               <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                             @endforeach
                                         </select>
+                                      </div>
+                                      <div class="col-md-3">
+                                        <div class='input-group date' id='mesInfoImportacion' data-link-field="mes_info_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                                            <input type='text' class="form-control"/>
+                                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                        <input type="hidden" id="mes_info_hidden" value=""/>
                                       </div>
                                       <div class="col-md-3">
                                         <select id="monedaInfoImportacion" class="form-control" name="">

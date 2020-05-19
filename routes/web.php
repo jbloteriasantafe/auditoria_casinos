@@ -377,7 +377,7 @@ Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarP
 Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
 Route::get('importaciones','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
 Route::post('importaciones/buscar','ImportacionController@buscar');
-Route::get('importaciones/{id_casino}','ImportacionController@estadoImportacionesDeCasino');
+Route::get('importaciones/{id_casino}/{fecha_busqueda?}','ImportacionController@estadoImportacionesDeCasino');
 Route::post('importaciones/importarContador','ImportacionController@importarContador');
 Route::post('importaciones/importarProducido','ImportacionController@importarProducido');
 Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
