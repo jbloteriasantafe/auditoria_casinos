@@ -194,8 +194,9 @@ class BeneficioController extends Controller
           $prod = Producido::where([['fecha',$ben->fecha],['id_casino',$ben->id_casino],['id_tipo_moneda',$ben->id_tipo_moneda]])->first();
           if($prod != null){
             $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido sumandole el ajuste reciente
-
-            if($producido_calculado != null && round($producido_calculado - $ben->valor,2) == 0){
+            $diff = $producido_calculado - $ben->valor;
+            $diff_round = round($diff,2);
+            if(!is_null($producido_calculado) && $diff_round == 0.00){
               $ben->validado = 1;
             }else{//si no lo valida, largo error
               $errors = new MessageBag;
@@ -292,7 +293,7 @@ class BeneficioController extends Controller
           if($prod != null){
             $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido
 
-            if($producido_calculado != null && round($producido_calculado - $ben->valor,2) == 0){
+            if(!is_null($producido_calculado) && round($producido_calculado - $ben->valor,2) == 0){
               $ben->validado = 1;
             }else{//si no lo valida, largo error
               $errors = new MessageBag;
