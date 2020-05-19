@@ -622,10 +622,13 @@ function procesarDatosContador(e) {
     var allTextLines = csv.split('\n'); //Se obtienen todas las filas del archivo
 
     //Comprobar que el tamaño del archivo corresponda al de un contador
-    if (allTextLines.length > 5) {
-        // Se obtienen todas las columnas de la fila 6.
+    //Octavio Mayo 2020 @HACK
+    // Esto se rompe si Santa Fe o Melincue reportan menos de dos maquinas
+    // Pero tuve que adaptar codigo viejo.
+    // El tema es que necesitas alguna maquina para detectar que casino es.
+    if (allTextLines.length >= 3) {
         // En esta fila los contadores de todos los casinos tienen los datos importantes para identificarlo.
-        var data = allTextLines[6].split(';');
+        var data = allTextLines[2].split(';');
 
         var tarr = [];
 
