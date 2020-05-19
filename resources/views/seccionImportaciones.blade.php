@@ -96,9 +96,6 @@ $id_usuario = session('id_usuario');
                               </div>
                               <div class="panel-body">
                                   <div class="row">
-                                      <div class="col-md-1" id="buscarInfoImportacion" type="button">
-                                        <button class="btn btn-info"><i class="fa fa-fw fa-search"></i></button>
-                                      </div>
                                       <div class="col-md-3">
                                         <select id="casinoInfoImportacion" class="form-control" name="">
                                             @foreach ($casinos as $casino)

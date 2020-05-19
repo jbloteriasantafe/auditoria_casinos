@@ -139,7 +139,7 @@ $('#monedaInfoImportacion').change(function() {
     cargarTablasImportaciones('3', id_moneda);
 });
 
-$('#buscarInfoImportacion').on('click',function(){
+$('#mesInfoImportacion').on("change.datetimepicker",function(){
   var id_casino = $('#casinoInfoImportacion').val();
   var id_moneda = $('#monedaInfoImportacion').val();
   if(id_casino != '3'){
@@ -148,7 +148,7 @@ $('#buscarInfoImportacion').on('click',function(){
   else{
     cargarTablasImportaciones(id_casino,id_moneda);
   }
-});
+})
 
 function limpiarBodysImportaciones() {
     $('.tablaBody tr').not('#moldeFilaImportacion').remove();
