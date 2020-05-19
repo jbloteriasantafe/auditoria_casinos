@@ -143,10 +143,10 @@ $('#buscarInfoImportacion').on('click',function(){
   var id_casino = $('#casinoInfoImportacion').val();
   var id_moneda = $('#monedaInfoImportacion').val();
   if(id_casino != '3'){
-    cargarTablaImportaciones(id_casino, '1'); //El 1 es PESOS
+    cargarTablasImportaciones(id_casino, '1'); //El 1 es PESOS
   }
   else{
-    cargarTablaImportaciones(id_casino,id_moneda);
+    cargarTablasImportaciones(id_casino,id_moneda);
   }
 });
 
