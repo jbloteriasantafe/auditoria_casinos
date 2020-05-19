@@ -290,20 +290,15 @@ class ImportacionController extends Controller
 
     })->validate();
 
-    $fecha = date('Y-m-d');
-    if(!is_null($fecha_busqueda)){
-      $aux = new \DateTime($fecha_busqueda);
-      $aux->modify('last day of this month');
-      $fecha = $aux->format('Y-m-d');
-    }
+    $fecha = is_null($fecha_busqueda)? date('Y-m-d') : $fecha_busqueda;
+    $aux = new \DateTime($fecha);
+    $aux->modify('last day of this month');
+    $fecha = $aux->format('Y-m-d');
+    $mes = date('m',strtotime($fecha));
 
-    $no_es_fin = true;
-    $i= $suma = 0;
     $arreglo = array();
 
-    while($no_es_fin){
-      $aux= new \stdClass();
-      $valor = 0;
+    while(date('m',strtotime($fecha)) == $mes){
       if($id_casino == 3){//si es rosario tengo $ y DOL
         $contador['pesos'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true :false;
         $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
@@ -321,9 +316,7 @@ class ImportacionController extends Controller
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
-      $i++;
       $fecha = date('Y-m-d' , strtotime($fecha . ' - 1 days'));
-      if($i == 30) $no_es_fin = false;//final
     }
     return ['arreglo' => $arreglo];
   }
