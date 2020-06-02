@@ -178,7 +178,7 @@ function generarFilaTabla(unAutoexcluido) {
     let generar_solicitud_ae = fila.find('#btnGenerarSolicitudAutoexclusion').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'GENERAR SOLICITUD AE', 'data-delay': '{"show":"300", "hide":"100"}' });
 
     //si el estado del autoexcluido es distinto de 5 (vencido),
-    //oculto eol botón para generar la constancia de reingreso
+    //oculto el botón para generar la constancia de reingreso
     if (unAutoexcluido.id_nombre_estado != 5) {
       fila.find('#btnGenerarConstanciaReingreso').hide();
     }
@@ -257,7 +257,7 @@ $('#btn-agregar-ae').click(function(e){
   $("#btn-prev").hide();
 
   //título y color header
-  $('.modal-title').text('| AGREGAR / EDITAR AUTOEXCLUIDO');
+  //$('.modal-title').text('| AGREGAR / EDITAR AUTOEXCLUIDO');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
   //oculto botón guardar y muestro botón siguiente en caso que se encuentre oculto
@@ -287,6 +287,14 @@ $('#btn-subir-solicitud-ae').click(function(e){
 
   //muestra modal
   $('#modalSubirSolicitudAE').modal('show');
+});
+
+//Botón ver formularios AE
+$('#btn-ver-formularios-ae').click(function(e){
+  e.preventDefault();
+
+  //muestra modal
+  $('#modalFormulariosAE').modal('show');
 });
 
 
@@ -562,17 +570,14 @@ $("#btn-next").on("click", function(){
     }
     */
 
-    //verifico que el step sea valido para avanzar
-    if(valid == 1 && step<4){
-      //si no es el último step, tengo siguiente
-      if($(".page.active").index() < $(".page").length-1){
-          //cambio form active
-          $(".page.active").removeClass("active").next().addClass("active");
-          //cambio step active
-          $(".step.actived").removeClass("actived").addClass("finish").next().addClass("actived");
-          //muestro botón anterior
-          $("#btn-prev").show();
-      }
+    //verifico que el step sea valido para avanzar y, si no es el último step, tengo siguiente:
+    if(valid==1 && step<4 && $(".page.active").index() < $(".page").length-1){
+        //cambio form active
+        $(".page.active").removeClass("active").next().addClass("active");
+        //cambio step active
+        $(".step.actived").removeClass("actived").addClass("finish").next().addClass("actived");
+        //muestro botón anterior
+        $("#btn-prev").show();
     }
 
     //si llegue al final, muestro botón de guardar y oculto el de siguiente
@@ -717,7 +722,7 @@ $('#btn-guardar').click(function (e) {
               $('#mensajeExito div').css('background-color','#FFB74D');
             }
             $('#modalAgregarAE').modal('hide');
-            $('#btn-buscar').trigger('click'); //hago un trigger al boton buscar asi actualiza la tabla sin recargar la pagina
+            $('#btn-buscar').trigger('click'); //hago un trigger al botón buscar asi actualiza la tabla sin recargar la pagina
             $('#mensajeExito').show(); //mostrar éxito
         },
         error: function (data) {
@@ -731,7 +736,6 @@ $('#btn-guardar').click(function (e) {
 
 //botón subir archivo solicitud ae
 $('#btn-subir-archivo').click(function (e) {
-
     //guardo el archivo en un formdata
     var formData = new FormData();
     formData.append('solicitudAE', $('#solicitudAE')[0].files[0]);
@@ -818,18 +822,21 @@ $(document).on('click', '#btnVerMas', function(e){
           .val(-1)
           .text('Info. no ingresada')
       );
+
       $('#infoFrecuenciaAsistencia').append($('<option>')
           .attr('id','-1')
           .attr('value','-1')
           .val(-1)
           .text('Info. no ingresada')
       );
+
       $('#infoComoAsiste').append($('<option>')
           .attr('id','-1')
           .attr('value','-1')
           .val(-1)
           .text('Información no ingresada')
       );
+
       $('#infoJuegoPreferido').val(-1);
       $('#infoFrecuenciaAsistencia').val(-1);
       $('#infoVeces').val('Info. no ingresada');
@@ -843,9 +850,9 @@ $(document).on('click', '#btnVerMas', function(e){
       $('#infoObservaciones').val('Información no ingresada');
     }
 
-    //seteo en el value del boton de foto1 el id de la importacion, para despues
+    //seteo en el value de los botones de ver mas el id de la importacion, para después
     //buscar en el backend los paths a los archivos y mostrarlos oportunamente
-    $('#verMasFoto1').val(data.id_importacion);
+    $('.archivosImportados').find('button').each(function(idx, c) { $(c).val(data.id_importacion); });
 
     $('#modalVerMas').modal('show');
   });
@@ -857,7 +864,6 @@ $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){
   let id_autoexcluido = $(this).val();
 
   window.open('autoexclusion/generarSolicitudAutoexclusion/' + id_autoexcluido, '_blank');
-  $('#semanal').attr('checked','checked');
 });
 
 //boton generar constancia de reingreso
@@ -873,30 +879,18 @@ $('#btn-salir').click(function() {
     $('#modalVerMas').modal('hide');
 });
 
-//Mostrar archivo foto1
-$('#verMasFoto1').click(function() {
+//Mostrar archivos ver mas
+$('.btn-ver-mas').click(function() {
+  let tipo_archivo = $(this).attr('id');
   let id_importacion = $(this).val();
-  let id_archivo = '1' + id_importacion;
+  let id_archivo = tipo_archivo + id_importacion;
+
   window.open('autoexclusion/mostrarArchivo/' + id_archivo, '_blank');
 });
 
-//Mostrar archivo foto2
-$('#verMasFoto2').click(function() {
-  let id_importacion = $('#verMasFoto1').val();
-  let id_archivo = '2' + id_importacion;
-  window.open('autoexclusion/mostrarArchivo/' + id_archivo, '_blank');
-});
+//Mostrar formularios
+$('.btn-ver-formulario').click(function() {
+  let id = $(this).attr('id');
 
-//Mostrar archivo scandni
-$('#verMasScanDni').click(function() {
-  let id_importacion = $('#verMasFoto1').val();
-  let id_archivo = '3' + id_importacion;
-  window.open('autoexclusion/mostrarArchivo/' + id_archivo, '_blank');
-});
-
-//Mostrar archivo solicitud_autoexclusion
-$('#verMasSolicitudAutoexclusion').click(function() {
-  let id_importacion = $('#verMasFoto1').val();
-  let id_archivo = '4' + id_importacion;
-  window.open('autoexclusion/mostrarArchivo/' + id_archivo, '_blank');
+  window.open('autoexclusion/mostrarFormulario/' + id, '_blank');
 });

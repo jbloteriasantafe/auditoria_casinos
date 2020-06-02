@@ -7,11 +7,6 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
-$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
-$puede_eliminar = $user->es_administrador || $user->es_superusuario;
-$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 ?>
 
 @section('estilos')
@@ -178,8 +173,8 @@ background-color: #4CAF50;
                             <span id="fecha_ae" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">VENCIMIENTO 1° PERÍODO </h5>
                             <span id="vencimiento" style="margin-top:6px; margin-left: 15px;"></span><br>
-                            <h5 style="display:inline-block">FECHA FINALIZACIÓN </h5>
-                            <span id="fecha_finalizacion" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <h5 style="display:inline-block">FECHA REVOCACIÓN </h5>
+                            <span id="fecha_revocacion" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">FECHA CIERRE </h5>
                             <span id="fecha_cierre" style="margin-top:6px; margin-left: 15px;"></span>
                             <br>
@@ -191,7 +186,6 @@ background-color: #4CAF50;
 
           </div>
         </div>
-
 
     </div> <!-- row principal -->
 
@@ -228,8 +222,6 @@ background-color: #4CAF50;
   <!-- DateTimePicker JavaScript -->
   <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-
 
   <script type="text/javascript" src="js/jquery.jfollow.js"></script>
   <script type="text/javascript" src="js/jquery.imagesloaded.min.js"></script>

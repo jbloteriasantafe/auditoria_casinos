@@ -33,7 +33,7 @@
     <section><p class="centrar" style="padding-top:-20px">SOLICITUD DE FINALIZACIÓN DE LA AUTOEXCLUSIÓN</p></section>
 
     <div class="camposTab titulo" style="top:110px; right:-15px; padding:3px; padding-top:10px; border: 1px solid black">
-      FECHA: <?php print_r(date('j-m-y')); ?>
+      FECHA: <?php print_r(date('d-m-y')); ?>
     </div>
 
     <div class="primerEncabezado" align="justify" style="font-size:13px">

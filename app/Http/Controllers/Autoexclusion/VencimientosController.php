@@ -85,7 +85,7 @@ class VencimientosController extends Controller
         ->where($reglas)
         ->where('ae_estado.fecha_vencimiento', '>=', $fecha_hoy)
         ->where('ae_estado.fecha_vencimiento', '<=', $fecha_tope)
-        ->where('ae_estado.id_nombre_estado', '!=', 4) //@TODO: ver si hay que excluir tambien otros estados
+        ->where('ae_estado.id_nombre_estado', '!=', 2) //@TODO: ver si hay que excluir tambien otros estados
         ->paginate($request->page_size);
 
       return $resultados;
@@ -108,7 +108,7 @@ class VencimientosController extends Controller
       $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
       $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
-      return $dompdf->stream("Ver_Pdf_Provisional" . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
+      return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
     }
 
     public function finalizarAutoexclusion(Request $request){
@@ -131,14 +131,17 @@ class VencimientosController extends Controller
       //consigo el path del directorio raiz del proyecto
       $pathAbs = realpath('../');
 
+      //genero el nombre del archivo
+      $nombre_archivo = date("dmY") . '-' . $ae->nro_dni . '-5';
+
       //establezco el path de destino del archivo
-      $pathDestinoFormulario = $pathAbs . '/importacionesAutoexcluidos/formulario_finalizacion/' . $ae->nro_dni . '_formulario_finalizacion';
+      $pathDestinoFormulario = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $nombre_archivo;
 
       //copio el archivo subido al filesystem
-      $copia1 = copy($request->formulario_finalizacion->getRealPath(), $pathDestinoFormulario);
+      copy($request->formulario_finalizacion->getRealPath(), $pathDestinoFormulario);
 
       $imp = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$request->id_ae)->first();
-      $imp->solicitud_revocacion = $pathDestinoFormulario;
+      $imp->solicitud_revocacion = $nombre_archivo;
       $imp->save();
 
       return ['codigo' => 200];

@@ -7,11 +7,6 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
-$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
-$puede_eliminar = $user->es_administrador || $user->es_superusuario;
-$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 ?>
 
 @section('estilos')
@@ -93,6 +88,25 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                             <center>
                               <h5 class="txtLogo">+</h5>
                               <h4 class="txtNuevo">Subir solicitud de autoexclusión</h4>
+                            </center>
+                          </div>
+                      </div>
+                  </div>
+                </a>
+          </div>
+
+          <div class="col-xl-12 col-md-4">
+                <a href="" id="btn-ver-formularios-ae" style="text-decoration: none;">
+                  <div class="panel panel-default panelBotonNuevo">
+                      <center>
+                        <img class="imgNuevo" src="/img/logos/relevamientos_white.png">
+                      </center>
+                      <div class="backgroundNuevo"></div>
+                      <div class="row">
+                          <div class="col-xs-12">
+                            <center>
+                              <h5 class="txtLogo">+</h5>
+                              <h4 class="txtNuevo">Ver formularios de autoexclusión</h4>
                             </center>
                           </div>
                       </div>
@@ -241,8 +255,6 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 
 
 
-
-
     <!-- MODAL AGREGAR AE-->
     <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
@@ -250,7 +262,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                  <h3 class="modal-title" id="myModalLabel">| AGREGAR AE</h3>
+                  <h3 class="modal-title" id="myModalLabel">| AGREGAR / EDITAR AUTOEXCLUIDO</h3>
                 </div>
 
                 <div  id="colapsado" class="collapse in">
@@ -302,14 +314,11 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                     </div>
                                     <div class="col-lg-3">
                                       <h5>ESTADO CIVIL</h5>
-                                      <select id="id_estado_civil" name="id_estado_civil" class="form-control">
+                                      <select id="id_estado_civil" class="form-control selectEstadoCivil" name="id_estado_civil">
                                         <option selected="" value="">Seleccionar Valor</option>
-                                        <option value="1">Soltero</option>
-                                        <option value="2">Casado</option>
-                                        <option value="3">Separado / Divorciado</option>
-                                        <option value="4">Unido de Hecho</option>
-                                        <option value="5">Viudo</option>
-                                        <option value="6">No Contesta</option>
+                                        @foreach ($estados_civiles as $estado_civil)
+                                          <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
+                                        @endforeach
                                       </select>
                                     </div>
                                     <div class="col-lg-6">
@@ -347,14 +356,11 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>CAPACITACIÓN</h5>
-                                      <select id="id_capacitacion" name="id_capacitacion" class="form-control">
+                                      <select id="id_capacitacion" class="form-control" name="id_capacitacion">
                                         <option selected="" value="">Seleccionar Valor</option>
-                                        <option value="1">Primaria</option>
-                                        <option value="2">Secundaria</option>
-                                        <option value="3">Terciaria</option>
-                                        <option value="4">Universitaria</option>
-                                        <option value="5">Otra</option>
-                                        <option value="6">No Contesta</option>
+                                        @foreach ($capacitaciones as $capacitacion)
+                                          <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
+                                        @endforeach
                                       </select>
                                     </div>
                                   </div>
@@ -613,14 +619,11 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                           </div>
                           <div class="col-lg-6">
                             <h5>ESTADO CIVIL</h5>
-                            <select id="infoEstadoCivil" name="infoEstadoCivil" class="form-control" disabled>
+                            <select id="infoEstadoCivil" class="form-control" name="infoEstadoCivil" disabled>
                               <option selected="" value="">Seleccionar Valor</option>
-                              <option value="1">Soltero</option>
-                              <option value="2">Casado</option>
-                              <option value="3">Separado / Divorciado</option>
-                              <option value="4">Unido de Hecho</option>
-                              <option value="5">Viudo</option>
-                              <option value="6">No Contesta</option>
+                              @foreach ($estados_civiles as $estado_civil)
+                                <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
+                              @endforeach
                             </select>
                           </div>
                         </div>
@@ -666,14 +669,11 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                           </div>
                           <div class="col-lg-6">
                             <h5>CAPACITACIÓN</h5>
-                            <select id="infoCapacitacion" name="infoCapacitacion" class="form-control" disabled>
+                            <select id="infoCapacitacion" class="form-control" name="infoCapacitacion" disabled>
                               <option selected="" value="">Seleccionar Valor</option>
-                              <option value="1">Primaria</option>
-                              <option value="2">Secundaria</option>
-                              <option value="3">Terciaria</option>
-                              <option value="4">Universitaria</option>
-                              <option value="5">Otra</option>
-                              <option value="6">No Contesta</option>
+                              @foreach ($capacitaciones as $capacitacion)
+                                <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
+                              @endforeach
                             </select>
                           </div>
                         </div>
@@ -765,21 +765,21 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                         <div class="row">
                           <div class="col-lg-6">
                             <h5>FOTO #1</h5>
-                            <button id="verMasFoto1" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
+                            <button id="1" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
                           </div>
                           <div class="col-lg-6">
                             <h5>FOTO #2</h5>
-                            <button id="verMasFoto2" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
+                            <button id="2" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
                           </div>
                         </div>
                         <div class="row">
                           <div class="col-lg-6">
                               <h5>SCAN DNI</h5>
-                              <button id="verMasScanDni" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
+                              <button id="3" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
                           </div>
                           <div class="col-lg-6">
                             <h5>SOLICITUD AUTOEXCLUSION</h5>
-                            <button id="verMasSolicitudAutoexclusion" type="button" class="btn btn-default" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                            <button id="4" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
                           </div>
                         </div>
                     </div><br>
@@ -875,7 +875,7 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
                <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| SUBIR SOLICITUD AUTOEXCLUSIÓN</h3>
+                 <h3 class="modal-title" id="myModalLabel">| SUBIR SOLICITUD AUTOEXCLUSIÓN</h3>
                 </div>
 
                 <div  id="colapsadoCrear" class="collapse in">
@@ -902,6 +902,60 @@ $puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
           </div>
     </div>
 
+    <!--MODAL VER FORMULARIOS AE -->
+    <div class="modal fade" id="modalFormulariosAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+             <div class="modal-content">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <h3 class="modal-title" id="myModalLabel">| VER FORMULARIOS DE AUTOEXCLUSIÓN</h3>
+                </div>
+
+              <div id="colapsado" class="collapse in">
+                <div class="modal-body">
+
+                    <h6>Formularios AE - Resolución 983</h6>
+                    <div class="row">
+                      <div class="col-lg-6">
+                        <h5>Carátula AU 1°</h5>
+                        <button id="1" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 1°</button>
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>Carátula AU 2°</h5>
+                        <button id="2" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 2°</button>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-6">
+                          <h5>Formulario AU 1°</h5>
+                          <button id="3" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 1°</button>
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>Formulario AU 2°</h5>
+                        <button id="4" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 2°</button>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-6">
+                          <h5>Formulario Finalización AU</h5>
+                          <button id="5" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario Finalización AU</button>
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>RVE N°983</h5>
+                        <button id="6" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la RVE N°983</button>
+                      </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal" aria-label="Close">SALIR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
 
 
     <!-- token -->

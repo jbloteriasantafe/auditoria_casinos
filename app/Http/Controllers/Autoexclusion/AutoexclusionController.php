@@ -30,12 +30,17 @@ class AutoexclusionController extends Controller
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
       $casinos = DB::table('casino')->get();
       $estados_autoexclusion = DB::table('ae_nombre_estado')->get();
+      $estados_civiles = DB::table('ae_estado_civil')->get();
+      $capacitaciones = DB::table('ae_capacitacion')->get();
+
 
       return view('Autoexclusion.index', ['juegos' => $juegos,
                                           'ocupaciones' => $ocupaciones,
                                           'casinos' => $casinos,
                                           'frecuencias' => $frecuencias,
-                                          'estados_autoexclusion' => $estados_autoexclusion
+                                          'estados_autoexclusion' => $estados_autoexclusion,
+                                          'estados_civiles' => $estados_civiles,
+                                          'capacitaciones' => $capacitaciones
                                         ]);
     }
 
@@ -172,7 +177,7 @@ class AutoexclusionController extends Controller
         })->validate();
 
       //consigo el path del directorio raiz del proyecto
-      $pathAbs = realpath('../');
+      $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
 
       //fecha actual, sin formatear
       $ahora = date("dmY");
@@ -182,23 +187,23 @@ class AutoexclusionController extends Controller
         //(1 para foto1, 2 para foto2, 3 para scan dni, 4 para solicitud AE)
         $nombre_archivo_foto1 = $ahora . '-' . $request->nro_dni . '-1';
         //establezco el path de destino del archivo
-        $pathDestinoFoto1 = $pathAbs . '/public/importacionesAutoexcluidos/fotos/' . $nombre_archivo_foto1;
+        $pathDestinoFoto1 = $pathCons . 'fotos/' . $nombre_archivo_foto1;
         //copio el archivo subido al filesystem
         copy($request->foto1->getRealPath(), $pathDestinoFoto1);
       }
       if (isset($arr['foto2'])) {
         $nombre_archivo_foto2 = $ahora . '-' . $request->nro_dni . '-2';
-        $pathDestinoFoto2 = $pathAbs . '/public/importacionesAutoexcluidos/fotos/' . $nombre_archivo_foto2;
+        $pathDestinoFoto2 = $pathCons . 'fotos/' . $nombre_archivo_foto2;
         copy($request->foto2->getRealPath(), $pathDestinoFoto2);
       }
       if (isset($arr['scan_dni'])) {
         $nombre_archivo_scandni = $ahora . '-' . $request->nro_dni . '-3';
-        $pathDestinoScanDni = $pathAbs . '/public/importacionesAutoexcluidos/documentos/' . $nombre_archivo_scandni;
+        $pathDestinoScanDni = $pathCons . 'documentos/' . $nombre_archivo_scandni;
         copy($request->scan_dni->getRealPath(), $pathDestinoScanDni);
       }
       if (isset($arr['solicitud_autoexclusion'])) {
         $nombre_archivo_solicitudae = $ahora . '-' . $request->nro_dni . '-4';
-        $pathDestinoSolicitudAE = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $nombre_archivo_solicitudae;
+        $pathDestinoSolicitudAE = $pathCons . 'solicitudes/' . $nombre_archivo_solicitudae;
         copy($request->solicitud_autoexclusion->getRealPath(), $pathDestinoSolicitudAE);
       }
 
@@ -391,23 +396,48 @@ class AutoexclusionController extends Controller
 
   public function mostrarArchivo ($id_archivo) {
     //el primer digito de id_archivo corresponde al tipo de archivo (foto1, foto2, etc),
-    //el segundo corresponde al id de la importacion
+    //los siguientes corresponden al id de la importacion
     $tipo_archivo = substr($id_archivo, 0, 1); //1 para foto1, 2 para foto2, 3 para scan_dni, 4 para solicitud_autoexclusion
     $id_importacion = substr($id_archivo, -1*strlen($id_archivo)+1);
     $imp = ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
-    $pathAbs = realpath('../');
+    $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
 
     if ($tipo_archivo == 1) {
-      $path = $pathAbs . '/public/importacionesAutoexcluidos/fotos/' . $imp->foto1;
+      $path = $pathCons . 'fotos/' . $imp->foto1;
     }
     else if ($tipo_archivo == 2) {
-      $path = $pathAbs . '/public/importacionesAutoexcluidos/fotos/' . $imp->foto2;
+      $path = $pathCons . 'fotos/' . $imp->foto2;
     }
     else if ($tipo_archivo == 3) {
-      $path = $pathAbs . '/public/importacionesAutoexcluidos/documentos/' . $imp->scandni;
+      $path = $pathCons . 'documentos/' . $imp->scandni;
     }
     else {
-      $path = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $imp->solicitud_ae;
+      $path = $pathCons . 'solicitudes/' . $imp->solicitud_ae;
+    }
+
+    return response()->file($path);
+  }
+
+  public function mostrarFormulario ($id_formulario) {
+    $pathForms = realpath('../') . '/public/importacionesAutoexcluidos/formularios/';
+
+    if ($id_formulario == 1) {
+      $path = $pathForms . 'Carátula AU 1°.pdf';
+    }
+    else if ($id_formulario == 2) {
+      $path = $pathForms . 'Carátula AU 2°.pdf';
+    }
+    else if ($id_formulario == 3) {
+      $path = $pathForms . 'Formulario AU 1°.pdf';
+    }
+    else if ($id_formulario == 4) {
+      $path = $pathForms . 'Formulario AU 2°.pdf';
+    }
+    else if ($id_formulario == 5) {
+      $path = $pathForms . 'Formulario Finalización AU.pdf';
+    }
+    else {
+      $path = $pathForms . 'RVE N° 983.pdf';
     }
 
     return response()->file($path);
@@ -495,26 +525,6 @@ class AutoexclusionController extends Controller
     $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
     $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
-    return $dompdf->stream("Ver_Pdf_Provisional" . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-  }
-
-  public function crearSolicitudFinalizacionAutoexclusion($autoexcluido){
-    $estado = EstadoAE::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
-
-    $datos_estado = array(
-      'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
-      'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
-    );
-
-    $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('autoexcluido', 'datos_estado'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
-    $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
-
-    return $dompdf;
+    return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 }

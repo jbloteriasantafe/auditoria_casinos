@@ -7,11 +7,6 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
-$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
-$puede_eliminar = $user->es_administrador || $user->es_superusuario;
-$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
 ?>
 
 @section('estilos')

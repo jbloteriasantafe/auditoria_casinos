@@ -96,7 +96,7 @@ class AutoexclusionesFinalizadasController extends Controller
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
         ->where($reglas)
-        ->where('ae_estado.id_nombre_estado', '=', 4)
+        ->where('ae_estado.id_nombre_estado', '=', 2)
         ->paginate($request->page_size);
 
       return $resultados;
@@ -104,8 +104,9 @@ class AutoexclusionesFinalizadasController extends Controller
 
     public function verSolicitudFinalizacion ($id_ae) {
       $imp = ImportacionAE::where('id_autoexcluido', '=', $id_ae)->first();
+      $pathAbs = realpath('../');
+      $path = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $imp->solicitud_revocacion;
 
-      return response()->file($imp->solicitud_revocacion);
+      return response()->file($path);
     }
-
 }

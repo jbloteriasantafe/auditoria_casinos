@@ -127,7 +127,7 @@
 									document.getElementById("estado").innerHTML = res.estado;
 									document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
 									document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
-									document.getElementById("fecha_finalizacion").innerHTML = res.fecha_revocacion_ae;
+									document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
 									document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
 							},
 							error: function(data) {
@@ -204,7 +204,7 @@
 								document.getElementById("estado").innerHTML = res.estado;
 								document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
 								document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
-								document.getElementById("fecha_finalizacion").innerHTML = res.fecha_revocacion_ae;
+								document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
 								document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
 						},
 						error: function(data) {
@@ -220,11 +220,9 @@
 				document.getElementById("estado").innerHTML = '';
 				document.getElementById("fecha_ae").innerHTML = '';
 				document.getElementById("vencimiento").innerHTML = '';
-				document.getElementById("fecha_finalizacion").innerHTML = '';
+				document.getElementById("fecha_revocacion").innerHTML = '';
 				document.getElementById("fecha_cierre").innerHTML = '';
 			}
-
-
 
 			// viewer next button
 			viewnext.bind('click',function(){

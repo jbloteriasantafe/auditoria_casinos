@@ -63,6 +63,13 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->where($reglas)
         ->get();
 
+      //consigo el path del directorio raiz del proyecto
+      $pathCons = '/importacionesAutoexcluidos/fotos/';
+
+      foreach ($resultados as $resultado) {
+        $resultado->path = $pathCons . $resultado->path;
+      }
+
       return $resultados;
     }
 
