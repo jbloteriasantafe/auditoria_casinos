@@ -421,28 +421,6 @@ $id_usuario = session('id_usuario');
                             /*font-weight:bold !important; */
                             font-family:Roboto-Regular !important
                           }
-
-                          #mensajeInformacion h6 {
-                              margin-left: 10px;
-                              display:inline;
-                              font-size: 20px;
-                              font-weight:bold !important; font-family:Roboto-Condensed !important;
-                          }
-
-                          #mensajeInformacion i {
-                              position: relative;
-                              top: -3px;
-                              /*transform: scale(0.7);*/
-                              color: #6DC7BE;
-                          }
-
-                          #mensajeInformacion i.corrido {
-                              margin-left: 10px;
-                          }
-
-                          #iconoMoneda {
-                            transform: scale(1.2);
-                          }
                       </style>
 
                   <div id="rowArchivo" class="row" style="">
@@ -455,28 +433,44 @@ $id_usuario = session('id_usuario');
                           </div>
                   </div>
 
-                  <div id="rowFecha" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-xs-6">
-                              <h5>FECHA</h5>
-
-                              <div class='input-group date' id='fecha' data-link-field="fecha_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                  <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                              </div>
-                              <input type="hidden" id="fecha_hidden" value=""/>
-                          </div>
+                  <div class="row" id="valoresArchivoContador">
+                    <div class="row">
+                      <div class="col-xs-5">
+                        <h5>FECHA</h5>
+                        <div class='input-group date' id='fecha' data-link-field="fecha_hidden" data-date-format="dd/mm/yyyy" data-link-format="yyyy-mm-dd">
+                          <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                        <input type="hidden" id="fecha_hidden" value=""/>
                       </div>
+                      <div class="col-xs-4">
+                        <h5>CASINO</h5>
+                        <select id="contSelCasino" class="form-control">
+                          <option value="-1">Seleccione</option>
+                          @foreach ($casinos as $casino)
+                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                      <div class="col-xs-3">
+                        <h5>MONEDA</h5>
+                        <select id="contSelMoneda" class="form-control">
+                          <option value="-1">Seleccione</option>
+                          @foreach($tipoMoneda as $tipo)
+                          <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
                   <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                           <div class="col-md-12">
                               <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
                               <button id="btn-reintentarContador" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
                           </div>
-                      </div>
-
-                      
-
+                  </div>
                   <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                             <div class="col-xs-12" align="center">
                                 <i class="fa fa-fw fa-exclamation-triangle"></i>
@@ -488,29 +482,12 @@ $id_usuario = session('id_usuario');
                                 <p>Solo se aceptan archivos con extensión .csv o .txt</p>
                             </div>
                       </div>
-
-                  <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-                          <div class="col-xs-12" align="center">
-                              <i class="fa fa-fw fa-star"></i>
-                              <h6 id="informacionCasino"> CASINO ROSARIO</h6>
-                              <i class="fa fa-fw fa-calendar corrido"></i>
-                              <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-                              <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-                              <h6 id="informacionMoneda"> DOLAR</h6>
-
-                          </div>
-                      </div>
-
                   <div id="iconoCarga" class="sk-folding-cube">
                     <div class="sk-cube1 sk-cube"></div>
                     <div class="sk-cube2 sk-cube"></div>
                     <div class="sk-cube4 sk-cube"></div>
                     <div class="sk-cube3 sk-cube"></div>
                   </div>
-
-
-
-
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-guardarContador" hidden value="nuevo"> SUBIR</button>
@@ -587,7 +564,6 @@ $id_usuario = session('id_usuario');
                               <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
                               <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
                               <h6 id="informacionMoneda"> DOLAR</h6>
-
                           </div>
                   </div>
 

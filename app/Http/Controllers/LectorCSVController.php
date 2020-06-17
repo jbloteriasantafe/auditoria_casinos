@@ -512,7 +512,7 @@ class LectorCSVController extends Controller
   // genera un join con las maquinas para tener valores de maquinas que existan en el maestro de mtm
   // y con esto se va agregado en los detalles_contadores
   // luego elimina los temporales
-  public function importarContadorSantaFeMelincue($archivoCSV,$casino){
+  public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$casino){
 
     $contador = new ContadorHorario;
     $contador->id_casino = $casino;
@@ -544,7 +544,10 @@ class LectorCSVController extends Controller
     $pdo->exec($query);
 
     $cont_temporal = DB::table('contadores_temporal')->where('id_contador_horario','=',$contador->id_contador_horario)->first();
-    $contador->fecha = date('Y-m-d' , strtotime($cont_temporal->fecha  . ' + 1 days'));
+    if(!is_null($cont_temporal)){//Si el archivo no es vacio, uso la fecha de un contador.
+      $fecha = $cont_temporal->fecha;
+    }
+    $contador->fecha = date('Y-m-d' , strtotime($fecha  . ' + 1 days'));
     $contador->save();
 
     $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario],['id_casino','=',$casino],['fecha','=',$contador->fecha]])->get();
