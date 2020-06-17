@@ -279,7 +279,7 @@ class ImportacionController extends Controller
 
 
 
-  public function estadoImportacionesDeCasino($id_casino){
+  public function estadoImportacionesDeCasino($id_casino,$fecha_busqueda = null){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
     Validator::make([
          'id_casino' => $id_casino,
@@ -290,15 +290,15 @@ class ImportacionController extends Controller
 
     })->validate();
 
-    $fecha= date('Y-m-d');//hoy
+    $fecha = is_null($fecha_busqueda)? date('Y-m-d') : $fecha_busqueda;
+    $aux = new \DateTime($fecha);
+    $aux->modify('last day of this month');
+    $fecha = $aux->format('Y-m-d');
+    $mes = date('m',strtotime($fecha));
 
-    $no_es_fin = true;
-    $i= $suma = 0;
     $arreglo = array();
 
-    while($no_es_fin){
-      $aux= new \stdClass();
-      $valor = 0;
+    while(date('m',strtotime($fecha)) == $mes){
       if($id_casino == 3){//si es rosario tengo $ y DOL
         $contador['pesos'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true :false;
         $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
@@ -316,9 +316,7 @@ class ImportacionController extends Controller
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
       $arreglo[] = $dia;
-      $i++;
-      $fecha=date('Y-m-d' , strtotime($fecha . ' - 1 days'));
-      if($i == 30) $no_es_fin = false;//final
+      $fecha = date('Y-m-d' , strtotime($fecha . ' - 1 days'));
     }
     return ['arreglo' => $arreglo];
   }
@@ -326,29 +324,30 @@ class ImportacionController extends Controller
   public function importarContador(Request $request){
     Validator::make($request->all(),[
         'id_casino' => 'required|integer|exists:casino,id_casino',
-        'fecha' => 'nullable|date',
+        'fecha' => 'required|date',
         'archivo' => 'required|mimes:csv,txt',
-        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda'
+        'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
     ], array(), self::$atributos)->after(function($validator){
-        if($validator->getData()['fecha'] != null){
-          $reglas = Array();
-          $reglas[]=['fecha','=',$validator->getData()['fecha']];
-          $reglas[]=['id_casino','=',$validator->getData()['id_casino']];
-          $reglas[]=['cerrado','=',1];
-          if($validator->getData()['id_tipo_moneda'] != null){
-            $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
-          }
-
-          //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
-
+        $data = $validator->getData();
+        $fecha = $data['fecha'];
+        $id_casino = $data['id_casino'];
+        $id_tipo_moneda = $data['id_tipo_moneda'];
+        //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
         if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
+          $reglas = Array();
+          $reglas[]=['fecha','=',$fecha];
+          $reglas[]=['id_casino','=',$id_casino];
+          $reglas[]=['cerrado','=',1];
+          $reglas[]=['id_tipo_moneda','=',$id_tipo_moneda];
           if(ContadorHorario::where($reglas)->count() > 0){
             $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
           }
         }
+        //@HACK: crear una entidad casino_tiene_moneda y agregarlo al panel de administracion
+        if($id_casino != 3 && $data['id_tipo_moneda'] != 1){
+          $validator->errors()->add('id_tipo_moneda','Solo Rosario puede usar otra moneda');
         }
     })->validate();
-
 
     //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
     if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
@@ -356,17 +355,16 @@ class ImportacionController extends Controller
       if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
         return ['resultado' => 'existeRel'];
       }
-
     }
 
 
     $ret = null;
     switch($request->id_casino){
       case 1:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,1);
+        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,1);
         break;
       case 2:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,2);
+        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,2);
         break;
       case 3:
         $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda);

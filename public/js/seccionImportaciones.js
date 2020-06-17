@@ -54,7 +54,7 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'dd MM yyyy',
+    format: 'dd/mm/yyyy',
     // pickerPosition: "bottom-left",
     pickerPosition: "top-left",
     startView: 2,
@@ -63,6 +63,18 @@ $(document).ready(function(){
   });
 
   $('#fecha_busqueda').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 3,
+    minView: 3,
+    ignoreReadonly: true,
+  });
+
+  $('#mesInfoImportacion').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -127,15 +139,26 @@ $('#monedaInfoImportacion').change(function() {
     cargarTablasImportaciones('3', id_moneda);
 });
 
+$('#mesInfoImportacion').on("change.datetimepicker",function(){
+  var id_casino = $('#casinoInfoImportacion').val();
+  var id_moneda = $('#monedaInfoImportacion').val();
+  if(id_casino != '3'){
+    cargarTablasImportaciones(id_casino, '1'); //El 1 es PESOS
+  }
+  else{
+    cargarTablasImportaciones(id_casino,id_moneda);
+  }
+})
+
 function limpiarBodysImportaciones() {
     $('.tablaBody tr').not('#moldeFilaImportacion').remove();
     $('.tablaBody').hide();
 }
 
 function cargarTablasImportaciones(casino, moneda) {
-
-
-    $.get('importaciones/' + casino, function(data) {
+    const fecha = $('#mes_info_hidden').val();
+    const url = fecha.size == 0? '' : ('/' + fecha);
+    $.get('importaciones/' + casino + url, function(data) {
         var tablaBody;
 
         console.log("Casino: ", casino);
@@ -428,20 +451,14 @@ function agregarFilaDetalleContador(contador) {
 
 $('#btn-importarContadores').click(function(e){
     e.preventDefault();
-    // $('.modalNuevo h3').text('| IMPORTAR CONTADORES');
     $('.modal-title').text('| IMPORTADOR CONTADOR');
     $('#modalImportacionContadores .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-    // $('#btn-guardar').text('ACEPTAR');
-    // $('#tipoImportacion').val('contador');
-
-
     //Mostrar: rowArchivo
     $('#modalImportacionContadores #rowArchivo').show();
+    $('#valoresArchivoContador').hide();
     //Ocultar: rowFecha, mensajes, iconoCarga
-    $('#modalImportacionContadores #rowFecha').hide();
     $('#modalImportacionContadores #mensajeError').hide();
     $('#modalImportacionContadores #mensajeInvalido').hide();
-    $('#modalImportacionContadores #mensajeInformacion').hide();
     $('#modalImportacionContadores #iconoCarga').hide();
 
     habilitarInputContador();
@@ -468,21 +485,32 @@ $('#btn-guardarContador').on('click', function(e){
 
   var formData = new FormData();
 
-  formData.append('id_casino', id_casino);
-
-  //Si el contador es de ROSARIO manda la fecha y el tipo de moneda
-  if(id_casino == '3') {
-    formData.append('fecha', $('#fecha_hidden').val());
-    formData.append('id_tipo_moneda', id_tipo_moneda);
+  const casinoCont = $('#contSelCasino').val();
+  if(casinoCont == -1){
+    errorContadores('Error al obtener el casino');
+    return;
   }
-  else {
-    formData.append('fecha', '');
-    formData.append('id_tipo_moneda', '');
+  formData.append('id_casino', casinoCont);
+  const fechaCont = $('#fecha_hidden').val();
+  if(fecha == ""){
+    errorContadores('Error al obtener la fecha');
+    return;
   }
+  formData.append('fecha', fechaCont);
+  const monedaCont = $('#contSelMoneda').val();
+  if(monedaCont == -1){
+    errorContadores('Error al obtener la moneda');
+    return;
+  }
+  formData.append('id_tipo_moneda', monedaCont);
 
   //Si subió archivo lo guarda
   if($('#modalImportacionContadores #archivo').attr('data-borrado') == 'false' && $('#modalImportacionContadores #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacionContadores #archivo')[0].files[0]);
+  }
+  else{
+    errorContadores('Error al obtener el archivo');
+    return;
   }
 
 
@@ -591,153 +619,105 @@ function habilitarInputContador(){
   });
 }
 
+function errorContadores(msg){
+  $('#valoresArchivoContador').hide();
+  $('#modalImportacionContadores #mensajeError').hide();
+  $('#modalImportacionContadores #iconoCarga').hide();
+  //Ocultar botón de subida
+  $('#modalImportacionContadores #btn-guardarContador').hide();
+  $('#modalImportacionContadores #mensajeInvalido').show();
+  $('#modalImportacionContadores #mensajeInvalido p').text(msg);
+}
+
 function procesarDatosContador(e) {
-    var csv = e.target.result;
-    // procesarDatosContador(csv);
+    $('#modalImportacionContadores #mensajeInvalido').hide();
+    $('#modalImportacionContadores select').prop('disabled','disabled');
+    $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
+    $('#modalImportacionContadores #fecha span').hide();
+    $('#modalImportacionContadores #fecha input').val('');
+    $('#contSelCasino').val(-1);
+    $('#contSelMoneda').val(-1);
+    $('#contSelCasino option').prop('disabled',false);
+    $('#contSelMoneda option').prop('disabled',false);
+    $('#valoresArchivoContador').show();
 
-    // var allTextLines = csv.split(/\r\n|\n/);
-    var allTextLines = csv.split('\n'); //Se obtienen todas las filas del archivo
-
-    //Comprobar que el tamaño del archivo corresponda al de un contador
-    if (allTextLines.length > 5) {
-        // Se obtienen todas las columnas de la fila 6.
-        // En esta fila los contadores de todos los casinos tienen los datos importantes para identificarlo.
-        var data = allTextLines[6].split(';');
-
-        var tarr = [];
-
-        for (var j=0; j<data.length; j++) {
-              tarr.push(data[j]);
-        }
-
-        console.log(tarr);
-
-        //Comprobar que el archivo subido no sea un producido o beneficio
-        if (tarr.length == 5 || tarr.length == COL_PROD_SFE || tarr.length == COL_BEN_ROS) {
-            console.log("Archivo incorrecto");
-
-
-            $('#modalImportacionContadores #rowFecha').hide();
-            $('#modalImportacionContadores #mensajeError').hide();
-            $('#modalImportacionContadores #mensajeInformacion').hide();
-            $('#modalImportacionContadores #iconoCarga').hide();
-            //Ocultar botón de subida
-            $('#modalImportacionContadores #btn-guardarContador').hide();
-
-
-            $('#modalImportacionContadores #mensajeInvalido').show();
-            $('#modalImportacionContadores #mensajeInvalido p').text('El archivo no contiene contadores de ningún casino');
-
-        } else {
-            //El archivo es de contadores. Se oculta el mensaje invalido.
-            $('#modalImportacionContadores #mensajeInvalido').hide();
-
-            //Analizar de qué CASINO es el archivo
-            if (tarr.length == 16) {
-                  console.log('ROSARIO');
-                  id_casino = 3;
-
-                  //Habilitar el ingreso de fecha
-                  $('#modalImportacionContadores #rowFecha').show();
-                  //Ocultar mensaje hasta que no elija una fecha
-                  $('#modalImportacionContadores #mensajeInformacion').hide();
-
-                  $('#modalImportacionContadores #informacionCasino').text('CASINO ROSARIO');
-
-                  var nro_admin = tarr[1].slice(0,4);
-
-                  //Consultar tipo de moneda
-                  $.get('maquinas/getMoneda/' + nro_admin , function(data) {
-                      // var tipo_moneda = 'DOLAR';
-                      // id_tipo_moneda = 2;
-                      console.log('Data tipo moneda: ' , data);
-
-                      if (data.tipo != null) {
-                          id_tipo_moneda = data.tipo.id_tipo_moneda;
-                          tipo_moneda = data.tipo.descripcion;
-                      }
-
-                      $('#modalImportacionContadores #informacionMoneda').text(tipo_moneda);
-                      $('#modalImportacionContadores #iconoMoneda').show();
-                      $('#modalImportacionContadores #informacionMoneda').show();
-                  });
-
-                  $('#modalImportacionContadores #fecha input').val('');
-
-            } else {
-                  //Ocultar el input de fecha
-                  $('#modalImportacionContadores #rowFecha').hide();
-                  //Mostrar el mensaje de información
-                  $('#modalImportacionContadores #mensajeInformacion').show();
-                  //Mostrar botón SUBIR
-                  $('#btn-guardarContador').show();
-
-                  var fecha = tarr[16];
-                  $('#modalImportacionContadores #informacionFecha').text(obtenerFechaString(fecha,true));
-
-                  $('#modalImportacionContadores #iconoMoneda').hide();
-                  $('#modalImportacionContadores #informacionMoneda').hide();
-
-                  if (tarr[3] < 2000) {
-                      console.log('MELINCUÉ');
-                      id_casino = 1;
-                      //Setear la información del mensaje
-                      $('#modalImportacionContadores #informacionCasino').text('CASINO MELINCUÉ');
-                  }else {
-                      console.log('SANTA FE');
-                      id_casino = 2;
-                      $('#modalImportacionContadores #informacionCasino').text('CASINO SANTA FE');
-                  }
-            } // 'else' del tipo de casino
-
-        } // 'else' de comprobar tipo de archivo
-
+    let csv = e.target.result;
+    csv = csv.replace('\r','');
+    let lineas = csv.split('\n'); //Se obtienen todas las filas del archivo
+    let cols = lineas[0].split(';');
+    if(cols.length == 16){ // Rosario
+      $('#contSelCasino').val(3);
+      $('#contSelCasino option').prop('disabled','disabled');
+      $('#contSelCasino option[value="-1"]').prop('disabled',false);
+      $('#contSelCasino option[value="3"]').prop('disabled',false);
+      $('#modalImportacionContadores #fecha select').prop('disabled',false);
+      $('#modalImportacionContadores #fecha input').prop('disabled',false);
+      $('#modalImportacionContadores #fecha span').show();
+      if(lineas.length >= 5){
+        const primer_renglon = lineas[2].split(';');
+        const nro_admin = primer_renglon[1].slice(0,4);
+        //Consultar tipo de moneda
+        $.get('maquinas/getMoneda/' + nro_admin , function(data) {
+            console.log('Data tipo moneda: ' , data);
+            if (data.tipo != null) {
+                $('#contSelMoneda').val(data.tipo.id_tipo_moneda);
+            }
+        });
+      }
+      else{
+        $('#contSelMoneda').prop('disabled',false);
+      }
+      return;
     }
-    //El archivo no tiene el tamaño correcto
-    else {
-      console.log("ARCHIVO MUY CHICO!");
-
-      $('#modalImportacionContadores #rowFecha').hide();
-      $('#modalImportacionContadores #mensajeError').hide();
-      $('#modalImportacionContadores #mensajeInformacion').hide();
-      $('#modalImportacionContadores #iconoCarga').hide();
-      //Ocultar botón de subida
-      $('#modalImportacionContadores #btn-guardarContador').hide();
-
-
-      $('#modalImportacionContadores #mensajeInvalido').show();
-      $('#modalImportacionContadores #mensajeInvalido p').text('El archivo no contiene contadores de ningún casino');
+    if(cols.length == 17){//Santa Fe o Melinque
+      //@HACK: tendria que existir un casino_tiene_moneda o algo por el estilo
+      //Lo hardcodeo a que SFE/MEL sea siempre sea pesos.
+      $('#contSelMoneda').val(1);
+      $('#contSelMoneda option').prop('disabled','disabled');
+      $('#contSelMoneda option[value="-1"]').prop('disabled',false);
+      $('#contSelMoneda option[value="1"]').prop('disabled',false);
+      $('#contSelCasino option').prop('disabled','disabled');
+      $('#contSelCasino option[value="-1"]').prop('disabled',false);
+      $('#contSelCasino option[value="1"]').prop('disabled',false);
+      $('#contSelCasino option[value="2"]').prop('disabled',false);
+      if(lineas.length >= 3){//Si tiene maquinas, saco la fecha y casino de ahi.
+        const primer_renglon = lineas[1].split(';');
+        const fecha = primer_renglon[16];
+        console.log('fecha',fecha);
+        $('#fecha input').val(fecha);
+        ddmmyyyy = fecha.split("/");
+        isofecha = ddmmyyyy[2] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[0];
+        $('#fecha_hidden').val(fecha);
+        //@HACK: consultar la base de dato por nro_admin.
+        const casino = primer_renglon[3] < 2000? 1 : 2;
+        $('#contSelCasino').val(casino);
+        $('#btn-guardarContador').show();
+      }
+      else{
+        $('#contSelCasino').prop('disabled',false);
+        //Habilitar el ingreso de fecha
+        $('#modalImportacionContadores #fecha select').prop('disabled',false);
+        $('#modalImportacionContadores #fecha input').prop('disabled',false);
+        $('#modalImportacionContadores #fecha span').show();
+      }
+      return;
     }
-
-
-
+    console.log("Archivo incorrecto");
+    errorContadores('El archivo no contiene contadores de ningún casino');
+    return;
 }
 
 $('#modalImportacionContadores #fecha > input').on('change', function(){
   //Si hay una fecha mostrar el mensaje de información
   if ($(this).val() != '') {
-    $('#mensajeInformacion').show();
-    $('#informacionFecha').text($(this).val().toUpperCase());
-
-    //Mostrar botón SUBIR
     $('#btn-guardarContador').show();
   } else {
-    $('#mensajeInformacion').hide();
-    //Ocultar botón SUBIR
     $('#btn-guardarContador').hide();
   }
 });
 
 //Eventos de la librería del input
 $('#modalImportacionContadores #archivo').on('fileerror', function(event, data, msg) {
-   // console.log(data.id);
-   // console.log(data.index);
-   // console.log(data.file);
-   // console.log(data.reader);
-   // console.log(data.files);
-   // get message
-   // alert(msg);
-
    $('#modalImportacionContadores #rowFecha').hide();
    $('#modalImportacionContadores #mensajeInformacion').hide();
    $('#modalImportacionContadores #mensajeInvalido').show();
