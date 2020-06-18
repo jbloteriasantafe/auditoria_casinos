@@ -129,7 +129,7 @@ function movimientosSinExpediente() {
 
   $.ajax({
       type: "POST",
-      url: 'movimientos/movimientosSinExpediente',
+      url: 'expedientes/movimientosSinExpediente',
       data: formData,
       success: function (data) {
         console.log('Mov sin expedientes: ', data);
@@ -403,7 +403,7 @@ $('#btn-notaMov').click(function(e){
 
     var clonNota = $('#moldeNotaMov').clone();
 
-    $.get('movimientos/obtenerMovimiento/' + id_movimiento, function(data) {    //Se trae toda la información del movimiento seleccionado
+    $.get('expedientes/obtenerMovimiento/' + id_movimiento, function(data) {    //Se trae toda la información del movimiento seleccionado
 
         clonNota.removeAttr('id');
         clonNota.show();
