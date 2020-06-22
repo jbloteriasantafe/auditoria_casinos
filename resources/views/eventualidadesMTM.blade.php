@@ -122,40 +122,6 @@
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
-                  {{-- @foreach($eventualidades as $eventualidad)
-                  <tr id="{{$eventualidad->id_log_movimiento}}">
-                    <td class="col-xs-2 fecha_eventualidad">{{$eventualidad->fecha}}</td>
-                    <td class="col-xs-2">{{$eventualidad->descripcion}}</td>
-
-                    @if($eventualidad->id_estado_movimiento == 4)
-                    <td class="col-xs-1" text-align="center"><i class="fa fa-fw fa-check" style="color:#4CAF50"></i></td>
-                    @else
-                    <td class="col-xs-1" text-align="center"><i class="fas fa-fw fa-times" style="color:#EF5350"></i></td>
-                    @endif
-
-                    <td class="col-xs-2">{{$eventualidad->nombre}}</td>
-                    <td class="col-xs-2">{{$eventualidad->islas}}</td>
-
-                    <td class="col-xs-3">
-
-                      <button class="btn  btn_imprimirEvmtm btn-info" type="button" value="{{$eventualidad->id_log_movimiento}}" ><i class="fa fa-fw fa-print"></i></button>
-
-                      @if($eventualidad->id_estado_movimiento == 6 && ($esControlador == 0 || $esSuperUsuario))
-                      <button class="btn btn_cargarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}" data-casino="{{$eventualidad->id_casino}}"><i class="fa fa-fw fa-upload"></i></button>
-                      <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
-                      @endif
-
-                      @if($eventualidad->id_estado_movimiento == 1  && ($esControlador == 1 || $esSuperUsuario))
-                      <button class="btn  btn_validarEvmtm btn-success" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-check"></i></button>
-                      @endif
-
-                      @if(($eventualidad->id_estado_movimiento == 6) && ($esControlador == 1 || $esSuperUsuario)))
-                      <button class="btn  btn_borrarEvmtm btn-danger" type="button" value="{{$eventualidad->id_log_movimiento}}"><i class="fa fa-fw fa-trash"></i></button>
-                      @endif
-
-                    </td>
-                  </tr>
-                  @endforeach --}}
                 </tbody>
               </table>
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
@@ -333,12 +299,14 @@
         <button class="btn btn-info btn_cargarEvmtm" title="CARGAR">
           <i class="fa fa-fw fa-upload"></i>
         </button>
+        @if($usuario->es_controlador || $usuario->es_superusuario)
         <button class="btn btn-info btn_validarEvmtm" title="VALIDAR">
           <i class="fa fa-fw fa-check"></i>
         </button>
         <button class="btn btn-info btn_borrarEvmtm" title="BORRAR">
           <i class="fa fa-fw fa-trash"></i>
         </button>
+        @endif
       </td>
     </tr>
   <tbody>

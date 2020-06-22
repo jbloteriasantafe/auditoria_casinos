@@ -33,47 +33,23 @@ class Usuario extends Model
     }
 
     public function getEsSuperusuarioAttribute(){
-      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0){
-        return true;
-      }else{
-        return false;
-      }
+      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0);
     }
 
     public function getEsAdministradorAttribute(){
-      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',2)->get()) > 0){
-        return true;
-      }else{
-        return false;
-      }
-    }
-
-    public function getEsFiscalizadorAttribute(){
-      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',3)->get()) > 0){
-        return true;
-      }else{
-        return false;
-      }
-    }
-
-    public function getEsControladorAttribute(){
-      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')
-                                  ->where('rol.id_rol','=',2)
-                                  ->orWhere('rol.id_rol','=',4)
-                                  ->orWhere('rol.id_rol','=',1)
-                                  ->get()) > 0){
-        return true;
-      }else{
-        return false;
-      }
+      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',2)->get()) > 0);
     }
 
     public function getEsControlAttribute(){
-      if(count ($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',4)->get()) > 0){
-        return true;
-      }else{
-        return false;
-      }
+      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',4)->get()) > 0);
+    }
+
+    public function getEsControladorAttribute(){
+      return $this->es_administrador || $this->es_superusuario || $this->es_control;
+    }
+
+    public function getEsFiscalizadorAttribute(){
+      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',3)->get()) > 0);
     }
 
     public function relevamientos_apuestas(){

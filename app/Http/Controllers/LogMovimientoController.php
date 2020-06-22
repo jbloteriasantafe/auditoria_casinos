@@ -1170,8 +1170,7 @@ class LogMovimientoController extends Controller
     return view('eventualidadesMTM',
       [
         'eventualidades'         => [],
-        'esControlador'          => $usuario->es_controlador,
-        'esSuperUsuario'         => $usuario->es_superusuario,
+        'usuario'          => $usuario,
         'tiposEventualidadesMTM' => TipoMovimiento::all(),
         'casinos'                => $usuario->casinos,
         'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()
