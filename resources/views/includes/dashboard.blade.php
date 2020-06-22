@@ -642,7 +642,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @endif
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_eventualidades'))
                                          <li>
-                                           <div id="opcIntervencionesTecnicas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/eventualidades'" href="#" style="cursor: pointer;">
+                                           <div id="opcIntervencionesTecnicas" class="opcionesHover" 
+                                            @if(false)
+                                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/eventualidades'"
+                                            @else
+                                              style="color: grey;"
+                                            @endif
+                                            href="#" style="cursor: pointer;">
                                              <span>Intervenciones Téc.</span>
                                            </div>
                                          </li>
