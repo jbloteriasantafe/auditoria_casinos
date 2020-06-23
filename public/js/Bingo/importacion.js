@@ -163,10 +163,6 @@ function habilitarInput(){
   $('#modalImportacion #archivo').attr('data-borrado','false');
   $("#modalImportacion #archivo").fileinput('destroy').fileinput({
       language: 'es',
-    //       showPreview: false,
-          // allowedFileExtensions: ["csv", "txt"],
-    //       elErrorContainer: "#alertaArchivo"
-      language: 'es',
       showRemove: false,
       showUpload: false,
       showCaption: false,
@@ -182,6 +178,7 @@ function habilitarInput(){
         'txt': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>'
       },
       allowedFileExtensions: ['csv','txt'],
+      minFileSize: null, //Permitir archivos vacios.
   });
 }
 
@@ -202,7 +199,6 @@ $('#modalImportacion #archivo').on('fileerror', function(event, data, msg) {
    $('#modalImportacion #mensajeInvalido p').text(msg);
    //Ocultar botón SUBIR
    $('#btn-guardar').hide();
-
 });
 
 //Evento de la librería input, limpia si había archivo cargado
@@ -274,12 +270,8 @@ $('#btn-guardar').click(function (e) {
           console.log(data);
 
           $('#mensajeExito').show();
-          $('#cuerpoTabla #'+ $('#i_eliminar').val()).remove();
-          $("#tablaResultados").trigger("update");
-
-          $('#cuerpoTabla').append(generarFilaTabla(data));
-
           $('#modalImportacionCargada').modal('hide');
+          $('#btn-buscar').click();
         },
         error: function (data) {
           var response = JSON.parse(data.responseText);

@@ -195,7 +195,6 @@ $casinos = $usuario->casinos;
                                   </div>
                           </div>
 
-
                           <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                                   <div class="col-md-12">
                                       <h6 id="msjeError">SE PRODUJO UN ERROR DE CONEXIÓN</h6>

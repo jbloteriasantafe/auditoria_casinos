@@ -38,57 +38,29 @@ class ImportacionController extends Controller
         $casinos[]=$casino->id_casino;
       }
 
-      $reglas = array();
-
-      if($request->casino!=0){
-        $reglas[]=['casino.id_casino', '=', $request->casino];
-      }
-
-      //obtener solo la primera partida de cada importación sólo para maracar la sesión
-      $reglas[] = ['bingo_importacion.num_partida','=','1'];
-
       $sort_by = $request->sort_by;
-
-
-      //si la fecha no es null
+      $resultados = DB::table('bingo_importacion')
+      ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
+      ->leftJoin('casino' , 'bingo_importacion.id_casino','=','casino.id_casino')
+      ->leftJoin('usuario', 'bingo_importacion.id_usuario', '=', 'usuario.id_usuario')
+      ->when($sort_by,function($query) use ($sort_by){
+        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+      },function($query){
+        return $query->orderBy('fecha','desc');
+      })
+      ->whereIn('bingo_importacion.num_partida',[0,1])
+      ->whereIn('casino.id_casino', $casinos);
+      if($request->casino!=0){
+        $resultados = $resultados->where('casino.id_casino','=',$request->casino);
+      }
       if(isset($request->fecha)){
-        // $reglas[]=['bingo_importacion.fecha', '=', $request->fecha];
         $ff = explode('-', $request->fecha);
         $aaaa = $ff[0];
         $mm = $ff[1];
-
-
-      $resultados = DB::table('bingo_importacion')
-                         ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
-                         ->leftJoin('casino' , 'bingo_importacion.id_casino','=','casino.id_casino')
-                         ->leftJoin('usuario', 'bingo_importacion.id_usuario', '=', 'usuario.id_usuario')
-                         ->when($sort_by,function($query) use ($sort_by){
-                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                        },function($query){
-                          return $query->orderBy('fecha','desc');
-                        })
-                      ->where($reglas)
-                      ->whereYear('fecha', '=', $aaaa)
-                      ->whereMonth('fecha','=', $mm)
-                      ->whereIn('casino.id_casino', $casinos)
-                      // ->orderBy('id_importacion', 'desc')
-                      ->paginate($request->page_size);
-                    }else{ //si la fecha es null
-                      $resultados = DB::table('bingo_importacion')
-                                         ->select('bingo_importacion.*', 'casino.codigo', 'usuario.nombre')
-                                         ->leftJoin('casino' , 'bingo_importacion.id_casino','=','casino.id_casino')
-                                         ->leftJoin('usuario', 'bingo_importacion.id_usuario', '=', 'usuario.id_usuario')
-                                         ->when($sort_by,function($query) use ($sort_by){
-                                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                        },function($query){
-                                          return $query->orderBy('fecha','desc');
-                                        })
-                                      ->where($reglas)
-                                      ->whereIn('casino.id_casino', $casinos)
-                                      // ->orderBy('id_importacion', 'desc')
-                                      ->paginate($request->page_size);
-                    }
-     return $resultados;
+        $resultados = $resultados->whereYear('fecha', '=', $aaaa)
+        ->whereMonth('fecha','=', $mm);
+      }
+     return $resultados->paginate($request->page_size);
     }
 
     public function eliminarImportacion($id){
@@ -127,12 +99,9 @@ class ImportacionController extends Controller
 
       //obtengo el archivo
       $archivoCSV = $request->archivo;
-      //obtengo la dirección del archivo
-      $path = $archivoCSV->getRealPath();
-      //abro el archivo
-      $fileHandle = fopen($path, "r");
       //obtengo la fecha del archivo importado para luego validar
-      $nfecha = $this->fechaArchivo($path);
+      $nfecha = $this->fechaArchivo($archivoCSV);
+      if(is_null($nfecha)) return $this->errorOut(['archivo' => 'No se pudo obtener la fecha del archivo.']);
 
       //si decidió guardar igual un archivo con fecha y casino ya importado, borro
       //cargo las observaciones de re importación
@@ -156,7 +125,8 @@ class ImportacionController extends Controller
       //valido la importacion
       $this->validarImportacion($request->id_casino, $nfecha);
 
-
+      //abro el archivo
+      $fileHandle = fopen($archivoCSV->getRealPath(), "r");
       //guardo todas las filas en lines, como csv corta con ',', habrá más columnas por fila
       $lines = array();
       while( ($row = fgetcsv($fileHandle)) !== FALSE ) {
@@ -176,17 +146,17 @@ class ImportacionController extends Controller
           //creo el array separando las columnas de la fila
           $resultado[] = explode(';', $final);
         }
-        $una_importacion = $this->guardarMelStaFe($resultado,$request->id_casino, $usuario);
       }else{ //es de rosario
         foreach ($lines as $line) {
           $final = str_replace(',','',implode(',',$line));
           $sinpeso = str_replace('$','', $final);
           $resultado[] = explode(';', $sinpeso);
         }
-        $una_importacion = $this->guardarRosario($resultado, $usuario);
       }
+      //@Elegancia: Podria estandarizarse la forma que se manda $resultado, para que no tenga que switchear internamente.
+      $una_importacion = $this->guardarImportacionArr($resultado,$request->id_casino,$usuario,$nfecha);
       //si el archivo no es correcto, devuelve el error
-      if( $una_importacion == 'error_archivo') {
+      if($una_importacion == 'error_archivo') {
         return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
       }
 
@@ -239,114 +209,128 @@ class ImportacionController extends Controller
 
       return $importacion->id_importacion;
     }
-    //Función auxiliar para guardar los datos de importación para sta fe y melincue
-    protected function guardarMelStaFe($resultado, $id, $usuario){
+
+    protected function guardarImportacionArr($resultado,$id,$usuario,$fecha_archivo){
       $una_importacion = new ImportacionBingo;
+      //Por si viene un archivo vacio
+      $una_importacion->id_casino         = $id;
+      $una_importacion->id_usuario        = $usuario;
+      $una_importacion->num_partida       = 0;
+      $una_importacion->hora_inicio       = 0;
+      $una_importacion->serieA            = 0;
+      $una_importacion->carton_inicio_A   = 0;
+      $una_importacion->carton_fin_A      = 0;
+      $una_importacion->cartones_vendidos = 0;
+      $una_importacion->serieB            = 0;
+      $una_importacion->carton_inicio_B   = 0;
+      $una_importacion->carton_fin_B      = 0;
+      $una_importacion->valor_carton      = 0;
+      $una_importacion->cant_bola         = 0;
+      $una_importacion->recaudado         = 0;
+      $una_importacion->premio_linea      = 0;
+      $una_importacion->premio_bingo      = 0;
+      $una_importacion->pozo_dot          = 0;
+      $una_importacion->pozo_extra        = 0;
+      $una_importacion->fecha             = $fecha_archivo;
 
-      foreach ($resultado as $row) {
-
-        //si no pudo separar la fecha en 3 partes, el archivo no es válido
-        if( count($row) != 20) {
-          return 'error_archivo';
-        }
-
-        $fecha = explode('/', $row[19]);
-
-        $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
-
-        //creo una nueva importación para cargar los datos
+      foreach($resultado as $row){
         $importacion = new ImportacionBingo;
         $importacion->id_casino = $id;
         $importacion->id_usuario = $usuario;
-        $importacion->num_partida = (int)$row[0];
-        $importacion->hora_inicio = $row[1];
-        $importacion->serieA = (int)$row[3];
-        $importacion->carton_inicio_A = (int)$row[4];
-        $importacion->carton_fin_A = (int)$row[5];
-        $importacion->cartones_vendidos = (int)$row[6];
-        $importacion->serieB = (int)$row[7];
-        $importacion->carton_inicio_B = (int)$row[8];
-        $importacion->carton_fin_B = (int)$row[9];
-        $importacion->valor_carton = (int)$row[12];
-        $importacion->cant_bola = (int)$row[13];
-        $importacion->recaudado = (float)$row[14];
-        $importacion->premio_linea = (float)$row[15];
-        $importacion->premio_bingo = (float)$row[16];
-        $importacion->pozo_dot = (float)$row[17];
-        $importacion->pozo_extra = (float)$row[18];
-        $importacion->fecha = $nfecha;
-
-        $importacion->save();
-
-        $una_importacion = $importacion;
-      }
-      //Guardo la información para el reporte de estados
-      $fff = $resultado[0];
-      $ff = explode('/', $fff[19]);
-      $f = $ff[2] . '-' . $ff[1] . '-' . $ff[0];
-      app(\App\Http\Controllers\Bingo\ReportesController::class)->guardarReporteEstado($id, $f, 1);
-
-      return $una_importacion;
-    }
-    //Función auxiliar para guardar los datos de importación para rosario
-    protected function guardarRosario($resultado, $usuario){
-      $una_importacion = new ImportacionBingo;
-
-      foreach ($resultado as $row) {
-
-        $fecha = explode('/', $row[18]);
-
-        //si no pudo separar la fecha en 3 partes, el archivo no es válido
-        if( count($fecha) != 3) {
+        if($id == 3){//Rosario
+          $fecha = explode('/', $row[18]);
+          //si no pudo separar la fecha en 3 partes, el archivo no es válido
+          if( count($fecha) != 3) {
+            return 'error_archivo';
+          }
+          $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
+          $importacion->num_partida       = (int)$row[0];
+          $importacion->hora_inicio       = $row[1];
+          $importacion->serieA            = (int)$row[3];
+          $importacion->carton_inicio_A   = (int)$row[4];
+          $importacion->carton_fin_A      = (int)$row[5];
+          $importacion->cartones_vendidos = (int)$row[9];
+          if($row[6] != '')  $importacion->serieB          = (int)$row[6];
+          if($row[7] != '')  $importacion->carton_inicio_B = (int)$row[7];
+          if($row[8] != '')  $importacion->carton_fin_B    = (int)$row[8];
+          $importacion->valor_carton      = (int)$row[11];
+          if($row[12] != '') $importacion->cant_bola       = (int)$row[12];
+          $importacion->recaudado         = (float)$row[13];
+          $importacion->premio_linea      = (float)$row[14];
+          $importacion->premio_bingo      = (float)$row[15];
+          $importacion->pozo_dot          = (float)$row[16];
+          $importacion->pozo_extra        = (float)$row[17];
+          $importacion->fecha             = $nfecha;
+        }
+        else if($id == 1 || $id == 2){//SFE/MEL
+          if(count($row) != 20) {
+            return 'error_archivo';
+          }
+          $fecha = explode('/', $row[19]);
+          $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
+          $importacion->num_partida       = (int)$row[0];
+          $importacion->hora_inicio       = $row[1];
+          $importacion->serieA            = (int)$row[3];
+          $importacion->carton_inicio_A   = (int)$row[4];
+          $importacion->carton_fin_A      = (int)$row[5];
+          $importacion->cartones_vendidos = (int)$row[6];
+          $importacion->serieB            = (int)$row[7];
+          $importacion->carton_inicio_B   = (int)$row[8];
+          $importacion->carton_fin_B      = (int)$row[9];
+          $importacion->valor_carton      = (int)$row[12];
+          $importacion->cant_bola         = (int)$row[13];
+          $importacion->recaudado         = (float)$row[14];
+          $importacion->premio_linea      = (float)$row[15];
+          $importacion->premio_bingo      = (float)$row[16];
+          $importacion->pozo_dot          = (float)$row[17];
+          $importacion->pozo_extra        = (float)$row[18];
+        }
+        else{
           return 'error_archivo';
         }
-        $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
-
-        //creo una nueva importación para cargar los datos
-        $importacion = new ImportacionBingo;
-        $importacion->id_casino = '3';
-        $importacion->id_usuario = $usuario;
-        $importacion->num_partida = (int)$row[0];
-        $importacion->hora_inicio = $row[1];
-        $importacion->serieA = (int)$row[3];
-        $importacion->carton_inicio_A = (int)$row[4];
-        $importacion->carton_fin_A = (int)$row[5];
-        $importacion->cartones_vendidos = (int)$row[9];
-        if($row[6] != '')$importacion->serieB = (int)$row[6];
-        if($row[7] != '')$importacion->carton_inicio_B = (int)$row[7];
-        if($row[8] != '')$importacion->carton_fin_B = (int)$row[8];
-        $importacion->valor_carton = (int)$row[11];
-
-        if($row[12] != '')$importacion->cant_bola = (int)$row[12];
-
-        $importacion->recaudado = (float)$row[13];
-        $importacion->premio_linea = (float)$row[14];
-        $importacion->premio_bingo = (float)$row[15];
-        $importacion->pozo_dot = (float)$row[16];
-        $importacion->pozo_extra = (float)$row[17];
-        $importacion->fecha = $nfecha;
-
         $importacion->save();
         $una_importacion = $importacion;
       }
 
+      if(count($resultado) == 0) $una_importacion->save();
       //Guardo la información para el reporte de estados
-      $fff = $resultado[0];
-      $ff = explode('/', $fff[18]);
-      $f = $ff[2] . '-' . $ff[1] . '-' . $ff[0];
-      app(\App\Http\Controllers\Bingo\ReportesController::class)->guardarReporteEstado(3, $f, 1);;
-
+      app(\App\Http\Controllers\Bingo\ReportesController::class)->guardarReporteEstado($id, $fecha_archivo, 1);
       return $una_importacion;
     }
+
     //Funcion auxiliar para obtener la fecha de la importacion
-    protected function fechaArchivo($path){
+    protected function fechaArchivo($archivo){
+      $path = $archivo->getRealPath();
       $fileHandle_validator = fopen($path, "r");
       $file_line = fgetcsv($fileHandle_validator);
-      $end_line = end($file_line);
-      $pos = strpos($end_line,'/');
-      $file_date = substr($end_line, $pos-2,11);
-      $fecha = explode('/', $file_date);
-      return $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
+      $error_leer = is_null($file_line) || ($file_line === false);
+      if(!$error_leer){
+        $end_line = end($file_line);
+        $pos = strpos($end_line,'/');
+        $file_date = substr($end_line, $pos-2,11);
+        $fecha = explode('/', $file_date);
+        return $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
+      }
+      //Fallback, leo del nombre
+      $filename = $archivo->getClientOriginalName();
+      //Puede ser nombre estilo "Resumen Sesion Jugadas 08-03-2020.csv" o "030820.csv"
+      $es_mmddyy = strpos($filename,'Resumen') === false;
+
+      if($es_mmddyy){
+        $matches = [];
+        preg_match('/[0-9]{6,6}/',$filename,$matches);
+        if(count($matches) == 0) return null;
+        $f = $matches[0];
+        return '20'.$f[4].$f[5].'-'.$f[0].$f[1].'-'.$f[2].$f[3];
+      }
+      else{//dd-mm-yyyy
+        $matches = [];
+        preg_match('/[0-9]{2,2}-[0-9]{2,2}-[0-9]{4,4}/',$filename,$matches);
+        if(count($matches) == 0) return null;
+        $f = $matches[0];
+        return substr($f,6,4).'-'.substr($f,3,2).'-'.substr($f,0,2);
+      }
+      return null;
     }
     //Función para validar la importacion
     protected function validarImportacion($id_casino, $fecha){
