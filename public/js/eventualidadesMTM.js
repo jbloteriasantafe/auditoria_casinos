@@ -149,6 +149,7 @@ function mostrarFiscalizacion(id_mov,modo,refrescando = false){
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
     divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus',6 : 'fa-search-plus'};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,-1);
     divRelMovSetearModo("VER");
@@ -199,6 +200,7 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
     else{ //VER por defecto
       divRelMovSetearModo("VER");
     }
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
     divRelMovSetear(data);
     divRelMovMostrarDetalleRelevamiento();
   })
@@ -273,10 +275,14 @@ function validar(estado){
     }
   });
 
+  const datos = divRelMovObtenerDatos();
   const formData = {
     id_relev_mov: $('#guardarRel').attr('data-rel'),
-    observacion: divRelMovObtenerDatos().observacionesAdm,
-    estado: estado
+    observacion: datos.observacionesAdm,
+    estado: estado,
+    nro_exp_org: datos.nro_exp_org,
+    nro_exp_interno: datos.nro_exp_interno,
+    nro_exp_control: datos.nro_exp_control
   }
 
   $.ajax({

@@ -68,7 +68,10 @@ function divRelMovObtenerDatos(){
         creditos: divRM.find('.creditos').val(),
         progresivos: progresivos,
         observaciones: divRM.find('.observaciones').val(),
-        observacionesAdm: divRM.find('.observacionesAdm').val()
+        observacionesAdm: divRM.find('.observacionesAdm').val(),
+        nro_exp_org: divRM.find('.exp_org').val(),
+        nro_exp_interno: divRM.find('.exp_interno').val(),
+        nro_exp_control: divRM.find('.exp_control').val(),
     };
 }
 function divRelMovLimpiarErrores(){
@@ -78,7 +81,7 @@ function divRelMovLimpiarErrores(){
 }
 function divRelMovLimpiar(){
     divRelMovLimpiarErrores();
-    divRM.find('input').not('.tipoMov,.sentidoMov').val('');
+    divRM.find('input').not('.tipoMov,.sentidoMov,.exp_org,.exp_interno,.exp_control').val('');
     divRM.find('.tablaCont tbody').empty();
     divRM.find('.juego').empty();
     divRM.find('.tablaProg tbody').empty();
@@ -273,6 +276,11 @@ function divRelMovSetearTipo(tipo_movimiento,sentido){
     divRM.find('.tipoMov').val(tipo_movimiento);
     divRM.find('.sentidoMov').val(sentido);
 }
+function divRelMovSetearExp(org,interno,control){
+    divRM.find('.exp_org').val(org);
+    divRM.find('.exp_interno').val(interno);
+    divRM.find('.exp_control').val(control);
+}
 function divRelMovMarcarListaMaq(id_maquina,estado = true){
     divRM.find('.tablaMTM').find('.listo[data-maq="'+id_maquina+'"]').toggle(estado);
 }
@@ -288,16 +296,19 @@ function divRelMovCambiarDibujoMaq(id_maquina,dibujo){
 function divRelMovSetearModo(modo){
     if(modo == "VER"){
         divRM.find('.editable').attr('disabled',true);
+        divRM.find('.exp_org,.exp_interno,.exp_control').attr('disabled',true);
         divRM.find('.relFecha .input-group-addon').hide();
         divRM.find('.validacion').hide();
     }
     else if(modo == "CARGAR"){
         divRM.find('.editable').removeAttr('disabled');
+        divRM.find('.exp_org,.exp_interno,.exp_control').attr('disabled',true);
         divRM.find('.relFecha .input-group-addon').show();
         divRM.find('.validacion').hide();
     }
     else if(modo == "VALIDAR"){
         divRM.find('.editable').attr('disabled',true);
+        divRM.find('.exp_org,.exp_interno,.exp_control').removeAttr('disabled');
         divRM.find('.relFecha .input-group-addon').hide();
         divRM.find('.validacion').show();
     }

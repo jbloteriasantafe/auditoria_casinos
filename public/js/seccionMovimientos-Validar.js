@@ -4,17 +4,17 @@ $(document).on('click', '.boton_validar', function () {
     $('#tablaMaquinasFiscalizacion tbody tr').remove();
     
     const id_log_movimiento = $(this).parent().parent().attr('id');
-    const tipo_mov = $(this).parent().parent().find('.tipo_mov').text();
     $.get('movimientos/obtenerFiscalizacionesMovimiento/' + id_log_movimiento, function (data) {
         let tablaFiscalizacion = $('#tablaFechasFiscalizacion tbody');
-        data.forEach(f => {
+        data.fiscalizaciones.forEach(f => {
             let fila = generarFilaFechaFiscalizacion(f.id_fiscalizacion_movimiento,f.id_estado_fiscalizacion,f.fecha_envio_fiscalizar);
             tablaFiscalizacion.append(fila);
         });
         divRelMovLimpiar();
         divRelMovCargarRelevamientos([],{},-1);
         divRelMovEsconderDetalleRelevamiento();
-        divRelMovSetearTipo(tipo_mov,'---');
+        divRelMovSetearTipo(data.tipo_mov,data.sentido);
+        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
         $('#modalValidacion').modal('show');
     });
 });
@@ -24,6 +24,7 @@ function mostrarFiscalizacion(id_fiscalizacion){
     $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
       divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
       divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
+      divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
       let dibujos = {3 : 'fa-check', 4 : 'fa-search-plus'};
       divRelMovCargarRelevamientos(data.relevamientos,dibujos,4);
       divRelMovSetearModo('VER');
@@ -41,9 +42,10 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
     const toma = $(this).attr('toma');
     $('#modalValidacion').attr('data-rel', id_rel);
     $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
-      divRelMovSetearModo(data.relevamiento.id_estado_relevamiento == 3? 'VALIDAR' : 'VER');
-      divRelMovSetear(data);
-      divRelMovMostrarDetalleRelevamiento();
+        divRelMovSetearModo(data.relevamiento.id_estado_relevamiento == 3? 'VALIDAR' : 'VER');
+        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+        divRelMovSetear(data);
+        divRelMovMostrarDetalleRelevamiento();
     });
 });
 
@@ -66,9 +68,13 @@ $("#modalValidacion").on('hidden.bs.modal', function () {
 
 //POST PARA VALIDAR
 function validar(id_rel, val) {
+    const datos = divRelMovObtenerDatos();
     const formData = {
         id_relev_mov: id_rel,
-        observacion: divRelMovObtenerDatos().observacionesAdm,
+        observacion: datos.observacionesAdm,
+        nro_exp_org: datos.nro_exp_org,
+        nro_exp_interno: datos.nro_exp_interno,
+        nro_exp_control: datos.nro_exp_control,        
         estado: val,
     }
 

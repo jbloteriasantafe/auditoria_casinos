@@ -8,13 +8,21 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 <div id="divRelMov">
 <div class="row"> 
-    <div class="col-md-4 col-md-offset-2">
-        <h5>Tipo Movimiento</h5>
-        <input class="form-control tipoMov" type="text" autocomplete="off" readonly="">
+    <div class="col-md-4">
+        <h5 class="row">Tipo Movimiento</h5>
+        <input class="row form-control tipoMov" type="text" autocomplete="off" readonly="">
     </div>
     <div class="col-md-4">
-        <h5>Sentido</h5>
-        <input class="form-control sentidoMov" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+        <h5 class="row">Sentido</h5>
+        <input class="row form-control sentidoMov" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
+    </div>
+    <div class="col-md-4">
+        <h5 class="row">Expediente</h5>
+        <div class="row">
+            <div class="col-md-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx"></div>
+            <div class="col-md-5"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx"></div>
+            <div class="col-md-2"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x"></div>
+        </div>
     </div>
 </div>
 <div class="row"> <!-- row inicial -->

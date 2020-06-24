@@ -494,7 +494,8 @@ class LogMovimientoController extends Controller
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
             'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 
-            'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion];
+            'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion,
+            'nro_exp_org' => $log->nro_exp_org,'nro_exp_interno' => $log->nro_exp_interno,'nro_exp_control' => $log->nro_exp_control];
   }
 
   public function imprimirFiscalizacion($id_fiscalizacion_movimiento){
@@ -759,7 +760,10 @@ class LogMovimientoController extends Controller
                           ->where('log_movimiento.id_log_movimiento','=',$id_log_movimiento)
                           ->whereIn('log_movimiento.id_casino',$casinos)
                           ->get();
-      return $fiscalizaciones;
+      $log = LogMovimiento::find($id_log_movimiento);
+      return ['fiscalizaciones' => $fiscalizaciones,'tipo_mov' => $log->tipo_movimiento->descripcion,'sentido' => $log->sentido,
+              'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control
+      ];
   }
 
   //Busca todas las máquinas que concuerdan con el movimiento hecho
@@ -1072,10 +1076,12 @@ class LogMovimientoController extends Controller
 
 
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
+    $log = $rel->log_movimiento;
     return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
      'fiscalizador' => $fisca,'cargador' => $cargador,
-     'tipo_movimiento' =>  $rel->log_movimiento->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
-     'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos];
+     'tipo_movimiento' =>  $log->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
+     'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
+     'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control ];
   }
 
   public function buscarEventualidadesMTMs(Request $request){
@@ -1271,7 +1277,9 @@ class LogMovimientoController extends Controller
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => null,
             'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido,
-            'casino' => $log->casino];
+            'casino' => $log->casino,
+            'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control
+          ];
   }
 
 
@@ -1285,6 +1293,9 @@ class LogMovimientoController extends Controller
       'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
       'nro_toma' => 'nullable',
       'observacion' => 'nullable|string',
+      'nro_exp_org' => 'nullable|string|max:5',
+      'nro_exp_interno' =>  'nullable|string|max:7',
+      'nro_exp_control' => 'nullable|string|max:1',
       'estado' => ['required', Rule::in(['valido', 'error']) ]
     ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relevMov,$id_usuario){
       if(count($validator->errors()) == 0){
@@ -1304,6 +1315,10 @@ class LogMovimientoController extends Controller
 
     DB::beginTransaction();
     try{
+      $logMov->nro_exp_org = is_null($request->nro_exp_org)? '' : $request->nro_exp_org;
+      $logMov->nro_exp_interno = is_null($request->nro_exp_interno)? '' : $request->nro_exp_interno;
+      $logMov->nro_exp_control = is_null($request->nro_exp_control)? '' : $request->nro_exp_control;
+      $logMov->save();
       if($this->noEsControlador($id_usuario,$logMov)){
         $logMov->controladores()->attach($id_usuario);
         $logMov->save();
