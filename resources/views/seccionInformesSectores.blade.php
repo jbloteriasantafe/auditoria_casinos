@@ -20,33 +20,12 @@
 ?>
 @section('contenidoVista')
 <datalist id="dataCasinos">
-    @foreach($casinos as $c)
-    <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
-    @endforeach
 </datalist>
 <datalist id="dataSectores">
-    @foreach($sectores as $s)
-    <option value="{{$s->id_sector}}" data-id-casino="{{$s->id_casino}}">{{$s->descripcion}}</option>
-    @endforeach
 </datalist>
 <datalist id="dataIslas">
-    @foreach($islas as $i)
-    <option value="{{$i->id_isla}}" data-id-sector="{{$i->id_sector}}" data-id-casino="{{$i->id_casino}}">{{$i->nro_isla}}</option>
-    @endforeach
 </datalist>
 <datalist id="dataMaquinas">
-    @foreach($maquinas as $m)
-    <option value="{{$m->id_maquina}}" 
-    data-id-isla="{{$m->id_isla}}" 
-    data-id-sector="{{$m->id_sector}}" 
-    data-id-casino="{{$m->id_casino}}"
-    data-id-estado-maquina="{{$m->id_estado_maquina}}"
-    @if ($m->borrada == 1)
-    class="borrada"
-    @endif
-    style='background: {{get($colores[$m->id_estado_maquina])}}'
-    ><b>{{$m->nro_admin}}</b> <small>{{$m->estado_descripcion}}</small></option>
-    @endforeach
 </datalist>
 
 <div class="row">
@@ -56,12 +35,12 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><h4>Casinos</h4></div>
                     <div class="panel-body">
-                    <!-- height 100% para forzar mostrar en resolucines bajas. -->
-                        <select id="sel_casinos" class="form-control" list="dataCasinos" size={{count($casinos)}} style="height: 100%">
-                        @foreach($casinos as $c)
-                        <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
-                        @endforeach
+                        <!-- height 100% para forzar mostrar en resolucines bajas. -->
+                        <select id="sel_casinos" class="form-control" list="dataCasinos" size=3 style="height: 100%">
                         </select>
+                        <button type="button" class="btn btn-secondary" id="btn_refrescar" title="Refrescar MTMs">
+                            <i class="fa fa-sync" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -101,6 +80,33 @@
         </div>
     </div>
 </div>
+
+@if($es_admin)
+<div class="row panel panel-default">
+    <div class="panel-heading"><h4>Transacciones</h4></div>
+    <hr>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-4" style="border-right: 1px solid gray;">
+                <select id="sel_encoladas" class="form-control" size=20 style="height: 100%;width: 100%">
+                </select>
+                <button type="button" class="btn btn-secondary" id="btn_ordenar">Ordenar</button>
+                <button type="button" class="btn btn-secondary" id="btn_limpiar">Limpiar</button>
+            </div>
+            <div class="col-lg-2">
+                <h5>Cambiar a estado</h5>
+                <select id="sel_estado" class="form-control" size=1>
+                    @foreach($estados as $e)
+                    <option value="{{$e->id_estado_maquina}}">{{$e->descripcion}}</option>
+                    @endforeach
+                </select>
+                <br>
+                <button type="button" class="btn btn-warning" id="btn_estado">CAMBIAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 

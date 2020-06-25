@@ -656,6 +656,14 @@ class informesController extends Controller
   public function mostrarInformeSector(){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Sector' ,'informeSector');
+    return view('seccionInformesSectores',
+    [
+      'es_admin' => $user->es_administrador || $user->es_superusuario,
+      'estados' => EstadoMaquina::all()
+    ]);
+  }
+  public function obtenerMTMs(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
@@ -722,12 +730,27 @@ class informesController extends Controller
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);
-    return view('seccionInformesSectores',
-    [
+
+    $keylist = ['id_casino','nombre'];
+    $filter = function($v,$idx) use (&$keylist){
+      $ret = [];
+      foreach($keylist as $k){
+        $ret[$k] = $v->{$k};
+      }
+      return $ret;
+    };
+    $casinos = $casinos->map($filter);
+    $keylist = ['id_sector','descripcion','id_casino'];
+    $sectores = collect($sectores)->map($filter);//->only(['id_sector','descripcion','id_casino'])->all();
+    $keylist = ['id_isla','nro_isla','id_sector','id_casino'];
+    $islas = collect($islas)->map($filter);
+    $keylist = ['id_maquina','nro_admin','estado_descripcion','id_isla','id_sector','id_casino','borrada'];
+    $todas = collect($todas)->map($filter);
+    return [
       'casinos' => $casinos, 
       'sectores' => $sectores, 
       'islas' => $islas, 
       'maquinas' => $todas
-    ]);
+    ];
   }
 }

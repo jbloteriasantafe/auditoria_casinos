@@ -1005,4 +1005,24 @@ class MTMController extends Controller
 
       return ['tipo' => $maquina->tipoMoneda];
   }
+
+  public function transaccionEstadoMasivo(Request $request){
+    Validator::make($request->all(), [
+      'maquinas' => 'nullable|list',
+      'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
+      'maquinas.*.id_estado_maquina' => 'required|exists:estado_maquina,id_estado_maquina'
+    ],array(),self::$atributos)->after(function($validator){
+      if(!$validator->errors()->any()){
+        $data = $validator->getData();
+        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        $usuario_casinos = DB::table('usuario_tiene_casino')->where('id_usuario',$user->id_usuario);
+        foreach($data['maquinas'] as $m){
+          $MTM = Maquina::find($data['id_maquina']);
+          $acceso_MTM = (clone $usuario_casinos)->where('id_casino',$MTM->id_casino)->count();
+          if($acceso_MTM == 0) $validator->errors()->add('id_maquina', 'El usuario no puede acceder a esa maquina.');
+        }
+      }
+    })->validate();
+    return 1;
+  }
 }
