@@ -744,7 +744,7 @@ class informesController extends Controller
     $sectores = collect($sectores)->map($filter);//->only(['id_sector','descripcion','id_casino'])->all();
     $keylist = ['id_isla','nro_isla','id_sector','id_casino'];
     $islas = collect($islas)->map($filter);
-    $keylist = ['id_maquina','nro_admin','estado_descripcion','id_isla','id_sector','id_casino','borrada'];
+    $keylist = ['id_maquina','nro_admin','id_estado_maquina','estado_descripcion','id_isla','id_sector','id_casino','borrada'];
     $todas = collect($todas)->map($filter);
     return [
       'casinos' => $casinos, 

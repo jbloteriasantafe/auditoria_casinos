@@ -10,14 +10,6 @@
   }
   </style>
 @endsection
-<?php
-    function get(&$var, $default="") {
-        return isset($var) ? $var : $default;
-    }
-    $rojo = 'rgb(219,100,100)';
-    $amarillo = 'rgb(244,160,0)';
-    $colores = [3 => $rojo ,4 => $rojo,5 => $rojo,6=> $amarillo];
-?>
 @section('contenidoVista')
 <datalist id="dataCasinos">
 </datalist>
@@ -126,4 +118,5 @@
 @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="js/seccionInformesSectores.js" charset="utf-8"></script>
+    <script src="js/utils.js" charset="utf-8"></script>
 @endsection
