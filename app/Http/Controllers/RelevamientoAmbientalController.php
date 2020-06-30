@@ -263,12 +263,15 @@ class RelevamientoAmbientalController extends Controller
 
     $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'generalidades', 'otros_datos'));
     $dompdf = new Dompdf();
-    //$dompdf->set_paper('A4', 'portrait');
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 820, $relevamiento_ambiental->nro_relevamiento_ambiental . "/" . $relevamiento_ambiental->casino->codigo, $font, 10, array(0,0,0));
+    $font = $dompdf->getFontMetrics()->get_font("Helvetica", "normal");
+    $dompdf->getCanvas()->page_text(20, 575, 
+    $relevamiento_ambiental->nro_relevamiento_ambiental
+      ."/".$relevamiento_ambiental->casino->codigo
+      .'/Generado:'.$relevamiento_ambiental->fecha_generacion,
+      $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf;

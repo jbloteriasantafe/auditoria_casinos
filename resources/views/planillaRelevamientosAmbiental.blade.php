@@ -91,6 +91,7 @@
           @endforeach
         </tr>
       </thead>
+      <tbody style="line-height: 150%;">
         @foreach ($generalidades as $g)
         <tr>
           <td class="tablaInicio" style="background-color: #e6e6e6" width="120px"><b>{{$g['tipo_generalidad']}}</b></td>
@@ -99,7 +100,9 @@
           @endfor
         </tr>
         @endforeach
+      </tbody>
     </table>
+
     <br>
     <table style="table-layout:fixed;">
         <thead><tr>
@@ -107,8 +110,8 @@
         </tr></thead>
         <tbody><tr>
           <td class="tablaAmbiental" style="background-color: #white">
-            <div class="break">
-            {{clearnull($relevamiento_ambiental->observacion_carga,str_repeat('.',648))}}
+            <div class="break" style="line-height: 300%;">
+            {{clearnull($relevamiento_ambiental->observacion_carga,str_repeat('.',624))}}
             </div>
           </td>
         </tr></tbody>
@@ -129,9 +132,26 @@
         </tr></tbody>
       </table>
     @endif
-    <br>
-    <div class="primerEncabezado" style="padding-left: 460px;"><p style="width: 250px; padding-left: 50px;">Firma y aclaración/s responsable/s.</p></div>
 
+    <br>
+    <table>
+      <thead>
+        <tr>
+            <th class="tablaInicio" style="background-color: #e6e6e6" width="100px">TURNOS</th>
+            @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+            <th class="tablaInicio" style="background-color: #e6e6e6">{{$turno->nro_turno}}</th>
+            @endforeach
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="line-height: 600%;">
+          <td class="tablaInicio" style="background-color: #e6e6e6;text-align: center;padding-bottom: 30px;" width="100px"><b>Firma y sello</b></td>
+          @for($i=1;$i<=$turnos_size;$i++)
+          <td class="tablaAmbiental" style="background-color: white"></td>
+          @endfor
+        </tr>
+      </tbody>
+    </table>
 
     <?php
     $id_casino = $relevamiento_ambiental->casino->id_casino;
@@ -163,7 +183,7 @@
       for($i=1;$i<=$turnos_size;$i++) $total_turno[$i] = 0;
     ?>
     <div style="page-break-after:always;"></div>
-    <div class="primerEncabezado">Sector de control ambiental: {{$nsector}}</div>
+    <div class="primerEncabezado" style="font-size: 103%;">Sector de control ambiental: {{$nsector}}</div>
     @for($col=0;$col<$cols_x_sector[$id_sector];$col++)
     @if ($col%2 == 0 && $col != 0)
     <div style="page-break-after:always;"></div>
