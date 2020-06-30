@@ -227,6 +227,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="bingo/importarRelevamiento"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>
                                           @elseif($visitada->ruta == 'informe-bingo')
                                             <a href="bingo/informe"><i class="fa fa-share fa-2x"></i>@svg('bingos','iconoInformesModif')</a>  
+                                          @elseif($visitada->ruta == 'relevamientosControlAmbiental')
+                                            <a href="relevamientosControlAmbiental"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @endif
                                           <h6>{{$visitada->seccion}}</h6>
                                   </div>

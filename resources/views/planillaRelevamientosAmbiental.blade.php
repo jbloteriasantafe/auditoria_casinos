@@ -191,7 +191,7 @@
     <table style="table-layout:fixed;width: 48%;{{$col%2 == 0? $posicion_tabla_izq: $posicion_tabla_der}}">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2" width="10%">{{$nombre_columna}}</th>
+          <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2" width="11%">{{$nombre_columna}}</th>
           <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$turnos_size}}">TURNOS</th>
         </tr>
         <tr>
