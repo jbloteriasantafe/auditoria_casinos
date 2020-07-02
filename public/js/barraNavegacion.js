@@ -51,7 +51,7 @@ $('.etiquetaLogoSalida').click(function(e){
       type: 'POST',
       url: '/logout',
       success: function (data) {
-        window.location.href = "login";
+        window.location.href = "/login";
       },
       error: function (data) {
         console.log("Error: ", data);
