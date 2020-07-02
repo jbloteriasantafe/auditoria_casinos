@@ -148,15 +148,18 @@
       $det_x_sectores[$detalle['id_sector']][] = $detalle;
     }
 
+    $cols_x_pag = 4;
+    $ancho_tabla = (100.0/$cols_x_pag);
     $filas_por_col = 24.0;
     $cols_x_sector = [];
     foreach($nombres_sectores as $id_sector => $nsector){
       $cols_x_sector[$id_sector] = ceil(count($det_x_sectores[$id_sector]) / $filas_por_col);
     }
     $posicion = [
-     0 =>  'position: absolute;top: 10px;left: -2.5%;',
-     1 =>  'position: absolute;top: 10px;left: 31.25%;',
-     2 =>  'position: absolute;top: 10px;left: 65%;'
+     0 =>  'position: absolute;top: 10px;left: -3%;',
+     1 =>  'position: absolute;top: 10px;left: 23%;',
+     2 =>  'position: absolute;top: 10px;left: 49%;',
+     3 =>  'position: absolute;top: 10px;left: 75%;'
     ];
     ?>
 
@@ -168,13 +171,13 @@
     <div style="page-break-after:always;"></div>
     <div class="primerEncabezado" style="font-size: 103%;">Sector de control ambiental: {{$nsector}}</div>
     @for($col=0;$col<$cols_x_sector[$id_sector];$col++)
-    @if ($col%3 == 0 && $col != 0)
+    @if ($col%$cols_x_pag == 0 && $col != 0)
     <div style="page-break-after:always;"></div>
     @endif
-    <table style="table-layout:fixed;width: 33.25%;{{$posicion[$col%3]}}">
+    <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2" width="5%">{{$nombre_columna}}</th>
+          <th class="tablaInicio" style="background-color: #e6e6e6;font-size: 0.5em;text-align: center;" rowspan="2" width="5%">{{$nombre_columna}}</th>
           <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$turnos_size}}">TURNOS</th>
         </tr>
         <tr>
@@ -196,7 +199,7 @@
         @endfor
         <tr>
           @if(($col+1) == $cols_x_sector[$id_sector])
-            <td class="tablaAmbiental" style="background-color: #e6e6e6;border-top: 1.5px solid grey;font-size: 65%;"><b>TOTAL<b></td>
+            <td class="tablaAmbiental" style="background-color: #e6e6e6;border-top: 1.5px solid grey;font-size: 0.5em;text-align: center;"><b>TOTAL<b></td>
             @for($i=1;$i<=$turnos_size;$i++)
             <td class="tablaAmbiental" style="background-color: white;border-top: 1.5px solid grey;">{{clearzero($total_turno[$i])}}</td>
             @endfor
