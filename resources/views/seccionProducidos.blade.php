@@ -184,6 +184,10 @@ use Illuminate\Http\Request;
 
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
+            <h6 style="padding-left:15px">
+              Máquinas con diferencias: 
+              <span id="maquinas_con_diferencias">---</span>
+            </h6>
           </div>
           <div class="row" >
             <div class="col-md-3">

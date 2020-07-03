@@ -193,53 +193,39 @@ $(document).on('click','.carga',function(e){
   const fecha_prod = tr_html.find('.fecha_producido').text();
   const casino = tr_html.find('.casino').text();
   $('#descripcion_validacion').text(casino+' - '+fecha_prod+' - $'+moneda);
-
+  $('#maquinas_con_diferencias').text('---');
 
   $('#modalCargaProducidos #id_producido').val(id_producidos);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
   $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
-
-    //pruebas
-    console.log("esto esta por evaluar");
-    console.log("esto esta por evaluar",data);
-
-
-    // fin pruebas
     if(data.validado.estaValidado == 0){
       $('#descripcion_validacion').text(casino+' - '+data.fecha_produccion+' - $'+data.moneda.descripcion);
-
+      $('#maquinas_con_diferencias').text(data.producidos_con_diferencia.length);
       for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
         var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
-
-          $('#cuerpoTabla').append(fila);
-    $('#btn-salir-validado').hide();
-    $('#btn-salir').show();
-        }
-    }else {
+        $('#cuerpoTabla').append(fila);
+        $('#btn-salir-validado').hide();
+        $('#btn-salir').show();
+      }
+    }
+    else {
       $('#btn-minimizar').hide();
-      $('#cuerpoTabla')
-          .append($('<div>')
-              .addClass('row')
-              .append($('<div>')
-                .addClass('col-xs-6')
-                .append($('<h3>')
-                  .text('El producido ahora está validado. No se encontraron diferencias')
-                )
-              )
-
-      )
+      $('#cuerpoTabla').append(
+        $('<div>').addClass('row').append(
+          $('<div>').addClass('col-xs-6').append(
+            $('<h3>').text('El producido ahora está validado. No se encontraron diferencias')
+          )
+        )
+      );
       $('#textoExito').hide();
       $('#btn-salir-validado').show();
       $('#btn-salir').hide();
-
       cerrarContadoresYValidar($('#id_producido').val() ,data.validado.producido_fin);//como no hubo diferencias producido validado y contadores finales cerrados
     }
-
   });
   $('#frmCargaProducidos').attr('data-tipoMoneda' ,tr_html.find('.tipo_moneda').attr('data-tipo'));
   $('#modalCargaProducidos').modal('show');
   $('#').modal('hide');
-
 });
 
 $('#btn-salir-validado').on('click', function(e){
@@ -363,57 +349,45 @@ function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
   //estado -> generado, carga parcial, finalizado
   var detalles_sin_diferencia = [];
   var errores = 0 ;
-   // $('#tablaMaquinas tbody tr').each(function(index){
-   //if($('#modalCargaProducidos #diferencias').text()== 0){
 
+  var id_detalle_contador_final = $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null;
+  var id_detalle_contador_inicial = $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null;
 
-       var id_detalle_contador_final = $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null;
-       var id_detalle_contador_inicial = $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null;
+  var producido = {
+    id_maquina : id,
+    id_detalle_producido :  $('#data-producido').val(),
+    id_detalle_contador_final : id_detalle_contador_final,
+    id_detalle_contador_inicial : id_detalle_contador_inicial,
+    coinin_inicial : parseInt($('#coininIni').val()),
+    coinout_inicial : parseInt($('#coinoutIni').val()),
+    jackpot_inicial : $('#jackIni').val(),
+    progresivo_inicial : $('#progIni').val(),
+    coinin_final : parseInt($('#coininFin').val()),
+    coinout_final :parseInt($('#coinoutFin').val()),
+    jackpot_final : $('#jackFin').val(),
+    progresivo_final :$('#progFin').val(),
+    producido: $('#prodSist ').val(),
+    denominacion: $('#data-denominacion').val(),
+    id_tipo_ajuste: $('#observacionesAjuste').val(),
+    prodObservaciones: $('#prodObservaciones').val(),
+  };
 
-       // if($('#observacionesAjuste').val() = 0){
-
-          var producido={
-            id_maquina : id,
-            id_detalle_producido :  $('#data-producido').val(),
-            id_detalle_contador_final : id_detalle_contador_final,
-            id_detalle_contador_inicial : id_detalle_contador_inicial,
-            coinin_inicial : parseInt($('#coininIni').val()),
-            coinout_inicial : parseInt($('#coinoutIni').val()),
-            jackpot_inicial : $('#jackIni').val(),
-            progresivo_inicial : $('#progIni').val(),
-            coinin_final : parseInt($('#coininFin').val()),
-            coinout_final :parseInt($('#coinoutFin').val()),
-            jackpot_final : $('#jackFin').val(),
-            progresivo_final :$('#progFin').val(),
-            producido: $('#prodSist ').val(),
-            denominacion: $('#data-denominacion').val(),
-            id_tipo_ajuste: $('#observacionesAjuste').val(),
-            prodObservaciones: $('#prodObservaciones').val(),
-          }
-
-      // }else{
-      //   $('#observacionesAjuste').addClass('alerta');
-      //   errores++;
-      // }
-      detalles_sin_diferencia.push(producido);
-
-      //}
-  // })
+  detalles_sin_diferencia.push(producido);
 
   //si apreta guardar con todos arreglados
    if(($('#diferencias').text()=='0') && ($('#observacionesAjuste').val() != 0)){
      estado = 3 ;
   }
 
-  if(errores==0){
-    formData= {
+  if(errores == 0){
+    formData = {
       producidos_ajustados : detalles_sin_diferencia,
       estado : estado ,
       id_contador_final :  $('#data-contador-final').val(),
       id_contador_inicial: $('#data-contador-inicial').val(),
       id_tipo_moneda : $('#frmCargaProducidos').attr('data-tipoMoneda'),
       id_producido: $('#id_producido').val()
-    }
+    };
 
     $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
     $.ajax({
@@ -422,56 +396,48 @@ function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
         data: formData,
         dataType: 'json',
         success: function (data) {
-
           switch (data.estado) {
-              case 1: //Ha finalizado el ajuste de UNA máquina
+            case 1: //Ha finalizado el ajuste de UNA máquina
               $('#columnaDetalle').hide();
-
               $('#cuerpoTabla').find(id).remove();
               $('#btn-finalizar').hide();
               $('#modalCargaProducidos .mensajeFin').show();
-
-              case 2: //GUARDADO TEMPORAL
-                for (var i = 0; i < data.resueltas.length; i++) {
-                  $('#cuerpoTabla #' + data.resueltas[i]).remove();
-                }
-                $('#columnaDetalle').hide();
-                $('#textoExito').text('Se arreglaron ' + data.resueltas.length + ' máquinas. Y ocurrieron ' + data.errores.length + ' errores.');
-              break;
-
+              $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
+            case 2: //GUARDADO TEMPORAL
+              for (var i = 0; i < data.resueltas.length; i++) {
+                $('#cuerpoTabla #' + data.resueltas[i]).remove();
+              }
+              $('#columnaDetalle').hide();
+              $('#textoExito').text('Se arreglaron ' + data.resueltas.length + ' máquinas. Y ocurrieron ' + data.errores.length + ' errores.');
+            break;
             case 3: //SE HAN FINALIZADO LOS AJUSTES DE TODAS LAS MÁQUINAS
-                $('#columnaDetalle').hide();
-                $('#btn-finalizar').hide();
-                $('#btn-guardar').hide();
-                $('#modalCargaProducidos').modal('hide');
+              $('#columnaDetalle').hide();
+              $('#btn-finalizar').hide();
+              $('#btn-guardar').hide();
+              $('#modalCargaProducidos').modal('hide');
 
-                $('#mensajeExito h3').text('EXITO');
-                $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
-                $('#mensajeExito div').css('background-color','#4DB6AC');
-                $('#mensajeExito').show();
-                $('#btn-buscar').trigger('click');
+              $('#mensajeExito h3').text('EXITO');
+              $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
+              $('#mensajeExito div').css('background-color','#4DB6AC');
+              $('#mensajeExito').show();
+              $('#btn-buscar').trigger('click');
 
-                $('#tablaImportacionesProducidos #' + $('#id_producido').val()).find('td').eq(3).children()
+              $('#tablaImportacionesProducidos #' + $('#id_producido').val()).find('td').eq(3).children()
                     .replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
             break;
             default:
-
+            break;
           }
 
           guardado = true;
           $('#btn-guardar').hide();
-
         },
         error: function (data) {
           console.log('ERROR');
           console.log(data);
-
         },
     });
-  }else {
-    //mostrar errores
-    }
-
+  }
 };
 
 function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
