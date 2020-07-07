@@ -223,14 +223,32 @@ class LogMovimientoController extends Controller
   public function buscarLogsMovimientos(Request $request){
     //busca logs de movimientos por expediente, por si es nota o no, por fecha, y tipo de movimiento, se tiene en cuenta que el
     //casino es del usuario que está en la session
-    $reglas = array();
-
-    if(!empty($request->nro_exp_org))
-      $reglas[]=['expediente.nro_exp_org','like', '%'.$request->nro_exp_org.'%'];
-    if(!empty($request->nro_exp_interno))
-      $reglas[]=['expediente.nro_exp_interno', 'like', '%'.$request->nro_exp_interno.'%'];
-    if(!empty($request->nro_exp_control))
-      $reglas[]=['expediente.nro_exp_control', '=' , $request->nro_exp_control];
+    $where_exp_org = function($q) use ($request){
+      return;
+    };
+    $where_exp_interno = $where_exp_org;
+    $where_exp_control = $where_exp_org;
+    if(!empty($request->nro_exp_org)){
+      $where_exp_org = function($q) use ($request){
+        $q->where('expediente.nro_exp_org','like', '%'.$request->nro_exp_org.'%')
+        ->orWhere('log_movimiento.nro_exp_org','like', '%'.$request->nro_exp_org.'%');
+        return;
+      };
+    }
+    if(!empty($request->nro_exp_interno)){
+      $where_exp_org = function($q) use ($request){
+        $q->where('expediente.nro_exp_interno','like', '%'.$request->nro_exp_interno.'%')
+        ->orWhere('log_movimiento.nro_exp_interno','like', '%'.$request->nro_exp_interno.'%');
+        return;
+      };
+    }
+    if(!empty($request->nro_exp_control)){
+      $where_exp_control = function($q) use ($request){
+        $q->where('expediente.nro_exp_control','=', $request->nro_exp_control)
+        ->orWhere('log_movimiento.nro_exp_control','=', $request->nro_exp_control);
+        return;
+      };
+    }
 
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     foreach ($usuario->casinos as $casino) {
@@ -241,6 +259,7 @@ class LogMovimientoController extends Controller
       $casinos = [$request->casino];
     }
 
+    $reglas = array();
     if(isset($request->nro_admin) && $request->nro_admin != ""){
       $reglas[]=['relevamiento_movimiento.nro_admin','like', $request->nro_admin.'%'];
     }
@@ -255,13 +274,17 @@ class LogMovimientoController extends Controller
     }
 
     $resultados = DB::table('log_movimiento')
-    ->select('log_movimiento.*','expediente.*','casino.*','tipo_movimiento.*','estado_movimiento.descripcion as estado')
+    ->selectRaw("log_movimiento.*,casino.*,tipo_movimiento.*,estado_movimiento.descripcion as estado,
+    IF(STRCMP(expediente.concepto,'expediente_auxiliar_para_movimientos') = 0,
+       CONCAT(log_movimiento.nro_exp_org,'-',log_movimiento.nro_exp_interno,'-',log_movimiento.nro_exp_control), 
+       CONCAT(    expediente.nro_exp_org,'-',    expediente.nro_exp_interno,'-',    expediente.nro_exp_control)
+    ) as nro_exp")
     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
     ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
     ->join('estado_movimiento','log_movimiento.id_estado_movimiento','=','estado_movimiento.id_estado_movimiento')
     ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-    ->where($reglas)
+    ->where($reglas)->where($where_exp_control)->where($where_exp_interno)->where($where_exp_org)
     ->whereIn('log_movimiento.id_casino' , $casinos)
     ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9]);
 

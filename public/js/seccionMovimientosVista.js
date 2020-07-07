@@ -453,18 +453,12 @@ function generarFilaTabla(movimiento) {
   const t_mov = movimiento.descripcion;
   const fecha = convertirDate(movimiento.fecha);
   const islas = (movimiento.islas != null) ? movimiento.islas : '-';
-  let expediente = '-';
-  if (movimiento.nro_exp_org != null) {
-    expediente = movimiento.nro_exp_org + '-'
-      + movimiento.nro_exp_interno + '-'
-      + movimiento.nro_exp_control;
-  }
 
   fila.attr('id', id);
   fila.find('.casino').text(movimiento.nombre).attr('title',movimiento.nombre);
   fila.find('.nro_mov').text(id).attr('title', id);
   fila.find('.fecha_mov').text(fecha).attr('title', fecha);
-  fila.find('.nro_exp_mov').text(expediente).attr('title', expediente);
+  fila.find('.nro_exp_mov').text(movimiento.nro_exp).attr('title', movimiento.nro_exp);
   fila.find('.islas_mov').text(islas).attr('title', islas);
   fila.find('.tipo_mov').text(t_mov).attr('title', t_mov);
   fila.find('.icono_mov').parent().attr('title', movimiento.estado);
