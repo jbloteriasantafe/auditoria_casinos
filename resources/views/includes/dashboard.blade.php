@@ -883,22 +883,90 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                       @endif
 
 
-
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
-                        <li>
-                          <div id="" class="opcionesHover"  href="">
-                            <a href="http://10.1.120.9/AE/login.php" target="_blank">
-                            <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_alta'))
+                          <li>
+                            <div id="opcAltaAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusion'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('usuario','iconoUsuarios')
                               </span>
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('usuario','iconoUsuarios')
-                              </span>
-                              <span>AUTOEXCLUSIÓN</span>
-                            </a>
-                          </div>
-                        </li>
+                              <span>Alta de autoexcluidos</span>
+                            </div>
+                          </li>
+                          @endif
 
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_vencimientos'))
+                          <li>
+                            <div id="opcVencimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/vencimientos'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('usuario','iconoUsuarios')
+                              </span>
+                              <span>Vencimientos</span>
+                            </div>
+                          </li>
+                          @endif
+
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_finalizadas'))
+                          <li>
+                            <div id="opcAutoexclusionesFinalizadas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusionesFinalizadas'" style="cursor: pointer;">
+                              <span class="icono" style="padding-bottom: 56px;">
+                                  @svg('expedientes','iconoExpedientes')
+                              </span>
+                              <span>Autoexclusiones finalizadas</span>
+                            </div>
+                          </li>
+                          @endif
+
+                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado')
+                          || AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_galeria'))
+                          <li>
+                            <div id="barraInformesAutoexclusion" class="opcionesHover" data-target="#informesAutoexcluidos" data-toggle="collapse" href="#">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('informes','iconoInformes')
+                                </span>
+                                <span>Informes</span>
+                            </div>
+
+                            <!-- SEGUNDO NIVEL -->
+                            <ul class="subMenu1 collapse" id="informesAutoexcluidos">
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado'))
+                              <li>
+                                <div id="opcListadoAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" style="cursor: pointer;">
+                                  <span>Listado de AE</span>
+                                </div>
+                              </li>
+                              @endif
+
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_galeria'))
+                              <li>
+                                <div id="opcGaleriaImagenesAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/galeriaImagenesAutoexcluidos'" href="#" style="cursor: pointer;">
+                                  <span>Galería de imágenes</span>
+                                </div>
+                              </li>
+                              @endif
+                            </ul>
+
+                          </li>
+                          @endif
+
+
+                          <div class="separadoresMenu">AUTOEXCLUSIÓN (VIEJO)</div>
+                          <li>
+                            <div id="" class="opcionesHover"  href="">
+                              <a href="http://10.1.120.9/AE/login.php" target="_blank">
+                              <span class="flechita">
+                                  <i class="fa fa-angle-right"></i>
+                                </span>
+                                <span class="icono" style="padding-bottom: 50px;">
+                                  @svg('usuario','iconoUsuarios')
+                                </span>
+                                <span>AUTOEXCLUSIÓN</span>
+                              </a>
+                            </div>
+                          </li>
 
 
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',

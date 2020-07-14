@@ -876,3 +876,46 @@ Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
   Route::get('bingo/generarPlanillaInforme/{fecha}/{id_casino}/{valor?}','Bingo\InformeController@generarPlanilla');
   Route::get('bingo/informe','Bingo\InformeController@index');
 });
+
+/************
+AUTOEXCLUSIÓN
+*************/
+Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
+  Route::get('/','Autoexclusion\AutoexclusionController@index');
+  Route::post('agregarAE/{esNuevo}','Autoexclusion\AutoexclusionController@agregarAE');
+  Route::post('/subirImportacionArchivos/{esNuevo}','Autoexclusion\AutoexclusionController@subirImportacionArchivos');
+  Route::post('/subirSolicitudAE','Autoexclusion\AutoexclusionController@subirSolicitudAE');
+  Route::get('existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
+  Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
+  Route::get('/buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');
+  Route::get('/mostrarArchivo/{id_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
+  Route::get('/mostrarFormulario/{id_formulario}','Autoexclusion\AutoexclusionController@mostrarFormulario');
+  Route::get('/generarSolicitudAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
+  Route::get('/generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
+  Route::get('/generarConstanciaReingreso/{id}','Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
+});
+
+Route::group(['prefix' => 'vencimientos','middleware' => 'tiene_permiso:ver_seccion_ae_vencimientos'], function () {
+  Route::get('/','Autoexclusion\VencimientosController@todo');
+  Route::get('/buscarAutoexcluidos','Autoexclusion\VencimientosController@buscarAutoexcluidos');
+  Route::get('/imprimirFormularioFinalizacion/{id}','Autoexclusion\VencimientosController@imprimirFormularioFinalizacion');
+  Route::post('/finalizarAutoexclusion','Autoexclusion\VencimientosController@finalizarAutoexclusion');
+});
+
+Route::group(['prefix' => 'autoexclusionesFinalizadas','middleware' => 'tiene_permiso:ver_seccion_ae_finalizadas'], function () {
+  Route::get('/','Autoexclusion\AutoexclusionesFinalizadasController@todo');
+  Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionesFinalizadasController@buscarAutoexcluidos');
+  Route::get('/verSolicitudFinalizacion/{id_autoexcluido}','Autoexclusion\AutoexclusionesFinalizadasController@verSolicitudFinalizacion');
+});
+
+Route::group(['prefix' => 'informesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_listado'], function () {
+  Route::get('/','Autoexclusion\InformesAEController@todo');
+  Route::get('/buscarAutoexcluidos','Autoexclusion\InformesAEController@buscarAutoexcluidos');
+  Route::get('/verFoto/{id_autoexcluido}','Autoexclusion\InformesAEController@verFoto');
+});
+
+Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_galeria'], function () {
+  Route::get('/','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
+  Route::get('/getPathsFotosAutoexcluidos','Autoexclusion\GaleriaImagenesAutoexcluidosController@getPathsFotosAutoexcluidos');
+  Route::get('/getDatosUnAutoexcluido/{id_autoexcluido}','Autoexclusion\GaleriaImagenesAutoexcluidosController@getDatosUnAutoexcluido');
+});

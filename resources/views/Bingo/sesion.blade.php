@@ -250,26 +250,27 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                   <h5>POZO EXTRA INICIAL</h5>
                                   <input id="pozo_extra_inicial" name="pozo_extra_inicial" type="text" class="form-control"  placeholder="" value="">
                                 </div>
+                              </div>
+                                <div id="terminoFormula" class="row" style="margin-bottom: 15px;">
+                                  <div class="col-lg-3">
+                                    <h5>VALOR DEL CARTON</h5>
+                                    <input id="valor_carton" name="valor_carton" type="text" class="form-control"  placeholder="" value="">
+                                  </div>
 
-                                <div class="col-lg-3">
-                                  <h5>VALOR DEL CARTON</h5>
-                                  <input id="valor_carton" name="valor_carton" type="text" class="form-control"  placeholder="" value="">
-                                </div>
+                                  <div class="col-lg-3">
+                                    <h5>SERIE INICIAL</h5>
+                                    <input id="serie_inicial" name="serie_inicial" type="text" class="form-control"  placeholder="" value="">
+                                  </div>
 
-                                <div class="col-lg-3">
-                                  <h5>SERIE INICIAL</h5>
-                                  <input id="serie_inicial" name="serie_inicial" type="text" class="form-control"  placeholder="" value="">
-                                </div>
+                                  <div class="col-lg-3">
+                                    <h5>CARTON INICIAL</h5>
+                                    <input id="carton_inicial" name="carton_inicial" type="text" class="form-control"  placeholder="" value="">
+                                  </div>
 
-                                <div class="col-lg-3">
-                                  <h5>CARTON INICIAL</h5>
-                                  <input id="carton_inicial" name="carton_inicial" type="text" class="form-control"  placeholder="" value="">
-                                </div>
-
-                                <div class="col-lg-3 text-center">
-                                 <h5>-</h5>
-                                 <button id="btn-agregarTermino" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
-                               </div>
+                                  <div class="col-lg-3 text-center">
+                                   <h5>-</h5>
+                                   <button id="btn-agregarTermino" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
+                                 </div>
 
                               </div>
 
