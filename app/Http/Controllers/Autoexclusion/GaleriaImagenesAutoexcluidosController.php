@@ -56,21 +56,41 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         $reglas[] = ['ae_estado.id_casino','=',$request->casino];
       }
 
-      $resultados = DB::table('ae_datos')
-        ->select('ae_datos.id_autoexcluido as id_ae', 'ae_importacion.foto1 as path')
+      $pfotos = '/importacionesAutoexcluidos/fotos/';
+      $psolicitudes = '/importacionesAutoexcluidos/solicitudes/';
+      $pdocumentos = '/importacionesAutoexcluidos/documentos/';
+      $resultados_foto1 = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido as id_a, CONCAT('$pfotos',ae_importacion.foto1) as path")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
-        ->where($reglas)
-        ->get();
+        ->where($reglas)->whereNotNull('ae_importacion.foto1');
 
-      //consigo el path del directorio raiz del proyecto
-      $pathCons = '/importacionesAutoexcluidos/fotos/';
+      $resultados_foto2 = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido as id_ae, CONCAT('$pfotos',ae_importacion.foto2) as path")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNotNull('ae_importacion.foto2');
 
-      foreach ($resultados as $resultado) {
-        $resultado->path = $pathCons . $resultado->path;
-      }
+      $resultados_sol_ae = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido as id_ae, CONCAT('$psolicitudes',ae_importacion.solicitud_ae) as path")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNotNull('ae_importacion.solicitud_ae');
 
-      return $resultados;
+      $resultados_sol_rev = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido as id_ae, CONCAT('$psolicitudes',ae_importacion.solicitud_revocacion) as path")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNotNull('ae_importacion.solicitud_revocacion');
+
+      $resultados_dni = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido as id_ae, CONCAT('$pdocumentos',ae_importacion.scandni) as path")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNotNull('ae_importacion.scandni');
+
+      return $resultados_foto1->union($resultados_foto2)->union($resultados_sol_ae)
+                              ->union($resultados_sol_rev)->union($resultados_dni)->get();
     }
 
     public function getDatosUnAutoexcluido ($id_ae) {
