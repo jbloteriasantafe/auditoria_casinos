@@ -60,7 +60,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       $psolicitudes = '/importacionesAutoexcluidos/solicitudes/';
       $pdocumentos = '/importacionesAutoexcluidos/documentos/';
       $resultados_foto1 = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido as id_a, CONCAT('$pfotos',ae_importacion.foto1) as path")
+        ->selectRaw("ae_datos.id_autoexcluido as id_ae, CONCAT('$pfotos',ae_importacion.foto1) as path")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.foto1');

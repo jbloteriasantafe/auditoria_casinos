@@ -111,30 +111,6 @@
 							alignImage(viewer);
 						});
 					});
-
-					// show the details of the selected AE
-					let id_ae = $(this).children().attr('id');
-					$.ajax({
-							type: 'GET',
-							url: 'http://' + window.location.host + '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id_ae,
-							async:false,
-							success: function(resultado) {
-									let res = resultado[0];
-									document.getElementById("apellido").innerHTML = res.apellido;
-									document.getElementById("nombres").innerHTML = res.nombres;
-									document.getElementById("dni").innerHTML = res.nro_dni;
-									document.getElementById("casino").innerHTML = res.casino;
-									document.getElementById("estado").innerHTML = res.estado;
-									document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
-									document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
-									document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
-									document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
-							},
-							error: function(data) {
-									console.log('Error:', data);
-							}
-					});
-
 				}).imagesLoaded(function(){
 
 					//alignImage($(this));
@@ -186,43 +162,6 @@
 					.css('display', 'block')
 					//$(this).children().css({ 'margin-top' : '', 'margin-left' : '' });
 			});
-
-			// set the details of the first AE
-			let id_ae = thumbs.filter(':first').find('img').attr('id');
-
-			if (thumbs.length != 0) {
-				$.ajax({
-						type: 'GET',
-						url: 'http://' + window.location.host + '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id_ae,
-						async:false,
-						success: function(resultado) {
-								let res = resultado[0];
-								document.getElementById("apellido").innerHTML = res.apellido;
-								document.getElementById("nombres").innerHTML = res.nombres;
-								document.getElementById("dni").innerHTML = res.nro_dni;
-								document.getElementById("casino").innerHTML = res.casino;
-								document.getElementById("estado").innerHTML = res.estado;
-								document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
-								document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
-								document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
-								document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
-						},
-						error: function(data) {
-								console.log('Error:', data);
-						}
-				});
-			}
-			else {
-				document.getElementById("apellido").innerHTML = '';
-				document.getElementById("nombres").innerHTML = '';
-				document.getElementById("dni").innerHTML = '';
-				document.getElementById("casino").innerHTML = '';
-				document.getElementById("estado").innerHTML = '';
-				document.getElementById("fecha_ae").innerHTML = '';
-				document.getElementById("vencimiento").innerHTML = '';
-				document.getElementById("fecha_revocacion").innerHTML = '';
-				document.getElementById("fecha_cierre").innerHTML = '';
-			}
 
 			// viewer next button
 			viewnext.bind('click',function(){
