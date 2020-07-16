@@ -771,7 +771,8 @@ $(document).on('click', '#btnVerMas', function(e){
 
   var id_autoexcluido = $(this).val();
   $('#modalVerMas input:checked').prop('checked' ,false);
-
+  $('#modalVerMas input').val('');
+  $('#modalVerMas select').val('');
   $.get('/autoexclusion/buscarAutoexcluido/' + id_autoexcluido, function (data) {
     $('#infoApellido').val(data.autoexcluido.apellido);
     $('#infoNombres').val(data.autoexcluido.nombres);
@@ -788,12 +789,15 @@ $(document).on('click', '#btnVerMas', function(e){
     $('#infoOcupacion').val(data.autoexcluido.id_ocupacion);
     $('#infoCapacitacion').val(data.autoexcluido.id_capacitacion);
 
-    $('#infoNombreApellidoVinculo').val(data.datos_contacto.nombre_apellido);
-    $('#infoDomiclioVinculo').val(data.datos_contacto.domicilio);
-    $('#infoProvinciaVinculo').val(data.datos_contacto.nombre_provincia);
-    $('#infoLocalidadVinculo').val(data.datos_contacto.nombre_localidad);
-    $('#infoTelefonoVinculo').val(data.datos_contacto.telefono);
-    $('#infoVinculo').val(data.datos_contacto.vinculo);
+    if(data.datos_contacto != null){
+      $('#infoNombreApellidoVinculo').val(data.datos_contacto.nombre_apellido);
+      $('#infoDomiclioVinculo').val(data.datos_contacto.domicilio);
+      $('#infoProvinciaVinculo').val(data.datos_contacto.nombre_provincia);
+      $('#infoLocalidadVinculo').val(data.datos_contacto.nombre_localidad);
+      $('#infoTelefonoVinculo').val(data.datos_contacto.telefono);
+      $('#infoVinculo').val(data.datos_contacto.vinculo);
+    }
+
 
     $('#infoCasino').val(data.estado.id_casino);
     $('#infoEstado').val(data.estado.id_nombre_estado);
