@@ -6,4 +6,9 @@
 /app/Http/Controllers/pruebaController.php
 /public/Mesas/*
 /database
-/public/importacionesAutoexcluidos/*
+/public/importacionesAutoexcluidos/fotos/*
+/public/importacionesAutoexcluidos/formularios/*
+/public/importacionesAutoexcluidos/documentos/*
+/public/importacionesAutoexcluidos/solicitudes/*
+
+
