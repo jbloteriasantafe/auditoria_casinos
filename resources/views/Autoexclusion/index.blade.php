@@ -765,21 +765,21 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                         <div class="row">
                           <div class="col-lg-6">
                             <h5>FOTO #1</h5>
-                            <button id="1" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
+                            <button type="button" class="foto1 btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
                           </div>
                           <div class="col-lg-6">
                             <h5>FOTO #2</h5>
-                            <button id="2" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
+                            <button type="button" class="foto2 btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
                           </div>
                         </div>
                         <div class="row">
                           <div class="col-lg-6">
-                              <h5>SCAN DNI</h5>
-                              <button id="3" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
+                            <h5>SCAN DNI</h5>
+                            <button type="button" class="scandni btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
                           </div>
                           <div class="col-lg-6">
                             <h5>SOLICITUD AUTOEXCLUSION</h5>
-                            <button id="4" type="button" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                            <button type="button" class="solicitud_ae btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
                           </div>
                         </div>
                     </div><br>

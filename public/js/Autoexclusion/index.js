@@ -587,23 +587,21 @@ $("#btn-next").on("click", function(){
      }
 });
 
-
+function strRequest(objectName,keyname){
+  return objectName + '[' + keyname + ']';
+}
+function clearNullUndef(val){
+  return (typeof(val) !== "undefined" && val !== null)? val : '';
+}
 //botón guardar ae
 $('#btn-guardar').click(function (e) {
-  /*
-    let hay_datos_contacto = ($('#nombre_apellido').val()!='' || $('#domicilio_vinculo').val()!='' || $('#nombre_localidad_vinculo').val()!='' ||
-                              $('#nombre_provincia_vinculo').val()!='' || $('#telefono_vinculo').val()!='' || $('#vinculo').val()!='') ?
-                              1 : 0;
-  */
+    // Esto esta hecho de esta forma "a pata" porque al enviar datos ademas de archivos,
+    // No puede "JSONear" los archivos y da error, se necesita mandarlo como request comun con Content-type = text/html
+    // Pero en esta modalidad no hace el pasaje automatico de objeto -> dato y manda un [Object object]
+    // Se hacen dos funciones auxiliares para hacer esto. -Octavio 17 Julio 2020
+    const formData = new FormData();
 
-    let hay_encuesta = ($('#juego_preferido').val()!='' || $('#id_frecuencia_asistencia').val()!='' || $('#veces').val()!='' ||
-                        $('#tiempo_jugado').val()!='' || $('#socio_club_jugadores').val()!='' || $('#juego_responsable').val()!='' ||
-                        $('#autocontrol_juego').val()!='' || $('#recibir_informacion').val()!='' || $('#medio_recepcion').val()!='' ||
-                        $('#observaciones').val()!='' || $('#como_asiste').val()!='') ?
-                        1 : 0;
-
-    //guardo los datos personales
-    var ae_datos =  {
+    const ae_datos =  {
       nro_dni: $('#nro_dni').val(),
       apellido: $('#apellido').val(),
       nombres: $('#nombres').val(),
@@ -620,118 +618,82 @@ $('#btn-guardar').click(function (e) {
       id_capacitacion: $('#id_capacitacion').val(),
     }
 
-    //guardo los datos de contacto
-    var ae_datos_contacto =  {
-      //hay_datos_contacto: hay_datos_contacto,
+    for(const key in ae_datos){
+      formData.append(strRequest('ae_datos',key),clearNullUndef(ae_datos[key]));
+    }
+
+    const ae_datos_contacto =  {
       nombre_apellido: $('#nombre_apellido').val(),
-      domicilio_vinculo: $('#domicilio_vinculo').val(),
-      nombre_localidad_vinculo: $('#nombre_localidad_vinculo').val(),
-      nombre_provincia_vinculo: $('#nombre_provincia_vinculo').val(),
-      telefono_vinculo: $('#telefono_vinculo').val(),
+      domicilio: $('#domicilio_vinculo').val(),
+      nombre_localidad: $('#nombre_localidad_vinculo').val(),
+      nombre_provincia: $('#nombre_provincia_vinculo').val(),
+      telefono: $('#telefono_vinculo').val(),
       vinculo: $('#vinculo').val(),
     }
+    for(const key in ae_datos_contacto){
+      formData.append(strRequest('ae_datos_contacto',key),clearNullUndef(ae_datos_contacto[key]));
+    }
 
-    //guardo los datos de estado+fecha
-    var ae_estado = {
+    const ae_estado = {
       id_casino: $('#id_casino').val(),
       id_nombre_estado: $('#id_estado').val(),
-      fecha_autoexclusion: $('#fecha_autoexlusion').val(),
-      fecha_vencimiento_periodo: $('#fecha_vencimiento_periodo').val(),
+      fecha_ae: $('#fecha_autoexlusion').val(),
+      fecha_vencimiento: $('#fecha_vencimiento_periodo').val(),
       fecha_renovacion: $('#fecha_renovacion').val(),
-      fecha_cierre_definitivo: $('#fecha_cierre_definitivo').val(),
+      fecha_cierre_ae: $('#fecha_cierre_definitivo').val(),
+    }
+    for(const key in ae_estado){
+      formData.append(strRequest('ae_estado',key),ae_estado[key]);
     }
 
-    //guardo los datos de la encuesta
     var ae_encuesta = {
-        hay_encuesta: hay_encuesta,
-        juego_preferido: $('#juego_preferido').val(),
-        id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
-        veces: $('#veces').val(),
-        tiempo_jugado: $('#tiempo_jugado').val(),
-        socio_club_jugadores: $('#socio_club_jugadores').val(),
-        juego_responsable: $('#juego_responsable').val(),
-        autocontrol_juego: $('#autocontrol_juego').val(),
-        recibir_informacion: $('#recibir_informacion').val(),
-        medio_recepcion: $('#medio_recepcion').val(),
-        observaciones: $('#observaciones').val(),
-        como_asiste: $('#como_asiste').val(),
+      id_juego_preferido: $('#juego_preferido').val(),
+      id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
+      veces: $('#veces').val(),
+      tiempo_jugado: $('#tiempo_jugado').val(),
+      club_jugadores: $('#socio_club_jugadores').val(),
+      juego_responsable: $('#juego_responsable').val(),
+      autocontrol_juego: $('#autocontrol_juego').val(),
+      recibir_informacion: $('#recibir_informacion').val(),
+      medio_recibir_informacion: $('#medio_recepcion').val(),
+      como_asiste: $('#como_asiste').val(),
+      observacion: $('#observaciones').val(),
+    }
+    for(const key in ae_encuesta){
+      formData.append(strRequest('ae_encuesta',key),clearNullUndef(ae_encuesta[key]));
     }
 
-    //datos para enviar
-    var formData = {
-      datos_personales: ae_datos,
-      datos_contacto: ae_datos_contacto,
-      //ae_importacion: ae_importacion,
-      ae_estado: ae_estado,
-      ae_encuesta: ae_encuesta
+    const ae_importacion = {
+      foto1                : $('#foto1')[0].files[0],
+      foto2                : $('#foto2')[0].files[0],
+      solicitud_ae         : $('#solicitud_autoexclusion')[0].files[0],
+      solicitud_revocacion : null,
+      scandni              : $('#scan_dni')[0].files[0]
     }
-
-    //guardo los archivos en un formdata
-    var formDataArchivos = new FormData();
-    formDataArchivos.append('foto1', $('#foto1')[0].files[0]);
-    formDataArchivos.append('foto2', $('#foto2')[0].files[0]);
-    formDataArchivos.append('scan_dni', $('#scan_dni')[0].files[0]);
-    formDataArchivos.append('solicitud_autoexclusion', $('#solicitud_autoexclusion')[0].files[0]);
-    formDataArchivos.append('nro_dni', $('#nro_dni').val());
+    for(const key in ae_importacion){
+      formData.append(strRequest('ae_importacion',key),clearNullUndef(ae_importacion[key]));
+    }
 
     //url de destino, dependiendo si se esta creando o modificando una sesión
-    let url, url2;
     //dependiendo el valor del botón guarda o edita
-    let state = $('#btn-guardar').val();
-    if( state == 'nuevo'){
-      url =  'autoexclusion/agregarAE/1';
-      url2 = 'autoexclusion/subirImportacionArchivos/1';
-    }else{
-      url = 'autoexclusion/agregarAE/0';
-      url2 = 'autoexclusion/subirImportacionArchivos/0';
-    }
-
     $.ajax({
         type: "POST",
-        url: url,
+        url: 'autoexclusion/agregarAE',
         data: formData,
-        dataType: 'json',
-        async: false,
-        success: function (data) {
-            console.log(data);
-        },
-        error: function (data) {
-          var response = JSON.parse(data.responseText);
-        }
-    });
-
-    //hago un ajax call aparte para la subida de archivos porque sino no puedo setear
-    //el contentType y processData en false (si lo hago, llegan nulos al backend los datos personales, de contacto, etc)
-    $.ajax({
-        type: "POST",
-        url: url2,
-        data: formDataArchivos,
-        dataType: 'json',
-        async: false,
-        contentType: false,
         processData: false,
+        contentType: false,
         cache: false,
         success: function (data) {
-            console.log(data);
-
-            if (state == "nuevo"){ //si se esta creando guarda en tabla
-              $('#mensajeExito P').text('La autoexclusión fue GUARDADA correctamente.');
-              $('#mensajeExito div').css('background-color','#4DB6AC');
-            }else{ //si está modificando
-              $('#mensajeExito p').text('La autoexclusión fue EDITADA correctamente.');
-              $('#mensajeExito div').css('background-color','#FFB74D');
-            }
+            $('#mensajeExito p').text('La autoexclusión fue'+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
             $('#modalAgregarAE').modal('hide');
             $('#btn-buscar').trigger('click'); //hago un trigger al botón buscar asi actualiza la tabla sin recargar la pagina
             $('#mensajeExito').show(); //mostrar éxito
         },
         error: function (data) {
           var response = JSON.parse(data.responseText);
+          console.log(response);
         }
     });
-
-
-
 });
 
 //botón subir archivo solicitud ae
@@ -856,7 +818,11 @@ $(document).on('click', '#btnVerMas', function(e){
 
     //seteo en el value de los botones de ver mas el id de la importacion, para después
     //buscar en el backend los paths a los archivos y mostrarlos oportunamente
-    $('.archivosImportados').find('button').each(function(idx, c) { $(c).val(data.id_importacion); });
+    $('.archivosImportados button').each(function(idx, c) { $(c).val(data.importacion.id_importacion); });
+    $('.archivosImportados .foto1').prop('disabled', data.importacion.foto1 === null);
+    $('.archivosImportados .foto2').prop('disabled', data.importacion.foto2 === null);
+    $('.archivosImportados .scandni').prop('disabled', data.importacion.scandni === null);
+    $('.archivosImportados .solicitud_ae').prop('disabled', data.importacion.solicitud_ae === null);
 
     $('#modalVerMas').modal('show');
   });
@@ -885,11 +851,14 @@ $('#btn-salir').click(function() {
 
 //Mostrar archivos ver mas
 $('.btn-ver-mas').click(function() {
-  let tipo_archivo = $(this).attr('id');
-  let id_importacion = $(this).val();
-  let id_archivo = tipo_archivo + id_importacion;
-
-  window.open('autoexclusion/mostrarArchivo/' + id_archivo, '_blank');
+  let tipo_archivo = null;
+  if($(this).hasClass('foto1')) tipo_archivo = 'foto1';
+  else if($(this).hasClass('foto2')) tipo_archivo = 'foto2';
+  else if($(this).hasClass('scandni')) tipo_archivo = 'scandni';
+  else if($(this).hasClass('solicitud_ae')) tipo_archivo = 'solicitud_ae';
+  if(tipo_archivo === null) return;
+  
+  window.open('autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
 });
 
 //Mostrar formularios

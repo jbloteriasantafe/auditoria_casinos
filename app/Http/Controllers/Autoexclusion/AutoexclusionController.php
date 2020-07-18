@@ -112,69 +112,136 @@ class AutoexclusionController extends Controller
     }
 
     //Función para agregar un nuevo autoexcluido complet, o editar uno existente
-    public function agregarAE(Request $request, $esNuevo){
-      Validator::make($request->datos_personales,$request->ae_estado, [
-            'datos_personales.*.nro_dni' => 'required|numeric',
-            'datos_personales.*.apellido' => 'required|string',
-            'datos_personales.*.nombres' => 'required|string',
-            'datos_personales.*.fecha_nacimiento' => 'required',
-            'datos_personales.*.id_sexo' => 'required|numeric',
-            'datos_personales.*.domicilio' => 'required|string',
-            'datos_personales.*.nro_domicilio' => 'required|numeric',
-            'datos_personales.*.nombre_localidad' => 'required|string',
-            'datos_personales.*.nombre_provincia' => 'required|string',
-            'datos_personales.*.telefono' => 'required|string',
-            'datos_personales.*.correo' => 'required|string',
-            'datos_personales.*.id_ocupacion' => 'required|numeric',
-            'datos_personales.*.id_capacitacion' => 'required|numeric',
-            'datos_personales.*.id_estado_civil' => 'required|numeric',
-            'ae_estado.*.id_nombre_estado' => 'required',
-            'ae_estado.*.id_casino' => 'required',
-            'ae_estado.*.fecha_autoexclusion' => 'required',
-            'ae_estado.*.fecha_vencimiento_periodo' => 'required',
-            'ae_estado.*.fecha_renovacion' => 'required',
-            'ae_estado.*.fecha_cierre_definitivo' => 'required',
-        ], array(), self::$atributos)->after(function($validator){
-        })->validate();
+    public function agregarAE(Request $request){
+      Validator::make($request->all(), [
+        'ae_datos.nro_dni'          => 'required|integer',
+        'ae_datos.apellido'         => 'required|string|max:100',
+        'ae_datos.nombres'          => 'required|string|max:150',
+        'ae_datos.fecha_nacimiento' => 'required|date',
+        'ae_datos.id_sexo'          => 'required|integer',
+        'ae_datos.domicilio'        => 'required|string|max:100',
+        'ae_datos.nro_domicilio'    => 'required|integer',
+        'ae_datos.nombre_localidad' => 'required|string|max:200',
+        'ae_datos.nombre_provincia' => 'required|string|max:200',
+        'ae_datos.telefono'         => 'required|string|max:200',
+        'ae_datos.correo'           => 'required|string|max:100',
+        'ae_datos.id_ocupacion'     => 'required|integer|exists:ae_ocupacion,id_ocupacion',
+        'ae_datos.id_capacitacion'  => 'required|integer|exists:ae_capacitacion,id_capacitacion',
+        'ae_datos.id_estado_civil'  => 'required|integer|exists:ae_estado_civil,id_estado_civil',
+        'ae_datos_contacto.nombre_apellido'  => 'nullable|string|max:200',
+        'ae_datos_contacto.domicilio'        => 'nullable|string|max:200',
+        'ae_datos_contacto.nombre_localidad' => 'nullable|string|max:200',
+        'ae_datos_contacto.nombre_provincia' => 'nullable|string|max:200',
+        'ae_datos_contacto.telefono'         => 'nullable|string|max:200',
+        'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
+        'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
+        'ae_estado.id_casino'         => 'required|integer|exists:casino,id_casino',
+        'ae_estado.fecha_ae'          => 'required|date',
+        'ae_estado.fecha_vencimiento' => 'required|date',
+        'ae_estado.fecha_renovacion'  => 'required|date',
+        'ae_estado.fecha_cierre_ae'   => 'required|date',
+        'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
+        'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
+        'ae_encuesta.veces'                     => 'nullable|integer',
+        'ae_encuesta.tiempo_jugado'             => 'nullable|integer',
+        'ae_encuesta.club_jugadores'            => 'nullable|string|max:2',
+        'ae_encuesta.juego_responsable'         => 'nullable|string|max:2',
+        'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
+        'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
+        'ae_encuesta.medio_recibir_informacion' => 'nullable|string|max:100',
+        'ae_encuesta.como_asiste'               => 'nullable|integer',
+        'ae_encuesta.observacion'               => 'nullable|string|max:200',
+        'ae_importacion.foto1'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+        'ae_importacion.foto2'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+        'ae_importacion.solicitud_ae'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+        'ae_importacion.solicitud_revocacion' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+        'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      ], array(), self::$atributos)->after(function($validator){})->validate();
+      
+      $esNuevo = null;
+      DB::transaction(function() use($request, &$esNuevo){
+        $datos = $request['ae_datos'];
+        $esNuevo = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->count() == 0;
+        $bdAE = null;
+        if($esNuevo){
+          $bdAE = new AutoExcluido;
+        }
+        else {
+          $bdAE = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->first();
+        }
 
-       DB::transaction(function() use($request, $esNuevo){
+        foreach($datos as $key => $val){
+          $bdAE->{$key} = $val;
+        }
+        $bdAE->save();
 
-         //creo un nuevo Autoexcluido y cargo sus datos personales
-         $ae = $this->cargarDatos($request['datos_personales'], $esNuevo);
+        $id_autoexcluido = $bdAE->id_autoexcluido;
 
-         $id_autoexcluido = $ae->id_autoexcluido;
-         $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
+        $tieneContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
+        $bdContacto = null;
+        if($tieneContacto){
+          $bdContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        }
+        else{
+          $bdContacto = new ContactoAE;
+          $bdContacto->id_autoexcluido = $id_autoexcluido;
+        }
 
-         //cargo los datos de contacto (si hubiere)
-         $this->cargarContacto($request['datos_contacto'], $id_autoexcluido, $esNuevo);
+        $datos_contacto = $request['ae_datos_contacto'];
+        foreach($datos_contacto as $key => $val){
+          $bdContacto->{$key} = $val;
+        }
+        $bdContacto->save();
 
-         //cargo los datos de estado/fecha
-         $this->cargarEstado($request['ae_estado'], $id_usuario, $id_autoexcluido, $esNuevo);
+        $tieneEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
+        $bdEstado = null;
+        if($tieneEstado){
+          $bdEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        }
+        else{
+          $bdEstado = new EstadoAE;
+          $bdEstado->id_autoexcluido = $id_autoexcluido;
+        }
 
-         //cargo los datos de la encuesta (si hubiere)
-         if ($request['ae_encuesta']['hay_encuesta']) {
-           $this->cargarEncuesta($request['ae_encuesta'], $id_autoexcluido, $esNuevo);
-         }
-       });
+        $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
+        $bdEstado->id_usuario = $id_usuario;
+        $estado = $request['ae_estado'];
+        foreach($estado as $key => $val){
+          $bdEstado->{$key} = $val;
+        }
+        $bdEstado->save();
 
-      return ['codigo' => 200];
+        $tieneEncuesta = Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
+        $bdEncuesta = null;
+        if($tieneEncuesta){
+          $bdEncuesta =  Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        }
+        else{
+          $bdEncuesta = new Encuesta;
+          $bdEncuesta->id_autoexcluido = $id_autoexcluido;
+        }
+        $encuesta = $request['ae_encuesta'];
+        foreach($encuesta as $key => $val){
+          $bdEncuesta->{$key} = $val;
+        }
+        $bdEncuesta->save();
+
+        $importacion = $request['ae_importacion'];
+        $this->subirImportacionArchivos($bdAE,$importacion);
+      });
+      return ['nuevo' => $esNuevo];
     }
-
-    public function subirImportacionArchivos(Request $request, $esNuevo) {
-      //no me anda el nullable en el validator, armo el array que le paso al validator a pata
-      $arr = array();
-      if ($request->foto1 != 'undefined') {$arr['foto1'] = $request->foto1;}
-      if ($request->foto2 != 'undefined') {$arr['foto2'] = $request->foto2;}
-      if ($request->scan_dni != 'undefined') {$arr['scan_dni'] = $request->scan_dni;}
-      if ($request->solicitud_autoexclusion != 'undefined') {$arr['solicitud_autoexclusion'] = $request->solicitud_autoexclusion;}
-
-      Validator::make($arr, [
-          'foto1' => 'file|mimes:jpg,jpeg,png,pdf', //@TODO: quitar el mimes png despues, lo puse para probar nomas
-          'foto2' => 'file|mimes:jpg,jpeg,png,pdf',
-          'scan_dni' => 'file|mimes:jpg,jpeg,png,pdf',
-          'solicitud_autoexclusion' => 'file|mimes:jpg,jpeg,png,pdf',
-        ], array(), self::$atributos)->after(function($validator){
-        })->validate();
+ 
+    public function subirImportacionArchivos($autoexcluido,$importacion) {
+      $tieneImportacion = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$autoexcluido->id_importacion)->count() > 0;
+      $bdImp = null;
+      if ($tieneImportacion){
+        $bdImp = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$autoexcluido->id_importacion)->first();
+      }
+      else {
+        $bdImp = new ImportacionAE;
+        $bdImp->id_autoexcluido = $autoexcluido->id_autoexcluido;
+      }
 
       //consigo el path del directorio raiz del proyecto
       $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
@@ -182,48 +249,35 @@ class AutoexclusionController extends Controller
       //fecha actual, sin formatear
       $ahora = date("dmY");
 
-      if (isset($arr['foto1'])) {
+      if (isset($importacion['foto1'])) {
         //genero el nombre del archivo, formado por la fecha y hora actual, el DNI del AE, y el tipo de archivo importado
         //(1 para foto1, 2 para foto2, 3 para scan dni, 4 para solicitud AE)
-        $nombre_archivo_foto1 = $ahora . '-' . $request->nro_dni . '-1';
+        $nombre_archivo_foto1 = $ahora . '-' . $autoexcluido->nro_dni . '-1';
         //establezco el path de destino del archivo
         $pathDestinoFoto1 = $pathCons . 'fotos/' . $nombre_archivo_foto1;
         //copio el archivo subido al filesystem
-        copy($request->foto1->getRealPath(), $pathDestinoFoto1);
+        copy($importacion['foto1']->getRealPath(), $pathDestinoFoto1);
+        $bdImp->foto1 = $nombre_archivo_foto1;
       }
-      if (isset($arr['foto2'])) {
-        $nombre_archivo_foto2 = $ahora . '-' . $request->nro_dni . '-2';
+      if (isset($importacion['foto2'])) {
+        $nombre_archivo_foto2 = $ahora . '-' . $autoexcluido->nro_dni . '-2';
         $pathDestinoFoto2 = $pathCons . 'fotos/' . $nombre_archivo_foto2;
-        copy($request->foto2->getRealPath(), $pathDestinoFoto2);
+        copy($importacion['foto2']->getRealPath(), $pathDestinoFoto2);
+        $bdImp->foto2 = $nombre_archivo_foto2;
       }
-      if (isset($arr['scan_dni'])) {
-        $nombre_archivo_scandni = $ahora . '-' . $request->nro_dni . '-3';
+      if (isset($importacion['scandni'])) {
+        $nombre_archivo_scandni = $ahora . '-' . $autoexcluido->nro_dni . '-3';
         $pathDestinoScanDni = $pathCons . 'documentos/' . $nombre_archivo_scandni;
-        copy($request->scan_dni->getRealPath(), $pathDestinoScanDni);
+        copy($importacion['scandni']->getRealPath(), $pathDestinoScanDni);
+        $bdImp->scandni = $nombre_archivo_scandni;
       }
-      if (isset($arr['solicitud_autoexclusion'])) {
-        $nombre_archivo_solicitudae = $ahora . '-' . $request->nro_dni . '-4';
+      if (isset($importacion['solicitud_autoexclusion'])) {
+        $nombre_archivo_solicitudae = $ahora . '-' . $autoexcluido->nro_dni . '-4';
         $pathDestinoSolicitudAE = $pathCons . 'solicitudes/' . $nombre_archivo_solicitudae;
-        copy($request->solicitud_autoexclusion->getRealPath(), $pathDestinoSolicitudAE);
+        copy($importacion['solicitud_autoexclusion']>getRealPath(), $pathDestinoSolicitudAE);
+        $bdImp->solicitud_autoexclusion = $nombre_archivo_solicitudae;
       }
-
-      $id_ae = (DB::table('ae_datos')->where('ae_datos.nro_dni','=',$request->nro_dni)->first())->id_autoexcluido;
-      if ($esNuevo == 1) {
-        $imp = new ImportacionAE;
-        $imp->id_autoexcluido = $id_ae;
-      }
-      else {
-        $imp = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$id_ae)->first();
-      }
-
-      //guardo los nombres de los archivos en la bdd
-      if (isset($arr['foto1'])) {$imp->foto1 = $nombre_archivo_foto1;}
-      if (isset($arr['foto2'])) {$imp->foto2 = $nombre_archivo_foto2;}
-      if (isset($arr['scan_dni'])) {$imp->scandni = $nombre_archivo_scandni;}
-      if (isset($arr['solicitud_autoexclusion'])) {$imp->solicitud_ae = $nombre_archivo_solicitudae;}
-      $imp->save();
-
-      return ['codigo' => 200];
+      $bdImp->save();
     }
 
     public function subirSolicitudAE(Request $request) {
@@ -280,142 +334,36 @@ class AutoexclusionController extends Controller
       return $resultados;
     }
 
-    //Función para cargar los datos del ae
-    protected function cargarDatos($datos_personales, $esNuevo){
-      if ($esNuevo) {
-        $ae = new Autoexcluido;
-        $ae->nro_dni = $datos_personales['nro_dni'];
-      }
-      else {
-        $ae = Autoexcluido::where('nro_dni', '=', $datos_personales['nro_dni'])->first();
-      }
-
-      $ae->apellido = $datos_personales['apellido'];
-      $ae->nombres = $datos_personales['nombres'];
-      $ae->fecha_nacimiento = $datos_personales['fecha_nacimiento'];
-      $ae->id_sexo = $datos_personales['id_sexo'];
-      $ae->domicilio = $datos_personales['domicilio'];
-      $ae->nro_domicilio = $datos_personales['nro_domicilio'];
-      $ae->nombre_localidad = $datos_personales['nombre_localidad'];
-      $ae->nombre_provincia = $datos_personales['nombre_provincia'];
-      $ae->telefono = $datos_personales['telefono'];
-      $ae->correo = $datos_personales['correo'];
-      $ae->id_ocupacion = $datos_personales['id_ocupacion'];
-      $ae->id_capacitacion = $datos_personales['id_capacitacion'];
-      $ae->id_estado_civil = $datos_personales['id_estado_civil'];
-
-      //guardo los datos
-      $ae->save();
-
-      return $ae;
-    }
-
-    //Función para cargar los datos de contacto
-    protected function cargarContacto($datos, $id_autoexcluido, $esNuevo){
-      if ($esNuevo) {
-        //creo un nuevo contacto de ae con los datos;
-        $c = new ContactoAE;
-        $c->id_autoexcluido = $id_autoexcluido;
-      }
-      else {
-        $c = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-      }
-
-      $c->nombre_apellido = $datos['nombre_apellido'];
-      $c->domicilio = $datos['domicilio_vinculo'];
-      $c->nombre_localidad = $datos['nombre_localidad_vinculo'];
-      $c->nombre_provincia = $datos['nombre_provincia_vinculo'];
-      $c->telefono = $datos['telefono_vinculo'];
-      $c->vinculo = $datos['vinculo'];
-
-      $c->save();
-    }
-
-    //Función para cargar los datos de estado / fecha
-    protected function cargarEstado($datos, $id_usuario, $id_autoexcluido, $esNuevo){
-      if ($esNuevo) {
-        //creo un nuevo estado con los datos
-        $e = new EstadoAE;
-        $e->id_autoexcluido = $id_autoexcluido;
-      }
-      else {
-        $e = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-      }
-
-      $e->id_casino = $datos['id_casino'];
-      $e->id_nombre_estado = $datos['id_nombre_estado'];
-      $e->fecha_ae = $datos['fecha_autoexclusion'];
-      $e->fecha_vencimiento = $datos['fecha_vencimiento_periodo'];
-      $e->fecha_renovacion = $datos['fecha_renovacion'];
-      $e->fecha_cierre_ae = $datos['fecha_cierre_definitivo'];
-      $e->id_usuario = $id_usuario;
-
-      $e->save();
-    }
-
-    //Función para cargar la encuesta
-    protected function cargarEncuesta($datos, $id_autoexcluido, $esNuevo){
-      if ($esNuevo) {
-        //creo una nueva encuesta con los datos
-        $e = new Encuesta;
-        $e->id_autoexcluido = $id_autoexcluido;
-      }
-      else {
-        $e = Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-      }
-
-      $e->id_juego_preferido = $datos['juego_preferido'];
-      $e->id_frecuencia_asistencia = $datos['id_frecuencia_asistencia'];
-      $e->veces = $datos['veces'];
-      $e->tiempo_jugado = $datos['tiempo_jugado'];
-      $e->club_jugadores = $datos['socio_club_jugadores'];
-      $e->juego_responsable = $datos['juego_responsable'];
-      $e->recibir_informacion = $datos['recibir_informacion'];
-      $e->autocontrol_juego = $datos['autocontrol_juego'];
-      $e->medio_recibir_informacion = $datos['medio_recepcion'];
-      $e->como_asiste = $datos['como_asiste'];
-      $e->observacion = $datos['observaciones'];
-
-      $e->save();
-    }
 
   public function buscarAutoexcluido ($id) {
     $autoexcluido = Autoexcluido::find($id);
     $datos_contacto = ContactoAE::where('id_autoexcluido', '=', $id)->first();
     $estado = EstadoAE::where('id_autoexcluido', '=', $id)->first();
     $encuesta = Encuesta::where('id_autoexcluido', '=', $id)->first();
-    $id_importacion = ImportacionAE::where('id_autoexcluido', '=', $id)->first()->id_importacion;
+    $importacion = ImportacionAE::where('id_autoexcluido', '=', $id)->first();
 
     return ['autoexcluido' => $autoexcluido,
             'datos_contacto' => $datos_contacto,
             'estado' => $estado,
             'encuesta' => $encuesta,
-            'id_importacion' => $id_importacion
+            'importacion' => $importacion
           ];
   }
 
-  public function mostrarArchivo ($id_archivo) {
-    //el primer digito de id_archivo corresponde al tipo de archivo (foto1, foto2, etc),
-    //los siguientes corresponden al id de la importacion
-    $tipo_archivo = substr($id_archivo, 0, 1); //1 para foto1, 2 para foto2, 3 para scan_dni, 4 para solicitud_autoexclusion
-    $id_importacion = substr($id_archivo, -1*strlen($id_archivo)+1);
+  public function mostrarArchivo ($id_importacion,$tipo_archivo) {
     $imp = ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
 
-    if ($tipo_archivo == 1) {
-      $path = $pathCons . 'fotos/' . $imp->foto1;
-    }
-    else if ($tipo_archivo == 2) {
-      $path = $pathCons . 'fotos/' . $imp->foto2;
-    }
-    else if ($tipo_archivo == 3) {
-      $path = $pathCons . 'documentos/' . $imp->scandni;
-    }
-    else {
-      $path = $pathCons . 'solicitudes/' . $imp->solicitud_ae;
-    }
+    $paths = [
+      'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes'
+    ];
 
-    return response()->file($path);
+    $path = $pathCons;
+    if(array_key_exists($tipo_archivo,$paths)){
+      $path = $path . $paths[$tipo_archivo] . '/' . $imp->{$tipo_archivo};
+    }
+    if($pathCons != $path) return response()->file($path);
+    return response()->json('Error de lectura de archivo',500);
   }
 
   public function mostrarFormulario ($id_formulario) {

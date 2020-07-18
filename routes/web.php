@@ -882,13 +882,12 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
-  Route::post('agregarAE/{esNuevo}','Autoexclusion\AutoexclusionController@agregarAE');
-  Route::post('/subirImportacionArchivos/{esNuevo}','Autoexclusion\AutoexclusionController@subirImportacionArchivos');
+  Route::post('/agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('/subirSolicitudAE','Autoexclusion\AutoexclusionController@subirSolicitudAE');
-  Route::get('existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
+  Route::get('/existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('/buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');
-  Route::get('/mostrarArchivo/{id_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
+  Route::get('/mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
   Route::get('/mostrarFormulario/{id_formulario}','Autoexclusion\AutoexclusionController@mostrarFormulario');
   Route::get('/generarSolicitudAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
   Route::get('/generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
