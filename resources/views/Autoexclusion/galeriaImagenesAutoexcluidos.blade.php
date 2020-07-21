@@ -20,7 +20,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
 
 <!--plugins que voy probando -->
 <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" type="text/css" href="css/screen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="/css/screen.css" media="screen" />
 
 <style>
 .page {
@@ -82,7 +82,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-4">
                             <h5>DNI</h5>
-                            <input class="form-control" id="buscadorDni" value=""/>
+                            <input class="form-control" id="buscadorDni" value="{{$dni}}"/>
                         </div>
                         <div class="col-md-4">
                             <h5>Casino</h5>
@@ -211,7 +211,7 @@ background-color: #4CAF50;
 
   @section('scripts')
   <!-- JavaScript paginacion -->
-  <script src="js/paginacion.js" charset="utf-8"></script>
+  <script src="/js/paginacion.js" charset="utf-8"></script>
   <!-- JavaScript personalizado -->
 
 
@@ -223,9 +223,9 @@ background-color: #4CAF50;
   <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
-  <script type="text/javascript" src="js/jquery.jfollow.js"></script>
-  <script type="text/javascript" src="js/jquery.imagesloaded.min.js"></script>
-  <script type="text/javascript" src="js/jquery.ImageGallery.js"></script>
+  <script type="text/javascript" src="/js/jquery.jfollow.js"></script>
+  <script type="text/javascript" src="/js/jquery.imagesloaded.min.js"></script>
+  <script type="text/javascript" src="/js/jquery.ImageGallery.js"></script>
 
   <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js" charset="utf-8"></script>
   @endsection

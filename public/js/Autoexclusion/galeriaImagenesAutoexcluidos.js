@@ -1,8 +1,3 @@
-$(document).ready(function(){
-  $('.tituloSeccionPantalla').text('Galería de imágenes');
-  $('#wrapper').hide();
-});
-
 // some extra interface stuff... pay no attention to the man behind the curtain
 var gallery = $('#gallery-wrapper'), setup = $('#setup-wrapper');
 setup.hide();
@@ -18,8 +13,16 @@ $('#show-gallery').click(function(){
   });
   return false;
 });
+
 $('#nav-wrapper').jfollow('#followbox', 20);
 
+$(document).ready(function(){
+  $('.tituloSeccionPantalla').text('Galería de imágenes');
+  $('#wrapper').hide();
+
+  //Si en la url viene con un dni, en el view se le carga un valor por defecto. Lo buscamos
+  if($('#buscadorDni').val().length > 0) $('#btn-buscar').click();
+});
 
 $('#btn-buscar').click(function(e) {
     $.ajaxSetup({
@@ -43,7 +46,7 @@ $('#btn-buscar').click(function(e) {
 
     $.ajax({
         type: 'GET',
-        url: 'http://' + window.location.host + '/galeriaImagenesAutoexcluidos/getPathsFotosAutoexcluidos',
+        url: '/galeriaImagenesAutoexcluidos/getPathsFotosAutoexcluidos',
         data: formData,
         dataType: 'json',
         async:false,
@@ -53,7 +56,7 @@ $('#btn-buscar').click(function(e) {
                 const id_autoexcluido = resultados[i].id_autoexcluido;
                 const id_importacion = resultados[i].id_importacion;
                 const tipo_archivo = resultados[i].tipo_archivo;
-                const link = 'autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
+                const link = '/autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)
@@ -102,7 +105,7 @@ function clickImagenGaleria(id,embed){
   }
   $.ajax({
     type: 'GET',
-    url: 'http://' + window.location.host + '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id,
+    url: '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id,
     async:false,
     success: function(resultado) {
         let res = resultado[0];

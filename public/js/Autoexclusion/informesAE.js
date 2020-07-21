@@ -241,6 +241,6 @@ function generarFilaTabla(unAutoexcluido) {
 
 //Boton ver foto 1
 $(document).on('click', '#btnVerFoto', function(e) {
-  let id_ae = $(this).val();
-  window.open('informesAutoexcluidos/verFoto/' + id_ae, '_blank');
+  const dni = $(this).parent().parent().find('.dni').text();
+  window.open('/galeriaImagenesAutoexcluidos/' + dni, '_blank');
 });

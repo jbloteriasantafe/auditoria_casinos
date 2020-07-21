@@ -133,13 +133,4 @@ class InformesAEController extends Controller
 
       return $resultados;
     }
-
-    public function verFoto($id_ae){//@TODO: Deberia redireccionar a la galeria de imagenes...
-      $imp = ImportacionAE::where('id_autoexcluido', '=', $id_ae)->first();
-      $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/fotos/';
-      return response()->file($pathCons . $imp->foto1);
-    }
-
-
-
 }

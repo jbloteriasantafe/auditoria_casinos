@@ -23,7 +23,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
     private static $atributos = [
     ];
 
-    public function todo(){
+    public function todo($dni = null){
       $juegos =  DB::table('ae_juego_preferido')->get();
       $ocupaciones =  DB::table('ae_ocupacion')->get();
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
@@ -34,7 +34,8 @@ class GaleriaImagenesAutoexcluidosController extends Controller
                                                                 'ocupaciones' => $ocupaciones,
                                                                 'casinos' => $casinos,
                                                                 'frecuencias' => $frecuencias,
-                                                                'estados_autoexclusion' => $estados_autoexclusion
+                                                                'estados_autoexclusion' => $estados_autoexclusion,
+                                                                'dni' => $dni
                                                                 ]);
     }
 
