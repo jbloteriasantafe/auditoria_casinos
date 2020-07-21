@@ -55,7 +55,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       if(!empty($request->casino)){
         $reglas[] = ['ae_estado.id_casino','=',$request->casino];
       }
-      
+
       $resultados_foto1 = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'foto1' as tipo_archivo")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
@@ -75,7 +75,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_ae');
 
       $resultados_sol_rev = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_rev' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_revocacion' as tipo_archivo")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_revocacion');

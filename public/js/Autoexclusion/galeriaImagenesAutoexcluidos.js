@@ -53,16 +53,20 @@ $('#btn-buscar').click(function(e) {
                 const id_autoexcluido = resultados[i].id_autoexcluido;
                 const id_importacion = resultados[i].id_importacion;
                 const tipo_archivo = resultados[i].tipo_archivo;
+                const link = 'autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)
                 .attr('data-id-importacion',id_importacion)
                 .attr('data-tipo-archivo',tipo_archivo)
-                .attr('src','autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo +'#toolbar=0');
+                .attr('src',link +'#toolbar=0');
 
+                const a  = $('<a>').attr('href',link).text('LINK').attr('target','_blank')
+                .css('background-color','white');
                 const div = $('<div>')
                 .addClass('thumbnail')
-                .append(img);
+                .append(img)
+                .append($('<center>').append(a).css('padding-top','5px'));
 
                 div.click(function(){
                   const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');

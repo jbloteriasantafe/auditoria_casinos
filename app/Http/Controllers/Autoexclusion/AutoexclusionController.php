@@ -355,15 +355,15 @@ class AutoexclusionController extends Controller
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
 
     $paths = [
-      'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_rev' => 'solicitudes'
+      'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_revocacion' => 'solicitudes'
     ];
 
     $path = $pathCons;
     if(array_key_exists($tipo_archivo,$paths)){
       $path = $path . $paths[$tipo_archivo] . '/' . $imp->{$tipo_archivo};
     }
-    if($pathCons != $path) return response()->file($path);
-    return response()->json('Error de lectura de archivo',500);
+    if($pathCons != $path && file_exists($path)) return response()->file($path);
+    return "Archivo no encontrado o inaccesible";
   }
 
   public function mostrarFormulario ($id_formulario) {
