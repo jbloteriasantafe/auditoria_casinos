@@ -355,7 +355,7 @@ class AutoexclusionController extends Controller
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
 
     $paths = [
-      'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes'
+      'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_rev' => 'solicitudes'
     ];
 
     $path = $pathCons;

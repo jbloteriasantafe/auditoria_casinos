@@ -50,18 +50,23 @@ $('#btn-buscar').click(function(e) {
         success: function(resultados) {
             $('#wrapper').toggle(resultados.length > 0);
             for (var i = 0; i < resultados.length; i++) {
-                const id = resultados[i].id_ae;
-                const img = $('<img>')
+                const id_autoexcluido = resultados[i].id_autoexcluido;
+                const id_importacion = resultados[i].id_importacion;
+                const tipo_archivo = resultados[i].tipo_archivo;
+                const img = $('<embed>')
                 .addClass('fotoMiniatura')
-                .attr('id',id)
-                .attr('src',resultados[i].path);
+                .attr('id-autoexcluido',id_autoexcluido)
+                .attr('data-id-importacion',id_importacion)
+                .attr('data-tipo-archivo',tipo_archivo)
+                .attr('src','autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo +'#toolbar=0');
 
                 const div = $('<div>')
                 .addClass('thumbnail')
                 .append(img);
 
                 div.click(function(){
-                  clickImagenGaleria(id);
+                  const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');
+                  clickImagenGaleria(id_autoexcluido,big_img);
                 });
 
                 $('#gallery').append(div);
@@ -75,9 +80,22 @@ $('#btn-buscar').click(function(e) {
       'rows': 1,
       'cols': 5
     });
+    //Reemplazo el IMG que pone por un embed...
+    $('#gallery div:first').click();
 });
 
-function clickImagenGaleria(id){
+function clickImagenGaleria(id,embed){
+  const max_time = function(src){
+    //Tiempo del request, para aproximar cuanto tarda en cargar la imagen...
+    //Esto es heuristico pero deberia funcionar en la mayoria de los casos.
+    //Ademas que en teoria el browser deberia cachear... por lo que estariamos sobrados
+    const resourceList = window.performance.getEntriesByType("resource");
+    let max_time = -1;
+    resourceList.forEach(r => {
+      if(r.duration > max_time && r.initiatorType == "embed" && r.name==src) max_time = r.duration;
+    });
+    return max_time < 0? 500 : max_time;
+  }
   $.ajax({
     type: 'GET',
     url: 'http://' + window.location.host + '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id,
@@ -93,6 +111,22 @@ function clickImagenGaleria(id){
         document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
         document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
         document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
+
+        //Le meto un minimo de 500ms por las moscas...
+        const time = Math.max(max_time(embed.attr('src'))*1.25,500);
+        setTimeout(function(){//Reemplazo la imagen por un embed, necesitamos mostrar PDFs tambien...
+          const height = $('#gallery-viewer').height();
+          embed.css('max-height',height+'px');
+          $('#gallery-viewer').empty().append(embed);
+          setTimeout(function(){
+            const embed_height = embed.height();
+            //Si no ocupo todo la altura, es un PDF y hay que setearle la altura/ancho a mano
+            //A las imagenes no les seteamos height/width 100% para no destruir el aspect ratio
+            if(embed_height != height){
+              embed.css('height','100%').css('width','100%');
+            }
+          },time);
+        },time);
     },
     error: function(data) {
         console.log('Error:', data);

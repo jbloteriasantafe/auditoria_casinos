@@ -112,7 +112,7 @@ background-color: #4CAF50;
             <div class="col-md-12">
 
               <!-- Galería de imágenes -->
-              <div class="col-md-8">
+              <div class="col-md-9">
                 <div id="wrapper">
             			<div id="followbox"></div>
               			<div id="content">
@@ -149,7 +149,7 @@ background-color: #4CAF50;
 
 
                 <!-- Detalles del AE seleccionado -->
-                <div class="col-md-4" style="float:right">
+                <div class="col-md-3" style="float:right">
                   <div class="panel panel-default">
 
                       <div class="panel-heading">
