@@ -56,12 +56,14 @@ $('#btn-buscar').click(function(e) {
                 const id_autoexcluido = resultados[i].id_autoexcluido;
                 const id_importacion = resultados[i].id_importacion;
                 const tipo_archivo = resultados[i].tipo_archivo;
+                const nombre = resultados[i].nombre;
                 const link = '/autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)
                 .attr('data-id-importacion',id_importacion)
                 .attr('data-tipo-archivo',tipo_archivo)
+                .attr('data-nombre',nombre)
                 .attr('src',link +'#toolbar=0');
 
                 const a  = $('<a>').attr('href',link).text('LINK').attr('target','_blank')
@@ -73,7 +75,7 @@ $('#btn-buscar').click(function(e) {
 
                 div.click(function(){
                   const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');
-                  clickImagenGaleria(id_autoexcluido,big_img);
+                  clickImagenGaleria(id_autoexcluido,big_img,nombre);
                 });
 
                 $('#gallery').append(div);
@@ -91,7 +93,7 @@ $('#btn-buscar').click(function(e) {
     $('#gallery div:first').click();
 });
 
-function clickImagenGaleria(id,embed){
+function clickImagenGaleria(id,embed,nombre){
   const max_time = function(src){
     //Tiempo del request, para aproximar cuanto tarda en cargar la imagen...
     //Esto es heuristico pero deberia funcionar en la mayoria de los casos.
@@ -119,20 +121,23 @@ function clickImagenGaleria(id,embed){
         document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
         document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
 
+        const indice_ext = nombre.lastIndexOf('.');
+        if(indice_ext != -1){
+          const ext = nombre.toLowerCase().substr(indice_ext+1);
+          if(ext == 'png' || ext == 'jpg' || ext == 'jpeg'){
+            embed.css('max-height','100%');
+          }
+          else{//PDF o DOC o algun otro
+            embed.css('height','100%').css('width','100%');
+          }
+        }
+        else{//Sin extension
+          embed.css('height','100%').css('width','100%');
+        }
         //Le meto un minimo de 500ms por las moscas...
         const time = Math.max(max_time(embed.attr('src'))*1.25,500);
-        setTimeout(function(){//Reemplazo la imagen por un embed, necesitamos mostrar PDFs tambien...
-          const height = $('#gallery-viewer').height();
-          embed.css('max-height',height+'px');
+        setTimeout(function(){
           $('#gallery-viewer').empty().append(embed);
-          setTimeout(function(){
-            const embed_height = embed.height();
-            //Si no ocupo todo la altura, es un PDF y hay que setearle la altura/ancho a mano
-            //A las imagenes no les seteamos height/width 100% para no destruir el aspect ratio
-            if(embed_height != height){
-              embed.css('height','100%').css('width','100%');
-            }
-          },time);
         },time);
     },
     error: function(data) {

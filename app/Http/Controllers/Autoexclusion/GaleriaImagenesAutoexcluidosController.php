@@ -58,31 +58,31 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       }
 
       $resultados_foto1 = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'foto1' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'foto1' as tipo_archivo,ae_importacion.foto1 as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.foto1');
 
       $resultados_foto2 = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'foto2' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'foto2' as tipo_archivo,ae_importacion.foto2 as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.foto2');
 
       $resultados_sol_ae = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_ae' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_ae' as tipo_archivo,ae_importacion.solicitud_ae as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_ae');
 
       $resultados_sol_rev = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_revocacion' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_revocacion' as tipo_archivo,ae_importacion.solicitud_revocacion as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_revocacion');
 
       $resultados_dni = DB::table('ae_datos')
-        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'scandni' as tipo_archivo")
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'scandni' as tipo_archivo,ae_importacion.scandni as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.scandni');
