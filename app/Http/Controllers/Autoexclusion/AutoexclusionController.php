@@ -233,10 +233,10 @@ class AutoexclusionController extends Controller
     }
  
     public function subirImportacionArchivos($autoexcluido,$importacion) {
-      $tieneImportacion = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$autoexcluido->id_importacion)->count() > 0;
+      $tieneImportacion = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->count() > 0;
       $bdImp = null;
       if ($tieneImportacion){
-        $bdImp = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$autoexcluido->id_importacion)->first();
+        $bdImp = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
       }
       else {
         $bdImp = new ImportacionAE;
@@ -249,39 +249,30 @@ class AutoexclusionController extends Controller
       //fecha actual, sin formatear
       $ahora = date("dmY");
 
-      if (isset($importacion['foto1'])) {
-        //genero el nombre del archivo, formado por la fecha y hora actual, el DNI del AE, y el tipo de archivo importado
-        //(1 para foto1, 2 para foto2, 3 para scan dni, 4 para solicitud AE)
-        $nombre_archivo_foto1 = $ahora . '-' . $autoexcluido->nro_dni . '-1';
-        //establezco el path de destino del archivo
-        $pathDestinoFoto1 = $pathCons . 'fotos/' . $nombre_archivo_foto1;
-        //copio el archivo subido al filesystem
-        copy($importacion['foto1']->getRealPath(), $pathDestinoFoto1);
-        $bdImp->foto1 = $nombre_archivo_foto1;
+      $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/', 'solicitud_ae' => 'solicitudes/'];
+      $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 'solicitud_ae' => '4'];
+      foreach($carpeta as $tipo => $ignorar){
+        if(is_null($importacion) || !array_key_exists($tipo,$importacion)){//Si no viene en el request, lo borro
+          $bdImp->{$tipo} = NULL;
+        }
       }
-      if (isset($importacion['foto2'])) {
-        $nombre_archivo_foto2 = $ahora . '-' . $autoexcluido->nro_dni . '-2';
-        $pathDestinoFoto2 = $pathCons . 'fotos/' . $nombre_archivo_foto2;
-        copy($importacion['foto2']->getRealPath(), $pathDestinoFoto2);
-        $bdImp->foto2 = $nombre_archivo_foto2;
-      }
-      if (isset($importacion['scandni'])) {
-        $nombre_archivo_scandni = $ahora . '-' . $autoexcluido->nro_dni . '-3';
-        $pathDestinoScanDni = $pathCons . 'documentos/' . $nombre_archivo_scandni;
-        copy($importacion['scandni']->getRealPath(), $pathDestinoScanDni);
-        $bdImp->scandni = $nombre_archivo_scandni;
-      }
-      if (isset($importacion['solicitud_autoexclusion'])) {
-        $nombre_archivo_solicitudae = $ahora . '-' . $autoexcluido->nro_dni . '-4';
-        $pathDestinoSolicitudAE = $pathCons . 'solicitudes/' . $nombre_archivo_solicitudae;
-        copy($importacion['solicitud_autoexclusion']>getRealPath(), $pathDestinoSolicitudAE);
-        $bdImp->solicitud_autoexclusion = $nombre_archivo_solicitudae;
+      if(!is_null($importacion)) foreach($importacion as $tipo => $file){
+        //No esta en el arreglo de arriba, ignoro
+        if(!array_key_exists($tipo,$carpeta) || !array_key_exists($tipo,$numero_identificador)) continue;
+        if(is_null($file)){//Si viene en el request y es nulo, lo considero que es el mismo archivo
+          continue;
+        }
+        $barra = strpos($file->getMimeType(),'/');
+        $extension = substr($file->getMimeType(),$barra+1);
+        $nombre_archivo = $ahora . '-' . $autoexcluido->nro_dni . '-' . $numero_identificador[$tipo] . '.' . $extension;
+        $path = $pathCons . $carpeta[$tipo] . $nombre_archivo;
+        copy($file->getRealPath(),$path);
+        $bdImp->{$tipo} = $nombre_archivo;
       }
       $bdImp->save();
     }
 
     public function subirSolicitudAE(Request $request) {
-      //d($request->solicitudAE->getRealPath());
       //no me anda el nullable en el validator, armo el array que le paso al validator a pata
       $arr = array();
       if ($request->solicitudAE != 'undefined') {$arr['solicitudAE'] = $request->solicitudAE;}
@@ -316,15 +307,17 @@ class AutoexclusionController extends Controller
       $autoexcluido = DB::table('ae_datos')->where('ae_datos.nro_dni','=',$dni)->first();
 
       if ($autoexcluido != null) {
-        $datos_contacto = DB::table('ae_datos_contacto')->where('ae_datos_contacto.id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-        $estado = DB::table('ae_estado')->where('ae_estado.id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-        $encuesta = DB::table('ae_encuesta')->where('ae_encuesta.id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+        $datos_contacto = DB::table('ae_datos_contacto')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+        $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+        $encuesta = DB::table('ae_encuesta')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+        $importacion  = DB::table('ae_importacion')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
 
         $resultados = array(
           'autoexcluido' => $autoexcluido,
           'datos_contacto'=> $datos_contacto,
           'estado' => $estado,
-          'encuesta' => $encuesta
+          'encuesta' => $encuesta,
+          'importacion' => $importacion
         );
       }
       else {

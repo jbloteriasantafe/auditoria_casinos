@@ -259,7 +259,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
     <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" id="myModalLabel">| AGREGAR / EDITAR AUTOEXCLUIDO</h3>
@@ -437,21 +437,41 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                           <input id="fecha_cierre_definitivo" name="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
                                         </div>
                                       </div>
-                                  <div class="col-lg-6">
-                                    <h5>FOTO #1</h5>
-                                    <input id="foto1" type="file" name="foto1">
+                                  <div class="row">
+                                    <div class="col-lg-6">
+                                      <h5>FOTO #1</h5>
+                                      <div>
+                                        <span>FOTO1.PDF</span>
+                                        <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                                      </div>
+                                      <input id="foto1" type="file" name="foto1">
+                                    </div>
+                                    <div class="col-lg-6">
+                                      <h5>FOTO #2</h5>
+                                      <div>
+                                        <span>FOTO2.PDF</span>
+                                        <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                                      </div>
+                                      <input id="foto2" data-borrado="false" type="file" name="">
+                                    </div>
                                   </div>
-                                  <div class="col-lg-6">
-                                    <h5>FOTO #2</h5>
-                                    <input id="foto2" data-borrado="false" type="file" name="">
-                                  </div>
-                                  <div class="col-lg-6">
-                                    <h5>SCAN DNI</h5>
-                                    <input id="scan_dni" data-borrado="false" type="file" name="">
-                                  </div>
-                                  <div class="col-lg-6">
-                                    <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
-                                    <input id="solicitud_autoexclusion" data-borrado="false" type="file" name="">
+                                  <div class="row">
+                                    <div class="col-lg-6">
+                                      <h5>SCAN DNI</h5>
+                                      <div>
+                                        <span>DNI.PDF</span>
+                                        <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                                      </div>
+                                      <input id="scan_dni" data-borrado="false" type="file" name="">
+                                    </div>
+                                    <div class="col-lg-6">
+                                      <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
+                                      <div>
+                                        <span>SOLAE.PDF</span>
+                                        <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                                      </div>
+                                      <input id="solicitud_autoexclusion" data-borrado="false" type="file" name="">
+                                    </div>
                                   </div>
                                 </div>
                                 <!-- fin step #3 -->

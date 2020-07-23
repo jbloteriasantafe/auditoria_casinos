@@ -192,21 +192,15 @@ function generarFilaTabla(unAutoexcluido) {
 }
 
 function validarExtensionArchivo (id) {
-  let esValido;
   if ($(id).val()) {
     let extension = $(id)[0].files[0].type;
     //@TODO: despues de hacer pruebas, quitar lo de PNG
     if (extension != 'image/jpeg' && extension != 'image/png' && extension != 'application/pdf') {
-      mostrarErrorValidacion($(id), 'El tipo de archivo debe ser de tipo JPG o PDF' , false);
-      esValido = 0;
+      mostrarErrorValidacion($(id), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+      return 0;
     }
-
   }
-  else {
-    esValido = 1;
-  }
-
-  return esValido;
+  return 1;
 }
 
 //Opacidad del modal al minimizar
@@ -244,7 +238,7 @@ $('#columna input').focusin(function(){
 
 //Botón agregar nuevo AE
 $('#btn-agregar-ae').click(function(e){
-    e.preventDefault();
+  e.preventDefault();
 
   //vuelvo a step1
   $('.page').removeClass('active');
@@ -252,13 +246,13 @@ $('#btn-agregar-ae').click(function(e){
 
   //limpio el form
   $('#frmAgregarAE :input').val('');
+  //Limpio el texto de archivos y muestro el input
+  //boton -> div (esconder) -> span (limpiar) -> div -> div -> input (mostrar)
+  $('#frmAgregarAE .sacarArchivo').parent().hide().find('span').text('')
+  .parent().parent().find('input').show();
 
   //oculto el botón anterior
   $("#btn-prev").hide();
-
-  //título y color header
-  //$('.modal-title').text('| AGREGAR / EDITAR AUTOEXCLUIDO');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
 
   //oculto botón guardar y muestro botón siguiente en caso que se encuentre oculto
   $("#btn-guardar").hide();
@@ -496,6 +490,28 @@ $("#btn-next").on("click", function(){
           $('#medio_recepcion').val(data.encuesta.medio_recibir_informacion);
           $('#observaciones').val(data.encuesta.observacion);
         }
+        const limpiarNull = function(val){
+          return val == null? '' : val;
+        }
+
+        if(data.importacion != null){
+          const textoFoto1 = $('#foto1').parent().find('div');
+          const textoFoto2 = $('#foto2').parent().find('div');
+          const textoDNI = $('#scan_dni').parent().find('div');
+          const textoAE = $('#solicitud_autoexclusion').parent().find('div');
+          textoFoto1.find('span').text(limpiarNull(data.importacion.foto1));
+          textoFoto2.find('span').text(limpiarNull(data.importacion.foto2));
+          textoDNI.find('span').text(limpiarNull(data.importacion.scandni));
+          textoAE.find('span').text(limpiarNull(data.importacion.solicitud_ae));
+          textoFoto1.toggle(data.importacion.foto1 != null);
+          textoFoto2.toggle(data.importacion.foto2 != null);
+          textoDNI.toggle(data.importacion.scandni != null);
+          textoAE.toggle(data.importacion.solicitud_ae != null);
+          $('#foto1').toggle(data.importacion.foto1 == null);
+          $('#foto2').toggle(data.importacion.foto2 == null);
+          $('#scan_dni').toggle(data.importacion.scandni == null);
+          $('#solicitud_autoexclusion').toggle(data.importacion.solicitud_ae == null);
+        }
 
         //cambio el estado del boton guardar a "existente", para editar y no agregar un AE nuevo
         $('#btn-guardar').val('existente');
@@ -546,45 +562,21 @@ $("#btn-next").on("click", function(){
     }
   });
 
-    //verifico que seleccione los archivos de importacion a subir
-    //@TODO: descomentar esto despues
-    /*
-    if (step == 3) {
-      let warning = 'Debe seleccionar un archivo';
-      if (!$('#foto1').val()) {
-        mostrarErrorValidacion($('#foto1'), warning, false);
-        valid = 0;
-      }
-      if (!$('#foto2').val()) {
-        mostrarErrorValidacion($('#foto2'), warning, false);
-        valid = 0;
-      }
-      if (!$('#scan_dni').val()) {
-        mostrarErrorValidacion($('#scan_dni'), warning, false);
-        valid = 0;
-      }
-      if (!$('#solicitud_autoexclusion').val()) {
-        mostrarErrorValidacion($('#solicitud_autoexclusion'), warning, false);
-        valid = 0;
-      }
-    }
-    */
+  //verifico que el step sea valido para avanzar y, si no es el último step, tengo siguiente:
+  if(valid==1 && step<4 && $(".page.active").index() < $(".page").length-1){
+    //cambio form active
+    $(".page.active").removeClass("active").next().addClass("active");
+    //cambio step active
+    $(".step.actived").removeClass("actived").addClass("finish").next().addClass("actived");
+    //muestro botón anterior
+    $("#btn-prev").show();
+  }
 
-    //verifico que el step sea valido para avanzar y, si no es el último step, tengo siguiente:
-    if(valid==1 && step<4 && $(".page.active").index() < $(".page").length-1){
-        //cambio form active
-        $(".page.active").removeClass("active").next().addClass("active");
-        //cambio step active
-        $(".step.actived").removeClass("actived").addClass("finish").next().addClass("actived");
-        //muestro botón anterior
-        $("#btn-prev").show();
-    }
-
-    //si llegue al final, muestro botón de guardar y oculto el de siguiente
-    if( $(".page.active").index() == $(".page").length-1 ){
-      $("#btn-guardar").show();
-      $("#btn-next").hide();
-     }
+  //si llegue al final, muestro botón de guardar y oculto el de siguiente
+  if( $(".page.active").index() == $(".page").length-1 ){
+    $("#btn-guardar").show();
+    $("#btn-next").hide();
+  }
 });
 
 function strRequest(objectName,keyname){
@@ -663,6 +655,13 @@ $('#btn-guardar').click(function (e) {
       formData.append(strRequest('ae_encuesta',key),clearNullUndef(ae_encuesta[key]));
     }
 
+    const ae_importacion_cargado = {
+      foto1                : $('#foto1').parent().find('span').text().length != 0,
+      foto2                : $('#foto2').parent().find('span').text().length != 0,
+      solicitud_ae         : $('#solicitud_autoexclusion').parent().find('span').text().length != 0,
+      solicitud_revoacion  : false,
+      scandni              : $('#scan_dni').parent().find('span').text().length != 0,
+    }
     const ae_importacion = {
       foto1                : $('#foto1')[0].files[0],
       foto2                : $('#foto2')[0].files[0],
@@ -671,7 +670,14 @@ $('#btn-guardar').click(function (e) {
       scandni              : $('#scan_dni')[0].files[0]
     }
     for(const key in ae_importacion){
-      formData.append(strRequest('ae_importacion',key),clearNullUndef(ae_importacion[key]));
+      const cargado = ae_importacion_cargado[key];
+      const file_val = clearNullUndef(ae_importacion[key]);
+      if(cargado){//Si ya tiene cargado un archivo, mando vacio
+        formData.append(strRequest('ae_importacion',key),'');
+      }
+      else if(file_val != ''){//Si mando un archivo nuevo,
+        formData.append(strRequest('ae_importacion',key),file_val);
+      }
     }
 
     //url de destino, dependiendo si se esta creando o modificando una sesión
@@ -690,8 +696,7 @@ $('#btn-guardar').click(function (e) {
             $('#mensajeExito').show(); //mostrar éxito
         },
         error: function (data) {
-          var response = JSON.parse(data.responseText);
-          console.log(response);
+          console.log(data);
         }
     });
 });
@@ -866,4 +871,12 @@ $('.btn-ver-formulario').click(function() {
   let id = $(this).attr('id');
 
   window.open('autoexclusion/mostrarFormulario/' + id, '_blank');
+});
+
+$('.sacarArchivo').click(function(){
+  const div = $(this).parent();
+  const input = div.parent().find('input');
+  div.hide();
+  input.show();
+  div.find('span').text('');
 });
