@@ -295,30 +295,19 @@ function cargarLocalidadesVinculo(){
 
 //función para actualizar fechas
 $( "#fecha_autoexlusion" ).change(function() {
-  var fecha_autoexlusion = new Date($( "#fecha_autoexlusion" ).val());
-
-  ((fecha_autoexlusion.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1)
+  const fecha_autoexlusion = new Date($( "#fecha_autoexlusion" ).val());
+  const convertir_fecha = function(f){
+    const mes = ((f.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1);
+    const dia =  (f.getDate() < 10 ? '0' : '') + fecha_autoexlusion.getDate();
+    return f.getFullYear() + '-' + mes  + '-' + dia;
+  }
 
   fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() + 361);
-  $( "#fecha_cierre_definitivo" ).val(
-      fecha_autoexlusion.getFullYear() + '-' +
-      (((fecha_autoexlusion.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1)) + '-' +
-      (fecha_autoexlusion.getDate() < 10 ? '0' : '') + fecha_autoexlusion.getDate()
-      );
-
+  $( "#fecha_cierre_definitivo" ).val(convertir_fecha(fecha_autoexlusion));
   fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() - 180);
-  $( "#fecha_vencimiento_periodo" ).val(
-      fecha_autoexlusion.getFullYear() + '-' +
-      (((fecha_autoexlusion.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1)) + '-' +
-      (fecha_autoexlusion.getDate() < 10 ? '0' : '') + fecha_autoexlusion.getDate()
-      );
-
+  $( "#fecha_vencimiento_periodo" ).val(convertir_fecha(fecha_autoexlusion));
   fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() - 30);
-  $( "#fecha_renovacion" ).val(
-      fecha_autoexlusion.getFullYear() + '-' +
-      (((fecha_autoexlusion.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1)) + '-' +
-      (fecha_autoexlusion.getDate() < 10 ? '0' : '') + fecha_autoexlusion.getDate()
-      );
+  $( "#fecha_renovacion" ).val(convertir_fecha(fecha_autoexlusion));
 });
 
 $("#btn-prev").on("click", function(){
@@ -340,6 +329,9 @@ $("#btn-prev").on("click", function(){
         $("#btn-next").show();
         $("#btn-guardar").hide();
     }
+    setTimeout(function(){//@HACK: Elimino el delay que heredamos de barraNavegacion.js
+      $('#btn-prev').prop('disabled',false);
+    },250);
 });
 function mensajeError(msg){
   $('#mensajeError .textoMensaje').empty();
@@ -553,6 +545,9 @@ $("#btn-next").on("click", function(){
     $("#btn-guardar").show();
     $("#btn-next").hide();
   }
+  setTimeout(function(){//@HACK: Elimino el delay que heredamos de barraNavegacion.js
+    $('#btn-next').prop('disabled',false);
+  },250);
 });
 
 function strRequest(objectName,keyname){
