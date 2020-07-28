@@ -1,9 +1,7 @@
 $(document).ready(function(){
-
   $('#barraMenu').attr('aria-expanded','true');
   $('.tituloSeccionPantalla').text('Alta de autoexcluidos');
-
-  $('#dtpFechaNacimiento').datetimepicker({
+  const input_fecha_iso = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -13,85 +11,26 @@ $(document).ready(function(){
     startView: 2,
     minView: 2,
     ignoreReadonly: true
-  });
-
-  $('#dtpFechaAutoexclusionEstado').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaVencimiento').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaFinalizacion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaCierreDefinitivo').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
+  }
+  $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusion').datetimepicker(input_fecha_iso);
+  $('#dtpFechaVencimiento').datetimepicker(input_fecha_iso);
+  $('#dtpFechaFinalizacion').datetimepicker(input_fecha_iso);
+  $('#dtpFechaCierreDefinitivo').datetimepicker(input_fecha_iso);
   $('#btn-buscar').trigger('click');
-
 });
 
 //PAGINACION
 $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
     e.preventDefault();
-
-    //Fix error cuando librería saca los selectores
-    if (isNaN($('#herramientasPaginacion').getPageSize())) {
-        var size = 10; // por defecto
-    } else {
-        var size = $('#herramientasPaginacion').getPageSize();
-    }
-
-    var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? { columna, orden } : { columna: $('#tablaAutoexcluidos .activa').attr('value'), orden: $('#tablaAutoexcluidos .activa').attr('estado') };
-    if (sort_by == null) { // limpio las columnas
-        $('#tablaAutoexcluidos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado', '');
-    }
-
-    var formData = {
+    const deflt_size = isNaN($('#herramientasPaginacion').getPageSize())? 10 : $('#herramientasPaginacion').getPageSize();
+    const sort_by = (columna != null) ? { columna: columna, orden: orden } 
+    :{ 
+      columna: $('#tablaAutoexcluidos .activa').attr('value'), 
+      orden:   $('#tablaAutoexcluidos .activa').attr('estado')
+    };
+    const formData = {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         estado: $('#buscadorEstado').val(),
@@ -100,11 +39,16 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         fecha_vencimiento: $('#buscadorFechaVencimiento').val(),
         fecha_finalizacion: $('#buscadorFechaFinalizacion').val(),
         fecha_cierre_definitivo: $('#buscadorFechaCierreDefinitivo').val(),
-        page: page_number,
+        page: (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage(),
         sort_by: sort_by,
-        page_size: page_size,
+        page_size: (page_size == null || isNaN(page_size)) ? deflt_size : page_size,
     }
 
+    $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+      }
+    });
     $.ajax({
         type: 'GET',
         url: 'http://' + window.location.host + '/autoexclusion/buscarAutoexcluidos',
@@ -112,16 +56,14 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         dataType: 'json',
         success: function(resultados) {
             $('#herramientasPaginacion')
-                .generarTitulo(page_number, page_size, resultados.total, clickIndice);
+                .generarTitulo(formData.page, formData.page_size, resultados.total, clickIndice);
+            $('#herramientasPaginacion')
+                .generarIndices(formData.page, formData.page_size, resultados.total, clickIndice);
 
             $('#cuerpoTabla tr').not('.filaTabla').remove();
-
             for (var i = 0; i < resultados.data.length; i++) {
                 $('#tablaAutoexcluidos tbody').append(generarFilaTabla(resultados.data[i]));
             }
-
-            $('#herramientasPaginacion')
-                .generarIndices(page_number, page_size, resultados.total, clickIndice);
         },
         error: function(data) {
             console.log('Error:', data);
@@ -134,16 +76,16 @@ $(document).on('click', '#tablaAutoexcluidos thead tr th[value]', function(e) {
     $('#tablaAutoexcluidos th').removeClass('activa');
     if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
         $(e.currentTarget).children('i')
-            .removeClass().addClass('fa fa-sort-desc')
+            .removeClass('fa-sort').addClass('fa fa-sort-desc')
             .parent().addClass('activa').attr('estado', 'desc');
     } else {
         if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
             $(e.currentTarget).children('i')
-                .removeClass().addClass('fa fa-sort-asc')
+                .removeClass('fa-sort-desc').addClass('fa fa-sort-asc')
                 .parent().addClass('activa').attr('estado', 'asc');
         } else {
             $(e.currentTarget).children('i')
-                .removeClass().addClass('fa fa-sort')
+                .removeClass('fa-sort-asc').addClass('fa fa-sort')
                 .parent().attr('estado', '');
         }
     }
@@ -168,39 +110,25 @@ function clickIndice(e, pageNumber, tam) {
 function generarFilaTabla(unAutoexcluido) {
     let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
     fila.attr('data-id', unAutoexcluido.id_autoexcluido);
+    fila.find('.casino').text(unAutoexcluido.casino);
     fila.find('.dni').text(unAutoexcluido.nro_dni);
     fila.find('.apellido').text(unAutoexcluido.apellido);
     fila.find('.nombres').text(unAutoexcluido.nombres);
     fila.find('.estado').text(unAutoexcluido.descripcion);
     fila.find('.fecha_ae').text(unAutoexcluido.fecha_ae);
-    fila.find('button').each(function(idx, c) { $(c).val(unAutoexcluido.id_autoexcluido); });
-    let ver_mas = fila.find('#btnVerMas').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VER MÁS', 'data-delay': '{"show":"300", "hide":"100"}' });
-    let generar_solicitud_ae = fila.find('#btnGenerarSolicitudAutoexclusion').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'GENERAR SOLICITUD AE', 'data-delay': '{"show":"300", "hide":"100"}' });
+    fila.find('button').val(unAutoexcluido.id_autoexcluido);
+    if($('#id_casino option[value="'+unAutoexcluido.id_casino+'"]').length == 0){
+      fila.find('#btnEditar').remove();
+    }
 
     //si el estado del autoexcluido es distinto de 5 (vencido),
     //oculto el botón para generar la constancia de reingreso
     if (unAutoexcluido.id_nombre_estado != 5) {
-      fila.find('#btnGenerarConstanciaReingreso').hide();
-    }
-    else {
-      let generar_coonstancia_reingreso = fila.find('#btnGenerarConstanciaReingreso').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'GENERAR CONSTANCIA DE REINGRESO', 'data-delay': '{"show":"300", "hide":"100"}' });
+      fila.find('#btnGenerarConstanciaReingreso').remove();
     }
 
     fila.css('display', 'flow-root');
-
     return fila;
-}
-
-function validarExtensionArchivo (id) {
-  if ($(id).val()) {
-    let extension = $(id)[0].files[0].type;
-    //@TODO: despues de hacer pruebas, quitar lo de PNG
-    if (extension != 'image/jpeg' && extension != 'image/png' && extension != 'application/pdf') {
-      mostrarErrorValidacion($(id), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
-      return 0;
-    }
-  }
-  return 1;
 }
 
 //Opacidad del modal al minimizar
@@ -225,15 +153,8 @@ $('#btn-minimizarMaquinas').click(function(){
   }
 });
 
-$('#columna input').on('focusout' , function(){
-  if ($(this).val() == ''){
-    mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
-  }
-});
-
 $('#columna input').focusin(function(){
   $(this).removeClass('alerta');
-
 });
 
 //Botón agregar nuevo AE
@@ -274,11 +195,9 @@ $('#btn-agregar-ae').click(function(e){
 //Botón subir solicitud AE
 $('#btn-subir-solicitud-ae').click(function(e){
   e.preventDefault();
-
   //limpio el form
   $('#nroDniSubirSolicitudAE').val('');
   $('#solicitudAE').val('')
-
   //muestra modal
   $('#modalSubirSolicitudAE').modal('show');
 });
@@ -286,7 +205,6 @@ $('#btn-subir-solicitud-ae').click(function(e){
 //Botón ver formularios AE
 $('#btn-ver-formularios-ae').click(function(e){
   e.preventDefault();
-
   //muestra modal
   $('#modalFormulariosAE').modal('show');
 });
@@ -294,19 +212,18 @@ $('#btn-ver-formularios-ae').click(function(e){
 
 //función para autocompletar el input de provincia
 function cargarProvincias(){
-    var options = {
+  const options = {
     url: "/js/Autoexclusion/provincias.json",
     listLocation: "provincias",
     getValue: "nombre",
-
     list: {
     	match: {
     		enabled: true
     	},
       onChooseEvent: function() {
-			     cargarLocalidades();
-           cargarLocalidadesVinculo();
-		       }
+			  cargarLocalidades();
+        cargarLocalidadesVinculo();
+		  }
     }
   };
 
@@ -316,31 +233,30 @@ function cargarProvincias(){
 
 //función para autocompletar el input de localidad de los datos personales
 function cargarLocalidades(){
-  var nombre_provincia =  $("#nombre_provincia").val();
-  var localidades = [];
+  const nombre_provincia =  $("#nombre_provincia").val();
+  const localidades = [];
 
   $.getJSON('/js/Autoexclusion/localidades.json', function(data) {
-         $.each(data.localidades, function(key, value) {
-           //si pertenece a la provincia seleccionada, la agrego
-           if(value.provincia.nombre === nombre_provincia){
-             var localidad = {
-               id: value.id,
-               nombre: value.nombre,
-             }
-             localidades.push(localidad);
-           }
-         }); // close each()
-        }); // close getJSON()
+    $.each(data.localidades, function(key, value) {
+      //si pertenece a la provincia seleccionada, la agrego
+      if(value.provincia.nombre === nombre_provincia){
+        var localidad = {
+          id: value.id,
+          nombre: value.nombre,
+        }
+        localidades.push(localidad);
+      }
+    }); // close each()
+  }); // close getJSON()
 
-  var options = {
+  const options = {
     data: localidades,
-
   	getValue: "nombre",
-      	list: {
-      		match: {
-      			enabled: true
-      		}
-      	}
+    list: {
+      match: {
+        enabled: true
+      }
+    }
   };
 
   $("#nombre_localidad").easyAutocomplete(options);
@@ -348,31 +264,30 @@ function cargarLocalidades(){
 
 //función para autocompletar el input de localidad del contacto
 function cargarLocalidadesVinculo(){
-  var nombre_provincia =  $("#nombre_provincia_vinculo").val();
-  var localidades = [];
+  const nombre_provincia =  $("#nombre_provincia_vinculo").val();
+  const localidades = [];
 
   $.getJSON('/js/Autoexclusion/localidades.json', function(data) {
-         $.each(data.localidades, function(key, value) {
-           //si pertenece a la provincia seleccionada, la agrego
-           if(value.provincia.nombre === nombre_provincia){
-             var localidad = {
-               id: value.id,
-               nombre: value.nombre,
-             }
-             localidades.push(localidad);
-           }
-         }); // close each()
-        }); // close getJSON()
+    $.each(data.localidades, function(key, value) {
+      //si pertenece a la provincia seleccionada, la agrego
+      if(value.provincia.nombre === nombre_provincia){
+        var localidad = {
+          id: value.id,
+          nombre: value.nombre,
+        }
+        localidades.push(localidad);
+      }
+    }); // close each()
+  }); // close getJSON()
 
-  var options = {
+  const options = {
     data: localidades,
-
   	getValue: "nombre",
-      	list: {
-      		match: {
-      			enabled: true
-      		}
-      	}
+    list: {
+      match: {
+        enabled: true
+      }
+    }
   };
 
   $("#nombre_localidad_vinculo").easyAutocomplete(options);
@@ -425,25 +340,41 @@ $("#btn-prev").on("click", function(){
         $("#btn-next").show();
         $("#btn-guardar").hide();
     }
-
 });
+function mensajeError(msg){
+  $('#mensajeError .textoMensaje').empty();
+  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
+  $('#mensajeError').hide();
+  setTimeout(function() {
+    $('#mensajeError').show();
+  }, 250);
+}
 
-//botón siguiente modal agregar ae
-$("#btn-next").on("click", function(){
-  var step = $(".page.active").index() + 1;
-  var valid = 1;
+function limpiarNull(val){
+  return val == null? '' : val;
+}
 
-  //verificacion de inputs validos step #1
-  if(step == 1) {
-    if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
-      mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);
-      valid = 0;
-    }
-
-    //si existe dni, precargo el formulario con los datos
-    $.get('/autoexclusion/existeAutoexcluido/' + $('#nro_dni').val(), function (data) {
-
-      if (data != -1) {
+function validarDNI(){
+  if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
+    mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);
+    return 0;
+  }
+  let valid = 1;
+  //si existe dni, precargo el formulario con los datos
+  $.ajax({
+    url: '/autoexclusion/existeAutoexcluido/' + $('#nro_dni').val(),
+    async: false,
+    type: "GET",
+    success:     function (data) {
+      if(data < 0){//Si existe, recibo el ID (negativo)
+        $('#modalAgregarAE').modal('hide');
+        mensajeError('Autoexcluido ya cargado en otro casino');
+        valid = 0;
+        setTimeout(function(){
+          mostrarAutoexcluido(-data);
+        },500);
+      }
+      else if(data != 0){//Si es == 0, es uno nuevo por lo que no se hace nada
         //precargo el step de datos personales y de contacto
         $('#apellido').val(data.autoexcluido.apellido);
         $('#nombres').val(data.autoexcluido.nombres);
@@ -490,9 +421,6 @@ $("#btn-next").on("click", function(){
           $('#medio_recepcion').val(data.encuesta.medio_recibir_informacion);
           $('#observaciones').val(data.encuesta.observacion);
         }
-        const limpiarNull = function(val){
-          return val == null? '' : val;
-        }
 
         if(data.importacion != null){
           const textoFoto1 = $('#foto1').parent().find('div');
@@ -512,55 +440,103 @@ $("#btn-next").on("click", function(){
           $('#scan_dni').toggle(data.importacion.scandni == null);
           $('#solicitud_autoexclusion').toggle(data.importacion.solicitud_ae == null);
         }
-
-        //cambio el estado del boton guardar a "existente", para editar y no agregar un AE nuevo
-        $('#btn-guardar').val('existente');
       }
+    },
+    error: function(data){
+      console.log(data);
+      mensajeError('Error al solicitar el DNI');
+      valid = 0;
+    }
+  });
 
-    });
+  return valid;
+}
+
+function validarDatosPersonales(){
+  let valid = 1;
+  $('.step2 input[required], select[required]').each(function(){
+    if($(this).val() == ''){
+      mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
+      valid = 0;
+    }
+  });
+  $('.step2 input[alpha]').each(function(){
+    if(!/^[a-zA-Z\s]*$/.test($(this).val())){
+      mostrarErrorValidacion($(this) , 'El campo no puede contener números' , false);
+      valid = 0;
+    }
+  });
+  $('.step2 input[numeric]').each(function(){
+    if(!/^[0-9\s]*$/.test($(this).val())){
+      mostrarErrorValidacion($(this) , 'El campo es numérico' , false);
+      valid = 0;
+    }
+  });
+  $('.step2 input[email]').each(function(){
+    if(!$(this).val().includes('@')){
+      mostrarErrorValidacion($(this) , 'Correo invalido' , false);
+      valid = 0;
+    }
+  });
+  return valid;
+}
+
+function validarExtensionArchivo (id) {
+  if ($(id).val()) {
+    let extension = $(id)[0].files[0].type;
+    //@TODO: despues de hacer pruebas, quitar lo de PNG
+    if (extension != 'image/jpeg' && extension != 'image/png' && extension != 'application/pdf') {
+      return 0;
+    }
   }
-  //verificacion de inputs validos step #2
-  else if(step == 2) {
-    if (!/^[a-zA-Z\s]+$/.test($('#apellido').val())) {
-      mostrarErrorValidacion($('#apellido') , 'El apellido no puede contener números' , false);
-      valid = 0;
-    }
+  return 1;
+}
 
-    if (!/^[a-zA-Z\s]+$/.test($('#nombres').val())) {
-      mostrarErrorValidacion($('#nombre') , 'Los nombres no puede contener números' , false);
-      valid = 0;
-    }
-
-    if (isNaN($('#nro_domicilio').val()) && $('#nro_domicilio').val() != '') {
-      mostrarErrorValidacion($('#nro_domicilio') , 'El número de domicilio debe ser un dato de tipo numérico' , false);
-      valid = 0;
-    }
-
-    if (isNaN($('#telefono').val()) && $('#telefono').val() != '') {
-      mostrarErrorValidacion($('#telefono') , 'El teléfono debe ser un dato de tipo numérico' , false);
-      valid = 0;
-    }
-
-    if (!$('#correo').val().includes("@")) {
-      mostrarErrorValidacion($('#correo') , 'El email ingresado debe ser valido' , false);
-      valid = 0;
-    }
-  }
-  //verificacion de inputs validos step #3
-  else if(step == 3) {
-    if (validarExtensionArchivo('#foto1') == 0) {valid = 0;}
-    if (validarExtensionArchivo('#foto2') == 0) {valid = 0;}
-    if (validarExtensionArchivo('#solicitud_autoexclusion') == 0) {valid = 0;}
-    if (validarExtensionArchivo('#scan_dni') == 0) {valid = 0;}
-  }
-
-  //verifico que los input del step no esten en blanco.
-  $(".step" + step + " :input").each(function(){
-    if( $(this).val() == '' && step<4){
+function validarFechaImagenes(){
+  let valid = 1;
+  $(".step3 :input").each(function(){
+    if( $(this).val() == ''){
         mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
         valid = 0;
     }
   });
+  if (validarExtensionArchivo('#foto1') == 0) {
+    mostrarErrorValidacion($('#foto1'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  if (validarExtensionArchivo('#foto2') == 0) {
+    mostrarErrorValidacion($('#foto2'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  if (validarExtensionArchivo('#solicitud_autoexclusion') == 0) {
+    mostrarErrorValidacion($('#solicitud_autoexclusion'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  if (validarExtensionArchivo('#scan_dni') == 0) {
+    mostrarErrorValidacion($('#scan_dni'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  return valid;
+}
+
+//botón siguiente modal agregar ae
+$("#btn-next").on("click", function(){
+  let step = $(".page.active").index() + 1;
+  let valid = 1;
+
+  switch(step){
+    case 1:
+      valid = validarDNI();
+      break;
+    case 2:
+      valid = validarDatosPersonales()
+      break;
+    case 3:
+      valid = validarFechaImagenes();
+      break;
+    default:
+      return;
+  }
 
   //verifico que el step sea valido para avanzar y, si no es el último step, tengo siguiente:
   if(valid==1 && step<4 && $(".page.active").index() < $(".page").length-1){
@@ -638,7 +614,7 @@ $('#btn-guardar').click(function (e) {
       formData.append(strRequest('ae_estado',key),ae_estado[key]);
     }
 
-    var ae_encuesta = {
+    const ae_encuesta = {
       id_juego_preferido: $('#juego_preferido').val(),
       id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
       veces: $('#veces').val(),
@@ -690,7 +666,7 @@ $('#btn-guardar').click(function (e) {
         contentType: false,
         cache: false,
         success: function (data) {
-            $('#mensajeExito p').text('La autoexclusión fue'+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
+            $('#mensajeExito p').text('La autoexclusión fue '+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
             $('#modalAgregarAE').modal('hide');
             $('#btn-buscar').trigger('click'); //hago un trigger al botón buscar asi actualiza la tabla sin recargar la pagina
             $('#mensajeExito').show(); //mostrar éxito
@@ -704,7 +680,7 @@ $('#btn-guardar').click(function (e) {
 //botón subir archivo solicitud ae
 $('#btn-subir-archivo').click(function (e) {
     //guardo el archivo en un formdata
-    var formData = new FormData();
+    const formData = new FormData();
     formData.append('solicitudAE', $('#solicitudAE')[0].files[0]);
     formData.append('nro_dni', $('#nroDniSubirSolicitudAE').val());
 
@@ -719,24 +695,17 @@ $('#btn-subir-archivo').click(function (e) {
         success: function (data) {
           $('#mensajeExito P').text('La solicitud de autoexclusión fue subida correctamente.');
           $('#mensajeExito div').css('background-color','#4DB6AC');
-
           $('#modalSubirSolicitudAE').modal('hide');
           $('#mensajeExito').show(); //mostrar éxito
         },
         error: function (data) {
-          var response = JSON.parse(data.responseText);
+          console.log(data);
         }
     });
 
 });
 
-//boton ver mas:
-$(document).on('click', '#btnVerMas', function(e){
-  e.preventDefault();
-
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #4FC3F7; color: #fff');
-
-  var id_autoexcluido = $(this).val();
+function mostrarAutoexcluido(id_autoexcluido){
   $('#modalVerMas input:checked').prop('checked' ,false);
   $('#modalVerMas input').val('');
   $('#modalVerMas select').val('');
@@ -764,7 +733,6 @@ $(document).on('click', '#btnVerMas', function(e){
       $('#infoTelefonoVinculo').val(data.datos_contacto.telefono);
       $('#infoVinculo').val(data.datos_contacto.vinculo);
     }
-
 
     $('#infoCasino').val(data.estado.id_casino);
     $('#infoEstado').val(data.estado.id_nombre_estado);
@@ -831,27 +799,36 @@ $(document).on('click', '#btnVerMas', function(e){
 
     $('#modalVerMas').modal('show');
   });
+}
+
+$(document).on('click', '#btnVerMas', function(e){
+  e.preventDefault();
+  mostrarAutoexcluido($(this).val());
 });
 
-//boton generar solicitud autoexclusion:
+$(document).on('click', '#btnEditar', function(e){
+  e.preventDefault();
+  const dni = $(this).parent().parent().find('.dni').text();
+  $('#btn-agregar-ae').click();
+  setTimeout(function(){
+    $('#nro_dni').val(dni);
+    $('#btn-next').click();
+  },500);
+});
+
 $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){
   e.preventDefault();
-  let id_autoexcluido = $(this).val();
-
-  window.open('autoexclusion/generarSolicitudAutoexclusion/' + id_autoexcluido, '_blank');
+  window.open('autoexclusion/generarSolicitudAutoexclusion/' + $(this).val(), '_blank');
 });
 
-//boton generar constancia de reingreso
 $(document).on('click', '#btnGenerarConstanciaReingreso', function(e){
   e.preventDefault();
-  let id_autoexcluido = $(this).val();
-
-  window.open('autoexclusion/generarConstanciaReingreso/' + id_autoexcluido, '_blank');
+  window.open('autoexclusion/generarConstanciaReingreso/' + $(this).val(), '_blank');
 });
 
 //Salir del modal ver mas
 $('#btn-salir').click(function() {
-    $('#modalVerMas').modal('hide');
+  $('#modalVerMas').modal('hide');
 });
 
 //Mostrar archivos ver mas
@@ -868,9 +845,7 @@ $('.btn-ver-mas').click(function() {
 
 //Mostrar formularios
 $('.btn-ver-formulario').click(function() {
-  let id = $(this).attr('id');
-
-  window.open('autoexclusion/mostrarFormulario/' + id, '_blank');
+  window.open('autoexclusion/mostrarFormulario/' + $(this).attr('id'), '_blank');
 });
 
 $('.sacarArchivo').click(function(){
@@ -879,4 +854,11 @@ $('.sacarArchivo').click(function(){
   div.hide();
   input.show();
   div.find('span').text('');
+});
+
+$("#contenedorFiltros input").on('keypress',function(e){
+  if(e.which == 13) {
+    e.preventDefault();
+    $('#btn-buscar').click();
+  }
 });

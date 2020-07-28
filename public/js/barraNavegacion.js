@@ -280,12 +280,3 @@ $(document).on('click','div.modal div.modal-footer button.btn',function(){
     boton.prop('disabled',false);
   }, 3000);
 });
-
-// $('.btnConEspera').click(function() {
-//   var boton = $(this);
-//   boton.prop('disabled',true);
-//
-//   window.setTimeout(function() {
-//     boton.prop('disabled',false);
-//   }, 1000);
-// });

@@ -30,24 +30,29 @@ class AutoexclusionController extends Controller
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
       $casinos = DB::table('casino')->get();
       $estados_autoexclusion = DB::table('ae_nombre_estado')->get();
+      $estados_autoexclusion_fis = DB::table('ae_nombre_estado')->where('id_nombre_estado',3)->get();
       $estados_civiles = DB::table('ae_estado_civil')->get();
       $capacitaciones = DB::table('ae_capacitacion')->get();
-
+      $estados_elegibles = [];
+      $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if($usuario->es_superusuario || $usuario->es_administrador) $estados_elegibles = $estados_autoexclusion;
+      else if($usuario->es_fiscalizador) $estados_elegibles = $estados_autoexclusion_fis;
 
       return view('Autoexclusion.index', ['juegos' => $juegos,
                                           'ocupaciones' => $ocupaciones,
                                           'casinos' => $casinos,
+                                          'usuario' => $usuario,
                                           'frecuencias' => $frecuencias,
                                           'estados_autoexclusion' => $estados_autoexclusion,
+                                          'estados_elegibles' => $estados_elegibles,
                                           'estados_civiles' => $estados_civiles,
-                                          'capacitaciones' => $capacitaciones
+                                          'capacitaciones' => $capacitaciones,
                                         ]);
     }
 
     //Función para buscar los autoexcluidos existentes en el sistema
     public function buscarAutoexcluidos(Request $request){
       $reglas = Array();
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 
       //filtro de búsqueda por apellido
       if(!empty($request->apellido)){
@@ -93,15 +98,20 @@ class AutoexclusionController extends Controller
         $reglas[]=['ae_datos.id_autoexcluido','=',$request->id_autoexcluido];
       }
 
-      $sort_by = $request->sort_by;
+      $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
+      if(!empty($request->sort_by)){
+        $sort_by = $request->sort_by;
+      }
+
       $resultados = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 'ae_nombre_estado.descripcion')
+        ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 'ae_nombre_estado.descripcion','casino.nombre as casino')
         //hago un left join de datos contacto y encuesta porque son opcionales, sino solo me devolveria
         //los autoexcluidos que tienen datos de contacto y de encuesta existentes
         ->leftJoin('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
         ->leftJoin('ae_encuesta' , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
+        ->join('casino','ae_estado.id_casino','=','casino.id_casino')
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
@@ -113,6 +123,7 @@ class AutoexclusionController extends Controller
 
     //Función para agregar un nuevo autoexcluido complet, o editar uno existente
     public function agregarAE(Request $request){
+      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
         'ae_datos.nro_dni'          => 'required|integer',
         'ae_datos.apellido'         => 'required|string|max:100',
@@ -156,20 +167,25 @@ class AutoexclusionController extends Controller
         'ae_importacion.solicitud_ae'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         'ae_importacion.solicitud_revocacion' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-      ], array(), self::$atributos)->after(function($validator){})->validate();
+      ], array(), self::$atributos)->after(function($validator) use ($user){
+        $id_casino = $validator->getData()['ae_estado']['id_casino'];
+        $estado = $validator->getData()['ae_estado']['id_nombre_estado'];
+        if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+        }
+        if($user->es_fiscalizador && $estado != 3){
+          $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
+        }
+      })->validate();
       
-      $esNuevo = null;
-      DB::transaction(function() use($request, &$esNuevo){
+      $esNuevo = false;
+      DB::transaction(function() use($request, &$esNuevo, $user){
         $datos = $request['ae_datos'];
-        $esNuevo = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->count() == 0;
-        $bdAE = null;
-        if($esNuevo){
+        $bdAE = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->first();
+        if(is_null($bdAE)){
           $bdAE = new AutoExcluido;
+          $esNuevo = true;
         }
-        else {
-          $bdAE = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->first();
-        }
-
         foreach($datos as $key => $val){
           $bdAE->{$key} = $val;
         }
@@ -177,12 +193,8 @@ class AutoexclusionController extends Controller
 
         $id_autoexcluido = $bdAE->id_autoexcluido;
 
-        $tieneContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
-        $bdContacto = null;
-        if($tieneContacto){
-          $bdContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        }
-        else{
+        $bdContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        if(is_null($bdContacto)){
           $bdContacto = new ContactoAE;
           $bdContacto->id_autoexcluido = $id_autoexcluido;
         }
@@ -193,18 +205,13 @@ class AutoexclusionController extends Controller
         }
         $bdContacto->save();
 
-        $tieneEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
-        $bdEstado = null;
-        if($tieneEstado){
-          $bdEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        }
-        else{
+        $bdEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        if(is_null($bdEstado)){
           $bdEstado = new EstadoAE;
           $bdEstado->id_autoexcluido = $id_autoexcluido;
         }
 
-        $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
-        $bdEstado->id_usuario = $id_usuario;
+        $bdEstado->id_usuario = $user->id_usuario;
         $estado = $request['ae_estado'];
         foreach($estado as $key => $val){
           $bdEstado->{$key} = $val;
@@ -304,27 +311,25 @@ class AutoexclusionController extends Controller
 
     //Función para obtener los datos de un autoexcluido a partir de un DNI
     public function existeAutoexcluido($dni){
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+
       $autoexcluido = DB::table('ae_datos')->where('ae_datos.nro_dni','=',$dni)->first();
+      if(is_null($autoexcluido)) return 0;
+      
+      $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      if(!$user->usuarioTieneCasino($estado->id_casino)) return -$autoexcluido->id_autoexcluido;
 
-      if ($autoexcluido != null) {
-        $datos_contacto = DB::table('ae_datos_contacto')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-        $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-        $encuesta = DB::table('ae_encuesta')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-        $importacion  = DB::table('ae_importacion')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      $datos_contacto = DB::table('ae_datos_contacto')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      $encuesta = DB::table('ae_encuesta')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      $importacion  = DB::table('ae_importacion')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
 
-        $resultados = array(
-          'autoexcluido' => $autoexcluido,
-          'datos_contacto'=> $datos_contacto,
-          'estado' => $estado,
-          'encuesta' => $encuesta,
-          'importacion' => $importacion
-        );
-      }
-      else {
-        $resultados = -1;
-      }
-
-      return $resultados;
+      return array(
+        'autoexcluido' => $autoexcluido,
+        'datos_contacto'=> $datos_contacto,
+        'estado' => $estado,
+        'encuesta' => $encuesta,
+        'importacion' => $importacion
+      );
     }
 
 

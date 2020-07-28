@@ -49,7 +49,6 @@ use\App\http\Controllers\RelevamientoAmbientalController;
 .step.finish {
   background-color: #4CAF50;
 }
-
 </style>
 @endsection
 
@@ -216,29 +215,36 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                   <table id="tablaAutoexcluidos" class="table table-fixed tablesorter">
                     <thead>
                       <tr>
-                        <th class="col-xs-2 activa">DNI<i class="fa fa-sort-desc"></i></th>
-                        <th class="col-xs-2">APELLIDO<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-2">NOMBRES<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-2">ESTADO<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-2">FECHA AE<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-2">ACCIONES<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-1" value="ae_estado.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-1" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2" value="ae_estado.fecha_ae" estado="">FECHA AE<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2">ACCIONES</th>
                       </tr>
                     </thead>
                     <tbody id="cuerpoTabla" style="height: 350px;">
                       <tr class="filaTabla" style="display: none">
-                        <td class="col-sm-2 dni"></td>
+                        <td class="col-xs-1 casino"></td>
+                        <td class="col-xs-2 dni"></td>
                         <td class="col-xs-2 apellido"></td>
                         <td class="col-xs-2 nombres"></td>
-                        <td class="col-xs-2 estado"></td>
+                        <td class="col-xs-1 estado"></td>
                         <td class="col-xs-2 fecha_ae"></td>
                         <td class="col-xs-2 acciones">
-                          <button id="btnVerMas" class="btn btn-info info" type="button" value="">
+                          <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                             <i class="fa fa-fw fa-search-plus"></i>
                           </button>
-                          <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="">
+                          @if($usuario->es_superusuario || $usuario->es_administrador)
+                          <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+                            <i class="fa fa-fw fa-pencil-alt"></i>
+                          </button>
+                          @endif
+                          <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                             <i class="far fa-fw fa-file-alt"></i>
                           </button>
-                          <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="">
+                          <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="" title="GENERAR CONSTANCIA DE REINGRESO" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                             <i class="fa fa-fw fa-print"></i>
                           </button>
                           <span></span>
@@ -289,23 +295,23 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                 <div class="step2">
                                     <div class="col-lg-6">
                                       <h5>APELLIDO</h5>
-                                      <input id="apellido" name="apellido" type="text" class="form-control"  placeholder="" value="" required>
+                                      <input id="apellido" name="apellido" type="text" class="form-control"  placeholder="" value="" required alpha>
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>NOMBRES</h5>
-                                      <input id="nombres" name="nombres" type="text" class="form-control"  placeholder="" value="" required>
+                                      <input id="nombres" name="nombres" type="text" class="form-control"  placeholder="" value="" required alpha>
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>FECHA DE NACIMIENTO</h5>
                                       <div class="input-group date" id="dtpFechaNacimiento" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                                          <input type="text" class="form-control" placeholder="Fecha de nacimiento" id="fecha_nacimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                                          <input type="text" class="form-control" placeholder="Fecha de nacimiento" id="fecha_nacimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="" required>
                                           <span id="input-times-nacimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                           <span id="input-calendar-nacimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                       </div>
                                     </div>
                                     <div class="col-lg-3">
                                       <h5>SEXO</h5>
-                                      <select id="id_sexo" class="form-control" name="sexo">
+                                      <select id="id_sexo" class="form-control" name="sexo" required>
                                         <option selected="" value="">Seleccionar Valor</option>
                                         <option value="0">Masculino</option>
                                         <option value="1">Femenino</option>
@@ -314,7 +320,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     </div>
                                     <div class="col-lg-3">
                                       <h5>ESTADO CIVIL</h5>
-                                      <select id="id_estado_civil" class="form-control selectEstadoCivil" name="id_estado_civil">
+                                      <select id="id_estado_civil" class="form-control selectEstadoCivil" name="id_estado_civil" required>
                                         <option selected="" value="">Seleccionar Valor</option>
                                         @foreach ($estados_civiles as $estado_civil)
                                           <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
@@ -327,7 +333,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>NRO. DOMICILIO</h5>
-                                      <input id="nro_domicilio" name="nro_domicilio" type="text" class="form-control"  placeholder="" value="" required>
+                                      <input id="nro_domicilio" name="nro_domicilio" type="text" class="form-control"  placeholder="" value="" required numeric>
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>PROVINCIA</h5>
@@ -339,15 +345,15 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>TELEFONO</h5>
-                                      <input id="telefono" name="telefono" type="text" class="form-control"  placeholder="" value="" required>
+                                      <input id="telefono" name="telefono" type="text" class="form-control"  placeholder="" value="" required numeric>
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>EMAIL</h5>
-                                      <input id="correo" name="correo" type="text" class="form-control"  placeholder="" value="" required>
+                                      <input id="correo" name="correo" type="text" class="form-control"  placeholder="" value="" required email>
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>OCUPACIÓN</h5>
-                                      <select id="id_ocupacion" class="form-control" name="id_ocupacion">
+                                      <select id="id_ocupacion" class="form-control" name="id_ocupacion" required>
                                           <option selected="" value="">Seleccionar Valor</option>
                                           @foreach($ocupaciones as $ocupacion)
                                           <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
@@ -356,7 +362,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     </div>
                                     <div class="col-lg-6">
                                       <h5>CAPACITACIÓN</h5>
-                                      <select id="id_capacitacion" class="form-control" name="id_capacitacion">
+                                      <select id="id_capacitacion" class="form-control" name="id_capacitacion" required>
                                         <option selected="" value="">Seleccionar Valor</option>
                                         @foreach ($capacitaciones as $capacitacion)
                                           <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
@@ -401,7 +407,8 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                           <h5>CASINO</h5>
                                           <select id="id_casino" class="form-control" name="id_casino">
                                                 <option selected="" value="">- Seleccione un casino -</option>
-                                              @foreach($casinos as $casino)
+                                              <?php $cas_creacion = $usuario->casinos; if($usuario->es_superusuario) $cas_creacion = $casinos; ?>
+                                              @foreach($cas_creacion as $casino)
                                               <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                               @endforeach
                                           </select>
@@ -410,7 +417,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                           <h5>ESTADO</h5>
                                           <select id="id_estado" name="id_estado" class="form-control">
                                             <option selected="" value="">- Seleccione un estado -</option>
-                                            @foreach ($estados_autoexclusion as $estado)
+                                            @foreach ($estados_elegibles as $estado)
                                               <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
                                             @endforeach
                                           </select>
@@ -585,16 +592,11 @@ use\App\http\Controllers\RelevamientoAmbientalController;
           </div>
     </div>
 
-
-
-
-
-
     <!-- MODAL VER MAS -->
     <div class="modal fade" id="modalVerMas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
-                <div class="modal-header modalVerMas">
+                <div class="modal-header modalVerMas" style="font-family: Roboto-Black; background-color: #4FC3F7; color: #fff">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title">| VER MÁS</h3>
