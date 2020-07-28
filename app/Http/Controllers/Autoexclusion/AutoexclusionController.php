@@ -317,7 +317,8 @@ class AutoexclusionController extends Controller
       if(is_null($autoexcluido)) return 0;
       
       $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-      if(!$user->usuarioTieneCasino($estado->id_casino)) return -$autoexcluido->id_autoexcluido;
+      if(!$user->usuarioTieneCasino($estado->id_casino) || !($user->es_superusuario || $user->es_administrador))
+        return -$autoexcluido->id_autoexcluido;
 
       $datos_contacto = DB::table('ae_datos_contacto')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
       $encuesta = DB::table('ae_encuesta')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();

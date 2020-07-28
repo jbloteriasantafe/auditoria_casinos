@@ -368,7 +368,7 @@ function validarDNI(){
     success:     function (data) {
       if(data < 0){//Si existe, recibo el ID (negativo)
         $('#modalAgregarAE').modal('hide');
-        mensajeError('Autoexcluido ya cargado en otro casino');
+        mensajeError('Autoexcluido ya cargado en otro casino o no editable por el usuario');
         valid = 0;
         setTimeout(function(){
           mostrarAutoexcluido(-data);
