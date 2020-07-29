@@ -107,24 +107,27 @@ function clickIndice(e, pageNumber, tam) {
     $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden]);
 }
 
-function generarFilaTabla(unAutoexcluido) {
+function generarFilaTabla(ae) {
     let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
-    fila.attr('data-id', unAutoexcluido.id_autoexcluido);
-    fila.find('.casino').text(unAutoexcluido.casino);
-    fila.find('.dni').text(unAutoexcluido.nro_dni);
-    fila.find('.apellido').text(unAutoexcluido.apellido);
-    fila.find('.nombres').text(unAutoexcluido.nombres);
-    fila.find('.estado').text(unAutoexcluido.descripcion);
-    fila.find('.fecha_ae').text(unAutoexcluido.fecha_ae);
-    fila.find('button').val(unAutoexcluido.id_autoexcluido);
-    if($('#id_casino option[value="'+unAutoexcluido.id_casino+'"]').length == 0){
+    fila.attr('data-id', ae.id_autoexcluido);
+    fila.find('.casino').text(ae.casino).attr('title',ae.casino);
+    fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
+    fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
+    fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
+    fila.find('.estado').text(ae.descripcion).attr('title',ae.descripcion);
+    fila.find('.fecha_ae').text(ae.fecha_ae).attr('title',ae.fecha_ae);
+    fila.find('button').val(ae.id_autoexcluido);
+    if($('#id_casino option[value="'+ae.id_casino+'"]').length == 0){
       fila.find('#btnEditar').remove();
     }
 
     //si el estado del autoexcluido es distinto de 5 (vencido),
     //oculto el botón para generar la constancia de reingreso
-    if (unAutoexcluido.id_nombre_estado != 5) {
+    if (ae.id_nombre_estado != 5) {
       fila.find('#btnGenerarConstanciaReingreso').remove();
+    }
+    if (ae.id_nombre_estado != 3 && ae.id_nombre_estado != 6) {
+      fila.find('#btnValidar').remove();
     }
 
     fila.css('display', 'flow-root');
@@ -339,6 +342,13 @@ function mensajeError(msg){
   $('#mensajeError').hide();
   setTimeout(function() {
     $('#mensajeError').show();
+  }, 250);
+}
+function mensajeExito(msg){
+  $('#mensajeExito p').text(msg);
+  $('#mensajeExito').hide();
+  setTimeout(function() {
+    $('#mensajeExito').show();
   }, 250);
 }
 
@@ -661,10 +671,9 @@ $('#btn-guardar').click(function (e) {
         contentType: false,
         cache: false,
         success: function (data) {
-            $('#mensajeExito p').text('La autoexclusión fue '+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
             $('#modalAgregarAE').modal('hide');
-            $('#btn-buscar').trigger('click'); //hago un trigger al botón buscar asi actualiza la tabla sin recargar la pagina
-            $('#mensajeExito').show(); //mostrar éxito
+            $('#btn-buscar').trigger('click');
+            mensajeExito('La autoexclusión fue '+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
         },
         error: function (data) {
           console.log(data);
@@ -688,10 +697,8 @@ $('#btn-subir-archivo').click(function (e) {
         processData: false,
         cache: false,
         success: function (data) {
-          $('#mensajeExito P').text('La solicitud de autoexclusión fue subida correctamente.');
-          $('#mensajeExito div').css('background-color','#4DB6AC');
           $('#modalSubirSolicitudAE').modal('hide');
-          $('#mensajeExito').show(); //mostrar éxito
+          mensajeExito('La solicitud de autoexclusión fue subida correctamente.');
         },
         error: function (data) {
           console.log(data);
@@ -749,44 +756,10 @@ function mostrarAutoexcluido(id_autoexcluido){
       $('#infoMedioRecepcion').val(data.encuesta.medio_recibir_informacion);
       $('#infoObservaciones').val(data.encuesta.observacion);
     }
-    else {
-      $('#infoJuegoPreferido').append($('<option>')
-          .attr('id','-1')
-          .attr('value','-1')
-          .val(-1)
-          .text('Info. no ingresada')
-      );
-
-      $('#infoFrecuenciaAsistencia').append($('<option>')
-          .attr('id','-1')
-          .attr('value','-1')
-          .val(-1)
-          .text('Info. no ingresada')
-      );
-
-      $('#infoComoAsiste').append($('<option>')
-          .attr('id','-1')
-          .attr('value','-1')
-          .val(-1)
-          .text('Información no ingresada')
-      );
-
-      $('#infoJuegoPreferido').val(-1);
-      $('#infoFrecuenciaAsistencia').val(-1);
-      $('#infoVeces').val('Info. no ingresada');
-      $('#infoTiempoJugado').val('Info. no ingresada');
-      $('#infoSocioClubJugadores').val('Información no ingresada');
-      $('#infoJuegoResponsable').val('Información no ingresada');
-      $('#infoAutocontrol').val('Información no ingresada');
-      $('#infoComoAsiste').val(-1);
-      $('#infoRecibirInformacion').val('Información no ingresada');
-      $('#infoMedioRecepcion').val('Información no ingresada');
-      $('#infoObservaciones').val('Información no ingresada');
-    }
 
     //seteo en el value de los botones de ver mas el id de la importacion, para después
     //buscar en el backend los paths a los archivos y mostrarlos oportunamente
-    $('.archivosImportados button').each(function(idx, c) { $(c).val(data.importacion.id_importacion); });
+    $('.archivosImportados button').val(data.importacion.id_importacion);
     $('.archivosImportados .foto1').prop('disabled', data.importacion.foto1 === null);
     $('.archivosImportados .foto2').prop('disabled', data.importacion.foto2 === null);
     $('.archivosImportados .scandni').prop('disabled', data.importacion.scandni === null);
@@ -809,6 +782,23 @@ $(document).on('click', '#btnEditar', function(e){
     $('#nro_dni').val(dni);
     $('#btn-next').click();
   },500);
+});
+$(document).on('click', '#btnValidar', function(e){
+  e.preventDefault();
+  const id = $(this).val();
+  $.ajax({
+    type: 'GET',
+    url: 'autoexclusion/validarAE/'+ id,
+    dataType: 'json',
+    success: function(data) {
+      mensajeExito('Autoexclusion validada');
+      $('#btn-buscar').click();
+    },
+    error: function(data) {
+        mensajeError('Error al validar');
+        console.log(data);
+    }
+  });
 });
 
 $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){

@@ -383,10 +383,11 @@ class AutoexclusionController extends Controller
     else if ($id_formulario == 5) {
       $path = $pathForms . 'Formulario Finalización AU.pdf';
     }
-    else {
+    else if ($id_formulario == 6){
       $path = $pathForms . 'RVE N° 983.pdf';
     }
-
+    else return "Formulario invalido";
+    if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
     return response()->file($path);
   }
 
@@ -455,15 +456,15 @@ class AutoexclusionController extends Controller
   }
 
   public function generarSolicitudFinalizacionAutoexclusion($id){
-    $autoexcluido = Autoexcluido::find($id);
-    $estado = EstadoAE::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
+    $ae = Autoexcluido::find($id);
+    $estado = EstadoAE::where('id_autoexcluido', '=', $ae['id_autoexcluido'])->first();
 
-    $datos_estado = array(
+    $datos = array(
       'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
       'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
     );
 
-    $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('autoexcluido', 'datos_estado'));
+    $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('ae', 'datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -473,5 +474,28 @@ class AutoexclusionController extends Controller
     $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
+  }
+
+  public function validarAE($id){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $ae = EstadoAE::where('id_autoexcluido','=',$id)->first();
+    Validator::make(
+      ['id_autoexcluido' => $id],
+      ['id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido'], 
+      array(), self::$atributos)->after(function($validator) use ($usuario,$ae){
+        if(  !($usuario->es_superusuario || $usuario->es_administrador) 
+          || is_null($ae) 
+          || !$usuario->usuarioTieneCasino($ae->id_casino))
+        {
+          $validator->errors()->add('rol', 'No puede validar');
+          return;
+        }
+        if($ae->id_nombre_estado != 3 && $ae->id_nombre_estado != 6){
+          $validator->errors()->add('autoexcluido','AE no validable');
+        }
+    })->validate();
+    $ae->id_nombre_estado = 1;
+    $ae->save();
+    return 1;
   }
 }

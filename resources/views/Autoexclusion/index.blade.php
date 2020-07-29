@@ -216,10 +216,10 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     <thead>
                       <tr>
                         <th class="col-xs-1" value="ae_estado.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-2" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-1" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
                         <th class="col-xs-2" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
                         <th class="col-xs-2" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
-                        <th class="col-xs-1" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                        <th class="col-xs-2" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
                         <th class="col-xs-2" value="ae_estado.fecha_ae" estado="">FECHA AE<i class="fa fa-sort"></i></th>
                         <th class="col-xs-2">ACCIONES</th>
                       </tr>
@@ -227,10 +227,10 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     <tbody id="cuerpoTabla" style="height: 350px;">
                       <tr class="filaTabla" style="display: none">
                         <td class="col-xs-1 casino"></td>
-                        <td class="col-xs-2 dni"></td>
+                        <td class="col-xs-1 dni"></td>
                         <td class="col-xs-2 apellido"></td>
                         <td class="col-xs-2 nombres"></td>
-                        <td class="col-xs-1 estado"></td>
+                        <td class="col-xs-2 estado"></td>
                         <td class="col-xs-2 fecha_ae"></td>
                         <td class="col-xs-2 acciones">
                           <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
@@ -239,6 +239,9 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           @if($usuario->es_superusuario || $usuario->es_administrador)
                           <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                             <i class="fa fa-fw fa-pencil-alt"></i>
+                          </button>
+                          <button id="btnValidar" class="btn btn-info info" type="button" value="" title="VALIDAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+                            <i class="fa fa-fw fa-check"></i>
                           </button>
                           @endif
                           <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
@@ -633,7 +636,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-6">
                             <h5>SEXO</h5>
                             <select id="infoSexo" name="infoSexo" class="form-control" disabled>
-                              <option selected="" value="">Seleccionar Valor</option>
+                              <option selected="" value="">No ingresado</option>
                               <option value="0">Masculino</option>
                               <option value="1">Femenino</option>
                               <option value="-1">Otro</option>
@@ -642,7 +645,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-6">
                             <h5>ESTADO CIVIL</h5>
                             <select id="infoEstadoCivil" class="form-control" name="infoEstadoCivil" disabled>
-                              <option selected="" value="">Seleccionar Valor</option>
+                              <option selected="" value="">No ingresado</option>
                               @foreach ($estados_civiles as $estado_civil)
                                 <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
                               @endforeach
@@ -683,7 +686,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-6">
                             <h5>OCUPACIÓN</h5>
                             <select id="infoOcupacion" name="infoOcupacion" class="form-control" disabled>
-                                <option selected="" value="">Seleccionar Valor</option>
+                                <option selected="" value="">No ingresado</option>
                                 @foreach($ocupaciones as $ocupacion)
                                 <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
                                 @endforeach
@@ -692,7 +695,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-6">
                             <h5>CAPACITACIÓN</h5>
                             <select id="infoCapacitacion" class="form-control" name="infoCapacitacion" disabled>
-                              <option selected="" value="">Seleccionar Valor</option>
+                              <option selected="" value="">No ingresado</option>
                               @foreach ($capacitaciones as $capacitacion)
                                 <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
                               @endforeach
@@ -743,7 +746,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                         <div class="col-lg-6">
                           <h5>CASINO</h5>
                           <select id="infoCasino" class="form-control selectCasinos" name="infoCasino" disabled>
-                              <option value="0">-Todos los Casinos-</option>
+                              <option value="0">Todos los Casinos</option>
                               @foreach ($casinos as $casino)
                                 <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                               @endforeach
@@ -752,7 +755,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                         <div class="col-lg-6">
                           <h5>ESTADO</h5>
                           <select id="infoEstado" class="form-control selectEstado" name="infoEstado" disabled>
-                            <option selected="" value="">- Todos los estados -</option>
+                            <option selected="" value="">No ingresado</option>
                             @foreach ($estados_autoexclusion as $estado)
                               <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
                             @endforeach
@@ -813,7 +816,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-3">
                             <h5>JUEGO PREFERIDO</h5>
                             <select id="infoJuegoPreferido" class="form-control" name="infoJuegoPreferido" disabled>
-                                <option value="">- Seleccione un juego -</option>
+                                <option value="">No ingresado</option>
                                 @foreach($juegos as $juego)
                                 <option value="{{$juego->id_juego_preferido}}">{{$juego->nombre}}</option>
                                 @endforeach
@@ -822,7 +825,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-3">
                             <h5>F. DE ASISTENCIA</h5>
                             <select id="infoFrecuenciaAsistencia" class="form-control" name="infoFrecuenciaAsistencia" disabled>
-                                  <option selected="" value="">- Seleccione un valor -</option>
+                                <option selected="" value="">No ingresado</option>
                                 @foreach($frecuencias as $frecuencia)
                                 <option value="{{$frecuencia->id_frecuencia}}">{{$frecuencia->nombre}}</option>
                                 @endforeach
@@ -855,7 +858,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <div class="col-lg-6">
                             <h5>¿CÓMO ASISTE?</h5>
                             <select id="infoComoAsiste" name="infoComoAsiste" class="form-control" disabled>
-                              <option selected="" value="">- Seleccione una opción -</option>
+                              <option selected="" value="">No ingresado</option>
                               <option value="0">SOLO</option>
                               <option value="1">ACOMPAÑADO</option>
                             </select>

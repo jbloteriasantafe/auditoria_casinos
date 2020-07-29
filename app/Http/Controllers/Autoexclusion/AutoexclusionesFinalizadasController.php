@@ -104,9 +104,10 @@ class AutoexclusionesFinalizadasController extends Controller
 
     public function verSolicitudFinalizacion ($id_ae) {
       $imp = ImportacionAE::where('id_autoexcluido', '=', $id_ae)->first();
+      if(is_null($imp)) return 'Autoexcluido no encontrado';
       $pathAbs = realpath('../');
       $path = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $imp->solicitud_revocacion;
-
-      return response()->file($path);
+      if(file_exists($path)) return response()->file($path);
+      return "Solicitud de finalización no encontrada";
     }
 }
