@@ -451,7 +451,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     <div class="col-lg-6">
                                       <h5>FOTO #1</h5>
                                       <div>
-                                        <span>FOTO1.PDF</span>
+                                        <a href="" target="_blank">FOTO1.PDF</a>
                                         <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                                       </div>
                                       <input id="foto1" type="file" name="foto1">
@@ -459,7 +459,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     <div class="col-lg-6">
                                       <h5>FOTO #2</h5>
                                       <div>
-                                        <span>FOTO2.PDF</span>
+                                        <a href="" target="_blank">FOTO2.PDF</a>
                                         <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                                       </div>
                                       <input id="foto2" data-borrado="false" type="file" name="">
@@ -469,7 +469,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     <div class="col-lg-6">
                                       <h5>SCAN DNI</h5>
                                       <div>
-                                        <span>DNI.PDF</span>
+                                        <a href="" target="_blank">DNI.PDF</a>
                                         <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                                       </div>
                                       <input id="scan_dni" data-borrado="false" type="file" name="">
@@ -477,7 +477,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                                     <div class="col-lg-6">
                                       <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
                                       <div>
-                                        <span>SOLAE.PDF</span>
+                                        <a href="" target="_blank">SOLAE.PDF</a>
                                         <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                                       </div>
                                       <input id="solicitud_autoexclusion" data-borrado="false" type="file" name="">

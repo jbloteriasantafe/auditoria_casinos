@@ -218,12 +218,8 @@ class AutoexclusionController extends Controller
         }
         $bdEstado->save();
 
-        $tieneEncuesta = Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->count() > 0;
-        $bdEncuesta = null;
-        if($tieneEncuesta){
-          $bdEncuesta =  Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        }
-        else{
+        $bdEncuesta = Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->first();
+        if(is_null($bdEncuesta)){
           $bdEncuesta = new Encuesta;
           $bdEncuesta->id_autoexcluido = $id_autoexcluido;
         }
@@ -240,12 +236,8 @@ class AutoexclusionController extends Controller
     }
  
     public function subirImportacionArchivos($autoexcluido,$importacion) {
-      $tieneImportacion = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->count() > 0;
-      $bdImp = null;
-      if ($tieneImportacion){
-        $bdImp = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-      }
-      else {
+      $bdImp = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      if (is_null($bdImp)){
         $bdImp = new ImportacionAE;
         $bdImp->id_autoexcluido = $autoexcluido->id_autoexcluido;
       }
@@ -280,32 +272,19 @@ class AutoexclusionController extends Controller
     }
 
     public function subirSolicitudAE(Request $request) {
-      //no me anda el nullable en el validator, armo el array que le paso al validator a pata
-      $arr = array();
-      if ($request->solicitudAE != 'undefined') {$arr['solicitudAE'] = $request->solicitudAE;}
-
-      Validator::make($arr, [
-          'solicitudAE' => 'file|mimes:jpg,jpeg,png,pdf', //@TODO: quitar el mimes png despues, lo puse para probar nomas
+      Validator::make($request->all(), [
+          'nro_dni' => 'required|integer|exists:ae_datos,nro_dni',
+          'solicitudAE' => 'required|file|mimes:jpg,jpeg,png,pdf', //@TODO: quitar el mimes png despues, lo puse para probar nomas
         ], array(), self::$atributos)->after(function($validator){
         })->validate();
 
-      //consigo el path del directorio raiz del proyecto
-      $pathAbs = realpath('../');
-
-      //fecha actual, sin formatear
-      $ahora = date("dmY");
-
-      $nombre_archivo = $ahora . '-' . $request->nro_dni . '-4';
-      $pathDestino = $pathAbs . '/public/importacionesAutoexcluidos/solicitudes/' . $nombre_archivo;
-      copy($request->solicitudAE->getRealPath(), $pathDestino);
-
-      $id_ae = (DB::table('ae_datos')->where('ae_datos.nro_dni','=',$request->nro_dni)->first())->id_autoexcluido;
-      $imp = ImportacionAE::where('ae_importacion.id_autoexcluido','=',$id_ae)->first();
-
-      //guardo el nombre del archivo en la bdd
-      if (isset($arr['solicitudAE'])) {$imp->solicitud_ae = $nombre_archivo;}
-      $imp->save();
-
+      $this->subirImportacionArchivos(Autoexcluido::where('nro_dni','=',$request->nro_dni)->first(),[
+        "foto1" => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
+        "foto2" => null,
+        "scandni" => null,
+        "solicitud_revocacion" => null,
+        "solicitud_ae" => $request->solicitudAE
+      ]); 
       return ['codigo' => 200];
     }
 

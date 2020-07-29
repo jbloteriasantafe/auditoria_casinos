@@ -168,11 +168,11 @@ $('#btn-agregar-ae').click(function(e){
   $('.page').removeClass('active');
   $('.step1').addClass('active');
 
-  //limpio el form
   $('#frmAgregarAE :input').val('');
+  ocultarErrorValidacion($('#frmAgregarAE :input'));
   //Limpio el texto de archivos y muestro el input
-  //boton -> div (esconder) -> span (limpiar) -> div -> div -> input (mostrar)
-  $('#frmAgregarAE .sacarArchivo').parent().hide().find('span').text('')
+  //boton -> div (esconder) -> a (limpiar) -> div -> div -> input (mostrar)
+  $('#frmAgregarAE .sacarArchivo').parent().hide().find('a').text('').attr('href','')
   .parent().parent().find('input').show();
 
   //oculto el botón anterior
@@ -199,8 +199,8 @@ $('#btn-agregar-ae').click(function(e){
 $('#btn-subir-solicitud-ae').click(function(e){
   e.preventDefault();
   //limpio el form
-  $('#nroDniSubirSolicitudAE').val('');
-  $('#solicitudAE').val('')
+  $('#nroDniSubirSolicitudAE').val('')
+  ocultarErrorValidacion($('#modalSubirSolicitudAE :input'));
   //muestra modal
   $('#modalSubirSolicitudAE').modal('show');
 });
@@ -314,7 +314,7 @@ $( "#fecha_autoexlusion" ).change(function() {
 });
 
 $("#btn-prev").on("click", function(){
-    //si no es el primero, tengo anterior
+    //si no es el primero, tengo anterio
     if($(".page.active").index() > 0){
         //cambio form active
         $(".page.active").removeClass("active").prev().addClass("active");
@@ -429,10 +429,11 @@ function validarDNI(){
           const textoFoto2 = $('#foto2').parent().find('div');
           const textoDNI = $('#scan_dni').parent().find('div');
           const textoAE = $('#solicitud_autoexclusion').parent().find('div');
-          textoFoto1.find('span').text(limpiarNull(data.importacion.foto1));
-          textoFoto2.find('span').text(limpiarNull(data.importacion.foto2));
-          textoDNI.find('span').text(limpiarNull(data.importacion.scandni));
-          textoAE.find('span').text(limpiarNull(data.importacion.solicitud_ae));
+          const link = 'autoexclusion/mostrarArchivo/'+data.importacion.id_importacion+'/';
+          textoFoto1.find('a').text(limpiarNull(data.importacion.foto1)).attr('href',link+'foto1');
+          textoFoto2.find('a').text(limpiarNull(data.importacion.foto2)).attr('href',link+'foto2');
+          textoDNI.find('a').text(limpiarNull(data.importacion.scandni)).attr('href',link+'scandni');
+          textoAE.find('a').text(limpiarNull(data.importacion.solicitud_ae)).attr('href',link+'solicitud_ae');
           textoFoto1.toggle(data.importacion.foto1 != null);
           textoFoto2.toggle(data.importacion.foto2 != null);
           textoDNI.toggle(data.importacion.scandni != null);
@@ -523,9 +524,8 @@ function validarFechaImagenes(){
 
 //botón siguiente modal agregar ae
 $("#btn-next").on("click", function(){
-  let step = $(".page.active").index() + 1;
+  const step = $(".page.active").index() + 1;
   let valid = 1;
-
   switch(step){
     case 1:
       valid = validarDNI();
@@ -637,11 +637,11 @@ $('#btn-guardar').click(function (e) {
     }
 
     const ae_importacion_cargado = {
-      foto1                : $('#foto1').parent().find('span').text().length != 0,
-      foto2                : $('#foto2').parent().find('span').text().length != 0,
-      solicitud_ae         : $('#solicitud_autoexclusion').parent().find('span').text().length != 0,
+      foto1                : $('#foto1').parent().find('a').text().length != 0,
+      foto2                : $('#foto2').parent().find('a').text().length != 0,
+      solicitud_ae         : $('#solicitud_autoexclusion').parent().find('a').text().length != 0,
       solicitud_revoacion  : false,
-      scandni              : $('#scan_dni').parent().find('span').text().length != 0,
+      scandni              : $('#scan_dni').parent().find('a').text().length != 0,
     }
     const ae_importacion = {
       foto1                : $('#foto1')[0].files[0],
@@ -685,22 +685,28 @@ $('#btn-guardar').click(function (e) {
 $('#btn-subir-archivo').click(function (e) {
     //guardo el archivo en un formdata
     const formData = new FormData();
-    formData.append('solicitudAE', $('#solicitudAE')[0].files[0]);
     formData.append('nro_dni', $('#nroDniSubirSolicitudAE').val());
+    formData.append('solicitudAE', $('#solicitudAE')[0].files[0]);
 
     $.ajax({
         type: "POST",
         url: 'http://' + window.location.host + '/autoexclusion/subirSolicitudAE',
         data: formData,
-        dataType: 'json',
-        contentType: false,
         processData: false,
+        contentType: false,
         cache: false,
         success: function (data) {
           $('#modalSubirSolicitudAE').modal('hide');
           mensajeExito('La solicitud de autoexclusión fue subida correctamente.');
         },
         error: function (data) {
+          const json = data.responseJSON;
+          if("nro_dni" in json){
+            mostrarErrorValidacion($('#nroDniSubirSolicitudAE'),"DNI inexistente o invalido",false);
+          }
+          if("solicitudAE" in json){
+            mostrarErrorValidacion($('#solicitudAE'),"Archivo faltante o invalido",true);
+          }
           console.log(data);
         }
     });
@@ -838,7 +844,7 @@ $('.sacarArchivo').click(function(){
   const input = div.parent().find('input');
   div.hide();
   input.show();
-  div.find('span').text('');
+  div.find('a').text('');
 });
 
 $("#contenedorFiltros input").on('keypress',function(e){
