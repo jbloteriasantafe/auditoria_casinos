@@ -180,66 +180,62 @@ class AutoexclusionController extends Controller
       
       $esNuevo = false;
       DB::transaction(function() use($request, &$esNuevo, $user){
-        $datos = $request['ae_datos'];
-        $bdAE = Autoexcluido::where('nro_dni', '=', $datos['nro_dni'])->first();
-        if(is_null($bdAE)){
-          $bdAE = new AutoExcluido;
+        $ae_datos = $request['ae_datos'];
+        $ae = Autoexcluido::where('nro_dni', '=', $ae_datos['nro_dni'])->first();
+        if(is_null($ae)){
+          $ae = new AutoExcluido;
           $esNuevo = true;
         }
-        foreach($datos as $key => $val){
-          $bdAE->{$key} = $val;
+        foreach($ae_datos as $key => $val){
+          $ae->{$key} = $val;
         }
-        $bdAE->save();
+        $ae->save();
 
-        $id_autoexcluido = $bdAE->id_autoexcluido;
-
-        $bdContacto = ContactoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        if(is_null($bdContacto)){
-          $bdContacto = new ContactoAE;
-          $bdContacto->id_autoexcluido = $id_autoexcluido;
+        $contacto = $ae->contacto;
+        if(is_null($contacto)){
+          $contacto = new ContactoAE;
+          $contacto->id_autoexcluido = $ae->id_autoexcluido;
         }
 
-        $datos_contacto = $request['ae_datos_contacto'];
-        foreach($datos_contacto as $key => $val){
-          $bdContacto->{$key} = $val;
+        $ae_datos_contacto = $request['ae_datos_contacto'];
+        foreach($ae_datos_contacto as $key => $val){
+          $contacto->{$key} = $val;
         }
-        $bdContacto->save();
+        $contacto->save();
 
-        $bdEstado = EstadoAE::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        if(is_null($bdEstado)){
-          $bdEstado = new EstadoAE;
-          $bdEstado->id_autoexcluido = $id_autoexcluido;
+        $estado = $ae->estado;
+        if(is_null($estado)){
+          $estado = new EstadoAE;
+          $estado->id_autoexcluido = $ae->id_autoexcluido;
         }
 
-        $bdEstado->id_usuario = $user->id_usuario;
-        $estado = $request['ae_estado'];
-        foreach($estado as $key => $val){
-          $bdEstado->{$key} = $val;
+        $estado->id_usuario = $user->id_usuario;
+        $ae_estado = $request['ae_estado'];
+        foreach($ae_estado as $key => $val){
+          $estado->{$key} = $val;
         }
-        $bdEstado->save();
+        $estado->save();
 
-        $bdEncuesta = Encuesta::where('id_autoexcluido', '=', $id_autoexcluido)->first();
-        if(is_null($bdEncuesta)){
-          $bdEncuesta = new Encuesta;
-          $bdEncuesta->id_autoexcluido = $id_autoexcluido;
+        $encuesta = $ae->encuesta;
+        if(is_null($encuesta)){
+          $encuesta = new Encuesta;
+          $encuesta->id_autoexcluido = $ae->id_autoexcluido;
         }
-        $encuesta = $request['ae_encuesta'];
-        foreach($encuesta as $key => $val){
-          $bdEncuesta->{$key} = $val;
+        $ae_encuesta = $request['ae_encuesta'];
+        foreach($ae_encuesta as $key => $val){
+          $encuesta->{$key} = $val;
         }
-        $bdEncuesta->save();
-
-        $importacion = $request['ae_importacion'];
-        $this->subirImportacionArchivos($bdAE,$importacion);
+        $encuesta->save();
+        $this->subirImportacionArchivos($ae,$request['ae_importacion']);
       });
       return ['nuevo' => $esNuevo];
     }
  
-    public function subirImportacionArchivos($autoexcluido,$importacion) {
-      $bdImp = ImportacionAE::where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-      if (is_null($bdImp)){
-        $bdImp = new ImportacionAE;
-        $bdImp->id_autoexcluido = $autoexcluido->id_autoexcluido;
+    public function subirImportacionArchivos($ae,$ae_importacion) {
+      $importacion = $ae->importacion;
+      if (is_null($importacion)){
+        $importacion = new ImportacionAE;
+        $importacion->id_autoexcluido = $ae->id_autoexcluido;
       }
 
       //consigo el path del directorio raiz del proyecto
@@ -251,11 +247,11 @@ class AutoexclusionController extends Controller
       $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/', 'solicitud_ae' => 'solicitudes/'];
       $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 'solicitud_ae' => '4'];
       foreach($carpeta as $tipo => $ignorar){
-        if(is_null($importacion) || !array_key_exists($tipo,$importacion)){//Si no viene en el request, lo borro
-          $bdImp->{$tipo} = NULL;
+        if(is_null($ae_importacion) || !array_key_exists($tipo,$ae_importacion)){//Si no viene en el request, lo borro
+          $importacion->{$tipo} = NULL;
         }
       }
-      if(!is_null($importacion)) foreach($importacion as $tipo => $file){
+      if(!is_null($ae_importacion)) foreach($ae_importacion as $tipo => $file){
         //No esta en el arreglo de arriba, ignoro
         if(!array_key_exists($tipo,$carpeta) || !array_key_exists($tipo,$numero_identificador)) continue;
         if(is_null($file)){//Si viene en el request y es nulo, lo considero que es el mismo archivo
@@ -263,12 +259,12 @@ class AutoexclusionController extends Controller
         }
         $barra = strpos($file->getMimeType(),'/');
         $extension = substr($file->getMimeType(),$barra+1);
-        $nombre_archivo = $ahora . '-' . $autoexcluido->nro_dni . '-' . $numero_identificador[$tipo] . '.' . $extension;
+        $nombre_archivo = $ahora . '-' . $ae->nro_dni . '-' . $numero_identificador[$tipo] . '.' . $extension;
         $path = $pathCons . $carpeta[$tipo] . $nombre_archivo;
         copy($file->getRealPath(),$path);
-        $bdImp->{$tipo} = $nombre_archivo;
+        $importacion->{$tipo} = $nombre_archivo;
       }
-      $bdImp->save();
+      $importacion->save();
     }
 
     public function subirSolicitudAE(Request $request) {
@@ -292,40 +288,30 @@ class AutoexclusionController extends Controller
     public function existeAutoexcluido($dni){
       $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
-      $autoexcluido = Autoexcluido::where('nro_dni',$dni)->first();
-      if(is_null($autoexcluido)) return 0;
+      $ae = Autoexcluido::where('nro_dni',$dni)->first();
+      if(is_null($ae)) return 0;
       
-      $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+      $estado = $ae->estado;
       if(!$user->usuarioTieneCasino($estado->id_casino) || !($user->es_superusuario || $user->es_administrador))
-        return -$autoexcluido->id_autoexcluido;
-
-      $datos_contacto = DB::table('ae_datos_contacto')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-      $encuesta = DB::table('ae_encuesta')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
-      $importacion  = DB::table('ae_importacion')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();
+        return -$ae->id_autoexcluido;
 
       return array(
-        'autoexcluido' => $autoexcluido,
-        'datos_contacto'=> $datos_contacto,
+        'autoexcluido' => $ae,
+        'datos_contacto'=> $ae->contacto,
         'estado' => $estado,
-        'encuesta' => $encuesta,
-        'importacion' => $importacion
+        'encuesta' => $ae->encuesta,
+        'importacion' => $ae->importacion
       );
     }
 
 
   public function buscarAutoexcluido ($id) {
-    $autoexcluido = Autoexcluido::find($id);
-    $datos_contacto = ContactoAE::where('id_autoexcluido', '=', $id)->first();
-    $estado = EstadoAE::where('id_autoexcluido', '=', $id)->first();
-    $encuesta = Encuesta::where('id_autoexcluido', '=', $id)->first();
-    $importacion = ImportacionAE::where('id_autoexcluido', '=', $id)->first();
-
-    return ['autoexcluido' => $autoexcluido,
-            'datos_contacto' => $datos_contacto,
-            'estado' => $estado,
-            'encuesta' => $encuesta,
-            'importacion' => $importacion
-          ];
+    $ae = Autoexcluido::find($id);
+    return ['autoexcluido' => $ae,
+            'datos_contacto' => $ae->contacto,
+            'estado' => $ae->estado,
+            'encuesta' => $ae->encuesta,
+            'importacion' => $ae->importacion];
   }
 
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
@@ -372,19 +358,13 @@ class AutoexclusionController extends Controller
 
   public function generarSolicitudAutoexclusion($id){
     $autoexcluido = Autoexcluido::find($id);
-    $enc = Encuesta::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
-    $estado = EstadoAE::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
-    $contacto = ContactoAE::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
-
+    $estado = $autoexcluido->estado;
     $datos_estado = array(
       'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
       'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
     );
-
-    if ($enc != null) {
-      $encuesta = $enc;
-    }
-    else {
+    $encuesta = $autoexcluido->encuesta;
+    if (is_null($encuesta)) {
       $encuesta = array(
         'id_frecuencia_asistencia' => -1,
         'veces' => -1,
@@ -394,9 +374,10 @@ class AutoexclusionController extends Controller
         'club_jugadores' => -1,
         'autocontrol_juego' => -1,
         'recibir_informacion' => -1,
-        'medio_recibir_informacion' =>-1
+        'medio_recibir_informacion' => -1
       );
     }
+    $contacto = $autoexcluido->contacto;
 
     $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto'));
     $dompdf = new Dompdf();
@@ -411,15 +392,13 @@ class AutoexclusionController extends Controller
   }
 
   public function generarConstanciaReingreso($id){
-    $autoexcluido = Autoexcluido::find($id);
-    $estado = EstadoAE::where('id_autoexcluido', '=', $autoexcluido['id_autoexcluido'])->first();
-
+    $ae = Autoexcluido::find($id);
     $datos = array(
-      'apellido_y_nombre' => $autoexcluido->apellido . ', ' . $autoexcluido->nombres,
-      'dni' => $autoexcluido->nro_dni,
-      'domicilio_completo' => $autoexcluido->domicilio . ' ' . $autoexcluido->nro_domicilio,
-      'localidad' => ucwords(strtolower($autoexcluido->nombre_localidad)),
-      'fecha_cierre_definitivo' => date('d-m-Y', strtotime($estado->fecha_cierre_ae))
+      'apellido_y_nombre' => $ae->apellido . ', ' . $ae->nombres,
+      'dni' => $ae->nro_dni,
+      'domicilio_completo' => $ae->domicilio . ' ' . $ae->nro_domicilio,
+      'localidad' => ucwords(strtolower($ae->nombre_localidad)),
+      'fecha_cierre_definitivo' => date('d-m-Y', strtotime($ae->estado->fecha_cierre_ae))
     );
 
     $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
@@ -436,8 +415,7 @@ class AutoexclusionController extends Controller
 
   public function generarSolicitudFinalizacionAutoexclusion($id){
     $ae = Autoexcluido::find($id);
-    $estado = EstadoAE::where('id_autoexcluido', '=', $ae['id_autoexcluido'])->first();
-
+    $estado = $ae->estado;
     $datos = array(
       'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
       'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
@@ -457,24 +435,24 @@ class AutoexclusionController extends Controller
 
   public function validarAE($id){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $ae = EstadoAE::where('id_autoexcluido','=',$id)->first();
+    $estado = Autoexcluido::find($id)->estado;
     Validator::make(
       ['id_autoexcluido' => $id],
       ['id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido'], 
-      array(), self::$atributos)->after(function($validator) use ($usuario,$ae){
+      array(), self::$atributos)->after(function($validator) use ($usuario,$estado){
         if(  !($usuario->es_superusuario || $usuario->es_administrador) 
-          || is_null($ae) 
-          || !$usuario->usuarioTieneCasino($ae->id_casino))
+          || is_null($estado) 
+          || !$usuario->usuarioTieneCasino($estado->id_casino))
         {
           $validator->errors()->add('rol', 'No puede validar');
           return;
         }
-        if($ae->id_nombre_estado != 3 && $ae->id_nombre_estado != 6){
+        if($estado->id_nombre_estado != 3 && $estado->id_nombre_estado != 6){
           $validator->errors()->add('autoexcluido','AE no validable');
         }
     })->validate();
-    $ae->id_nombre_estado = 1;
-    $ae->save();
+    $estado->id_nombre_estado = 1;
+    $estado->save();
     return 1;
   }
 }
