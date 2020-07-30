@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
@@ -24,4 +23,14 @@ class Encuesta extends Model
                               'como_asiste', 'observacion'];
 
   public $timestamps = false;
+  
+  public function ae(){
+    return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');
+  }
+  public function frecuenciaAsistencia(){
+    return $this->belongsTo('App\Autoexclusion\FrecuenciaAsistenciaAE','id_frecuencia_asistencia','id_frecuencia');
+  }
+  public function juegoPreferido(){
+    return $this->belongsTo('App\Autoexclusion\JuegoPreferidoAE','id_juego_preferido','id_juego_preferido');
+  }
 }

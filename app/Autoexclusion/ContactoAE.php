@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
@@ -20,4 +19,8 @@ class ContactoAE extends Model
                               'domicilio',   'id_autoexcluido'];
 
   public $timestamps = false;
+
+  public function ae(){
+    return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');
+  }
 }

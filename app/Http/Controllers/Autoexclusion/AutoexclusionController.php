@@ -292,7 +292,7 @@ class AutoexclusionController extends Controller
     public function existeAutoexcluido($dni){
       $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
-      $autoexcluido = DB::table('ae_datos')->where('ae_datos.nro_dni','=',$dni)->first();
+      $autoexcluido = Autoexcluido::where('nro_dni',$dni)->first();
       if(is_null($autoexcluido)) return 0;
       
       $estado = DB::table('ae_estado')->where('id_autoexcluido','=',$autoexcluido->id_autoexcluido)->first();

@@ -102,6 +102,10 @@ class Usuario extends Model
       return $this->hasMany('App\SecRecientes','id_usuario','id_usuario')->orderBy('orden','asc');
     }
 
+    public function estadosAE(){
+      return $this->hasMany('App\Autoexclusion\EstadoAE','id_usuario','id_usuario');
+    }
+
     public static function boot(){
           parent::boot();
           Usuario::observe(new UsuarioObserver());

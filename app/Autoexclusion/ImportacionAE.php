@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
@@ -22,4 +21,8 @@ class ImportacionAE extends Model
                         ];
 
   public $timestamps = false;
+
+  public function ae(){
+    return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');
+  }
 }
