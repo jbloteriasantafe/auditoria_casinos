@@ -114,12 +114,24 @@ function generarFilaTabla(ae) {
     fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
     fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
     fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
-    fila.find('.estado').text(ae.descripcion).attr('title',ae.descripcion);
-    fila.find('.fecha_ae').text(ae.fecha_ae).attr('title',ae.fecha_ae);
+    fila.find('.estado').text(ae.desc_estado).attr('title',ae.desc_estado);
+
+    //Lo cambio a otro formato porque es mas corto y que entre en pantalla mas chicas...
+    const convertir_fecha = function(fecha){
+      yyyymmdd = fecha.split('-');
+      return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
+    }
+    fila.find('.fecha_ae').text(convertir_fecha(ae.fecha_ae)).attr('title',ae.fecha_ae);
+    fila.find('.fecha_renovacion').text(convertir_fecha(ae.fecha_renovacion)).attr('title',ae.fecha_renovacion);
+    fila.find('.fecha_vencimiento').text(convertir_fecha(ae.fecha_vencimiento)).attr('title',ae.fecha_vencimiento);
+    fila.find('.fecha_cierre_ae').text(convertir_fecha(ae.fecha_cierre_ae)).attr('title',ae.fecha_cierre_ae);
+
     fila.find('button').val(ae.id_autoexcluido);
     if($('#id_casino option[value="'+ae.id_casino+'"]').length == 0){
       fila.find('#btnEditar').remove();
     }
+    // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
+    // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
 
     //si el estado del autoexcluido es distinto de 5 (vencido),
     //oculto el botón para generar la constancia de reingreso
@@ -128,6 +140,28 @@ function generarFilaTabla(ae) {
     }
     if (ae.id_nombre_estado != 3 && ae.id_nombre_estado != 6) {
       fila.find('#btnValidar').remove();
+    }
+
+    const Factual = new Date(ae.fecha_serv);
+    const Fvenc = new Date(ae.fecha_vencimiento);
+    const Frenov = new Date(ae.fecha_renovacion);
+    const Fcierre = new Date(ae.fecha_cierre_ae);
+
+    //TODO: - cambiar cuando se permite que haya mas de 1 AE por DNI!
+    // - Ver que esten bien las condiciones de borde!
+    if(!(Frenov <= Factual  && Factual <= Fvenc)){
+      //No permitir FINALIZAR POR AE
+      fila.find('#btnFinalizar').remove();
+    }
+    //Es posible que se olviden de renovarlo por 180 dias y el AE siga vigente...?
+    //Lo agrego por si las moscas...
+    if(!(Fvenc <= Factual && Factual <= Fcierre)){
+      //No permitir RENOVAR
+      fila.find('#btnRenovar').remove();
+    }
+    if(!(Fcierre < Factual)){
+      //No permitir CIERRE definitivo
+      fila.find('#btnCerrar').remove();
     }
 
     fila.css('display', 'flow-root');
