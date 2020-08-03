@@ -21,7 +21,30 @@ class Autoexcluido extends Model
                               'fecha_nacimiento','id_ocupacion',
                               'id_estado_civil','id_capacitacion'];
 
+  protected $appends = ['es_primer_ae','estado_transicionable'];
+
   public $timestamps = false;
+
+  public function getEsPrimerAeAttribute(){
+    return Autoexcluido::where('nro_dni','=',$this->nro_dni)->count() <= 1;
+  }
+
+  //Estado basado en fecha no en el que esta seteado
+  public function getEstadoTransicionableAttribute(){
+    $estado = $this->estado;
+    $primero = $this->es_primer_ae;
+    $factual = date('Y-m-d');
+    if($primero){
+      if($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6) return 1;//Vigente
+      if($factual > $estado->fecha_cierre_ae) return 5;//Vencido
+      if($factual > $estado->fecha_vencimiento) return 2;//Renovado
+      if($factual > $estado->fecha_renovacion) return 4;//Fin por AE
+      return 1;//Vigente
+    }
+    if($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6) return 2;//Renovado
+    if($factual > $estado->fecha_cierre_ae) return 5; //Vencido
+    return 2; //Renovado
+  }
 
   public function contacto(){
     return $this->hasOne('App\Autoexclusion\ContactoAE','id_autoexcluido','id_autoexcluido');
@@ -45,10 +68,4 @@ class Autoexcluido extends Model
   public function capacitacion(){
     return $this->belongsTo('App\Autoexclusion\CapacitacionAE','id_capacitacion','id_capacitacion');
   }
-  //id_provincia
-  //id_localidad
-  //id_sexo
-  //id_ocupacion
-  //id_estado_civil
-  //id_capacitacion
 }

@@ -240,23 +240,17 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                   <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-pencil-alt"></i>
                   </button>
-                  <button id="btnValidar" class="btn btn-info info" type="button" value="" title="VALIDAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-check"></i>
-                  </button>
-                  <button id="btnFinalizar" class="btn btn-info info" type="button" value="" title="FINALIZAR POR AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-ban"></i>
-                  </button>
-                  <button id="btnRenovar" class="btn btn-info info" type="button" value="" title="RENOVAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-undo"></i>
-                  </button>
-                  <button id="btnCerrar" class="btn btn-info info" type="button" value="" title="CERRAR POR VENCIMIENTO" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-lock"></i>
+                  <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+                    <i class="fa fa-fw"></i>
                   </button>
                   @endif
                   <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="far fa-fw fa-file-alt"></i>
                   </button>
                   <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="" title="GENERAR CONSTANCIA DE REINGRESO" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+                    <i class="fa fa-fw fa-print"></i>
+                  </button>
+                  <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-print"></i>
                   </button>
                   <span></span>

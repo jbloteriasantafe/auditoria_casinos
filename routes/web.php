@@ -884,7 +884,7 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::get('/','Autoexclusion\AutoexclusionController@index');
   Route::post('/agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('/subirSolicitudAE','Autoexclusion\AutoexclusionController@subirSolicitudAE');
-  Route::get('/validarAE/{id}','Autoexclusion\AutoexclusionController@validarAE');
+  Route::get('/cambiarEstadoAE/{id}/{id_estado}','Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('/existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('/buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');

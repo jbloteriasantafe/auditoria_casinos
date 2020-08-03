@@ -92,11 +92,9 @@ class AutoexclusionController extends Controller
         $sort_by = $request->sort_by;
       }
 
-      //Lo uso para que el frontend no tenga que joder con el timezone ni si esta mal seteado la hora en el server.
-      $fecha_serv = date('Y-m-d');
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 
-                 'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino',DB::raw("'$fecha_serv' as fecha_serv"))
+                 'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
         //hago un left join de datos contacto y encuesta porque son opcionales, sino solo me devolveria
         //los autoexcluidos que tienen datos de contacto y de encuesta existentes
         ->leftJoin('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
@@ -110,6 +108,13 @@ class AutoexclusionController extends Controller
         ->where($reglas)
         ->paginate($request->page_size);
 
+      //Agrego algunos atributos dinamicos utiles para el frontend
+      $resultados->getCollection()->transform(function ($row){
+        $ae = AE\Autoexcluido::find($row->id_autoexcluido);
+        $row->es_primer_ae = $ae->es_primer_ae;
+        $row->estado_transicionable = $ae->estado_transicionable;
+        return $row;
+      });
       return $resultados;
     }
 
@@ -427,25 +432,42 @@ class AutoexclusionController extends Controller
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
+  //El fiscalizador cargo el AE y el ADM lo valida
   public function validarAE($id){
+    $ae = AE\Autoexcluido::find($id);
+    if ($ae->es_primer_ae) return $this->cambiarEstadoAE($id,1);
+    return $this->cambiarEstadoAE($id,2);
+  }
+  public function finalizarAE($id){
+    return $this->cambiarEstadoAE($id,4);
+  }
+  public function renovarAE($id){
+    return $this->cambiarEstadoAE($id,2);
+  }
+  public function cerrarAE($id){
+    return $this->cambiarEstadoAE($id,5);
+  }
+
+  public function cambiarEstadoAE($id,$id_estado){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $estado = AE\Autoexcluido::find($id)->estado;
+    $ae = AE\Autoexcluido::find($id);
+    $estado = $ae->estado;
     Validator::make(
       ['id_autoexcluido' => $id],
       ['id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido'], 
-      array(), self::$atributos)->after(function($validator) use ($usuario,$estado){
+      array(), self::$atributos)->after(function($validator) use ($usuario,$estado,$ae,$id_estado){
         if(  !($usuario->es_superusuario || $usuario->es_administrador) 
           || is_null($estado) 
           || !$usuario->usuarioTieneCasino($estado->id_casino))
         {
-          $validator->errors()->add('rol', 'No puede validar');
+          $validator->errors()->add('rol', 'No puede realizar esa acción');
           return;
         }
-        if($estado->id_nombre_estado != 3 && $estado->id_nombre_estado != 6){
-          $validator->errors()->add('autoexcluido','AE no validable');
+        if($ae->estado_transicionable != $id_estado){
+          $validator->errors()->add('id_autoexcluido','No puede cambiar a ese estado');
         }
     })->validate();
-    $estado->id_nombre_estado = 1;
+    $estado->id_nombre_estado = $id_estado;
     $estado->save();
     return 1;
   }

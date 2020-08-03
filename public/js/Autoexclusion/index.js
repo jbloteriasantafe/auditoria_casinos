@@ -116,7 +116,7 @@ function generarFilaTabla(ae) {
     fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
     fila.find('.estado').text(ae.desc_estado).attr('title',ae.desc_estado);
 
-    //Lo cambio a otro formato porque es mas corto y que entre en pantalla mas chicas...
+    //Lo cambio a otro formato porque es mas corto que entra en pantalla mas chicas
     const convertir_fecha = function(fecha){
       yyyymmdd = fecha.split('-');
       return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
@@ -127,43 +127,49 @@ function generarFilaTabla(ae) {
     fila.find('.fecha_cierre_ae').text(convertir_fecha(ae.fecha_cierre_ae)).attr('title',ae.fecha_cierre_ae);
 
     fila.find('button').val(ae.id_autoexcluido);
+    fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
+
     if($('#id_casino option[value="'+ae.id_casino+'"]').length == 0){
       fila.find('#btnEditar').remove();
     }
     // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
     // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
 
-    //si el estado del autoexcluido es distinto de 5 (vencido),
-    //oculto el botón para generar la constancia de reingreso
+    //si no esta vencido oculto el botón constancia de reingreso
     if (ae.id_nombre_estado != 5) {
       fila.find('#btnGenerarConstanciaReingreso').remove();
     }
-    if (ae.id_nombre_estado != 3 && ae.id_nombre_estado != 6) {
-      fila.find('#btnValidar').remove();
+    //si no esta finalizado por AE, oculto el boton
+    if (ae.id_nombre_estado != 4) {
+      fila.find('#btnGenerarSolicitudFinalizacion').remove();
     }
 
-    const Factual = new Date(ae.fecha_serv);
-    const Fvenc = new Date(ae.fecha_vencimiento);
-    const Frenov = new Date(ae.fecha_renovacion);
-    const Fcierre = new Date(ae.fecha_cierre_ae);
-
-    //TODO: - cambiar cuando se permite que haya mas de 1 AE por DNI!
-    // - Ver que esten bien las condiciones de borde!
-    if(!(Frenov <= Factual  && Factual <= Fvenc)){
-      //No permitir FINALIZAR POR AE
-      fila.find('#btnFinalizar').remove();
-    }
-    //Es posible que se olviden de renovarlo por 180 dias y el AE siga vigente...?
-    //Lo agrego por si las moscas...
-    if(!(Fvenc <= Factual && Factual <= Fcierre)){
-      //No permitir RENOVAR
-      fila.find('#btnRenovar').remove();
-    }
-    if(!(Fcierre < Factual)){
-      //No permitir CIERRE definitivo
-      fila.find('#btnCerrar').remove();
+    if(!ae.es_primer_ae){
+      fila.find('td').css('font-style','italic');
+      fila.find('.fecha_renovacion').text('-').attr('title','-');
+      fila.find('.fecha_vencimiento').text('-').attr('title','-');
     }
 
+    if(ae.id_nombre_estado == ae.estado_transicionable){ //El estado esta ya correcto
+      fila.find('#btnCambiarEstado').remove();
+    }
+    //Pasar a vigente o renovado, segun si es primero o ya tuvo AE
+    else if((ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) && (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)){
+      fila.find('#btnCambiarEstado').attr('title','VALIDAR').find('i').addClass('fa-check');
+    }
+    else if(ae.estado_transicionable == 4){
+      fila.find('#btnCambiarEstado').attr('title','FINALIZAR POR AE').find('i').addClass('fa-ban');
+    }
+    else if(ae.estado_transicionable == 2){
+      fila.find('#btnCambiarEstado').attr('title','RENOVAR').find('i').addClass('fa-undo');
+    }
+    else if(ae.estado_transicionable == 5){
+      fila.find('#btnCambiarEstado').attr('title','CERRAR POR VENCIMIENTO').find('i').addClass('fa-lock');
+    }
+    else {
+      fila.find('#btnCambiarEstado').remove();
+      fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
+    }
     fila.css('display', 'flow-root');
     return fila;
 }
@@ -823,15 +829,17 @@ $(document).on('click', '#btnEditar', function(e){
     $('#btn-next').click();
   },500);
 });
-$(document).on('click', '#btnValidar', function(e){
+
+$(document).on('click', '#btnCambiarEstado', function(e){
   e.preventDefault();
   const id = $(this).val();
+  const estado = $(this).attr('estado-nuevo');
   $.ajax({
     type: 'GET',
-    url: 'autoexclusion/validarAE/'+ id,
+    url: 'autoexclusion/cambiarEstadoAE/'+ id + '/' + estado,
     dataType: 'json',
     success: function(data) {
-      mensajeExito('Autoexclusion validada');
+      mensajeExito('Cambio de estado realizado');
       $('#btn-buscar').click();
     },
     error: function(data) {
@@ -849,6 +857,11 @@ $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){
 $(document).on('click', '#btnGenerarConstanciaReingreso', function(e){
   e.preventDefault();
   window.open('autoexclusion/generarConstanciaReingreso/' + $(this).val(), '_blank');
+});
+
+$(document).on('click', '#btnGenerarSolicitudFinalizacion', function(e){
+  e.preventDefault();
+  window.open('autoexclusion/generarSolicitudFinalizacionAutoexclusion/' + $(this).val(), '_blank');
 });
 
 //Salir del modal ver mas
