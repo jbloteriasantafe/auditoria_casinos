@@ -178,11 +178,27 @@ class AutoexclusionController extends Controller
       $esNuevo = false;
       DB::transaction(function() use($request, &$esNuevo, $user){
         $ae_datos = $request['ae_datos'];
-        $ae = AE\Autoexcluido::where('nro_dni', '=', $ae_datos['nro_dni'])->first();
-        if(is_null($ae)){
+        $todos_vencidos = true;
+        {
+          $aes = AE\Autoexcluido::where('nro_dni','=', $ae_datos['nro_dni'])->get();
+          foreach($aes as $ae){
+            $e = $ae->estado;
+            $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+            $todos_vencidos = $vencido && $todos_vencidos;
+            if(!$todos_vencidos) break;
+          }
+        }
+
+        $ae = null;
+        if($todos_vencidos){
           $ae = new AE\AutoExcluido;
           $esNuevo = true;
         }
+        else{
+          $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
+          $esNuevo = false;
+        }
+
         foreach($ae_datos as $key => $val){
           $ae->{$key} = $val;
         }
@@ -285,15 +301,24 @@ class AutoexclusionController extends Controller
 
     //Función para obtener los datos de un autoexcluido a partir de un DNI
     public function existeAutoexcluido($dni){
-      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
+      $todos_vencidos = true;
+      foreach($aes as $ae){
+        $e = $ae->estado;
+        $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+        $todos_vencidos = $vencido && $todos_vencidos;
+        if(!$todos_vencidos) break;
+      }
+      //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
+      if($todos_vencidos) return 0;
 
-      $ae = AE\Autoexcluido::where('nro_dni',$dni)->first();
-      if(is_null($ae)) return 0;
-      
+      //Obtengo el ultimo
+      $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
       $estado = $ae->estado;
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
       if(!$user->usuarioTieneCasino($estado->id_casino) || !($user->es_superusuario || $user->es_administrador))
-        return -$ae->id_autoexcluido;
-
+        return $ae->id_autoexcluido;
+      
       return array(
         'autoexcluido' => $ae,
         'datos_contacto'=> $ae->contacto,
@@ -430,22 +455,6 @@ class AutoexclusionController extends Controller
     $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-  }
-
-  //El fiscalizador cargo el AE y el ADM lo valida
-  public function validarAE($id){
-    $ae = AE\Autoexcluido::find($id);
-    if ($ae->es_primer_ae) return $this->cambiarEstadoAE($id,1);
-    return $this->cambiarEstadoAE($id,2);
-  }
-  public function finalizarAE($id){
-    return $this->cambiarEstadoAE($id,4);
-  }
-  public function renovarAE($id){
-    return $this->cambiarEstadoAE($id,2);
-  }
-  public function cerrarAE($id){
-    return $this->cambiarEstadoAE($id,5);
   }
 
   public function cambiarEstadoAE($id,$id_estado){

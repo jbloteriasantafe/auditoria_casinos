@@ -26,7 +26,8 @@ class Autoexcluido extends Model
   public $timestamps = false;
 
   public function getEsPrimerAeAttribute(){
-    return Autoexcluido::where('nro_dni','=',$this->nro_dni)->count() <= 1;
+    $ae = Autoexcluido::where('nro_dni','=',$this->nro_dni)->orderBy('id_autoexcluido','asc')->first();
+    return $ae->id_autoexcluido == $this->id_autoexcluido;
   }
 
   //Estado basado en fecha no en el que esta seteado

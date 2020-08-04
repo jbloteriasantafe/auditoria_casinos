@@ -338,19 +338,21 @@ function cargarLocalidadesVinculo(){
 
 //función para actualizar fechas
 $( "#fecha_autoexlusion" ).change(function() {
-  const fecha_autoexlusion = new Date($( "#fecha_autoexlusion" ).val());
-  const convertir_fecha = function(f){
-    const mes = ((f.getMonth() + 1) < 10 ? '0' : '') + (fecha_autoexlusion.getMonth() + 1);
-    const dia =  (f.getDate() < 10 ? '0' : '') + fecha_autoexlusion.getDate();
-    return f.getFullYear() + '-' + mes  + '-' + dia;
+  const iso = function(f){
+    const mes = f.getMonth()+1;
+    const dia = f.getDate();
+    return f.getFullYear() + (mes<10?'-0':'-') + mes + (dia<10?'-0':'-') + dia;
   }
-
-  fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() + 361);
-  $( "#fecha_cierre_definitivo" ).val(convertir_fecha(fecha_autoexlusion));
-  fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() - 180);
-  $( "#fecha_vencimiento_periodo" ).val(convertir_fecha(fecha_autoexlusion));
-  fecha_autoexlusion.setDate(fecha_autoexlusion.getDate() - 30);
-  $( "#fecha_renovacion" ).val(convertir_fecha(fecha_autoexlusion));
+  const fecha_autoexlusion        = new Date($( "#fecha_autoexlusion" ).val());
+  const fecha_renovacion          = new Date(fecha_autoexlusion.getTime());
+  const fecha_vencimiento_periodo = new Date(fecha_autoexlusion.getTime());
+  const fecha_cierre_definitivo   = new Date(fecha_autoexlusion.getTime());
+  fecha_renovacion.setDate(fecha_autoexlusion.getDate() + 150);
+  fecha_vencimiento_periodo.setDate(fecha_autoexlusion.getDate() + 180);
+  fecha_cierre_definitivo.setDate(fecha_autoexlusion.getDate() + 365);
+  $( "#fecha_renovacion" ).val(iso(fecha_renovacion));
+  $( "#fecha_vencimiento_periodo" ).val(iso(fecha_vencimiento_periodo));
+  $( "#fecha_cierre_definitivo" ).val(iso(fecha_cierre_definitivo));
 });
 
 $("#btn-prev").on("click", function(){
@@ -408,16 +410,23 @@ function validarDNI(){
     async: false,
     type: "GET",
     success:     function (data) {
-      if(data < 0){//Si existe, recibo el ID (negativo)
-        $('#modalAgregarAE').modal('hide');
-        mensajeError('Autoexcluido ya cargado en otro casino o no editable por el usuario');
-        valid = 0;
-        setTimeout(function(){
-          mostrarAutoexcluido(-data);
-        },500);
+      console.log(typeof data);
+      if(typeof data == "string"){
+        if(data > 0){//ID
+          $('#modalAgregarAE').modal('hide');
+          mensajeError('Autoexcluido cargado por otro casino o no editable por el usuario');
+          valid = 0;
+          setTimeout(function(){
+            mostrarAutoexcluido(data);
+          },500);
+        }
+        else if(data < 0){//No deberia suceder esto, o falta actualizar el codigo frontend
+          $('#modalAgregarAE').modal('hide');
+          mensajeError('');
+          valid = 0;
+        }//Si es 0 es un AE nuevo por lo que no se hace nada.
       }
-      else if(data != 0){//Si es == 0, es uno nuevo por lo que no se hace nada
-        //precargo el step de datos personales y de contacto
+      else if(typeof data == "object"){
         $('#apellido').val(data.autoexcluido.apellido);
         $('#nombres').val(data.autoexcluido.nombres);
         $('#fecha_nacimiento').val(data.autoexcluido.fecha_nacimiento);

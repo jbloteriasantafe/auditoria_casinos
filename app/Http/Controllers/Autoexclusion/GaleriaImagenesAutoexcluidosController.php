@@ -88,7 +88,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->where($reglas)->whereNotNull('ae_importacion.scandni');
 
       return $resultados_foto1->union($resultados_foto2)->union($resultados_sol_ae)
-                              ->union($resultados_sol_rev)->union($resultados_dni)->get();
+                              ->union($resultados_sol_rev)->union($resultados_dni)->orderBy('id_autoexcluido','desc')->get();
     }
 
     public function getDatosUnAutoexcluido ($id_ae) {
