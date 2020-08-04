@@ -70,7 +70,11 @@ use\App\http\Controllers\RelevamientoAmbientalController;
             <div class="col-xs-12">
               <center>
                 <h5 class="txtLogo">+</h5>
+                @if($usuario->es_superusuario || $usuario->es_administrador)
                 <h4 class="txtNuevo">Agregar / Editar Autoexcluido</h4>
+                @else
+                <h4 class="txtNuevo">Agregar Autoexcluido</h4>
+                @endif
               </center>
             </div>
           </div>
@@ -272,7 +276,11 @@ use\App\http\Controllers\RelevamientoAmbientalController;
       <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        @if($usuario->es_superusuario || $usuario->es_administrador)
         <h3 class="modal-title" id="myModalLabel">| AGREGAR / EDITAR AUTOEXCLUIDO</h3>
+        @else
+        <h3 class="modal-title" id="myModalLabel">| AGREGAR AUTOEXCLUIDO</h3>
+        @endif
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">

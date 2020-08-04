@@ -95,8 +95,6 @@ class AutoexclusionController extends Controller
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 
                  'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
-        //hago un left join de datos contacto y encuesta porque son opcionales, sino solo me devolveria
-        //los autoexcluidos que tienen datos de contacto y de encuesta existentes
         ->leftJoin('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
         ->leftJoin('ae_encuesta' , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')

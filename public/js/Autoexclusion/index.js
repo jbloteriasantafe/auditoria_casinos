@@ -1,6 +1,6 @@
 $(document).ready(function(){
   $('#barraMenu').attr('aria-expanded','true');
-  $('.tituloSeccionPantalla').text('Alta de autoexcluidos');
+  $('.tituloSeccionPantalla').text('Autoexcluidos');
   const input_fecha_iso = {
     language:  'es',
     todayBtn:  1,
@@ -200,10 +200,7 @@ $('#columna input').focusin(function(){
   $(this).removeClass('alerta');
 });
 
-//Botón agregar nuevo AE
-$('#btn-agregar-ae').click(function(e){
-  e.preventDefault();
-
+function modalAgregarEditarAE(dni,id_autoexcluido = null){
   //vuelvo a step1
   $('.page').removeClass('active');
   $('.step1').addClass('active');
@@ -230,10 +227,24 @@ $('#btn-agregar-ae').click(function(e){
   $('.step').removeClass('actived');
   $('#one').addClass('actived');
 
+  $('#nro_dni').val(dni);
+  $('#modalAgregarAE').attr('modo','agregar');
+  $('#modalAgregarAE').attr('id-autoexcluido',-1);
   //muestra modal
   $('#modalAgregarAE').modal('show');
+  if(id_autoexcluido !== null){
+    $('#modalAgregarAE').attr('modo','editar');
+    $('#modalAgregarAE').attr('id-autoexcluido',id_autoexcluido);
+    setTimeout(function(){
+      $("#btn-next").click();
+    },250);
+  }
+}
+//Botón agregar nuevo AE
+$('#btn-agregar-ae').click(function(e){
+  e.preventDefault();
+  modalAgregarEditarAE("");
 });
-
 
 //Botón subir solicitud AE
 $('#btn-subir-solicitud-ae').click(function(e){
@@ -405,8 +416,12 @@ function validarDNI(){
   }
   let valid = 1;
   //si existe dni, precargo el formulario con los datos
+  let url = '/autoexclusion/existeAutoexcluido/' + $('#nro_dni').val();
+  if($('#modalAgregarAE').attr('modo') == 'editar'){
+    url = '/autoexclusion/buscarAutoexcluido/' + $('#modalAgregarAE').attr('id-autoexcluido');
+  }
   $.ajax({
-    url: '/autoexclusion/existeAutoexcluido/' + $('#nro_dni').val(),
+    url: url,
     async: false,
     type: "GET",
     success:     function (data) {
@@ -832,11 +847,7 @@ $(document).on('click', '#btnVerMas', function(e){
 $(document).on('click', '#btnEditar', function(e){
   e.preventDefault();
   const dni = $(this).parent().parent().find('.dni').text();
-  $('#btn-agregar-ae').click();
-  setTimeout(function(){
-    $('#nro_dni').val(dni);
-    $('#btn-next').click();
-  },500);
+  modalAgregarEditarAE(dni,$(this).val());
 });
 
 $(document).on('click', '#btnCambiarEstado', function(e){

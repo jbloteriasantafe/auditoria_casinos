@@ -890,7 +890,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('usuario','iconoUsuarios')
                               </span>
-                              <span>Alta de autoexcluidos</span>
+                              <span>Autoexcluidos</span>
                             </div>
                           </li>
                           @endif
