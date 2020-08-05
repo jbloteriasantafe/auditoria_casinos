@@ -70,29 +70,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
             <div class="col-xs-12">
               <center>
                 <h5 class="txtLogo">+</h5>
-                @if($usuario->es_superusuario || $usuario->es_administrador)
-                <h4 class="txtNuevo">Agregar / Editar Autoexcluido</h4>
-                @else
                 <h4 class="txtNuevo">Agregar Autoexcluido</h4>
-                @endif
-              </center>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-xl-12 col-md-4">
-      <a href="" id="btn-subir-solicitud-ae" style="text-decoration: none;">
-        <div class="panel panel-default panelBotonNuevo">
-          <center>
-            <img class="imgNuevo" src="/img/logos/expedientes_white.png">
-          </center>
-          <div class="backgroundNuevo"></div>
-          <div class="row">
-            <div class="col-xs-12">
-              <center>
-                <h5 class="txtLogo">+</h5>
-                <h4 class="txtNuevo">Subir solicitud de autoexclusión</h4>
               </center>
             </div>
           </div>
@@ -248,6 +226,10 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     <i class="fa fa-fw"></i>
                   </button>
                   @endif
+                  <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" 
+                     data-content="">
+                    <i class="fa fa-fw fa-folder-open"></i>
+                  </a>
                   <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="far fa-fw fa-file-alt"></i>
                   </button>
@@ -276,11 +258,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
       <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        @if($usuario->es_superusuario || $usuario->es_administrador)
-        <h3 class="modal-title" id="myModalLabel">| AGREGAR / EDITAR AUTOEXCLUIDO</h3>
-        @else
         <h3 class="modal-title" id="myModalLabel">| AGREGAR AUTOEXCLUIDO</h3>
-        @endif
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">
@@ -876,31 +854,31 @@ use\App\http\Controllers\RelevamientoAmbientalController;
 
 
 <!--MODAL SUBIR SOLICITUD AE -->
-<div class="modal fade" id="modalSubirSolicitudAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 37%">
     <div class="modal-content">
       <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" id="myModalLabel">| SUBIR SOLICITUD AUTOEXCLUSIÓN</h3>
+        <h3 class="modal-title" id="myModalLabel">| SUBIR ARCHIVO</h3>
       </div>
       <div  id="colapsadoCrear" class="collapse in">
         <div class="modal-body modalCuerpo">
           <div class="row">
             <div class="col-md-6">
               <h5>NÚMERO DE DOCUMENTO</h5>
-              <input id="nroDniSubirSolicitudAE" name="nroDniSubirSolicitudAE" type="text" class="form-control"  placeholder="" value="" required>
+              <input type="text" class="form-control nro_dni"  placeholder="" value="" required disabled>
               <br>
             </div>
             <div class="col-md-6">
-              <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
-              <input id="solicitudAE" type="file" name="solicitudAE">
+              <h5 class="tipo_archivo">ARCHIVO</h5>
+              <input type="file" class="archivo">
               <br>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-subir-archivo" value="nuevo">SUBIR ARCHIVO</button>
+          <button type="button" class="btn btn-successAceptar" id="btn-subir-archivo">SUBIR ARCHIVO</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
         </div>
       </div>

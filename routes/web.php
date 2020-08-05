@@ -883,7 +883,7 @@ AUTOEXCLUSIÓN
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
   Route::post('/agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
-  Route::post('/subirSolicitudAE','Autoexclusion\AutoexclusionController@subirSolicitudAE');
+  Route::post('/subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');
   Route::get('/cambiarEstadoAE/{id}/{id_estado}','Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('/existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');

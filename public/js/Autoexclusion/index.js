@@ -170,6 +170,28 @@ function generarFilaTabla(ae) {
       fila.find('#btnCambiarEstado').remove();
       fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
     }
+
+    const archivos = {
+      foto1: 'FOTO #1',
+      foto2: 'FOTO #2',
+      scandni: 'SCAN DNI',
+      solicitud_ae: 'SOLICITUD AE',
+      solicitud_revocacion: 'SOLICITUD FINALIZACIÓN'
+    };
+    const ul = $('<ul>').css('text-align','left');
+    for(const key in archivos){//Si ya esta subido el archivo, no lo agrego
+      if(ae[key] !== null) continue;
+      const item = $('<a>').addClass('subirArchivo').attr('data-tipo',key).text(archivos[key]);
+      ul.append($('<li>').append(item));
+    }
+    if(ae.id_nombre_estado != 4){//Si no esta finalizado por AE no dejo subir la solicitud de fin.
+      ul.find('a[data-tipo="solicitud_revocacion"]').parent().remove();
+    }
+    fila.find('#btnSubirArchivos').attr('data-content',ul[0].outerHTML);
+    fila.find('#btnSubirArchivos').popover();
+    if(ul.find('li').length == 0){//Si ya tiene todos los archivos saco el boton
+      fila.find('#btnSubirArchivos').remove();
+    }
     fila.css('display', 'flow-root');
     return fila;
 }
@@ -228,32 +250,24 @@ function modalAgregarEditarAE(dni,id_autoexcluido = null){
   $('#one').addClass('actived');
 
   $('#nro_dni').val(dni);
+  $('#modalAgregarAE .modal-title').text('| AGREGAR AUTOEXCLUIDO');
   $('#modalAgregarAE').attr('modo','agregar');
   $('#modalAgregarAE').attr('id-autoexcluido',-1);
-  //muestra modal
-  $('#modalAgregarAE').modal('show');
   if(id_autoexcluido !== null){
+    $('#modalAgregarAE .modal-title').text('| EDITAR AUTOEXCLUIDO');
     $('#modalAgregarAE').attr('modo','editar');
     $('#modalAgregarAE').attr('id-autoexcluido',id_autoexcluido);
     setTimeout(function(){
       $("#btn-next").click();
     },250);
   }
+  //muestra modal
+  $('#modalAgregarAE').modal('show');
 }
 //Botón agregar nuevo AE
 $('#btn-agregar-ae').click(function(e){
   e.preventDefault();
   modalAgregarEditarAE("");
-});
-
-//Botón subir solicitud AE
-$('#btn-subir-solicitud-ae').click(function(e){
-  e.preventDefault();
-  //limpio el form
-  $('#nroDniSubirSolicitudAE').val('')
-  ocultarErrorValidacion($('#modalSubirSolicitudAE :input'));
-  //muestra modal
-  $('#modalSubirSolicitudAE').modal('show');
 });
 
 //Botón ver formularios AE
@@ -429,7 +443,7 @@ function validarDNI(){
       if(typeof data == "string"){
         if(data > 0){//ID
           $('#modalAgregarAE').modal('hide');
-          mensajeError('Autoexcluido cargado por otro casino o no editable por el usuario');
+          mensajeError('Autoexcluido ya cargado y en vigencia');
           valid = 0;
           setTimeout(function(){
             mostrarAutoexcluido(data);
@@ -638,7 +652,9 @@ $('#btn-guardar').click(function (e) {
     // Se hacen dos funciones auxiliares para hacer esto. -Octavio 17 Julio 2020
     const formData = new FormData();
 
+    const id_autoexcluido = $('#modalAgregarAE').attr('id-autoexcluido');
     const ae_datos =  {
+      id_autoexcluido: (id_autoexcluido<0? null : id_autoexcluido),
       nro_dni: $('#nro_dni').val(),
       apellido: $('#apellido').val(),
       nombres: $('#nombres').val(),
@@ -743,38 +759,6 @@ $('#btn-guardar').click(function (e) {
           console.log(data);
         }
     });
-});
-
-//botón subir archivo solicitud ae
-$('#btn-subir-archivo').click(function (e) {
-    //guardo el archivo en un formdata
-    const formData = new FormData();
-    formData.append('nro_dni', $('#nroDniSubirSolicitudAE').val());
-    formData.append('solicitudAE', $('#solicitudAE')[0].files[0]);
-
-    $.ajax({
-        type: "POST",
-        url: 'http://' + window.location.host + '/autoexclusion/subirSolicitudAE',
-        data: formData,
-        processData: false,
-        contentType: false,
-        cache: false,
-        success: function (data) {
-          $('#modalSubirSolicitudAE').modal('hide');
-          mensajeExito('La solicitud de autoexclusión fue subida correctamente.');
-        },
-        error: function (data) {
-          const json = data.responseJSON;
-          if("nro_dni" in json){
-            mostrarErrorValidacion($('#nroDniSubirSolicitudAE'),"DNI inexistente o invalido",false);
-          }
-          if("solicitudAE" in json){
-            mostrarErrorValidacion($('#solicitudAE'),"Archivo faltante o invalido",true);
-          }
-          console.log(data);
-        }
-    });
-
 });
 
 function mostrarAutoexcluido(id_autoexcluido){
@@ -899,6 +883,49 @@ $('.btn-ver-mas').click(function() {
   if(tipo_archivo === null) return;
   
   window.open('autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
+});
+
+//Click en boton adentro del popover
+$(document).on('click', '.subirArchivo', function(){
+  $('#modalSubirArchivo input').val('')
+  ocultarErrorValidacion($('#modalSubirArchivo input'));
+  //Esto es bastante ridiculo pero bueno...
+  const tr = $(this).parent().parent().parent().parent().parent().parent();
+  $('#modalSubirArchivo .nro_dni').val(tr.find('.dni').text());
+  $('#modalSubirArchivo .tipo_archivo').text($(this).text());
+  $('#btn-subir-archivo').attr('data-id',tr.attr('data-id'));
+  $('#btn-subir-archivo').attr('data-tipo',$(this).attr('data-tipo'));
+  //muestra modal
+  $('#modalSubirArchivo').modal('show');
+});
+
+//botón subir archivo solicitud ae
+$('#btn-subir-archivo').click(function (e) {
+  //guardo el archivo en un formdata
+  const formData = new FormData();
+  formData.append('id_autoexcluido', $(this).attr('data-id'));
+  formData.append('tipo_archivo'   , $(this).attr('data-tipo'));
+  formData.append('archivo'        , $('#modalSubirArchivo .archivo')[0].files[0]);
+  $.ajax({
+      type: "POST",
+      url: 'http://' + window.location.host + '/autoexclusion/subirArchivo',
+      data: formData,
+      processData: false,
+      contentType: false,
+      cache: false,
+      success: function (data) {
+        $('#modalSubirArchivo').modal('hide');
+        mensajeExito($('#modalSubirArchivo .tipo_archivo').text()+' asignada');
+      },
+      error: function (data) {
+        const json = data.responseJSON;
+        mensajeError('');
+        if("archivo" in json){
+          mostrarErrorValidacion($('#modalSubirArchivo .archivo'),"Archivo faltante o invalido",true);
+        }
+        console.log(data);
+      }
+  });
 });
 
 //Mostrar formularios

@@ -14,6 +14,7 @@ use App\Casino;
 use App\Autoexclusion as AE;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AutoexclusionController extends Controller
 {
@@ -94,9 +95,11 @@ class AutoexclusionController extends Controller
 
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 
+        'ae_importacion.foto1','ae_importacion.foto2','ae_importacion.scandni','ae_importacion.solicitud_ae','ae_importacion.solicitud_revocacion',
                  'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
-        ->leftJoin('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
-        ->leftJoin('ae_encuesta' , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
+        ->join('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
+        ->join('ae_encuesta' , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
+        ->join('ae_importacion', 'ae_datos.id_autoexcluido', '=', 'ae_importacion.id_autoexcluido')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->join('casino','ae_estado.id_casino','=','casino.id_casino')
@@ -120,6 +123,7 @@ class AutoexclusionController extends Controller
     public function agregarAE(Request $request){
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
+        'ae_datos.id_autoexcluido'  => 'nullable|integer|exists:ae_datos,id_autoexcluido',
         'ae_datos.nro_dni'          => 'required|integer',
         'ae_datos.apellido'         => 'required|string|max:100',
         'ae_datos.nombres'          => 'required|string|max:150',
@@ -163,22 +167,20 @@ class AutoexclusionController extends Controller
         'ae_importacion.solicitud_revocacion' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
       ], array(), self::$atributos)->after(function($validator) use ($user){
-        $id_casino = $validator->getData()['ae_estado']['id_casino'];
-        $estado = $validator->getData()['ae_estado']['id_nombre_estado'];
+        $data = $validator->getData();
+        $id_casino = $data['ae_estado']['id_casino'];
+        $estado = $data['ae_estado']['id_nombre_estado'];
         if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
           $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
         }
         if($user->es_fiscalizador && $estado != 3){
           $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
         }
-      })->validate();
-      
-      $esNuevo = false;
-      DB::transaction(function() use($request, &$esNuevo, $user){
-        $ae_datos = $request['ae_datos'];
+
+        $id_ae = $data['ae_datos']['id_autoexcluido'];
         $todos_vencidos = true;
         {
-          $aes = AE\Autoexcluido::where('nro_dni','=', $ae_datos['nro_dni'])->get();
+          $aes = AE\Autoexcluido::where('nro_dni','=', $data['ae_datos']['nro_dni'])->get();
           foreach($aes as $ae){
             $e = $ae->estado;
             $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
@@ -186,14 +188,22 @@ class AutoexclusionController extends Controller
             if(!$todos_vencidos) break;
           }
         }
-
+        //Si es para crear uno nuevo y ya hay uno vigente, error
+        if(is_null($id_ae) && !$todos_vencidos){
+          $validator->errors()->add('ae_datos.nro_dni', 'Ya existe un autoexcluido vigente con ese DNI.');
+        }
+      })->validate();
+      
+      $esNuevo = false;
+      DB::transaction(function() use($request, &$esNuevo, $user){
+        $ae_datos = $request['ae_datos'];
         $ae = null;
-        if($todos_vencidos){
+        if(is_null($ae_datos['id_autoexcluido'])){
           $ae = new AE\AutoExcluido;
           $esNuevo = true;
         }
         else{
-          $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
+          $ae = AE\Autoexcluido::find($ae_datos['id_autoexcluido']);
           $esNuevo = false;
         }
 
@@ -255,8 +265,8 @@ class AutoexclusionController extends Controller
       //fecha actual, sin formatear
       $ahora = date("dmY");
 
-      $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/', 'solicitud_ae' => 'solicitudes/'];
-      $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 'solicitud_ae' => '4'];
+      $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/', 'solicitud_ae' => 'solicitudes/', 'solicitud_revocacion' => 'solicitudes/'];
+      $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 'solicitud_ae' => '4', 'solicitud_revocacion' => '5'];
       foreach($carpeta as $tipo => $ignorar){
         if(is_null($ae_importacion) || !array_key_exists($tipo,$ae_importacion)){//Si no viene en el request, lo borro
           $importacion->{$tipo} = NULL;
@@ -278,21 +288,31 @@ class AutoexclusionController extends Controller
       $importacion->save();
     }
 
-    public function subirSolicitudAE(Request $request) {
+    public function subirArchivo(Request $request) {
+      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
-          'nro_dni' => 'required|integer|exists:ae_datos,nro_dni',
-          'solicitudAE' => 'required|file|mimes:jpg,jpeg,png,pdf', //@TODO: quitar el mimes png despues, lo puse para probar nomas
-        ], array(), self::$atributos)->after(function($validator){
-        })->validate();
+          'id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido',
+          'tipo_archivo' => ['required','string',Rule::in(['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion'])],
+          'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf',
+        ], array(), self::$atributos)->after(function($validator) use ($user){
+          $id = $validator->getData()['id_autoexcluido'];
+          $id_casino = AE\Autoexcluido::find($id)->estado->id_casino;
+          if(!$user->usuarioTieneCasino($id_casino)){
+            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+            return;
+          }
+      })->validate();
 
       DB::transaction(function() use ($request){
-        $this->subirImportacionArchivos(AE\Autoexcluido::where('nro_dni','=',$request->nro_dni)->first(),[
-          "foto1" => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
-          "foto2" => null,
-          "scandni" => null,
-          "solicitud_revocacion" => null,
-          "solicitud_ae" => $request->solicitudAE
-        ]);
+        $ae_importacion = [
+          'foto1' => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
+          'foto2' => null,
+          'scandni' => null,
+          'solicitud_ae' => null,
+          'solicitud_revocacion' => null,
+        ];
+        $ae_importacion[$request->tipo_archivo] = $request->archivo;
+        $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
       });
       return ['codigo' => 200];
     }
@@ -310,22 +330,10 @@ class AutoexclusionController extends Controller
       //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
       if($todos_vencidos) return 0;
 
-      //Obtengo el ultimo
+      //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarl
       $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
-      $estado = $ae->estado;
-      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      if(!$user->usuarioTieneCasino($estado->id_casino) || !($user->es_superusuario || $user->es_administrador))
-        return $ae->id_autoexcluido;
-      
-      return array(
-        'autoexcluido' => $ae,
-        'datos_contacto'=> $ae->contacto,
-        'estado' => $estado,
-        'encuesta' => $ae->encuesta,
-        'importacion' => $ae->importacion
-      );
-    }
-
+      return $ae->id_autoexcluido;
+  }
 
   public function buscarAutoexcluido ($id) {
     $ae = AE\Autoexcluido::find($id);
