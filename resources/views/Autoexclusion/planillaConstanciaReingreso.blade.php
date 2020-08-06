@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html>
-
   <style>
-    section {
-      display: flex;
-      width: 60%;
-      height: 70px;
-      margin: auto;
-    }
     .centrar {
-      margin: auto;
       text-align: center;
-      font-family:Arial, sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: bold;
+    }
+    @page{
+      margin-top: 6.25%;
+      margin-left: 16.3%;
+      margin-right: 16.3%;
     }
   </style>
 
@@ -28,27 +25,29 @@
   <body>
     <!-- CONSTANCIA DE REINGRESO -->
     <div class="encabezadoImg">
-        <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-    </div><br>
-    <section><p class="centrar" style="padding-top:-20px">CONSTANCIA DE AUTOEXCLUSIÓN VENCIDA</p></section>
-
-    <div class="camposTab titulo" style="top:110px; right:-15px; padding:3px; padding-top:10px; border: 1px solid black">
-      FECHA Y HORA DE PLANILLA: <?php print_r(date('d-m-y / h:i')); ?>
+        <img src="img/logos/banner_color.jpg" width="175">
+    </div>
+    <hr style="border-bottom: 0px">
+    <p class="centrar" style="text-decoration: underline">CONSTANCIA DE AUTOEXCLUSIÓN VENCIDA</p>
+    <div class="primerEncabezado"  style="margin-left: 75%;border: 1px solid black;text-align: center;">
+      FECHA: <?php print_r(date('d/m/Y')); ?>
     </div>
 
-    <div class="primerEncabezado" align="justify" style="font-size:13px">
+    <div class="primerEncabezado" style="font-size:13px">
       <p>Por la presente dejamos constancia que <b>{{$datos['apellido_y_nombre']}}</b>, documento de identidad <b>{{$datos['dni']}}</b>,
       con domicilio en <b>{{$datos['domicilio_completo']}}</b>, de la localidad de <b>{{$datos['localidad']}}</b>, ingresar a partir
       de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b>, a los casinos de la provincia de Santa Fe, ya que su período de
       autoexclusión ha vencido segun Resolución V.P.E 270/10.</p>
     </div>
-
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-    <div class="primerEncabezado" align="justify" style="font-size:13px">
-      <p style="text-align:center; font-size:12px">.................................................................</p>
-      <p style="text-align:center; font-size:12px">Firma y Sello</p>
-    </div><br>
-
+    <div style="padding-top: 15%;font-size:11px;padding-left: 15%;">
+      <div style="display: inline-block;">
+        <p style="">.................................................................</p>
+        <p style="padding-left: 8%;">Firma Interesado</p>
+      </div>
+      <div style="display: inline-block;">
+        <p style="">.................................................................</p>
+        <p style="padding-left: 8%;">Firma C.A.S. Lotería</p>
+      </div>
+    </div>
   </body>
 </html>
