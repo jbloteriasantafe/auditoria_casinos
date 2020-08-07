@@ -390,10 +390,12 @@ class AutoexclusionController extends Controller
     $autoexcluido = AE\Autoexcluido::find($id);
     $estado = $autoexcluido->estado;
     $datos_estado = array(
-      'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
-      'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
+      'fecha_ae' => date("d/m/Y",strtotime($estado->fecha_ae)),
+      'fecha_vencimiento' => date("d/m/Y", strtotime($estado->fecha_vencimiento)),
+      'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae))
     );
     $encuesta = $autoexcluido->encuesta;
+    $es_primer_ae = $autoexcluido->es_primer_ae;
     if (is_null($encuesta)) {
       $encuesta = array(
         'id_frecuencia_asistencia' => -1,
@@ -409,7 +411,7 @@ class AutoexclusionController extends Controller
     }
     $contacto = $autoexcluido->contacto;
 
-    $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto'));
+    $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -428,7 +430,7 @@ class AutoexclusionController extends Controller
       'dni' => $ae->nro_dni,
       'domicilio_completo' => $ae->domicilio . ' ' . $ae->nro_domicilio,
       'localidad' => ucwords(strtolower($ae->nombre_localidad)),
-      'fecha_cierre_definitivo' => date('d-m-Y', strtotime($ae->estado->fecha_cierre_ae))
+      'fecha_cierre_definitivo' => date('d/m/Y', strtotime($ae->estado->fecha_cierre_ae))
     );
 
     $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
@@ -447,8 +449,8 @@ class AutoexclusionController extends Controller
     $ae = AE\Autoexcluido::find($id);
     $estado = $ae->estado;
     $datos = array(
-      'fecha_vencimiento' => date("d-m-Y", strtotime($estado->fecha_vencimiento)),
-      'fecha_cierre' => date("d-m-Y", strtotime($estado->fecha_cierre_ae))
+      'fecha_revocacion_ae' => date("d/m/Y", strtotime($estado->fecha_revocacion_ae)),
+      'fecha_vencimiento'   => date("d/m/Y", strtotime($estado->fecha_vencimiento))
     );
 
     $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('ae', 'datos'));

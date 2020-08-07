@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html>
   <?php
-  function fecha($f){
-    $ddmmyyyy = explode("-",$f);
-    return $ddmmyyyy[0] . '/' . $ddmmyyyy[1] . '/' . $ddmmyyyy[2];
-  }
   function ifempty($s,$val = '#####'){
     return count($s) > 0? $s : $val;
   }
@@ -37,16 +33,13 @@
         <img src="img/logos/banner_color.png" width="175">
     </div>
     <hr style="border-bottom: 0px">
-    <table style="table-layout: fixed;width: 100%;">
-      <tr>
-        <td style="width: 27.25%;"></td>
-        <td style="width: 45.5%;text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">SOLICITUD DE AUTOEXCLUSIÓN</td>
-        <td style="width: 27.25%;"></td>
-      <tr>
-    </table>
+    <p style="margin-left: 27.5%;width: 45.5%;margin-right: 27.5%;
+    text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">
+      SOLICITUD DE AUTOEXCLUSIÓN
+    </p>
 
     <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;font-size:12px;">
-      FECHA: <?php print_r(date('d/m/Y')); ?>
+      Fecha: {{$datos_estado['fecha_ae']}}
     </div>
 
     <div class="primerEncabezado" style="font-size:13px">
@@ -64,37 +57,47 @@
         Piso <b>................</b>,Dpto <b>................</b>, de la localidad de <b>{{$autoexcluido['nombre_localidad']}}
         </b> Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>, C.P <b>................</b>,
         Teléfono <b>{{$autoexcluido['telefono']}}</b>; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
-        Bingos de la Provincia de Santa Fe, durante el plazo de duración del presente, que se extiende por seis (6) meses desde su suscripción y
+        Bingos de la Provincia de Santa Fe, durante el plazo de duración del
+        @if($es_primer_ae)
+        presente, que se extiende por seis (6) meses desde su suscripción y
         cuyo primer vencimiento operará en la siguiente fecha:
+        @else
+        presente:
+        @endif
       </p>
     </div>
 
+    @if($es_primer_ae)
+    <p style="margin-left: 40%;width: 20%;margin-right: 40%;text-align: center;font-size:18px;border: 1px solid black;">
+      <b>{{$datos_estado['fecha_vencimiento']}}</b>
+    </p>
 
-    <table style="table-layout: fixed;width: 100%;">
-      <tr>
-        <td style="width: 40%;"></td>
-        <td style="width: 20%;text-align: center;font-size:18px;border: 1px solid black;">
-          <b>{{fecha($datos_estado['fecha_vencimiento'])}}</b>
-        </td>
-        <td style="width: 40%;"></td>
-      </tr>
-    </table>
-
-    <div class="primerEncabezado" style="font-size:13px">
-      <p>Que, asimismo, si dentro de los treinta días anteriores al primer vencimiento del plazo de duración del presente acuerdo,
+    <p class="primerEncabezado" style="font-size:13px">
+      Que, asimismo, si dentro de los treinta días anteriores al primer vencimiento del plazo de duración del presente acuerdo,
       no expreso en forma fehaciente y documentada mi voluntad de dar por finalizada la autoexclusión (*), la misma se renovará
-      automáticamente por otros seis (6) meses, a cuyo término operará el vencimiento definitivo, el día:</p>
-    </div>
+      automáticamente por otros seis (6) meses, a cuyo término operará el vencimiento definitivo, el día:
+    </p>
+    @endif
 
     <table style="table-layout: fixed;width: 100%;">
       <tr>
-        <td style="width: 40%;"></td>
-        <td style="width: 20%;text-align: center;font-size:18px;border: 1px solid black;">
-          <b>{{fecha($datos_estado['fecha_cierre'])}}</b>
+        <td width="40%" style="text-align: center;">
+        @if(!$es_primer_ae)
+          <b>VENCIMIENTO (*)</b>
+        @endif
         </td>
-        <td style="width: 40%;"></td>
+        <td width="20%" style="font-size:18px;text-align: center;border: 1px solid black;"><b>{{$datos_estado['fecha_cierre']}}</b></td>
+        <td width="40%"></td>
       </tr>
     </table>
+
+    @if(!$es_primer_ae)
+      <br>
+      <p class="primerEncabezado"><b>(*) R.V.E. N° 983/19 –cito en Art. 1, último párrafo 
+      “Para las personas que ya fueron parte del pro-grama, cuando soliciten ingresar 
+      nuevamente al mismo, el tiempo de vigencia será de un (1) año.
+      </b></p>
+    @endif
 
     <div class="primerEncabezado" style="font-size:13px">
       <p><b>Que la presente solicitud tiene carácter de IRREVOCABLE.</b></p>
@@ -103,8 +106,7 @@
       ingresar a cualquier Sala de Juego, me sea requerido el retiro del lugar.</p>
       <p>Asimismo autorizo a que me sean tomadas las imágenes necesarias con el fin de mi identificación, aceptando que las mismas sean
       remitidas a las restantes Salas de Juego, al único efecto del cumplimiento del presente.</p>
-    </div><br>
-
+    </div>
 
     <div style="page-break-after: always;"></div>
     <div class="encabezadoImg">
@@ -112,17 +114,14 @@
     </div>
     <hr style="border-bottom: 0px">
 
-    <p class="primerEncabezado" style="font-size:13px">
-    Asimismo autorizo a que me sean tomadas las imágenes necesarias con el fin de mi &nbsp;identificación,
-    aceptando que las mismas sean remitidas a las restantes Salas de Juego, al único efecto del cumplimiento del presente.
-    </p>
-
     <div class="primerEncabezado" style="font-size:13px">
       <p>Asimismo, expreso:</p>
+      @if(count($contacto['nombre_apellido']) > 0)
       <p>Que nombro como persona de contacto en forma de referencia a:</p>
-      <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'])}}</b> Domiciliado en calle <b>{{ifempty($contacto['domicilio'])}}</b>
+      <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'],'NOINFORMA')}}</b> Domiciliado en calle <b>{{ifempty($contacto['domicilio'])}}</b>
       de la Localidad de <b>{{ifempty($contacto['nombre_localidad'])}}</b> Provincia de <b>{{ifempty($contacto['nombre_provincia'])}}</b>
       Tel <b>{{ifempty($contacto['telefono'])}}</b> Vínculo con el Solicitante <b>{{ifempty($contacto['vinculo'])}}</b>.</p>
+      @endif
       <p>Que el ingreso al presente Programa de Autoexclusión, es voluntario, resultando exclusivamente responsable de su cumplimiento,
       para lo cual eximo expresamente de toda responsabilidad al respecto a la C.A.S.-Lotería de Santa Fe y los Concesionarios.
       Que comprendo y consiento que ni los Casinos y Bingos habilitados en la Pcia., ni la C.A.S.-Lotería de Santa Fe pueden garantizar
@@ -137,14 +136,16 @@
       produzcan en mi patrimonio y/o persona y/o en la de terceros.</p>
     </div>
 
+    @if($es_primer_ae)
     <div class="primerEncabezado" style="font-size:13px">
       <p><b>(*) Si decide realizar el trámite de finalización de la autoexclusión, deberá concurrir con D.N.I., a Calle 1° junta 2724 8vo. Piso
       de la Ciudad de Santa Fe o en Av. Pellegrini 947 de la Ciudad de Rosario, los días hábiles de 7:30 a 13:30 hs. En el caso de Melincué
       dicho trámite se podrá realizar en el propio casino. Para las finalizaciones de Santa Fe y Rosario, si el primer plazo de seis meses
       finaliza un día inhábil administrativo, el día de finalización se trasladará al día hábil inmediatamente posterior.-</b></p>
     </div>
+    @endif
     <table style="table-layout: fixed;width: 100%;margin-top: 25%;">
-    <tr>
+      <tr>
         <td style="width: 33.3%;text-align: center;font-size: 21px;">...........................</td>
         <td style="width: 33.3%;text-align: center;font-size: 21px;">...........................</td>
         <td style="width: 33.3%;text-align: center;font-size: 21px;">...........................</td>
@@ -183,19 +184,17 @@
       <table style="table-layout: fixed;width: 50%;">
         <tr>
           <td style="width: 25%;">Diaria</td>
-          <td style="width: 25%;"><input type="checkbox" id="diaria" {{$encuesta['id_frecuencia_asistencia'] == 1 ? 'checked' : ''}}/></td>
-          <td style="width: 15%;"></td>
-          <td style="width: 35%;"></td>
+          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 1 ? 'checked' : ''}}/></td>
         </tr>
         <tr>
           <td style="width: 25%;">Semanal</td>
-          <td style="width: 25%;"><input type="checkbox" id="diaria" {{$encuesta['id_frecuencia_asistencia'] == 2 ? 'checked' : ''}}/></td>
+          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 2 ? 'checked' : ''}}/></td>
           <td style="width: 15%;border: 1px solid black;">{{$encuesta['id_frecuencia_asistencia'] == 2 ? $encuesta['veces'] : ''}}</td>
           <td style="width: 35%;">Veces</td>
         </tr>
         <tr>
           <td style="width: 25%;">Mensual</td>
-          <td style="width: 25%;"><input type="checkbox" id="diaria" {{$encuesta['id_frecuencia_asistencia'] == 3 ? 'checked' : ''}}/></td>
+          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 3 ? 'checked' : ''}}/></td>
           <td style="width: 15%;border: 1px solid black;">{{$encuesta['id_frecuencia_asistencia'] == 3 ? $encuesta['veces'] : ''}}</td>
           <td style="width: 35%;">Veces</td>
         </tr>
@@ -216,7 +215,6 @@
           <td style="width: 10%;"><input type="checkbox" {{$encuesta['como_asiste'] === 0 ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 20%;">Acompañado</td>
           <td style="width: 10%;"><input type="checkbox" {{$encuesta['como_asiste'] === 1 ? 'checked' : ''}}/></td>
-          <td style="width: 10%;"></td>
         </tr>
       </table>
       <!-- PREGUNTA N°4 -->
@@ -235,9 +233,9 @@
           <td style="width: 20%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 3 ? 'checked' : ''}}/></td>
         </tr>
         <tr>
-          <td style="width: 30%;text-align: center;font-size: 14px;">V</td>
+          <td style="width: 30%;text-align: center;font-size: 11px;">|</td>
           <td style="width: 5%;"></td>
-          <td style="width: 30%;text-align: center;font-size: 14px;">V</td>
+          <td style="width: 30%;text-align: center;font-size: 11px;">|</td>
         </tr>
         <tr>
           <td style="width: 30%;">Máquinas Tradicionales</td>
@@ -330,6 +328,14 @@
           @endif
         </tr>
       </table>
+      @if(count($encuesta['observacion']) > 0)
+      <table  style="table-layout: fixed;width: 100%;margin-top: 1%;">
+        <tr>
+          <td style="width: 15%;">Observación:</td>
+          <td style="width: 85%;">{{$encuesta['observacion']}}</td>
+        </tr>
+      </table>
+      @endif
     </div>
   </body>
 </html>

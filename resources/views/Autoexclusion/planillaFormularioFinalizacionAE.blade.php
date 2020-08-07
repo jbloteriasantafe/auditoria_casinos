@@ -2,17 +2,10 @@
 <html>
 
   <style>
-    section {
-      display: flex;
-      width: 60%;
-      height: 70px;
-      margin: auto;
-    }
-    .centrar {
-      margin: auto;
-      text-align: center;
-      font-family:Arial, sans-serif;
-      font-weight: bold;
+    @page{
+      margin-top: 6.25%;
+      margin-left: 16.3%;
+      margin-right: 16.3%;
     }
   </style>
 
@@ -26,57 +19,51 @@
   </head>
 
   <body>
-    <!-- SOLICITUD DE FINALIZACIÓN DE LA AUTOEXCLUSIÓN -->
     <div class="encabezadoImg">
-        <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
-    </div><br>
-    <section><p class="centrar" style="padding-top:-20px">SOLICITUD DE FINALIZACIÓN DE LA AUTOEXCLUSIÓN</p></section>
+        <img src="img/logos/banner_color.png" width="175">
+    </div>
+    <hr style="border-bottom: 0px">
 
-    <div class="camposTab titulo" style="top:110px; right:-15px; padding:3px; padding-top:10px; border: 1px solid black">
-      FECHA: <?php print_r(date('d-m-y')); ?>
+    <p style="margin-left: 12.5%;width: 75%;margin-right: 12.5%;
+    text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">
+      SOLICITUD DE FINALIZACIÓN DE LA AUTOEXCLUSIÓN
+    </p>
+
+    <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;">
+      Fecha: {{$datos['fecha_revocacion_ae']}}
     </div>
 
-    <div class="primerEncabezado" align="justify" style="font-size:13px">
-      <p>Por medio de la presente,</p>
-      <p><n>Expreso:</b></p>
-      <p>Que yo, <b>{{$ae['nombres']}} {{$ae['apellido']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
+    <p class="primerEncabezado" style="font-size:13px">Por medio de la presente,</p>
+    <p class="primerEncabezado" style="font-size:13px"><b>Expreso:</b></p>
+    <p class="primerEncabezado" style="font-size:13px">
+      Que yo, <b>{{$ae['nombres']}} {{$ae['apellido']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
       con Domiclio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
       Teléfono <b>{{$ae['telefono']}}</b> de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
-      <b>{{$ae['nombre_provincia']}}</b>; <b>manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
+      <b>{{$ae['nombre_provincia']}}</b>; manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
       solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos de la Provincia de Santa Fe a partir
       del día siguiente al de cumplimiento efectivo de los 6 meses de la suscripción de la solicitud de autoexclusión, que opera
-      en la siguiente fecha:</b>
-      </p>
-      <p class="camposTab titulo" style="right:293px; top:315px; padding:3px; padding-top:7px; padding-bottom:7px; border: 1px solid black; font-size:15px">
-        {{$datos['fecha_vencimiento']}}
-      </p>
-    </div><br>
+      en la siguiente fecha:
+    </p>
 
-    <div class="primerEncabezado" align="justify" style="font-size:13px">
-      <p>Por consiguiente, firmo de conformidad adjuntando al presente fotocopia de mi documento de identidad, a fin de cumplimentar
-      con las disposiciones establecidas por la Caja de Asistencia Social - Lotería de Santa Fe - en el marco de la Resolución de
-      Vicepresidencia Ejecutiva N° 270/10 y modificaciones</p>
-    </div><br>
+    <p class="primerEncabezado" style="margin-left: 25%;width: 50%;margin-right: 25%;text-align: center;font-size:16px;">
+      <b>Fecha: {{$datos['fecha_vencimiento']}}</b>
+    </p>
 
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-    <br><br><br><br><br><br><br><br>
-    <div style="top:1500px">
-      <p style="text-align:center">
-        .......................................
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        .......................................
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        .......................................
-      </p>
-      <p style="font-size:12px">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Firma Interesado
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Firma Concesionario
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Firma C.A.S. Lotería
-      </p>
-    </div>
+    <p class="primerEncabezado" style="font-size:13px">
+    Por consiguiente, firmo de conformidad adjuntando al presente fotocopia de mi documento de identidad, a fin de cumplimentar
+    con las disposiciones establecidas por la Caja de Asistencia Social - Lotería de Santa Fe - en el marco de la Resolución de
+    Vicepresidencia Ejecutiva N° 270/10 y modificaciones.
+    </p>
 
+    <table class="primerEncabezado" style="table-layout: fixed;width: 100%;margin-top: 20%;">
+      <tr>
+        <td style="width: 50%;text-align: center;font-size: 21px;">...........................</td>
+        <td style="width: 50%;text-align: center;font-size: 21px;">...........................</td>
+      </tr>
+      <tr>
+        <td style="width: 50%;text-align: center;font-size: 12px;">Firma Interesado</td>
+        <td style="width: 50%;text-align: center;font-size: 12px;">Firma C.A.S. Lotería</td>
+      </tr>
+    </table>
   </body>
 </html>

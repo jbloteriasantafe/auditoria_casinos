@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html>
   <style>
-    .centrar {
-      text-align: center;
-      font-family: Arial, sans-serif;
-      font-weight: bold;
-    }
     @page{
       margin-top: 6.25%;
       margin-left: 16.3%;
@@ -23,13 +18,17 @@
   </head>
 
   <body>
-    <!-- CONSTANCIA DE REINGRESO -->
     <div class="encabezadoImg">
-        <img src="img/logos/banner_color.jpg" width="175">
+        <img src="img/logos/banner_color.png" width="175">
     </div>
     <hr style="border-bottom: 0px">
-    <p class="centrar" style="text-decoration: underline">CONSTANCIA DE AUTOEXCLUSIÓN VENCIDA</p>
-    <div class="primerEncabezado"  style="margin-left: 75%;border: 1px solid black;text-align: center;">
+
+    <p style="margin-left: 18.375%;width: 63.25%;margin-right: 18.375%;
+    text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">
+      CONSTANCIA DE AUTOEXCLUSIÓN VENCIDA
+    </p>
+
+    <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;">
       FECHA: <?php print_r(date('d/m/Y')); ?>
     </div>
 
@@ -39,15 +38,15 @@
       de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b>, a los casinos de la provincia de Santa Fe, ya que su período de
       autoexclusión ha vencido segun Resolución V.P.E 270/10.</p>
     </div>
-    <div style="padding-top: 15%;font-size:11px;padding-left: 15%;">
-      <div style="display: inline-block;">
-        <p style="">.................................................................</p>
-        <p style="padding-left: 8%;">Firma Interesado</p>
-      </div>
-      <div style="display: inline-block;">
-        <p style="">.................................................................</p>
-        <p style="padding-left: 8%;">Firma C.A.S. Lotería</p>
-      </div>
-    </div>
+    <table style="table-layout: fixed;width: 100%;margin-top: 20%;">
+      <tr>
+        <td style="width: 50%;text-align: center;font-size: 21px;">...........................</td>
+        <td style="width: 50%;text-align: center;font-size: 21px;">...........................</td>
+      </tr>
+      <tr>
+        <td style="width: 50%;text-align: center;font-size: 12px;">Firma Interesado</td>
+        <td style="width: 50%;text-align: center;font-size: 12px;">Firma C.A.S. Lotería</td>
+      </tr>
+    </table>
   </body>
 </html>
