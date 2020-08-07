@@ -460,7 +460,18 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                         <input id="solicitud_autoexclusion" data-borrado="false" type="file" name="">
                       </div>
                     </div>
+                    <div class="row">
+                      <div class="col-lg-6">
+                        <h5>SOLICITUD DE FINALIZACIÓN</h5>
+                        <div>
+                          <a href="" target="_blank">SOLFIN.PDF</a>
+                          <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                        </div>
+                        <input id="solicitud_revocacion" data-borrado="false" type="file" name="">
+                      </div>
+                    </div>
                   </div>
+
                   <div class="page">
                     <div class="col-lg-12">
                       <h6>Encuesta <span style="font-size: 12px">(OPCIONAL)</span></h6>
@@ -752,21 +763,27 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>FOTO #1</h5>
-                  <button type="button" class="foto1 btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
+                  <button type="button" data-tipo="foto1" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #1</button>
                 </div>
                 <div class="col-lg-6">
                   <h5>FOTO #2</h5>
-                  <button type="button" class="foto2 btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
+                  <button type="button" data-tipo="foto2" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a Foto #2</button>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>SCAN DNI</h5>
-                  <button type="button" class="scandni btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
+                  <button type="button" data-tipo="scandni" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente al scan DNI</button>
                 </div>
                 <div class="col-lg-6">
-                  <h5>SOLICITUD AUTOEXCLUSION</h5>
-                  <button type="button" class="solicitud_ae btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                  <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
+                  <button type="button" data-tipo="solicitud_ae" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
+                  <h5>SOLICITUD DE FINALIZACIÓN</h5>
+                  <button type="button" data-tipo="solicitud_revocacion" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
                 </div>
               </div>
             </div>

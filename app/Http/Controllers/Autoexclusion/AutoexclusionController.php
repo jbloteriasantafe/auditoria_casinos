@@ -484,6 +484,9 @@ class AutoexclusionController extends Controller
           $validator->errors()->add('id_autoexcluido','No puede cambiar a ese estado');
         }
     })->validate();
+    if($id_estado == 4){//Si es fin por AE guardo la fecha que lo pidio revocar.
+      $estado->fecha_revocacion_ae = date('Y-m-d');
+    }
     $estado->id_nombre_estado = $id_estado;
     $estado->save();
     return 1;

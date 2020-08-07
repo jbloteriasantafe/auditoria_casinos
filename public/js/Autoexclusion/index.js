@@ -507,19 +507,23 @@ function validarDNI(){
           const textoFoto2 = $('#foto2').parent().find('div');
           const textoDNI = $('#scan_dni').parent().find('div');
           const textoAE = $('#solicitud_autoexclusion').parent().find('div');
+          const textoFIN = $('#solicitud_revocacion').parent().find('div');
           const link = 'autoexclusion/mostrarArchivo/'+data.importacion.id_importacion+'/';
           textoFoto1.find('a').text(limpiarNull(data.importacion.foto1)).attr('href',link+'foto1');
           textoFoto2.find('a').text(limpiarNull(data.importacion.foto2)).attr('href',link+'foto2');
           textoDNI.find('a').text(limpiarNull(data.importacion.scandni)).attr('href',link+'scandni');
           textoAE.find('a').text(limpiarNull(data.importacion.solicitud_ae)).attr('href',link+'solicitud_ae');
+          textoFIN.find('a').text(limpiarNull(data.importacion.solicitud_revocacion)).attr('href',link+'solicitud_revocacion');
           textoFoto1.toggle(data.importacion.foto1 != null);
           textoFoto2.toggle(data.importacion.foto2 != null);
           textoDNI.toggle(data.importacion.scandni != null);
           textoAE.toggle(data.importacion.solicitud_ae != null);
+          textoFIN.toggle(data.importacion.solicitud_revocacion != null);
           $('#foto1').toggle(data.importacion.foto1 == null);
           $('#foto2').toggle(data.importacion.foto2 == null);
           $('#scan_dni').toggle(data.importacion.scandni == null);
           $('#solicitud_autoexclusion').toggle(data.importacion.solicitud_ae == null);
+          $('#solicitud_revocacion').toggle(data.importacion.solicitud_revocacion == null);
         }
       }
     },
@@ -720,14 +724,14 @@ $('#btn-guardar').click(function (e) {
       foto1                : $('#foto1').parent().find('a').text().length != 0,
       foto2                : $('#foto2').parent().find('a').text().length != 0,
       solicitud_ae         : $('#solicitud_autoexclusion').parent().find('a').text().length != 0,
-      solicitud_revoacion  : false,
+      solicitud_revocacion : $('#solicitud_revocacion').parent().find('a').text().length != 0,
       scandni              : $('#scan_dni').parent().find('a').text().length != 0,
     }
     const ae_importacion = {
       foto1                : $('#foto1')[0].files[0],
       foto2                : $('#foto2')[0].files[0],
       solicitud_ae         : $('#solicitud_autoexclusion')[0].files[0],
-      solicitud_revocacion : null,
+      solicitud_revocacion : $('#solicitud_revocacion')[0].files[0],
       scandni              : $('#scan_dni')[0].files[0]
     }
     for(const key in ae_importacion){
@@ -814,10 +818,11 @@ function mostrarAutoexcluido(id_autoexcluido){
     //seteo en el value de los botones de ver mas el id de la importacion, para después
     //buscar en el backend los paths a los archivos y mostrarlos oportunamente
     $('.archivosImportados button').val(data.importacion.id_importacion);
-    $('.archivosImportados .foto1').prop('disabled', data.importacion.foto1 === null);
-    $('.archivosImportados .foto2').prop('disabled', data.importacion.foto2 === null);
-    $('.archivosImportados .scandni').prop('disabled', data.importacion.scandni === null);
-    $('.archivosImportados .solicitud_ae').prop('disabled', data.importacion.solicitud_ae === null);
+    $('.archivosImportados [data-tipo="foto1"]').prop('disabled', data.importacion.foto1 === null);
+    $('.archivosImportados [data-tipo="foto2"]').prop('disabled', data.importacion.foto2 === null);
+    $('.archivosImportados [data-tipo="scandni"]').prop('disabled', data.importacion.scandni === null);
+    $('.archivosImportados [data-tipo="solicitud_ae"]').prop('disabled', data.importacion.solicitud_ae === null);
+    $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop('disabled', data.importacion.solicitud_revocacion === null);
 
     $('#modalVerMas').modal('show');
   });
@@ -875,13 +880,7 @@ $('#btn-salir').click(function() {
 
 //Mostrar archivos ver mas
 $('.btn-ver-mas').click(function() {
-  let tipo_archivo = null;
-  if($(this).hasClass('foto1')) tipo_archivo = 'foto1';
-  else if($(this).hasClass('foto2')) tipo_archivo = 'foto2';
-  else if($(this).hasClass('scandni')) tipo_archivo = 'scandni';
-  else if($(this).hasClass('solicitud_ae')) tipo_archivo = 'solicitud_ae';
-  if(tipo_archivo === null) return;
-  
+  let tipo_archivo = $(this).attr('data-tipo');
   window.open('autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
 });
 
@@ -916,6 +915,7 @@ $('#btn-subir-archivo').click(function (e) {
       success: function (data) {
         $('#modalSubirArchivo').modal('hide');
         mensajeExito($('#modalSubirArchivo .tipo_archivo').text()+' asignada');
+        $('#btn-buscar').click();
       },
       error: function (data) {
         const json = data.responseJSON;

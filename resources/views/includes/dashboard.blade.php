@@ -897,7 +897,11 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_vencimientos'))
                           <li>
-                            <div id="opcVencimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/vencimientos'" style="cursor: pointer;">
+                            <div style="color: grey;" id="opcVencimientos" class="opcionesHover" 
+                            @if(false)
+                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/vencimientos'" 
+                            @endif
+                            style="cursor: pointer;">
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('usuario','iconoUsuarios')
                               </span>
@@ -908,7 +912,11 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_finalizadas'))
                           <li>
-                            <div id="opcAutoexclusionesFinalizadas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusionesFinalizadas'" style="cursor: pointer;">
+                            <div style="color: grey;" id="opcAutoexclusionesFinalizadas" class="opcionesHover"
+                            @if(false) 
+                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusionesFinalizadas'" 
+                            @endif
+                            style="cursor: pointer;">
                               <span class="icono" style="padding-bottom: 56px;">
                                   @svg('expedientes','iconoExpedientes')
                               </span>
@@ -934,7 +942,11 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <ul class="subMenu1 collapse" id="informesAutoexcluidos">
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado'))
                               <li>
-                                <div id="opcListadoAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" style="cursor: pointer;">
+                                <div style="color: grey;" id="opcListadoAutoexcluidos" class="opcionesHover" 
+                                @if(false)
+                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" 
+                                @endif
+                                style="cursor: pointer;">
                                   <span>Listado de AE</span>
                                 </div>
                               </li>
