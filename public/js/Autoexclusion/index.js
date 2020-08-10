@@ -539,7 +539,7 @@ function validarDNI(){
 
 function validarDatosPersonales(){
   let valid = 1;
-  $('.step2 input[required], select[required]').each(function(){
+  $('.step2 input[required],.step2 select[required]').each(function(){
     if($(this).val() == ''){
       mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
       valid = 0;
@@ -563,6 +563,13 @@ function validarDatosPersonales(){
       valid = 0;
     }
   });
+  $('.step2 input[data-size]').each(function(){
+    const size = parseInt($(this).attr('data-size'));
+    if(isNaN(size) || $(this).val().length > size){
+      mostrarErrorValidacion($(this) , 'El campo tiene un máximo de '+size+' caracteres' , false);
+      valid = 0;
+    }
+  })
   return valid;
 }
 
@@ -667,6 +674,9 @@ $('#btn-guardar').click(function (e) {
       id_estado_civil: $('#id_estado_civil').val(),
       domicilio: $('#domicilio').val(),
       nro_domicilio: $('#nro_domicilio').val(),
+      piso: $('#piso').val(),
+      dpto: $('#dpto').val(),
+      codigo_postal:  $('#codigo_postal').val(),
       nombre_localidad: $('#nombre_localidad').val(),
       nombre_provincia: $('#nombre_provincia').val(),
       telefono: $('#telefono').val(),

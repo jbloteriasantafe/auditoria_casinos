@@ -53,6 +53,9 @@ use\App\http\Controllers\RelevamientoAmbientalController;
 .smalltext {
   font-size: 97%;
 }
+input[required], select[required]{
+  background: #f0f6ff
+}
 </style>
 @endsection
 
@@ -172,7 +175,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
             <br>
             <div class="row">
               <center>
-                <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                <button id="btn-buscar" class="btn btn-infoBuscar" type="button" ><i class="fa fa-fw fa-search"></i> BUSCAR</button>
               </center>
             </div>
             <br>
@@ -262,14 +265,14 @@ use\App\http\Controllers\RelevamientoAmbientalController;
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">
-          <form id="frmAgregarAE" name="frmAgregarAE" class="form-horizontal" novalidate=" method="post"" enctype="multipart/form-data">
+          <form id="frmAgregarAE"  class="form-horizontal" novalidate=" method="post"" enctype="multipart/form-data">
             <div class="form-group error">
               <div class="col-lg-12">
                 <div id="columna" class="row">
                   <div class="page step1">
                     <div class="col-lg-6">
                       <h5>NÚMERO DE DOCUMENTO</h5>
-                      <input id="nro_dni" name="nro_dni" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="nro_dni" type="text" class="form-control"  placeholder="" value="" required>
                     </div>
                   </div>
                   <div class="page">
@@ -279,23 +282,23 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     <div class="step2">
                       <div class="col-lg-6">
                         <h5>APELLIDO</h5>
-                        <input id="apellido" name="apellido" type="text" class="form-control"  placeholder="" value="" required alpha>
+                        <input id="apellido" type="text" class="form-control"  placeholder="" value="" required alpha data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>NOMBRES</h5>
-                        <input id="nombres" name="nombres" type="text" class="form-control"  placeholder="" value="" required alpha>
+                        <input id="nombres" type="text" class="form-control"  placeholder="" value="" required alpha data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>FECHA DE NACIMIENTO</h5>
                         <div class="input-group date" id="dtpFechaNacimiento" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                          <input type="text" class="form-control" placeholder="Fecha de nacimiento" id="fecha_nacimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="" required>
+                          <input type="text" class="form-control" placeholder="Fecha de nacimiento" id="fecha_nacimiento" autocomplete="off" data-original-title="" title="" required>
                           <span id="input-times-nacimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                           <span id="input-calendar-nacimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                         </div>
                       </div>
                       <div class="col-lg-3">
                         <h5>SEXO</h5>
-                        <select id="id_sexo" class="form-control" name="sexo" required>
+                        <select id="id_sexo" class="form-control"  required>
                           <option selected="" value="">Seleccionar Valor</option>
                           <option value="0">Masculino</option>
                           <option value="1">Femenino</option>
@@ -313,31 +316,43 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                       </div>
                       <div class="col-lg-6">
                         <h5>DOMICILIO</h5>
-                        <input id="domicilio" name="domicilio" type="text" class="form-control"  placeholder="" value="" required>
+                        <input id="domicilio" type="text" class="form-control"  placeholder="" value="" required>
                       </div>
                       <div class="col-lg-6">
                         <h5>NRO. DOMICILIO</h5>
-                        <input id="nro_domicilio" name="nro_domicilio" type="text" class="form-control"  placeholder="" value="" required numeric>
+                        <input id="nro_domicilio" type="text" class="form-control"  placeholder="" value="" required numeric data-size="100">
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>PISO</h5>
+                        <input id="piso" type="text" class="form-control"  placeholder="" value="" data-size="5">
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>DEPARTAMENTO</h5>
+                        <input id="dpto" type="text" class="form-control"  placeholder="" value="" data-size="5">
                       </div>
                       <div class="col-lg-6">
                         <h5>PROVINCIA</h5>
-                        <input id="nombre_provincia" name="nombre_provincia" type="text" class="form-control"  placeholder="" value="" required>
+                        <input id="nombre_provincia" type="text" class="form-control"  placeholder="" value="" required data-size="200">
                       </div>
                       <div class="col-lg-6">
                         <h5>LOCALIDAD</h5>
-                        <input id="nombre_localidad" name="nombre_localidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required>
+                        <input id="nombre_localidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required data-size="200">
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>CÓDIGO POSTAL</h5>
+                        <input id="codigo_postal" type="text" class="form-control"  placeholder="" value="" data-size="10">
                       </div>
                       <div class="col-lg-6">
                         <h5>TELEFONO</h5>
-                        <input id="telefono" name="telefono" type="text" class="form-control"  placeholder="" value="" required numeric>
+                        <input id="telefono" type="text" class="form-control" placeholder="" value="" required numeric data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>EMAIL</h5>
-                        <input id="correo" name="correo" type="text" class="form-control"  placeholder="" value="" required email>
+                        <input id="correo" type="text" class="form-control"  placeholder="" value="" required email data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>OCUPACIÓN</h5>
-                        <select id="id_ocupacion" class="form-control" name="id_ocupacion" required>
+                        <select id="id_ocupacion" class="form-control" required>
                             <option selected="" value="">Seleccionar Valor</option>
                             @foreach($ocupaciones as $ocupacion)
                             <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
@@ -346,7 +361,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                       </div>
                       <div class="col-lg-6">
                         <h5>CAPACITACIÓN</h5>
-                        <select id="id_capacitacion" class="form-control" name="id_capacitacion" required>
+                        <select id="id_capacitacion" class="form-control" required>
                           <option selected="" value="">Seleccionar Valor</option>
                           @foreach ($capacitaciones as $capacitacion)
                             <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
@@ -359,34 +374,34 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>NOMBRE Y APELLIDO</h5>
-                      <input id="nombre_apellido" name="nombre_apellido" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="nombre_apellido" type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                     <div class="col-lg-6">
                       <h5>DOMICILIO</h5>
-                      <input id="domicilio_vinculo" name="domicilio_vinculo" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="domicilio_vinculo" type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                     <div class="col-lg-6">
                       <h5>PROVINCIA</h5>
-                      <input id="nombre_provincia_vinculo" name="nombre_provincia_vinculo" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="nombre_provincia_vinculo" type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                     <div class="col-lg-6">
                       <h5>LOCALIDAD</h5>
-                      <input id="nombre_localidad_vinculo" name="nombre_localidad_vinculo" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="nombre_localidad_vinculo" type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                     <div class="col-lg-6">
                       <h5>TELEFONO</h5>
-                      <input id="telefono_vinculo" name="telefono" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="telefono_vinculo"  type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                     <div class="col-lg-6">
                       <h5>VINCULO</h5>
-                      <input id="vinculo" name="vinculo" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="vinculo" type="text" class="form-control"  placeholder="" value="" data-size="200">
                     </div>
                   </div>
                   <div class="page">
                     <div class="step3">
                       <div class="col-lg-6">
                         <h5>CASINO</h5>
-                        <select id="id_casino" class="form-control" name="id_casino">
+                        <select id="id_casino" class="form-control" required>
                           <option selected="" value="">- Seleccione un casino -</option>
                           <?php $cas_creacion = $usuario->casinos; if($usuario->es_superusuario) $cas_creacion = $casinos; ?>
                           @foreach($cas_creacion as $casino)
@@ -396,8 +411,8 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                       </div>
                       <div class="col-lg-6">
                         <h5>ESTADO</h5>
-                        <select id="id_estado" name="id_estado" class="form-control">
-                          <option selected="" value="">- Seleccione un estado -</option>
+                        <select id="id_estado" class="form-control" required>
+                          <option selected="" value="" required>- Seleccione un estado -</option>
                           @foreach ($estados_elegibles as $estado)
                             <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
                           @endforeach
@@ -406,22 +421,22 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                       <div class="col-lg-6">
                         <h5>FECHA AUTOEXCLUSIÓN</h5>
                         <div class="input-group date" id="dtpFechaAutoexclusionEstado" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                          <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="fecha_autoexlusion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                          <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="fecha_autoexlusion" autocomplete="off" data-original-title="" title="" required>
                           <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                           <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                         </div>
                       </div>
                       <div class="col-lg-6">
                         <h5>VENCIMIENTO 1° PERIODO</h5>
-                        <input id="fecha_vencimiento_periodo" name="fecha_vencimiento_periodo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
+                        <input id="fecha_vencimiento_periodo"type="text" class="form-control"  placeholder="" value="" disabled="" required>
                       </div>
                       <div class="col-lg-6">
                         <h5>PERMITIR RENOVACIÓN DESDE</h5>
-                        <input id="fecha_renovacion" name="fecha_renovacion" type="text" class="form-control" placeholder="" value="" disabled="" required>
+                        <input id="fecha_renovacion" type="text" class="form-control" placeholder="" value="" disabled="" required>
                       </div>
                       <div class="col-lg-6">
                         <h5>FECHA CIERRE DEFINITIVO</h5>
-                        <input id="fecha_cierre_definitivo" name="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
+                        <input id="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
                       </div>
                     </div>
                     <div class="row">
@@ -431,7 +446,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <a href="" target="_blank">FOTO1.PDF</a>
                           <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                         </div>
-                        <input id="foto1" type="file" name="foto1">
+                        <input id="foto1" type="file">
                       </div>
                       <div class="col-lg-6">
                         <h5>FOTO #2</h5>
@@ -439,7 +454,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <a href="" target="_blank">FOTO2.PDF</a>
                           <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                         </div>
-                        <input id="foto2" data-borrado="false" type="file" name="">
+                        <input id="foto2" data-borrado="false" type="file">
                       </div>
                     </div>
                     <div class="row">
@@ -449,7 +464,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <a href="" target="_blank">DNI.PDF</a>
                           <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                         </div>
-                        <input id="scan_dni" data-borrado="false" type="file" name="">
+                        <input id="scan_dni" data-borrado="false" type="file">
                       </div>
                       <div class="col-lg-6">
                         <h5>SOLICITUD AUTOEXCLUSIÓN</h5>
@@ -457,7 +472,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <a href="" target="_blank">SOLAE.PDF</a>
                           <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                         </div>
-                        <input id="solicitud_autoexclusion" data-borrado="false" type="file" name="">
+                        <input id="solicitud_autoexclusion" data-borrado="false" type="file">
                       </div>
                     </div>
                     <div class="row">
@@ -467,7 +482,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                           <a href="" target="_blank">SOLFIN.PDF</a>
                           <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
                         </div>
-                        <input id="solicitud_revocacion" data-borrado="false" type="file" name="">
+                        <input id="solicitud_revocacion" data-borrado="false" type="file">
                       </div>
                     </div>
                   </div>
@@ -478,7 +493,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-3">
                       <h5>JUEGO PREFERIDO</h5>
-                      <select id="juego_preferido" class="form-control" name="juego_preferido">
+                      <select id="juego_preferido" class="form-control">
                         <option value="">- Seleccione un juego -</option>
                         @foreach($juegos as $juego)
                         <option value="{{$juego->id_juego_preferido}}">{{$juego->nombre}}</option>
@@ -487,7 +502,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-3">
                       <h5>F. DE ASISTENCIA</h5>
-                      <select id="id_frecuencia_asistencia" class="form-control" name="id_frecuencia_asistencia">
+                      <select id="id_frecuencia_asistencia" class="form-control">
                         <option selected="" value="">- Seleccione un valor -</option>
                         @foreach($frecuencias as $frecuencia)
                         <option value="{{$frecuencia->id_frecuencia}}">{{$frecuencia->nombre}}</option>
@@ -496,15 +511,15 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-3">
                       <h5>VECES</h5>
-                      <input id="veces" name="veces" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="veces" type="text" class="form-control"  placeholder="" value="">
                     </div>
                     <div class="col-lg-3">
                       <h5>TIEMPO JUGANDO (HS)</h5>
-                      <input id="tiempo_jugado" name="tiempo_jugado" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="tiempo_jugado" type="text" class="form-control"  placeholder="" value="">
                     </div>
                     <div class="col-lg-6">
                       <h5>¿ES SOCIO DEL CLUB DE JUGADORES?</h5>
-                        <select id="socio_club_jugadores" name="socio_club_jugadores" class="form-control">
+                        <select id="socio_club_jugadores" class="form-control">
                           <option selected="" value="">- Seleccione una opción -</option>
                           <option value="SI">SI</option>
                           <option value="NO">NO</option>
@@ -512,7 +527,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>¿CONOCE EL PROGRAMA JUEGO RESPONSABLE?</h5>
-                      <select id="juego_responsable" name="juego_responsable" class="form-control">
+                      <select id="juego_responsable" class="form-control">
                         <option selected="" value="">- Seleccione una opción -</option>
                         <option value="SI">SI</option>
                         <option value="NO">NO</option>
@@ -520,7 +535,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>¿DECISIÓN POR PROBLEMAS DE AUTOCONTROL?</h5>
-                      <select id="autocontrol_juego" name="autocontrol_juego" class="form-control">
+                      <select id="autocontrol_juego" class="form-control">
                         <option selected="" value="">- Seleccione una opción -</option>
                         <option value="SI">SI</option>
                         <option value="NO">NO</option>
@@ -528,7 +543,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>¿CÓMO ASISTE?</h5>
-                      <select id="como_asiste" name="como_asiste" class="form-control">
+                      <select id="como_asiste" class="form-control">
                         <option selected="" value="">- Seleccione una opción -</option>
                         <option value="0">SOLO</option>
                         <option value="1">ACOMPAÑADO</option>
@@ -536,7 +551,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>¿DESEA RECIBIR INFORMACIÓN SOBRE JR?</h5>
-                      <select id="recibir_informacion" name="recibir_informacion" class="form-control">
+                      <select id="recibir_informacion" class="form-control">
                         <option selected="" value="">- Seleccione una opción -</option>
                         <option value="SI">SI</option>
                         <option value="NO">NO</option>
@@ -544,11 +559,11 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                     </div>
                     <div class="col-lg-6">
                       <h5>¿MEDIO DE RECEPCIÓN?</h5>
-                      <input id="medio_recepcion" name="medio_recepcion" type="text" class="form-control"  placeholder="" value="" required>
+                      <input id="medio_recepcion" type="text" class="form-control"  placeholder="" value="" data-size="100">
                     </div>
                     <div class="col-lg-12">
                       <h5>OBSERVACIONES</h5>
-                        <textarea id="observaciones" name="observaciones" class="form-control"  placeholder="" value="" required></textarea>
+                      <textarea id="observaciones" class="form-control" placeholder="" value="" data-size="200"></textarea>
                     </div>
                   </div>
                 </div>
@@ -585,33 +600,33 @@ use\App\http\Controllers\RelevamientoAmbientalController;
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body">
-          <form id="frmAutoExcluido" name="frmAutoExcluido" class="form-horizontal" novalidate="">
+          <form id="frmAutoExcluido" class="form-horizontal" novalidate="">
             <div class="infoDatosPersonales">
               <h6>Datos personales</h6>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>APELLIDO</h5>
-                  <input id="infoApellido" name="infoApellido" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoApellido" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>NOMBRES</h5>
-                  <input id="infoNombres" name="infoNombres" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoNombres" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>FECHA DE NACIMIENTO</h5>
-                  <input id="infoFechaNacimiento" name="infoFechaNacimiento" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoFechaNacimiento" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>DNI</h5>
-                  <input id="infoDni" name="infoDni" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoDni" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>SEXO</h5>
-                  <select id="infoSexo" name="infoSexo" class="form-control" disabled>
+                  <select id="infoSexo" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     <option value="0">Masculino</option>
                     <option value="1">Femenino</option>
@@ -620,7 +635,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                 </div>
                 <div class="col-lg-6">
                   <h5>ESTADO CIVIL</h5>
-                  <select id="infoEstadoCivil" class="form-control" name="infoEstadoCivil" disabled>
+                  <select id="infoEstadoCivil" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach ($estados_civiles as $estado_civil)
                     <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
@@ -631,37 +646,37 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>DOMICILIO</h5>
-                  <input id="infoDomicilio" name="infoDomicilio" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoDomicilio" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>NRO. DOMICILIO</h5>
-                  <input id="infoNroDomicilio" name="infoNroDomicilio" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoNroDomicilio" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>PROVINCIA</h5>
-                  <input id="infoProvincia" name="infoProvincia" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoProvincia" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>LOCALIDAD</h5>
-                  <input id="infoLocalidad" name="infoLocalidad" class="form-control"  type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoLocalidad" class="form-control" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>TELEFONO</h5>
-                  <input id="infoTelefono" name="infoTelefono" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoTelefono" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>EMAIL</h5>
-                  <input id="infoEmail" name="infoEmail" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoEmail" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>OCUPACIÓN</h5>
-                  <select id="infoOcupacion" name="infoOcupacion" class="form-control" disabled>
+                  <select id="infoOcupacion" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach($ocupaciones as $ocupacion)
                     <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
@@ -670,7 +685,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                 </div>
                 <div class="col-lg-6">
                   <h5>CAPACITACIÓN</h5>
-                  <select id="infoCapacitacion" class="form-control" name="infoCapacitacion" disabled>
+                  <select id="infoCapacitacion" class="form-control"  isabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach ($capacitaciones as $capacitacion)
                     <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
@@ -685,31 +700,31 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>NOMBRE Y APELLIDO</h5>
-                  <input id="infoNombreApellidoVinculo" name="infoNombreApellidoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoNombreApellidoVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>DOMICILIO</h5>
-                  <input id="infoDomiclioVinculo" name="infoDomiclioVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoDomiclioVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>PROVINCIA</h5>
-                  <input id="infoProvinciaVinculo" name="infoProvinciaVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoProvinciaVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>LOCALIDAD</h5>
-                  <input id="infoLocalidadVinculo" name="infoLocalidadVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoLocalidadVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>TELÉFONO</h5>
-                  <input id="infoTelefonoVinculo" name="infoTelefonoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoTelefonoVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>VÍNCULO</h5>
-                  <input id="infoVinculo" name="infoVinculo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoVinculo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
             </div>
@@ -719,7 +734,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>CASINO</h5>
-                  <select id="infoCasino" class="form-control selectCasinos" name="infoCasino" disabled>
+                  <select id="infoCasino" class="form-control selectCasinos" disabled>
                     <option value="0">Todos los Casinos</option>
                     @foreach ($casinos as $casino)
                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
@@ -728,7 +743,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                 </div>
                 <div class="col-lg-6">
                   <h5>ESTADO</h5>
-                  <select id="infoEstado" class="form-control selectEstado" name="infoEstado" disabled>
+                  <select id="infoEstado" class="form-control selectEstado" disabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach ($estados_autoexclusion as $estado)
                     <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
@@ -739,21 +754,21 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>FECHA AUTOEXCLUSIÓN</h5>
-                  <input id="infoFechaAutoexclusion" name="infoFechaAutoexclusion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoFechaAutoexclusion" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>VENCIMIENTO 1° PERÍODO</h5>
-                  <input id="infoFechaVencimiento" name="infoFechaVencimiento" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoFechaVencimiento" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>PERMITIR RENOVACIÓN DESDE</h5>
-                  <input id="infoFechaRenovacion" name="infoFechaRenovacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoFechaRenovacion" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>FECHA CIERRE DEFINITIVO</h5>
-                  <input id="infoFechaCierreDefinitivo" name="infoFechaCierreDefinitivo" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoFechaCierreDefinitivo" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
             </div>
@@ -793,7 +808,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-3">
                   <h5>JUEGO PREFERIDO</h5>
-                  <select id="infoJuegoPreferido" class="form-control" name="infoJuegoPreferido" disabled>
+                  <select id="infoJuegoPreferido" class="form-control" disabled>
                     <option value="">No ingresado</option>
                     @foreach($juegos as $juego)
                     <option value="{{$juego->id_juego_preferido}}">{{$juego->nombre}}</option>
@@ -802,7 +817,7 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                 </div>
                 <div class="col-lg-3">
                   <h5>F. DE ASISTENCIA</h5>
-                  <select id="infoFrecuenciaAsistencia" class="form-control" name="infoFrecuenciaAsistencia" disabled>
+                  <select id="infoFrecuenciaAsistencia" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach($frecuencias as $frecuencia)
                     <option value="{{$frecuencia->id_frecuencia}}">{{$frecuencia->nombre}}</option>
@@ -811,31 +826,31 @@ use\App\http\Controllers\RelevamientoAmbientalController;
                 </div>
                 <div class="col-lg-3">
                   <h5>VECES</h5>
-                  <input id="infoVeces" name="infoVeces" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoVeces" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
                 <div class="col-lg-3">
                   <h5>TIEMPO JUGANDO (HS)</h5>
-                  <input id="infoTiempoJugado" name="infoTiempoJugado" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoTiempoJugado" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>¿ES SOCIO DEL CLUB DE JUGADORES?</h5>
-                  <input id="infoSocioClubJugadores" name="infoSocioClubJugadores" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoSocioClubJugadores" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>¿CONOCE EL PROGRAMA JUEGO RESPONSABLE?</h5>
-                  <input id="infoJuegoResponsable" name="infoinfoJuegoResponsableFechaRenovacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoJuegoResponsable" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-6">
                   <h5>¿DECISIÓN POR PROBLEMAS DE AUTOCONTROL?</h5>
-                  <input id="infoAutocontrol" name="infoAutocontrol" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoAutocontrol" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>¿CÓMO ASISTE?</h5>
-                  <select id="infoComoAsiste" name="infoComoAsiste" class="form-control" disabled>
+                  <select id="infoComoAsiste" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     <option value="0">SOLO</option>
                     <option value="1">ACOMPAÑADO</option>
@@ -845,17 +860,17 @@ use\App\http\Controllers\RelevamientoAmbientalController;
               <div class="row">
                 <div class="col-lg-6">
                   <h5>¿DESEA RECIBIR INFORMACIÓN SOBRE JR?</h5>
-                  <input id="infoRecibirInformacion" name="infoRecibirInformacion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoRecibirInformacion" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
                 <div class="col-lg-6">
                   <h5>¿MEDIO DE RECEPCIÓN?</h5>
-                  <input id="infoMedioRecepcion" name="infoMedioRecepcion" type="text" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoMedioRecepcion" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
               </div>
               <div class="row">
                 <div class="col-lg-12">
                   <h5>OBSERVACIONES</h5>
-                  <input id="infoObservaciones" name="infoObservaciones" class="form-control"  placeholder="" value="" required disabled>
+                  <input id="infoObservaciones" class="form-control" placeholder="" value="" disabled>
                 </div>
               </div>
             </div>
@@ -879,12 +894,12 @@ use\App\http\Controllers\RelevamientoAmbientalController;
         <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" id="myModalLabel">| SUBIR ARCHIVO</h3>
       </div>
-      <div  id="colapsadoCrear" class="collapse in">
+      <div id="colapsadoCrear" class="collapse in">
         <div class="modal-body modalCuerpo">
           <div class="row">
             <div class="col-md-6">
               <h5>NÚMERO DE DOCUMENTO</h5>
-              <input type="text" class="form-control nro_dni"  placeholder="" value="" required disabled>
+              <input type="text" class="form-control nro_dni" placeholder="" value="" required disabled>
               <br>
             </div>
             <div class="col-md-6">

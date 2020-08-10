@@ -22,6 +22,7 @@ class AutoexclusionController extends Controller
     ];
 
     public function index(){
+      UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
       $estados_elegibles = $estados_autoexclusion;
@@ -131,6 +132,9 @@ class AutoexclusionController extends Controller
         'ae_datos.id_sexo'          => 'required|integer',
         'ae_datos.domicilio'        => 'required|string|max:100',
         'ae_datos.nro_domicilio'    => 'required|integer',
+        'ae_datos.piso'             => 'nullable|string|max:5',
+        'ae_datos.dpto'             => 'nullable|string|max:5',
+        'ae_datos.codigo_postal'    => 'nullable|string|max:10',
         'ae_datos.nombre_localidad' => 'required|string|max:200',
         'ae_datos.nombre_provincia' => 'required|string|max:200',
         'ae_datos.telefono'         => 'required|string|max:200',

@@ -24,12 +24,13 @@ class GaleriaImagenesAutoexcluidosController extends Controller
     ];
 
     public function todo($dni = null){
+      UsuarioController::getInstancia()->agregarSeccionReciente('Galería Autoexcluidos' , 'galeriaAE');
       $juegos =  DB::table('ae_juego_preferido')->get();
       $ocupaciones =  DB::table('ae_ocupacion')->get();
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
       $casinos = DB::table('casino')->get();
       $estados_autoexclusion = DB::table('ae_nombre_estado')->get();
-
+      
       return view('Autoexclusion.galeriaImagenesAutoexcluidos', ['juegos' => $juegos,
                                                                 'ocupaciones' => $ocupaciones,
                                                                 'casinos' => $casinos,

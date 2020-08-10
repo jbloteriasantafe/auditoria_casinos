@@ -54,8 +54,10 @@
       <p>
         Yo <b>{{$autoexcluido['nombres']}} {{$autoexcluido['apellido']}}</b>, DNI <b>{{$autoexcluido['nro_dni']}}</b>,
         constituyendo domicilio a los efectos del presente en calle <b>{{$autoexcluido['domicilio']}}</b> Nº <b>{{$autoexcluido['nro_domicilio']}}</b>,
-        Piso <b>................</b>,Dpto <b>................</b>, de la localidad de <b>{{$autoexcluido['nombre_localidad']}}
-        </b> Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>, C.P <b>................</b>,
+        {!! is_null($autoexcluido['piso'])? '' : 'Piso <b>'.$autoexcluido['piso'].'</b>,' !!}
+        {!! is_null($autoexcluido['dpto'])? '' : 'Dpto <b>'.$autoexcluido['dpto'].'</b>,' !!}
+        de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>, 
+        {!! is_null($autoexcluido['codigo_postal'])? '' : 'C.P. <b>'.$autoexcluido['codigo_postal'].'</b>,' !!}
         Teléfono <b>{{$autoexcluido['telefono']}}</b>; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
         Bingos de la Provincia de Santa Fe, durante el plazo de duración del
         @if($es_primer_ae)
