@@ -88,8 +88,14 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.scandni');
 
+      $resultados_caratula = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'caratula' as tipo_archivo,ae_importacion.caratula as nombre")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNotNull('ae_importacion.caratula');
+
       return $resultados_foto1->union($resultados_foto2)->union($resultados_sol_ae)
-                              ->union($resultados_sol_rev)->union($resultados_dni)->orderBy('id_autoexcluido','desc')->get();
+                              ->union($resultados_sol_rev)->union($resultados_dni)->union($resultados_caratula)->orderBy('id_autoexcluido','desc')->get();
     }
 
     public function getDatosUnAutoexcluido ($id_ae) {

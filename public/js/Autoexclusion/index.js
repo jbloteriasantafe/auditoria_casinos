@@ -176,7 +176,8 @@ function generarFilaTabla(ae) {
       foto2: 'FOTO #2',
       scandni: 'SCAN DNI',
       solicitud_ae: 'SOLICITUD AE',
-      solicitud_revocacion: 'SOLICITUD FINALIZACIÓN'
+      solicitud_revocacion: 'SOLICITUD FINALIZACIÓN',
+      caratula: 'CARATULA'
     };
     const ul = $('<ul>').css('text-align','left');
     for(const key in archivos){//Si ya esta subido el archivo, no lo agrego
@@ -508,22 +509,26 @@ function validarDNI(){
           const textoDNI = $('#scan_dni').parent().find('div');
           const textoAE = $('#solicitud_autoexclusion').parent().find('div');
           const textoFIN = $('#solicitud_revocacion').parent().find('div');
+          const textoCAR = $('#caratula').parent().find('div');
           const link = 'autoexclusion/mostrarArchivo/'+data.importacion.id_importacion+'/';
           textoFoto1.find('a').text(limpiarNull(data.importacion.foto1)).attr('href',link+'foto1');
           textoFoto2.find('a').text(limpiarNull(data.importacion.foto2)).attr('href',link+'foto2');
           textoDNI.find('a').text(limpiarNull(data.importacion.scandni)).attr('href',link+'scandni');
           textoAE.find('a').text(limpiarNull(data.importacion.solicitud_ae)).attr('href',link+'solicitud_ae');
           textoFIN.find('a').text(limpiarNull(data.importacion.solicitud_revocacion)).attr('href',link+'solicitud_revocacion');
+          textoCAR.find('a').text(limpiarNull(data.importacion.caratula)).attr('href',link+'caratula');
           textoFoto1.toggle(data.importacion.foto1 != null);
           textoFoto2.toggle(data.importacion.foto2 != null);
           textoDNI.toggle(data.importacion.scandni != null);
           textoAE.toggle(data.importacion.solicitud_ae != null);
           textoFIN.toggle(data.importacion.solicitud_revocacion != null);
+          textoCAR.toggle(data.importacion.caratula != null);
           $('#foto1').toggle(data.importacion.foto1 == null);
           $('#foto2').toggle(data.importacion.foto2 == null);
           $('#scan_dni').toggle(data.importacion.scandni == null);
           $('#solicitud_autoexclusion').toggle(data.importacion.solicitud_ae == null);
           $('#solicitud_revocacion').toggle(data.importacion.solicitud_revocacion == null);
+          $('#caratula').toggle(data.importacion.caratula == null);
         }
       }
     },
@@ -606,6 +611,14 @@ function validarFechaImagenes(){
   }
   if (validarExtensionArchivo('#scan_dni') == 0) {
     mostrarErrorValidacion($('#scan_dni'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  if (validarExtensionArchivo('#solicitud_revocacion') == 0) {
+    mostrarErrorValidacion($('#solicitud_revocacion'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
+    valid = 0;
+  }
+  if (validarExtensionArchivo('#caratula') == 0) {
+    mostrarErrorValidacion($('#caratula'), 'El tipo de archivo debe ser de tipo JPG o PDF' , true);
     valid = 0;
   }
   return valid;
@@ -736,13 +749,15 @@ $('#btn-guardar').click(function (e) {
       solicitud_ae         : $('#solicitud_autoexclusion').parent().find('a').text().length != 0,
       solicitud_revocacion : $('#solicitud_revocacion').parent().find('a').text().length != 0,
       scandni              : $('#scan_dni').parent().find('a').text().length != 0,
+      caratula             : $('#caratula').parent().find('a').text().length != 0
     }
     const ae_importacion = {
       foto1                : $('#foto1')[0].files[0],
       foto2                : $('#foto2')[0].files[0],
       solicitud_ae         : $('#solicitud_autoexclusion')[0].files[0],
       solicitud_revocacion : $('#solicitud_revocacion')[0].files[0],
-      scandni              : $('#scan_dni')[0].files[0]
+      scandni              : $('#scan_dni')[0].files[0],
+      caratula             : $('#caratula')[0].files[0],
     }
     for(const key in ae_importacion){
       const cargado = ae_importacion_cargado[key];
@@ -833,6 +848,7 @@ function mostrarAutoexcluido(id_autoexcluido){
     $('.archivosImportados [data-tipo="scandni"]').prop('disabled', data.importacion.scandni === null);
     $('.archivosImportados [data-tipo="solicitud_ae"]').prop('disabled', data.importacion.solicitud_ae === null);
     $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop('disabled', data.importacion.solicitud_revocacion === null);
+    $('.archivosImportados [data-tipo="caratula"]').prop('disabled', data.importacion.caratula === null);
 
     $('#modalVerMas').modal('show');
   });

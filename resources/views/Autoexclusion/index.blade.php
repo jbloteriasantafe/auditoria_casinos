@@ -484,6 +484,14 @@ input[required], select[required]{
                         </div>
                         <input id="solicitud_revocacion" data-borrado="false" type="file">
                       </div>
+                      <div class="col-lg-6">
+                        <h5>CARATULA</h5>
+                        <div>
+                          <a href="" target="_blank">CARATULA.PDF</a>
+                          <button type="button" class="sacarArchivo btn btn-link"><i class="fa fa-times"></i></button>
+                        </div>
+                        <input id="caratula" data-borrado="false" type="file">
+                      </div>
                     </div>
                   </div>
 
@@ -799,6 +807,10 @@ input[required], select[required]{
                 <div class="col-lg-6">
                   <h5>SOLICITUD DE FINALIZACIÓN</h5>
                   <button type="button" data-tipo="solicitud_revocacion" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
+                </div>
+                <div class="col-lg-6">
+                  <h5>CARATULA</h5>
+                  <button type="button" data-tipo="caratula" class="btn btn-default btn-ver-mas" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el archivo correspondiente a la SAE</button>
                 </div>
               </div>
             </div>
