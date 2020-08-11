@@ -110,43 +110,29 @@ background-color: #4CAF50;
 
         <div class="row">
             <div class="col-md-12">
-
-              <!-- Galería de imágenes -->
-              <div class="col-md-8">
-                <div id="wrapper">
-            			<div id="followbox"></div>
-              			<div id="content">
-              				<div id="gallery-wrapper">
-
-              					<div id="viewer-wrapper">
-              						<div id="gallery-viewer">
-              							<!-- <img alt="Placeholder" src="images/placeholder.png"> -->
-              						</div><!-- #gallery-viewer -->
-              					</div><!-- #viewer-wrapper" -->
-
-                        <!--
-              					 <div id="viewer-nav">
-              						<a id="gallery-viewer-next" href="#">next</a>
-              						<a id="gallery-viewer-prev" href="#">previous</a>
-              					</div>
-                        -->
-
-              					<div id="thumbs-nav">
-              						<a id="gallery-next" href="#">next</a>
-                          <a id="gallery-prev" href="#">previous</a>
-                          <p id="gallery-pos">Página 1 de 2</p>
-              					</div>
-
-              					<div id="thumbs-wrapper">
-              						<div id="gallery" style="width:720px">
-              						</div><!-- #gallery -->
-              					</div><!-- #thumbs-wrapper -->
-
-              				</div><!-- #gallery-wrapper -->
-              			</div><!-- #content -->
-            		</div><!-- #wrapper -->
-              </div>
-
+                <div class="col-md-8" id="galeria"  hidden>
+                  <div id="viewer" class="row" style="background: rgba(0,0,0,0.2);height: 600px;display: flex;justify-content: center;align-items: center;">
+                  </div>
+                  <br>
+                  <div class="row" style="background: rgba(0,0,0,0.2);height: 200px;">
+                    <div class="row">
+                      <h4 class="col-md-4 col-md-offset-4" style="text-align: center;">
+                        <button id="prev" type="button" class="btn btn-link"><i class="fas fa-arrow-left"></i></button>
+                        Página <span id="currpage">0</span> de <span id="pages">0</span>
+                        <button id="next" type="button" class="btn btn-link"><i class="fas fa-arrow-right"></i></button>
+                      </h4>
+                    </div>
+                    <div id="thumbs">
+                      <div class="col-md-1"></div>
+                      <div class="col-md-2" style="text-align: center;" data-n="1"></div>
+                      <div class="col-md-2" style="text-align: center;" data-n="2"></div>
+                      <div class="col-md-2" style="text-align: center;" data-n="3"></div>
+                      <div class="col-md-2" style="text-align: center;" data-n="4"></div>
+                      <div class="col-md-2" style="text-align: center;" data-n="5"></div>
+                      <div class="col-md-1"></div>
+                    </div>
+                  </div>
+                </div>
 
                 <!-- Detalles del AE seleccionado -->
                 <div class="col-md-4" style="float:right">

@@ -1,21 +1,3 @@
-// some extra interface stuff... pay no attention to the man behind the curtain
-var gallery = $('#gallery-wrapper'), setup = $('#setup-wrapper');
-setup.hide();
-$('#show-setup').click(function(){
-  gallery.fadeOut(400,function(){
-    setup.fadeIn();
-  });
-  return false;
-});
-$('#show-gallery').click(function(){
-  setup.fadeOut(400,function(){
-    gallery.fadeIn();
-  });
-  return false;
-});
-
-$('#nav-wrapper').jfollow('#followbox', 20);
-
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Galería de imágenes');
   $('#wrapper').hide();
@@ -25,25 +7,33 @@ $(document).ready(function(){
 });
 
 $('#btn-buscar').click(function(e) {
+  e.preventDefault();
+  buscar(1);
+});
+
+$('#next').click(function(){
+  buscar(parseInt($('#currpage').text())+1);
+});
+$('#prev').click(function(){
+  buscar(parseInt($('#currpage').text())-1);
+});
+
+function buscar(pagina){
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
         }
     });
 
-    e.preventDefault();
-
-    //elimino todos los divs de los thumbnails (por si si se hizo una búsqueda anterior)
-    $('#gallery').find('div').each(function(index) {
-       $(this).remove();
-     });
-
-    var formData = {
+    const formData = {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         casino: $('#buscadorCasino').val(),
+        page: pagina,
+        size: 5,
     }
 
+    $('#thumbs div[data-n]').empty();
     $.ajax({
         type: 'GET',
         url: '/galeriaImagenesAutoexcluidos/getPathsFotosAutoexcluidos',
@@ -51,12 +41,15 @@ $('#btn-buscar').click(function(e) {
         dataType: 'json',
         async:false,
         success: function(resultados) {
-            $('#wrapper').toggle(resultados.length > 0);
-            for (var i = 0; i < resultados.length; i++) {
-                const id_autoexcluido = resultados[i].id_autoexcluido;
-                const id_importacion = resultados[i].id_importacion;
-                const tipo_archivo = resultados[i].tipo_archivo;
-                const nombre = resultados[i].nombre;
+            $('#galeria').toggle(resultados.pages > 0);
+            $('#currpage').text(parseInt(resultados.page));
+            $('#pages').text(resultados.pages);
+            const data = resultados.data;
+            for (let i = 0; i < data.length; i++) {
+                const id_autoexcluido = data[i].id_autoexcluido;
+                const id_importacion = data[i].id_importacion;
+                const tipo_archivo = data[i].tipo_archivo;
+                const nombre = data[i].nombre;
                 const link = '/autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
@@ -71,40 +64,24 @@ $('#btn-buscar').click(function(e) {
                 const div = $('<div>')
                 .addClass('thumbnail')
                 .append(img)
-                .append($('<center>').append(a).css('padding-top','5px'));
+                .append($('<center>').addClass('row').append(a).css('padding-top','5px'));
 
                 div.click(function(){
                   const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');
                   clickImagenGaleria(id_autoexcluido,big_img,nombre);
                 });
-
-                $('#gallery').append(div);
+                $('#thumbs div[data-n="'+(i+1)+'"]').empty().append(div);
             }
         },
         error: function(data) {
             console.log('Error:', data);
         }
     });
-    $('#gallery').gallery({
-      'rows': 1,
-      'cols': 5
-    });
-    //Reemplazo el IMG que pone por un embed...
-    $('#gallery div:first').click();
-});
+
+    $('#thumbs div[data-n="1"] .thumbnail').click()
+}
 
 function clickImagenGaleria(id,embed,nombre){
-  const max_time = function(src){
-    //Tiempo del request, para aproximar cuanto tarda en cargar la imagen...
-    //Esto es heuristico pero deberia funcionar en la mayoria de los casos.
-    //Ademas que en teoria el browser deberia cachear... por lo que estariamos sobrados
-    const resourceList = window.performance.getEntriesByType("resource");
-    let max_time = -1;
-    resourceList.forEach(r => {
-      if(r.duration > max_time && r.initiatorType == "embed" && r.name==src) max_time = r.duration;
-    });
-    return max_time < 0? 500 : max_time;
-  }
   $.ajax({
     type: 'GET',
     url: '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id,
@@ -134,11 +111,7 @@ function clickImagenGaleria(id,embed,nombre){
         else{//Sin extension
           embed.css('height','100%').css('width','100%');
         }
-        //Le meto un minimo de 500ms por las moscas...
-        const time = Math.max(max_time(embed.attr('src'))*1.25,500);
-        setTimeout(function(){
-          $('#gallery-viewer').empty().append(embed);
-        },time);
+        $('#viewer').empty().append(embed);
     },
     error: function(data) {
         console.log('Error:', data);
