@@ -505,43 +505,12 @@ class AutoexclusionController extends Controller
   public function migrar(){
     DB::transaction(function(){
       $aes = DB::table('ae')->get();
-      /*
-      (1, 'Casino Puerto Santa Fe', 'CSF', 'Santa Fe', 'CSF.jpg'),
-      (2, 'CityCenter Rosario', 'CRO', 'Rosario', 'CRO.jpg'),
-      (3, 'Melincue', 'CME', 'Melincue', 'CME.jpg');
-      */
+
       $rel_cas = [
         1 => 2,
         2 => 3,
         3 => 1
       ];
-  
-      /* provinciaid
-      (1, 'Buenos Aires', 'B'),
-      (2, 'Catamarca', 'K'),
-      (3, 'Chaco', 'H'),
-      (4, 'Chubut', 'U'),
-      (5, 'Ciudad Autónoma de Buenos Aires', 'C'),
-      (6, 'Córdoba', 'X'),
-      (7, 'Corrientes', 'W'),
-      (8, 'Entre Ríos', 'E'),
-      (9, 'Formosa', 'P'),
-      (10, 'Jujuy', 'Y'),
-      (11, 'La Pampa', 'L'),
-      (12, 'La Rioja', 'F'),
-      (13, 'Mendoza', 'M'),
-      (14, 'Misiones', 'N'),
-      (15, 'Neuquen', 'Q'),
-      (16, 'Río Negro', 'R'),
-      (17, 'Salta', 'A'),
-      (18, 'San Juan', 'J'),
-      (19, 'San Luis', 'D'),
-      (20, 'Santa Cruz', 'Z'),
-      (21, 'Santa Fe', 'S'),
-      (22, 'Santiago del Estero', 'G'),
-      (23, 'Tierra del Fuego, Antártida e Islas del Atlántico Sur', 'V'),
-      (24, 'Tucumán', 'T');
-      */
   
       $rel_prov = [
        1 => 'Buenos Aires',

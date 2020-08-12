@@ -30,21 +30,33 @@ class Autoexcluido extends Model
     return $ae->id_autoexcluido == $this->id_autoexcluido;
   }
 
-  //Estado basado en fecha no en el que esta seteado
   public function getEstadoTransicionableAttribute(){
     $estado = $this->estado;
-    $primero = $this->es_primer_ae;
+    //Si esta finalizado no puede cambiar
+    if($estado->id_nombre_estado == 4) return 4;
+    //Si esta vencido no puede cambiar
+    if($estado->id_nombre_estado == 5) return 5;
+
     $factual = date('Y-m-d');
+    $primero = $this->es_primer_ae;
+    //A los estados res983 los trato como si fueran pendiente o vigente.
+    $pdte_val = ($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6);
+    $vigente  = ($estado->id_nombre_estado == 1 || $estado->id_nombre_estado == 7);
     if($primero){
-      if($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6) return 1;//Vigente
-      if($factual > $estado->fecha_cierre_ae) return 5;//Vencido
-      if($factual > $estado->fecha_vencimiento) return 2;//Renovado
-      if($factual > $estado->fecha_renovacion) return 4;//Fin por AE
-      return 1;//Vigente
+      //Validar
+      if($pdte_val) return 1;//Vigente
+      //Si esta renovado y paso la fecha de cierre permito vencer
+      if($estado->id_nombre_estado == 2 && $factual > $estado->fecha_cierre_ae) return 5;
+      //Si esta vigente y paso la fecha del vencimiento permito renovar
+      if($vigente && $factual > $estado->fecha_vencimiento) return 2;
+      //Si esta vigente y paso la fecha de renovacion pero no la de vencimiento, permito finalizar
+      if($vigente && $factual > $estado->fecha_renovacion)  return 4;//Fin por AE
+      //No deberia llegar aca pero lo dejo en el que estaba supongo...
+      return $estado->id_nombre_estado;
     }
-    if($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6) return 2;//Renovado
-    if($factual > $estado->fecha_cierre_ae) return 5; //Vencido
-    return 2; //Renovado
+    if($pdte_val) return 2;//Renovado
+    if(($estado->id_nombre_estado == 2 || $vigente) && $factual > $estado->fecha_cierre_ae) return 5; //Vencido
+    return $estado->id_nombre_estado;
   }
 
   public function contacto(){

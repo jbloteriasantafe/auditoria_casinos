@@ -693,7 +693,7 @@ input[required], select[required]{
                 </div>
                 <div class="col-lg-6">
                   <h5>CAPACITACIÓN</h5>
-                  <select id="infoCapacitacion" class="form-control"  isabled>
+                  <select id="infoCapacitacion" class="form-control" disabled>
                     <option selected="" value="">No ingresado</option>
                     @foreach ($capacitaciones as $capacitacion)
                     <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
