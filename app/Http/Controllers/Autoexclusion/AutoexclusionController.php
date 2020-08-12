@@ -27,7 +27,7 @@ class AutoexclusionController extends Controller
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
       $estados_elegibles = $estados_autoexclusion;
       if(!($usuario->es_superusuario || $usuario->es_administrador))
-        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3);
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
 
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
