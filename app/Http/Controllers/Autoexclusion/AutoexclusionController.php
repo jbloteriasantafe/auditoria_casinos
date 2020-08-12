@@ -99,9 +99,9 @@ class AutoexclusionController extends Controller
         'ae_importacion.foto1','ae_importacion.foto2','ae_importacion.scandni','ae_importacion.solicitud_ae','ae_importacion.solicitud_revocacion','ae_importacion.caratula',
                  'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
         ->join('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
-        ->join('ae_encuesta' , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
-        ->join('ae_importacion', 'ae_datos.id_autoexcluido', '=', 'ae_importacion.id_autoexcluido')
-        ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
+        ->join('ae_encuesta'       , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
+        ->join('ae_importacion'    , 'ae_datos.id_autoexcluido' , '=' , 'ae_importacion.id_autoexcluido')
+        ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->join('casino','ae_estado.id_casino','=','casino.id_casino')
         ->when($sort_by,function($query) use ($sort_by){
@@ -594,7 +594,6 @@ class AutoexclusionController extends Controller
         $importacionbd->foto2                = $ae->foto2;
         $importacionbd->solicitud_ae         = $ae->sol_autoex;
         $importacionbd->solicitud_revocacion = $ae->sol_revoc;
-        //@TODO: falta agregar una caratula?
         $importacionbd->caratula             = $ae->caratula;
         $importacionbd->save();
 
