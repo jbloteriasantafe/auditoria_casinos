@@ -117,7 +117,7 @@ input[required], select[required]{
               </div>
               <div class="col-md-3">
                 <h5>DNI</h5>
-                <input class="form-control" id="buscadorDni" value=""/>
+                <input class="form-control" id="buscadorDni" value="{{$dni}}"/>
               </div>
               <div class="col-md-3">
                 <h5>Estado</h5>
@@ -997,7 +997,7 @@ input[required], select[required]{
 
 @section('scripts')
 <!-- JavaScript paginacion -->
-<script src="js/paginacion.js" charset="utf-8"></script>
+<script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
 <script src="/js/Autoexclusion/index.js" charset="utf-8"></script>
 <!-- JS file -->

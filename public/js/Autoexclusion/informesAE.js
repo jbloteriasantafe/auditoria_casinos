@@ -1,106 +1,30 @@
 $(document).ready(function(){
 
-  $('#dtpFechaAutoexclusionD').datetimepicker({
+  const iso_dtp = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd',
+    format: 'dd/mm/yy',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
     ignoreReadonly: true
-  });
+  };
 
-  $('#dtpFechaAutoexclusionH').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaVencimientoD').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaVencimientoH').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaRevocacionD').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaRevocacionH').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaCierreD').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
-
-  $('#dtpFechaCierreH').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true
-  });
+  $('#dtpFechaAutoexclusionD').datetimepicker(iso_dtp);
+  $('#dtpFechaAutoexclusionH').datetimepicker(iso_dtp);
+  $('#dtpFechaVencimientoD').datetimepicker(iso_dtp);
+  $('#dtpFechaVencimientoH').datetimepicker(iso_dtp);
+  $('#dtpFechaRevocacionD').datetimepicker(iso_dtp);
+  $('#dtpFechaRevocacionH').datetimepicker(iso_dtp);
+  $('#dtpFechaCierreD').datetimepicker(iso_dtp);
+  $('#dtpFechaCierreH').datetimepicker(iso_dtp);
 
   $('#barraMenu').attr('aria-expanded','true');
   $('.tituloSeccionPantalla').text('Informes de Autoexcluidos');
 
   $('#btn-buscar').trigger('click');
-
 });
 
 //PAGINACION
@@ -127,22 +51,32 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         $('#tablaInformesAE th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado', '');
     }
 
+    const iso = function(dtp){
+      //getDate me retorna hoy si esta vacio, lo tengo que verificar
+      if(dtp.find('input').val().length == 0) return "";
+      const date = dtp.data("datetimepicker").getDate();
+      const y = date.getFullYear();
+      const m = date.getMonth()+1;
+      const d = date.getDate();
+      return y + (m<10?'-0':'-') + m + (d<10?'-0':'-') + d;
+    }
+
     var formData = {
-        casino: $('#buscadorCasino').val(),
-        estado: $('#buscadorEstado').val(),
-        apellido: $('#buscadorApellido').val(),
-        dni: $('#buscadorDni').val(),
-        sexo: $('#buscadorSexo').val(),
+        casino:    $('#buscadorCasino').val(),
+        estado:    $('#buscadorEstado').val(),
+        apellido:  $('#buscadorApellido').val(),
+        dni:       $('#buscadorDni').val(),
+        sexo:      $('#buscadorSexo').val(),
         localidad: $('#buscadorLocalidad').val(),
         provincia: $('#buscadorProvincia').val(),
-        fecha_autoexclusion_desde: $('#buscadorFechaAutoexclusionD').val(),
-        fecha_autoexclusion_hasta: $('#buscadorFechaAutoexclusionH').val(),
-        fecha_vencimiento_desde: $('#buscadorFechaVencimientoD').val(),
-        fecha_vencimiento_hasta: $('#buscadorFechaVencimientoH').val(),
-        fecha_revocacion_desde: $('#buscadorFechaRevocacionD').val(),
-        fecha_revocacion_hasta: $('#buscadorFechaRevocacionH').val(),
-        fecha_cierre_desde: $('#buscadorFechaCierreD').val(),
-        fecha_cierre_hasta: $('#buscadorFechaCierreH').val(),
+        fecha_autoexclusion_desde: iso($('#dtpFechaAutoexclusionD')),
+        fecha_autoexclusion_hasta: iso($('#dtpFechaAutoexclusionH')),
+        fecha_vencimiento_desde:   iso($('#dtpFechaVencimientoD')),
+        fecha_vencimiento_hasta:   iso($('#dtpFechaVencimientoH')),
+        fecha_revocacion_desde:    iso($('#dtpFechaRevocacionD')),
+        fecha_revocacion_hasta:    iso($('#dtpFechaRevocacionH')),
+        fecha_cierre_desde:        iso($('#dtpFechaCierreD')),
+        fecha_cierre_hasta:        iso($('#dtpFechaCierreH')),
         page: page_number,
         sort_by: sort_by,
         page_size: page_size,
@@ -209,38 +143,36 @@ function clickIndice(e, pageNumber, tam) {
 }
 
 function generarFilaTabla(unAutoexcluido) {
+    const convertir_fecha = function(fecha){
+      if(fecha === null || fecha.length == 0) return '-';
+      yyyymmdd = fecha.split('-');
+      return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
+    }
     let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
     fila.attr('data-id', unAutoexcluido.id_autoexcluido);
     fila.find('.casino').text(unAutoexcluido.casino);
-    fila.find('.estado').text(unAutoexcluido.estado);
-    fila.find('.apellido').text(unAutoexcluido.apellido);
-    fila.find('.nombres').text(unAutoexcluido.nombres);
-    fila.find('.dni').text(unAutoexcluido.nro_dni);
-    if (unAutoexcluido.id_sexo == 0) {
-      fila.find('.sexo').text('M');
-    }
-    else if (unAutoexcluido.id_sexo == 1) {
-      fila.find('.sexo').text('F');
-    }
-    else {
-      fila.find('.sexo').text('Otro');
-    }
-    fila.find('.localidad').text(unAutoexcluido.nombre_localidad);
-    fila.find('.provincia').text(unAutoexcluido.nombre_provincia);
-    fila.find('.fecha_ae').text(unAutoexcluido.fecha_ae);
-    fila.find('.fecha_vencimiento_primer_periodo').text(unAutoexcluido.fecha_vencimiento);
-    if (unAutoexcluido.fecha_revocacion_ae != null) {fila.find('.fecha_finalizacion').text(unAutoexcluido.fecha_revocacion_ae);}
-    fila.find('.fecha_cierre_ae').text(unAutoexcluido.fecha_cierre_ae);
-    fila.find('button').each(function(idx, c) { $(c).val(unAutoexcluido.id_autoexcluido); });
-    let ver_foto = fila.find('#btnVerFoto').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VER FOTO', 'data-delay': '{"show":"300", "hide":"100"}' });
+    const estado = unAutoexcluido.estado + (unAutoexcluido.estado == unAutoexcluido.puede? ''  : (' ⤻ ' + unAutoexcluido.puede));
+    fila.find('.estado').text(estado).attr('title',estado);
+    fila.find('.apellido').text(unAutoexcluido.apellido).attr('title',unAutoexcluido.apellido);
+    fila.find('.nombres').text(unAutoexcluido.nombres).attr('title',unAutoexcluido.nombres);
+    fila.find('.dni .link').text(unAutoexcluido.nro_dni).attr('href','/autoexclusion/'+unAutoexcluido.nro_dni);
+    fila.find('.dni .btnVerFoto').attr('href','/galeriaImagenesAutoexcluidos/'+unAutoexcluido.nro_dni);
+  
+    fila.find('.localidad').text(unAutoexcluido.nombre_localidad).attr('title',unAutoexcluido.nombre_localidad);
+    fila.find('.provincia').text(unAutoexcluido.nombre_provincia).attr('title',unAutoexcluido.nombre_provincia);
+
+    fila.find('.fecha_ae').text(convertir_fecha(unAutoexcluido.fecha_ae));
+    fila.find('.fecha_vencimiento_primer_periodo').text(convertir_fecha(unAutoexcluido.fecha_vencimiento));
+    fila.find('.fecha_finalizacion').text(convertir_fecha(unAutoexcluido.fecha_revocacion_ae));
+    fila.find('.fecha_cierre_ae').text(convertir_fecha(unAutoexcluido.fecha_cierre_ae));
 
     fila.css('display', 'flow-root');
-
     return fila;
 }
 
-//Boton ver foto 1
-$(document).on('click', '#btnVerFoto', function(e) {
-  const dni = $(this).parent().parent().find('.dni').text();
-  window.open('/galeriaImagenesAutoexcluidos/' + dni, '_blank');
+$("#contenedorFiltros input").on('keypress',function(e){
+  if(e.which == 13) {
+    e.preventDefault();
+    $('#btn-buscar').click();
+  }
 });

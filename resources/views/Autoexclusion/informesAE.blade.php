@@ -59,8 +59,8 @@ background-color: #4CAF50;
 
       <!-- FILTROS DE BÚSQUEDA -->
       <div class="row">
-          <div class="col-md-12">
-              <div id="contenedorFiltros" class="panel panel-default" style="width: 130%">
+          <div>
+              <div id="contenedorFiltros" class="panel panel-default" style="width: 100%">
                 <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
                   <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
                 </div>
@@ -120,7 +120,7 @@ background-color: #4CAF50;
                     <div class="row">
                         <div class="col-md-3">
                           <h5>Fecha de autoexclusión - Desde</h5>
-                          <div class="input-group date" id="dtpFechaAutoexclusionD" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaAutoexclusionD">
                               <input type="text" class="form-control" placeholder="Fecha de autoexclusión (desde)" id="buscadorFechaAutoexclusionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-autoexclusionD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-autoexclusionD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -128,7 +128,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de autoexclusión- Hasta</h5>
-                          <div class="input-group date" id="dtpFechaAutoexclusionH" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaAutoexclusionH">
                               <input type="text" class="form-control" placeholder="Fecha de autoexclusión (hasta)" id="buscadorFechaAutoexclusionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-autoexclusionH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-autoexclusionH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -136,7 +136,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de vencimiento - Desde</h5>
-                          <div class="input-group date" id="dtpFechaVencimientoD" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaVencimientoD">
                               <input type="text" class="form-control" placeholder="Fecha de vencimiento (desde)" id="buscadorFechaVencimientoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-vencimientoD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-vencimientoD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -144,7 +144,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de vencimiento - Hasta</h5>
-                          <div class="input-group date" id="dtpFechaVencimientoH" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaVencimientoH">
                               <input type="text" class="form-control" placeholder="Fecha de vencimiento (hasta)" id="buscadorFechaVencimientoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-vencimientoH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-vencimientoH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -155,7 +155,7 @@ background-color: #4CAF50;
                     <div class="row">
                         <div class="col-md-3">
                           <h5>Fecha de revocación - Desde</h5>
-                          <div class="input-group date" id="dtpFechaRevocacionD" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaRevocacionD">
                               <input type="text" class="form-control" placeholder="Fecha de revocación (desde)" id="buscadorFechaRevocacionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-revocacionD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-revocacionD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -163,7 +163,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de revocación - Hasta</h5>
-                          <div class="input-group date" id="dtpFechaRevocacionH" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaRevocacionH">
                               <input type="text" class="form-control" placeholder="Fecha de revocación (hasta)" id="buscadorFechaRevocacionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-revocacionH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-revocacionH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -171,7 +171,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de cierre autoexclusión - Desde</h5>
-                          <div class="input-group date" id="dtpFechaCierreD" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaCierreD">
                               <input type="text" class="form-control" placeholder="Fecha de cierre AE (desde)" id="buscadorFechaCierreD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-cierreD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-cierreD" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -179,7 +179,7 @@ background-color: #4CAF50;
                         </div>
                         <div class="col-md-3">
                           <h5>Fecha de cierre autoexclusión - Hasta</h5>
-                          <div class="input-group date" id="dtpFechaCierreH" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <div class="input-group date" id="dtpFechaCierreH">
                               <input type="text" class="form-control" placeholder="Fecha de cierre AE (hasta)" id="buscadorFechaCierreH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-cierreH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                               <span id="input-calendar-cierreH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -201,8 +201,8 @@ background-color: #4CAF50;
 
 
       <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default" style="width: 130%">
+        <div>
+          <div class="panel panel-default" style="width: 100%;">
             <div class="panel-heading">
               <h4>LISTADO DE AE</h4>
             </div>
@@ -211,38 +211,37 @@ background-color: #4CAF50;
               <table id="tablaInformesAE" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-1">CASINO</th>
-                    <th class="col-xs-1">ESTADO</th>
-                    <th class="col-xs-1">APELLIDO</th>
-                    <th class="col-xs-1">NOMBRES</th>
-                    <th class="col-xs-1">DNI</th>
-                    <th class="col-xs-1">LOCALIDAD</th>
-                    <th class="col-xs-1">PROVINCIA</th>
-                    <th class="col-xs-1">FECHA AE</th>
-                    <th class="col-xs-1">F. VENCIM.</th>
-                    <th class="col-xs-1">F. REVOCACIÓN</th>
-                    <th class="col-xs-1">F. CIERRE AE </th>
-                    <th class="col-xs-1">FOTO</th>
+                    <th style="width: 5%;" value="ae_estado.id_casino" estado="">CAS<i class="fa fa-sort"></i></th>
+                    <th style="width: 13%;" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
+                    <th style="width: 14%;" value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="ae_datos.nombre_localidad" estado="">LOCALIDAD<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="ae_datos.nombre_provincia" estado="">PROVINCIA<i class="fa fa-sort"></i></th>
+                    <th style="width: 8%;" value="ae_estado.fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
+                    <th style="width: 8%;" value="ae_estado.fecha_vencimiento" estado="">F. VENC<i class="fa fa-sort"></i></th> 
+                    <th style="width: 8%;" value="ae_estado.fecha_revocacion_ae" estado="">F. REVOC<i class="fa fa-sort"></i></th>
+                    <th style="width: 8%;" value="ae_estado.fecha_cierre_ae" estado="">F. CIERRE<i class="fa fa-sort"></i></th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class="filaTabla" style="display: none">
-                    <td class="col-xs-1 casino"></td>
-                    <td class="col-xs-1 estado"></td>
-                    <td class="col-xs-1 apellido"></td>
-                    <td class="col-xs-1 nombres"></td>
-                    <td class="col-xs-1 dni"></td>
-                    <td class="col-xs-1 localidad"></td>
-                    <td class="col-xs-1 provincia"></td>
-
-                    <td class="col-xs-1 fecha_ae"></td>
-                    <td class="col-xs-1 fecha_vencimiento_primer_periodo"></td>
-                    <td class="col-xs-1 fecha_finalizacion"></td>
-                    <td class="col-xs-1 fecha_cierre_ae"></td>
-                    <td class="col-xs-1 foto">
-                      <button id="btnVerFoto" class="btn btn-info planilla" type="button">
-                        <i class="far  fa-fw fa-file-alt"></i></button>
+                    <td style="width: 5%;" class="casino"></td>
+                    <td style="width: 13%;" class="dni" >
+                      <a target="_blank" class="link" title="VER AUTOEXCLUSIÓN">9999</a>
+                      <a target="_blank" class="btnVerFoto btn btn-info planilla" type="button" data-toggle="tooltip" data-placement="top" title="VER FOTO" data-delay="{'show':'300', 'hide':'100'}">
+                        <i class="far  fa-fw fa-images"></i></a>
                       <span></span>
+                    </td>
+                    <td style="width: 14%;" class="estado"></td>
+                    <td style="width: 9%;" class="apellido"></td>
+                    <td style="width: 9%;" class="nombres"></td>
+                    <td style="width: 9%;" class="localidad"></td>
+                    <td style="width: 9%;" class="provincia" ></td>
+                    <td style="width: 8%;" class="fecha_ae" ></td>
+                    <td style="width: 8%;" class="fecha_vencimiento_primer_periodo" ></td>
+                    <td style="width: 8%;" class="fecha_finalizacion" ></td>
+                    <td style="width: 8%;" class="fecha_cierre_ae" ></td>
                     </td>
                   </tr>
                 </tbody>

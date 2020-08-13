@@ -17,6 +17,7 @@ use App\Autoexclusion\Encuesta;
 use App\Autoexclusion\ImportacionAE;
 
 use Illuminate\Support\Facades\DB;
+use App\Autoexclusion as AE;
 
 class InformesAEController extends Controller
 {
@@ -119,7 +120,11 @@ class InformesAEController extends Controller
         $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_hasta];
       }
 
-      $sort_by = $request->sort_by;
+      $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
+      if(!empty($request->sort_by)){
+        $sort_by = $request->sort_by;
+      }
+      
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_estado.*', 'casino.codigo as casino', 'ae_nombre_estado.descripcion as estado')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
@@ -131,6 +136,11 @@ class InformesAEController extends Controller
         ->where($reglas)
         ->paginate($request->page_size);
 
+      $resultados->getCollection()->transform(function ($row){
+        $ae = AE\Autoexcluido::find($row->id_autoexcluido);
+        $row->puede = AE\NombreEstadoAutoexclusion::find($ae->estado_transicionable)->descripcion;
+        return $row;
+      });
       return $resultados;
     }
 }

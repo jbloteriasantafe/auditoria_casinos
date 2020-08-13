@@ -21,7 +21,7 @@ class AutoexclusionController extends Controller
     private static $atributos = [
     ];
 
-    public function index(){
+    public function index($dni = ''){
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
@@ -38,6 +38,7 @@ class AutoexclusionController extends Controller
                                           'estados_elegibles' => $estados_elegibles,
                                           'estados_civiles' => AE\EstadoCivilAE::all(),
                                           'capacitaciones' => AE\CapacitacionAE::all(),
+                                          'dni' => $dni
                                         ]);
     }
 

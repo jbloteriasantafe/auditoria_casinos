@@ -942,10 +942,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             <ul class="subMenu1 collapse" id="informesAutoexcluidos">
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado'))
                               <li>
-                                <div style="color: grey;" id="opcListadoAutoexcluidos" class="opcionesHover" 
-                                @if(false)
+                                <div id="opcListadoAutoexcluidos" class="opcionesHover" 
                                 onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" 
-                                @endif
                                 style="cursor: pointer;">
                                   <span>Listado de AE</span>
                                 </div>

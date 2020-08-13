@@ -894,6 +894,7 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::get('/generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
   Route::get('/generarConstanciaReingreso/{id}','Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
   Route::get('/migrar','Autoexclusion\AutoexclusionController@migrar');
+  Route::get('/{dni?}','Autoexclusion\AutoexclusionController@index');
 });
 
 Route::group(['prefix' => 'vencimientos','middleware' => 'tiene_permiso:ver_seccion_ae_vencimientos'], function () {
