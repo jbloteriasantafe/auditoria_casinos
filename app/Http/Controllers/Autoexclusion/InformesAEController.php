@@ -25,6 +25,7 @@ class InformesAEController extends Controller
     ];
 
     public function todo(){
+      UsuarioController::getInstancia()->agregarSeccionReciente('Listado Autoexcluidos' , 'informesAutoexcluidos');
       $juegos =  DB::table('ae_juego_preferido')->get();
       $ocupaciones =  DB::table('ae_ocupacion')->get();
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
@@ -124,7 +125,7 @@ class InformesAEController extends Controller
       if(!empty($request->sort_by)){
         $sort_by = $request->sort_by;
       }
-      
+
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_estado.*', 'casino.codigo as casino', 'ae_nombre_estado.descripcion as estado')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')

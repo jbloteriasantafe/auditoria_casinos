@@ -233,6 +233,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="autoexclusion"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
                                           @elseif($visitada->ruta == 'galeriaAE')
                                             <a href="galeriaImagenesAutoexcluidos"><i class="fa fa-share fa-2x"></i>@svg('usuario','iconoUsuarios')</a>
+                                          @elseif($visitada->ruta == 'informesAutoexcluidos')
+                                            <a href="informesAutoexcluidos"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoInformesModif')</a>
                                           @endif
                                           <h6>{{$visitada->seccion}}</h6>
                                   </div>
