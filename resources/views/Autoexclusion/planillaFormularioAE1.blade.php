@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <?php
-  function ifempty($s,$val = '#####'){
+  function ifempty($s,$val = 'NOINFORMA'){
     return count($s) > 0? $s : $val;
   }
   ?>
@@ -53,12 +53,12 @@
       <p style="font-size:15px" ><b>ACUERDO:</b></p>
       <p>
         Yo <b>{{$autoexcluido['nombres']}} {{$autoexcluido['apellido']}}</b>, DNI <b>{{$autoexcluido['nro_dni']}}</b>,
-        constituyendo domicilio a los efectos del presente en calle <b>{{$autoexcluido['domicilio']}}</b> Nº <b>{{$autoexcluido['nro_domicilio']}}</b>,
-        {!! is_null($autoexcluido['piso'])? '' : 'Piso <b>'.$autoexcluido['piso'].'</b>,' !!}
-        {!! is_null($autoexcluido['dpto'])? '' : 'Dpto <b>'.$autoexcluido['dpto'].'</b>,' !!}
-        de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>, 
-        {!! is_null($autoexcluido['codigo_postal'])? '' : 'C.P. <b>'.$autoexcluido['codigo_postal'].'</b>,' !!}
-        Teléfono <b>{{$autoexcluido['telefono']}}</b>; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
+        constituyendo domicilio a los efectos del presente en calle <b>{{$autoexcluido['domicilio']}}</b> Nº <b>{{$autoexcluido['nro_domicilio']}}</b>
+        {!! is_null($autoexcluido['piso'])? '' : ', Piso <b>'.$autoexcluido['piso'].'</b>' !!}
+        {!! is_null($autoexcluido['dpto'])? '' : ', Dpto <b>'.$autoexcluido['dpto'].'</b>' !!}
+         de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>
+        {!! is_null($autoexcluido['codigo_postal'])? '' : ', C.P. <b>'.$autoexcluido['codigo_postal'].'</b>' !!}
+        {!! is_null($autoexcluido['telefono'])? '' : ', Teléfono <b>'.$autoexcluido['telefono'].'</b>' !!}; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
         Bingos de la Provincia de Santa Fe, durante el plazo de duración del
         @if($es_primer_ae)
         presente, que se extiende por seis (6) meses desde su suscripción y
