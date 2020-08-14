@@ -539,7 +539,8 @@ class AutoexclusionController extends Controller
        23 => 'Tierra del Fuego, Antártida e Islas del Atlántico Sur',
        24 => 'Tucumán'
       ];
-      
+      //para ver si ya estuvo y ponerlo renovado o vigente
+      $dnis = [];
       foreach($aes as $n => $ae){
         dump($n);
         $aebd = new AE\Autoexcluido;
@@ -564,6 +565,8 @@ class AutoexclusionController extends Controller
         $aebd->id_capacitacion  = is_null($ae->id_capacitacion)? 6 : $ae->id_capacitacion;
         $aebd->save();
 
+        if(!array_key_exists($ae->dni,$dnis)) $dnis[$ae->dni] = $aebd->id_autoexcluido;
+
         $contactobd = new AE\ContactoAE;
         $contactobd->id_autoexcluido  = $aebd->id_autoexcluido;
         $contactobd->nombre_apellido  = $ae->nombrefam;
@@ -576,7 +579,20 @@ class AutoexclusionController extends Controller
 
         $estadobd = new AE\EstadoAE;
         $estadobd->id_autoexcluido     = $aebd->id_autoexcluido;
-        $estadobd->id_nombre_estado    = $ae->id_estado;
+        if($ae->id_estado == 6){//Res 983 pendiente
+          $estadobd->id_nombre_estado  = 3;//pendiente de val
+        }
+        else if($ae->id_estado == 7){//Res 983 Verificado
+          if($dnis[$ae->dni] == $aebd->id_autoexcluido){
+            $estadobd->id_nombre_estado = 1;//Vigente
+          } 
+          else{
+            $estadobd->id_nombre_estado = 2;//Renovado
+          } 
+        }
+        else{
+          $estadobd->id_nombre_estado  = $ae->id_estado;
+        }
         $fecha_renovacion = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 150 days'));
         $fecha_vencimiento = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 180 days'));
         $fecha_cierre_ae = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 365 days'));

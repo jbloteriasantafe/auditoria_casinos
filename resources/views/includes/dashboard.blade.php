@@ -882,7 +882,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         @endif
                       @endif
 
-
+                        @if($usuario['usuario']->es_superusuario)
                         <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_alta'))
                           <li>
@@ -961,6 +961,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                           </li>
                           @endif
+                        @endif
 
 
                           <div class="separadoresMenu">AUTOEXCLUSIÓN (VIEJO)</div>
