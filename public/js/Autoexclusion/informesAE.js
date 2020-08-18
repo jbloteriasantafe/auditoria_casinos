@@ -28,7 +28,7 @@ $(document).ready(function(){
 });
 
 //PAGINACION
-$('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
+$('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true) {
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -86,6 +86,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         type: 'GET',
         url: 'http://' + window.location.host + '/informesAutoexcluidos/buscarAutoexcluidos',
         data: formData,
+        async: async,
         dataType: 'json',
         success: function(resultados) {
             $('#herramientasPaginacion')
@@ -132,14 +133,14 @@ $(document).on('click', '#tablaInformesAE thead tr th[value]', function(e) {
         $('#herramientasPaginacion').getPageSize());
 });
 
-function clickIndice(e, pageNumber, tam) {
+function clickIndice(e, pageNumber, tam,async = true) {
     if (e != null) {
         e.preventDefault();
     }
     var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
     var columna = $('#tablaInformesAE .activa').attr('value');
     var orden = $('#tablaInformesAE .activa').attr('estado');
-    $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden]);
+    $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden,async]);
 }
 
 function generarFilaTabla(unAutoexcluido) {
@@ -176,3 +177,92 @@ $("#contenedorFiltros input").on('keypress',function(e){
     $('#btn-buscar').click();
   }
 });
+
+$('#agregarCSV').click(function(){
+  //Realizo una busqueda sincronica para no agregar mal si esta escrito un filtro pero no hizo click en buscar.
+  clickIndice(null,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize(),false);
+  const e = function(s){
+    return s.length == 0? '\xa0' : s;
+  };
+  const assign = function(obj,s){
+    obj.text(s).attr('title',s);
+  };
+  const fila = $('#tablaCSV tbody .filaTablaCSV').clone().removeClass('filaTablaCSV').css('display','');
+  fila.dblclick(function(){$(this).remove();cargarCSV();});
+  const casino = $('#buscadorCasino').val() == '0'? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
+  assign(fila.find('.casino'),casino);
+  const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
+  assign(fila.find('.estado'),estado);
+  assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
+  assign(fila.find('.dni'),e($('#buscadorDni').val()));
+  assign(fila.find('.sexo'),e($('#buscadorSexo option:selected').val()));
+  assign(fila.find('.localidad'),e($('#buscadorLocalidad').val()));
+  assign(fila.find('.provincia'),e($('#buscadorProvincia').val()));
+  const f_ae = e($('#buscadorFechaAutoexclusionD').val())+' - '+e($('#buscadorFechaAutoexclusionH').val());
+  assign(fila.find('.f_ae'),f_ae.length == 5? '\xa0' : f_ae);
+  const f_v = e($('#buscadorFechaVencimientoD').val())   +' - '+e($('#buscadorFechaVencimientoH').val())
+  assign(fila.find('.f_v'),f_v.length == 5? '\xa0' : f_v);
+  const f_r = e($('#buscadorFechaRevocacionD').val())    +' - '+e($('#buscadorFechaRevocacionH').val());
+  assign(fila.find('.f_r'),f_r.length == 5? '\xa0' : f_r);
+  const f_c = e($('#buscadorFechaCierreD').val())       +' - '+e($('#buscadorFechaCierreH').val());
+  assign(fila.find('.f_c'),f_c.length == 5? '\xa0' : f_c);
+  const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
+  assign(fila.find('.cant'),cant == null? '0' : cant);
+  fila.find('td:contains(\xa0)').css('background','rgba(0,0,0,0.1)');
+  $('#tablaCSV tbody').append(fila);
+  cargarCSV()
+});
+
+$('#limpiarCSV').click(function(e){
+  $('#tablaCSV tbody tr').not('.filaTablaCSV').remove();
+  cargarCSV();
+});
+
+$('#columnasCSV').change(function(){
+  cargarCSV();
+})
+
+function cargarCSV(){
+    const vacio = function(s){
+        return s == '\xa0' || s == '\xa0 - \xa0';
+    }
+    const filas = [];
+    const borrar = $('#columnasCSV').is(':checked');
+    const borrar_col = [];
+    const cabezera = [];
+    $('#tablaCSV thead tr th').each(function(idx,val){
+        cabezera.push($(val).text());
+        borrar_col.push(borrar);
+    });
+    filas.push(cabezera);
+
+    $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(rowidx,val){
+        const f = [];
+        $(val).find('td').each(function(colidx,val2){
+            const t = $(val2).text();
+            borrar_col[colidx] = borrar_col[colidx] && vacio(t);
+            f.push(t);
+        });
+        filas.push(f);
+    });
+
+    transformadas = [];
+    for(const f in filas){
+        const sin_cols_innecesarias = filas[f].filter(function(elem,idx){
+            return !borrar_col[idx];
+        });
+        const vaciado = sin_cols_innecesarias.map(elem => vacio(elem)? '' : ('"'+elem+'"'))
+        transformadas.push(vaciado);
+    }
+
+    let csv = "";
+    transformadas.forEach(function(f){
+        f.join(',');
+        csv += f + '\n';
+    });
+
+    const a = document.getElementById("descargarCSV");
+    const file = new Blob([csv], {type: 'text/csv'});
+    a.href = URL.createObjectURL(file);
+    a.download = 'informeAE.csv';
+}

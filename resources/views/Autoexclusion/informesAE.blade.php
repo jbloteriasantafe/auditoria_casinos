@@ -7,6 +7,7 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
+$usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 ?>
 
 @section('estilos')
@@ -50,6 +51,9 @@ opacity: 1;
 background-color: #4CAF50;
 }
 
+.smalltext{
+  font-size: 95%;
+}
 </style>
 @endsection
 
@@ -72,7 +76,7 @@ background-color: #4CAF50;
                             <select id="buscadorCasino" class="form-control selectCasinos" name="">
                                 <option value="0">-Todos los Casinos-</option>
                                 @foreach ($casinos as $casino)
-                                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}" data-codigo="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -248,51 +252,64 @@ background-color: #4CAF50;
               </table>
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
             </div>
+          </div>
         </div>
-      </div>
-    </div>  <!-- row tabla -->
+      </div>  <!-- row tabla -->
 
-
-      <!--MODAL FINALIZAR AE -->
-      <div class="modal fade" id="modalFinalizarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width: 37%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| FINALIZAR AUTOEXCLUSIÓN</h3>
-                  </div>
-
-                  <div  id="colapsadoCrear" class="collapse in">
-                  <div class="modal-body modalCuerpo">
-                      <div class="row">
-                        <div class="col-md-6">
-                          <h5>FECHA DE FINALIZACIÓN DE AE</h5>
-                          <div class="input-group date" id="dtpFechaFinalizacionAE" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                              <input type="text" class="form-control" placeholder="Fecha de finalización de AE" id="buscadorFechaFinalizacionAE" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                              <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                              <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                          </div>
-                          <br>
-                        </div>
-                        <div class="col-md-6">
-                          <h5>FORMULARIO DE FINALIZACIÓN DE AE</h5>
-                          <input id="formularioFinalizacionAE" type="file" name="formularioFinalizacionAE">
-                          <br>
-                        </div>
-                      </div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-successAceptar" id="btn-finalizar-ae" value="nuevo">FINALIZAR AE</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-      </div>
-
+      @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_despacho)
+      <div class="row">
+        <div class="panel panel-default" style="width: 100%;">
+        <div class="panel-heading">
+          <h4>EXPORTAR</h4>
+          <button type="button" class="btn btn-light" id="agregarCSV">Agregar</button>
+          <button type="button" class="btn btn-light" id="limpiarCSV">Limpiar</button>
+          <input type="checkbox" class="form-check-input" id="columnasCSV" checked>
+          <span>Borrar columnas innecesarias</span>
+          <a type="button" class="btn btn-light" id="descargarCSV">Descargar</a>
+        </div>
+        <div class="panel-body">
+        <table id="tablaCSV" class="table table-fixed tablesorter table-bordered">
+          <thead>
+            <tr>
+              <th class="smalltext" style="width: 4%;">CAS</th>
+              <th class="smalltext" style="width: 7%;">Estado</th>
+              <th class="smalltext" style="width: 7%;">Apellido</th>
+              <th class="smalltext" style="width: 7%;">DNI</th>
+              <th class="smalltext" style="width: 5%;">Sexo</th>
+              <th class="smalltext" style="width: 8%;">Localidad</th>
+              <th class="smalltext" style="width: 8%;">Provincia</th>
+              <th class="smalltext" style="width: 12%;">Fecha AE</th>
+              <th class="smalltext" style="width: 12%;">Fecha Venc.</th> 
+              <th class="smalltext" style="width: 12%;">Fecha Revoc.</th>
+              <th class="smalltext" style="width: 12%;">Fecha Cierre</th>
+              <th class="smalltext" style="width: 6%;" >CANT.</th>
+            </tr>
+          </thead>
+          <tbody style="height: 350px;">
+            <tr class="filaTablaCSV" style="display: none">
+              <td class="smalltext casino"    style="width: 4%;">CAS</td>
+              <td class="smalltext estado"    style="width: 7%;">ESTADO</td>
+              <td class="smalltext apellido"  style="width: 7%;">APELLIDO</td>
+              <td class="smalltext dni"       style="width: 7%;">DNI</td>
+              <td class="smalltext sexo"      style="width: 5%;">S</td>
+              <td class="smalltext localidad" style="width: 8%;">LOC</td>
+              <td class="smalltext provincia" style="width: 8%;">PROV</td>
+              <td class="smalltext f_ae"    style="width: 12%;">Fecha AE</td>
+              <td class="smalltext f_v"     style="width: 12%;">Fecha Venc.</td> 
+              <td class="smalltext f_r"     style="width: 12%;">Fecha Revoc.</td>
+              <td class="smalltext f_c"     style="width: 12%;" >Fecha Cierre</td>
+              <td class="smalltext cant"      style="width: 6%;" >CANT.</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="panel-footer" style="background: white;">
+          <button type="button" class="btn btn-light" id="importarCSV">Importar Busqueda</button>
+        </div>
+        </div>
+      </div>  <!-- row tabla -->
+      @endif
     </div> <!-- row principal -->
-
 
   <!-- token -->
   <meta name="_token" content="{!! csrf_token() !!}" />

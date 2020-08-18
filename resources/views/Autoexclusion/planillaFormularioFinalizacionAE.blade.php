@@ -37,7 +37,7 @@
     <p class="primerEncabezado" style="font-size:13px"><b>Expreso:</b></p>
     <p class="primerEncabezado" style="font-size:13px">
       Que yo, <b>{{$ae['nombres']}} {{$ae['apellido']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
-      con Domiclio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
+      con domicilio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
       Teléfono <b>{{$ae['telefono']}}</b> de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
       <b>{{$ae['nombre_provincia']}}</b>; manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
       solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos de la Provincia de Santa Fe a partir
