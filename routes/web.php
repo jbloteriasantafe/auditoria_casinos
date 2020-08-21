@@ -920,4 +920,5 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('/getPathsFotosAutoexcluidos','Autoexclusion\GaleriaImagenesAutoexcluidosController@getPathsFotosAutoexcluidos');
   Route::get('/getDatosUnAutoexcluido/{id_autoexcluido}','Autoexclusion\GaleriaImagenesAutoexcluidosController@getDatosUnAutoexcluido');
   Route::get('/{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
+  Route::get('/mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
 });

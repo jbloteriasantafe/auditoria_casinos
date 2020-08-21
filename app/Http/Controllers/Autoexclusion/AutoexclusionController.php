@@ -363,6 +363,13 @@ class AutoexclusionController extends Controller
       'caratula' => 'solicitudes'
     ];
 
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if($user->es_casino_ae){
+      $paths = [
+        'foto1' => 'fotos', 'foto2' => 'fotos'
+      ];
+    }
+
     $path = $pathCons;
     if(array_key_exists($tipo_archivo,$paths)){
       $path = $path . $paths[$tipo_archivo] . '/' . $imp->{$tipo_archivo};

@@ -672,6 +672,11 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                         @endif
 
                         <li>
+                            @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,
+                              [
+                              'm_gestionar_juegos_mesas','m_gestionar_mesas','m_buscar_aperturas','m_ver_seccion_apuestas','m_ver_seccion_informe_fiscalizadores'
+                              ]
+                            ))
                             <div id="barraMesas" class="opcionesHover" data-target="#mesasPanio" data-toggle="collapse" href="#">
                                 <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
@@ -681,7 +686,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 </span>
                                 <span>Mesas de paño</span>
                             </div>
-
                             <!-- SEGUNDO NIVEL -->
                             <ul class="subMenu1 collapse" id="mesasPanio">
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_gestionar_juegos_mesas'))
@@ -698,11 +702,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 </div>
                               </li>
                               @endif
+                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_buscar_aperturas'))
                               <li>
                                 <div id="opcAperturas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/aperturas'" href="#" style="cursor: pointer;">
                                   <span>Cierres y Aperturas</span>
                                 </div>
                               </li>
+                              @endif
                               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_apuestas'))
                               <li>
                                 <div id="opcApuestas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/apuestas'" href="#" style="cursor: pointer;">
@@ -717,12 +723,16 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 </div>
                               </li>
                               @endif
-
                             </ul>
+                            @endif
                         </li>
 
 
                         <li>
+                            @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,
+                            [
+                              'ver_seccion_sesion_relevamientos','importar_bingo','reporte_estado_bingo','reporte_estado_bingo','reporte_diferencia_bingo'
+                            ]))
                             <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
                               <span class="flechita">
                                   <i class="fa fa-angle-right"></i>
@@ -762,6 +772,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               </li>
                               @endif
                             </ul>
+                            @endif
                           </li>
 
 

@@ -17,7 +17,7 @@ class Usuario extends Model
     protected $primaryKey = 'id_usuario';
     protected $visible = array('id_usuario','user_name','nombre','email', 'dni' ,'ultimos_visitados');
     protected $hidden = array('imagen','password','token');
-    protected $appends = array('es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador','es_control','es_despacho');
+    protected $appends = array('es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador','es_control','es_despacho','es_casino_ae');
 
     //en cierres y aperturas de mesas
     public function getEliminaCyaAttribute(){
@@ -54,6 +54,10 @@ class Usuario extends Model
 
     public function getEsDespachoAttribute(){
       return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',6)->get()) > 0);
+    }
+
+    public function getEsCasinoAeAttribute(){
+      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',9)->get()) > 0);
     }
 
     public function relevamientos_apuestas(){

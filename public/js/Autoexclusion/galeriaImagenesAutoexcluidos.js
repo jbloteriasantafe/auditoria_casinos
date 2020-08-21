@@ -50,7 +50,7 @@ function buscar(pagina){
                 const id_importacion = data[i].id_importacion;
                 const tipo_archivo = data[i].tipo_archivo;
                 const nombre = data[i].nombre;
-                const link = '/autoexclusion/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
+                const link = '/galeriaImagenesAutoexcluidos/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)

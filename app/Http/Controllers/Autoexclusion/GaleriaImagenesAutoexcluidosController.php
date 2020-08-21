@@ -70,41 +70,41 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.foto2')->whereRaw('LENGTH(ae_importacion.foto2) > 0');
 
-      $resultados_sol_ae = DB::table('ae_datos')
+      $count =  (clone $resultados_foto1)->count();
+      $count += (clone $resultados_foto2)->count();
+      $union = $resultados_foto1->union($resultados_foto2);
+      
+      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      if(!$user->es_casino_ae){
+        $resultados_sol_ae = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_ae' as tipo_archivo,ae_importacion.solicitud_ae as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_ae')->whereRaw('LENGTH(ae_importacion.solicitud_ae) > 0');
-
-      $resultados_sol_rev = DB::table('ae_datos')
+        $resultados_sol_rev = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'solicitud_revocacion' as tipo_archivo,ae_importacion.solicitud_revocacion as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.solicitud_revocacion')->whereRaw('LENGTH(ae_importacion.solicitud_revocacion) > 0');
-
-      $resultados_dni = DB::table('ae_datos')
+        $resultados_dni = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'scandni' as tipo_archivo,ae_importacion.scandni as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.scandni')->whereRaw('LENGTH(ae_importacion.scandni) > 0');
-
-      $resultados_caratula = DB::table('ae_datos')
+        $resultados_caratula = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_importacion.id_importacion,'caratula' as tipo_archivo,ae_importacion.caratula as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.caratula')->whereRaw('LENGTH(ae_importacion.caratula) > 0');
+        $count += (clone $resultados_sol_ae)->count();
+        $count += (clone $resultados_sol_rev)->count();
+        $count += (clone $resultados_dni)->count();
+        $count += (clone $resultados_caratula)->count();
+        $union = $union->union($resultados_sol_ae)
+        ->union($resultados_sol_rev)->union($resultados_dni)->union($resultados_caratula);
+      }
       
-      $count =  (clone $resultados_foto1)->count();
-      $count += (clone $resultados_foto2)->count();
-      $count += (clone $resultados_sol_ae)->count();
-      $count += (clone $resultados_sol_rev)->count();
-      $count += (clone $resultados_dni)->count();
-      $count += (clone $resultados_caratula)->count();
       $pages = ceil($count/floatval($request->size));
-
-      $union = $resultados_foto1->union($resultados_foto2)->union($resultados_sol_ae)
-      ->union($resultados_sol_rev)->union($resultados_dni)->union($resultados_caratula);
-
       $page = $request->page;
       $page = ($page < 1)? 1 : $page;
       $page = ($page > $pages)? $pages : $page;
