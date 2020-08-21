@@ -42,6 +42,7 @@ class InformesAEController extends Controller
 
 
     public function buscarAutoexcluidos(Request $request){
+      AutoexclusionController::getInstancia()->actualizarVencidosRenovados();
       $reglas = Array();
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 

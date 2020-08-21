@@ -41,6 +41,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
     }
 
     public function getPathsFotosAutoexcluidos (Request $request) {
+      AutoexclusionController::getInstancia()->actualizarVencidosRenovados();
       $reglas = Array();
 
       //filtro de búsqueda por apellido

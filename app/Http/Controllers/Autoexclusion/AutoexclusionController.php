@@ -21,6 +21,14 @@ class AutoexclusionController extends Controller
     private static $atributos = [
     ];
 
+    private static $instance;
+    public static function getInstancia(){
+      if (!isset(self::$instance)){
+          self::$instance = new AutoexclusionController();
+      }
+      return self::$instance;
+    }
+
     public function index($dni = ''){
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -44,6 +52,7 @@ class AutoexclusionController extends Controller
 
     //Función para buscar los autoexcluidos existentes en el sistema
     public function buscarAutoexcluidos(Request $request){
+      $this->actualizarVencidosRenovados();
       $reglas = Array();
 
       //filtro de búsqueda por apellido
@@ -508,6 +517,35 @@ class AutoexclusionController extends Controller
     $estado->id_nombre_estado = $id_estado;
     $estado->save();
     return 1;
+  }
+
+  //Esta funcion se fija sobre todos los AE los que estan para cambiar a vencido/renovado y lo hace
+  //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
+  public function actualizarVencidosRenovados(){
+    DB::transaction(function (){
+      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7]);
+      foreach($vigentes as $v){
+        $ae = $v->ae;
+        $nuevo_estado = $ae->estado_transicionable;
+        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
+        if($nuevo_estado == 2){//Renovado
+          $v->id_nombre_estado = 2;
+          $v->save();
+        }
+      }
+    });
+    DB::transaction(function (){
+      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7]);
+      foreach($renovados as $r){
+        $ae = $r->ae;
+        $nuevo_estado = $ae->estado_transicionable;
+        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
+        if($nuevo_estado == 5){//Vencido
+          $r->id_nombre_estado = 5;
+          $r->save();
+        }
+      }
+    });
   }
 
   public function migrar(){
