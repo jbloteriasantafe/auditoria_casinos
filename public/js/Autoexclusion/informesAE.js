@@ -188,14 +188,15 @@ $('#agregarCSV').click(function(){
     obj.text(s).attr('title',s);
   };
   const fila = $('#tablaCSV tbody .filaTablaCSV').clone().removeClass('filaTablaCSV').css('display','');
-  fila.dblclick(function(){$(this).remove();cargarCSV();});
-  const casino = $('#buscadorCasino').val() == '0'? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
+  fila.dblclick(function(){$(this).remove();exportarCSV();});
+  const casino = $('#buscadorCasino').val() == ''? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
   assign(fila.find('.casino'),casino);
   const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
   assign(fila.find('.estado'),estado);
   assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
   assign(fila.find('.dni'),e($('#buscadorDni').val()));
-  assign(fila.find('.sexo'),e($('#buscadorSexo option:selected').val()));
+  const sexo = $('#buscadorSexo').val() == ''? '\xa0' : $('#buscadorSexo option:selected').text();
+  assign(fila.find('.sexo'),e(sexo));
   assign(fila.find('.localidad'),e($('#buscadorLocalidad').val()));
   assign(fila.find('.provincia'),e($('#buscadorProvincia').val()));
   const f_ae = e($('#buscadorFechaAutoexclusionD').val())+' - '+e($('#buscadorFechaAutoexclusionH').val());
@@ -208,21 +209,36 @@ $('#agregarCSV').click(function(){
   assign(fila.find('.f_c'),f_c.length == 5? '\xa0' : f_c);
   const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
   assign(fila.find('.cant'),cant == null? '0' : cant);
-  fila.find('td:contains(\xa0)').css('background','rgba(0,0,0,0.1)');
+  fila.find('td').filter(function () { return $(this).text() == '\xa0';}).css('background','rgba(0,0,0,0.1)');
   $('#tablaCSV tbody').append(fila);
-  cargarCSV()
+  exportarCSV()
 });
 
 $('#limpiarCSV').click(function(e){
   $('#tablaCSV tbody tr').not('.filaTablaCSV').remove();
-  cargarCSV();
+  exportarCSV();
 });
 
 $('#columnasCSV').change(function(){
-  cargarCSV();
-})
+  exportarCSV();
+});
 
-function cargarCSV(){
+$('#importarCSV').click(function(){
+    $('#importarCSVinput').click();
+});
+
+$('#importarCSVinput').change(function(){
+    const archivos = $('#importarCSVinput')[0].files;
+    if(archivos.length == 0) return;
+    const csv = archivos[0];
+    const reader = new FileReader();
+    reader.onload = function(){
+        importarCSV(reader.result);
+    }
+    reader.readAsBinaryString(csv);
+});
+
+function exportarCSV(){
     const vacio = function(s){
         return s == '\xa0' || s == '\xa0 - \xa0';
     }
@@ -266,3 +282,80 @@ function cargarCSV(){
     a.href = URL.createObjectURL(file);
     a.download = 'informeAE.csv';
 }
+
+function importarCSV(s){
+    $('#limpiarCSV').click();
+    s = s.replace(/\r\n/g,'\n');//Saco el retorno de linea de Windows
+    let lines = s.split('\n');
+    if(lines.length == 0) return;
+    const colnames = lines[0].split(',');
+    const tablecols = $('#tablaCSV thead tr');
+    const colidxs = {};
+    // Nota: Las columnas pueden faltar por la opcion de remover columnas, por eso
+    // es necesario este paso
+    for(const idx in colnames){// Saco cual es el numero de la columna
+        const col = colnames[idx].replace(/"/g,'');//Le saco comillas
+        const th = tablecols.find('th:contains('+col+')');
+        if(th.length == 0) continue;//No existe columna con ese nombre
+        const filtro = th.attr('data-busq');
+        const es_fecha = th.is('[fecha]');
+        const attr = th.attr('data-busq-attr');
+        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr};
+    }
+    lines  = lines.slice(1);
+    if(lines.length == 0) return;
+    const to_iso = function(s){
+        const ddmmyy = s.split('/');
+        if(ddmmyy.length < 3) return null;
+        //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
+        return '20'+ddmmyy[2]+'-'+ddmmyy[1]+'-'+ddmmyy[0]+'T00:00:00.000-03:00';
+    }
+    //NOTA: esto tal vez termino siendo artificialmente generico, capaz era mejor hardcodear cada opcion en un switch
+    for(const lineidx in lines){
+        if(lines[lineidx].length == 0) continue;
+        const cols = lines[lineidx].split(',');
+        limpiarFiltros();
+        for(const colidx in cols){
+            if(!colidxs.hasOwnProperty(colidx)) continue;
+            const aux = colidxs[colidx];
+            const text = cols[colidx].replace(/"/g,'');
+            if(aux.es_fecha){
+                const fechas = text.split('-');
+                const desde = to_iso(fechas[0]? fechas[0].replace(/ /g,'') : '');
+                const hasta = to_iso(fechas[1]? fechas[1].replace(/ /g,'') : '');
+                const dtpD = $(aux.filtro+'D');
+                const dtpH = $(aux.filtro+'H');
+                if(desde != null) dtpD.data("datetimepicker").setDate(new Date(desde));
+                if(hasta != null) dtpH.data("datetimepicker").setDate(new Date(hasta));
+            }
+            else{
+                const dom = $(aux.filtro);
+                if(dom.is('select')){
+                    const selval = dom.find('option').filter(function () { //Busco el val del option para setearlo
+                        const seltext = (aux.attr)? $(this).attr(aux.attr) : $(this).text();
+                        return seltext == text; 
+                    }).val();
+                    dom.val(selval);
+                }
+                else if(dom.is('input')){
+                    dom.val(text);
+                }
+            }
+        }
+        $('#agregarCSV').click();
+    }
+}
+
+function limpiarFiltros(){
+    $('#collapseFiltros input').val('');
+    $('#collapseFiltros select').val('')
+}
+
+function mensajeError(msg){
+    $('#mensajeError .textoMensaje').empty();
+    $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
+    $('#mensajeError').hide();
+    setTimeout(function() {
+      $('#mensajeError').show();
+    }, 250);
+  }

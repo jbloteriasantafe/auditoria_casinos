@@ -74,7 +74,7 @@ background-color: #4CAF50;
                         <div class="col-md-4">
                             <h5>Casino</h5>
                             <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                                <option value="0">-Todos los Casinos-</option>
+                                <option value="">-Todos los Casinos-</option>
                                 @foreach ($casinos as $casino)
                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}" data-codigo="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                 @endforeach
@@ -271,18 +271,18 @@ background-color: #4CAF50;
         <table id="tablaCSV" class="table table-fixed tablesorter table-bordered">
           <thead>
             <tr>
-              <th class="smalltext" style="width: 4%;">CAS</th>
-              <th class="smalltext" style="width: 7%;">Estado</th>
-              <th class="smalltext" style="width: 7%;">Apellido</th>
-              <th class="smalltext" style="width: 7%;">DNI</th>
-              <th class="smalltext" style="width: 5%;">Sexo</th>
-              <th class="smalltext" style="width: 8%;">Localidad</th>
-              <th class="smalltext" style="width: 8%;">Provincia</th>
-              <th class="smalltext" style="width: 12%;">Fecha AE</th>
-              <th class="smalltext" style="width: 12%;">Fecha Venc.</th> 
-              <th class="smalltext" style="width: 12%;">Fecha Revoc.</th>
-              <th class="smalltext" style="width: 12%;">Fecha Cierre</th>
-              <th class="smalltext" style="width: 6%;" >CANT.</th>
+              <th class="smalltext" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
+              <th class="smalltext" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
+              <th class="smalltext" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
+              <th class="smalltext" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
+              <th class="smalltext" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
+              <th class="smalltext" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
+              <th class="smalltext" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
+              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
+              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
+              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
+              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
+              <th class="smalltext" style="width: 6%;">CANT.</th>
             </tr>
           </thead>
           <tbody style="height: 350px;">
@@ -305,6 +305,7 @@ background-color: #4CAF50;
         </div>
         <div class="panel-footer" style="background: white;">
           <button type="button" class="btn btn-light" id="importarCSV">Importar Busqueda</button>
+          <input type="file" id="importarCSVinput" style="display: none;" accept=".csv">
         </div>
         </div>
       </div>  <!-- row tabla -->
