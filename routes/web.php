@@ -918,7 +918,7 @@ Route::group(['prefix' => 'informesAutoexcluidos','middleware' => 'tiene_permiso
 
 Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_galeria'], function () {
   Route::get('/getPathsFotosAutoexcluidos','Autoexclusion\GaleriaImagenesAutoexcluidosController@getPathsFotosAutoexcluidos');
-  Route::get('/getDatosUnAutoexcluido/{id_autoexcluido}','Autoexclusion\GaleriaImagenesAutoexcluidosController@getDatosUnAutoexcluido');
+  Route::get('/getDatosUnAutoexcluido/{nro_dni}','Autoexclusion\GaleriaImagenesAutoexcluidosController@getDatosUnAutoexcluido');
   Route::get('/{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
   Route::get('/mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
 });

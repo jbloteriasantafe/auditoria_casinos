@@ -47,6 +47,7 @@ function buscar(pagina){
             const data = resultados.data;
             for (let i = 0; i < data.length; i++) {
                 const id_autoexcluido = data[i].id_autoexcluido;
+                const nro_dni = data[i].nro_dni;
                 const id_importacion = data[i].id_importacion;
                 const tipo_archivo = data[i].tipo_archivo;
                 const nombre = data[i].nombre;
@@ -54,6 +55,7 @@ function buscar(pagina){
                 const img = $('<embed>')
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)
+                .attr('nro-dni',nro_dni)
                 .attr('data-id-importacion',id_importacion)
                 .attr('data-tipo-archivo',tipo_archivo)
                 .attr('data-nombre',nombre)
@@ -68,7 +70,7 @@ function buscar(pagina){
 
                 div.click(function(){
                   const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');
-                  clickImagenGaleria(id_autoexcluido,big_img,nombre);
+                  clickImagenGaleria(nro_dni,big_img,nombre);
                 });
                 $('#thumbs div[data-n="'+(i+1)+'"]').empty().append(div);
             }
@@ -81,10 +83,10 @@ function buscar(pagina){
     $('#thumbs div[data-n="1"] .thumbnail').click()
 }
 
-function clickImagenGaleria(id,embed,nombre){
+function clickImagenGaleria(nro_dni,embed,nombre){
   $.ajax({
     type: 'GET',
-    url: '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + id,
+    url: '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + nro_dni,
     async:false,
     success: function(resultado) {
         let res = resultado[0];
