@@ -563,7 +563,7 @@ function validarDatosPersonales(){
     }
   });
   $('.step2 input[email]').each(function(){
-    if(!$(this).val().includes('@')){
+    if(!$(this).val().includes('@') && $(this).val().length > 0){
       mostrarErrorValidacion($(this) , 'Correo invalido' , false);
       valid = 0;
     }

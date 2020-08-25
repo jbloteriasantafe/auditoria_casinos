@@ -148,7 +148,7 @@ class AutoexclusionController extends Controller
         'ae_datos.nombre_localidad' => 'required|string|max:200',
         'ae_datos.nombre_provincia' => 'required|string|max:200',
         'ae_datos.telefono'         => 'required|string|max:200',
-        'ae_datos.correo'           => 'required|string|max:100',
+        'ae_datos.correo'           => 'nullable|string|max:100',
         'ae_datos.id_ocupacion'     => 'required|integer|exists:ae_ocupacion,id_ocupacion',
         'ae_datos.id_capacitacion'  => 'required|integer|exists:ae_capacitacion,id_capacitacion',
         'ae_datos.id_estado_civil'  => 'required|integer|exists:ae_estado_civil,id_estado_civil',

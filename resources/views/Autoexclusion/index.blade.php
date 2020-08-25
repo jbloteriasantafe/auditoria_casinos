@@ -348,7 +348,7 @@ input[required], select[required]{
                       </div>
                       <div class="col-lg-6">
                         <h5>EMAIL</h5>
-                        <input id="correo" type="text" class="form-control"  placeholder="" value="" required email data-size="100">
+                        <input id="correo" type="text" class="form-control"  placeholder="" value="" email data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>OCUPACIÓN</h5>
