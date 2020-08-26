@@ -905,7 +905,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_vencimientos'))
+                          @if($usuario['usuario']->es_superusuario && AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_vencimientos'))
                           <li>
                             <div style="color: grey;" id="opcVencimientos" class="opcionesHover" 
                             @if(false)
@@ -920,7 +920,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_finalizadas'))
+                          @if($usuario['usuario']->es_superusuario && AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_finalizadas'))
                           <li>
                             <div style="color: grey;" id="opcAutoexclusionesFinalizadas" class="opcionesHover"
                             @if(false) 
