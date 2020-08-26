@@ -61,12 +61,9 @@ function buscar(pagina){
                 .attr('data-nombre',nombre)
                 .attr('src',link +'#toolbar=0');
 
-                const a  = $('<a>').attr('href',link).text('LINK').attr('target','_blank')
-                .css('background-color','white');
                 const div = $('<div>')
                 .addClass('thumbnail')
-                .append(img)
-                .append($('<center>').addClass('row').append(a).css('padding-top','5px'));
+                .append(img);
 
                 div.click(function(){
                   const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');

@@ -424,6 +424,20 @@ function limpiarNull(val){
   return val == null? '' : val;
 }
 
+$('#nro_dni').change(function(){
+  const dni = parseInt($(this).val());
+  //Obtenido regresionando los datos de AE con sus año-mes de nacimiento
+  const añofloat = (dni / 100000.0)*0.1439930709+1939.7556710372;
+  const año = Math.floor(añofloat);
+  const aux = añofloat - año;
+  const mes = Math.floor(aux*11 + 1);
+  const to_iso = function(m,y){
+    //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
+    return y+(m < 10? '-0' : '-')+m+'-01'+'T00:00:00.000-03:00';
+  }
+  const fecha = new Date(to_iso(mes,año));
+  $('#dtpFechaNacimiento').data('datetimepicker').setDate(fecha);
+})
 function validarDNI(){
   if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
     mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);
