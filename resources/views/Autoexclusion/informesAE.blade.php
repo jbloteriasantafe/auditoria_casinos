@@ -267,25 +267,25 @@ background-color: #4CAF50;
           <span>Borrar columnas innecesarias</span>
           <a type="button" class="btn btn-light" id="descargarCSV">Descargar</a>
         </div>
-        <div class="panel-body">
-        <table id="tablaCSV" class="table table-fixed tablesorter table-bordered">
+        <div class="panel-body" style="height: 400px;overflow-y: auto;overflow-x: auto;">
+        <table id="tablaCSV" class="table table-responsive table-bordered">
           <thead>
             <tr>
-              <th class="smalltext" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
-              <th class="smalltext" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
-              <th class="smalltext" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
-              <th class="smalltext" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
-              <th class="smalltext" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
-              <th class="smalltext" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
-              <th class="smalltext" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
-              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
-              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
-              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
-              <th class="smalltext" style="width: 12%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
-              <th class="smalltext" style="width: 6%;">CANT.</th>
+              <th class="smalltext casino" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
+              <th class="smalltext estado" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
+              <th class="smalltext apellido" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
+              <th class="smalltext dni" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
+              <th class="smalltext sexo" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
+              <th class="smalltext localidad" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
+              <th class="smalltext provincia" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
+              <th class="smalltext f_ae" style="width: 12%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
+              <th class="smalltext f_v" style="width: 12%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
+              <th class="smalltext f_r" style="width: 12%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
+              <th class="smalltext f_c" style="width: 12%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
+              <th class="smalltext cant" style="width: 6%;">CANT.</th>
             </tr>
           </thead>
-          <tbody style="height: 350px;">
+          <tbody>
             <tr class="filaTablaCSV" style="display: none">
               <td class="smalltext casino"    style="width: 4%;">CAS</td>
               <td class="smalltext estado"    style="width: 7%;">ESTADO</td>

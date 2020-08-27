@@ -188,6 +188,7 @@ $('#agregarCSV').click(function(){
     obj.text(s).attr('title',s);
   };
   const fila = $('#tablaCSV tbody .filaTablaCSV').clone().removeClass('filaTablaCSV').css('display','');
+  fila.find('.padding').css('display','none');
   fila.dblclick(function(){$(this).remove();exportarCSV();});
   const casino = $('#buscadorCasino').val() == ''? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
   assign(fila.find('.casino'),casino);
@@ -281,6 +282,21 @@ function exportarCSV(){
     const file = new Blob([csv], {type: 'text/csv'});
     a.href = URL.createObjectURL(file);
     a.download = 'informeAE.csv';
+    
+    mostrarColumnas(borrar_col);
+}
+
+
+function mostrarColumnas(hidecols){
+    $('#tablaCSV thead tr th').each(function(idx,elem){
+        console.log(idx);
+        $(elem).css('display',hidecols[idx]? 'none' : '');
+    });
+    $('#tablaCSV tbody tr').not('.filaTablaCSV').each(function(){
+        $(this).find('td').each(function(idx,elem){
+            $(elem).css('display',hidecols[idx]? 'none' : '');
+        })
+    });
 }
 
 function importarCSV(s){
