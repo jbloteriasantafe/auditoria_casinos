@@ -122,6 +122,7 @@ class InformesAEController extends Controller
         $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_hasta];
       }
 
+
       $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
       if(!empty($request->sort_by)){
         $sort_by = $request->sort_by;
@@ -135,8 +136,23 @@ class InformesAEController extends Controller
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
-        ->where($reglas)
-        ->paginate($request->page_size);
+        ->where($reglas);
+
+      if(!empty($request->dia_semanal)){
+        $resultados = $resultados->whereRaw('WEEKDAY(ae_estado.fecha_ae) = ?',$request->dia_semanal - 1);
+      }
+      
+      if(!empty($request->edad_desde) || !empty($request->edad_hasta)){
+        $resultados = $resultados->whereNotNull('ae_datos.fecha_nacimiento');
+      }
+      if(!empty($request->edad_desde)){
+        $resultados = $resultados->whereRaw('TIMESTAMPDIFF(YEAR, ae_datos.fecha_nacimiento, CURDATE()) >= ?',$request->edad_desde);
+      }
+      if(!empty($request->edad_hasta)){
+        $resultados = $resultados->whereRaw('TIMESTAMPDIFF(YEAR, ae_datos.fecha_nacimiento, CURDATE()) <= ?',$request->edad_hasta);
+      }
+
+      $resultados = $resultados->paginate($request->page_size);
 
       $resultados->getCollection()->transform(function ($row){
         $ae = AE\Autoexcluido::find($row->id_autoexcluido);

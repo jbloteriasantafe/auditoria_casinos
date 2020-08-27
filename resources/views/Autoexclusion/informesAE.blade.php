@@ -71,32 +71,50 @@ background-color: #4CAF50;
                 <div id="collapseFiltros" class="panel-collapse collapse">
                   <div class="panel-body">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <h5>Casino</h5>
-                            <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                            <select id="buscadorCasino" class="form-control">
                                 <option value="">-Todos los Casinos-</option>
                                 @foreach ($casinos as $casino)
                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}" data-codigo="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h5>Estado</h5>
-                            <select id="buscadorEstado" class="form-control selectEstado" name="">
+                            <select id="buscadorEstado" class="form-control">
                               <option selected="" value="">- Todos los estados -</option>
                               @foreach ($estados_autoexclusion as $estado)
                                 <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
                               @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h5>Apellido</h5>
                             <input class="form-control" id="buscadorApellido" value=""/>
                         </div>
-
-
-                    </div><br>
-
+                        <div class="col-md-2">
+                          <h5>Día semanal</h5>
+                          <select id="buscadorDia" class="form-control">
+                            <option value="">- Todos los días -</option>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miercoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="7">Domingo</option>
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <h5>Rango etario</h5>
+                          <div class="input-group">
+                              <input id="buscadorRangoEtarioD" class="form-control input-sm" value=""/>
+                              <span class="input-group-btn" style="width:0px;"></span>
+                              <input id="buscadorRangoEtarioH" class="form-control input-sm" value=""/>
+                          </div>
+                        </div>
+                    </div>
                     <div class="row">
                       <div class="col-md-3">
                           <h5>DNI</h5>
@@ -119,8 +137,7 @@ background-color: #4CAF50;
                           <h5>Provincia</h5>
                           <input class="form-control" id="buscadorProvincia" value=""/>
                       </div>
-                    </div><br>
-
+                    </div>
                     <div class="row">
                         <div class="col-md-3">
                           <h5>Fecha de autoexclusión - Desde</h5>
@@ -154,8 +171,7 @@ background-color: #4CAF50;
                               <span id="input-calendar-vencimientoH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                           </div>
                         </div>
-                    </div><br>
-
+                    </div>
                     <div class="row">
                         <div class="col-md-3">
                           <h5>Fecha de revocación - Desde</h5>
@@ -189,8 +205,7 @@ background-color: #4CAF50;
                               <span id="input-calendar-cierreH" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                           </div>
                         </div>
-                  </div><br>
-
+                  </div>
                     <div class="row">
                       <center>
                         <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
