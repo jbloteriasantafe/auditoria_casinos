@@ -19,10 +19,9 @@
 
   <body>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo_portrait.png" width="900" style="margin-left:  -14.5%;">
+        <img src="img/logos/nuevo_color.jpg" width="175">
     </div>
-    <div class="titulo" style="position: absolute;top: 1%;left: 90%;white-space: nowrap;">FECHA PLANILLA</div>
-    <div class="camposInfo" style="position: absolute;left: 92%;white-space: nowrap;"><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></div>
+    <hr style="border-bottom: 0px">
 
     <p style="margin-left: 18.375%;width: 63.25%;margin-right: 18.375%;
     text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">
