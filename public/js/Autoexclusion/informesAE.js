@@ -193,11 +193,21 @@ $('#agregarCSV').click(function(){
   const fila = $('#tablaCSV tbody .filaTablaCSV').clone().removeClass('filaTablaCSV').css('display','');
   fila.find('.padding').css('display','none');
   fila.dblclick(function(){$(this).remove();exportarCSV();});
+
   const casino = $('#buscadorCasino').val() == ''? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
   assign(fila.find('.casino'),casino);
+
   const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
   assign(fila.find('.estado'),estado);
+
   assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
+
+  const dia = $('#buscadorDia').val() == ''? '\xa0' : $('#buscadorDia option:selected').text();
+  assign(fila.find('.dia_semanal'),dia);
+
+  const rango_etario = e($('#buscadorRangoEtarioD').val()) +' - '+ e($('#buscadorRangoEtarioH').val());
+  assign(fila.find('.rango_etario'),rango_etario.length == 5? '\xa0' : rango_etario);
+
   assign(fila.find('.dni'),e($('#buscadorDni').val()));
   const sexo = $('#buscadorSexo').val() == ''? '\xa0' : $('#buscadorSexo option:selected').text();
   assign(fila.find('.sexo'),e(sexo));
@@ -239,7 +249,7 @@ $('#importarCSVinput').change(function(){
     reader.onload = function(){
         importarCSV(reader.result);
     }
-    reader.readAsBinaryString(csv);
+    reader.readAsText(csv);
 });
 
 function exportarCSV(){
@@ -319,7 +329,7 @@ function importarCSV(s){
         const filtro = th.attr('data-busq');
         const es_fecha = th.is('[fecha]');
         const attr = th.attr('data-busq-attr');
-        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr};
+        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr,rango: th.is('[rango]')};
     }
     lines  = lines.slice(1);
     if(lines.length == 0) return;
@@ -347,21 +357,29 @@ function importarCSV(s){
                 if(desde != null) dtpD.data("datetimepicker").setDate(new Date(desde));
                 if(hasta != null) dtpH.data("datetimepicker").setDate(new Date(hasta));
             }
+            else if(aux.rango){
+                const vals = text.split('-');
+                cargarVal($(aux.filtro+'D'),aux.attr,vals[0]? vals[0] : '');
+                cargarVal($(aux.filtro+'H'),aux.attr,vals[1]? vals[1] : '');
+            }
             else{
-                const dom = $(aux.filtro);
-                if(dom.is('select')){
-                    const selval = dom.find('option').filter(function () { //Busco el val del option para setearlo
-                        const seltext = (aux.attr)? $(this).attr(aux.attr) : $(this).text();
-                        return seltext == text; 
-                    }).val();
-                    dom.val(selval);
-                }
-                else if(dom.is('input')){
-                    dom.val(text);
-                }
+                cargarVal($(aux.filtro),aux.attr,text);
             }
         }
         $('#agregarCSV').click();
+    }
+}
+
+function cargarVal(dom,attr,text){
+    if(dom.is('select')){
+        const selval = dom.find('option').filter(function () { //Busco el val del option para setearlo
+            const seltext = (attr)? $(this).attr(attr) : $(this).text();
+            return seltext == text; 
+        }).val();
+        dom.val(selval);
+    }
+    else if(dom.is('input')){
+        dom.val(text);
     }
 }
 

@@ -289,14 +289,16 @@ background-color: #4CAF50;
               <th class="smalltext casino" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
               <th class="smalltext estado" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
               <th class="smalltext apellido" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
+              <th class="smalltext dia_semanal" style="width: 4%" data-busq="#buscadorDia">Día</th>
+              <th class="smalltext rango_etario" style="width: 4%" data-busq="#buscadorRangoEtario" rango>Rango Etario</th>
               <th class="smalltext dni" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
               <th class="smalltext sexo" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
               <th class="smalltext localidad" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
               <th class="smalltext provincia" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
-              <th class="smalltext f_ae" style="width: 12%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
-              <th class="smalltext f_v" style="width: 12%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
-              <th class="smalltext f_r" style="width: 12%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
-              <th class="smalltext f_c" style="width: 12%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
+              <th class="smalltext f_ae" style="width: 10%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
+              <th class="smalltext f_v" style="width: 10%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
+              <th class="smalltext f_r" style="width: 10%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
+              <th class="smalltext f_c" style="width: 10%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
               <th class="smalltext cant" style="width: 6%;">CANT.</th>
             </tr>
           </thead>
@@ -305,14 +307,16 @@ background-color: #4CAF50;
               <td class="smalltext casino"    style="width: 4%;">CAS</td>
               <td class="smalltext estado"    style="width: 7%;">ESTADO</td>
               <td class="smalltext apellido"  style="width: 7%;">APELLIDO</td>
+              <td class="smalltext dia_semanal" style="width: 4%">DIA</td>
+              <td class="smalltext rango_etario" style="width: 4%">00-99</td>
               <td class="smalltext dni"       style="width: 7%;">DNI</td>
               <td class="smalltext sexo"      style="width: 5%;">S</td>
               <td class="smalltext localidad" style="width: 8%;">LOC</td>
               <td class="smalltext provincia" style="width: 8%;">PROV</td>
-              <td class="smalltext f_ae"    style="width: 12%;">Fecha AE</td>
-              <td class="smalltext f_v"     style="width: 12%;">Fecha Venc.</td> 
-              <td class="smalltext f_r"     style="width: 12%;">Fecha Revoc.</td>
-              <td class="smalltext f_c"     style="width: 12%;" >Fecha Cierre</td>
+              <td class="smalltext f_ae"    style="width: 10%;">Fecha AE</td>
+              <td class="smalltext f_v"     style="width: 10%;">Fecha Venc.</td> 
+              <td class="smalltext f_r"     style="width: 10%;">Fecha Revoc.</td>
+              <td class="smalltext f_c"     style="width: 10%;" >Fecha Cierre</td>
               <td class="smalltext cant"      style="width: 6%;" >CANT.</td>
             </tr>
           </tbody>
