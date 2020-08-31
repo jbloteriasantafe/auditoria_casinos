@@ -972,7 +972,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           </li>
                           @endif
 
-
+                          <!-- Escondo el enlace al sistema viejo por las moscas que se necesite -->
+                          @if(false)
                           <div class="separadoresMenu">AUTOEXCLUSIÓN (VIEJO)</div>
                           <li>
                             <div id="" class="opcionesHover"  href="">
@@ -987,6 +988,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               </a>
                             </div>
                           </li>
+                          @endif
 
 
                         @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
