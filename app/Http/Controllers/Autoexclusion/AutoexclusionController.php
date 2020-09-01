@@ -105,11 +105,9 @@ class AutoexclusionController extends Controller
       }
 
       $resultados = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_datos_contacto.*', 'ae_encuesta.*', 'ae_estado.*', 
+        ->select('ae_datos.*', 'ae_estado.*', 
         'ae_importacion.foto1','ae_importacion.foto2','ae_importacion.scandni','ae_importacion.solicitud_ae','ae_importacion.solicitud_revocacion','ae_importacion.caratula',
                  'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
-        ->join('ae_datos_contacto' , 'ae_datos.id_autoexcluido' , '=' , 'ae_datos_contacto.id_autoexcluido')
-        ->join('ae_encuesta'       , 'ae_datos.id_autoexcluido' , '=' , 'ae_encuesta.id_autoexcluido')
         ->join('ae_importacion'    , 'ae_datos.id_autoexcluido' , '=' , 'ae_importacion.id_autoexcluido')
         ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
@@ -164,6 +162,7 @@ class AutoexclusionController extends Controller
         'ae_estado.fecha_vencimiento' => 'required|date',
         'ae_estado.fecha_renovacion'  => 'required|date',
         'ae_estado.fecha_cierre_ae'   => 'required|date',
+        'hace_encuesta'                         => 'required|boolean',
         'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
         'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
         'ae_encuesta.veces'                     => 'nullable|integer',
@@ -190,6 +189,9 @@ class AutoexclusionController extends Controller
         }
         if($user->es_fiscalizador && $estado != 3){
           $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
+        }
+        if($user->es_fiscalizador && !$data['hace_encuesta']){
+          $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
         }
 
         $id_ae = $data['ae_datos']['id_autoexcluido'];
@@ -253,15 +255,22 @@ class AutoexclusionController extends Controller
         $estado->save();
 
         $encuesta = $ae->encuesta;
-        if(is_null($encuesta)){
-          $encuesta = new AE\Encuesta;
-          $encuesta->id_autoexcluido = $ae->id_autoexcluido;
+        if($request['hace_encuesta']){
+          if(is_null($encuesta)){
+            $encuesta = new AE\Encuesta;
+            $encuesta->id_autoexcluido = $ae->id_autoexcluido;
+          }
+          $ae_encuesta = $request['ae_encuesta'];
+          foreach($ae_encuesta as $key => $val){
+            $encuesta->{$key} = $val;
+          }
+          $encuesta->save();
         }
-        $ae_encuesta = $request['ae_encuesta'];
-        foreach($ae_encuesta as $key => $val){
-          $encuesta->{$key} = $val;
+        else{
+          if(!is_null($encuesta)){
+            $encuesta->delete();
+          }
         }
-        $encuesta->save();
         $this->subirImportacionArchivos($ae,$request['ae_importacion']);
       });
       return ['nuevo' => $esNuevo];
@@ -433,7 +442,8 @@ class AutoexclusionController extends Controller
         'club_jugadores' => -1,
         'autocontrol_juego' => -1,
         'recibir_informacion' => -1,
-        'medio_recibir_informacion' => -1
+        'medio_recibir_informacion' => -1,
+        'observacion' => ''
       );
     }
     $contacto = $autoexcluido->contacto;
@@ -544,135 +554,6 @@ class AutoexclusionController extends Controller
           $r->id_nombre_estado = 5;
           $r->save();
         }
-      }
-    });
-  }
-
-  public function migrar(){
-    DB::transaction(function(){
-      $aes = DB::table('ae')->get();
-
-      $rel_cas = [
-        1 => 2,
-        2 => 3,
-        3 => 1
-      ];
-  
-      $rel_prov = [
-       1 => 'Buenos Aires',
-       2 => 'Catamarca',
-       3 => 'Chaco',
-       4 => 'Chubut',
-       5 => 'Ciudad Autónoma de Buenos Aires',
-       6 => 'Córdoba',
-       7 => 'Corrientes',
-       8 => 'Entre Ríos',
-       9 => 'Formosa',
-       10 => 'Jujuy',
-       11 => 'La Pampa',
-       12 => 'La Rioja',
-       13 => 'Mendoza',
-       14 => 'Misiones',
-       15 => 'Neuquen',
-       16 => 'Río Negro',
-       17 => 'Salta',
-       18 => 'San Juan',
-       19 => 'San Luis',
-       20 => 'Santa Cruz',
-       21 => 'Santa Fe',
-       22 => 'Santiago del Estero',
-       23 => 'Tierra del Fuego, Antártida e Islas del Atlántico Sur',
-       24 => 'Tucumán'
-      ];
-      //para ver si ya estuvo y ponerlo renovado o vigente
-      $dnis = [];
-      foreach($aes as $n => $ae){
-        dump($n);
-        $aebd = new AE\Autoexcluido;
-        $aebd->apellido         = $ae->apellido;
-        $aebd->nombres          = $ae->nombres;
-        $aebd->nombre_localidad = $ae->localidad;
-        $aebd->nombre_provincia = $rel_prov[$ae->provincia_id];
-        $aebd->nro_domicilio    = $ae->nrodomic;
-        $aebd->piso             = null;
-        $aebd->dpto             = null;
-        $aebd->codigo_postal    = null;
-        $aebd->nro_dni          = $ae->dni;
-        $aebd->telefono         = $ae->tel;
-        $aebd->correo           = $ae->email;
-        $aebd->domicilio        = $ae->domicilio;
-        if($ae->sexo == 'M')      $aebd->id_sexo = 0;
-        elseif ($ae->sexo == 'F') $aebd->id_sexo = 1;
-        else                      $aebd->id_sexo = -1;
-        $aebd->fecha_nacimiento = $ae->fecha_nacimiento;
-        $aebd->id_ocupacion     = is_null($ae->id_ocup)? 12 : $ae->id_ocup;
-        $aebd->id_estado_civil  = is_null($ae->id_estcivil)? 6 : $ae->id_estcivil;
-        $aebd->id_capacitacion  = is_null($ae->id_capacitacion)? 6 : $ae->id_capacitacion;
-        $aebd->save();
-
-        if(!array_key_exists($ae->dni,$dnis)) $dnis[$ae->dni] = $aebd->id_autoexcluido;
-
-        $contactobd = new AE\ContactoAE;
-        $contactobd->id_autoexcluido  = $aebd->id_autoexcluido;
-        $contactobd->nombre_apellido  = $ae->nombrefam;
-        $contactobd->domicilio        = null;
-        $contactobd->nombre_localidad = null;
-        $contactobd->nombre_provincia = null;
-        $contactobd->telefono         = $ae->telfam;
-        $contactobd->vinculo          = $ae->rolfam;
-        $contactobd->save();
-
-        $estadobd = new AE\EstadoAE;
-        $estadobd->id_autoexcluido     = $aebd->id_autoexcluido;
-        if($ae->id_estado == 6){//Res 983 pendiente
-          $estadobd->id_nombre_estado  = 3;//pendiente de val
-        }
-        else if($ae->id_estado == 7){//Res 983 Verificado
-          if($dnis[$ae->dni] == $aebd->id_autoexcluido){
-            $estadobd->id_nombre_estado = 1;//Vigente
-          } 
-          else{
-            $estadobd->id_nombre_estado = 2;//Renovado
-          } 
-        }
-        else{
-          $estadobd->id_nombre_estado  = $ae->id_estado;
-        }
-        $fecha_renovacion = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 150 days'));
-        $fecha_vencimiento = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 180 days'));
-        $fecha_cierre_ae = date('Y-m-d',strtotime($ae->fecha_ae_orig.' + 365 days'));
-        $estadobd->fecha_ae            = $ae->fecha_ae_orig;
-        $estadobd->fecha_renovacion    = $fecha_renovacion;
-        $estadobd->fecha_vencimiento   = $fecha_vencimiento;
-        $estadobd->fecha_cierre_ae     = $fecha_cierre_ae;
-        $estadobd->fecha_revocacion_ae = $ae->fecha_revoc;
-        $estadobd->id_usuario          = null;
-        $estadobd->id_casino           = $rel_cas[$ae->id_cas];
-        $estadobd->save();
-
-        $importacionbd = new AE\ImportacionAE;
-        $importacionbd->id_autoexcluido      = $aebd->id_autoexcluido;
-        $importacionbd->foto1                = $ae->foto1;
-        $importacionbd->foto2                = $ae->foto2;
-        $importacionbd->solicitud_ae         = $ae->sol_autoex;
-        $importacionbd->solicitud_revocacion = $ae->sol_revoc;
-        $importacionbd->caratula             = $ae->caratula;
-        $importacionbd->save();
-
-        $encuestabd = new AE\Encuesta;
-        $encuestabd->id_autoexcluido = $aebd->id_autoexcluido;
-        $encuestabd->id_juego_preferido = $ae->id_tipojuego;
-        $encuestabd->id_frecuencia_asistencia = $ae->id_frecuencia;
-        $encuestabd->veces = $ae->cant_frecuencia;
-        $encuestabd->tiempo_jugado = $ae->horas_jug;
-        $encuestabd->club_jugadores = $ae->club_jugadores == 'NO CONTESTA' ? null : $ae->club_jugadores;
-        $encuestabd->juego_responsable = $ae->conoce_juresp == 'NO CONTESTA'? null : $ae->conoce_juresp;
-        $encuestabd->autocontrol_juego = $ae->decision_autoex == 'NO CONTESTA'? null : $ae->decision_autoex;
-        $encuestabd->recibir_informacion = $ae->recib_info == 'NO CONTESTA'? null : $ae->recib_info;
-        $encuestabd->medio_recibir_informacion = $ae->medio_recib_info;
-        $encuestabd->como_asiste = $ae->id_tipoasist == 3? null : $ae->id_tipoasist;
-        $encuestabd->observacion = null;
-        $encuestabd->save();
       }
     });
   }

@@ -496,8 +496,12 @@ input[required], select[required]{
                   </div>
 
                   <div class="page">
-                    <div class="col-lg-12">
+                    <div class="col-lg-12 no_esconder">
                       <h6>Encuesta <span style="font-size: 12px">(OPCIONAL)</span></h6>
+                      <div {{($usuario->es_superusuario || $usuario->es_administrador)? '' : 'hidden'}}>
+                        Hace encuesta
+                        <input type="checkbox" class="form-check-input" id="hace_encuesta" checked >
+                      </div>
                     </div>
                     <div class="col-lg-3">
                       <h5>JUEGO PREFERIDO</h5>

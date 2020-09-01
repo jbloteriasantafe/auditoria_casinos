@@ -893,7 +893,6 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::get('/generarSolicitudAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
   Route::get('/generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
   Route::get('/generarConstanciaReingreso/{id}','Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
-  Route::get('/migrar','Autoexclusion\AutoexclusionController@migrar');
   Route::get('/{dni?}','Autoexclusion\AutoexclusionController@index');
 });
 

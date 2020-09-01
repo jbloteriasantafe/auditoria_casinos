@@ -229,6 +229,7 @@ function modalAgregarEditarAE(dni,id_autoexcluido = null){
   $('.step1').addClass('active');
 
   $('#frmAgregarAE :input').val('');
+  $('#hace_encuesta').prop('checked', true).change();
   ocultarErrorValidacion($('#frmAgregarAE :input'));
   //Limpio el texto de archivos y muestro el input
   //boton -> div (esconder) -> a (limpiar) -> div -> div -> input (mostrar)
@@ -504,6 +505,7 @@ function validarDNI(){
 
         //precargo el step de la encuesta
         if (data.encuesta != null) {
+          $('#hace_encuesta').prop('checked', true).change();
           $('#juego_preferido').val(data.encuesta.id_juego_preferido);
           $('#id_frecuencia_asistencia').val(data.encuesta.id_frecuencia_asistencia);
           $('#veces').val(data.encuesta.veces);
@@ -515,6 +517,9 @@ function validarDNI(){
           $('#recibir_informacion').val(data.encuesta.recibir_informacion);
           $('#medio_recepcion').val(data.encuesta.medio_recibir_informacion);
           $('#observaciones').val(data.encuesta.observacion);
+        }
+        else{
+          $('#hace_encuesta').prop('checked',false).change();
         }
 
         if(data.importacion != null){
@@ -740,6 +745,7 @@ $('#btn-guardar').click(function (e) {
       formData.append(strRequest('ae_estado',key),ae_estado[key]);
     }
 
+    formData.append('hace_encuesta',$('#hace_encuesta').is(':checked')? 1 : 0);
     const ae_encuesta = {
       id_juego_preferido: $('#juego_preferido').val(),
       id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
@@ -986,4 +992,10 @@ $("#contenedorFiltros input").on('keypress',function(e){
     e.preventDefault();
     $('#btn-buscar').click();
   }
+});
+
+$('#hace_encuesta').change(function(){
+  const show = $(this).is(':checked');
+  const divs = $(this).parent().parent().parent().children().not('.no_esconder');
+  divs.toggle(show);
 });
