@@ -55,48 +55,48 @@ class AutoexclusionController extends Controller
       $this->actualizarVencidosRenovados();
       $reglas = Array();
 
-      //filtro de búsqueda por apellido
       if(!empty($request->apellido)){
         $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
       }
 
-      //filtro de búsqueda por dni
       if(!empty($request->dni)){
         $reglas[]=['ae_datos.nro_dni','=',$request->dni];
       }
 
-      //filtro de búsqueda por estado
       if(!empty($request->estado)){
         $reglas[]=['ae_estado.id_nombre_estado','=',$request->estado];
       }
 
-      //filtro de búsqueda por casino
       if(!empty($request->casino)){
         $reglas[]=['ae_estado.id_casino','=',$request->casino];
       }
 
-      //filtro de búsqueda por fecha de autoexclusion
-      if(!empty($request->fecha_autoexclusion)){
-        $reglas[]=['ae_estado.fecha_ae','=',$request->fecha_autoexclusion];
+      if(!empty($request->fecha_autoexclusion_d)){
+        $reglas[]=['ae_estado.fecha_ae','>=',$request->fecha_autoexclusion_d];
+      }
+      if(!empty($request->fecha_autoexclusion_h)){
+        $reglas[]=['ae_estado.fecha_ae','<=',$request->fecha_autoexclusion_h];
       }
 
-      //filstro de búsqueda por fecha de vencimiento
-      if(!empty($request->fecha_vencimiento)){
-        $reglas[]=['ae_estado.fecha_vencimiento','=',$request->fecha_vencimiento];
+      if(!empty($request->fecha_vencimiento_d)){
+        $reglas[]=['ae_estado.fecha_vencimiento','>=',$request->fecha_vencimiento_d];
+      }
+      if(!empty($request->fecha_vencimiento_h)){
+        $reglas[]=['ae_estado.fecha_vencimiento','<=',$request->fecha_vencimiento_h];
       }
 
-      //filtro de búsqueda por fecha de finalización
-      if(!empty($request->fecha_finalizacion)){
-        $reglas[]=['ae_estado.fecha_renovacion','=',$request->fecha_finalizacion];
+      if(!empty($request->fecha_finalizacion_d)){
+        $reglas[]=['ae_estado.fecha_renovacion','>=',$request->fecha_finalizacion_d];
+      }
+      if(!empty($request->fecha_finalizacion_h)){
+        $reglas[]=['ae_estado.fecha_renovacion','<=',$request->fecha_finalizacion_h];
       }
 
-      //filtro de búsqueda por fecha de cierre definitivo
-      if(!empty($request->fecha_cierre_definitivo)){
-        $reglas[]=['ae_estado.fecha_cierre_ae','=',$request->fecha_cierre_definitivo];
+      if(!empty($request->fecha_cierre_definitivo_d)){
+        $reglas[]=['ae_estado.fecha_cierre_ae','>=',$request->fecha_cierre_definitivo_d];
       }
-
-      if(!empty($request->id_autoexcluido)) {
-        $reglas[]=['ae_datos.id_autoexcluido','=',$request->id_autoexcluido];
+      if(!empty($request->fecha_cierre_definitivo_h)){
+        $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_definitivo_h];
       }
 
       $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];

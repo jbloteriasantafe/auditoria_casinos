@@ -6,18 +6,23 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd',
+    format: 'dd/mm/yy',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
     ignoreReadonly: true
   }
   $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusion').datetimepicker(input_fecha_iso);
-  $('#dtpFechaVencimiento').datetimepicker(input_fecha_iso);
-  $('#dtpFechaFinalizacion').datetimepicker(input_fecha_iso);
-  $('#dtpFechaCierreDefinitivo').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusionEstadoD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusionD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaVencimientoD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaFinalizacionD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaCierreDefinitivoD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusionEstadoH').datetimepicker(input_fecha_iso);
+  $('#dtpFechaAutoexclusionH').datetimepicker(input_fecha_iso);
+  $('#dtpFechaVencimientoH').datetimepicker(input_fecha_iso);
+  $('#dtpFechaFinalizacionH').datetimepicker(input_fecha_iso);
+  $('#dtpFechaCierreDefinitivoH').datetimepicker(input_fecha_iso);
   $('#btn-buscar').trigger('click');
 });
 
@@ -30,15 +35,30 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
       columna: $('#tablaAutoexcluidos .activa').attr('value'), 
       orden:   $('#tablaAutoexcluidos .activa').attr('estado')
     };
+
+    const iso = function(dtp){
+      //getDate me retorna hoy si esta vacio, lo tengo que verificar
+      if(dtp.find('input').val().length == 0) return "";
+      const date = dtp.data("datetimepicker").getDate();
+      const y = date.getFullYear();
+      const m = date.getMonth()+1;
+      const d = date.getDate();
+      return y + (m<10?'-0':'-') + m + (d<10?'-0':'-') + d;
+    }
+
     const formData = {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         estado: $('#buscadorEstado').val(),
         casino: $('#buscadorCasino').val(),
-        fecha_autoexclusion: $('#buscadorFechaAutoexclusion').val(),
-        fecha_vencimiento: $('#buscadorFechaVencimiento').val(),
-        fecha_finalizacion: $('#buscadorFechaFinalizacion').val(),
-        fecha_cierre_definitivo: $('#buscadorFechaCierreDefinitivo').val(),
+        fecha_autoexclusion_d:     iso($('#dtpFechaAutoexclusionD')),
+        fecha_vencimiento_d:       iso($('#dtpFechaVencimientoD')),
+        fecha_finalizacion_d:      iso($('#dtpFechaFinalizacionD')),
+        fecha_cierre_definitivo_d: iso($('#dtpFechaCierreDefinitivoD')),
+        fecha_autoexclusion_h:     iso($('#dtpFechaAutoexclusionH')),
+        fecha_vencimiento_h:       iso($('#dtpFechaVencimientoH')),
+        fecha_finalizacion_h:      iso($('#dtpFechaFinalizacionH')),
+        fecha_cierre_definitivo_h: iso($('#dtpFechaCierreDefinitivoH')),
         page: (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage(),
         sort_by: sort_by,
         page_size: (page_size == null || isNaN(page_size)) ? deflt_size : page_size,

@@ -139,34 +139,70 @@ input[required], select[required]{
               </div>
             </div>
             <div class="row">
+              <h5>Desde</h5>
               <div class="col-md-3">
                 <h5>Fecha autoexclusión</h5>
-                <div class="input-group date" id="dtpFechaAutoexclusion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                  <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                <div class="input-group date" id="dtpFechaAutoexclusionD">
+                  <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-autoexclusion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-autoexclusion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
               <div class="col-md-3">
                 <h5>Fecha vencimiento</h5>
-                <div class="input-group date" id="dtpFechaVencimiento" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                  <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimiento" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                <div class="input-group date" id="dtpFechaVencimientoD">
+                  <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
               <div class="col-md-3">
                 <h5>Fecha finalización</h5>
-                <div class="input-group date" id="dtpFechaFinalizacion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                  <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacion" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                <div class="input-group date" id="dtpFechaFinalizacionD">
+                  <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
               <div class="col-md-3">
                 <h5>Fecha cierre definitivo</h5>
-                <div class="input-group date" id="dtpFechaCierreDefinitivo" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                  <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivo" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                <div class="input-group date" id="dtpFechaCierreDefinitivoD">
+                  <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-cierre-definitivo" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-cierre-definitivo" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <h5>Hasta</h5>
+              <div class="col-md-3">
+                <h5>Fecha autoexclusión</h5>
+                <div class="input-group date" id="dtpFechaAutoexclusionH">
+                  <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-autoexclusion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-autoexclusion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <h5>Fecha vencimiento</h5>
+                <div class="input-group date" id="dtpFechaVencimientoH">
+                  <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <h5>Fecha finalización</h5>
+                <div class="input-group date" id="dtpFechaFinalizacionH">
+                  <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <h5>Fecha cierre definitivo</h5>
+                <div class="input-group date" id="dtpFechaCierreDefinitivoH">
+                  <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-cierre-definitivo" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-cierre-definitivo" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
