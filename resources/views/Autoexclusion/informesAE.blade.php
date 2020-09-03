@@ -216,66 +216,86 @@ background-color: #4CAF50;
                         </select>
                       </div>
                       <div class="col-md-2">
-                        <h5>Asistencia</h5>
-                        <select id="buscadorAsistencia" class="form-control">
+                        <h5>Frecuencia</h5>
+                        <select id="buscadorFrecuencia" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
+                          @foreach($frecuencias as $f)
+                          <option value="{{$f->id_frecuencia}}">{{$f->nombre}}</option>
+                          @endforeach
                         </select>
                       </div>
                       <div class="col-md-2">
                         <h5>Veces</h5>
-                        <input type="input" id="buscadorVeces" class="form-control"/>
+                        <input type="input" id="buscadorVeces" class="form-control encuesta"/>
                       </div>
                       <div class="col-md-2">
                         <h5>Horas</h5>
-                        <input type="input" id="buscadorHoras" class="form-control"/>
+                        <input type="input" id="buscadorHoras" class="form-control encuesta"/>
                       </div>
                       <div class="col-md-2">
-                        <h5>Como</h5>
-                        <select id="buscadorComo" class="form-control">
+                        <h5>Compañia</h5>
+                        <select id="buscadorCompania" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
                           <option value="0">Solo</option>
                           <option value="1">Acompañado</option>
+                          <option value="-1">No contesta</option>
                         </select>
                       </div>
                       <div class="col-md-2">
                         <h5>Juego</h5>
-                        <select id="buscadorJuego" class="form-control">
+                        <select id="buscadorJuego" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
+                          @foreach($juegos as $j)
+                          <option value="{{$j->id_juego_preferido}}">{{$j->nombre}}</option>
+                          @endforeach
                         </select>
                       </div>
                   </div>
                   <div class="row">
                       <div class="col-md-2">
-                        <h5>Socio Club Jugadores</h5>
-                        <select id="buscadorClub" class="form-control">
+                        <h5>Conoce programa juego responsable</h5>
+                        <select id="buscadorJuegoResponsable" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
                           <option value="SI">Sí</option>
                           <option value="NO">No</option>
+                          <option value="-1">No contesta</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Socio Club Jugadores</h5>
+                        <select id="buscadorClub" class="form-control encuesta">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="SI">Sí</option>
+                          <option value="NO">No</option>
+                          <option value="-1">No contesta</option>
                         </select>
                       </div>
                       <div class="col-md-2">
                         <h5>Autocontrol</h5>
-                        <select id="buscadorAutocontrol" class="form-control">
+                        <select id="buscadorAutocontrol" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
                           <option value="SI">Sí</option>
                           <option value="NO">No</option>
+                          <option value="-1">No contesta</option>
                         </select>
                       </div>
                       <div class="col-md-2">
                         <h5>Recibir información</h5>
-                        <select id="buscadorRecibirInfo" class="form-control">
+                        <select id="buscadorRecibirInfo" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
                           <option value="SI">Sí</option>
                           <option value="NO">No</option>
+                          <option value="-1">No contesta</option>
                         </select>
                       </div>
                       <div class="col-md-2">
                         <h5>Medio</h5>
-                        <select id="buscadorRecibirInfo" class="form-control">
+                        <select id="buscadorMedio" class="form-control encuesta">
                           <option selected="" value="">- Todos -</option>
-                          <option value="TEEFONO">Telefono</option>
+                          <option value="TELEFONO">Telefono</option>
                           <option value="CORREO">Correo electrónico</option>
                           <option value="OTRO">Otro</option>
+                          <option value="-1">No contesta</option>
                         </select>
                       </div>
                   </div>

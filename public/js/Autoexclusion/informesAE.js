@@ -81,6 +81,16 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
         fecha_cierre_desde:        iso($('#dtpFechaCierreD')),
         fecha_cierre_hasta:        iso($('#dtpFechaCierreH')),
         hace_encuesta: $('#buscadorEncuesta').val(),
+        frecuencia: $('#buscadorFrecuencia').val(),
+        veces: $('#buscadorVeces').val(),
+        horas: $('#buscadorHoras').val(),
+        compania: $('#buscadorCompania').val(),
+        juego: $('#buscadorJuego').val(),
+        juego_responsable: $('#buscadorJuegoResponsable').val(),
+        club: $('#buscadorClub').val(),
+        autocontrol: $('#buscadorAutocontrol').val(),
+        recibir_info: $('#buscadorRecibirInfo').val(),
+        medio: $('#buscadorMedio').val(),
         page: page_number,
         sort_by: sort_by,
         page_size: page_size,
@@ -397,3 +407,7 @@ function mensajeError(msg){
       $('#mensajeError').show();
     }, 250);
   }
+
+  $('#buscadorEncuesta').change(function(){
+    $('#contenedorFiltros .encuesta').attr('disabled',$(this).val() === "0");
+  })

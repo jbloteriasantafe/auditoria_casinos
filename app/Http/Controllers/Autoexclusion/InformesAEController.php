@@ -18,6 +18,7 @@ use App\Autoexclusion\ImportacionAE;
 
 use Illuminate\Support\Facades\DB;
 use App\Autoexclusion as AE;
+use App\Casino;
 
 class InformesAEController extends Controller
 {
@@ -27,16 +28,12 @@ class InformesAEController extends Controller
     public function todo(){
       UsuarioController::getInstancia()->agregarSeccionReciente('Listado Autoexcluidos' , 'informesAutoexcluidos');
       $juegos =  DB::table('ae_juego_preferido')->get();
-      $ocupaciones =  DB::table('ae_ocupacion')->get();
-      $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
-      $casinos = DB::table('casino')->get();
-      $estados_autoexclusion = DB::table('ae_nombre_estado')->get();
 
       return view('Autoexclusion.informesAE', ['juegos' => $juegos,
-                                                              'ocupaciones' => $ocupaciones,
-                                                              'casinos' => $casinos,
-                                                              'frecuencias' => $frecuencias,
-                                                              'estados_autoexclusion' => $estados_autoexclusion
+                                                              'casinos' => Casino::all(),
+                                                              'estados_autoexclusion' => AE\EstadoAE::all(),
+                                                              'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
+                                                              'juegos' => AE\JuegoPreferidoAE::all()
                                                               ]);
     }
 
@@ -46,82 +43,65 @@ class InformesAEController extends Controller
       $reglas = Array();
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 
-      //filtro de búsqueda por casino
       if(!empty($request->casino)){
         $reglas[]=['ae_estado.id_casino','=',$request->casino];
       }
 
-      //filtro de búsqueda por estado
       if(!empty($request->estado)){
         $reglas[]=['ae_estado.id_nombre_estado','=',$request->estado];
       }
 
-      //filtro de búsqueda por apellido
       if(!empty($request->apellido)){
         $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
       }
 
-      //filtro de búsqueda por dni
       if(!empty($request->dni)){
         $reglas[]=['ae_datos.nro_dni','=',$request->dni];
       }
 
-      //filtro de búsqueda por sexo
       if($request->sexo != null){
         $reglas[]=['ae_datos.id_sexo','=',$request->sexo];
       }
 
-      //filtro de búsqueda por localidad
       if(!empty($request->localidad)){
         $reglas[]=['ae_datos.nombre_localidad','LIKE', '%' . $request->localidad . '%'];
       }
 
-      //filtro de búsqueda por provincia
       if(!empty($request->provincia)){
         $reglas[]=['ae_datos.nombre_provincia','LIKE', '%' . $request->provincia . '%'];
       }
 
-
-      //filtro de búsqueda por fecha de autoexclusion desde
       if(!empty($request->fecha_autoexclusion_desde)){
         $reglas[]=['ae_estado.fecha_ae','>=',$request->fecha_autoexclusion_desde];
       }
 
-      //filtro de búsqueda por fecha de autoexclusion hasta
       if(!empty($request->fecha_autoexclusion_hasta)){
         $reglas[]=['ae_estado.fecha_ae','<=',$request->fecha_autoexclusion_hasta];
       }
 
-      //filtro de búsqueda por fecha de vencimiento desde
       if(!empty($request->fecha_vencimiento_desde)){
         $reglas[]=['ae_estado.fecha_vencimiento','>=',$request->fecha_vencimiento_desde];
       }
 
-      //filtro de búsqueda por fecha de vencimiento hasta
       if(!empty($request->fecha_vencimiento_hasta)){
         $reglas[]=['ae_estado.fecha_vencimiento','<=',$request->fecha_vencimiento_hasta];
       }
 
-      //filtro de búsqueda por fecha de revocación desde
       if(!empty($request->fecha_revocacion_desde)){
         $reglas[]=['ae_estado.fecha_revocacion_ae','>=',$request->fecha_revocacion_desde];
       }
 
-      //filtro de búsqueda por fecha de revocación hasta
       if(!empty($request->fecha_revocacion_hasta)){
         $reglas[]=['ae_estado.fecha_revocacion_ae','<=',$request->fecha_revocacion_hasta];
       }
 
-      //filtro de búsqueda por fecha de cierre desde
       if(!empty($request->fecha_cierre_desde)){
         $reglas[]=['ae_estado.fecha_cierre_ae','>=',$request->fecha_cierre_desde];
       }
 
-      //filtro de búsqueda por fecha de cierre hasta
       if(!empty($request->fecha_cierre_hasta)){
         $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_hasta];
       }
-
 
       $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
       if(!empty($request->sort_by)){
@@ -153,13 +133,101 @@ class InformesAEController extends Controller
         $resultados = $resultados->whereRaw('TIMESTAMPDIFF(YEAR, ae_datos.fecha_nacimiento, CURDATE()) <= ?',$request->edad_hasta);
       }
 
+      $buscar_encuesta = true;
       if(count($request->hace_encuesta) > 0){
         if($request->hace_encuesta === '1'){
           $resultados = $resultados->whereNotNull('ae_encuesta.id_autoexcluido');
         }
         else if($request->hace_encuesta === '0'){
           $resultados = $resultados->whereNull('ae_encuesta.id_autoexcluido');
+          $buscar_encuesta = false;
         }
+      }
+
+      if($buscar_encuesta){
+        if($request->frecuencia == 4)
+          $resultados = $resultados->where(function ($q){
+            return $q->whereNull('ae_encuesta.id_frecuencia_asistencia')->orWhere('ae_encuesta.id_frecuencia_asistencia','=',4);
+          });
+        else if(isset($request->frecuencia))
+          $resultados = $resultados->where('ae_encuesta.id_frecuencia_asistencia','=',$request->frecuencia);
+
+        if($request->juego == 8)
+          $resultados = $resultados->where(function ($q){
+            return $q->whereNull('ae_encuesta.id_juego_preferido')->orWhere('ae_encuesta.id_juego_preferido','=',8);
+          });
+        else if(isset($request->juego))
+          $resultados = $resultados->where('ae_encuesta.id_juego_preferido','=',$request->juego);
+
+        if($request->veces == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.veces');
+        else if(isset($request->veces))
+          $resultados = $resultados->where('ae_encuesta.veces','=',$request->veces);
+        
+        if($request->horas == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.tiempo_jugado');
+        else if(isset($request->horas))
+          $resultados = $resultados->where('ae_encuesta.tiempo_jugado','=',$request->horas);
+
+        if($request->compania == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.como_asiste');
+        else if(isset($request->compania))
+          $resultados = $resultados->where('ae_encuesta.como_asiste','=',$request->compania);
+
+        if($request->juego_responsable == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.juego_responsable');
+        else if(isset($request->juego_responsable))
+          $resultados = $resultados->where('ae_encuesta.juego_responsable','=',$request->juego_responsable);
+
+        if($request->club == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.club_jugadores');
+        else if(isset($request->club))
+          $resultados = $resultados->where('ae_encuesta.club_jugadores','=',$request->club);
+
+        if($request->autocontrol == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.autocontrol_juego');
+        else if(isset($request->autocontrol))
+          $resultados = $resultados->where('ae_encuesta.autocontrol_juego','=',$request->autocontrol);
+        
+        if($request->recibir_info == -1)
+          $resultados = $resultados->whereNull('ae_encuesta.recibir_informacion');
+        else if(isset($request->recibir_info))
+          $resultados = $resultados->where('ae_encuesta.recibir_informacion','=',$request->recibir_info);
+
+        if($request->medio == -1)
+          $resultados = $resultados->where(function ($q){
+            return $q->whereNull('ae_encuesta.medio_recibir_informacion')
+              ->orWhere('ae_encuesta.medio_recibir_informacion','LIKE','NO %')
+              ->orWhere('ae_encuesta.medio_recibir_informacion','=','-')
+              ->orWhere('ae_encuesta.medio_recibir_informacion','=','--')
+              ->orWhere('ae_encuesta.medio_recibir_informacion','=','---');
+          });
+        else if($request->medio == 'TELEFONO')
+          $resultados = $resultados->where(function ($q){
+            return $q->where('ae_encuesta.medio_recibir_informacion','LIKE','tel%')
+              ->orWhere('ae_encuesta.medio_recibir_informacion','LIKE','%telé%')
+              ->orWhereRaw('ae_encuesta.medio_recibir_informacion REGEXP \'[0-9]+\' AND ae_encuesta.medio_recibir_informacion NOT LIKE \'%@%\'');
+        });
+        else if($request->medio == 'CORREO')
+        $resultados = $resultados->where(function ($q){
+          return $q->where('ae_encuesta.medio_recibir_informacion','LIKE','%correo%')
+            ->orWhere('ae_encuesta.medio_recibir_informacion','LIKE','%mail%')
+            ->orWhere('ae_encuesta.medio_recibir_informacion','LIKE','%@%');
+        });
+        else if($request->medio == 'OTRO')
+          $resultados = $resultados->where(function ($q){
+            return $q->whereNotNull('ae_encuesta.medio_recibir_informacion')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','NO %')
+              ->where('ae_encuesta.medio_recibir_informacion','<>','-')
+              ->where('ae_encuesta.medio_recibir_informacion','<>','--')
+              ->where('ae_encuesta.medio_recibir_informacion','<>','--')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','tel%')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','%telé%')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','%correo%')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','%mail%')
+              ->where('ae_encuesta.medio_recibir_informacion','NOT LIKE','%@%')
+              ->whereRaw('ae_encuesta.medio_recibir_informacion NOT REGEXP \'[0-9]+\'');
+          });
       }
 
       $resultados = $resultados->paginate($request->page_size);
