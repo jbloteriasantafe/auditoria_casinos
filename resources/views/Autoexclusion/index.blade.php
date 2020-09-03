@@ -149,19 +149,19 @@ input[required], select[required]{
                 </div>
               </div>
               <div class="col-md-3">
+                <h5>Fecha renovación</h5>
+                <div class="input-group date" id="dtpFechaRenovacionD">
+                  <input type="text" class="form-control" placeholder="Fecha de renovación" id="buscadorFechaRenovacionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-renovacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-renovacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              <div class="col-md-3">
                 <h5>Fecha vencimiento</h5>
                 <div class="input-group date" id="dtpFechaVencimientoD">
                   <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha finalización</h5>
-                <div class="input-group date" id="dtpFechaFinalizacionD">
-                  <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
               <div class="col-md-3">
@@ -184,19 +184,19 @@ input[required], select[required]{
                 </div>
               </div>
               <div class="col-md-3">
+                <h5>Fecha renovación</h5>
+                <div class="input-group date" id="dtpFechaRenovacionH">
+                  <input type="text" class="form-control" placeholder="Fecha de renovación" id="buscadorFechaRenovaciónH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
+                  <span id="input-times-renovacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span id="input-calendar-renovacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+              <div class="col-md-3">
                 <h5>Fecha vencimiento</h5>
                 <div class="input-group date" id="dtpFechaVencimientoH">
                   <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                   <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha finalización</h5>
-                <div class="input-group date" id="dtpFechaFinalizacionH">
-                  <input type="text" class="form-control" placeholder="Fecha de finalización" id="buscadorFechaFinalizacionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-finalizacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-finalizacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
               </div>
               <div class="col-md-3">

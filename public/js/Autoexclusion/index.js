@@ -16,12 +16,12 @@ $(document).ready(function(){
   $('#dtpFechaAutoexclusionEstadoD').datetimepicker(input_fecha_iso);
   $('#dtpFechaAutoexclusionD').datetimepicker(input_fecha_iso);
   $('#dtpFechaVencimientoD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaFinalizacionD').datetimepicker(input_fecha_iso);
+  $('#dtpFechaRenovacionD').datetimepicker(input_fecha_iso);
   $('#dtpFechaCierreDefinitivoD').datetimepicker(input_fecha_iso);
   $('#dtpFechaAutoexclusionEstadoH').datetimepicker(input_fecha_iso);
   $('#dtpFechaAutoexclusionH').datetimepicker(input_fecha_iso);
   $('#dtpFechaVencimientoH').datetimepicker(input_fecha_iso);
-  $('#dtpFechaFinalizacionH').datetimepicker(input_fecha_iso);
+  $('#dtpFechaRenovacionH').datetimepicker(input_fecha_iso);
   $('#dtpFechaCierreDefinitivoH').datetimepicker(input_fecha_iso);
   $('#btn-buscar').trigger('click');
 });
@@ -53,11 +53,11 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         casino: $('#buscadorCasino').val(),
         fecha_autoexclusion_d:     iso($('#dtpFechaAutoexclusionD')),
         fecha_vencimiento_d:       iso($('#dtpFechaVencimientoD')),
-        fecha_finalizacion_d:      iso($('#dtpFechaFinalizacionD')),
+        fecha_renovacion_d:        iso($('#dtpFechaRenovacionD')),
         fecha_cierre_definitivo_d: iso($('#dtpFechaCierreDefinitivoD')),
         fecha_autoexclusion_h:     iso($('#dtpFechaAutoexclusionH')),
         fecha_vencimiento_h:       iso($('#dtpFechaVencimientoH')),
-        fecha_finalizacion_h:      iso($('#dtpFechaFinalizacionH')),
+        fecha_renovacion_h:        iso($('#dtpFechaRenovacionH')),
         fecha_cierre_definitivo_h: iso($('#dtpFechaCierreDefinitivoH')),
         page: (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage(),
         sort_by: sort_by,

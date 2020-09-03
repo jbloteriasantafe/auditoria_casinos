@@ -85,11 +85,11 @@ class AutoexclusionController extends Controller
         $reglas[]=['ae_estado.fecha_vencimiento','<=',$request->fecha_vencimiento_h];
       }
 
-      if(!empty($request->fecha_finalizacion_d)){
-        $reglas[]=['ae_estado.fecha_renovacion','>=',$request->fecha_finalizacion_d];
+      if(!empty($request->fecha_renovacion_d)){
+        $reglas[]=['ae_estado.fecha_renovacion','>=',$request->fecha_renovacion_d];
       }
-      if(!empty($request->fecha_finalizacion_h)){
-        $reglas[]=['ae_estado.fecha_renovacion','<=',$request->fecha_finalizacion_h];
+      if(!empty($request->fecha_renovacion_h)){
+        $reglas[]=['ae_estado.fecha_renovacion','<=',$request->fecha_renovacion_h];
       }
 
       if(!empty($request->fecha_cierre_definitivo_d)){
