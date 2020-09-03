@@ -80,6 +80,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
         fecha_revocacion_hasta:    iso($('#dtpFechaRevocacionH')),
         fecha_cierre_desde:        iso($('#dtpFechaCierreD')),
         fecha_cierre_hasta:        iso($('#dtpFechaCierreH')),
+        hace_encuesta: $('#buscadorEncuesta').val(),
         page: page_number,
         sort_by: sort_by,
         page_size: page_size,

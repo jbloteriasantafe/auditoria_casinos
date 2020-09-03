@@ -122,7 +122,7 @@ background-color: #4CAF50;
                       </div>
                       <div class="col-md-3">
                           <h5>Sexo</h5>
-                          <select id="buscadorSexo" class="form-control selectSexo" name="">
+                          <select id="buscadorSexo" class="form-control" name="">
                             <option selected="" value="">- Todos -</option>
                             <option id="0" value="0">Masculino</option>
                             <option id="1" value="1">Femenino</option>
@@ -190,7 +190,7 @@ background-color: #4CAF50;
                           </div>
                         </div>
                         <div class="col-md-3">
-                          <h5>Fecha de cierre autoexclusión - Desde</h5>
+                          <h5>Fecha de cierre - Desde</h5>
                           <div class="input-group date" id="dtpFechaCierreD">
                               <input type="text" class="form-control" placeholder="Fecha de cierre AE (desde)" id="buscadorFechaCierreD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-cierreD" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -198,7 +198,7 @@ background-color: #4CAF50;
                           </div>
                         </div>
                         <div class="col-md-3">
-                          <h5>Fecha de cierre autoexclusión - Hasta</h5>
+                          <h5>Fecha de cierre - Hasta</h5>
                           <div class="input-group date" id="dtpFechaCierreH">
                               <input type="text" class="form-control" placeholder="Fecha de cierre AE (hasta)" id="buscadorFechaCierreH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
                               <span id="input-times-cierreH" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -206,12 +206,84 @@ background-color: #4CAF50;
                           </div>
                         </div>
                   </div>
-                    <div class="row">
-                      <center>
-                        <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                      </center>
-                    </div>
-                    <br>
+                  <div class="row">
+                      <div class="col-md-2">
+                        <h5>Encuesta</h5>
+                        <select id="buscadorEncuesta" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="1">Sí</option>
+                          <option value="0">No</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Asistencia</h5>
+                        <select id="buscadorAsistencia" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Veces</h5>
+                        <input type="input" id="buscadorVeces" class="form-control"/>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Horas</h5>
+                        <input type="input" id="buscadorHoras" class="form-control"/>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Como</h5>
+                        <select id="buscadorComo" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="0">Solo</option>
+                          <option value="1">Acompañado</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Juego</h5>
+                        <select id="buscadorJuego" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                        </select>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-md-2">
+                        <h5>Socio Club Jugadores</h5>
+                        <select id="buscadorClub" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="SI">Sí</option>
+                          <option value="NO">No</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Autocontrol</h5>
+                        <select id="buscadorAutocontrol" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="SI">Sí</option>
+                          <option value="NO">No</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Recibir información</h5>
+                        <select id="buscadorRecibirInfo" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="SI">Sí</option>
+                          <option value="NO">No</option>
+                        </select>
+                      </div>
+                      <div class="col-md-2">
+                        <h5>Medio</h5>
+                        <select id="buscadorRecibirInfo" class="form-control">
+                          <option selected="" value="">- Todos -</option>
+                          <option value="TEEFONO">Telefono</option>
+                          <option value="CORREO">Correo electrónico</option>
+                          <option value="OTRO">Otro</option>
+                        </select>
+                      </div>
+                  </div>
+                  <div class="row">
+                    <center>
+                      <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
+                    </center>
+                  </div>
                   </div>
                 </div>
               </div>

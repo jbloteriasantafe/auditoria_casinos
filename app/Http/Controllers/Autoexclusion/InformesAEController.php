@@ -133,6 +133,7 @@ class InformesAEController extends Controller
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
         ->join('casino', 'ae_estado.id_casino', '=', 'casino.id_casino')
         ->join('ae_nombre_estado', 'ae_estado.id_nombre_estado', '=', 'ae_nombre_estado.id_nombre_estado')
+        ->leftJoin('ae_encuesta', 'ae_datos.id_autoexcluido', '=', 'ae_encuesta.id_autoexcluido')
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
@@ -150,6 +151,15 @@ class InformesAEController extends Controller
       }
       if(!empty($request->edad_hasta)){
         $resultados = $resultados->whereRaw('TIMESTAMPDIFF(YEAR, ae_datos.fecha_nacimiento, CURDATE()) <= ?',$request->edad_hasta);
+      }
+
+      if(count($request->hace_encuesta) > 0){
+        if($request->hace_encuesta === '1'){
+          $resultados = $resultados->whereNotNull('ae_encuesta.id_autoexcluido');
+        }
+        else if($request->hace_encuesta === '0'){
+          $resultados = $resultados->whereNull('ae_encuesta.id_autoexcluido');
+        }
       }
 
       $resultados = $resultados->paginate($request->page_size);
