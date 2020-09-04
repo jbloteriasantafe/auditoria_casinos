@@ -61,6 +61,16 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
       return y + (m<10?'-0':'-') + m + (d<10?'-0':'-') + d;
     }
 
+    const rango_val_nc = function(s1,s2){
+        const obj1 = $(s1);
+        const obj2 = $(s2);
+        const nc = $(s1).parent().find('.no_contesta');
+        if(nc.prop('checked')) return -1;
+        const val1 = parseFloat(obj1.val());
+        const val2 = parseFloat(obj2.val());
+        return [isNaN(val1)? '' : val1,isNaN(val2)? '' : val2];
+    }
+
     var formData = {
         casino:    $('#buscadorCasino').val(),
         estado:    $('#buscadorEstado').val(),
@@ -82,8 +92,8 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
         fecha_cierre_hasta:        iso($('#dtpFechaCierreH')),
         hace_encuesta: $('#buscadorEncuesta').val(),
         frecuencia: $('#buscadorFrecuencia').val(),
-        veces: $('#buscadorVeces').val(),
-        horas: $('#buscadorHoras').val(),
+        veces: rango_val_nc('#buscadorVecesD','#buscadorVecesH'),
+        horas: rango_val_nc('#buscadorHorasD','#buscadorHorasH'),
         compania: $('#buscadorCompania').val(),
         juego: $('#buscadorJuego').val(),
         juego_responsable: $('#buscadorJuegoResponsable').val(),
@@ -409,5 +419,10 @@ function mensajeError(msg){
   }
 
   $('#buscadorEncuesta').change(function(){
-    $('#contenedorFiltros .encuesta').attr('disabled',$(this).val() === "0");
+    $('#contenedorFiltros .encuesta').attr('disabled',$(this).val() === "0").val('');
+  })
+
+  $('.no_contesta').change(function(){
+      const checked = $(this).prop('checked');
+      $(this).parent().find('input').not('.no_contesta').attr('disabled',checked).val('');
   })

@@ -226,11 +226,19 @@ background-color: #4CAF50;
                       </div>
                       <div class="col-md-2">
                         <h5>Veces</h5>
-                        <input type="input" id="buscadorVeces" class="form-control encuesta"/>
+                        <div class="input-group">
+                          <input type="checkbox" class="form-control input-sm encuesta no_contesta" id="nc_veces" style="width: 5%;" title="NO CONTESTA">
+                          <input id="buscadorVecesD" class="form-control input-sm encuesta" style="width: 30%;"  value=""/>
+                          <input id="buscadorVecesH" class="form-control input-sm encuesta" style="width: 30%;" value=""/>
+                        </div>
                       </div>
                       <div class="col-md-2">
                         <h5>Horas</h5>
-                        <input type="input" id="buscadorHoras" class="form-control encuesta"/>
+                        <div class="input-group">
+                          <input type="checkbox" class="form-control input-sm encuesta no_contesta" id="nc_horas" style="width: 5%;" title="NO CONTESTA">
+                          <input id="buscadorHorasD" class="form-control input-sm encuesta" style="width: 30%;"  value=""/>
+                          <input id="buscadorHorasH" class="form-control input-sm encuesta" style="width: 30%;" value=""/>
+                        </div>
                       </div>
                       <div class="col-md-2">
                         <h5>Compañia</h5>

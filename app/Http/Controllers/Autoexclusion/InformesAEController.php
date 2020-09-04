@@ -159,15 +159,17 @@ class InformesAEController extends Controller
         else if(isset($request->juego))
           $resultados = $resultados->where('ae_encuesta.id_juego_preferido','=',$request->juego);
 
-        if($request->veces == -1)
-          $resultados = $resultados->whereNull('ae_encuesta.veces');
-        else if(isset($request->veces))
-          $resultados = $resultados->where('ae_encuesta.veces','=',$request->veces);
-        
-        if($request->horas == -1)
-          $resultados = $resultados->whereNull('ae_encuesta.tiempo_jugado');
-        else if(isset($request->horas))
-          $resultados = $resultados->where('ae_encuesta.tiempo_jugado','=',$request->horas);
+        if(!is_array($request->veces)) $resultados = $resultados->whereNull('ae_encuesta.veces');
+        else{
+          if(!is_null($request->veces[0])) $resultados = $resultados->where('ae_encuesta.veces','>=',$request->veces[0]);
+          if(!is_null($request->veces[1])) $resultados = $resultados->where('ae_encuesta.veces','<=',$request->veces[1]);
+        }
+
+        if(!is_array($request->horas)) $resultados->whereNull('ae_encuesta.tiempo_jugado');
+        else{
+          if(!is_null($request->horas[0])) $resultados = $resultados->where('ae_encuesta.tiempo_jugado','>=',$request->horas[0]);
+          if(!is_null($request->horas[1])) $resultados = $resultados->where('ae_encuesta.tiempo_jugado','<=',$request->horas[1]);
+        }
 
         if($request->compania == -1)
           $resultados = $resultados->whereNull('ae_encuesta.como_asiste');
