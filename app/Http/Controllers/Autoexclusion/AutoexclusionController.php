@@ -216,7 +216,7 @@ class AutoexclusionController extends Controller
         $ae_datos = $request['ae_datos'];
         $ae = null;
         if(is_null($ae_datos['id_autoexcluido'])){
-          $ae = new AE\AutoExcluido;
+          $ae = new AE\Autoexcluido;
           $esNuevo = true;
         }
         else{
@@ -533,26 +533,36 @@ class AutoexclusionController extends Controller
   //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
   public function actualizarVencidosRenovados(){
     DB::transaction(function (){
-      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7]);
-      foreach($vigentes as $v){
-        $ae = $v->ae;
-        $nuevo_estado = $ae->estado_transicionable;
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
-        if($nuevo_estado == 2){//Renovado
-          $v->id_nombre_estado = 2;
-          $v->save();
+      $aes = AE\Autoexcluido::all();
+      foreach($aes as $ae){
+        $estado = $ae->estado;
+        $idest = $estado->id_nombre_estado;
+        $nuevo = $ae->estado_transicionable;
+        //Si esta pendiente de Val lo ignoro
+        if($idest == 3 || $idest == 6) continue;
+        if($ae->es_primer_ae){
+          //Si esta vigente y puede pasar a renovado lo paso
+          if(($idest == 1 || $idest == 7) && $nuevo == 2){
+            $estado->id_nombre_estado = 2;
+            $estado->save();
+          }
+          //Si esta renovado y puede pasar a vencido lo paso
+          if($idest == 2 && $nuevo == 5){
+            $estado->id_nombre_estado = 5;
+            $estado->save();
+          }
         }
-      }
-    });
-    DB::transaction(function (){
-      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7]);
-      foreach($renovados as $r){
-        $ae = $r->ae;
-        $nuevo_estado = $ae->estado_transicionable;
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
-        if($nuevo_estado == 5){//Vencido
-          $r->id_nombre_estado = 5;
-          $r->save();
+        else{
+          //Si esta "renovado" por mala migración lo paso a vigente
+          if($idest == 2 || $idest == 7){
+            $estado->id_nombre_estado = 1;
+            $estado->save();
+          }
+          //Si esta vigente y puede vencer lo paso
+          if($idest == 1 && $nuevo == 5){
+            $estado->id_nombre_estado = 5;
+            $estado->save();
+          }
         }
       }
     });

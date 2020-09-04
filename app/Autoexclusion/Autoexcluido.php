@@ -54,8 +54,10 @@ class Autoexcluido extends Model
       //No deberia llegar aca pero lo dejo en el que estaba supongo...
       return $estado->id_nombre_estado;
     }
-    if($pdte_val) return 2;//Renovado
-    if(($estado->id_nombre_estado == 2 || $vigente) && $factual > $estado->fecha_cierre_ae) return 5; //Vencido
+    if($pdte_val) return 1;//Vigente
+    //@HACK: Si esta renovado lo paso a vigente por mala migracion
+    if($estado->id_nombre_estado == 2 || $estado->id_nombre_estado == 7) return 1;
+    if($vigente && $factual > $estado->fecha_cierre_ae) return 5; //Vencido
     return $estado->id_nombre_estado;
   }
 
