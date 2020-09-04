@@ -31,7 +31,7 @@ class InformesAEController extends Controller
 
       return view('Autoexclusion.informesAE', ['juegos' => $juegos,
                                                               'casinos' => Casino::all(),
-                                                              'estados_autoexclusion' => AE\EstadoAE::all(),
+                                                              'estados_autoexclusion' => AE\NombreEstadoAutoexclusion::all(),
                                                               'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
                                                               'juegos' => AE\JuegoPreferidoAE::all()
                                                               ]);

@@ -399,6 +399,17 @@ background-color: #4CAF50;
               <th class="smalltext f_v" style="width: 10%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
               <th class="smalltext f_r" style="width: 10%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
               <th class="smalltext f_c" style="width: 10%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
+              <th class="smalltext hace_encuesta" style="width: 3%;" data-busq="#buscadorEncuesta" >Encuesta</th>
+              <th class="smalltext frecuencia" style="width: 3%;" data-busq="#buscadorFrecuencia" >Frecuencia</th>
+              <th class="smalltext veces" style="width: 3%;" data-busq="#buscadorVeces" rango opcional>Veces</th>
+              <th class="smalltext horas" style="width: 3%;" data-busq="#buscadorHoras" rango opcional>Horas</th>
+              <th class="smalltext compania" style="width: 3%;" data-busq="#buscadorCompania" >Compañia</th>
+              <th class="smalltext juego" style="width: 3%;" data-busq="#buscadorJuego" >Juego</th>
+              <th class="smalltext programa" style="width: 3%;" data-busq="#buscadorJuegoResponsable" >Programa J.R.</th>
+              <th class="smalltext socio" style="width: 3%;" data-busq="#buscadorClub" >Socio</th>
+              <th class="smalltext autocontrol" style="width: 3%;" data-busq="#buscadorAutocontrol" >Autocontrol</th>
+              <th class="smalltext recibir_info" style="width: 3%;" data-busq="#buscadorRecibirInfo" >Recib. Info</th>
+              <th class="smalltext medio" style="width: 3%;" data-busq="#buscadorMedio" >Medio</th>
               <th class="smalltext cant" style="width: 6%;">CANT.</th>
             </tr>
           </thead>
@@ -417,6 +428,17 @@ background-color: #4CAF50;
               <td class="smalltext f_v"     style="width: 10%;">Fecha Venc.</td> 
               <td class="smalltext f_r"     style="width: 10%;">Fecha Revoc.</td>
               <td class="smalltext f_c"     style="width: 10%;" >Fecha Cierre</td>
+              <td class="smalltext hace_encuesta"     style="width: 3%;">Encuesta</td>
+              <td class="smalltext frecuencia"   style="width: 3%;">Frecuencia</td>
+              <td class="smalltext veces"        style="width: 3%;">Veces</td>
+              <td class="smalltext horas"        style="width: 3%;">Horas</td>
+              <td class="smalltext compania"     style="width: 3%;">Compañia</td>
+              <td class="smalltext juego"        style="width: 3%;">Juego</td>
+              <td class="smalltext programa"     style="width: 3%;">Programa J.R.</td>
+              <td class="smalltext socio"        style="width: 3%;" >Socio</td>
+              <td class="smalltext autocontrol"  style="width: 3%;">Autocontrol</td>
+              <td class="smalltext recibir_info" style="width: 3%;">Recib. Info</td>
+              <td class="smalltext medio"        style="width: 3%;">Medio</td>
               <td class="smalltext cant"      style="width: 6%;" >CANT.</td>
             </tr>
           </tbody>

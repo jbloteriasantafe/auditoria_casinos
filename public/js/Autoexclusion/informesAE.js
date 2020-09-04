@@ -242,6 +242,38 @@ $('#agregarCSV').click(function(){
   assign(fila.find('.f_r'),f_r.length == 5? '\xa0' : f_r);
   const f_c = e($('#buscadorFechaCierreD').val())       +' - '+e($('#buscadorFechaCierreH').val());
   assign(fila.find('.f_c'),f_c.length == 5? '\xa0' : f_c);
+
+  const hace_encuesta = $('#buscadorEncuesta option:selected').text();
+  assign(fila.find('.hace_encuesta'),$('#buscadorEncuesta').val() == ''? '\xa0' : hace_encuesta);
+  const frecuencia = $('#buscadorFrecuencia option:selected').text();
+  assign(fila.find('.frecuencia'),$('#buscadorFrecuencia').val() == ''? '\xa0' : frecuencia);
+  const compania = $('#buscadorCompania option:selected').text();
+  assign(fila.find('.compania'),$('#buscadorCompania').val() == ''? '\xa0' : compania);
+  const juego = $('#buscadorJuego option:selected').text();
+  assign(fila.find('.juego'),$('#buscadorJuego').val() == ''? '\xa0' : juego);
+  const programa = $('#buscadorJuegoResponsable option:selected').text();
+  assign(fila.find('.programa'),$('#buscadorJuegoResponsable').val() == ''? '\xa0' : programa);
+  const socio = $('#buscadorClub option:selected').text();
+  assign(fila.find('.socio'),$('#buscadorClub').val() == ''? '\xa0' : socio);
+  const autocontrol = $('#buscadorAutocontrol option:selected').text();
+  assign(fila.find('.autocontrol'),$('#buscadorAutocontrol').val() == ''? '\xa0' : autocontrol);
+  const recibir_info = $('#buscadorRecibirInfo option:selected').text();
+  assign(fila.find('.recibir_info'),$('#buscadorRecibirInfo').val() == ''? '\xa0' : recibir_info);
+  const medio = $('#buscadorMedio option:selected').text();
+  assign(fila.find('.medio'),$('#buscadorMedio').val() == ''? '\xa0' : medio);
+
+  const range_val = function(s1,s2){
+      const obj1 = $(s1);
+      const obj2 = $(s2);
+      if($(s1).parent().find('.no_contesta').prop('checked')) return 'No contesta';
+      return obj1.val() + ' - ' + obj2.val();
+  }
+
+  const horas = range_val('#buscadorHorasD','#buscadorHorasH');
+  assign(fila.find('.horas'),horas.length == 3? '\xa0' : horas);
+  const veces = range_val('#buscadorVecesD','#buscadorVecesH');
+  assign(fila.find('.veces'),veces.length == 3? '\xa0' : veces);
+
   const cant = $('#herramientasPaginacion h4').text().split(' ')[6];//@HACK
   assign(fila.find('.cant'),cant == null? '0' : cant);
   fila.find('td').filter(function () { return $(this).text() == '\xa0';}).css('background','rgba(0,0,0,0.1)');
@@ -350,7 +382,7 @@ function importarCSV(s){
         const filtro = th.attr('data-busq');
         const es_fecha = th.is('[fecha]');
         const attr = th.attr('data-busq-attr');
-        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr,rango: th.is('[rango]')};
+        colidxs[idx] = {filtro: filtro,es_fecha: es_fecha,attr: attr,rango: th.is('[rango]'),opcional: th.is('[opcional]')};
     }
     lines  = lines.slice(1);
     if(lines.length == 0) return;
@@ -379,6 +411,12 @@ function importarCSV(s){
                 if(hasta != null) dtpH.data("datetimepicker").setDate(new Date(hasta));
             }
             else if(aux.rango){
+                if(aux.opcional){
+                    if(text == "No contesta"){
+                        $(aux.filtro+'D').parent().find('.no_contesta').prop('checked',true).change();
+                        continue;
+                    }
+                }
                 const vals = text.split('-');
                 cargarVal($(aux.filtro+'D'),aux.attr,vals[0]? vals[0] : '');
                 cargarVal($(aux.filtro+'H'),aux.attr,vals[1]? vals[1] : '');
@@ -406,7 +444,8 @@ function cargarVal(dom,attr,text){
 
 function limpiarFiltros(){
     $('#collapseFiltros input').val('');
-    $('#collapseFiltros select').val('')
+    $('#collapseFiltros select').val('');
+    $('#collapseFiltros .no_contesta').prop('checked',true).change().prop('checked',false).change();
 }
 
 function mensajeError(msg){
@@ -425,4 +464,8 @@ function mensajeError(msg){
   $('.no_contesta').change(function(){
       const checked = $(this).prop('checked');
       $(this).parent().find('input').not('.no_contesta').attr('disabled',checked).val('');
+  })
+
+  $('.encuesta').change(function(){
+      if($(this).val()!='') $('#buscadorEncuesta').val(1);
   })
