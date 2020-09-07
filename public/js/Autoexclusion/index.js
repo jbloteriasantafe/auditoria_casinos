@@ -6,23 +6,36 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true
+  }
+  
+  $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
+  $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
+
+  const input_fecha = {
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
     format: 'dd/mm/yy',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 2,
     ignoreReadonly: true
   }
-  $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusionEstadoD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusionD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaVencimientoD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaRenovacionD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaCierreDefinitivoD').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusionEstadoH').datetimepicker(input_fecha_iso);
-  $('#dtpFechaAutoexclusionH').datetimepicker(input_fecha_iso);
-  $('#dtpFechaVencimientoH').datetimepicker(input_fecha_iso);
-  $('#dtpFechaRenovacionH').datetimepicker(input_fecha_iso);
-  $('#dtpFechaCierreDefinitivoH').datetimepicker(input_fecha_iso);
+
+  $('#dtpFechaAutoexclusionD').datetimepicker(input_fecha);
+  $('#dtpFechaVencimientoD').datetimepicker(input_fecha);
+  $('#dtpFechaRenovacionD').datetimepicker(input_fecha);
+  $('#dtpFechaCierreDefinitivoD').datetimepicker(input_fecha);
+  $('#dtpFechaAutoexclusionH').datetimepicker(input_fecha);
+  $('#dtpFechaVencimientoH').datetimepicker(input_fecha);
+  $('#dtpFechaRenovacionH').datetimepicker(input_fecha);
+  $('#dtpFechaCierreDefinitivoH').datetimepicker(input_fecha);
   $('#btn-buscar').trigger('click');
 });
 
@@ -485,11 +498,14 @@ function validarDNI(){
             mostrarAutoexcluido(data);
           },500);
         }
-        else if(data < 0){//No deberia suceder esto, o falta actualizar el codigo frontend
-          $('#modalAgregarAE').modal('hide');
-          mensajeError('');
-          valid = 0;
-        }//Si es 0 es un AE nuevo por lo que no se hace nada.
+        else if(data == "0"){//AE nuevo, muestro las fechas de renovacion/vencimiento
+          $('#fecha_vencimiento_periodo').parent().css('opacity','');
+          $('#fecha_renovacion').parent().css('opacity','');
+        }
+        else if(data < 0){//El AE es cargable pero ya tuvo uno, le escondo las fechas de renovacion/vencimiento
+          $('#fecha_vencimiento_periodo').parent().css('opacity','0');
+          $('#fecha_renovacion').parent().css('opacity','0');
+        }
       }
       else if(typeof data == "object"){
         $('#apellido').val(data.autoexcluido.apellido);
@@ -522,6 +538,15 @@ function validarDNI(){
         $('#fecha_vencimiento_periodo').val(data.estado.fecha_vencimiento);
         $('#fecha_renovacion').val(data.estado.fecha_renovacion);
         $('#fecha_cierre_definitivo').val(data.estado.fecha_cierre_ae);
+
+        if(data.es_primer_ae){
+          $('#fecha_vencimiento_periodo').parent().css('opacity','');
+          $('#fecha_renovacion').parent().css('opacity','');
+        }
+        else{
+          $('#fecha_vencimiento_periodo').parent().css('opacity','0');
+          $('#fecha_renovacion').parent().css('opacity','0');
+        }
 
         //precargo el step de la encuesta
         if (data.encuesta != null) {

@@ -356,7 +356,11 @@ class AutoexclusionController extends Controller
         if(!$todos_vencidos) break;
       }
       //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
-      if($todos_vencidos) return 0;
+      if($todos_vencidos){
+        //Si ya estuvo AE retorno -1 sino 0
+        if(count($aes) > 0) return -1;
+        else return 0;
+      }
 
       //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarl
       $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
@@ -366,6 +370,7 @@ class AutoexclusionController extends Controller
   public function buscarAutoexcluido ($id) {
     $ae = AE\Autoexcluido::find($id);
     return ['autoexcluido' => $ae,
+            'es_primer_ae' => $ae->es_primer_ae,
             'datos_contacto' => $ae->contacto,
             'estado' => $ae->estado,
             'encuesta' => $ae->encuesta,
