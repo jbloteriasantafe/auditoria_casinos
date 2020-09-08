@@ -538,7 +538,7 @@ class AutoexclusionController extends Controller
   //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
   public function actualizarVencidosRenovados(){
     DB::transaction(function (){
-      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7]);
+      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->get();
       foreach($vigentes as $v){
         $ae = $v->ae;
         $nuevo_estado = $ae->estado_transicionable;
@@ -554,7 +554,7 @@ class AutoexclusionController extends Controller
       }
     });
     DB::transaction(function (){
-      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7]);
+      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7])->get();
       foreach($renovados as $r){
         $ae = $r->ae;
         $nuevo_estado = $ae->estado_transicionable;
