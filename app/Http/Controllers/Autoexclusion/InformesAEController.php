@@ -237,6 +237,7 @@ class InformesAEController extends Controller
       $resultados->getCollection()->transform(function ($row){
         $ae = AE\Autoexcluido::find($row->id_autoexcluido);
         $row->puede = AE\NombreEstadoAutoexclusion::find($ae->estado_transicionable)->descripcion;
+        $row->es_primer_ae = $ae->es_primer_ae;
         return $row;
       });
       return $resultados;
