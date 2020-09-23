@@ -168,10 +168,10 @@ $id_usuario = session('id_usuario');
                                       }
                                   </style>
 
-                                  <table id="infoImportaciones" class="table table-fixed">
+                                  <table id="infoImportaciones" class="table table-fixed tablesorter">
                                       <thead id="headSantaFe">
                                         <tr>
-                                          <th class="col-xs-3">FECHA</th>
+                                          <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
                                           <th class="col-xs-3" style="text-align:center;">CONTADORES </th>
                                           <th class="col-xs-3" style="text-align:center;">PRODUCIDOS</th>
                                           <th class="col-xs-3" style="text-align:center;">BENEFICIOS</th>

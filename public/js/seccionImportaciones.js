@@ -86,6 +86,8 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
+  $('#mesInfoImportacion').data('datetimepicker').setDate(new Date());
+
   if($('#casino_busqueda option').length == 2 ){
     $('#casino_busqueda option:eq(1)').prop('selected', true);
   }
@@ -93,60 +95,56 @@ $(document).ready(function(){
   setearValueFecha();
   //Paginar
     $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-  // $('#btn-buscarImportaciones').trigger('click');
 
-  // var id_casino = $('#casinoInfoImportacion').val();
   id_casino = 1;
   id_tipo_moneda = 1;
 
   $('#casinoInfoImportacion').val(id_casino);
   $('#monedaInfoImportacion').val(id_tipo_moneda);
   $('#casinoInfoImportacion').change();
-  // if (id_casino != 3) {
-  //   cargarTablasImportaciones(id_casino, '1'); $('#monedaInfoImportacion').hide();
-  // }
-  // else  $('#monedaInfoImportacion').change();
-
 });
 
 
 $('#casinoInfoImportacion').change(function() {
     var id_casino = $(this).val();
     var id_moneda = $('#monedaInfoImportacion').val();
-
+    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
     //Si el casino elegido no es Rosario, entonces ocultar el select de monedas
       //Para Santa Fe y Melincué mandar moneda PESOS por defecto
       //Para Rosario mirar que moneda está seleccionada
     if (id_casino != '3') {
         $('#monedaInfoImportacion').hide();
-        cargarTablasImportaciones(id_casino, '1'); //El 1 es PESOS
+
+        cargarTablasImportaciones(id_casino, '1',fecha_sort); //El 1 es PESOS
     }else {
         $('#monedaInfoImportacion').show();
         console.log("Casino: ", id_casino);
         console.log("Moneda: ", id_moneda);
         $('#monedaInfoImportacion').change();
-        // cargarTablasImportaciones(id_casino, id_moneda);
     }
 });
 
 $('#monedaInfoImportacion').change(function() {
     var id_moneda = $(this).val();
+    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
 
     if (id_moneda == 1) $('.tablaBody').removeClass('dolares').addClass('pesos');
     else $('.tablaBody').removeClass('pesos').addClass('dolares');
 
     //Esto pasa siempre en Rosario, el único casino que tiene dolar
-    cargarTablasImportaciones('3', id_moneda);
+    cargarTablasImportaciones('3', id_moneda, fecha_sort);
 });
 
 $('#mesInfoImportacion').on("change.datetimepicker",function(){
   var id_casino = $('#casinoInfoImportacion').val();
   var id_moneda = $('#monedaInfoImportacion').val();
+  const fecha_sort = $('#infoImportaciones .activa').attr('estado');
+
   if(id_casino != '3'){
-    cargarTablasImportaciones(id_casino, '1'); //El 1 es PESOS
+    cargarTablasImportaciones(id_casino, '1', fecha_sort); //El 1 es PESOS
   }
   else{
-    cargarTablasImportaciones(id_casino,id_moneda);
+    cargarTablasImportaciones(id_casino,id_moneda, fecha_sort);
   }
 })
 
@@ -155,10 +153,10 @@ function limpiarBodysImportaciones() {
     $('.tablaBody').hide();
 }
 
-function cargarTablasImportaciones(casino, moneda) {
+function cargarTablasImportaciones(casino, moneda, fecha_sort) {
     const fecha = $('#mes_info_hidden').val();
-    const url = fecha.size == 0? '' : ('/' + fecha);
-    $.get('importaciones/' + casino + url, function(data) {
+    const url = fecha.size == 0? '/' : ('/' + fecha);
+    $.get('importaciones/' + casino + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
         var tablaBody;
 
         console.log("Casino: ", casino);
@@ -555,7 +553,6 @@ $('#btn-guardarContador').on('click', function(e){
 
         if (casino == '3') moneda = id_tipo_moneda.toString();
 
-        // cargarTablasImportaciones(casino, moneda);
         $('#casinoInfoImportacion').val(id_casino);
         $('#monedaInfoImportacion').val(id_tipo_moneda);
         $('#casinoInfoImportacion').change();
@@ -847,12 +844,6 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#modalImportacionProducidos').modal('hide');
 
           limpiarBodysImportaciones();
-
-          var casino = id_casino.toString();
-          var moneda = id_tipo_moneda.toString();
-
-          // if (id_casino == 3) cargarTablasImportaciones(casino, moneda);
-          // else cargarTablasImportaciones(casino, '1');
 
           $('#casinoInfoImportacion').val(id_casino);
           $('#monedaInfoImportacion').val(id_tipo_moneda);
@@ -1180,10 +1171,6 @@ $('#btn-guardarBeneficio').on('click', function(e){
 
         limpiarBodysImportaciones();
 
-        var moneda = id_tipo_moneda.toString();
-
-        // cargarTablasImportaciones('3', moneda);
-        // $('#casinoInfoImportacion').val(3).trigger('change');
         $('#casinoInfoImportacion').val(id_casino);
         $('#monedaInfoImportacion').val(id_tipo_moneda);
         $('#casinoInfoImportacion').change();
@@ -1560,4 +1547,28 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
       console.log('Error:', data);
     }
   });
+});
+
+$(document).on('click', '#infoImportaciones thead tr th[value]', function(e) {
+  $('#infoImportaciones th').removeClass('activa');
+  if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
+      $(e.currentTarget).children('i')
+          .removeClass('fa-sort').addClass('fa fa-sort-desc')
+          .parent().addClass('activa').attr('estado', 'desc');
+  } else {
+      if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
+          $(e.currentTarget).children('i')
+              .removeClass('fa-sort-desc').addClass('fa fa-sort-asc')
+              .parent().addClass('activa').attr('estado', 'asc');
+      } else {
+          $(e.currentTarget).children('i')
+              .removeClass('fa-sort-asc').addClass('fa fa-sort')
+              .parent().attr('estado', '');
+      }
+  }
+  $('#infoImportaciones th:not(.activa) i')
+      .removeClass().addClass('fa fa-sort')
+      .parent().attr('estado', '');
+  
+  $('#casinoInfoImportacion').change();
 });
