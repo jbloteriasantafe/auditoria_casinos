@@ -157,52 +157,53 @@ class ExpedienteController extends Controller
     })->validate();
 
     $expediente = new Expediente;
-    $expediente->nro_exp_org = $request->nro_exp_org;
-    $expediente->nro_exp_interno = $request->nro_exp_interno;
-    $expediente->nro_exp_control = $request->nro_exp_control;
-    $expediente->fecha_iniciacion = $request->fecha_iniciacion;
-    $expediente->fecha_pase = $request->fecha_pase;
-    $expediente->iniciador = $request->iniciador;
-    if(!empty($request->concepto)){
-        $expediente->concepto = $request->concepto;
-    }
-    $expediente->ubicacion_fisica = $request->ubicacion_fisica;
-    $expediente->remitente = $request->remitente;
-    $expediente->destino = $request->destino;
-    $expediente->nro_folios = $request->nro_folios;
-    $expediente->tema = $request->tema;
-    $expediente->anexo = $request->anexo;
-    $expediente->nro_cuerpos = $request->nro_cuerpos;
-    $expediente->save();
-
-    foreach ($request['casinos'] as $id_casino) {
-      $expediente->casinos()->attach(intval($id_casino));
-    }
-    $expediente->save();
-
-
-    if(!empty($request->resolucion)){
-      foreach($request->resolucion as $res){
-        ResolucionController::getInstancia()->guardarResolucion($res,$expediente->id_expediente);
+    DB::transaction(function () use ($request,&$expediente){
+      $expediente->nro_exp_org = $request->nro_exp_org;
+      $expediente->nro_exp_interno = $request->nro_exp_interno;
+      $expediente->nro_exp_control = $request->nro_exp_control;
+      $expediente->fecha_iniciacion = $request->fecha_iniciacion;
+      $expediente->fecha_pase = $request->fecha_pase;
+      $expediente->iniciador = $request->iniciador;
+      if(!empty($request->concepto)){
+          $expediente->concepto = $request->concepto;
       }
-
-    }
-    if(!empty($request->disposiciones)){
-      foreach ($request->disposiciones as $disp){
-        DisposicionController::getInstancia()->guardarDisposicion($disp,$expediente->id_expediente);
+      $expediente->ubicacion_fisica = $request->ubicacion_fisica;
+      $expediente->remitente = $request->remitente;
+      $expediente->destino = $request->destino;
+      $expediente->nro_folios = $request->nro_folios;
+      $expediente->tema = $request->tema;
+      $expediente->anexo = $request->anexo;
+      $expediente->nro_cuerpos = $request->nro_cuerpos;
+      $expediente->save();
+  
+      foreach ($request['casinos'] as $id_casino) {
+        $expediente->casinos()->attach(intval($id_casino));
       }
-    }
-
-    if(!empty($request->notas)){
-      foreach ($request->notas as $nota){
-        NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+      $expediente->save();
+    
+      if(!empty($request->resolucion)){
+        foreach($request->resolucion as $res){
+          ResolucionController::getInstancia()->guardarResolucion($res,$expediente->id_expediente);
+        }
+  
       }
-    }
-    if(!empty($request->notas_asociadas)){
-      foreach ($request->notas_asociadas as $nota){
-        NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+      if(!empty($request->disposiciones)){
+        foreach ($request->disposiciones as $disp){
+          DisposicionController::getInstancia()->guardarDisposicion($disp,$expediente->id_expediente);
+        }
       }
-    }
+  
+      if(!empty($request->notas)){
+        foreach ($request->notas as $nota){
+          NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+        }
+      }
+      if(!empty($request->notas_asociadas)){
+        foreach ($request->notas_asociadas as $nota){
+          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+        }
+      }
+    });
 
     return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
   }
@@ -267,79 +268,84 @@ class ExpedienteController extends Controller
       }
     }
 
-    $expediente = Expediente::find($request->id_expediente);
-    $expediente->nro_exp_org = $request->nro_exp_org;
-    $expediente->nro_exp_interno = $request->nro_exp_interno;
-    $expediente->nro_exp_control = $request->nro_exp_control;
-    $expediente->fecha_iniciacion = $request->fecha_iniciacion;
-    $expediente->fecha_pase = $request->fecha_pase;
-    $expediente->iniciador = $request->iniciador;
-    if(!empty($request->concepto)){
-        $expediente->concepto = $request->concepto;
-    }
-    $expediente->ubicacion_fisica = $request->ubicacion_fisica;
-    $expediente->remitente = $request->remitente;
-    $expediente->destino = $request->destino;
-    $expediente->nro_folios = $request->nro_folios;
-    $expediente->tema = $request->tema;
-    $expediente->anexo = $request->anexo;
-    $expediente->nro_cuerpos = $request->nro_cuerpos;
-    $expediente->casinos()->detach();
-
-    $expediente->casinos()->sync($request['casinos']);
-    $expediente->save();
-
-    //tablaNotas contiene todas las notas que existian - o sea con // ID
-    {
-      $listita = array();
-      if(isset($request->tablaNotas)){
-        foreach ($request->tablaNotas as $tn) {
-          if(ctype_digit($tn)){
-            $listita[] = $tn;
+    DB::transaction(function() use ($request){
+      $expediente = Expediente::find($request->id_expediente);
+      $expediente->nro_exp_org = $request->nro_exp_org;
+      $expediente->nro_exp_interno = $request->nro_exp_interno;
+      $expediente->nro_exp_control = $request->nro_exp_control;
+      $expediente->fecha_iniciacion = $request->fecha_iniciacion;
+      $expediente->fecha_pase = $request->fecha_pase;
+      $expediente->iniciador = $request->iniciador;
+      if(!empty($request->concepto)){
+          $expediente->concepto = $request->concepto;
+      }
+      $expediente->ubicacion_fisica = $request->ubicacion_fisica;
+      $expediente->remitente = $request->remitente;
+      $expediente->destino = $request->destino;
+      $expediente->nro_folios = $request->nro_folios;
+      $expediente->tema = $request->tema;
+      $expediente->anexo = $request->anexo;
+      $expediente->nro_cuerpos = $request->nro_cuerpos;
+      $expediente->casinos()->detach();
+  
+      $expediente->casinos()->sync($request['casinos']);
+      $expediente->save();
+  
+      //tablaNotas contiene todas las notas que existian - o sea con // ID
+      {
+        $listita = array();
+        if(isset($request->tablaNotas)){
+          foreach ($request->tablaNotas as $tn) {
+            if(ctype_digit($tn)){
+              $listita[] = $tn;
+            }
+          }
+        }
+        $notas_a_eliminar = Nota::whereNotIn('id_nota',$listita)
+              ->where('id_expediente',$expediente->id_expediente)
+              ->where('es_disposicion',0)->get();
+        foreach($notas_a_eliminar as $nota){
+          NotaController::getInstancia()->eliminarNota($nota->id_nota);
+        }
+      }
+  
+      //chequeo si recibe notas y movimientos nuevos
+  
+      if(!empty($request->notas)){
+        foreach ($request->notas as $nota){
+          if(!$this->existeNota($nota, $expediente->notas)){
+            NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente, $expediente->casinos->first()->id_casino);
           }
         }
       }
-      $notas_a_eliminar = Nota::whereNotIn('id_nota',$listita)
-            ->where('id_expediente',$expediente->id_expediente)
-            ->where('es_disposicion',0)->delete();
-    }
-
-    //chequeo si recibe notas y movimientos nuevos
-
-    if(!empty($request->notas)){
-      foreach ($request->notas as $nota){
-        if(!$this->existeNota($nota, $expediente->notas)){
-          NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente, $expediente->casinos->first()->id_casino);
+  
+      //notas para asociar
+      if(!empty($request->notas_asociadas)){
+        foreach ($request->notas_asociadas as $nota){
+          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
         }
       }
-    }
-
-    //notas para asociar
-    if(!empty($request->notas_asociadas)){
-      foreach ($request->notas_asociadas as $nota){
-        NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
-      }
-    }
-
-    $disposiciones = $expediente->disposiciones;
-    if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
-      foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
-        if(!$this->existeIdDisposicion($disposicion,$request->dispo_cargadas)){//chequea que exista la disposiciones en el request
-          DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion); //si no esta en el request la elimina
+  
+      $disposiciones = $expediente->disposiciones;
+      if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
+        foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
+          if(!$this->existeIdDisposicion($disposicion,$request->dispo_cargadas)){//chequea que exista la disposiciones en el request
+            DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion); //si no esta en el request la elimina
+          }
         }
       }
-    }
-    
-    if(!empty($request->disposiciones)){
-      foreach($request->disposiciones as $disposicion){
-        if(!$this->existeDisposicion($disposicion,$expediente->disposiciones)
-          && !empty($disposicion['nro_disposicion']) && !empty($disposicion['nro_disposicion_anio'])){
-          DisposicionController::getInstancia()->guardarDisposicion($disposicion,$expediente->id_expediente);
+      
+      if(!empty($request->disposiciones)){
+        foreach($request->disposiciones as $disposicion){
+          if(!$this->existeDisposicion($disposicion,$expediente->disposiciones)
+            && !empty($disposicion['nro_disposicion']) && !empty($disposicion['nro_disposicion_anio'])){
+            DisposicionController::getInstancia()->guardarDisposicion($disposicion,$expediente->id_expediente);
+          }
         }
       }
-    }
-
-    ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
+  
+      ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
+    });
 
     $expediente = Expediente::find($request->id_expediente);
 

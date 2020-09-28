@@ -151,11 +151,14 @@ class NotaController extends Controller
         DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion);
       }
     }
+    if(!is_null($nota->log_movimiento) && !is_null($nota->expediente)){
+      LogMovimientoController::getInstancia()->disasociarExpediente($nota->log_movimiento->id_log_movimiento,$nota->expediente->id_expediente);
+    }
+
     $nota->expediente()->dissociate();
     $nota->maquinas()->detach();
     $nota = Nota::destroy($id);
     return ['nota' => $nota];
-
   }
 
   public function consultaMovimientosNota($id_nota){

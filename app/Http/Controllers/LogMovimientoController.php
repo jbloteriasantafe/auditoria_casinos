@@ -236,7 +236,7 @@ class LogMovimientoController extends Controller
       };
     }
     if(!empty($request->nro_exp_interno)){
-      $where_exp_org = function($q) use ($request){
+      $where_exp_interno = function($q) use ($request){
         $q->where('expediente.nro_exp_interno','like', '%'.$request->nro_exp_interno.'%')
         ->orWhere('log_movimiento.nro_exp_interno','like', '%'.$request->nro_exp_interno.'%');
         return;
@@ -286,7 +286,8 @@ class LogMovimientoController extends Controller
     ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
     ->where($reglas)->where($where_exp_control)->where($where_exp_interno)->where($where_exp_org)
     ->whereIn('log_movimiento.id_casino' , $casinos)
-    ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9]);
+    ->whereNotIn('tipo_movimiento.id_tipo_movimiento',[9])
+    ->whereNotNull('log_movimiento.id_expediente');//id_expediente no puede ser nulo (sino seria intervencion MTM)
 
     if(!empty($request->fecha)){
       $fecha = explode("-", $request->fecha);
@@ -904,9 +905,21 @@ class LogMovimientoController extends Controller
   }
 
   public function asociarExpediente($id_log_movimiento, $id_expediente){
+    //Si estas perdido de porque se guarda dos veces el nro_exp uno en el log y otro en el expediente mismo
+    //Es porque para diferenciar entre movimientos de ingreso inicial/egreso definitivo e intervenciones se decidio (yo no, legacy)
+    //que en los primeros el log_movimimiento tenia un id_expediente asociado (aunque fuera uno "por defecto" todo en 0) y en los otros fuera nulo
+    //Sin embargo salio el requerimiento que las intervenciones tambien tenian expedientes pero solo se le cargaba el numero para documentar
+    //Entonces se le creo un campo a parte en el mismo log_movimiento
+    //Para mas explicaciones ver arriba de todo - Octavio 28 sep 2020
+    $expediente = Expediente::find($id_expediente);
     $logMovimiento = LogMovimiento::find($id_log_movimiento);
-    $logMovimiento->expediente()->associate($id_expediente);
-    $logMovimiento->tiene_expediente = 1;
+    $logMovimiento->nro_exp_org = $expediente->nro_exp_org;
+    $logMovimiento->nro_exp_interno = $expediente->nro_exp_interno;
+    $logMovimiento->nro_exp_control = $expediente->nro_exp_control;
+    if(!is_null($logMovimiento->id_expediente)){
+      $logMovimiento->expediente()->associate($id_expediente);
+    }
+    $logMovimiento->tiene_expediente = 1;//@Legacy: Este atributo es superfluo, no lo puse yo
     $logMovimiento->save();
     //Debe asociarselo a las maquinas del movimiento tambien:
     if(isset($logMovimiento->relevamientos_movimientos))
@@ -918,6 +931,29 @@ class LogMovimientoController extends Controller
     }
 
     return $logMovimiento;
+  }
+
+  public function disasociarExpediente($id_log_movimiento,$id_expediente){
+    $logMovimiento = LogMovimiento::find($id_log_movimiento);
+    $logMovimiento->nro_exp_org = '';
+    $logMovimiento->nro_exp_interno = '';
+    $logMovimiento->nro_exp_control = '';
+    if(!is_null($logMovimiento->id_expediente)){
+      $defecto_casino = Expediente::where([
+          ['concepto', '=', 'expediente_auxiliar_para_movimientos'],
+          ['id_casino', '=', $logMovimiento->id_casino]
+      ])->get()->first();
+      $logMovimiento->expediente()->associate($defecto_casino);
+    }
+    $logMovimiento->tiene_expediente = 0;
+    $logMovimiento->save();
+    if(isset($logMovimiento->relevamientos_movimientos))
+    {
+      foreach($logMovimiento->relevamientos_movimientos as $relev){
+        $mtm = $relev->maquina;
+        if(!is_null($mtm)) MTMController::getInstancia()->disasociarExpediente($mtm->id_maquina, $id_expediente);
+      }
+    }
   }
 
   public function eliminarMov($id_log_movimiento,
@@ -1028,7 +1064,7 @@ class LogMovimientoController extends Controller
   public function movimientosSinExpediente(Request $req){
     $logs= DB::table('log_movimiento')
              ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha',
-              'tipo_movimiento.descripcion','casino.nombre','casino.id_casino')
+              'tipo_movimiento.descripcion','log_movimiento.sentido','casino.nombre','casino.id_casino')
               ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=',
               'log_movimiento.id_tipo_movimiento')
               ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
@@ -1150,8 +1186,6 @@ class LogMovimientoController extends Controller
         $casinos[] = $casino->id_casino;
       }
 
-      $reglas[]=['log_movimiento.tiene_expediente','=',0];
-
       $resultados= DB::table('log_movimiento')
       ->select('log_movimiento.*','tipo_movimiento.*',
         'estado_movimiento.descripcion as estado_mov_descripcion',
@@ -1165,8 +1199,8 @@ class LogMovimientoController extends Controller
       ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
       ->whereIn('log_movimiento.id_casino',$casinos)
       ->where($reglas)
-      ->whereNull('log_movimiento.id_expediente')
-      ->where('log_movimiento.tiene_expediente','=', 0);
+      ->whereNull('log_movimiento.id_expediente');
+
       if(isset($request->fecha)){
         $fecha=explode("-", $request->fecha);
         $resultados = $resultados->whereYear('log_movimiento.fecha' , '=', $fecha[0])

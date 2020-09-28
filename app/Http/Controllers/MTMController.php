@@ -984,7 +984,13 @@ class MTMController extends Controller
 
   public function asociarExpediente($id_mtm, $id_expediente){
     $mtm = Maquina::find($id_mtm);
-    $mtm->expedientes()->sync($id_expediente);// se borra el resto
+    $mtm->expedientes()->attach($id_expediente);//_NO_ se borra el resto (puede borrarlo desde el gestor de maquinas)
+    $mtm->save();
+  }
+
+  public function disasociarExpediente($id_mtm, $id_expediente){
+    $mtm = Maquina::find($id_mtm);
+    $mtm->expedientes()->detach($id_expediente);
     $mtm->save();
   }
 
