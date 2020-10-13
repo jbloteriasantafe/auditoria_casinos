@@ -502,6 +502,13 @@ $('#btn-guardarContador').on('click', function(e){
   }
   formData.append('id_tipo_moneda', monedaCont);
 
+
+  $('#casinoInfoImportacion').val(casinoCont);
+  $('#monedaInfoImportacion').val(monedaCont);
+  $('#mesInfoImportacion').data('datetimepicker').setDate(new Date(fechaCont.replaceAll('-','/')));
+  $('#casinoInfoImportacion').change();
+  
+
   //Si subió archivo lo guarda
   if($('#modalImportacionContadores #archivo').attr('data-borrado') == 'false' && $('#modalImportacionContadores #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacionContadores #archivo')[0].files[0]);
@@ -553,8 +560,6 @@ $('#btn-guardarContador').on('click', function(e){
 
         if (casino == '3') moneda = id_tipo_moneda.toString();
 
-        $('#casinoInfoImportacion').val(id_casino);
-        $('#monedaInfoImportacion').val(id_tipo_moneda);
         $('#casinoInfoImportacion').change();
 
         $('#mensajeExito').show();
@@ -814,6 +819,13 @@ $('#btn-guardarProducido').on('click',function(e){
   formData.append('fecha', fecha_date);
   formData.append('id_tipo_moneda',id_tipo_moneda);
 
+
+  $('#casinoInfoImportacion').val(id_casino);
+  $('#monedaInfoImportacion').val(id_tipo_moneda);
+  $('#mesInfoImportacion').data('datetimepicker').setDate(new Date(fecha_date));
+  $('#casinoInfoImportacion').change();
+  
+
   //Si subió archivo lo guarda
   if($('#modalImportacionProducidos #archivo').attr('data-borrado') == 'false' && $('#modalImportacionProducidos #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacionProducidos #archivo')[0].files[0]);
@@ -845,8 +857,6 @@ $('#btn-guardarProducido').on('click',function(e){
 
           limpiarBodysImportaciones();
 
-          $('#casinoInfoImportacion').val(id_casino);
-          $('#monedaInfoImportacion').val(id_tipo_moneda);
           $('#casinoInfoImportacion').change();
 
           $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN PRODUCIDO');
@@ -1140,6 +1150,14 @@ $('#btn-guardarBeneficio').on('click', function(e){
   formData.append('fecha', fecha_date);
   formData.append('id_tipo_moneda',id_tipo_moneda);
 
+  $('#casinoInfoImportacion').val(3);
+  $('#monedaInfoImportacion').val(id_tipo_moneda);
+  {
+    const aux = fecha_date.split('/');
+    $('#mesInfoImportacion').data('datetimepicker').setDate(new Date(aux[2]+'/'+aux[1]+'/'+aux[0]));
+  }
+  $('#casinoInfoImportacion').change();
+
   //Si subió archivo lo guarda
   if($('#modalImportacionBeneficios #archivo').attr('data-borrado') == 'false' && $('#modalImportacionBeneficios #archivo')[0].files[0] != null){
     formData.append('archivo' , $('#modalImportacionBeneficios #archivo')[0].files[0]);
@@ -1171,8 +1189,6 @@ $('#btn-guardarBeneficio').on('click', function(e){
 
         limpiarBodysImportaciones();
 
-        $('#casinoInfoImportacion').val(id_casino);
-        $('#monedaInfoImportacion').val(id_tipo_moneda);
         $('#casinoInfoImportacion').change();
 
 

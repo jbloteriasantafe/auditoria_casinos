@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use DateTime;
 use PDO;
+use Validator;
 use App\Maquina;
 use App\Sector;
 use App\Isla;
@@ -648,13 +649,14 @@ class LectorCSVController extends Controller
       $query = sprintf(" DELETE FROM producido_temporal WHERE id_producido = '%d'",$producido->id_producido);
       $pdo->exec($query);
       $producido->delete();
-      Validator::make($producido_validado,[
+      Validator::make([],[
           'producido_validado' => 'required|integer',
-      ], array(), self::$atributos)->after(function($validator){
-          if($validator->getData()['producido_validado'] > 0){
+      ], array(), array())->after(function($validator) use ($producido_validado){
+          if($producido_validado > 0){
               $validator->errors()->add('producido_validado','El Producido para esa fecha ya está validado y no se puede reimportar.');
           }
       })->validate();
+      return;
     }
     //si ya hay producidos para esa fecha pero aun no esta validado primero borra todos los detalles producido y luego el producido
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
