@@ -99,7 +99,7 @@ use Illuminate\Http\Request;
                       <thead>
                         <tr>
                           <th class="col-xs-2">CASINO</th>
-                          <th class="col-xs-2">FECHA</th>
+                          <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
                           <th class="col-xs-1">MONEDA</th>
                           <th class="col-xs-1">VALIDADO</th>
                           <th class="col-xs-1">CONT INI</th>

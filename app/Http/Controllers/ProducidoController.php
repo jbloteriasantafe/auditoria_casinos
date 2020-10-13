@@ -141,8 +141,11 @@ class ProducidoController extends Controller
 
     $casinos= Casino::whereIn('id_casino',$casinos)->get();
 
+    //???
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
 
+    if($request->orden == 'asc') $producidos = array_reverse($producidos);
+    
     return ['producidos' => $producidos];
   }
   // eliminarProducido elimina el producido y los detalles producidos asociados

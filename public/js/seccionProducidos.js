@@ -63,11 +63,13 @@ $(function () {
 var guardado = true;
 
 $('#btn-buscar').on('click' , function () {
+  const orden = $('#tablaImportacionesProducidos th.activa').attr('estado');
   var busqueda = {
     id_casino : $('#selectCasinos').val(),
     fecha_inicio : $('#fecha_inicio').val(),
     fecha_fin : $('#fecha_fin').val() ,
-    validado : $('#selectValidado').val()
+    validado : $('#selectValidado').val(),
+    orden: orden? orden: ''
   }
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -601,3 +603,28 @@ function agregarFilaTabla(producido, casino){
 } //GENERA TABLA DE LISTADO PRINCIPAL
  $('#tablaImportacionesProducidos tbody').append(tr);
 }
+
+
+$(document).on('click', '#tablaImportacionesProducidos thead tr th[value]', function(e) {
+  $('#tablaImportacionesProducidos th').removeClass('activa');
+  if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
+      $(e.currentTarget).children('i')
+          .removeClass('fa-sort').addClass('fa fa-sort-desc')
+          .parent().addClass('activa').attr('estado', 'desc');
+  } else {
+      if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
+          $(e.currentTarget).children('i')
+              .removeClass('fa-sort-desc').addClass('fa fa-sort-asc')
+              .parent().addClass('activa').attr('estado', 'asc');
+      } else {
+          $(e.currentTarget).children('i')
+              .removeClass('fa-sort-asc').addClass('fa fa-sort')
+              .parent().attr('estado', '');
+      }
+  }
+  $('#tablaImportacionesProducidos th:not(.activa) i')
+      .removeClass().addClass('fa fa-sort')
+      .parent().attr('estado', '');
+  
+  $('#btn-buscar').click();
+});
