@@ -1151,7 +1151,10 @@ class LogMovimientoController extends Controller
           'id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
           'id_casino' => 'nullable|exists:casino,id_casino',
           'mtm' => 'nullable|exists:maquina,nro_admin',
-          'sentido' => 'nullable|string'
+          'sentido' => 'nullable|string',
+          'nro_exp_org' => 'nullable|string',
+          'nro_exp_interno' => 'nullable|string',
+          'nro_exp_control' => 'nullable|string',
       ], array(), self::$atributos)->after(function ($validator){})->validate();
 
       $reglas=array();
@@ -1178,6 +1181,16 @@ class LogMovimientoController extends Controller
 
       if(isset($request->id_casino)){
         $reglas[] = ['log_movimiento.id_casino','=',$request->id_casino];
+      }
+
+      if(isset($request->nro_exp_org)){
+        $reglas[] = ['log_movimiento.nro_exp_org','LIKE',$request->nro_exp_org.'%'];
+      }
+      if(isset($request->nro_exp_interno)){
+        $reglas[] = ['log_movimiento.nro_exp_interno','LIKE',$request->nro_exp_interno.'%'];
+      }
+      if(isset($request->nro_exp_control)){
+        $reglas[] = ['log_movimiento.nro_exp_control','=',$request->nro_exp_control];
       }
 
       $casinos = array();

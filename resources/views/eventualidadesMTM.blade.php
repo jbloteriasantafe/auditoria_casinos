@@ -66,7 +66,7 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <h5>Casino</h5>
                     <select class="form-control" id="B_CasinoEv">
                       <option value="" selected>- Seleccione casino -</option>
@@ -75,13 +75,21 @@
                       @endforeach
                     </select>
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Nro. de Máquina</h5>
                     <input id="B_mtmEv" type="text" class="form-control" placeholder="Nro. de máquina">
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-lg-3">
                     <h5>Nro. de Isla</h5>
                     <input id="B_islaEv" type="text" class="form-control" placeholder="Nro. Isla">
+                  </div>
+                  <div class="col-lg-3">
+                    <h5>Número de expediente</h5>
+                    <div class="input-group triple-input">
+                      <input id="B_nro_exp_org" style="width:30%; border-right:none;" type="text" placeholder="-----" maxlength="5" class="form-control" />
+                      <input id="B_nro_exp_interno" style="width:50%;" type="text" placeholder="-------" maxlength="7" class="form-control" />
+                      <input id="B_nro_exp_control" style="width:20%; border-left:none;" type="text" placeholder="-" maxlength="1" class="form-control" />
+                    </div>
                   </div>
                 </div>
               </div> <!-- row / formulario -->
