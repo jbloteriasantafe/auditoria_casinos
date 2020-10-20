@@ -417,7 +417,20 @@ function generarFilaTabla(event,controlador,superusuario){
   fila.attr('id',event.id_log_movimiento);
   fila.find('.fecha').text(convertirDate(event.fecha)).attr('title',event.fecha);
   fila.find('.tipo').text(event.descripcion).attr('title',event.descripcion);
-  fila.find('.sentido').text(event.sentido).attr('title',event.sentido);
+  fila.find('.sentido').attr('title',event.sentido);
+  if(event.sentido == 'EGRESO TEMPORAL'){
+    fila.find('.sentido .reemplazo').addClass('fa-long-arrow-alt-right').css('color','rgb(244,160,0)');
+  }
+  else if(event.sentido == 'REINGRESO'){
+    fila.find('.sentido .reemplazo').addClass('fa-long-arrow-alt-left').css('color','rgb(76,175,80)');
+  }
+  else{
+    fila.find('.sentido').text('---');
+  }
+
+  const nro_exp = event.nro_exp_org + '-' + event.nro_exp_interno + '-' + event.nro_exp_control;
+  fila.find('.expediente').text(nro_exp).attr('title',nro_exp);
+  
   fila.find('.estado').attr('title',event.estado_rel_descripcion);
   let iclass = 'fa-exclamation';
   let color = 'rgb(255,255,0)';
