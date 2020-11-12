@@ -1595,7 +1595,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       for (var j = 0; j < data.tipos_causa_no_toma.length; j++) {
           var tipo = data.tipos_causa_no_toma[j].descripcion;
           var id = data.tipos_causa_no_toma[j].id_tipo_causa_no_toma;
-          tipoNoToma.append($('<option>').text(tipo).val(id));
+          tipoNoToma.append($('<option>').text(tipo).val(id).attr('disabled',data.tipos_causa_no_toma[j].deprecado == 1? true : false));
       }
 
       tipoNoToma.val(data.detalles[i].tipo_causa_no_toma);

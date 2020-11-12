@@ -9,7 +9,7 @@ class TipoCausaNoToma extends Model
   protected $connection = 'mysql';
   protected $table = 'tipo_causa_no_toma';
   protected $primaryKey = 'id_tipo_causa_no_toma';
-  protected $visible = array('id_tipo_causa_no_toma','descripcion','codigo');
+  protected $visible = array('id_tipo_causa_no_toma','descripcion','codigo','deprecado');
   public $timestamps = false;
 
   public function detalles(){

@@ -104,7 +104,8 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                                </table>
                                <div class="referencias">';
                                  foreach($rel->causas_no_toma as $causa_no_toma){
-                                   $tabla2 = $tabla2.'<span class="codigoReferencia">' . $causa_no_toma->codigo . '</span><span class="descripcionReferencia"> : '. $causa_no_toma->descripcion . '</span> ';
+                                   if($causa_no_toma->deprecado == 0)
+                                    $tabla2 = $tabla2.'<span class="codigoReferencia">' . $causa_no_toma->codigo . '</span><span class="descripcionReferencia"> : '. $causa_no_toma->descripcion . '</span> ';
                                  }
 
 
@@ -195,7 +196,9 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                   </table>
                   <div class="referencias">
                     @foreach($rel->causas_no_toma as $causa_no_toma)
+                      @if($causa_no_toma->deprecado == 0)
                       <span class="codigoReferencia">{{$causa_no_toma->codigo}} </span><span class="descripcionReferencia">:{{$causa_no_toma->descripcion}} </span>
+                      @endif
                     @endforeach
                   </div>
 
