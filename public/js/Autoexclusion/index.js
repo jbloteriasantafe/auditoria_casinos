@@ -972,7 +972,7 @@ $('#btn-salir').click(function() {
 //Mostrar archivos ver mas
 $('.btn-ver-mas').click(function() {
   let tipo_archivo = $(this).attr('data-tipo');
-  window.open('mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
+  window.open('autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
 });
 
 //Click en boton adentro del popover
