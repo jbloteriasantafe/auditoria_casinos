@@ -135,6 +135,9 @@ input[required], select[required]{
                   @foreach ($casinos as $casino)
                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
+                  @foreach ($plataformas as $p)
+                  <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                  @endforeach
                 </select>
               </div>
             </div>
@@ -230,7 +233,7 @@ input[required], select[required]{
           <table id="tablaAutoexcluidos" class="table table-fixed tablesorter">
             <thead>
               <tr>
-                <th class="col-xs-1" value="ae_estado.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+                <th class="col-xs-1" value="casino_plataforma" estado="">CASINO<i class="fa fa-sort"></i></th>
                 <th class="col-xs-1" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
                 <th class="col-xs-1" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
                 <th class="col-xs-1" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
@@ -244,7 +247,7 @@ input[required], select[required]{
             </thead>
             <tbody id="cuerpoTabla" style="height: 350px;">
               <tr class="filaTabla" style="display: none">
-                <td class="col-xs-1 casino"></td>
+                <td class="col-xs-1 casino_plataforma"></td>
                 <td class="col-xs-1 dni"></td>
                 <td class="col-xs-1 apellido"></td>
                 <td class="col-xs-1 nombres"></td>
@@ -257,7 +260,7 @@ input[required], select[required]{
                   <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-search-plus"></i>
                   </button>
-                  @if($usuario->es_superusuario || $usuario->es_administrador)
+                  @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor)
                   <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-pencil-alt"></i>
                   </button>
@@ -439,9 +442,15 @@ input[required], select[required]{
                         <h5>CASINO</h5>
                         <select id="id_casino" class="form-control" required>
                           <option selected="" value="">- Seleccione un casino -</option>
-                          <?php $cas_creacion = $usuario->casinos; if($usuario->es_superusuario) $cas_creacion = $casinos; ?>
+                          <?php 
+                            $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
+                            $plats_creacion = ($usuario->es_auditor || $usuario->es_superusuario)? $plataformas : [];
+                          ?>
                           @foreach($cas_creacion as $casino)
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                          @endforeach
+                          @foreach ($plats_creacion as $p)
+                          <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                         </select>
                       </div>
@@ -786,6 +795,9 @@ input[required], select[required]{
                     <option value="0">Todos los Casinos</option>
                     @foreach ($casinos as $casino)
                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                    @endforeach
+                    @foreach ($plataformas as $p)
+                    <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                     @endforeach
                   </select>
                 </div>

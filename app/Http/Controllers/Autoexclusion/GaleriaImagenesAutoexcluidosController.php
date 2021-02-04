@@ -29,11 +29,13 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       $ocupaciones =  DB::table('ae_ocupacion')->get();
       $frecuencias = DB::table('ae_frecuencia_asistencia')->get();
       $casinos = DB::table('casino')->get();
+      $plataformas = DB::table('plataforma')->get();
       $estados_autoexclusion = DB::table('ae_nombre_estado')->get();
       
       return view('Autoexclusion.galeriaImagenesAutoexcluidos', ['juegos' => $juegos,
                                                                 'ocupaciones' => $ocupaciones,
                                                                 'casinos' => $casinos,
+                                                                'plataformas' => $plataformas,
                                                                 'frecuencias' => $frecuencias,
                                                                 'estados_autoexclusion' => $estados_autoexclusion,
                                                                 'dni' => $dni
@@ -58,6 +60,9 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       if(!empty($request->casino)){
         $reglas[] = ['ae_estado.id_casino','=',$request->casino];
       }
+      if(!empty($request->plataforma)){
+        $reglas[] = ['ae_estado.id_plataforma','=',$request->plataforma];
+      }
 
       $resultados_foto1 = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,ae_importacion.id_importacion,'foto1' as tipo_archivo,ae_importacion.foto1 as nombre")
@@ -70,10 +75,16 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNotNull('ae_importacion.foto2')->whereRaw('LENGTH(ae_importacion.foto2) > 0');
+      
+      $resultados_sin_foto = DB::table('ae_datos')
+        ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,0 as id_importacion,'sin_foto' as tipo_archivo,'SIN FOTO' as nombre")
+        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
+        ->where($reglas)->whereNull('ae_importacion.foto1')->whereNull('ae_importacion.foto2');
 
-      $count =  (clone $resultados_foto1)->count();
-      $count += (clone $resultados_foto2)->count();
+      $count =  (clone $resultados_foto1)->count() + (clone $resultados_foto2)->count() + (clone $resultados_sin_foto)->count();
       $union = $resultados_foto1->union($resultados_foto2);
+      $union = $union->union($resultados_sin_foto);
     
       $pages = ceil($count/floatval($request->size));
       $page = $request->page;
@@ -88,10 +99,12 @@ class GaleriaImagenesAutoexcluidosController extends Controller
       AutoexclusionController::getInstancia()->actualizarVencidosRenovados();
       
       $resultado = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_estado.*', 'ae_nombre_estado.descripcion as estado', 'casino.nombre as casino')
+        ->select('ae_datos.*', 'ae_estado.*', 'ae_nombre_estado.descripcion as estado')
+        ->selectRaw('IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
-        ->join('casino', 'casino.id_casino', 'ae_estado.id_casino')
+        ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
+        ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
         ->where('ae_datos.nro_dni', '=', $nro_dni)
         ->orderBy('ae_datos.id_autoexcluido','desc')
         ->take(1)->get();

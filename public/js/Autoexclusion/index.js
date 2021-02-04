@@ -63,7 +63,8 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         estado: $('#buscadorEstado').val(),
-        casino: $('#buscadorCasino').val(),
+        casino: $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",
+        plataforma: $('#buscadorCasino').val() < 0? -$('#buscadorCasino').val() : "",
         fecha_autoexclusion_d:     iso($('#dtpFechaAutoexclusionD')),
         fecha_vencimiento_d:       iso($('#dtpFechaVencimientoD')),
         fecha_renovacion_d:        iso($('#dtpFechaRenovacionD')),
@@ -143,7 +144,7 @@ function clickIndice(e, pageNumber, tam) {
 function generarFilaTabla(ae) {
     let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
     fila.attr('data-id', ae.id_autoexcluido);
-    fila.find('.casino').text(ae.casino).attr('title',ae.casino);
+    fila.find('.casino_plataforma').text(ae.casino_plataforma).attr('title',ae.casino_plataforma);
     fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
     fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
     fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
@@ -162,7 +163,9 @@ function generarFilaTabla(ae) {
     fila.find('button').val(ae.id_autoexcluido);
     fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
-    if($('#id_casino option[value="'+ae.id_casino+'"]').length == 0){
+    if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
+    || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
+    ){
       fila.find('#btnEditar').remove();
     }
     // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
@@ -532,7 +535,9 @@ function validarDNI(){
         }
 
         //precargo el step del estado
-        $('#id_casino').val(data.estado.id_casino);
+        if(data.estado.id_casino != null) $('#id_casino').val(data.estado.id_casino);
+        else if(data.estado.id_plataforma != null) $('#id_casino').val(-data.estado.id_plataforma);
+
         $('#id_estado').val(data.estado.id_nombre_estado);
         $('#fecha_autoexlusion').val(data.estado.fecha_ae);
         $('#fecha_vencimiento_periodo').val(data.estado.fecha_vencimiento);
@@ -779,7 +784,8 @@ $('#btn-guardar').click(function (e) {
     }
 
     const ae_estado = {
-      id_casino: $('#id_casino').val(),
+      id_casino: $('#id_casino').val() > 0? $('#id_casino').val() : "",
+      id_plataforma: $('#id_casino').val() < 0? -$('#id_casino').val() : "",
       id_nombre_estado: $('#id_estado').val(),
       fecha_ae: $('#fecha_autoexlusion').val(),
       fecha_vencimiento: $('#fecha_vencimiento_periodo').val(),
@@ -884,7 +890,9 @@ function mostrarAutoexcluido(id_autoexcluido){
       $('#infoVinculo').val(data.datos_contacto.vinculo);
     }
 
-    $('#infoCasino').val(data.estado.id_casino);
+    if(data.estado.id_casino != null) $('#infoCasino').val(data.estado.id_casino);
+    else if(data.estado.id_plataforma != null) $('#infoCasino').val(-data.estado.id_plataforma);
+
     $('#infoEstado').val(data.estado.id_nombre_estado);
     $('#infoFechaAutoexclusion').val(data.estado.fecha_ae);
     $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);

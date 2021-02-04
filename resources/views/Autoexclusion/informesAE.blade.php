@@ -78,6 +78,9 @@ background-color: #4CAF50;
                                 @foreach ($casinos as $casino)
                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}" data-codigo="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                 @endforeach
+                                @foreach ($plataformas as $p)
+                                  <option id="{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}" data-codigo="{{$p->codigo}}">{{$p->nombre}}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -330,7 +333,7 @@ background-color: #4CAF50;
               <table id="tablaInformesAE" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th style="width: 5%;" value="ae_estado.id_casino" estado="">CAS<i class="fa fa-sort"></i></th>
+                    <th style="width: 5%;" value="casino_plataforma" estado="">CAS<i class="fa fa-sort"></i></th>
                     <th style="width: 13%;" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
                     <th style="width: 14%;" value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
                     <th style="width: 9%;" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
@@ -345,7 +348,7 @@ background-color: #4CAF50;
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class="filaTabla" style="display: none">
-                    <td style="width: 5%;" class="casino"></td>
+                    <td style="width: 5%;" class="casino_plataforma"></td>
                     <td style="width: 13%;" class="dni" >
                       <a target="_blank" class="link" title="VER AUTOEXCLUSIÓN">9999</a>
                       <a target="_blank" class="btnVerFoto btn btn-info planilla" type="button" data-toggle="tooltip" data-placement="top" title="VER FOTO" data-delay="{'show':'300', 'hide':'100'}">
@@ -386,7 +389,7 @@ background-color: #4CAF50;
         <table id="tablaCSV" class="table table-responsive table-bordered">
           <thead>
             <tr>
-              <th class="smalltext casino" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
+              <th class="smalltext casino_plataforma" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
               <th class="smalltext estado" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
               <th class="smalltext apellido" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
               <th class="smalltext dia_semanal" style="width: 4%" data-busq="#buscadorDia">Día</th>
@@ -415,7 +418,7 @@ background-color: #4CAF50;
           </thead>
           <tbody>
             <tr class="filaTablaCSV" style="display: none">
-              <td class="smalltext casino"    style="width: 4%;">CAS</td>
+              <td class="smalltext casino_plataforma"    style="width: 4%;">CAS</td>
               <td class="smalltext estado"    style="width: 7%;">ESTADO</td>
               <td class="smalltext apellido"  style="width: 7%;">APELLIDO</td>
               <td class="smalltext dia_semanal" style="width: 4%">DIA</td>

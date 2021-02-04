@@ -91,6 +91,9 @@ background-color: #4CAF50;
                                 @foreach ($casinos as $casino)
                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                 @endforeach
+                                @foreach ($plataformas as $p)
+                                  <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                                @endforeach
                             </select>
                         </div>
                       </div><br>
@@ -152,7 +155,7 @@ background-color: #4CAF50;
                             <h5 style="display:inline-block">DNI </h5>
                             <span id="dni" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">CASINO </h5>
-                            <span id="casino" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <span id="casino_plataforma" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">ESTADO </h5>
                             <span id="estado" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">FECHA AE </h5>

@@ -72,7 +72,8 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
     }
 
     var formData = {
-        casino:    $('#buscadorCasino').val(),
+        casino:      $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",
+        plataforma:  $('#buscadorCasino').val() < 0? -$('#buscadorCasino').val() : "",
         estado:    $('#buscadorEstado').val(),
         apellido:  $('#buscadorApellido').val(),
         dia_semanal: $('#buscadorDia').val(),
@@ -175,7 +176,7 @@ function generarFilaTabla(unAutoexcluido) {
     }
     let fila = $('#cuerpoTabla .filaTabla').clone().removeClass('filaTabla').show();
     fila.attr('data-id', unAutoexcluido.id_autoexcluido);
-    fila.find('.casino').text(unAutoexcluido.casino);
+    fila.find('.casino_plataforma').text(unAutoexcluido.casino_plataforma);
     const estado = unAutoexcluido.estado + (unAutoexcluido.estado == unAutoexcluido.puede? ''  : (' ⤻ ' + unAutoexcluido.puede));
     fila.find('.estado').text(estado).attr('title',estado);
     fila.find('.apellido').text(unAutoexcluido.apellido).attr('title',unAutoexcluido.apellido);
@@ -220,8 +221,8 @@ $('#agregarCSV').click(function(){
   fila.find('.padding').css('display','none');
   fila.dblclick(function(){$(this).remove();exportarCSV();});
 
-  const casino = $('#buscadorCasino').val() == ''? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
-  assign(fila.find('.casino'),casino);
+  const casino_plataforma = $('#buscadorCasino').val() == ''? '\xa0' : $('#buscadorCasino option:selected').attr('data-codigo');
+  assign(fila.find('.casino_plataforma'),casino_plataforma);
 
   const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
   assign(fila.find('.estado'),estado);

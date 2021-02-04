@@ -28,7 +28,8 @@ function buscar(pagina){
     const formData = {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
-        casino: $('#buscadorCasino').val(),
+        casino: $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",
+        plataforma: $('#buscadorCasino').val() < 0? -$('#buscadorCasino').val() : "",
         page: pagina,
         size: 5,
     }
@@ -90,7 +91,7 @@ function clickImagenGaleria(nro_dni,embed,nombre){
         document.getElementById("apellido").innerHTML = res.apellido;
         document.getElementById("nombres").innerHTML = res.nombres;
         document.getElementById("dni").innerHTML = res.nro_dni;
-        document.getElementById("casino").innerHTML = res.casino;
+        document.getElementById("casino_plataforma").innerHTML = res.casino_plataforma;
         document.getElementById("estado").innerHTML = res.estado;
         document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
         document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;

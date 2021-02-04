@@ -11,6 +11,7 @@ use Validator;
 use PDF;
 
 use App\Casino;
+use App\Plataforma;
 use App\Autoexclusion as AE;
 
 use Illuminate\Support\Facades\DB;
@@ -34,12 +35,14 @@ class AutoexclusionController extends Controller
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
       $estados_elegibles = $estados_autoexclusion;
-      if(!($usuario->es_superusuario || $usuario->es_administrador))
+
+      if(!($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor))
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
 
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
                                           'casinos' => Casino::all(),
+                                          'plataformas' => Plataforma::all(),
                                           'usuario' => $usuario,
                                           'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
                                           'estados_autoexclusion' => $estados_autoexclusion,
@@ -69,6 +72,9 @@ class AutoexclusionController extends Controller
 
       if(!empty($request->casino)){
         $reglas[]=['ae_estado.id_casino','=',$request->casino];
+      }
+      if(!empty($request->plataforma)){
+        $reglas[]=['ae_estado.id_plataforma','=',$request->plataforma];
       }
 
       if(!empty($request->fecha_autoexclusion_d)){
@@ -107,11 +113,13 @@ class AutoexclusionController extends Controller
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_estado.*', 
         'ae_importacion.foto1','ae_importacion.foto2','ae_importacion.scandni','ae_importacion.solicitud_ae','ae_importacion.solicitud_revocacion','ae_importacion.caratula',
-                 'ae_nombre_estado.descripcion as desc_estado','casino.nombre as casino')
+                 'ae_nombre_estado.descripcion as desc_estado')
+        ->selectRaw('IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
         ->join('ae_importacion'    , 'ae_datos.id_autoexcluido' , '=' , 'ae_importacion.id_autoexcluido')
         ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
-        ->join('casino','ae_estado.id_casino','=','casino.id_casino')
+        ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
+        ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
@@ -157,7 +165,8 @@ class AutoexclusionController extends Controller
         'ae_datos_contacto.telefono'         => 'nullable|string|max:200',
         'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
         'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
-        'ae_estado.id_casino'         => 'required|integer|exists:casino,id_casino',
+        'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
+        'ae_estado.id_plataforma'     => 'required_without:ae_estado.id_casino|integer|exists:plataforma,id_plataforma',
         'ae_estado.fecha_ae'          => 'required|date',
         'ae_estado.fecha_vencimiento' => 'required|date',
         'ae_estado.fecha_renovacion'  => 'required|date',
@@ -183,12 +192,18 @@ class AutoexclusionController extends Controller
       ], array(), self::$atributos)->after(function($validator) use ($user){
         $data = $validator->getData();
         $id_casino = $data['ae_estado']['id_casino'];
+        $id_plataforma = $data['ae_estado']['id_plataforma'];
         $estado = $data['ae_estado']['id_nombre_estado'];
+        if(!$user->es_superusuario){
+          if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
+            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+          }
+          else if(!is_null($id_plataforma) && !$user->es_auditor){
+            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a esa plataforma');
+          }
+        }
         if(!is_numeric($data['ae_datos']['nro_domicilio'])){
           $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
-        }
-        if(!$user->es_superusuario && !$user->usuarioTieneCasino($id_casino)){
-          $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
         }
         if($user->es_fiscalizador && $estado != 3){
           $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
@@ -326,9 +341,16 @@ class AutoexclusionController extends Controller
         ], array(), self::$atributos)->after(function($validator) use ($user){
           $id = $validator->getData()['id_autoexcluido'];
           $id_casino = AE\Autoexcluido::find($id)->estado->id_casino;
-          if(!$user->usuarioTieneCasino($id_casino)){
-            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
-            return;
+          $id_plataforma = AE\Autoexcluido::find($id)->estado->id_plataforma;
+          if(!$user->es_superusuario){
+            if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
+              $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+              return;
+            }
+            if(!is_null($id_plataforma) && !$user->es_auditor){
+              $validator->errors()->add('ae_estado.id_plataforma', 'No tiene acceso a esa plataforma');
+              return;
+            }
           }
       })->validate();
 
@@ -383,6 +405,8 @@ class AutoexclusionController extends Controller
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
     $imp = AE\ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
+
+    if($id_importacion == 0 && $tipo_archivo == 'sin_foto') return response()->file(realpath('../') . '/public/img/img_user.jpg');
 
     $paths = [
       'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_revocacion' => 'solicitudes',
@@ -518,9 +542,11 @@ class AutoexclusionController extends Controller
       ['id_autoexcluido' => $id],
       ['id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido'], 
       array(), self::$atributos)->after(function($validator) use ($usuario,$estado,$ae,$id_estado){
-        if(  !($usuario->es_superusuario || $usuario->es_administrador) 
+        if(  !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor) 
           || is_null($estado) 
-          || !$usuario->usuarioTieneCasino($estado->id_casino))
+          || (!is_null($estado->id_casino) && !$usuario->usuarioTieneCasino($estado->id_casino))
+          || (!is_null($estado->id_plataforma) && !($usuario->es_auditor || $usuario->es_superusuario))
+        )
         {
           $validator->errors()->add('rol', 'No puede realizar esa acción');
           return;

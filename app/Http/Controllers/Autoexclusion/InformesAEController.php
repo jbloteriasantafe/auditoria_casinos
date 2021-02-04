@@ -19,6 +19,7 @@ use App\Autoexclusion\ImportacionAE;
 use Illuminate\Support\Facades\DB;
 use App\Autoexclusion as AE;
 use App\Casino;
+use App\Plataforma;
 
 class InformesAEController extends Controller
 {
@@ -31,6 +32,7 @@ class InformesAEController extends Controller
 
       return view('Autoexclusion.informesAE', ['juegos' => $juegos,
                                                               'casinos' => Casino::all(),
+                                                              'plataformas' => Plataforma::all(),
                                                               'estados_autoexclusion' => AE\NombreEstadoAutoexclusion::all(),
                                                               'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
                                                               'juegos' => AE\JuegoPreferidoAE::all()
@@ -45,6 +47,9 @@ class InformesAEController extends Controller
 
       if(!empty($request->casino)){
         $reglas[]=['ae_estado.id_casino','=',$request->casino];
+      }
+      if(!empty($request->plataforma)){
+        $reglas[]=['ae_estado.id_plataforma','=',$request->plataforma];
       }
 
       if(!empty($request->estado)){
@@ -109,9 +114,11 @@ class InformesAEController extends Controller
       }
 
       $resultados = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_estado.*', 'casino.codigo as casino', 'ae_nombre_estado.descripcion as estado')
+        ->select('ae_datos.*', 'ae_estado.*', 'ae_nombre_estado.descripcion as estado')
+        ->selectRaw('IFNULL(casino.codigo,plataforma.codigo) as casino_plataforma')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
-        ->join('casino', 'ae_estado.id_casino', '=', 'casino.id_casino')
+        ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
+        ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
         ->join('ae_nombre_estado', 'ae_estado.id_nombre_estado', '=', 'ae_nombre_estado.id_nombre_estado')
         ->leftJoin('ae_encuesta', 'ae_datos.id_autoexcluido', '=', 'ae_encuesta.id_autoexcluido')
         ->when($sort_by,function($query) use ($sort_by){

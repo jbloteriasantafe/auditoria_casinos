@@ -91,7 +91,8 @@ class AutoexclusionesFinalizadasController extends Controller
       $resultados = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_estado.*', 'casino.nombre as cas')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
-        ->join('casino', 'ae_estado.id_casino', '=', 'casino.id_casino')
+        ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
+        ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
