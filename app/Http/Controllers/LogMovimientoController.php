@@ -1117,7 +1117,9 @@ class LogMovimientoController extends Controller
       }
       foreach($toma->detalles_relevamiento_progresivo as $detProg){
         $pozo = $detProg->pozo;
+	if(is_null($pozo)) continue;
         $prog = $pozo->progresivo;
+	if(is_null($prog)) continue;
         $pozo_arr = $pozo->toArray();
         $prog_arr = $prog->toArray();
 
