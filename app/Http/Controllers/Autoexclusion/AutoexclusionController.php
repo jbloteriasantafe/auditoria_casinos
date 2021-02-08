@@ -598,4 +598,25 @@ class AutoexclusionController extends Controller
       }
     });
   }
+  public function eliminarAE($id_autoexcluido){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$usuario->es_superusuario) return;
+    DB::transaction(function() use($id_autoexcluido){
+      $ae = AE\Autoexcluido::find($id_autoexcluido);
+      if(is_null($ae)) return;
+      if(!is_null($ae->contacto)){
+        $ae->contacto->delete();
+      }
+      if(!is_null($ae->estado)){ 
+        $ae->estado->delete();
+      }
+      if(!is_null($ae->importacion)){ 
+        $ae->importacion->delete();
+      }
+      if(!is_null($ae->encuesta)){ 
+        $ae->encuesta->delete();
+      }
+      $ae->delete();
+    });
+  }
 }

@@ -881,6 +881,7 @@ Route::group(['middleware' => ['tiene_permiso:informes_bingos']], function () {
 AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
+  Route::get('/eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE');
   Route::get('/','Autoexclusion\AutoexclusionController@index');
   Route::post('/agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('/subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');
