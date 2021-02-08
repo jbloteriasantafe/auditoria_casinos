@@ -620,7 +620,7 @@ function validarDatosPersonales(){
     }
   });
   $('.step2 input[alpha]').each(function(){
-    if(!/^[a-zA-Z\s]*$/.test($(this).val())){
+    if(!/^[a-zA-Z\sáéíóúÁÉÍÓÚ]*$/.test($(this).val())){
       mostrarErrorValidacion($(this) , 'El campo no puede contener números' , false);
       valid = 0;
     }
