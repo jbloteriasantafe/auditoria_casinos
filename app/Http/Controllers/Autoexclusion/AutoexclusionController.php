@@ -618,5 +618,6 @@ class AutoexclusionController extends Controller
       }
       $ae->delete();
     });
+    return 1;
   }
 }

@@ -956,6 +956,23 @@ $(document).on('click', '#btnCambiarEstado', function(e){
     }
   });
 });
+$(document).on('click', '#btnEliminar', function(e){
+  e.preventDefault();
+  const id = $(this).val();
+  $.ajax({
+    type: 'DELETE',
+    url: 'autoexclusion/eliminarAE/'+ id,
+    dataType: 'json',
+    success: function(data) {
+      mensajeExito('Autoexcluido eliminado');
+      $('#btn-buscar').click();
+    },
+    error: function(data) {
+        mensajeError('Error al eliminar');
+        console.log(data);
+    }
+  });
+});
 
 $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){
   e.preventDefault();
