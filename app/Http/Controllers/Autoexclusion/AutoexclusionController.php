@@ -166,7 +166,7 @@ class AutoexclusionController extends Controller
         'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
         'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
         'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
-        'ae_estado.id_plataforma'     => 'required_without:ae_estado.id_casino|integer|exists:plataforma,id_plataforma',
+        'ae_estado.id_plataforma'     => 'nullable|integer|exists:plataforma,id_plataforma',
         'ae_estado.fecha_ae'          => 'required|date',
         'ae_estado.fecha_vencimiento' => 'required|date',
         'ae_estado.fecha_renovacion'  => 'required|date',
@@ -200,6 +200,9 @@ class AutoexclusionController extends Controller
           }
           else if(!is_null($id_plataforma) && !$user->es_auditor){
             $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a esa plataforma');
+          }
+          else if(is_null($id_casino) == is_null($id_plataforma)){
+            $validator->errors()->add('ae_estado.id_casino','Error al procesar el casino.');
           }
         }
         if(!is_numeric($data['ae_datos']['nro_domicilio'])){
