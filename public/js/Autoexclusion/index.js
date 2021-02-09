@@ -85,7 +85,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
     });
     $.ajax({
         type: 'GET',
-        url: 'http://' + window.location.host + '/autoexclusion/buscarAutoexcluidos',
+        url: '/autoexclusion/buscarAutoexcluidos',
         data: formData,
         dataType: 'json',
         success: function(resultados) {
@@ -579,7 +579,7 @@ function validarDNI(){
           const textoAE = $('#solicitud_autoexclusion').parent().find('div');
           const textoFIN = $('#solicitud_revocacion').parent().find('div');
           const textoCAR = $('#caratula').parent().find('div');
-          const link = 'autoexclusion/mostrarArchivo/'+data.importacion.id_importacion+'/';
+          const link = '/autoexclusion/mostrarArchivo/'+data.importacion.id_importacion+'/';
           textoFoto1.find('a').text(limpiarNull(data.importacion.foto1)).attr('href',link+'foto1');
           textoFoto2.find('a').text(limpiarNull(data.importacion.foto2)).attr('href',link+'foto2');
           textoDNI.find('a').text(limpiarNull(data.importacion.scandni)).attr('href',link+'scandni');
@@ -845,7 +845,7 @@ $('#btn-guardar').click(function (e) {
     //dependiendo el valor del botón guarda o edita
     $.ajax({
         type: "POST",
-        url: 'autoexclusion/agregarAE',
+        url: '/autoexclusion/agregarAE',
         data: formData,
         processData: false,
         contentType: false,
@@ -944,7 +944,7 @@ $(document).on('click', '#btnCambiarEstado', function(e){
   const estado = $(this).attr('estado-nuevo');
   $.ajax({
     type: 'GET',
-    url: 'autoexclusion/cambiarEstadoAE/'+ id + '/' + estado,
+    url: '/autoexclusion/cambiarEstadoAE/'+ id + '/' + estado,
     dataType: 'json',
     success: function(data) {
       mensajeExito('Cambio de estado realizado');
@@ -961,7 +961,7 @@ $(document).on('click', '#btnEliminar', function(e){
   const id = $(this).val();
   $.ajax({
     type: 'DELETE',
-    url: 'autoexclusion/eliminarAE/'+ id,
+    url: '/autoexclusion/eliminarAE/'+ id,
     dataType: 'json',
     success: function(data) {
       mensajeExito('Autoexcluido eliminado');
@@ -976,17 +976,17 @@ $(document).on('click', '#btnEliminar', function(e){
 
 $(document).on('click', '#btnGenerarSolicitudAutoexclusion', function(e){
   e.preventDefault();
-  window.open('autoexclusion/generarSolicitudAutoexclusion/' + $(this).val(), '_blank');
+  window.open('/autoexclusion/generarSolicitudAutoexclusion/' + $(this).val(), '_blank');
 });
 
 $(document).on('click', '#btnGenerarConstanciaReingreso', function(e){
   e.preventDefault();
-  window.open('autoexclusion/generarConstanciaReingreso/' + $(this).val(), '_blank');
+  window.open('/autoexclusion/generarConstanciaReingreso/' + $(this).val(), '_blank');
 });
 
 $(document).on('click', '#btnGenerarSolicitudFinalizacion', function(e){
   e.preventDefault();
-  window.open('autoexclusion/generarSolicitudFinalizacionAutoexclusion/' + $(this).val(), '_blank');
+  window.open('/autoexclusion/generarSolicitudFinalizacionAutoexclusion/' + $(this).val(), '_blank');
 });
 
 //Salir del modal ver mas
@@ -997,7 +997,7 @@ $('#btn-salir').click(function() {
 //Mostrar archivos ver mas
 $('.btn-ver-mas').click(function() {
   let tipo_archivo = $(this).attr('data-tipo');
-  window.open('autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
+  window.open('/autoexclusion/mostrarArchivo/' + $(this).val() + '/' + tipo_archivo, '_blank');
 });
 
 //Click en boton adentro del popover
@@ -1023,7 +1023,7 @@ $('#btn-subir-archivo').click(function (e) {
   formData.append('archivo'        , $('#modalSubirArchivo .archivo')[0].files[0]);
   $.ajax({
       type: "POST",
-      url: 'http://' + window.location.host + '/autoexclusion/subirArchivo',
+      url: '/autoexclusion/subirArchivo',
       data: formData,
       processData: false,
       contentType: false,
@@ -1046,7 +1046,7 @@ $('#btn-subir-archivo').click(function (e) {
 
 //Mostrar formularios
 $('.btn-ver-formulario').click(function() {
-  window.open('autoexclusion/mostrarFormulario/' + $(this).attr('id'), '_blank');
+  window.open('/autoexclusion/mostrarFormulario/' + $(this).attr('id'), '_blank');
 });
 
 $('.sacarArchivo').click(function(){
