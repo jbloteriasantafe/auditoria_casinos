@@ -38,7 +38,7 @@ tr:nth-child(even) {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="img/logos/banner_nuevo_landscape2.png" width="900">
               <h2><span>RMTM09 | Ajuste de producidos diarios por máquina tragamonedas (MTM) en {{$pro->tipo_moneda}}</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
