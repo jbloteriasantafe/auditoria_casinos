@@ -61,7 +61,7 @@ class AuthenticationController extends Controller
           $users = DB::table('usuario')->where([
             ['user_name', '=', $validator->getData()['user_name']],
             ['password', '=', $validator->getData()['password']],
-            ])->first();
+            ])->whereNull('deleted_at')->first();
             if(empty($users)){
               $validator->errors()->add('existe', 'Las credenciales ingresadas no son válidas');
             }
@@ -70,7 +70,7 @@ class AuthenticationController extends Controller
         $users = DB::table('usuario')->where([
           ['user_name', '=', $request->user_name],
           ['password', '=', $request->password],
-          ])->first();
+          ])->whereNull('deleted_at')->first();
 
         if(!empty($users)){
           $token = $this->generarToken();

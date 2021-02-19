@@ -105,11 +105,10 @@ Usuarios
 ***********/
 Route::get('usuarios','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
 Route::post('usuarios/buscar','UsuarioController@buscarUsuarios');
-Route::get('usuarios/buscar/{id}','UsuarioController@buscarUsuario');
+Route::get('usuarios/buscar/{id_usuario}','UsuarioController@buscarUsuario');
 Route::get('usuarios/quienSoy' ,'UsuarioController@quienSoy');
 Route::post('usuarios/guardarUsuario','UsuarioController@guardarUsuario');
-Route::post('usuarios/modificarUsuario','UsuarioController@modificarUsuario');
-Route::delete('usuarios/eliminarUsuario','UsuarioController@eliminarUsuario');
+Route::delete('usuarios/eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
 Route::get('usuarios/imagen','UsuarioController@leerImagenUsuario');
 Route::get('usuarios/buscarUsuariosPorNombre/{nombre}','UsuarioController@buscarUsuariosPorNombre');
 Route::get('usuarios/buscarUsuariosPorNombre/{nombre}/relevamiento/{id_relevamiento}','UsuarioController@buscarUsuariosPorNombreYRelevamiento');
@@ -667,12 +666,7 @@ Route::get('calendario_eventos',function(){
     return view('calendar');
 });
 
-
-//nuevo buscador de usuarios para la seccion de USUARIOS
-Route::get('usuarios/get/{id}','UsuarioController@buscarUsuarioSecUsuarios');
-
 Route::get('error','RelevamientoController@crearPlanillaValidado');
-
 
 /*SECCION MESAS DE PAÑO*/
 Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
