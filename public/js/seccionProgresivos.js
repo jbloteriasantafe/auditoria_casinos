@@ -4,17 +4,13 @@ $(document).ready(function() {
     $('#maquinas').addClass('subMenu1 collapse in');
     $('#gestionarMTM').removeClass();
     $('#gestionarMTM').addClass('subMenu2 collapse in');
-
     $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded', 'true');
-
-    $('.tituloSeccionPantalla').text('Progresivos');
     $('#gestionarMaquinas').attr('style', 'border-left: 6px solid #3F51B5;');
     $('#opcProgresivos').attr('style', 'border-left: 6px solid #25306b; background-color: #131836;');
     $('#opcProgresivos').addClass('opcionesSeleccionado');
-
+    $('.tituloSeccionPantalla').text('Progresivos');
     $('#btn-buscar').trigger('click');
 });
-
 
 function cargarMaquinas(id_casino) {
     function callbackMaquinas(resultados) {
@@ -33,13 +29,10 @@ function cargarMaquinas(id_casino) {
         };
     }
 
-    let ajaxData = {
+    $.when($.ajax({
         type: 'GET',
         url: '/progresivos/buscarMaquinas/' + id_casino
-    };
-
-    $.when($.ajax(ajaxData))
-        .then(callbackMaquinas, function(err) { console.log(err) });
+    })).then(callbackMaquinas, function(err) { console.log(err) });
 }
 
 $('#contenedorFiltros').keypress(function(e){
@@ -50,26 +43,20 @@ $('#contenedorFiltros').keypress(function(e){
 
 //Busqueda
 $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
     e.preventDefault();
+    $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
+    let size = 10;
     //Fix error cuando librería saca los selectores
-    if (isNaN($('#herramientasPaginacion').getPageSize())) {
-        var size = 10; // por defecto
-    } else {
-        var size = $('#herramientasPaginacion').getPageSize();
+    if (!isNaN($('#herramientasPaginacion').getPageSize())) {
+        size = $('#herramientasPaginacion').getPageSize();
     }
 
     page_size   = (page_size == null || isNaN(page_size)) ? size : page_size;
     page_number = (pagina != null) ? pagina  : $('#herramientasPaginacion').getCurrentPage();
     columna     = (columna != null)? columna : $('#tablaResultados .activa').attr('value');
     orden       = (orden  != null) ? orden   : $('#tablaResultados .activa').attr('estado');
-    var formData = {
+    const formData = {
         nombre_progresivo: $('#B_nombre_progresivo').val(),
         id_casino: $('#busqueda_casino').val(),
         islas: $('#B_islas').val(),
@@ -88,24 +75,16 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
             console.log(resultados);
             $('#herramientasPaginacion').generarTitulo(page_number, page_size, resultados.total, clickIndice);
             $('#cuerpoTabla tr').not('.filaEjemplo').remove();
-            for (var i = 0; i < resultados.data.length; i++) {
-                let prog = resultados.data[i];
-                let filaProgresivo = generarFilaTabla(prog);
-                $('#cuerpoTabla').append(filaProgresivo);
+            for (let i = 0; i < resultados.data.length; i++) {
+                $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
             }
-            $('#herramientasPaginacion').generarIndices(
-                page_number,
-                page_size,
-                resultados.total,
-                clickIndice);
-
+            $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
         },
         error: function(data) {
             console.log('Error:', data);
         }
     });
 });
-
 
 $('#contenedorFiltrosIndividuales').keypress(function(e){
     if(e.charCode == 13){//Enter
@@ -119,23 +98,19 @@ $('#btn-buscar-individuales').on('click', function(e) {
     $('#btn-guardar').val("nuevo");
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-successAceptar');
-    $('.modal-title').text('| MODIFICAR PROGRESIVOS INDIVIDUALES');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #ff9d2d; color: #fff');
-    let data = {
+    $('#modalProgresivoIndividual .modal-title').text('| MODIFICAR PROGRESIVOS INDIVIDUALES');
+    $('#modalProgresivoIndividual .modal-header').css('background-color', '#ff9d2d');
+    const data = {
         desde: $('#maquina_desde').val(),
         hasta: $('#maquina_hasta').val(),
         id_casino: $('#busqueda_casino_individuales').val()
     };
-
     mostrarProgresivoIndividual(data);
 });
 
 $('#btn-ayuda').click(function(e) {
     e.preventDefault();
-
-    $('.modal-title').text('| PROGRESIVOS');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
+    $('#modalAyuda .modal-title').text('| PROGRESIVOS');
     $('#modalAyuda').modal('show');
 });
 
@@ -146,8 +121,8 @@ $('#btn-nuevo').click(function(e) {
     $('#btn-guardar').val("nuevo");
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-successAceptar');
-    $('.modal-title').text('| NUEVO PROGRESIVO LINKEADO');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+    $('#modalProgresivo .modal-title').text('| NUEVO PROGRESIVO LINKEADO');
+    $('#modalProgresivo .modal-header').css('background-color', '#6dc7be');
     $('#modalProgresivo').modal('show');
     mostrarProgresivo({ id_progresivo: -1, nombre: '', porc_recup: 0 }, [], [], true);
 });
@@ -159,108 +134,84 @@ $('#btn-nuevo-ind').click(function(e) {
     $('#btn-guardar').val("nuevo");
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-successAceptar');
-    $('.modal-title').text('| NUEVOS PROGRESIVOS INDIVIDUALES');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+    $('#modalProgresivoIndividual .modal-title').text('| NUEVOS PROGRESIVOS INDIVIDUALES');
+    $('#modalProgresivoIndividual .modal-header').css('background-color', '#6dc7be');
     mostrarProgresivoIndividual();
 });
 
+$(document).on('click','#contenedorMaquinasIndividual .cuerpoTabla tr .individual.eliminar', function(){
+    $(this).closest('tr').remove();
+});
+$(document).on('click','#contenedorMaquinasIndividual .cuerpoTabla tr .individual.editar', function(){
+    const fila = $(this).closest('tr');
+    const data = arregloProgresivoIndividual(fila);
+    const filaEditable = filaEditableIndividualParcial(data);
+    fila.replaceWith(filaEditable);
+});
+$(document).on('click','#contenedorMaquinasIndividual .cuerpoTabla tr .individual.cancelar', function(){
+    const fila = $(this).closest('tr');
+    const data = arregloProgresivoIndividual(fila);
+    const filaNoEditable = filaEjemploIndividual();
+    setearFilaProgresivoIndividual(filaNoEditable, data);
+    fila.replaceWith(filaNoEditable);
+});
+
 function filaEjemploIndividual() {
-    let fila = $('.tablaMaquinasDivIndividual').find('.filaEjemplo').clone().removeClass('filaEjemplo');
-
-    let botonEditar = fila.find('.editar');
-    let botonBorrar = fila.find('.eliminar');
-
-    botonBorrar.click(function() {
-        fila.remove();
-    });
-
-    botonEditar.click(function() {
-        let data = arregloProgresivoIndividual(fila);
-        let filaEditable = filaEditableIndividualParcial(data);
-        fila.replaceWith(filaEditable);
-    })
-
-    return fila;
+    return $('.tablaMaquinasDivIndividual').find('.filaEjemplo').clone().removeClass('filaEjemplo');
 }
+
+$(document).on('click','#contenedorMaquinasIndividual .cuerpoTabla tr .individual.confirmar', function(){
+    const fila = $(this).closest('tr');
+    fila.find('.erroneo').removeClass('erroneo');
+    const fila_val = arregloProgresivoIndividual(fila);
+    const validacion = validarFilaInd(fila);
+    fila.find('.cuerpoPorcRecup').find('.editable').addClass(validacion.porc_recup? '' : 'erroneo');
+    fila.find('.cuerpoMaximo').find('.editable').addClass(validacion.maximo? '' : 'erroneo');
+    fila.find('.cuerpoBase').find('.editable').addClass(validacion.base? '' : 'erroneo');
+    fila.find('.cuerpoPorcOculto').find('.editable').addClass(validacion.porc_oculto? '' : 'erroneo');
+    fila.find('.cuerpoPorcVisible').find('.editable').addClass(validacion.porc_visible? '' : 'erroneo');
+
+    if (validacion.razones.length != 0) {
+        let finalstr = '';
+        for (let i = 0; i < validacion.razones.length; i++) {
+            finalstr += '<h5>' + validacion.razones[i] + '</h5>';
+        }
+        mostrarError(finalstr);
+        return;
+    }
+
+    let nueva_fila = filaEjemploIndividual();
+    setearFilaProgresivoIndividual(nueva_fila, fila_val)
+    fila.replaceWith(nueva_fila);
+
+    nueva_fila.find('.cuerpoTablaAcciones').empty();
+
+    let botonEditar = crearBoton('fa-pencil-alt').addClass('individual editar');
+    nueva_fila.find('.cuerpoTablaAcciones').append(botonEditar);
+    let botonBorrar = crearBoton('fa-trash').addClass('individual borrar');
+    nueva_fila.find('.cuerpoTablaAcciones').append(botonBorrar);
+});
 
 function filaEditableIndividualParcial(data) {
     let fila = filaEjemploIndividual();
 
-    //No puedo agregarle un editable de numeros con flechas
-    //porque las flechas son muy grandes.
-
+    //No puedo agregarle un editable de numeros con flechas,porque son muy grandes.
     const input = crearEditable('text');
-    filaIndBase(fila).empty().append(input.clone());
-    filaIndMaximo(fila).empty().append(input.clone());
-    filaIndRecup(fila).empty().append(input.clone());
-    filaIndVisible(fila).empty().append(input.clone());
-    filaIndOculto(fila).empty().append(input.clone());
+    fila.find('.cuerpoBase').empty().append(input.clone());
+    fila.find('.cuerpoMaximo').empty().append(input.clone());
+    fila.find('.cuerpoPorcRecup').empty().append(input.clone());
+    fila.find('.cuerpoPorcVisible').empty().append(input.clone());
+    fila.find('.cuerpoPorcOculto').empty().append(input.clone());
 
     setearFilaProgresivoIndividual(fila, data);
 
-    let botonConfirmar = crearBoton('fa-check').addClass('confirmar').on('click', function() {
-        fila.find('.erroneo').removeClass('erroneo');
-        const fila_val = arregloProgresivoIndividual(fila);
-        const validacion = validarFilaInd(fila);
-        if (!validacion.porc_recup) {
-            filaIndRecup(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.maximo) {
-            filaIndMaximo(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.base) {
-            filaIndBase(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_oculto) {
-            filaIndOculto(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_visible) {
-            filaIndVisible(fila).find('.editable').addClass('erroneo');
-        }
-
-        if (validacion.razones.length != 0) {
-            console.log(validacion.razones);
-            let finalstr = '';
-            for (let i = 0; i < validacion.razones.length; i++) {
-                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
-            }
-            mostrarError(finalstr);
-            return;
-        }
-
-        let nueva_fila = filaEjemploIndividual();
-        setearFilaProgresivoIndividual(nueva_fila, fila_val)
-        fila.replaceWith(nueva_fila);
-
-        nueva_fila.find('.cuerpoTablaAcciones').empty();
-
-        let botonEditar = crearBoton('fa-pencil-alt').addClass('editar');
-        nueva_fila.find('.cuerpoTablaAcciones').append(botonEditar);
-
-        botonEditar.on('click', function() {
-            let data = arregloProgresivoIndividual(nueva_fila);
-            nueva_fila.replaceWith(filaEditableIndividualParcial(data));
-        });
-
-        let botonBorrar = crearBoton('fa-trash').addClass('borrar');
-        nueva_fila.find('.cuerpoTablaAcciones').append(botonBorrar);
-
-        botonBorrar.on('click', function() { nueva_fila.remove(); });
-    });
-
-    let botonCancelar = crearBoton('fa-times').addClass('cancelar');
-    botonCancelar.on('click', function() {
-        let filaNoEditable = filaEjemploIndividual();
-        setearFilaProgresivoIndividual(filaNoEditable, data);
-        fila.replaceWith(filaNoEditable);
-    });
-
-    fila.find('.cuerpoTablaAcciones')
-        .empty().append(botonConfirmar).append(botonCancelar);
+    const botonConfirmar = crearBoton('fa-check').addClass('individual cancelar');
+    const botonCancelar = crearBoton('fa-times').addClass('individual cancelar');
+    fila.find('.cuerpoTablaAcciones').empty().append(botonConfirmar).append(botonCancelar);
     return fila;
 }
 
-function enviarFormularioIndividual() {
+$('#btn-guardarIndividual').click(function(){
     limpiarErrores();
     let err = verificarFormularioIndividual();
     if (err.errores) {
@@ -268,14 +219,7 @@ function enviarFormularioIndividual() {
         return;
     }
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-
-    let mensajeExito = 'Los progresivos fueron cargados con éxito.';
-    let url = '/progresivos/crearProgresivosIndividuales';
+    $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
     let formData = {
         id_casino: $('#modalProgresivoIndividual_casino').val(),
@@ -283,104 +227,45 @@ function enviarFormularioIndividual() {
     };
 
     let filas = $('#contenedorMaquinasIndividual tbody tr');
-
     filas.each(function(idx, f) {
         let fila = $(f);
         if (fila.find('input').length > 0) return;
         formData.maquinas.push(arregloProgresivoIndividual(fila));
-    })
-
-    $.ajax({
-        type: 'POST',
-        data: formData,
-        url: url,
-        success: function(data) {
-            console.log(data);
-            $('#mensajeExito')
-                .find('.textoMensaje p')
-                .replaceWith(
-                    $('<p></p>')
-                    .text(mensajeExito)
-                );
-            $('#modalProgresivoIndividual').modal('hide');
-            $('#mensajeExito').show();
-        },
-        error: mostrarRespuestaError
     });
-}
-
-
-function enviarFormularioIndividualModif(desde, hasta) {
-    limpiarErrores();
-    let err = verificarFormularioIndividual();
-    if (err.errores) {
-        mostrarError(err.mensaje);
+    let url = '';
+    let msjExito = '';
+    const modo = $(this).data('modo');
+    if(modo == 'crear'){
+        url = '/progresivos/crearProgresivosIndividuales';
+        msjExito = 'Los progresivos fueron cargados con éxito.';
+    }
+    else if(modo == 'modificar'){
+        url = '/progresivos/modificarProgresivosIndividuales';
+        msjExito = 'Los progresivos fueron modificados.';
+    }
+    else{
         return;
     }
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-
-    let mensajeExito = 'Los progresivos fueron modificados.';
-    let url = '/progresivos/modificarProgresivosIndividuales';
-
-    let formData = {
-        id_casino: $('#modalProgresivoIndividual_casino').val(),
-        desde: desde,
-        hasta: hasta,
-        maquinas: []
-    };
-
-    let filas = $('#contenedorMaquinasIndividual tbody tr');
-
-    filas.each(function(idx, f) {
-        let fila = $(f);
-        if (fila.find('input').length > 0) return;
-        formData.maquinas.push(arregloProgresivoIndividual(fila));
-    })
+    const desde = $(this).data('desde');
+    const hasta = $(this).data('hasta');
+    if(desde.length > 0) formData.desde = desde;
+    if(hasta.length > 0) formData.hasta = hasta;
 
     $.ajax({
         type: 'POST',
         data: formData,
         url: url,
         success: function(data) {
-            console.log(data);
-            $('#mensajeExito')
-                .find('.textoMensaje p')
-                .replaceWith(
-                    $('<p></p>')
-                    .text(mensajeExito)
-                );
+            $('#mensajeExito').find('.textoMensaje p').text(msjExito);
             $('#modalProgresivoIndividual').modal('hide');
             $('#mensajeExito').show();
         },
         error: mostrarRespuestaError
     });
-}
-
-function obtenerProgresivosIndividuales(data, success = function(x) { console.log(x) }, err = function(x) { console.log(x) }) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    $.ajax({
-        type: 'POST',
-        url: '/progresivos/buscarProgresivosIndividuales',
-        data: data,
-        dataType: 'json',
-        success: success,
-        error: err
-    });
-}
+});
 
 function mostrarProgresivoIndividual(data = null) {
     limpiarErrores();
-    $('#modalProgresivoIndividual').modal('show');
     $('#modalProgresivoIndividual_seccionSup').show();
     $('#modalProgresivoIndividual_seccionParametros').show();
     $('#btn-agregarMaquinaIndividual').parent().parent().show();
@@ -394,76 +279,101 @@ function mostrarProgresivoIndividual(data = null) {
     let maq_html = $('.tablaMaquinasDivIndividual').clone().removeClass('ejemplo').show();
     let cuerpo_tabla = maq_html.find('.cuerpoTabla').empty();
     $('#contenedorMaquinasIndividual').append(maq_html);
-    $('#btn-guardarIndividual').off().on('click', enviarFormularioIndividual);
-
+    $('#btn-guardarIndividual').data('modo','crear').data('desde','').data('hasta','');
     $('#modalProgresivoIndividual_casino').trigger('change');
     if (data != null) {
-        const callbackForm = function() { enviarFormularioIndividualModif(data.desde, data.hasta); }
-        $('#btn-guardarIndividual').off().on('click', callbackForm);
+        $('#btn-guardarIndividual').data('modo','modificar').data('desde',data.desde).data('hasta',data.hasta);
         $('#btn-agregarMaquinaIndividual').parent().parent().hide();
         //Seteo el casino pq despues se usa para enviar el formulario.
         $('#modalProgresivoIndividual_casino').val(data.id_casino).trigger('change');
         $('#modalProgresivoIndividual_seccionSup').hide();
         $('#modalProgresivoIndividual_seccionParametros').hide();
-        obtenerProgresivosIndividuales(data, function(resultados) {
-            resultados.sort(function(r1, r2) {
-                return r1.maquina.nro_admin >= r2.maquina.nro_admin;
-            })
-            for (let i = 0; i < resultados.length; i++) {
-                const prog = resultados[i];
-                const data = {
-                    id_maquina: prog.maquina.id_maquina,
-                    nro_admin: prog.maquina.nro_admin,
-                    sector: prog.maquina.sector,
-                    isla: prog.maquina.isla,
-                    marca_juego: prog.maquina.marca_juego,
-                    porc_recup: prog.porc_recup,
-                    maximo: prog.pozo.nivel.maximo,
-                    base: prog.pozo.nivel.base,
-                    porc_visible: prog.pozo.nivel.porc_visible,
-                    porc_oculto: prog.pozo.nivel.porc_oculto
-                };
-
-                let filaProgresivo = filaEjemploIndividual();
-                setearFilaProgresivoIndividual(filaProgresivo, data);
-                cuerpo_tabla.append(filaProgresivo);
-            }
+        $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+        $.ajax({
+            type: 'POST',
+            url: '/progresivos/buscarProgresivosIndividuales',
+            data: data,
+            dataType: 'json',
+            success: function(resultados) {
+                resultados.sort(function(r1, r2) {
+                    return r1.maquina.nro_admin >= r2.maquina.nro_admin;
+                })
+                for (let i = 0; i < resultados.length; i++) {
+                    const prog = resultados[i];
+                    const data = {
+                        id_maquina: prog.maquina.id_maquina,
+                        nro_admin: prog.maquina.nro_admin,
+                        sector: prog.maquina.sector,
+                        isla: prog.maquina.isla,
+                        marca_juego: prog.maquina.marca_juego,
+                        porc_recup: prog.porc_recup,
+                        maximo: prog.pozo.nivel.maximo,
+                        base: prog.pozo.nivel.base,
+                        porc_visible: prog.pozo.nivel.porc_visible,
+                        porc_oculto: prog.pozo.nivel.porc_oculto
+                    };
+    
+                    let filaProgresivo = filaEjemploIndividual();
+                    setearFilaProgresivoIndividual(filaProgresivo, data);
+                    cuerpo_tabla.append(filaProgresivo);
+                }
+                $('#modalProgresivoIndividual').modal('show');              
+            },
+            error: function(x) { console.log(x) }
         });
     }
+    else $('#modalProgresivoIndividual').modal('show');
 }
 
 //Mostrar modal con los datos del Log
-$(document).on('click', '#cuerpoTabla tr .detalle', function() {
-    $('.modal-title').text('| VER MÁS');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background: #4FC3F7');
+$(document).on('click', '#cuerpoTabla tr .grupal.detalle', function() {
+    $('#modalProgresivo .modal-title').text('| VER MÁS');
+    $('#modalProgresivo .modal-header').css('background', '#4FC3F7');
     $('.btn-agregarNivelProgresivo').hide();
     $('#btn-cancelar').text('SALIR');
 
-    var id_progresivo = $(this).val();
-
-    $.get("/progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
-        console.log(data);
+    $.get("/progresivos/obtenerProgresivo/" + $(this).val(), function(data) {
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, false);
         $('#modalProgresivo').modal('show');
     });
 });
 
 //Mostrar modal con los datos del Juego cargado
-$(document).on('click', '#cuerpoTabla tr .modificar', function() {
+$(document).on('click', '#cuerpoTabla tr .grupal.modificar', function() {
     $('#mensajeExito').hide();
     $('#btn-cancelar').text('CANCELAR');
     $('.btn-agregarNivelProgresivo').show();
-    $('.modal-title').text('| MODIFICAR PROGRESIVO');
-    $('.modal-header').attr('style', 'font-family: Roboto-Black; background: #ff9d2d');
+    $('#modalProgresivo .modal-title').text('| MODIFICAR PROGRESIVO');
+    $('#modalProgresivo .modal-header').css('background', '#ff9d2d');
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-warningModificar');
 
-    var id_progresivo = $(this).val();
-
-    $.get("/progresivos/obtenerProgresivo/" + id_progresivo, function(data) {
+    $.get("/progresivos/obtenerProgresivo/" + $(this).val(), function(data) {
         mostrarProgresivo(data.progresivo, data.pozos, data.maquinas, true);
         $('#btn-guardar').val("modificar");
         $('#modalProgresivo').modal('show');
+    });
+});
+
+
+$(document).on('click','#cuerpoTabla tr .grupal.eliminar', function(){
+    $('#btn-eliminarModal').val(id_progresivo);
+    $('#modalEliminar').modal('show');
+});
+
+$('#btn-eliminarModal').click(function(){
+    $.ajaxSetup({headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') }});
+    $.ajax({
+        type: "DELETE",
+        url: "/progresivos/eliminarProgresivo/" + $(this).val(),
+        success: function(data) {
+            $('#btn-buscar').click();
+            $("#tablaResultados").trigger("update");
+            $('#modalEliminar').modal('hide');
+        },
+        error: function(data) {
+            console.log('Error: ', data);
+        }
     });
 });
 
@@ -502,62 +412,20 @@ function generarFilaTabla(progresivo) {
     fila.find('.casino').text(casino);
     fila.find('.islas').text(progresivo.islas).attr('title',progresivo.islas);
     fila.find('.sectores').text(progresivo.sectores).attr('title',progresivo.sectores);
-    fila.attr('id', 'progresivo' + progresivo.id_progresivo)
-    fila.find('.modificar').val(progresivo.id_progresivo);
-    fila.find('.detalle').val(progresivo.id_progresivo);
-    fila.find('.eliminar').val(progresivo.id_progresivo).off()
-        .on('click', function() {
-            $('.modal-title').text('ADVERTENCIA');
-            $('.modal-header').removeAttr('style');
-            $('.modal-header').attr('style', 'font-family: Roboto-Black; color: #EF5350');
-
-            $('#btn-eliminarModal').val(id_progresivo);
-            $('#modalEliminar').modal('show');
-            $('#btn-eliminarModal').off().on('click', function() {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                    }
-                })
-                $.ajax({
-                    type: "DELETE",
-                    url: "/progresivos/eliminarProgresivo/" + progresivo.id_progresivo,
-                    success: function(data) {
-                        console.log(data);
-                        fila.remove();
-                        $("#tablaResultados").trigger("update");
-                        $('#modalEliminar').modal('hide');
-                    },
-                    error: function(data) {
-                        console.log('Error: ', data);
-                    }
-                })
-            });
-        });
-
+    fila.attr('id', 'progresivo' + progresivo.id_progresivo);
+    fila.find('button').val(progresivo.id_progresivo);
     return fila;
 }
 
 function crearBoton(icono) {
-    let btn = $('<button></button>').addClass('btn').addClass('btn-info');
-    let i = $('<i></i>').addClass('fa').addClass('fa-fw').addClass(icono);
-    btn.append(i);
-    return btn;
+    const btn = $('<button>').addClass('btn').addClass('btn-info');
+    const i = $('<i>').addClass('fa').addClass('fa-fw').addClass(icono);
+    return btn.append(i);
 }
 
-function crearEditable(tipo,
-    defecto = "",
-    min = 0,
-    max = 100,
-    step = 0.001) {
-    return $('<input></input>')
-        .addClass('editable')
-        .addClass('form-control')
-        .attr('type', tipo)
-        .attr('min', min)
-        .attr('max', max)
-        .attr('step', step)
-        .val(defecto);
+function crearEditable( tipo, defecto = "", min = 0, max = 100, step = 0.001) {
+    return $('<input>').addClass('editable form-control').attr('type', tipo).attr('min', min)
+    .attr('max' , max).attr('step', step).val(defecto);
 }
 
 function filaEjemplo() {
@@ -568,15 +436,20 @@ function filaEjemploMaquina() {
     return $('.tablaMaquinasDiv.ejemplo').find('.filaEjemplo').clone().removeClass('filaEjemplo').show();
 }
 
-function subirFila(fila) {
+function moverFila(fila,direccion){
     let elem = fila[0];
     let parent = elem.parentNode;
-    let arriba = elem.previousElementSibling;
-    if (arriba === null) return;
-
+    let arriba = null;
+    if(direccion == 'subir'){
+        arriba = elem.previousElementSibling;
+    }
+    else if(direccion == 'bajar'){
+        arriba = elem;
+        elem = elem.nextElementSibling;
+    }
+    else return;
     let elem_nivel = elem.getElementsByClassName('cuerpoTablaPozoNumero')[0];
     let arriba_nivel = arriba.getElementsByClassName('cuerpoTablaPozoNumero')[0];
-
     const arriba_nro = parseInt(arriba_nivel.innerText);
     const elem_nro = parseInt(elem_nivel.innerText);
     if (arriba_nro < elem_nro) {
@@ -586,118 +459,61 @@ function subirFila(fila) {
     }
 }
 
-function bajarFila(fila) {
-    let elem = fila[0];
-    let parent = elem.parentNode;
-    let abajo = elem.nextElementSibling;
-    if (abajo === null) return;
-
-    let elem_nivel = elem.getElementsByClassName('cuerpoTablaPozoNumero')[0];
-    let abajo_nivel = abajo.getElementsByClassName('cuerpoTablaPozoNumero')[0];
-
-    const abajo_nro = parseInt(abajo_nivel.innerText);
-    const elem_nro = parseInt(elem_nivel.innerText);
-    if (elem_nro < abajo_nro) {
-        abajo_nivel.innerText = elem_nro.toString();
-        elem_nivel.innerText = abajo_nro.toString();
-        parent.insertBefore(abajo, elem);
-    }
-}
-
-function borrarFila(fila) {
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoAcciones .borrar',function(){
+    let fila = $(this).closest('tr');
     let parent = fila.parent();
     fila.remove();
     let children = parent.children();
     children.each(function(i, c) {
-        filaNumeroVal(c, i + 1);
+        objVal(fila.find('.cuerpoTablaPozoNumero'), i+1);
     });
-}
+});
 
-function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
-    let fila = filaEjemplo();
-    filaNumero(fila).empty();
-    filaNombre(fila).empty().append(crearEditable("text"));
-    filaBase(fila).empty().append(crearEditable("text"));
-    filaMaximo(fila).empty().append(crearEditable("text"));
-    filaVisible(fila).empty().append(crearEditable("text"));
-    filaOculto(fila).empty().append(crearEditable("text"));
-    fila.find('.editar').remove();
-    fila.find('.cuerpoTablaPozoAcciones').empty();
-    fila.find('.cuerpoTablaPozoAcciones').append(crearBoton('fa-check').addClass('confirmar'));
-    fila.find('.cuerpoTablaPozoAcciones').append(crearBoton('fa-times').addClass('cancelar'));
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoFlechas .subir',function(){
+    let fila = $(this).closest('tr');
+    console.log('subir?');
+    moverFila(fila,'subir');
+});
 
-    setearValoresFilaNivel(fila, valores);
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoFlechas .bajar',function(){
+    let fila = $(this).closest('tr');
+    moverFila(fila,'bajar');
+});
 
-    fila.find('.confirmar').on('click', function() {
-        fila.find('.erroneo').removeClass('erroneo');
-        const validacion = validarFila(fila);
-        if (!validacion.nombre_nivel) {
-            filaNombre(fila).find('.editable').addClass('erroneo');
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoAcciones .cancelar',function(){
+    let fila = $(this).closest('tr');
+    let valores = $(this).data('valores_viejos');
+    let nueva_fila = filaEjemplo();
+    setearValoresFilaNivel(nueva_fila, valores);
+    fila.replaceWith(nueva_fila);
+});
+
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoAcciones .editar',function(){
+    let fila = $(this).closest('tr');
+    let valores = arregloNivel(fila);
+    let fila_editable = crearFilaEditableNivel(valores);
+    fila.replaceWith(fila_editable);
+    fila_editable.find('.cancelar').data('valores_viejos',valores);
+});
+
+$(document).on('click','#contenedorPozos .cuerpoTablaPozoAcciones .confirmar',function(){
+    let fila = $(this).closest('tr');
+    fila.find('.erroneo').removeClass('erroneo');
+    const validacion = validarFila(fila);
+    fila.find('.cuerpoTablaPozoNombre').find('.editable').addClass(validacion.nombre_nivel? '' : 'erroneo');
+    fila.find('.cuerpoTablaPozoBase').find('.editable').addClass(validacion.base? '' : 'erroneo');
+    fila.find('.cuerpoTablaPozoMaximo').find('.editable').addClass(validacion.maximo? '' : 'erroneo');
+    fila.find('.cuerpoTablaPorcVisible').find('.editable').addClass(validacion.porc_visible? '' : 'erroneo');
+    fila.find('.cuerpoTablaPorcOculto').find('.editable').addClass(validacion.porc_oculto? '' : 'erroneo');
+    if (validacion.razones.length != 0){
+        let finalstr = '';
+        for (let i = 0; i < validacion.razones.length; i++) {
+            finalstr += '<h5>' + validacion.razones[i] + '</h5>';
         }
-        if (!validacion.base) {
-            filaBase(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_visible) {
-            filaVisible(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.porc_oculto) {
-            filaOculto(fila).find('.editable').addClass('erroneo');
-        }
-        if (!validacion.maximo) {
-            filaMaximo(fila).find('.editable').addClass('erroneo');
-        }
-        if (validacion.razones.length == 0) modificarNivel(fila);
-        else {
-            console.log(validacion.razones);
-            let finalstr = '';
-            for (let i = 0; i < validacion.razones.length; i++) {
-                finalstr += '<h5>' + validacion.razones[i] + '</h5>';
-            }
-            mostrarError(finalstr);
-            //fila.attr('title', finalstr);
-            //@HACK nuestra version de bootstrap es vieja
-            //y update o dispose nos tira un error
-            //fila.attr('data-original-title', finalstr);
-            //fila.tooltip('destroy');
-            //fila.tooltip('show');
-        }
-    });
+        mostrarError(finalstr);
+        return;
+    }
 
-    fila.find('.subir').on('click', function() {
-        subirFila(fila);
-    });
-    fila.find('.bajar').on('click', function() {
-        bajarFila(fila);
-    })
-
-    fila.find('.cancelar').on('click', function() {
-        let nueva_fila = filaEjemplo();
-        setearValoresFilaNivel(nueva_fila, valores);
-
-        nueva_fila.find('.cuerpoTablaPozoAcciones .editar').on('click', function() {
-            let fila_editable = crearFilaEditableNivel(valores);
-            nueva_fila.replaceWith(fila_editable);
-        });
-
-        nueva_fila.find('.cuerpoTablaPozoAcciones .borrar').on('click', function() {
-            borrarFila(nueva_fila);
-        });
-
-        nueva_fila.find('.subir').on('click', function() {
-            subirFila(nueva_fila);
-        });
-        nueva_fila.find('.bajar').on('click', function() {
-            bajarFila(nueva_fila);
-        })
-
-        fila.replaceWith(nueva_fila);
-    });
-
-    return fila;
-}
-
-
-function modificarNivel(fila) {
     let vals = arregloNivel(fila);
     let nueva_fila = filaEjemplo();
     setearValoresFilaNivel(nueva_fila, vals);
@@ -705,26 +521,82 @@ function modificarNivel(fila) {
 
     nueva_fila.find('.confirmar').replaceWith(crearBoton('fa-pencil-alt').addClass('editar'));
     nueva_fila.find('.cancelar').replaceWith(crearBoton('fa-trash-alt').addClass('borrar'));
-
-    nueva_fila.find('.editar').on('click', function() {
-        let valores = arregloNivel(fila);
-        let fila_editable = crearFilaEditableNivel(valores);
-        nueva_fila.replaceWith(fila_editable);
-    });
-
-    nueva_fila.find('.cuerpoTablaPozoAcciones .borrar').on('click', function() {
-        borrarFila(nueva_fila);
-    });
-
-    nueva_fila.find('.subir').on('click', function() {
-        subirFila(nueva_fila);
-    });
-    nueva_fila.find('.bajar').on('click', function() {
-        bajarFila(nueva_fila);
-    });;
-
     nueva_fila.parent().parent().parent().find('.agregar').attr('disabled', false);
+});
+
+function crearFilaEditableNivel(valores = { id_nivel_progresivo: -1 }) {
+    let fila = filaEjemplo();
+    fila.find('.cuerpoTablaPozoNumero').empty();
+    fila.find('.cuerpoTablaPozoNombre').empty().append(crearEditable("text"));
+    fila.find('.cuerpoTablaPozoBase').empty().append(crearEditable("text"));
+    fila.find('.cuerpoTablaPozoMaximo').empty().append(crearEditable("text"));
+    fila.find('.cuerpoTablaPorcVisible').empty().append(crearEditable("text"));
+    fila.find('.cuerpoTablaPorcOculto').empty().append(crearEditable("text"));
+    fila.find('.editar').remove();
+    fila.find('.cuerpoTablaPozoAcciones').empty()
+    .append(crearBoton('fa-check').addClass('confirmar'))
+    .append(crearBoton('fa-times').addClass('cancelar'));
+
+    setearValoresFilaNivel(fila, valores);
+    return fila;
 }
+
+$(document).on('click','#contenedorPozos .confirmarPozo',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    let valorModif = pozo.find('.nombrePozo').val();
+    let text = $('<b>').text(valorModif).addClass('nombrePozo');
+    pozo.find('.nombrePozo').replaceWith(text);
+    pozo.find('.confirmarPozo').replaceWith(crearBoton('fa-pencil-alt').addClass('editarPozo').removeClass('btn-info').addClass('btn-link'));
+});
+
+$(document).on('click','#contenedorPozos .editarPozo',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    const text_viejo = pozo.find('.nombrePozo').text();
+    pozo.find('.nombrePozo').replaceWith(crearEditable('text').addClass('nombrePozo').val(text_viejo));
+    pozo.find('.editarPozo').replaceWith(crearBoton('fa-check').addClass('confirmarPozo').removeClass('btn-info').addClass('btn-link'));
+});
+
+$(document).on('click','#contenedorPozos .editarPozo',function(){
+    $(this).closest('.tablaPozoDiv').remove();
+});
+
+$(document).on('show.bs.collapse','#contenedorPozos .collapse',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    let icono = pozo.find('.abrirPozo i');
+    let icono_nuevo = $('<i>').addClass('fa').addClass('fa-fw');
+    icono.replaceWith(icono_nuevo.addClass('fa-angle-down'));
+});
+
+$(document).on('hide.bs.collapse','#contenedorPozos .collapse',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    let icono = pozo.find('.abrirPozo i');
+    let icono_nuevo = $('<i>').addClass('fa').addClass('fa-fw');
+    icono.replaceWith(icono_nuevo.addClass('fa-angle-up'));
+});
+
+$(document).on('click','#contenedorPozos .abrirPozo',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    let colapsable = pozo.find('.collapse');
+    colapsable.collapse('toggle');
+});
+
+$(document).on('click','#contenedorPozos .agregar',function(){
+    const pozo = $(this).closest('.tablaPozoDiv');
+    let fila = crearFilaEditableNivel();
+    //La primera vez que se agrega una fila,
+    //No se la deja cancelar la edicion sino que se la elimina.
+    fila.find('.cancelar').replaceWith(crearBoton('fa-trash-alt').addClass('borrar'));
+    pozo.find('.cuerpoTablaPozo').append(fila);
+    $(this).attr('disabled', true);
+
+    const fila_anterior = fila.prev();
+    if (fila_anterior.length > 0) {
+        let nro = filaNumeroVal(fila_anterior);
+        filaNumeroVal(fila, parseInt(nro) + 1);
+    } else {
+        filaNumeroVal(fila, '1');
+    }
+});
 
 function mostrarPozo(id_pozo, nombre, editable, niveles = {}) {
     let pozo_html = $('.tablaPozoDiv.ejemplo').clone().removeClass('ejemplo');
@@ -738,129 +610,24 @@ function mostrarPozo(id_pozo, nombre, editable, niveles = {}) {
 
     let fila_ejemplo_pozo = filaEjemplo();
 
-    for (var j = 0; j < niveles.length; j++) {
+    for (let j = 0; j < niveles.length; j++) {
         let fila = fila_ejemplo_pozo.clone();
-
         const nivel = niveles[j];
-
         setearValoresFilaNivel(fila, nivel);
-
-        fila.find('.cuerpoTablaPozoAcciones').children().each(
-            function(index, child) {
-                $(child).attr('disabled', !editable);
-            }
-        );
-
-        fila.find('.cuerpoTablaPozoAcciones .editar').on('click', function() {
-            let fila_editable = crearFilaEditableNivel(nivel);
-            fila.replaceWith(fila_editable);
-        });
-
-        fila.find('.cuerpoTablaPozoAcciones .borrar').on('click', function() {
-            borrarFila(fila);
-        });
-
-        fila.find('.subir').on('click', function() {
-            subirFila(fila);
-        }).attr('disabled', !editable);
-        fila.find('.bajar').on('click', function() {
-            bajarFila(fila);
-        }).attr('disabled', !editable);
-
+        fila.find('.cuerpoTablaPozoAcciones button').attr('disabled',!editable);
         pozo_html.find('.cuerpoTablaPozo').append(fila);
     }
 
-    const editarPozoCallback = function() {
-        let text_viejo = pozo_html.find('.nombrePozo').text();
-        pozo_html.find('.nombrePozo').replaceWith(
-            crearEditable('text')
-            .addClass('nombrePozo')
-            .val(text_viejo)
-        );
-
-        let boton = crearBoton('fa-check')
-            .addClass('confirmarPozo')
-            .removeClass('btn-info')
-            .addClass('btn-link');
-        pozo_html.find('.editarPozo').replaceWith(boton);
-
-        const confirmarPozoCallback = function() {
-            let valorModif = pozo_html.find('.nombrePozo').val();
-            let text = $('<b></b>').text(valorModif);
-
-            text.addClass('nombrePozo');
-            pozo_html.find('.nombrePozo').replaceWith(text);
-
-            let boton2 = crearBoton('fa-pencil-alt')
-                .addClass('editarPozo')
-                .removeClass('btn-info')
-                .addClass('btn-link');
-
-            pozo_html.find('.confirmarPozo').replaceWith(boton2);
-            boton2.on('click', editarPozoCallback);
-        };
-
-        boton.on('click', confirmarPozoCallback);
-    };
-
     pozo_html.find('.editarPozo').attr('disabled', !editable);
-    pozo_html.find('.editarPozo').on('click', editarPozoCallback);
     pozo_html.find('.eliminarPozo').attr('disabled', !editable);
-    pozo_html.find('.eliminarPozo').on('click', function() {
-        pozo_html.remove();
-    });
-
-    pozo_html.find('.collapse').on('show.bs.collapse', function() {
-        let icono = pozo_html.find('.abrirPozo i');
-        let icono_nuevo = $('<i></i>').addClass('fa').addClass('fa-fw');
-        icono.replaceWith(icono_nuevo.addClass('fa-angle-down'));
-    });
-
-    pozo_html.find('.collapse').on('hide.bs.collapse', function() {
-        let icono = pozo_html.find('.abrirPozo i');
-        let icono_nuevo = $('<i></i>').addClass('fa').addClass('fa-fw');
-        icono.replaceWith(icono_nuevo.addClass('fa-angle-up'));
-    });
-
-    pozo_html.find('.abrirPozo').on('click', function() {
-        let colapsable = pozo_html.find('.collapse');
-        colapsable.collapse('toggle');
-    });
-
     pozo_html.find('.agregar').attr('disabled', !editable);
-    pozo_html.find('.agregar').on("click", function() {
-        let fila = crearFilaEditableNivel();
-        //La primera vez que se agrega una fila,
-        //No se la deja cancelar la edicion sino que se la elimina.
-        fila.find('.cancelar').replaceWith(
-            crearBoton('fa-trash-alt').addClass('borrar')
-        );
-        fila.find('.borrar').on('click', function() {
-            borrarFila(fila);
-            pozo_html.find('.agregar').attr('disabled', false);
-        })
-
-        pozo_html.find('.cuerpoTablaPozo').append(fila);
-        $(this).attr('disabled', true);
-
-        const fila_anterior = fila.prev();
-        if (fila_anterior.length > 0) {
-            let nro = filaNumeroVal(fila_anterior);
-            filaNumeroVal(fila, parseInt(nro) + 1);
-        } else {
-            filaNumeroVal(fila, '1');
-        }
-    });
 }
-
-
 
 function arregloPozos() {
     const pozos_html = $('.tablaPozoDiv').not('.ejemplo');
-
     let ret = [];
 
-    for (i = 0; i < pozos_html.length; i++) {
+    for (let i = 0; i < pozos_html.length; i++) {
         const pozo_html = $(pozos_html[i]);
         const id_pozo = pozo_html.attr('data-id');
         const descripcion = pozo_html.find('.nombrePozo').text();
@@ -871,13 +638,11 @@ function arregloPozos() {
             filas.push(arregloNivel($(c)));
         });
 
-        const data = {
+        ret.push({
             id_pozo: id_pozo,
             descripcion: descripcion,
             niveles: filas
-        };
-
-        ret.push(data);
+        });
     }
 
     return ret;

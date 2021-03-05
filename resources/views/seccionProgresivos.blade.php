@@ -186,15 +186,15 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
               <td class="col-xs-3 sectores">SECTOR1/SECTOR2/...</td>
               <td class="col-xs-2 acciones">
-                <button class="btn btn-info detalle">
+                <button class="btn btn-info grupal detalle">
                   <i class="fa fa-fw fa-search-plus"></i>
                 </button>
                 <span> </span>
-                <button class="btn btn-info modificar">
+                <button class="btn btn-info grupal modificar">
                   <i class="fa fa-fw fa-pencil-alt"></i>
                 </button>
                 <span> </span>
-                <button class="btn btn-info eliminar">
+                <button class="btn btn-info grupal eliminar">
                   <i class="fa fa-fw fa-trash-alt"></i>
                 </button>
               </td>
@@ -212,7 +212,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 <div class="modal fade" id="modalProgresivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="background: #5cb85c;">
+      <div class="modal-header" style="background: #5cb85c;font-family: Roboto-Black;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" style="color: #fff;">| NUEVO PROGRESIVO LINKEADO</h3>
@@ -305,7 +305,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 <div class="modal fade" id="modalProgresivoIndividual" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="background: #5cb85c;">
+      <div class="modal-header" style="background: #5cb85c;font-family: Roboto-Black;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" style="color: #fff;">| NUEVOS PROGRESIVOS INDIVIDUALES</h3>
@@ -388,7 +388,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
         <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
       </div>
@@ -494,12 +494,12 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           </thead>
           <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
             <tr class="filaEjemplo">
-              <td class="col-xs-2 cuerpoTablaNroAdmin">999</td>
-              <td class="col-xs-3 cuerpoTablaSector">SECTOR999</td>
-              <td class="col-xs-2 cuerpoTablaIsla">999</td>
-              <td class="col-xs-4 cuerpoTablaMarcaJuego">SIN MARCA</td>
-              <td class="col-xs-1 cuerpoTablaAcciones">
-                <button class="btn btn-info unlink">
+              <td class="col-xs-2 grupal cuerpoTablaNroAdmin">999</td>
+              <td class="col-xs-3 grupal cuerpoTablaSector">SECTOR999</td>
+              <td class="col-xs-2 grupal cuerpoTablaIsla">999</td>
+              <td class="col-xs-4 grupal cuerpoTablaMarcaJuego">SIN MARCA</td>
+              <td class="col-xs-1 grupal cuerpoTablaAcciones">
+                <button class="btn btn-info grupal unlink">
                   <i class="fas fa-unlink"></i>
                 </button>
               </td>
@@ -543,20 +543,20 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           </thead>
           <tbody class="cuerpoTabla" style="overflow-y: auto;overflow-x: hidden;">
             <tr class="filaEjemplo form-group form-group-sm">
-              <td class="col-xx-1 cuerpoTablaNroAdmin chico">999</td>
-              <td class="col-xs-1 cuerpoTablaSector chico">SECTOR999</td>
-              <td class="col-xs-1 cuerpoTablaIsla chico">999</td>
-              <td class="col-xs-2 cuerpoTablaMarcaJuego chico">SIN MARCA</td>
-              <td class="col-xs-1 cuerpoPorcRecup chico">99.99</td>
-              <td class="col-xs-1 cuerpoMaximo chico">999999</td>
-              <td class="col-xs-1 cuerpoBase chico">9999</td>
-              <td class="col-xs-1 cuerpoPorcVisible chico">99.99</td>
-              <td class="col-xs-1 cuerpoPorcOculto chico">99.99</td>
-              <td class="col-xs-2 cuerpoTablaAcciones">
-                <button class="btn btn-info editar">
+              <td class="col-xx-1 individual cuerpoTablaNroAdmin chico">999</td>
+              <td class="col-xs-1 individual cuerpoTablaSector chico">SECTOR999</td>
+              <td class="col-xs-1 individual cuerpoTablaIsla chico">999</td>
+              <td class="col-xs-2 individual cuerpoTablaMarcaJuego chico">SIN MARCA</td>
+              <td class="col-xs-1 individual cuerpoPorcRecup chico">99.99</td>
+              <td class="col-xs-1 individual cuerpoMaximo chico">999999</td>
+              <td class="col-xs-1 individual cuerpoBase chico">9999</td>
+              <td class="col-xs-1 individual cuerpoPorcVisible chico">99.99</td>
+              <td class="col-xs-1 individual cuerpoPorcOculto chico">99.99</td>
+              <td class="col-xs-2 individual cuerpoTablaAcciones">
+                <button class="btn btn-info individual editar">
                   <i class="fas fa-pencil-alt"></i>
                 </button>
-                <button class="btn btn-info eliminar">
+                <button class="btn btn-info individual eliminar">
                   <i class="fas fa-trash"></i>
                 </button>
               </td>
