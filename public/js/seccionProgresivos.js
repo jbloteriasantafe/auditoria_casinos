@@ -255,6 +255,7 @@ function mostrarProgresivoIndividual(data = null) {
 
     let maq_html = $('.tablaMaquinasDivIndividual').clone().removeClass('ejemplo').show();
     $('#contenedorMaquinasIndividual').append(maq_html);
+    let cuerpo_tabla = maq_html.find('.cuerpoTabla').empty();
     $('#btn-guardarIndividual').data('modo','crear').data('desde','').data('hasta','');
     $('#modalProgresivoIndividual_casino').trigger('change');
     if(data === null) return $('#modalProgresivoIndividual').modal('show');
@@ -266,7 +267,6 @@ function mostrarProgresivoIndividual(data = null) {
     $('#modalProgresivoIndividual_seccionSup').hide();
     $('#modalProgresivoIndividual_seccionParametros').hide();
     $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-    let cuerpo_tabla = maq_html.find('.cuerpoTabla').empty();
     $.ajax({
         type: 'POST',
         url: '/progresivos/buscarProgresivosIndividuales',
@@ -524,7 +524,7 @@ $(document).on('click','#contenedorPozos .editarPozo',function(){
     pozo.find('.editarPozo').replaceWith(crearBoton('fa-check').addClass('confirmarPozo').removeClass('btn-info').addClass('btn-link'));
 });
 
-$(document).on('click','#contenedorPozos .editarPozo',function(){
+$(document).on('click','#contenedorPozos .eliminarPozo',function(){
     $(this).closest('.tablaPozoDiv').remove();
 });
 
@@ -769,7 +769,7 @@ $('#btn-guardar').on('click', function() {
     const id_progresivo = $(this).data('id_progresivo');
     let mensajeExito = 'El progresivo fue modificado con éxito.';
     let url = '/progresivos/modificarProgresivo/' + id_progresivo;
-    if (progresivo.id_progresivo == -1) {
+    if (id_progresivo == -1) {
         mensajeExito = 'El progresivo fue creado con éxito.';
         url = '/progresivos/crearProgresivo';
     }
@@ -789,7 +789,7 @@ $('#btn-guardar').on('click', function() {
         url: url,
         success: function(data) {
             console.log(data);
-            let fila = $('#cuerpoTabla').find('#progresivo' + progresivo.id_progresivo);
+            let fila = $('#cuerpoTabla').find('#progresivo' + id_progresivo);
             fila.find('.nombre').text(formData.nombre);
             $('#mensajeExito')
                 .find('.textoMensaje p')

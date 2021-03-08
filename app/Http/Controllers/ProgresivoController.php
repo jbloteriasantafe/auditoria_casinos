@@ -164,61 +164,42 @@ class ProgresivoController extends Controller
 
 
   private function datosMaquinasCasino($id_casino = null,$nro_admin = null){
-    $query =
-    "select maq.id_maquina as id_maquina,
-            maq.nro_admin as nro_admin,
-            maq.marca_juego as marca_juego,
-            maq.id_casino as id_casino,
-            CONCAT(maq.nro_admin,cas.codigo) as nombre,
-            ifnull(isla.nro_isla,'-') as isla,
-            ifnull(sec.descripcion,'-') as sector
-    from maquina as maq
-    join casino as cas on (maq.id_casino = cas.id_casino)
-    left join isla on (maq.id_isla = isla.id_isla)
-    left join sector as sec on (isla.id_sector = sec.id_sector)
-    where maq.deleted_at is NULL";
-
-    $parametros = array();
+    $reglas = [];
     if($id_casino != null){
-      $query = $query . " and cas.id_casino = :id_casino";
-      $parametros['id_casino'] = $id_casino;
+      $reglas[] = ['cas.id_casino','=',$id_casino];
     }
-    if($nro_admin != null){//uso regexp porque like no me estaba andando...
-      $query = $query . " and CAST(maq.nro_admin as CHAR) regexp :nro_admin";
-      $parametros['nro_admin'] = '^'.strval($nro_admin);
+    $resultados = DB::table('maquina as maq')
+    ->selectRaw("maq.id_maquina as id_maquina, maq.nro_admin as nro_admin, maq.marca_juego as marca_juego, maq.id_casino as id_casino,
+    CONCAT(maq.nro_admin,cas.codigo) as nombre, ifnull(isla.nro_isla,'-') as isla, ifnull(sec.descripcion,'-') as sector")
+    ->join('casino as cas','maq.id_casino','=','cas.id_casino')
+    ->leftJoin('isla','maq.id_isla','=','isla.id_isla')
+    ->leftJoin('sector as sec','isla.id_sector','=','sec.id_sector')
+    ->where($reglas)
+    ->whereNull('maq.deleted_at');
+    if($nro_admin != null){
+      $resultados = $resultados->whereRaw('CAST(maq.nro_admin as CHAR) LIKE ?',[strval($nro_admin).'%']);
     }
-    return DB::select(DB::raw($query),$parametros);
+    return $resultados->get();
   }
 
   private function datosMaquinasProgresivo($id_progresivo = null,$limit = null){
-    $query =
-    "select maq.id_maquina as id_maquina,
-            maq.nro_admin as nro_admin,
-            maq.marca_juego as marca_juego,
-            CONCAT(maq.nro_admin,cas.codigo) as nombre,
-            ifnull(isla.nro_isla,'-') as isla,
-            ifnull(sec.descripcion,'-') as sector
-    from progresivo as prog
-    join maquina_tiene_progresivo as maq_prog on (prog.id_progresivo = maq_prog.id_progresivo)
-    join maquina as maq on (maq.id_maquina = maq_prog.id_maquina)
-    join casino as cas on (maq.id_casino = cas.id_casino)
-    left join isla on (maq.id_isla = isla.id_isla)
-    left join sector as sec on (isla.id_sector = sec.id_sector)
-    where maq.deleted_at is NULL";
-
-    $parametros = array();
+    $reglas = [];
     if($id_progresivo != null){
-      $query = $query . " and prog.id_progresivo = :id_progresivo";
-      $parametros['id_progresivo'] = $id_progresivo;
+      $reglas[] = ['prog.id_progresivo','=',$id_progresivo];
     }
-    if($limit != null){
-      $query = $query . " limit :limit";
-      $parametros['limit'] = $limit;
-    }
-    return DB::select(DB::raw($query),$parametros);
+    $resultados = DB::table('progresivo as prog')
+    ->selectRaw("maq.id_maquina as id_maquina, maq.nro_admin as nro_admin, maq.marca_juego as marca_juego,
+    CONCAT(maq.nro_admin,cas.codigo) as nombre, ifnull(isla.nro_isla,'-') as isla, ifnull(sec.descripcion,'-') as sector")
+    ->join('maquina_tiene_progresivo as maq_prog','prog.id_progresivo','=','maq_prog.id_progresivo')
+    ->join('maquina as maq','maq.id_maquina','=','maq_prog.id_maquina')
+    ->join('casino as cas','maq.id_casino','=','cas.id_casino')
+    ->leftJoin('isla','maq.id_isla','=','isla.id_isla')
+    ->leftJoin('sector as sec','isla.id_sector','=','sec.id_sector')
+    ->where($reglas)
+    ->whereNull('maq.deleted_at')->limit($limit);
+    if($limit != null) $resultados = $resultados->limit($limit);
+    return $resultados->get();
   }
-
-
 
   public function buscarMaquinas(Request $request,$id_casino,$nro_admin=null){
     //TODO: Deberia retornar las maquinas que estan dadas de baja,
@@ -467,54 +448,38 @@ class ProgresivoController extends Controller
   }
 
   private function obtenerIndividuales($id_casino = null,$desde = null,$hasta = null,$not_id_maq = null){
-    $query =
-    "select distinct
-    maqprog.id_maquina as id_maquina,
-    maq.nro_admin as nro_admin,
-    prog.id_progresivo as id_progresivo,
-    prog.porc_recup as porc_recup,
-    pozo.id_pozo as id_pozo,
-    niv.id_nivel_progresivo as id_nivel_progresivo,
-    niv.base as base,
-    niv.porc_oculto as porc_oculto,
-    niv.porc_visible as porc_visible,
-    niv.maximo as maximo
-    from maquina_tiene_progresivo maqprog
-    join maquina as maq on (maq.id_maquina = maqprog.id_maquina)
-    join progresivo as prog on (maqprog.id_progresivo = prog.id_progresivo)
-    join pozo on (prog.id_progresivo = pozo.id_progresivo)
-    join nivel_progresivo as niv on (niv.id_pozo = pozo.id_pozo)
-    where prog.es_individual = 1
-    and maq.id_casino = prog.id_casino 
-    and prog.deleted_at is NULL and pozo.deleted_at is NULL and niv.deleted_at is NULL";
-
-    $parametros = [];
-
+    $reglas = [['prog.es_individual','=','1']];
     if($id_casino != null){
-      $query = $query . " and prog.id_casino = :id_casino";
-      $parametros['id_casino'] = $id_casino;
+      $reglas[] = ['prog.id_casino','=',$id_casino];
     }
     if($desde != null){
-      $query = $query . " and maq.nro_admin >= :desde";
-      $parametros['desde'] = $desde;
+      $reglas[] = ['maq.nro_admin','>=',$desde];
     }
     if($hasta != null){
-      $query = $query . " and maq.nro_admin <= :hasta";
-      $parametros['hasta'] = $hasta;
+      $reglas[] = ['maq.nro_admin','<=',$hasta];
     }
-
-    //Menos estas maquinas
+    $resultados = DB::table('maquina_tiene_progresivo as maqprog')
+    ->select('maqprog.id_maquina as id_maquina','maq.nro_admin as nro_admin',
+      'prog.id_progresivo as id_progresivo','prog.porc_recup as porc_recup',
+      'pozo.id_pozo as id_pozo','niv.id_nivel_progresivo as id_nivel_progresivo',
+      'niv.base as base','niv.porc_oculto as porc_oculto',
+      'niv.porc_visible as porc_visible','niv.maximo as maximo'
+    )
+    ->join('maquina as maq','maq.id_maquina','=','maqprog.id_maquina')
+    ->join('progresivo as prog',function($j){
+      //No deberia pasar, pero chequeo por las dudas
+      return $j->on('maqprog.id_progresivo','=','prog.id_progresivo')->on('maq.id_casino','=','prog.id_casino');
+    })
+    ->join('pozo','prog.id_progresivo','=','pozo.id_progresivo')
+    ->join('nivel_progresivo as niv','niv.id_pozo','=','pozo.id_pozo')
+    ->where($reglas)
+    ->whereNull('prog.deleted_at')
+    ->whereNull('pozo.deleted_at')
+    ->whereNull('niv.deleted_at');
     if($not_id_maq != null){
-      //Hago una por una porque NOT IN no acepta arreglos...
-      //por las comas
-      foreach($not_id_maq as $id){
-        //dump('Agregando id '.$id);
-        $query = $query . " and maq.id_maquina <> :id_maquina" . $id;
-        $parametros['id_maquina'.$id]=$id;
-      }
+      $resultados->whereNotIn('maq.id_maquina',$not_id_maq);
     }
-
-    return DB::select(DB::raw($query),$parametros);
+    return $resultados->get();
   }
 
 
@@ -553,19 +518,15 @@ class ProgresivoController extends Controller
       foreach($request->maquinas as $maq){
         $maq_bd = Maquina::find($maq['id_maquina']);
         if($maq_bd === null) {
-          //dump('Salto '. $maq['id_maquina'] . ' no se encontro');
           continue;
         }
         if($maq_bd->id_casino != $id_casino)  {
-          //dump('Salto '. $maq['id_maquina'] . ' no es mismo casino');
           continue;
         }
         if($request->desde != null && $maq_bd->nro_admin < $desde)  {
-          //dump('Salto '. $maq['id_maquina'] . ' no entra en el rango DESDE');
           continue;
         }
         if($request->hasta != null && $maq_bd->nro_admin > $hasta)  {
-          //dump('Salto '. $maq['id_maquina'] . ' no entra en el rango HASTA');
           continue;
         }
         $progresivo = $maq_bd->progresivos()->where('es_individual','=','1')->first();
@@ -589,9 +550,7 @@ class ProgresivoController extends Controller
       }
       //Si no fueron modificados, hay que borrarlos porque quiere decir que no se enviaron
       //en el formulario
-      //dump($modificados);
       $lista_borrar = $this->obtenerIndividuales($id_casino,$desde,$hasta,$modificados);
-      //dump($lista_borrar);
       foreach($lista_borrar as $p){
         $this->eliminarProgresivo($p->id_progresivo);
       }
@@ -705,88 +664,6 @@ class ProgresivoController extends Controller
 
     $progresivo->maquinas()->sync($maquinasAgregadas);
     $progresivo->save();
-  }
-
-  public function agregarNivel(Request $request,$id_pozo){
-    $nivel = new NivelProgresivo;
-    $pozo = Pozo::find($id_pozo);
-    if($pozo != null){
-        $nivel->nro_nivel = $request->nro_nivel;
-        $nivel->nombre_nivel = $request->nombre_nivel;
-        $nivel->base = $request->base;
-        $nivel->maximo = $request->maximo;
-        $nivel->porc_visible = $request->porc_visible;
-        $nivel->porc_oculto = $request->porc_oculto;
-        $nivel->id_pozo = $id_pozo;
-        $nivel->save();
-        return $nivel;
-    }
-    return null;
-  }
-
-  public function modificarNivel(Request $request,$id_nivel_progresivo){
-    $nivel = NivelProgresivo::find($id_nivel_progresivo);
-    if($nivel != null){
-      $nivel->nro_nivel = $request->nro_nivel;
-      $nivel->nombre_nivel = $request->nombre_nivel;
-      $nivel->base = $request->base;
-      $nivel->maximo = $request->maximo;
-      $nivel->porc_visible = $request->porc_visible;
-      $nivel->porc_oculto = $request->porc_oculto;
-      $nivel->save();
-      return $nivel;
-    }
-    return null;
-  }
-
-  public function eliminarNivel($id_nivel_progresivo){
-    $nivel = NivelProgresivo::find($id_nivel_progresivo);
-    if($nivel === null){
-      return false;
-    }
-    $nivel->delete();
-    return true;
-  }
-
-  public function crearPozo(Request $request){
-    $progresivo = Progresivo::find($request->id_progresivo);
-    if($progresivo === null){
-      return null;
-    }
-
-    $descripcion = 'Pozo';
-    $pozo = new Pozo;
-    $pozo->descripcion = $descripcion;
-    $pozo->id_progresivo = $progresivo->id_progresivo;
-    $pozo->save();
-    return $pozo;
-  }
-
-  public function modificarPozo(Request $request,$id_pozo){
-    $pozo = Pozo::find($id_pozo);
-    if($pozo === null){
-      return null;
-    }
-    $pozo->descripcion = $request->descripcion;
-    $pozo->save();
-    return $pozo;
-  }
-
-  public function eliminarPozo($id_pozo){
-    $pozo = Pozo::find($id_pozo);
-    if($pozo === null){
-      return false;
-    }
-
-    $niveles = $pozo->niveles;
-
-    foreach($niveles as $nivel){
-      $this->eliminarNivel($nivel->id_nivel_progresivo);
-    }
-
-    $pozo->delete();
-
-    return true;
   }
 
   public function checkCasinoMaquinas($maquinas,$id_casino){
