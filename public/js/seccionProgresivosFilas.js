@@ -1,229 +1,65 @@
-//Funcion que antes era mas compleja pero quedo asi despues de simplificar.
-function filaObj(f, str) {
-    return $(f).find(str);
-}
-
-function filaNumero(f) {
-    return filaObj(f, '.cuerpoTablaPozoNumero');
-}
-
-function filaNombre(f) {
-    return filaObj(f, '.cuerpoTablaPozoNombre');
-}
-
-function filaBase(f) {
-    return filaObj(f, '.cuerpoTablaPozoBase');
-}
-
-function filaMaximo(f) {
-    return filaObj(f, '.cuerpoTablaPozoMaximo');
-}
-
-function filaVisible(f) {
-    return filaObj(f, '.cuerpoTablaPorcVisible');
-}
-
-function filaOculto(f) {
-    return filaObj(f, '.cuerpoTablaPorcOculto');
-}
-
-function limpiarNull(s) {
-    return (s === null) ? '' : s;
-}
-
 //Obtiene el valor de una celda, independientemente si es un input o si solo es texto
 //El parametro numeric se usa para validar que sea un numero.
 function objVal(obj, newval = undefined, numeric = false) {
-    const edit = obj.find('input').length > 0;
-    if (edit) obj = obj.find('input');
-
+    const input = obj.find('input').length > 0;
     if ((typeof newval !== 'undefined')) { //SET
-        newval = limpiarNull(newval);
-        let dotnewval = newval;
-        if (numeric) {
-            dotnewval = getDotFloat(newval);//ver float.js, si pone un numero con coma lo pasa a punto
-        }
-        return edit ? obj.val(dotnewval).val() : obj.text(dotnewval).text();
-    } else { //GET
-        return edit ? obj.val() : obj.text();
+        newval = (newval === null) ? '' : newval;
+        const dotnewval = numeric? getDotFloat(newval) : newval;//ver float.js, si pone un numero con coma lo pasa a punto
+        if(input) obj.find('input').val(dotnewval).val();
+        else      obj.text(dotnewval).text();
     }
-}
-
-function filaNumeroVal(f, newval = undefined) {
-    return objVal(filaNumero(f), newval);
-}
-
-function filaNombreVal(f, newval = undefined) {
-    return objVal(filaNombre(f), newval);
-}
-
-function filaBaseVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaBase(f), newval, numeric);
-    return val;
-}
-
-function filaMaximoVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaMaximo(f), newval, numeric);
-    return val;
-}
-
-function filaVisibleVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaVisible(f), newval, numeric);
-    return val;
-}
-
-function filaOcultoVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaOculto(f), newval, numeric);
-    return val;
-}
-
-function filaIdVal(f, newval = undefined) {
-    if ((typeof newval !== 'undefined')) {
-        f.attr('data-id', newval);
-        return newval;
-    } else {
-        return f.attr('data-id');
-    }
+    return input? obj.find('input').val() : obj.text();
 }
 
 function arregloNivel(fila) {
-    let nivel = {
-        id_nivel_progresivo: filaIdVal(fila),
-        nro_nivel: filaNumeroVal(fila),
-        nombre_nivel: filaNombreVal(fila),
-        base: filaBaseVal(fila),
-        porc_oculto: filaOcultoVal(fila),
-        porc_visible: filaVisibleVal(fila),
-        maximo: filaMaximoVal(fila)
+    return {
+        id_nivel_progresivo: fila.attr('data-id'),
+        nro_nivel:    objVal(fila.find('.cuerpoTablaPozoNumero')),
+        nombre_nivel: objVal(fila.find('.cuerpoTablaPozoNombre')),
+        base:         objVal(fila.find('.cuerpoTablaPozoBase')),
+        maximo:       objVal(fila.find('.cuerpoTablaPozoMaximo')),
+        porc_visible: objVal(fila.find('.cuerpoTablaPorcVisible')),
+        porc_oculto:  objVal(fila.find('.cuerpoTablaPorcOculto')),
     };
-    return nivel;
 }
 
 function setearValoresFilaNivel(fila, nivel) {
-    filaIdVal(fila, nivel.id_nivel_progresivo);
-    filaNumeroVal(fila, nivel.nro_nivel);
-    filaNombreVal(fila, nivel.nombre_nivel);
-    filaBaseVal(fila, nivel.base, true);
-    filaMaximoVal(fila, nivel.maximo, true);
-    filaVisibleVal(fila, nivel.porc_visible, true);
-    filaOcultoVal(fila, nivel.porc_oculto, true);
+    fila.attr('data-id', nivel.id_nivel_progresivo)
+    objVal(fila.find('.cuerpoTablaPozoNumero') , nivel.nro_nivel);
+    objVal(fila.find('.cuerpoTablaPozoNombre') , nivel.nombre_nivel);
+    objVal(fila.find('.cuerpoTablaPozoBase')   , nivel.base        , true);
+    objVal(fila.find('.cuerpoTablaPozoMaximo') , nivel.maximo      , true);
+    objVal(fila.find('.cuerpoTablaPorcVisible'), nivel.porc_visible, true);
+    objVal(fila.find('.cuerpoTablaPorcOculto') , nivel.porc_oculto , true);
 }
 
 //INDIVIDUALES
-
-function filaIndNroAdmin(f) {
-    return filaObj(f, '.cuerpoTablaNroAdmin');
-}
-
-function filaIndSector(f) {
-    return filaObj(f, '.cuerpoTablaSector');
-}
-
-function filaIndIsla(f) {
-    return filaObj(f, '.cuerpoTablaIsla');
-}
-
-function filaIndMarcaJuego(f) {
-    return filaObj(f, '.cuerpoTablaMarcaJuego');
-}
-
-function filaIndRecup(f) {
-    return filaObj(f, '.cuerpoPorcRecup');
-}
-
-function filaIndMaximo(f) {
-    return filaObj(f, '.cuerpoMaximo');
-}
-
-function filaIndBase(f) {
-    return filaObj(f, '.cuerpoBase');
-}
-
-function filaIndVisible(f) {
-    return filaObj(f, '.cuerpoPorcVisible');
-}
-
-function filaIndOculto(f) {
-    return filaObj(f, '.cuerpoPorcOculto');
-}
-
-
-function filaIndIdVal(f, newval = undefined) {
-    if ((typeof newval !== 'undefined')) {
-        f.attr('data-id', newval);
-        return newval;
-    } else {
-        return f.attr('data-id');
-    }
-}
-
-function filaIndNroAdminVal(f, newval = undefined) {
-    return objVal(filaIndNroAdmin(f), newval);
-}
-
-function filaIndSectorVal(f, newval = undefined) {
-    return objVal(filaIndSector(f), newval);
-}
-
-function filaIndIslaVal(f, newval = undefined) {
-    return objVal(filaIndIsla(f), newval);
-}
-
-function filaIndMarcaJuegoVal(f, newval = undefined) {
-    return objVal(filaIndMarcaJuego(f), newval);
-}
-
-function filaIndRecupVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaIndRecup(f), newval, numeric);
-    return val;
-}
-
-function filaIndMaximoVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaIndMaximo(f), newval, numeric);
-    return val;
-}
-
-function filaIndBaseVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaIndBase(f), newval, numeric);
-    return val;
-}
-
-function filaIndVisibleVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaIndVisible(f), newval, numeric);
-    return val;
-}
-
-function filaIndOcultoVal(f, newval = undefined, numeric = false) {
-    const val = objVal(filaIndOculto(f), newval, numeric);
-    return val;
+function arregloProgresivoIndividual(fila) {
+    return {
+        id_maquina: fila.attr('data-id'),
+        nro_admin:    objVal(fila.find('.cuerpoTablaNroAdmin')),
+        sector:       objVal(fila.find('.cuerpoTablaSector')),
+        isla:         objVal(fila.find('.cuerpoTablaIsla')),
+        marca_juego:  objVal(fila.find('.cuerpoTablaMarcaJuego')),
+        porc_recup:   objVal(fila.find('.cuerpoPorcRecup')),
+        maximo:       objVal(fila.find('.cuerpoMaximo')),
+        base:         objVal(fila.find('.cuerpoBase')),
+        porc_visible: objVal(fila.find('.cuerpoPorcVisible')),
+        porc_oculto:  objVal(fila.find('.cuerpoPorcOculto'))
+    };
 }
 
 function setearFilaProgresivoIndividual(fila, data) {
-    filaIndIdVal(fila, data.id_maquina);
-    filaIndNroAdminVal(fila, data.nro_admin);
-    filaIndSectorVal(fila, data.sector);
-    filaIndIslaVal(fila, data.isla);
-    filaIndMarcaJuegoVal(fila, data.marca_juego);
-    filaIndRecupVal(fila, data.porc_recup, true);
-    filaIndMaximoVal(fila, data.maximo, true);
-    filaIndBaseVal(fila, data.base, true);
-    filaIndVisibleVal(fila, data.porc_visible, true);
-    filaIndOcultoVal(fila, data.porc_oculto, true);
-}
-
-function arregloProgresivoIndividual(fila) {
-    return {
-        id_maquina: filaIndIdVal(fila),
-        nro_admin: filaIndNroAdminVal(fila),
-        sector: filaIndSectorVal(fila),
-        isla: filaIndIslaVal(fila),
-        marca_juego: filaIndMarcaJuegoVal(fila),
-        porc_recup: filaIndRecupVal(fila),
-        maximo: filaIndMaximoVal(fila),
-        base: filaIndBaseVal(fila),
-        porc_visible: filaIndVisibleVal(fila),
-        porc_oculto: filaIndOcultoVal(fila)
-    };
+    fila.attr('data-id', data.id_maquina);
+    objVal(fila.find('.cuerpoTablaNroAdmin')  , data.nro_admin);
+    objVal(fila.find('.cuerpoTablaSector')    , data.sector);
+    objVal(fila.find('.cuerpoTablaIsla')      , data.isla);
+    objVal(fila.find('.cuerpoTablaMarcaJuego'), data.marca_juego);
+    objVal(fila.find('.cuerpoPorcRecup')      , data.porc_recup  , true);
+    objVal(fila.find('.cuerpoMaximo')         , data.maximo      , true);
+    objVal(fila.find('.cuerpoBase')           , data.base        , true);
+    objVal(fila.find('.cuerpoPorcVisible')    , data.porc_visible, true);
+    objVal(fila.find('.cuerpoPorcOculto')     , data.porc_oculto , true);
 }
 
 //Verifica si los caracteres

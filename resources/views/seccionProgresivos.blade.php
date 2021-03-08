@@ -293,7 +293,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           <div class="modal-footer">
             <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
             <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-            <input type="hidden" id="id_progresivo" value="0">
           </div>
         </div> <!-- Fin modal-header -->
       </div>
@@ -372,7 +371,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           <div class="modal-footer">
             <button type="button" class="btn btn-successAceptar" id="btn-guardarIndividual" value="nuevo">ACEPTAR</button>
             <button type="button" class="btn btn-default" id="btn-cancelarIndividual" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-            <input type="hidden" id="id_progresivo" value="0">
           </div>
         </div> <!-- Fin modal-header -->
       </div>
