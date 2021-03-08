@@ -799,6 +799,7 @@ $('#btn-guardar').on('click', function() {
                 );
             $('#modalProgresivo').modal('hide');
             $('#mensajeExito').show();
+            $('#btn-buscar').click();
         },
         error: mostrarRespuestaError
     });
