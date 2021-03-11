@@ -781,16 +781,14 @@ $(document).on('click','.eliminarApuesta',function(e){
 
 });
 
-$('#btn-eliminar-apuesta').on('click', function(){
+$('#btn-eliminar-apuesta').on('click', function(e){
   e.preventDefault();
 
   var id=$(this).val();
   $('#modalAlertaEliminar').modal('hide');
 
   $.get('apuestas/baja/' + id, function(data){
-
     $('#tablaResultadosApuestas tbody').find('#' + id).remove();
-
         $('#mensajeExito h3').text('ÉXITO');
         $('#mensajeExito p').text(' ');
         $('#mensajeExito').show();
