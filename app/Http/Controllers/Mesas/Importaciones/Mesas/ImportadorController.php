@@ -221,7 +221,8 @@ class ImportadorController extends Controller
       $importacion->nombre_csv = $request['name'];
       $importacion->save();
     }catch(Exception $e){
-      dd($e);
+      dump($e);
+      return;
     }
 
 

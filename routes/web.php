@@ -749,7 +749,7 @@ Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\Info
 
 //importaciones
 Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-Route::post('+/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
 Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
 Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
