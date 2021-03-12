@@ -71,15 +71,7 @@ class ImportadorController extends Controller
   public function buscarTodo(){
     $casinos = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos;
     $monedas = Moneda::all();
-    //
-    // $this->calcularDiffIDM();
-    // dd('ok');
-
-    return view('Importaciones.importacionDiaria',  [
-                                                'diarias' =>[],
-                                                'casinos'=>$casinos,
-                                                'moneda'=>$monedas,
-                                              ]);
+    return view('Importaciones.importacionDiaria',['diarias' =>[],'casinos'=>$casinos,'moneda'=>$monedas]);
   }
 
   public function buscar($id_importacion){
@@ -103,136 +95,226 @@ class ImportadorController extends Controller
 }
 
   public function importarDiario(Request $request){
-    $importacion = new ImportacionDiariaMesas;
-    $importacion->save();
-
     $validator =  Validator::make($request->all(),[
       'id_casino' => 'required|exists:casino,id_casino',
       'id_moneda' => 'required|exists:moneda,id_moneda',
       'fecha' => 'required|date',
       'cotizacion_diaria' => ['nullable','required_if:id_moneda,2','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'name' => 'required|unique:importacion_diaria_mesas,nombre_csv',
-    ], array(), self::$atributos)->after(function($validator) use ($importacion){
-                  if($validator->getData()['id_casino'] != 0 &&
-                      $validator->getData()['id_moneda'] != 0 &&
-                      !empty($validator->getData()['fecha'])
-                    ){
-                    $lista2 = $this->validarFecha($validator,$importacion);
-                    $validator = $lista2[0];
-                    $importacion = $lista2[1];
-                    if($importacion != null){
+      'archivo' => 'required|file',
+    ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $fecha = $data['fecha'];
+      //VALIDO LA FECHA
+      if($fecha >= date('Y-m-d')){
+        $validator->errors()->add('fecha', 'No es posible importar la fecha indicada. Debe ser menor.');
+        return;
+      }
+      $id_casino = $data['id_casino'];
+      $id_moneda = $data['id_moneda'];
 
-                      $validator = $this->existeImportacion($validator,$importacion);
-                      $validator = $this->validarHeaders($validator);
-                      $lista = $this->validarCarga($validator,$importacion);
-                      $validator = $lista[0];
-                      $importacion = $lista[1];
-                      if(!empty($importacion->id_importacion_diaria_mesas) && $importacion->id_importacion_diaria_mesas != null){
-                        $lista = $this->validarNrosMesasJuegos($validator,$importacion);
-                        $validator = $lista[0];
-                        $importacion = $lista[1];
-                      }
-                    }
-                }else{
-                  ImportacionDiariaMesas::destroy($importacion->id_importacion_diaria_mesas);
-                }
-                if(empty($validator->getData()['cotizacion_diaria']) && $validator->getData()['id_moneda'] == 2){
-                  ImportacionDiariaMesas::destroy($importacion->id_importacion_diaria_mesas);
-                }
-
-                  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          ImportacionDiariaMesas::destroy($importacion->id_importacion_diaria_mesas);
-          return ['errors' => $validator->messages()->toJson()];
-
+      $misma_fecha = ImportacionDiariaMesas::where([
+        ['id_casino','=',$id_casino],['id_moneda','=',$id_moneda],['fecha','=',$fecha]]
+      )->whereNull('deleted_at')->get();
+      if(count($misma_fecha) > 0){
+        foreach($misma_fecha as $imp){
+          $imp->detalles()->delete();
+          $imp->delete();
         }
-     }
+        $validator->errors()->add('error','Se eliminaron importaciones, existentes presione REENVIAR.');
+        return;
+      }
+      //valido que esté la imp del dia anterior si y solo si -> en el mes anterior importó al menos una vez
+      $fecha = Carbon::parse($data['fecha']);
+      $mes_anterior = (clone $fecha)->subMonth(1);
+      $importo_mes_anterior = ImportacionDiariaMesas::where([['id_casino','=',$id_casino],['id_moneda','=',$id_moneda]])
+      ->whereYear('fecha','=',$mes_anterior->format('m'))
+      ->whereMonth('fecha','=',$mes_anterior->format('Y'))->get()->count() > 0;
+      if($importo_mes_anterior){
+        $dia_anterior = (clone $fecha)->subDay(1)->format('Y-m-d');
+        $importo_dia_anterior = ImportacionDiariaMesas::where([
+          ['id_casino','=',$id_casino],['id_moneda','=',$id_moneda],['fecha','=',$dia_anterior]
+        ])->get()->count() > 0;
+        if(!$importo_dia_anterior){
+          $validator->errors()->add('fecha', 'La importación para la fecha anterior no se ha encontrado.');
+          return;
+        }
+      }
+
+      $path = $data['archivo']->getRealPath();
+      if (($gestor = fopen($path, "r")) !== FALSE) {
+          $seis_columnas = true;
+          while (($datos = fgetcsv($gestor, 1000, ";")) == 1) {
+              $seis_columnas = count($datos) == 6;
+              if(!$seis_columnas){
+                $validator->errors()->add('error','Las columnas del archivo deben ser: \nJUEGO,NRO MESA,DROP,UTILIDAD,FILL,CREDIT.');
+                break;
+              }
+          }
+          fclose($gestor);
+          if(!$seis_columnas) return;
+      }else{
+        $validator->errors()->add('error','No se pudo leer el archivo');
+        return;
+      }
+    })->validate();
+
+    /*DB::transaction(function() use ($request,&$importacion){
+
+    });*/
+
+    $importacion = new ImportacionDiariaMesas;
+    $importacion->fecha = $request->fecha;
+    $importacion->moneda()->associate($request->id_moneda);
+    $importacion->casino()->associate($request->id_casino);
+    if(!empty($request->cotizacion_diaria)){
+      $importacion->cotizacion = str_replace(',','.',$request->cotizacion_diaria);
+    }
+    $importacion->diferencias = 1;
+    $importacion->validado = 0;
+    $importacion->save();
+    $iid = $importacion->id_importacion_diaria_mesas;
+
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
+    $path = $request->archivo->getRealPath();
+
+    /*
+      row_1 nombre juegos
+      row_2 nro_mesa
+      row_3 drop
+      row_4 utilidad
+      row_5 fill//reposiciones
+      row_6 credit//retiros
+      row_7 fecha
+    */
+    $query = sprintf("LOAD DATA local INFILE '%s'
+    INTO TABLE filas_csv_mesas_bingos
+    FIELDS TERMINATED BY ';'
+    OPTIONALLY ENCLOSED BY '\"'
+    ESCAPED BY '\"'
+    LINES TERMINATED BY '\\n'
+    IGNORE 1 LINES
+    (@0,@1,@2,@3,@4,@5)
+    SET id_archivo = '%d',
+        row_1      = @0,
+        row_2      = @1,
+        row_3      = CAST(REPLACE(@2,',','') as DECIMAL(15,2)),
+        row_4      = CAST(REPLACE(@3,',','') as DECIMAL(15,2)),
+        row_5      = CAST(REPLACE(@4,',','') as DECIMAL(15,2)),
+        row_6      = CAST(REPLACE(@5,',','') as DECIMAL(15,2)),
+        row_7      = '%s'",$path,$iid, $importacion->fecha);
+
+    try{
+      $pdo->exec($query);
+    }catch(Exception $e){
+      ImportacionDiariaMesas::destroy($iid);
+      return response()->json([
+        'error' => ['La 1er columna debe tener los nombres de los juegos, la 2da los nros. de las mesas, y luego '
+        .'drop, fill, credit (números de hasta 15 dígitos separado de los decimales con coma)']
+      ],422);
+    }
+
+    $comprueba_juegos = DB::table('filas_csv_mesas_bingos')
+    ->select('filas_csv_mesas_bingos.id','filas_csv_mesas_bingos.row_1','filas_csv_mesas_bingos.row_2')
+    ->crossJoin('juego_mesa',
+      function ($join) use($request){
+        $join->on('juego_mesa.nombre_juego', 'LIKE', 'filas_csv_mesas_bingos.row_1')
+            ->orOn('juego_mesa.siglas', 'LIKE', 'filas_csv_mesas_bingos.row_1')
+            ->where('juego_mesa.id_casino', '=',$request->id_casino);
+      }
+    )
+    ->where('row_1','<>','')
+    ->where('filas_csv_mesas_bingos.id_archivo','=',$iid)
+    ->get();
+    $ids_csv = array();
+    foreach ($comprueba_juegos as $cc) {
+      $ids_csv[] = $cc->id;
+    }
+    $datos = CSVImporter::where('id_archivo','=',$iid)
+    ->whereNotIn('id',$ids_csv)
+    ->get();
+    foreach ($datos as $d) {
+      $juegos_coinciden = JuegoMesa::where('siglas','LIKE',$d->row_1)
+      ->orWhere('nombre_juego','LIKE',$d->row_1)->get()->count() > 0;
+      if(!empty($d->row_1) && !$juegos_coinciden){//@FIX: Join de algun tipo?
+        DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$iid)->delete();
+        ImportacionDiariaMesas::destroy($iid);
+        return response()->json(['error' => ['Los nombres de los juegos deben coincidir con los del sistema.']],422);
+      }
+    }
+
+    $comprueba_nros = CSVImporter::where([['row_2','like','0%'],['id_archivo','=',$iid]])->get()->count();
+    $comprueba_nrosceroo = CSVImporter::where([['row_2','like','0'],['id_archivo','=',$iid]])->get()->count();
+    if($comprueba_nros > 0 && $comprueba_nros != $comprueba_nrosceroo){//@FIX: Regex?
+      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$iid)->delete();
+      ImportacionDiariaMesas::destroy($iid);
+      return response()->json(['error' => ['Los números de las mesas no deben comenzar con 0s.']],422);
+    }
 
     //crear los $detalles
     try{
-      /*
-        row_1 nombre juegos
-        row_2 nro_mesa
-        row_3 drop
-        row_4 utilidad
-        row_5 fill//reposiciones
-        row_6 credit//retiros
-        row_7 fecha
-      */
       $pdo = DB::connection('mysql')->getPdo();
-      //DB::connection()->disableQueryLog();
       $crea_detalles = sprintf("INSERT INTO detalle_importacion_diaria_mesas
-                                (id_importacion_diaria_mesas,
-                                 id_mesa_de_panio,
-                                 id_moneda,
-                                 fecha,
-                                 utilidad,
-                                 droop,
-                                 reposiciones,
-                                 retiros,
-                                 id_juego_mesa,
-                                 nro_mesa,
-                                 nombre_juego,
-                                 codigo_moneda,
-                                 diferencia_cierre,
-                                 tipo_mesa)
-                                SELECT csv.id_archivo,
-                                      mesa.id_mesa_de_panio,
-                                      moneda.id_moneda,
-                                      csv.row_7,
-                                      csv.row_4,
-                                      csv.row_3,
-                                      csv.row_5,
-                                      csv.row_6,
-                                      juego.id_juego_mesa,
-                                      mesa.nro_mesa,
-                                      juego.nombre_juego,
-                                      moneda.siglas,
-                                      csv.row_4,
-                                      tipo_mesa.descripcion
-                                FROM filas_csv_mesas_bingos as csv, mesa_de_panio as mesa,
-                                     juego_mesa as juego, moneda, tipo_mesa
-                                WHERE csv.id_archivo = '%d'
-                                      AND juego.id_casino = '%d'
-                                      AND mesa.id_casino = '%d'
-                                      AND (juego.nombre_juego LIKE csv.row_1
-                                            OR juego.siglas LIKE csv.row_1
-                                          )
-                                      AND mesa.nro_admin = csv.row_2
-                                      AND moneda.id_moneda = '%d'
-                                      AND juego.id_tipo_mesa = tipo_mesa.id_tipo_mesa
-                                      AND juego.deleted_at IS NULL
-                                      AND mesa.deleted_at IS NULL
-                                      AND mesa.id_juego_mesa = juego.id_juego_mesa
-                                      AND moneda.id_moneda = mesa.id_moneda;
-                                ",$importacion->id_importacion_diaria_mesas,
-                                $importacion->id_casino,
-                                $importacion->id_casino,
-                                $importacion->id_moneda);
-
-                                // dd([$crea_detalles,$importacion->id_importacion_diaria_mesas,
-                                // $importacion->id_casino,
-                                // $importacion->id_casino,
-                                // $importacion->id_moneda]);
-
+        (id_importacion_diaria_mesas,
+        id_mesa_de_panio,
+        id_moneda,
+        fecha,
+        utilidad,
+        droop,
+        reposiciones,
+        retiros,
+        id_juego_mesa,
+        nro_mesa,
+        nombre_juego,
+        codigo_moneda,
+        diferencia_cierre,
+        tipo_mesa)
+        SELECT csv.id_archivo,
+              mesa.id_mesa_de_panio,
+              moneda.id_moneda,
+              csv.row_7,
+              csv.row_4,
+              csv.row_3,
+              csv.row_5,
+              csv.row_6,
+              juego.id_juego_mesa,
+              mesa.nro_mesa,
+              juego.nombre_juego,
+              moneda.siglas,
+              csv.row_4,
+              tipo_mesa.descripcion
+        FROM filas_csv_mesas_bingos as csv, mesa_de_panio as mesa,
+              juego_mesa as juego, moneda, tipo_mesa
+        WHERE csv.id_archivo = '%d'
+              AND juego.id_casino = '%d'
+              AND mesa.id_casino = '%d'
+              AND (juego.nombre_juego LIKE csv.row_1
+                    OR juego.siglas LIKE csv.row_1
+                  )
+              AND mesa.nro_admin = csv.row_2
+              AND moneda.id_moneda = '%d'
+              AND juego.id_tipo_mesa = tipo_mesa.id_tipo_mesa
+              AND juego.deleted_at IS NULL
+              AND mesa.deleted_at IS NULL
+              AND mesa.id_juego_mesa = juego.id_juego_mesa
+              AND moneda.id_moneda = mesa.id_moneda;",
+      $importacion->id_importacion_diaria_mesas,
+      $importacion->id_casino,
+      $importacion->id_casino,
+      $importacion->id_moneda);
 
       $pdo->exec($crea_detalles);
-      $importacion->nombre_csv = $request['name'];
+      $importacion->nombre_csv = $request->archivo->getClientOriginalName();
       $importacion->save();
     }catch(Exception $e){
-      dump($e);
-      return;
+      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$iid)->delete();
+      DetalleImportacionDiariaMesas::where('id_importacion_diaria_mesas',$id)->destroy();
+      ImportacionDiariaMesas::destroy($iid);
+      return response()->json(['error' => [$e->getMessage()]],422);
     }
 
-
     $this->calcularDiffIDM();
-    $this->actualizarTotalesImpDiaria($importacion->id_importacion_diaria_mesas);
-
-    // $agrega_comando = new ComandoEnEspera;
-    // $agrega_comando->nombre_comando = 'IDM:calcularDiff';
-    // $agrega_comando->fecha_a_ejecutar = Carbon::now()->addMinutes(30)->format('Y:m:d H:i:s');
-    // $agrega_comando->save();
 
     DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
     return 1;
@@ -264,187 +346,7 @@ class ImportadorController extends Controller
     $imp->total_diario_retiros = $total_diario_retiros;
     $imp->total_diario_reposiciones = $total_diario_reposiciones;
     $imp->save();
-
   }
-
-  private function existeImportacion($validator,$importacion){
-    $f =$validator->getData()['fecha'];
-    $fecha = explode('-',$f);
-
-    $check_import = ImportacionDiariaMesas::where([['id_casino','=',$validator->getData()['id_casino']],
-                                                    ['id_moneda','=',$validator->getData()['id_moneda']]
-                                                    ])
-                                             ->whereYear('fecha','=',$fecha[0])
-                                             ->whereMonth('fecha','=',$fecha[1])
-                                             ->whereDay('fecha','=',$fecha[2])
-                                             ->get();
-     if(count($check_import)>0){
-       $casino = Casino::find($validator->getData()['id_casino']);
-       $moneda = Moneda::find($validator->getData()['id_moneda']);
-       $validator->errors()->add('error','Ya existe un archivo importado para la fecha:'.$validator->getData()['fecha']
-                                 .' de '.$casino->nombre.' en '.$moneda->siglas.'.'
-                                 );
-      ImportacionDiariaMesas::destroy($importacion->id_importacion_diaria_mesas);
-     }
-     return $validator;
-  }
-
-  private function validarHeaders($validator){
-    $path = $validator->getData()['archivo']->getRealPath();
-    $fila = 1;
-    if (($gestor = fopen($path, "r")) !== FALSE) {
-        while (($datos = fgetcsv($gestor, 1000, ";")) == 1) {
-            $cantidad_columnas = count($datos);
-            if($cantidad_columnas == 6){
-              //ok
-            }else{
-              $validator->errors()->add('error','Las columnas del archivo deben ser: \nJUEGO,NRO MESA,DROP,UTILIDAD,FILL,CREDIT.');
-            }
-        }
-        fclose($gestor);
-    }else{
-      $validator->errors()->add('error','No se pudo leer el archivo');
-    }
-    return $validator;
-  }
-
-  private function validarCarga($validator, $importacion){
-    $importacion->fecha = $validator->getData()['fecha'];
-    $importacion->moneda()->associate($validator->getData()['id_moneda']);
-    $importacion->casino()->associate($validator->getData()['id_casino']);
-    if(!empty($validator->getData()['cotizacion_diaria'])){
-      $cotizacion = str_replace(',','.',$validator->getData()['cotizacion_diaria']);
-      $importacion->cotizacion = $cotizacion;
-    }
-
-
-    $importacion->diferencias = 1;
-    $importacion->validado = 0;
-    $importacion->save();
-    $pdo = DB::connection('mysql')->getPdo();
-    DB::connection()->disableQueryLog();
-    $path = $validator->getData()['archivo']->getRealPath();
-
-    $query = sprintf("LOAD DATA local INFILE '%s'
-                      INTO TABLE filas_csv_mesas_bingos
-                      FIELDS TERMINATED BY ';'
-                      OPTIONALLY ENCLOSED BY '\"'
-                      ESCAPED BY '\"'
-                      LINES TERMINATED BY '\\n'
-                      IGNORE 1 LINES
-                      (@0,@1,@2,@3,@4,@5)
-                      SET id_archivo = '%d',
-                                      row_1 = @0,
-                                      row_2 = @1,
-                                      row_3 = CAST(REPLACE(@2,',','') as DECIMAL(15,2)),
-                                      row_4 = CAST(REPLACE(@3,',','') as DECIMAL(15,2)),
-                                      row_5 = CAST(REPLACE(@4,',','') as DECIMAL(15,2)),
-                                      row_6 = CAST(REPLACE(@5,',','') as DECIMAL(15,2)),
-                                      row_7 = '%s'
-                      ",$path,$importacion->id_importacion_diaria_mesas, $importacion->fecha);
-                      /*
-                        row_1 nombre juegos
-                        row_2 nro_mesa
-                        row_3 drop
-                        row_4 utilidad
-                        row_5 fill//reposiciones
-                        row_6 credit//retiros
-                        row_7 fecha
-                      */
-    try{
-      $pdo->exec($query);
-    }catch(Exception $e){
-      $validator->errors()->add('error','La 1er columna debe tener los nombres de los juegos, la 2da los nros. de las mesas, y luego drop, fill, credit (números de hasta 15 dígitos separado de los decimales con coma)');
-      $importacion = null;
-    }
-    return [$validator,$importacion];
-  }
-
-  private function validarNrosMesasJuegos($validator,$importacion){
-    $id_casino =$validator->getData()['id_casino'];
-
-
-    $comprueba_juegos = DB::table('filas_csv_mesas_bingos')
-                          ->select('filas_csv_mesas_bingos.id','filas_csv_mesas_bingos.row_1','filas_csv_mesas_bingos.row_2','juego_mesa.siglas')
-                                      ->crossJoin('juego_mesa',
-                                               function ($join) use($id_casino){
-                                                 $join->on('juego_mesa.nombre_juego', 'LIKE', 'filas_csv_mesas_bingos.row_1')
-                                                      ->orOn('juego_mesa.siglas', 'LIKE', 'filas_csv_mesas_bingos.row_1')
-                                                      ->where('juego_mesa.id_casino', '=',$id_casino);
-                                               }
-                                              )
-                                      ->where('row_1','<>','')
-                                      ->where('filas_csv_mesas_bingos.id_archivo','=',$importacion->id_importacion_diaria_mesas)
-                                      ->get();
-    $ids_csv = array();
-    foreach ($comprueba_juegos as $cc) {
-      $ids_csv[] = $cc->id;
-    }
-    $iid =$importacion->id_importacion_diaria_mesas;
-    $datos = CSVImporter::where('id_archivo','=',$iid)
-                          ->whereNotIn('id',$ids_csv)
-                          ->get();
-
-    foreach ($datos as $ddd) {
-      $juegos_coinciden = JuegoMesa::where('siglas','LIKE',$ddd->row_1)
-      ->orWhere('nombre_juego','LIKE',$ddd->row_1)->get();
-      if(!empty($ddd->row_1) && $ddd->row_1 != '' && count($juegos_coinciden) == 0){
-        // dd($importacion);
-        DB::table('filas_csv_mesas_bingos')
-        ->where('id_archivo','=',$iid)->delete();
-        ImportacionDiariaMesas::destroy($iid);
-        $validator->errors()->add('error','Los nombres de los juegos deben coincidir con los del sistema.');
-        $importacion = null;
-      }
-    }
-    // if(count($comprueba_juegos) != (count($datos))){
-    //   //dd([count($comprueba_juegos),count($datos),$comprueba_juegos,$datos]);
-    //
-    // }
-
-    $comprueba_nros = CSVImporter::where('row_2','like','0%')->get();
-    $comprueba_nrosceroo = CSVImporter::where('row_2','like','0')->get();
-    if(count($comprueba_nros) > 0 && count($comprueba_nros) != count($comprueba_nrosceroo) ){
-      //dd([count($comprueba_juegos),count($datos),$datos]);
-      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
-      $validator->errors()->add('error', 'Los números de las mesas no deben comenzar con 0s.');
-      $importacion = null;
-    }
-    return [$validator,$importacion];
-  }
-
-
-  private function validarFecha($validator,$importacion){
-    if($validator->getData()['fecha'] < date('Y-m-d')){
-      //valido que esté la imp del dia anterior si y solo si -> en el mes anterior importó al menos una vez
-      $fecha_anterior = Carbon::parse($validator->getData()['fecha'])->subDay(1)->format('Y-m-d');
-      $ffanio = Carbon::parse($validator->getData()['fecha'])->subDay(1)->format('Y');
-      $ffmes = Carbon::parse($validator->getData()['fecha'])->subMonth(1)->format('m');
-      $impp = ImportacionDiariaMesas::where([
-                                        ['id_casino','=',$validator->getData()['id_casino']],
-                                        ['id_moneda','=',  $validator->getData()['id_moneda']]
-                                      ])
-                                      ->whereYear('fecha','=',$ffanio)
-                                      ->whereMonth('fecha','=',$ffmes)
-                                      ->get();
-      if($impp->count() > 0){
-        $imppp = ImportacionDiariaMesas::where([
-          ['id_casino','=',$validator->getData()['id_casino']],
-          ['id_moneda','=',  $validator->getData()['id_moneda']],
-          ['fecha','=',$fecha_anterior]
-        ])->get();
-        if($imppp->count() == 0){
-          $validator->errors()->add('fecha', 'La importación para la fecha anterior no se ha encontrado.');
-          $importacion = null;
-        }
-      }
-    }else{
-      $validator->errors()->add('fecha', 'No es posible importar la fecha indicada. Debe ser menor.');
-      $importacion = null;
-    }
-    return [$validator,$importacion];
-  }
-
 
   //fecha casino moneda
 
@@ -530,72 +432,44 @@ class ImportadorController extends Controller
   * y recalcula las diferencias
   */
   public function calcularDiffIDM(){
-
-    $date = new DateTime(); //date & time of right now. (Like time())
-    $date->sub(new DateInterval('P2M')); //no se usa pero se podría para que solo revise los de hace dos meses
-
     //todas las imp diarias sin validar y con diferencias
     //junto con los posibles cierres a juntarse
     //trae solo los detalles que hagan join con cierres
     $datos = DB::table('importacion_diaria_mesas as imp')
-                      ->select('imp.*','det.*','cierre_mesa.id_cierre_mesa as id_cierre',
-                                         'cierre_mesa.total_pesos_fichas_c')
-                      ->join('detalle_importacion_diaria_mesas as det',
-                             'det.id_importacion_diaria_mesas','=',
-                             'imp.id_importacion_diaria_mesas')
-                      ->join('cierre_mesa', function($join){
-                          $join->on('cierre_mesa.id_mesa_de_panio','=',
-                                    'det.id_mesa_de_panio')
-                          ->on('cierre_mesa.fecha','=','det.fecha');
-                        }
-                      )
-                      //->where('imp.validado','=',0)
-                      ->where('imp.diferencias','<>',0)
-                      ->orderBy('imp.fecha','asc')
-                      ->whereNull('imp.deleted_at')
-                      ->get();
-                      //dd($datos);
+    ->select('imp.*','det.*','cierre_mesa.id_cierre_mesa as id_cierre','cierre_mesa.total_pesos_fichas_c')
+    ->join('detalle_importacion_diaria_mesas as det','det.id_importacion_diaria_mesas','=','imp.id_importacion_diaria_mesas')
+    ->join('cierre_mesa', function($join){
+        $join->on('cierre_mesa.id_mesa_de_panio','=','det.id_mesa_de_panio')
+        ->on('cierre_mesa.fecha','=','det.fecha');
+      }
+    )
+    ->where('imp.diferencias','<>',0)->whereNull('imp.deleted_at')
+    ->orderBy('imp.fecha','asc')->get();
     ///por cada importacion
 
-    // $aux = 0;
-    // $aux2 = 0;
     foreach ($datos as $detalle){
       //ver si hay que considerar algo para elegir cuando hay múltiples cierres
       $this->calcularDifCierresImp($detalle);
-      //validaciones que sobran:
-      // $cierre = Cierre::find($detalle->id_cierre);
-      // if($cierre != null){
-      //   //$aux++;
-      //   //$fue_usado = DetalleImportacionDiariaMesas::where('id_cierre_mesa','=',$cierre->id_cierre_mesa)->get();
-      //   //if(count($fue_usado) == 0){
-      //     //$aux2++;
-      //     //$this->calcularDifCierresImp($detalle);
-      //   //}
-      // }
     }
-    //dd($aux,$aux2);
 
     $datos = DB::table('importacion_diaria_mesas as imp')
-                        ->select('imp.*')
-                        ->where('imp.validado','=',0)
-                        ->where('imp.diferencias','<>',0)
-                        ->orderBy('imp.fecha','desc')
-                        ->whereNull('imp.deleted_at')
-                        ->get();
+    ->select('imp.*')
+    ->where('imp.validado','=',0)->where('imp.diferencias','<>',0)->whereNull('imp.deleted_at')
+    ->orderBy('imp.fecha','desc')->get();
+
     foreach ($datos as $importacion) {
       $imp = ImportacionDiariaMesas::find($importacion->id_importacion_diaria_mesas);
       $con_diferrencias = DetalleImportacionDiariaMesas::where([
-        ['id_importacion_diaria_mesas','=',$importacion->id_importacion_diaria_mesas],
-                                            ['diferencia_cierre','<>',0]
-                                          ])->get();
+        ['id_importacion_diaria_mesas','=',$importacion->id_importacion_diaria_mesas],['diferencia_cierre','<>',0]]
+      )->get();
 
       if(count($con_diferrencias) == 0){
         $imp->diferencias = 0;
         $imp->save();
       }else{
-        $diferencia= 0;
+        $diferencia = 0;
         foreach ($con_diferrencias as $error) {
-          $diferencia+= $error->diferencia_cierre;
+          $diferencia += $error->diferencia_cierre;
         }
         $imp->diferencias = $diferencia;
         $imp->save();
@@ -613,7 +487,7 @@ class ImportadorController extends Controller
       //creo el cierre de la mesa pero con todo en cero.
       $cierre = new Cierre;
       $mesa = Mesa::find($detalle_importacion->id_mesa_de_panio);
-      $cierre->fecha =$detalle_importacion->importacion_diaria_mesas->fecha;
+      $cierre->fecha = $detalle_importacion->importacion_diaria_mesas->fecha;
       $cierre->total_pesos_fichas_c = 0;
       $cierre->total_anticipos_c = 0;
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
