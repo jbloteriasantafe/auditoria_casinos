@@ -447,59 +447,26 @@
                         </div>
                   </div>
 
-              <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-                      <div class="col-xs-12" align="center">
-                          <i class="fa fa-fw fa-star"></i>
-                          <h6 id="informacionCasino"> CASINO ROSARIO</h6>
-                          <i class="fa fa-fw fa-calendar corrido"></i>
-                          <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-                          <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-                          <h6 id="informacionMoneda"> DOLAR</h6>
+              <div class="loading" id="iconoCarga" style="text-align: center" hidden="true">
+                <img src="/img/ajax-loader(1).gif" alt="loading" />
+                <br>Un momento, por favor...
+              </div>
 
-                      </div>
-                  </div>
-
-                  <div class="loading" id="iconoCarga" style="text-align: center" hidden="true">
-                    <img src="/img/ajax-loader(1).gif" alt="loading" />
-                    <br>Un momento, por favor...
-                  </div>
-
-
-              <!-- <div id="iconoCarga" class="sk-folding-cube">
-                  <div class="windows8">
-                	<div class="wBall" id="wBall_1">
-                		<div class="wInnerBall"></div>
-                	</div>
-                	<div class="wBall" id="wBall_2">
-                		<div class="wInnerBall"></div>
-                	</div>
-                	<div class="wBall" id="wBall_3">
-                		<div class="wInnerBall"></div>
-                	</div>
-                	<div class="wBall" id="wBall_4">
-                		<div class="wInnerBall"></div>
-                	</div>
-                	<div class="wBall" id="wBall_5">
-                		<div class="wInnerBall"></div>
-                	</div>
+              <div id="mensajeErrorJuegos" hidden>
+                <div class="row col-xs-12" style="display: inline-block;">
+                  <i class="fa fa-fw fa-exclamation-triangle" style="color:#C62828;display: inline-block;" ></i>
+                  <h6 style="display: inline-block;"> ARCHIVO INCORRECTO</h6>
                 </div>
-              </div> -->
-
+                <br>
+                <div id="span" class="row col-xs-12" style="font-family:'Roboto-Regular'; font-size:16px; color:#555;overflow-y: scroll;max-height: 200px;">
+                </div>
+              </div> <!-- mensaje -->
             </div>
             <div class="modal-footer">
               <span style="font-family:sans-serif;float:left !important;font-size:12px;color:#0D47A1"> * Campos Obligatorios</span>
               <button type="button" class="btn btn-successAceptar" id="btn-guardarDiario" value="nuevo"> SUBIR</button>
               <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
             </div>
-            <div id="mensajeErrorJuegos" hidden>
-                <br>
-                <div class="col-xs-12" style="display: inline-block;">
-                    <i class="fa fa-fw fa-exclamation-triangle" style="color:#C62828;display: inline-block;" ></i>
-                    <h6 style="display: inline-block;"> ARCHIVO INCORRECTO</h6>
-                </div>
-                <br>
-                <p id="span" style="font-family:'Roboto-Regular'; font-size:16px; color:#555;"></p>
-            </div> <!-- mensaje -->
           </div>
         </div>
       </div>

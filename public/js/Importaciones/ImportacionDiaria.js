@@ -100,7 +100,6 @@ $('#btn-importar').on('click', function(e){
     $('#modalImportacionDiaria #rowFecha').hide();
     $('#modalImportacionDiaria #mensajeError').hide();
     $('#modalImportacionDiaria #mensajeInvalido').hide();
-    $('#modalImportacionDiaria #mensajeInformacion').hide();
 
     habilitarInputDiario();
 
@@ -177,14 +176,11 @@ $('#btn-guardarDiario').on('click', function(e){
             console.log('Terminó');
           },
           success: function (data) {
-
-              $('#modalImportacionDiaria').modal('hide');
-              $('#mensajeExito h3').text('ÉXITO');
-              $('#mensajeExito p').text('El archivo fue importado');
-              $('#mensajeExito').show();
-              $('#buscar-importacionesDiarias').trigger('click',[1,10,'fecha','desc']);
-
-              //$('#modalImportacionDiaria #rowArchivo').find('.zona-file').append($('<input>').attr('data-borrado','false').css('type','file').attr('id','archivo'));
+            $('#modalImportacionDiaria').modal('hide');
+            $('#mensajeExito h3').text('ÉXITO');
+            $('#mensajeExito p').text('El archivo fue importado');
+            $('#mensajeExito').show();
+            $('#buscar-importacionesDiarias').trigger('click',[1,10,'fecha','desc']);
           },
           error: function (data) {
             ///debería mostrar el mensaje y nada más.
@@ -194,46 +190,29 @@ $('#btn-guardarDiario').on('click', function(e){
             $('#modalImportacionDiaria').find('.modal-footer').children().show();
             $('#frmImportacion').show();
             $('#rowArchivo').show();
-
             $('#iconoCarga').hide();
 
-               if(typeof response.fecha !== 'undefined'){
-                 mostrarErrorValidacion($('#B_fecha_imp'),response.fecha[0],false);}
+            if(typeof response === 'undefined'){
+              $('#mensajeErrorJuegos #span').text('');
+              $('#mensajeErrorJuegos').show();
+              return;
+            }
 
-               if(typeof response.id_casino !== 'undefined'){
-                 mostrarErrorValidacion($('#casinoSel'),response.id_casino[0],false);}
+            if(typeof response.fecha !== 'undefined')     mostrarErrorValidacion($('#B_fecha_imp'),response.fecha[0],false);
+            if(typeof response.id_casino !== 'undefined') mostrarErrorValidacion($('#casinoSel'),response.id_casino[0],false);
+            if(typeof response.id_moneda !== 'undefined') mostrarErrorValidacion($('#monedaSel'),response.id_moneda[0],false);
 
-               if(typeof response.id_moneda !== 'undefined'){
-                 mostrarErrorValidacion($('#monedaSel'),response.id_moneda[0],false);}
-
-               if(typeof response.error !== 'undefined'){
-
-                  if(response.error.length > 0){
-
-                        $('#mensajeErrorJuegos #span').text(response.error[0]);
-
-                        $('#mensajeErrorJuegos').show();
-
-                    }
-               }
-               if(typeof response.name !== 'undefined'){
-
-                  if(response.error.length > 0){
-
-                        $('#mensajeErrorJuegos #span').text(response.error[0]);
-
-                        $('#mensajeErrorJuegos').show();
-
-                    }
-               }
-
+            if(typeof response.error !== 'undefined'){
+              if(response.error.length > 0){
+                $('#mensajeErrorJuegos #span').empty().append('<p>'+response.error.join('</p><p>')+'</p>');
+                $('#mensajeErrorJuegos').show();
+              }
+            }
           }
       });
   });
 
 $('#modalImportacionDiaria #archivo').on('fileerror', function(event, data, msg) {
-     //$('#modalImportacionDiaria #rowMoneda').hide();
-     $('#modalImportacionDiaria #mensajeInformacion').hide();
      $('#modalImportacionDiaria #mensajeInvalido').show();
      $('#modalImportacionDiaria #mensajeInvalido #span').text(msg);
      //Ocultar botón SUBIR
@@ -568,26 +547,22 @@ $('#guardar-observacion').on('click', function(e){
  });
 
  $(document).on('click','.eliminarDia',function(e){
-
     var id=$(this).val();
     $('#btn-eliminar').val(id);
     $('#modalAlertaEliminar').modal('show');
-
 });
 
 $('#btn-eliminar').on('click', function(){
-
-    $.get('importacionDiaria/eliminarImportacion/' + $(this).val() , function(data){
-
-      if(data==1){
-        $('#modalAlertaEliminar').modal('hide');
-        $('#mensajeExito h3').text('ARCHIVO ELIMINADO');
-        $('#mensajeExito p').text(' ');
-        $('#mensajeExito').show();
-
-        $('#cuerpoTablaImpD').find('#'+ id).remove();
-      }
-    })
+  const id = $(this).val();
+  $.get('importacionDiaria/eliminarImportacion/' + id , function(data){
+    if(data==1){
+      $('#modalAlertaEliminar').modal('hide');
+      $('#mensajeExito h3').text('ARCHIVO ELIMINADO');
+      $('#mensajeExito p').text(' ');
+      $('#mensajeExito').show();
+      $('#cuerpoTablaImpD').find('#'+ id).remove();
+    }
+  });
 });
 
 //evento de seleccionar el archivo a importar
