@@ -126,7 +126,7 @@
                             <button type="button" class="btn btn-info infoImpD" value="" >
                                     <i class="fas fa-fw fa-search-plus"></i>
                             </button>
-                            <button type="button" class="btn btn-info obsImpD" value="">
+                            <button type="button" class="btn btn-info valImpD" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
                             <button type="button" class="btn btn-info impImpD" value="">
@@ -510,11 +510,9 @@
                   </tr>
                 </thead>
                 <tbody id="datosImpDiarios" >
-
                 </tbody>
               </table>
               <div class="table table-responsive" id="mostrarTablaValidar"  style="display:none;">
-
                 <table class="table" style="padding:0px !important">
                   <tbody>
                   <tr id="moldeImpDiarios" class="filaClone"  style="display:none">
@@ -525,7 +523,6 @@
                       <td class="col-xs-2 v_retiros" style="text-align:right !important;padding:2px !important;"></td>
                       <td class="col-xs-2 v_reposiciones" style="text-align:right !important;padding:2px !important;"></td>
                       <td class="col-xs-1 v_hold" style="text-align:center !important;padding:2px !important;"></td>
-
                   </tr>
               </table>
             </div>
@@ -545,110 +542,6 @@
     </div>
   </div>
 </div>
-</div>
-
-<!-- modal ver info importación -->
-<div class="modal fade" id="modalInfoImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width:60%">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #0D47A1;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| DETALLE IMPORTACIÓN DIARIA VALIDADA</h3>
-      </div>
-      <div  id="colapsado" class="collapse in">
-        <div class="modal-body" style="font-family: Roboto;">
-          <div class="row">
-            <div class="col-xs-3">
-              <h5>FECHA</h5>
-              <input id="fechaInfo" class="form-control" type="text" value=""  size="100" autocomplete="off" readonly="true">
-
-            </div>
-            <div class="col-xs-3">
-              <h5>CASINO</h5>
-              <input id="casinoInfo" class="form-control" type="text" value=""  size="100" autocomplete="off" readonly="true">
-
-            </div>
-            <div class="col-xs-3">
-              <h5>MONEDA</h5>
-              <input id="monedaInfo" class="form-control" type="text" value=""  size="100" autocomplete="off" readonly="true">
-            </div>
-            <div class="col-xs-3">
-              <h5>TIPO DE MESA</h5>
-              <select class="form-control" name="" id="selectMesaInfo">
-                <option value="1" selected>RULETA</option>
-                <option value="2">CARTAS</option>
-                <option value="3">DADOS</option>
-              </select>
-            </div>
-        </div>
-        <br>
-        <br>
-        <div class="row">
-
-          <div class="col-xs-12">
-              <table  style="border-collapse: collapse; table-layout:auto" align="center" class="table table-bordered table-responsive" >
-                <thead>
-                  <tr>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
-                      <h5  style="font-size: 13px; color:#000;text-align:center !important;">JUEGO</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5  style="font-size: 13px; color:#000;text-align:center !important;">NRO MESA</h5>
-                    </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">DROP</h5>
-                    </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">UTILIDAD</h5>
-                    </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">RETIROS</h5>
-                    </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">REPOSICIONES</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">HOLD %</h5>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="datosInfoDiarios" >
-
-                </tbody>
-              </table>
-            <div class="table table-responsive" id="mostrarTablaver"  style="display:none;">
-
-              <table class="table" style="padding:0px !important">
-                <tbody>
-                  <tr id="moldeInfoDiarios" class="filaClone">
-                      <td class="col-xs-2 info_juego" style="padding:2px;text-align:center !important;"></td>
-                      <td class="col-xs-1 info_mesa" style="padding:2px;text-align:center !important;"></td>
-                      <td class="col-xs-2 info_drop" style="padding:2px;text-align:right !important;"></td>
-                      <td class="col-xs-2 info_utilidad" style="padding:2px;text-align:right !important;"></td>
-                      <td class="col-xs-2 info_retiros" style="padding:2px;text-align:right !important;"></td>
-                      <td class="col-xs-2 info_reposiciones" style="padding:2px;text-align:right !important;"></td>
-                      <td class="col-xs-1 info_hold" style="padding:2px;text-align:center !important;"></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <h5>OBSERVACIONES</h5>
-              <textarea name="name" id="observacionesInfo" class="form-control col-xs-12" readonly="true"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-successAceptar" id="guardar-observacion-info" value="" hidden="true">GUARDAR</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- MODAL ELIMINAR -->
@@ -1002,9 +895,9 @@
 
   <script src="js/math.min.js" type="text/javascript"></script>
 
-    <script src="/js/paginacion.js" charset="utf-8"></script>
-    <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
-    <script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>
+  <script src="/js/paginacion.js" charset="utf-8"></script>
+  <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
+  <script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>
 
 
 @endsection

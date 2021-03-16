@@ -233,6 +233,23 @@ $('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orde
   })
 });
 
+function generarFilaImportaciones(data){
+  const fila = $('#moldeFilaImpD').clone();
+  fila.attr('id', data.id_importacion_diaria_mesas);
+  fila.find('.d_fecha').text(data.fecha);
+  fila.find('.d_casino').text(data.nombre);
+  fila.find('.d_moneda').text(data.descripcion);
+
+  if(data.diferencias) fila.find('.d_dif').append($('<i>').addClass('fas fa-fw fa-times' ).css('color', '#D32F2F').css('text-align','center'));
+  else                 fila.find('.d_dif').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50').css('text-align','center'));
+  
+  fila.find('button').val(data.id_importacion_diaria_mesas);
+  if(data.validado)  fila.find('.d_accion').find('.valImpD,.eliminarDia').remove();
+
+  fila.css('display', 'block');
+  return fila;
+}
+
 //PAGINACION
 $(document).on('click','#tablaResultadosDiarios thead tr th[value]',function(e){
   $('#tablaResultadosDiarios th').removeClass('activa');
@@ -266,47 +283,54 @@ function clickIndice(e,pageNumber,tam){
 
 //fin PAGINACION
 
-//genera filas de la pantalla principal de importaciones diarias
+function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
+  if(modo != 'ver' && modo != 'validar') return;
 
-//boton ver imp de cada fila
-$(document).on('click', '.obsImpD', function(e) {
-  e.preventDefault();
-
-  $('#modalVerImportacion').modal('show');
   $('#mensajeExito').hide();
   $('#observacionesImpD').val('');
-  $('#selectMesa').val(1);
-
+  $('#selectMesa').val(tipo_mesa);
+  const tipo = $('#selectMesa option:selected').text();
+  $('#guardar-observacion').val(id_imp).data('modo',modo).toggle(modo == 'validar');
   $('#datosImpDiarios > tr').remove();
-  const id_imp = $(this).val();
-  $('#guardar-observacion').val(id_imp);
+  
+  if(modo == 'ver'){
+    $('#modalVerImportacion .modal-title').text('| DETALLE IMPORTACIÓN DIARIA');
+    $('#modalVerImportacion .modal-header').css('background-color','#0D47A1');
+  }
+  else if(modo == 'validar'){
+    $('#modalVerImportacion .modal-title').text('| VALIDAR IMPORTACIÓN DIARIA');
+    $('#modalVerImportacion .modal-header').css('background-color','#6dc7be');
+  }
 
-  $.get('importacionDiaria/verImportacion/' + id_imp + '/' + 'RULETA', function(data){
-    $('#fechaImpD').val(data.importacion.fecha);
-    $('#casinoImpD').val(data.casino.nombre);
-    $('#monedaImpD').val(data.moneda.descripcion);
+  $.get('importacionDiaria/verImportacion/' + id_imp + '/' + tipo, function(data){
+    $('#fechaImpD').val(data.importacion.fecha).prop('readonly',true);
+    $('#casinoImpD').val(data.casino.nombre).prop('readonly',true);
+    $('#monedaImpD').val(data.moneda.descripcion).prop('readonly',true);
+    $('#observacionesImpD').val(observacion? observacion : data.importacion.observacion).prop('readonly',modo == 'ver');
     for (let i = 0; i < data.detalles.length; i++) {
-      $('#datosImpDiarios').append(generarFilaVerImpValidar(data.detalles[i]));
+      $('#datosImpDiarios').append(generarFilaVerImp(data.detalles[i]));
     }
+    if(modo == 'ver') $('#datosImpDiarios').append(generarFilaTotalesDia(data.importacion));
+    $('#modalVerImportacion').modal('show');
   });
+}
+
+$(document).on('click','.infoImpD',function(e){
+  e.preventDefault();
+  mostrarImportacion($(this).val(),'ver');
+});
+$(document).on('click','.valImpD',function(e){
+  e.preventDefault();
+  mostrarImportacion($(this).val(),'validar');
 });
 
 //si cambia el select dentro del modal de ver importacion
-$(document).on('change','#selectMesa',function(){
-  const id_imp = $('#guardar-observacion').val();
-  $('#datosImpDiarios tr').remove();
-
-  const tipo_str = $(this).find('option:selected').text();
-  if(tipo_str.length == 0) return;
-  
-  $.get('importacionDiaria/verImportacion/' + id_imp + '/' + tipo_str, function(data){
-    $('#fechaImpD').val(data.importacion.fecha);
-    $('#casinoImpD').val(data.casino.nombre);
-    $('#monedaImpD').val(data.moneda.descripcion);
-    for (let i = 0; i < data.detalles.length; i++) {
-      $('#datosImpDiarios').append(generarFilaVerImpValidar(data.detalles[i]));
-    }
-  });
+$(document).on('change','#selectMesa',function(e){
+  e.preventDefault();
+  const id = $('#guardar-observacion').val();
+  const modo = $('#guardar-observacion').data('modo');
+  const obs =  $('#observacionesImpD').val();
+  mostrarImportacion(id,modo,$(this).val(),obs);
 });
 
 $('#guardar-observacion').on('click', function(e){
@@ -332,45 +356,6 @@ $('#guardar-observacion').on('click', function(e){
   });
 })
 
-//ver datos de importaciones guardados
-$(document).on('click','.infoImpD',function(e){
-  const id = $(this).val();
-  $('#selectMesaInfo').val("1").prop('selected',true);
-  const tipo = $('#selectMesaInfo option:selected').text();
-
-  $('#datosInfoDiarios  tr').remove();
-  $.get('importacionDiaria/verImportacion/' + id + '/' + tipo, function(data){
-    $('#fechaInfo').val(data.importacion.fecha).prop('readonly',true);
-    $('#casinoInfo').val(data.casino.nombre).prop('readonly',true);
-    $('#monedaInfo').val(data.moneda.descripcion).prop('readonly',true);
-    $('#guardar-observacion-info').val(data.importacion.id_importacion_diaria_mesas);
-    $('#guardar-observacion-info').hide();
-    for (let i = 0; i < data.detalles.length; i++) {
-      $('#datosInfoDiarios').append(generarFilaVerImp(data.detalles[i]));
-    }
-    $('#datosInfoDiarios').append(generarFilaTotalesDia(data.importacion));
-    $('#modalInfoImportacion').modal('show');
-  });
-});
-
-$(document).on('change','#selectMesaInfo',function(){
-  const id_imp = $('#guardar-observacion-info').val();
-  $('#datosInfoDiarios tr').remove();
-
-  const tipo_str = $(this).find('option:selected').text();
-  if(tipo_str.length == 0) return;
-
-  $.get('importacionDiaria/verImportacion/' + id_imp + '/' + tipo_str, function(data){
-    $('#fechaInfo').val(data.importacion.fecha);
-    $('#casinoInfo').val(data.casino.nombre);
-    $('#monedaInfo').val(data.moneda.descripcion);
-    for (let i = 0; i < data.detalles.length; i++) {
-      $('#datosInfoDiarios').append(generarFilaVerImpValidar(data.detalles[i]));
-    }
-    $('#datosInfoDiarios').append(generarFilaTotalesDia(data.importacion));
-  });
-});
-
 $(document).on('click','.eliminarDia',function(e){
   $('#btn-eliminar').val($(this).val());
   $('#modalAlertaEliminar').modal('show');
@@ -388,24 +373,6 @@ $('#btn-eliminar').on('click', function(){
     }
   });
 });
-
-function generarFilaImportaciones(data){
-  const fila = $('#moldeFilaImpD').clone();
-  fila.attr('id', data.id_importacion_diaria_mesas);
-  fila.find('.d_fecha').text(data.fecha);
-  fila.find('.d_casino').text(data.nombre);
-  fila.find('.d_moneda').text(data.descripcion);
-
-  if(data.diferencias) fila.find('.d_dif').append($('<i>').addClass('fas fa-fw fa-times' ).css('color', '#D32F2F').css('text-align','center'));
-  else                 fila.find('.d_dif').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50').css('text-align','center'));
-  
-  fila.find('button').val(data.id_importacion_diaria_mesas);
-  if(data.validado)  fila.find('.d_accion').find('.obsImpD,.eliminarDia').remove();
-  else               fila.find('.d_accion').find('.infoImpD').remove();
-
-  fila.css('display', 'block');
-  return fila;
-}
 
 function habilitarInputDiario(){
   //Inicializa el fileinput para cargar los CSV
@@ -433,37 +400,22 @@ function habilitarInputDiario(){
 }
 
 //genera las filas a la tabla dentro del modal ver
-function generarFilaVerImp(data){
-  const fila = $('#moldeInfoDiarios').clone();
-  fila.attr('id', data.id_importacion_diaria_mesas);
-  fila.css('display', '');
-  fila.find('.info_juego').text(data.nombre_juego);
-  fila.find('.info_mesa').text(data.nro_mesa);
-  fila.find('.info_drop').text(data.droop);
-  fila.find('.info_reposiciones').text(data.reposiciones);
-  fila.find('.info_retiros').text(data.retiros);
-  fila.find('.info_utilidad').text(data.utilidad);
-  fila.find('.info_hold').text(data.hold);
-  return fila;
-}
-
 function generarFilaTotalesDia(data){
-  const fila = $('#moldeInfoDiarios').clone().removeAttr('id');
-  const cssText = 'padding:5px !important;font-weight:bold;text-align:center';
-  fila.find('td').css('cssText',cssText);
+  const fila = generarFilaVerImp({
+    id_importacion_diaria_mesas: '',
+    nombre_juego: 'TOTALES',
+    nro_mesa: '',
+    droop: data.total_diario,
+    reposiciones: data.total_diario_reposiciones,
+    retiros: data.total_diario_retiros,
+    utilidad: data.utilidad_diaria_total,
+    hold: '-',
+  });
   fila.css('cssText','background-color:#aaa; color:black;');
-  fila.css('display', '');
-  fila.find('.info_juego').text('TOTALES');
-  fila.find('.info_drop').text(data.total_diario);
-  fila.find('.info_utilidad').text(data.utilidad_diaria_total);
-  fila.find('.info_reposiciones').text(data.total_diario_reposiciones);
-  fila.find('.info_retiros').text(data.total_diario_retiros);
-  fila.find('.info_hold').text('-');
   return fila;
 };
 
-
-function generarFilaVerImpValidar(data){
+function generarFilaVerImp(data){
   const fila = $('#moldeImpDiarios').clone();
   fila.attr('id', data.id_importacion_diaria_mesas);
   fila.find('.v_juego').text(data.nombre_juego);
