@@ -112,36 +112,6 @@
                         </tr>
                       </thead>
                       <tbody  id='cuerpoTablaImpD' style="height: 380px;">
-                        @foreach($diarias as $d)
-                        <tr id="{{$d->id_importacion_diaria_mesas}}" >
-
-                        <td class="col-xs-2" style="text-align:center !important;">{{$d->fecha}}</td>
-                        <td class="col-xs-3" style="text-align:center !important;">{{$d->casino->nombre}}</td>
-                        <td class="col-xs-2"  style="text-align:center !important;">{{$d->moneda->descripcion}}</td>
-                        @if($d->diferencias == 0)
-                          <td class="col-xs-2"  style="text-align:center !important;color: #4CAF50"><i class="fas fa-check-circle"></i></td>
-                        @else
-                          <td class="col-xs-2"  style="text-align:center !important;color:#D32F2F"><i class="fa fa-fw fa-times"></i></td>
-                        @endif
-
-                        <td class="col-xs-3" style="text-align:center !important;">
-                          @if($d->validado==1)
-                          <button type="button" class="btn btn-info infoImpD" style="align:right !important;" value="{{$d->id_importacion_diaria_mesas}}">
-                                  <i class="fa fa-fw fa-search-plus" ></i>
-                          </button>
-                          @else
-                          <button type="button" class="btn btn-info obsImpD" style="align:right !important;" value="{{$d->id_importacion_diaria_mesas}}">
-                                  <i class="fa fa-fw fa-check"></i>
-                          </button>
-                          <button type="button" class="btn btn-success eliminarDia" value="{{$d->id_importacion_diaria_mesas}}" >
-                                  <i class="fa fa-fw fa-trash"></i>
-                          </button>
-                          @endif
-
-                        </td>
-
-                      </tr>
-                        @endforeach
                       </tbody>
                     </table>
                     <table>
@@ -159,10 +129,12 @@
                             <button type="button" class="btn btn-info obsImpD" value="">
                                     <i class="fa fa-fw fa-check"></i>
                             </button>
+                            <button type="button" class="btn btn-info impImpD" value="">
+                                    <i class="fa fa-fw fa-print"></i>
+                            </button>
                             <button type="button" class="btn btn-success eliminarDia" value="">
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
-
                           </td>
                         </tr>
                       </tbody>
@@ -321,7 +293,6 @@
       <div class="modal-dialog" style="width: 70%">
          <div class="modal-content">
            <div class="modal-header"  style="font-family: Roboto-Black; background-color: #6dc7be;">
-             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
              <h3 class="modal-title">| IMPORTAR INFORME DIARIO DE MESAS</h3>
@@ -501,10 +472,9 @@
             <div class="col-xs-3">
               <h5>TIPO DE MESA</h5>
               <select class="form-control" name="" id="selectMesa">
-                <option value="1" selected>- RULETA -</option>
-                <option value="2">- CARTAS -</option>
-                <option value="3">- DADOS -</option>
-
+                <option value="1" selected>RULETA</option>
+                <option value="2">CARTAS</option>
+                <option value="3">DADOS</option>
               </select>
             </div>
         </div>
@@ -606,10 +576,9 @@
             <div class="col-xs-3">
               <h5>TIPO DE MESA</h5>
               <select class="form-control" name="" id="selectMesaInfo">
-                <option value="1" selected>- RULETA -</option>
-                <option value="2">- CARTAS -</option>
-                <option value="3">- DADOS -</option>
-
+                <option value="1" selected>RULETA</option>
+                <option value="2">CARTAS</option>
+                <option value="3">DADOS</option>
               </select>
             </div>
         </div>

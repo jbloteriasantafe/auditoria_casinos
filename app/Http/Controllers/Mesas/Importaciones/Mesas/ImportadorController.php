@@ -71,7 +71,7 @@ class ImportadorController extends Controller
   public function buscarTodo(){
     $casinos = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos;
     $monedas = Moneda::all();
-    return view('Importaciones.importacionDiaria',['diarias' =>[],'casinos'=>$casinos,'moneda'=>$monedas]);
+    return view('Importaciones.importacionDiaria',['casinos'=>$casinos,'moneda'=>$monedas]);
   }
 
   public function buscar($id_importacion){
@@ -291,61 +291,41 @@ class ImportadorController extends Controller
   //fecha casino moneda
 
   public function filtros(Request $request){
-    //$this->importacionesSinCierre();
-    //dd('what');
     $reglas=array();
 
-    if($request->id_moneda !=0 && !empty($request->id_moneda)){
-      $reglas[]=['importacion_diaria_mesas.id_moneda' , '=' , $request->id_moneda ];
+    if(!empty($request->id_moneda)){
+      $reglas[]=['importacion_diaria_mesas.id_moneda','=',$request->id_moneda];
     }
 
-    if($request->casino==0 || empty($request->casino)){
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $casinos = array();
-      foreach($usuario->casinos as $casino){
-        $casinos[]=$casino->id_casino;
-      }
-    }else{
-      $casinos[]=$request->casino;
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = array();
+    foreach($usuario->casinos as $casino){
+      $casinos[]=$casino->id_casino;
     }
 
+    if(!empty($request->casino)){
+      $reglas[]=['importacion_diaria_mesas.id_casino','=',$request->id_casino];
+    }
+
+    $sort_by = ['columna' => 'fecha','orden'=>'desc'];
     if(!empty( $request->sort_by)){
       $sort_by = $request->sort_by;
-    }else{
-
-        $sort_by = ['columna' => 'fecha','orden'=>'desc'];
-    }
-    //dd($reglas);
-
-    if(!isset($request->fecha) || $request->fecha == 0 ){
-      $resultados = DB::table('importacion_diaria_mesas')
-                        ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                        ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
-                        ->whereIn('casino.id_casino',$casinos)
-                        ->where($reglas)
-                        ->whereNull('importacion_diaria_mesas.deleted_at')
-                        ->when($sort_by,function($query) use ($sort_by){
-                                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                    })
-                        ->paginate($request->page_size);
-                        return ['importaciones'=>$resultados] ;
-    }else{
-      $fecha=explode("-", $request['fecha']);
-      $resultados = DB::table('importacion_diaria_mesas')
-                        ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                        ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
-                        ->whereYear('fecha' , '=' ,$fecha[0])
-                        ->whereMonth('fecha','=', $fecha[1])
-                        ->whereDay('fecha','=', $fecha[2])
-                        ->where($reglas)
-                        ->whereIn('casino.id_casino',$casinos)
-                        ->whereNull('importacion_diaria_mesas.deleted_at')
-                        ->when($sort_by,function($query) use ($sort_by){
-                                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                    })
-                        ->paginate($request->page_size);
     }
 
+    $resultados = DB::table('importacion_diaria_mesas')
+    ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
+    ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
+    ->whereIn('casino.id_casino',$casinos)
+    ->where($reglas)->whereNull('importacion_diaria_mesas.deleted_at');
+
+    if(isset($request->fecha)){
+      $f = explode("-", $request['fecha']);
+      $resultados = $resultados->whereYear('fecha' , '=' ,$f[0])->whereMonth('fecha','=', $f[1])->whereDay('fecha','=', $f[2]);
+    }
+
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
     return ['importaciones'=>$resultados] ;
   }
 
