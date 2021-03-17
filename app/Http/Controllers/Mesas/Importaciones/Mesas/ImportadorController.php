@@ -253,43 +253,14 @@ class ImportadorController extends Controller
       $importacion->nombre_csv = $request->archivo->getClientOriginalName();
       $importacion->save();
 
-      $this->calcularDiffIDM();
+      $this->calcularDiffIDM($iid);
 
       DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
     });
     return 1;
   }
 
-  public function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
-    $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
-    $total_diario = 0 ;
-    $diferencias = 0;
-    $utilidad_diaria_calculada = 0;
-    $utilidad_diaria_total = 0;
-    $saldo_diario_fichas = 0;
-    $total_diario_retiros = 0;
-    $total_diario_reposiciones = 0;
-    foreach ($imp->detalles as $datos_mesa) {
-      $total_diario+= $datos_mesa->droop;
-      $diferencias+= $datos_mesa->diferencia_cierre;
-      $utilidad_diaria_calculada+= $datos_mesa->utilidad_calculada;
-      $utilidad_diaria_total+= $datos_mesa->utilidad;
-      $saldo_diario_fichas+= $datos_mesa->saldo_fichas;
-      $total_diario_retiros+= $datos_mesa->retiros;
-      $total_diario_reposiciones+= $datos_mesa->reposiciones;
-    }
-    $imp->total_diario = $total_diario;
-    $imp->diferencias = $diferencias;
-    $imp->utilidad_diaria_calculada = $utilidad_diaria_calculada;
-    $imp->utilidad_diaria_total = $utilidad_diaria_total;
-    $imp->saldo_diario_fichas = $saldo_diario_fichas;
-    $imp->total_diario_retiros = $total_diario_retiros;
-    $imp->total_diario_reposiciones = $total_diario_reposiciones;
-    $imp->save();
-  }
-
   //fecha casino moneda
-
   public function filtros(Request $request){
     $reglas=array();
 
@@ -330,7 +301,7 @@ class ImportadorController extends Controller
   }
 
   public function guardarObservacion(Request $request){
-    $validator=  Validator::make($request->all(),[
+    $validator = Validator::make($request->all(),[
       'id_importacion' => 'required|exists:importacion_diaria_mesas,id_importacion_diaria_mesas',
       'observacion' => 'nullable'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
@@ -348,141 +319,85 @@ class ImportadorController extends Controller
   }
 
   /*
-  * Busca las imp. diarias que tengan diferencias y que no hayan sido validadas
-  * y recalcula las diferencias
+  * Busca las imp. diarias no validadas, que tengan diferencias y recalcula las diferencias
   */
-  public function calcularDiffIDM(){
-    //todas las imp diarias sin validar y con diferencias
-    //junto con los posibles cierres a juntarse
-    //trae solo los detalles que hagan join con cierres
+  public function calcularDiffIDM($id_importacion_diaria_mesas = null){
+    //Si nos manda el ID hacemos el procedimiento solo para esa importación, sino para todas.
     $datos = DB::table('importacion_diaria_mesas as imp')
-    ->select('imp.*','det.*','cierre_mesa.id_cierre_mesa as id_cierre','cierre_mesa.total_pesos_fichas_c')
-    ->join('detalle_importacion_diaria_mesas as det','det.id_importacion_diaria_mesas','=','imp.id_importacion_diaria_mesas')
+    ->select('imp.id_importacion_diaria_mesas','cierre_mesa.id_cierre_mesa')
     ->join('cierre_mesa', function($join){
-        $join->on('cierre_mesa.id_mesa_de_panio','=','det.id_mesa_de_panio')
-        ->on('cierre_mesa.fecha','=','det.fecha');
+      $join->on('cierre_mesa.id_mesa_de_panio','=','det.id_mesa_de_panio')
+      ->on('cierre_mesa.fecha','=','det.fecha');
+    })
+    ->where('imp.diferencias','<>',0)->where('imp.validado','=','0')->whereNull('imp.deleted_at');
+    if(!is_null($id_importacion_diaria_mesas)) $datos = $datos->where('imp.id_importacion_diaria_mesas','=',$id_importacion_diaria_mesas);
+    $datos = $datos->orderBy('imp.fecha','asc')->get();
+    //por cada importacion
+    foreach ($datos as $imp){
+      $detalles = DetalleImportacionDiariaMesas::where('id_importacion_diaria_mesas','=',$imp->id_importacion_diaria_mesas)->get();
+      $cierre = Cierre::find($imp->id_cierre_mesa);
+      //busco el cierre anterior
+      $last_cierre = Cierre::where('fecha','<',$cierre->fecha)->where('id_mesa_de_panio','=',$cierre->id_mesa_de_panio)
+      ->orderBy('fecha','desc')->get()->first();
+      $diferencias = 0;
+      foreach($detalles as $d){
+        //Setea los cierres al detalle y recalcula la utilidad
+        $diferencias += $this->calcularDifCierresImp($cierre,$last_cierre,$d) > 0;
       }
-    )
-    ->where('imp.diferencias','<>',0)->whereNull('imp.deleted_at')
-    ->orderBy('imp.fecha','asc')->get();
-    ///por cada importacion
-
-    foreach ($datos as $detalle){
-      //ver si hay que considerar algo para elegir cuando hay múltiples cierres
-      $this->calcularDifCierresImp($detalle);
-    }
-
-    $datos = DB::table('importacion_diaria_mesas as imp')
-    ->select('imp.*')
-    ->where('imp.validado','=',0)->where('imp.diferencias','<>',0)->whereNull('imp.deleted_at')
-    ->orderBy('imp.fecha','desc')->get();
-
-    foreach ($datos as $importacion) {
-      $imp = ImportacionDiariaMesas::find($importacion->id_importacion_diaria_mesas);
-      $con_diferrencias = DetalleImportacionDiariaMesas::where([
-        ['id_importacion_diaria_mesas','=',$importacion->id_importacion_diaria_mesas],['diferencia_cierre','<>',0]]
-      )->get();
-
-      if(count($con_diferrencias) == 0){
-        $imp->diferencias = 0;
-        $imp->save();
-      }else{
-        $diferencia = 0;
-        foreach ($con_diferrencias as $error) {
-          $diferencia += $error->diferencia_cierre;
-        }
-        $imp->diferencias = $diferencia;
-        $imp->save();
-      }
+      $importacion = ImportacionDiariaMesas::find($imp->id_importacion_diaria_mesas);
+      $imp->diferencias = $diferencias;
+      $imp->save();
       $this->actualizarTotalesImpDiaria($importacion->id_importacion_diaria_mesas);
-   }
+    }
   }
 
-  ///agrega al detalle el ultimo cierre con el que fue asociado
-  //para el calculo de la diff
-  private function calcularDifCierresImp($detalle){
-    $cierre = Cierre::find($detalle->id_cierre); //ccierre de la fecha a importada
-    $detalle_importacion = DetalleImportacionDiariaMesas::find($detalle->id_detalle_importacion_diaria_mesas);
-    if($cierre == null){ //si no está cargado el cierre de la importacion
-      //creo el cierre de la mesa pero con todo en cero.
-      $cierre = new Cierre;
-      $mesa = Mesa::find($detalle_importacion->id_mesa_de_panio);
-      $cierre->fecha = $detalle_importacion->importacion_diaria_mesas->fecha;
-      $cierre->total_pesos_fichas_c = 0;
-      $cierre->total_anticipos_c = 0;
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $cierre->fiscalizador()->associate($user->id_usuario);
-      $cierre->mesa()->associate($mesa->id_mesa_de_panio);
-      $cierre->moneda()->associate($detalle_importacion->importacion_diaria_mesas->id_moneda);
-      $cierre->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
-      $cierre->casino()->associate($mesa->id_casino);
-      $cierre->estado_cierre()->associate(2);//validado con diferencias -> asi no se puede modificar desde la sec de cierres.-
-      $cierre->save();
+  //Setea los cierres al detalle y recalcula la utilidad
+  private function calcularDifCierresImp($cierre,$last_cierre,&$detalle_importacion){   
+    $dif_cierres      = 0;
+    $id_ultimo_cierre = null;
+    if(!is_null($last_cierre)){//Encontramos un cierre anterior al que tiene
+      $dif_cierres      = $cierre->total_pesos_fichas_c - $last_cierre->total_pesos_fichas_c;
+      $id_ultimo_cierre = $last_cierre->id_cierre_mesa;
     }
-    //busco el cierre anterior
-    $last_cierre = Cierre::where('fecha','<',$cierre->fecha)
-                          ->where('id_mesa_de_panio','=',$cierre->id_mesa_de_panio)
-                          ->orderBy('fecha','desc')
-                          ->get()->first();
-    if($last_cierre != null){
-      $check_usado = DetalleImportacionDiariaMesas::where('id_ultimo_cierre',
-                                            '=',$last_cierre->id_cierre_mesa)
-                                                  ->get();
-      if(count($check_usado) == 0 ||
-        $check_usado->first()->id_detalle_importacion_diaria_mesas ==
-        $detalle_importacion->id_detalle_importacion_diaria_mesas) {
-          // calculo la diferencia entre ambos cierres
-          $dif_cierres = $cierre->total_pesos_fichas_c-
-                         $last_cierre->total_pesos_fichas_c ;
-           //formula = (Cx+1 - Cx ) +DROP -FILL+CREDIT = UTILIDAD CALCULADA
-           $calculado = $dif_cierres + $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-           if ( $calculado == $detalle_importacion->utilidad) {
-             $detalle_importacion->diferencia_cierre = 0;
-           }
-           else{
-             $detalle_importacion->diferencia_cierre = abs($calculado - $detalle_importacion->utilidad);
-           }
-           $detalle_importacion->saldo_fichas = $dif_cierres;
-           $detalle_importacion->utilidad_calculada = $calculado;
-           $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-           $detalle_importacion->cierre_anterior()->associate($last_cierre->id_cierre_mesa);
-           $detalle_importacion->save();
-      }
-    }
-    else { //tiene el cierre en cero y no tiene ultimo cierre
-      $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-      $detalle_importacion->saldo_fichas = 0;
-
-      $calculado =  $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-      $detalle_importacion->utilidad_calculada = $calculado;
-      $detalle_importacion->diferencia_cierre = abs($calculado - $detalle_importacion->utilidad);
-
-      $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-      $detalle_importacion->save();
-    }
-
-  }
-
-  public function recalcularUtilidadDia($detalle_importacion_diaria)
-  {
-    //falta buscar datos para que se haga todo..-
-
-    $dif_cierres = $cierre->total_pesos_fichas_c -
-                    $last_cierre->total_pesos_fichas_c;
-    //formula = (Cx+1 - Cx ) +DROP -FILL+CREDIT = UTILIDAD CALCULADA
-    $calculado = $dif_cierres - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-    if ( $calculado == $detalle_importacion->utilidad) {
-      $detalle_importacion->diferencia_cierre = 0;
-    }else{
-      $detalle_importacion->diferencia_cierre = abs($calculado - $detalle_importacion->utilidad);
-    }
-    $detalle_importacion->saldo_fichas = $dif_cierres;
+    $detalle_importacion->saldo_fichas       = $dif_cierres;
+    //UTILIDAD CALCULADA = (Cx+1 - Cx) + DROP - FILL + CREDIT
+    $calculado  = $dif_cierres + $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
+    $diferencia = abs($calculado - $detalle_importacion->utilidad);
     $detalle_importacion->utilidad_calculada = $calculado;
-    $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-    $detalle_importacion->cierre_anterior()->associate($last_cierre->id_cierre_mesa);
+    $detalle_importacion->diferencia_cierre  = $diferencia;
+    $detalle_importacion->id_ultimo_cierre   = $id_ultimo_cierre;
+    $detalle_importacion->id_cierre_mesa     = $cierre->id_cierre_mesa;
     $detalle_importacion->save();
+    return $diferencia;
   }
 
+  public function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
+    $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
+    $total_diario = 0 ;
+    $diferencias = 0;
+    $utilidad_diaria_calculada = 0;
+    $utilidad_diaria_total = 0;
+    $saldo_diario_fichas = 0;
+    $total_diario_retiros = 0;
+    $total_diario_reposiciones = 0;
+    foreach ($imp->detalles as $datos_mesa) {
+      $total_diario+= $datos_mesa->droop;
+      $diferencias+= $datos_mesa->diferencia_cierre;
+      $utilidad_diaria_calculada+= $datos_mesa->utilidad_calculada;
+      $utilidad_diaria_total+= $datos_mesa->utilidad;
+      $saldo_diario_fichas+= $datos_mesa->saldo_fichas;
+      $total_diario_retiros+= $datos_mesa->retiros;
+      $total_diario_reposiciones+= $datos_mesa->reposiciones;
+    }
+    $imp->total_diario = $total_diario;
+    $imp->diferencias = $diferencias;
+    $imp->utilidad_diaria_calculada = $utilidad_diaria_calculada;
+    $imp->utilidad_diaria_total = $utilidad_diaria_total;
+    $imp->saldo_diario_fichas = $saldo_diario_fichas;
+    $imp->total_diario_retiros = $total_diario_retiros;
+    $imp->total_diario_reposiciones = $total_diario_reposiciones;
+    $imp->save();
+  }
 
   public function eliminar($id)
   {
@@ -493,73 +408,4 @@ class ImportadorController extends Controller
     ImportacionDiariaMesas::destroy($id);
     return 1;
   }
-
-  public function importacionesSinCierre()
-  {
-    $detalles = DetalleImportacionDiariaMesas::whereNull('id_cierre_mesa')->where('utilidad','<>',0)->get();
-    //dd($detalles);
-    foreach ($detalles as $detalle_importacion) {
-      $cierre = null;
-      if($cierre == null){ //si no está cargado el cierre de la importacion
-        //creo el cierre de la mesa pero con todo en cero.
-        $cierre = new Cierre;
-        $mesa = Mesa::find($detalle_importacion->id_mesa_de_panio);
-        $cierre->fecha =$detalle_importacion->importacion_diaria_mesas->fecha;
-        $cierre->total_pesos_fichas_c = 0;
-        $cierre->total_anticipos_c = 0;
-        $cierre->fiscalizador()->associate(Auth::user()->id);
-        $cierre->mesa()->associate($mesa->id_mesa_de_panio);
-        $cierre->moneda()->associate($detalle_importacion->importacion_diaria_mesas->id_moneda);
-        $cierre->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
-        $cierre->casino()->associate($mesa->id_casino);
-        $cierre->estado_cierre()->associate(2);//validado con diferencias -> asi no se puede modificar desde la sec de cierres.-
-        $cierre->observacion = 'Cierre creado automáticamente al realizar la importación diaria.';
-        $cierre->save();
-      }
-      //busco el cierre anterior
-      $last_cierre = Cierre::where('fecha','<',$cierre->fecha)
-                            ->where('id_mesa_de_panio','=',$cierre->id_mesa_de_panio)
-                            ->orderBy('fecha','desc')
-                            ->get()->first();
-      if($last_cierre != null){
-        $check_usado = DetalleImportacionDiariaMesas::where('id_ultimo_cierre',
-                                              '=',$last_cierre->id_cierre_mesa)
-                                                    ->get();
-        if(count($check_usado) == 0 ||
-          $check_usado->first()->id_detalle_importacion_diaria_mesas ==
-          $detalle_importacion->id_detalle_importacion_diaria_mesas) {
-            // calculo la diferencia entre ambos cierres
-            $dif_cierres = $cierre->total_pesos_fichas_c-
-                           $last_cierre->total_pesos_fichas_c ;
-             //formula = (Cx+1 - Cx ) +DROP -FILL+CREDIT = UTILIDAD CALCULADA
-             $calculado = $dif_cierres + $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-             if ( $calculado == $detalle_importacion->utilidad) {
-               $detalle_importacion->diferencia_cierre = 0;
-             }
-             else{
-               $detalle_importacion->diferencia_cierre = abs($calculado - $detalle_importacion->utilidad);
-             }
-             $detalle_importacion->saldo_fichas = $dif_cierres;
-             $detalle_importacion->utilidad_calculada = $calculado;
-             $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-             $detalle_importacion->cierre_anterior()->associate($last_cierre->id_cierre_mesa);
-             $detalle_importacion->save();
-        }
-      }
-      else { //tiene el cierre en cero y no tiene ultimo cierre
-        //$detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-        $detalle_importacion->saldo_fichas = 0;
-
-        $calculado =  $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-        $detalle_importacion->utilidad_calculada = $calculado;
-        $detalle_importacion->diferencia_cierre = abs($calculado - $detalle_importacion->utilidad);
-
-        $detalle_importacion->cierre()->associate($cierre->id_cierre_mesa);
-        $detalle_importacion->save();
-        //dd('si',$cierre);
-      }
-      //dd('no',$cierre);
-    }
-  }
-
 }
