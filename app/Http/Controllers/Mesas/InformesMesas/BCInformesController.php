@@ -87,7 +87,7 @@ class BCInformesController extends Controller
       $modificaciones = CampoModificado::where('id_importacion_diaria_mesas',
                                         '=',$imp->id_importacion_diaria_mesas)
                                         ->get()->all();
-                                        //dd($modificaciones);
+                                        
       foreach ($modificaciones as $mod) {
         if($mod->nombre_entidad == 'Detalle Importación'){
           $impMod= DetalleImportacionDiariaMesas::find($mod->id_entidad);
@@ -99,7 +99,6 @@ class BCInformesController extends Controller
             $nuevo= $mod->nombre_del_campo;
           }
 
-
           $rta2->push( ['mesa'=> $impMod->nro_mesa,
                     'juego' => $impMod->nombre_juego,
                     'campo_modificado' => $mod->nombre_del_campo,
@@ -110,7 +109,6 @@ class BCInformesController extends Controller
         }
         if($mod->nombre_entidad == 'Cierre de Mesa'){
           $cMod= Cierre::find($mod->id_entidad);
-          //dd($mod, $cMod);
           $rta2->push( ['mesa'=> $cMod->mesa->nro_mesa,
                     'juego' => $cMod->mesa->juego->nombre_juego,
                     'campo_modificado' => $mod->nombre_del_campo,
@@ -119,17 +117,11 @@ class BCInformesController extends Controller
                     'valor_nuevo' => $mod->valor_nuevo ]);
 
         }
-        //dd($rta2);
-
       }
 
       $respuesta = DetalleImportacionDiariaMesas::where('id_importacion_diaria_mesas',
                                           '=',$imp->id_importacion_diaria_mesas)
-                                          // ->orderBy('nombre_juego','asc')
-                                          // ->groupBy('nombre_juego','nro_mesa',
-                                          // 'id_detalle_importacion_diaria_mesas')
                                           ->get()->sortBy('nro_mesa')->all();
-                                          //dd($respuesta);
       $rta[] = ['importacion'=> $imp,
                 'detalles' => $respuesta];
     }

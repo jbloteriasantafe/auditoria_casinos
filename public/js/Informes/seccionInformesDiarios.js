@@ -425,7 +425,6 @@ $(document).on('click','.imprimirInfoDiario', function(e){
 
 
 function generarFilaTablaInicial(data){
-
   var fila = $('#moldeInfoDia').clone();
 
   fila.removeAttr('id');
@@ -455,13 +454,10 @@ function generarFilaTablaInicial(data){
     fila.find('.modificar').show();
   }
 
-
-    fila.css('display','');
-    $('#molde2').css('display','block');
-
+  fila.css('display','');
+  $('#molde2').css('display','block');
 
   return fila;
-
 }
 
 function cargarTabla(data){

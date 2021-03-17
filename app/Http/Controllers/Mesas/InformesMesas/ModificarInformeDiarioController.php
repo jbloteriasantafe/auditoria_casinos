@@ -86,10 +86,7 @@ class ModificarInformeDiarioController extends Controller
   public function almacenarDatos(Request $request){
     $validator=Validator::make($request->all(), [
       'cierre' => 'required_if:importacion,null',
-
-
       'importacion' => 'required_if:cierre,null',
-
      ],array(),self::$atributos)->after(function ($validator){
 
        ////falta validar que no pueda modificar porque ya pago
@@ -100,7 +97,6 @@ class ModificarInformeDiarioController extends Controller
        if(!empty($request['cierre'])){
           $cierre = collect($request['cierre']);
           $validator1=Validator::make($cierre->all(), [
-
                 'id' => 'required|exists:cierre_mesa,id_cierre_mesa',
                 'fichas' => 'required',
                 'fichas.*.id' => 'required|exists:ficha,id_ficha',
@@ -114,8 +110,7 @@ class ModificarInformeDiarioController extends Controller
                   }
                }
                if($algo == 0){
-                 $validator->errors()->add('fichas','No puede modificar todos los valores a cero.'
-                                          );
+                 $validator->errors()->add('fichas','No puede modificar todos los valores a cero.');
                }
 
              })->validate();

@@ -140,47 +140,6 @@ class ImportadorController extends Controller
           return;
         }
       }
-
-      //VALIDO EL CSV
-      //Chequeamos por borrados? Y si esta importando uno viejo? no me parece correcto
-      $path = $data['archivo']->getRealPath();
-      $moneda = Moneda::find($id_moneda);
-      if (($gestor = fopen($path, "r")) !== FALSE) {
-          $datos = fgetcsv($gestor, 1000, ";");
-          if(!$datos || count($datos) != 6){
-            $validator->errors()->add('error','Las columnas del archivo deben ser: \nJUEGO,NRO MESA,DROP,UTILIDAD,FILL,CREDIT.');
-            return;
-          }
-          while($datos = fgetcsv($gestor, 1000, ";")){
-            $juego = $datos[0];
-            if($juego == "" || substr($juego,0,7) == "TOTALES") continue;
-            
-            $juego_bd = DB::table('juego_mesa')->where('juego_mesa.id_casino','=',$id_casino)
-            ->where(function($q) use ($juego){
-              return $q->where('juego_mesa.siglas','like',$juego)->orWhere('juego_mesa.nombre_juego','like',$juego);
-            });
-            $existe_juego = (clone $juego_bd)->count() > 0;
-            if(!$existe_juego){
-              $validator->errors()->add('error','No se encontro el juego '.$juego.' en el sistema');
-              continue;
-            }
-
-            $mesa = $datos[1];
-            if($mesa == "") continue;
-
-            $existe_mesa = $juego_bd->join('mesa_de_panio as mesa','mesa.id_juego_mesa','=','juego_mesa.id_juego_mesa')
-            ->where('mesa.id_casino','=',$id_casino)->where('mesa.nro_admin','=',$mesa)->where('mesa.id_moneda','=',$id_moneda)
-            ->count() > 0;
-            if(!$existe_mesa){
-              $validator->errors()->add('error','No se encontro la mesa '.$juego.$mesa.'-'.$moneda->siglas.' en el sistema');
-              continue;
-            }
-          }
-          fclose($gestor);
-      }else{
-        $validator->errors()->add('error','No se pudo leer el archivo');
-        return;
-      }
     })->validate();
 
     DB::transaction(function() use ($request,&$importacion){
@@ -254,7 +213,6 @@ class ImportadorController extends Controller
       $importacion->save();
 
       $this->calcularDiffIDM($iid);
-
       DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
     });
     return 1;

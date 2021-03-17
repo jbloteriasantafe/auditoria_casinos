@@ -91,6 +91,9 @@
                     <button type="button" class="btn btn-info imprimirInfoDiario" value="">
                       <i class="fa fa-fw fa-print"></i>
                     </button>
+                    <button type="button" class="btn btn-info modificar" value="">
+                      <i class="fa fa-fw fa-pencil-alt"></i>
+                    </button>
                   </td>
                 </tr>
               </table>
@@ -128,7 +131,7 @@
             <div class="row">
               <div class="col-xs-12">
                 <h6 class="msjSinDiferencias">No hay cierres ni importaciones con diferencias para modificar.</h6>
-                <div class="desplegarTablaCI">
+                <div class="desplegarTablaCI" style="overflow-y: scroll;height: 400px;">
 
                   <table class="table" id="tablaCierresAModificar">
                     <thead>
