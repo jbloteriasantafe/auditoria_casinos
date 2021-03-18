@@ -157,7 +157,7 @@ class BCCierreController extends Controller
     if(isset($cierre->cierre_apertura)){
       $conjunto = $cierre->cierre_apertura;
       $apertura = $conjunto->apertura;
-      $juegoAP = $juego;
+      //$juegoAP = $juego;
       $id_ap=$apertura->id_apertura_mesa;
       $first = DB::table('ficha')
                           ->select('DA.id_detalle_apertura',
