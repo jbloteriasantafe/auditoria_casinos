@@ -61,9 +61,9 @@
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">DIF.</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">SALDO EN FICHAS</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">DROP</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">UTILIDAD</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">RET.</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">REP.</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">RET.</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">UTILIDAD</th>
           @if($importacion->moneda->siglas != 'ARS')
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">COTIZACIÓN</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">CONVERSIÓN</th>
@@ -83,7 +83,7 @@
           <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->retiros}}</td>
           <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->utilidad}}</td>
           @if($importacion->moneda->siglas != 'ARS')
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->cotizacion}}</td>
+          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$importacion->cotizacion}}</td>
           <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->conversion}}</td>
           @endif
           <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->hold}}</td>
