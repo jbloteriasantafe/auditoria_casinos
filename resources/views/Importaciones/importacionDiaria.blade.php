@@ -102,11 +102,12 @@
                     <table id="tablaResultadosDiarios" class="table table-fixed tablesorter ">
                       <thead>
                         <tr align="center" >
-                          <th class="col-xs-3 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
+                          <th class="col-xs-2 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
                           <th class="col-xs-2" estado="desc" value="casino.nombre" style="font-size:14px; text-align:center !important;">CASINO<i class="fas fa-sort"></i></th>
                           <th class="col-xs-2" estado="desc" value="moneda.descripcion" style="font-size:14px; text-align:center !important;">MONEDA<i class="fas fa-sort"></i></th>
                           <th class="col-xs-1" style="font-size:14px; text-align:center !important;">IMP.</th>
                           <th class="col-xs-1" style="font-size:14px; text-align:center !important;">REL.</th>
+                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">VAL.</th>
                           <th class="col-xs-3"  style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
@@ -116,11 +117,12 @@
                     <table>
                       <tbody>
                         <tr id="moldeFilaImpD" class="filaClone" style="display:none">
-                          <td class="col-xs-3 d_fecha" style="text-align:center !important;"></td>
+                          <td class="col-xs-2 d_fecha" style="text-align:center !important;"></td>
                           <td class="col-xs-2 d_casino" style="text-align:center !important;"></td>
                           <td class="col-xs-2 d_moneda" style="text-align:center !important;"></td>
                           <td class="col-xs-1 d_importado" style="text-align:center !important;"></td>
                           <td class="col-xs-1 d_relevado" style="text-align:center !important;"></td>
+                          <td class="col-xs-1 d_validado" style="text-align:center !important;"></td>
                           <td class="col-xs-3 d_accion" style="text-align:center !important;">
                             <button type="button" class="btn btn-info infoImpD" value="" >
                                     <i class="fas fa-fw fa-search-plus"></i>
@@ -478,23 +480,26 @@
               <table  style="border-collapse: collapse; table-layout:auto" align="center" class="table table-bordered" >
                 <thead>
                   <tr  >
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
                       <h5  style="font-size: 13px; color:#000;text-align:center !important;">JUEGO</h5>
                     </th>
                     <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
                       <h5  style="font-size: 13px; color:#000;text-align:center !important;">NRO MESA</h5>
                     </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
+                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">SALDO FICHAS</h5>
+                    </th>
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
                       <h5 style="font-size: 13px; color:#000;text-align:center !important;">DROP</h5>
                     </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">UTILIDAD</h5>
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;padding:0px;">
+                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">REPOSICIONES</h5>
                     </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;">
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
                       <h5 style="font-size: 13px; color:#000;text-align:center !important;">RETIROS</h5>
                     </th>
-                    <th  class="col-xs-2" style="text-align:center !important;padding:0px;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">REPOSICIONES</h5>
+                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
+                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">UTILIDAD</h5>
                     </th>
                     <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
                       <h5 style="font-size: 13px; color:#000;text-align:center !important;">HOLD %</h5>
@@ -508,13 +513,14 @@
                 <table class="table" style="padding:0px !important">
                   <tbody>
                   <tr id="moldeImpDiarios" class="filaClone"  style="display:none">
-                      <td class="col-xs-2 v_juego" style="text-align:center !important;padding:2px !important;"></td>
-                      <td class="col-xs-1 v_mesa" style="text-align:center !important;padding:2px !important;"></td>
-                      <td class="col-xs-2 v_drop" style="text-align:right !important;padding:2px !important;"></td>
-                      <td class="col-xs-2 v_utilidad" style="text-align:right !important;padding:2px !important;"></td>
-                      <td class="col-xs-2 v_retiros" style="text-align:right !important;padding:2px !important;"></td>
-                      <td class="col-xs-2 v_reposiciones" style="text-align:right !important;padding:2px !important;"></td>
-                      <td class="col-xs-1 v_hold" style="text-align:center !important;padding:2px !important;"></td>
+                      <td class="col-xs-1 v_juego" style="text-align:center !important;padding:2px !important;">JJJJJJ</td>
+                      <td class="col-xs-1 v_mesa" style="text-align:center !important;padding:2px !important;">999999</td>
+                      <td class="col-xs-1 v_saldofichas" style="text-align:center !important;padding:2px !important;">-9999999.99</td>
+                      <td class="col-xs-1 v_drop" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
+                      <td class="col-xs-1 v_reposiciones" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
+                      <td class="col-xs-1 v_retiros" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
+                      <td class="col-xs-1 v_utilidad" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
+                      <td class="col-xs-1 v_hold" style="text-align:center !important;padding:2px !important;">-9999999.99</td>
                   </tr>
               </table>
             </div>

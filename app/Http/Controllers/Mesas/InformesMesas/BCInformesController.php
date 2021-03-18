@@ -70,72 +70,7 @@ class BCInformesController extends Controller
 
 
   public function imprimirDiario($id_importacion){
-    $controllerDiarias = new ImportadorController;
-
-    $importacion = ImportacionDiariaMesas::find($id_importacion);
-    $importaciones = ImportacionDiariaMesas::where('id_casino','=',$importacion->id_casino)
-                                              ->where('fecha','=',$importacion->fecha)
-                                              ->orderBy('id_moneda','asc')
-                                              ->get();
-
-    $rta = array();
-    $rta2 = collect([]);
-
-    foreach ($importaciones as $imp) {
-      $controllerDiarias->actualizarTotalesImpDiaria($imp->id_importacion_diaria_mesas);
-      $modificaciones=collect([]);
-      $modificaciones = CampoModificado::where('id_importacion_diaria_mesas',
-                                        '=',$imp->id_importacion_diaria_mesas)
-                                        ->get()->all();
-                                        
-      foreach ($modificaciones as $mod) {
-        if($mod->nombre_entidad == 'Detalle Importación'){
-          $impMod= DetalleImportacionDiariaMesas::find($mod->id_entidad);
-
-          if($mod->nombre_del_campo == 'efectivo'){
-            $nuevo='droop';
-          }
-          else{
-            $nuevo= $mod->nombre_del_campo;
-          }
-
-          $rta2->push( ['mesa'=> $impMod->nro_mesa,
-                    'juego' => $impMod->nombre_juego,
-                    'campo_modificado' => $mod->nombre_del_campo,
-                    'entidad' => $mod->nombre_entidad,
-                    'valor_anterior' => $mod->valor_anterior,
-                    'valor_nuevo' =>$mod->valor_nuevo]);
-
-        }
-        if($mod->nombre_entidad == 'Cierre de Mesa'){
-          $cMod= Cierre::find($mod->id_entidad);
-          $rta2->push( ['mesa'=> $cMod->mesa->nro_mesa,
-                    'juego' => $cMod->mesa->juego->nombre_juego,
-                    'campo_modificado' => $mod->nombre_del_campo,
-                    'entidad' => $mod->nombre_entidad,
-                    'valor_anterior' => $mod->valor_anterior,
-                    'valor_nuevo' => $mod->valor_nuevo ]);
-
-        }
-      }
-
-      $respuesta = DetalleImportacionDiariaMesas::where('id_importacion_diaria_mesas',
-                                          '=',$imp->id_importacion_diaria_mesas)
-                                          ->get()->sortBy('nro_mesa')->all();
-      $rta[] = ['importacion'=> $imp,
-                'detalles' => $respuesta];
-    }
-    $rta2 = $rta2->sortBy('mesa');
-    $casino = $importacion->casino;
-    $view = view('Informes.informeDiario', compact(['rta','rta2','casino']));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view);
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $importacion->casino->codigo."/".$importacion->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('informe_diario_'.$importacion->casino->codigo.'_'.$importacion->fecha.'.pdf', Array('Attachment'=>0));
+    return "Deprecado";
   }
 
   public function imprimirMensual($fecha,$id_casino){

@@ -130,13 +130,6 @@ footer
                   <td><i>Se ha cumplido con el mínimo requerido de apuestas</i></td>
                 </tr>
                 @endif
-                <tr style="border-bottom:1px solid #ccc;">
-                  @if($rel->relevamientos_incorrectos == 'true')
-                  <td><i>Existen <b>diferencias</b> entre los datos cargados en los Relevamientos de Valores de Apuestas y los datos importados para el día de la fecha</i></td>
-                  @else
-                  <td> <i>Los datos de Relevamientos de Valores de Apuestas <b>coinciden</b> con los datos importados para el día de la fecha</i> </td>
-                  @endif
-                </tr>
               </tbody>
             </table>
             <br>

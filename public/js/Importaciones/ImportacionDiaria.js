@@ -238,12 +238,16 @@ function generarFilaImportaciones(casino,moneda,imp){
   const colorbool = ['#D32F2F','#4CAF50'];
   const importado = (imp.importacion !== null) | 0; //cast to int
   const cierre = imp.tiene_cierre | 0;
+  const validado = (imp.importacion !== null && imp.importacion.validado) | 0;
   fila.find('.d_importado').append($('<i>').addClass(classbool[importado]).css('color',colorbool[importado]).css('text-align','center'));
-  fila.find('.d_relevado').append($('<i>').addClass(classbool[cierre]).css('color',colorbool[cierre]).css('text-align','center'));
+  fila.find('.d_relevado' ).append($('<i>').addClass(classbool[cierre]   ).css('color',colorbool[cierre]   ).css('text-align','center'));
+  fila.find('.d_validado' ).append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
   if(id === ""){
     fila.find('.d_accion').empty().append('<span>&nbsp;</span>');
   }
   else fila.find('button').val(id);
+
+  if(validado) fila.find('.valImpD').remove();
   fila.css('display', 'block');
   return fila;
 }
@@ -309,6 +313,10 @@ $(document).on('click','.infoImpD',function(e){
 $(document).on('click','.valImpD',function(e){
   e.preventDefault();
   mostrarImportacion($(this).val(),'validar');
+});
+$(document).on('click','.impImpD',function(e){
+  e.preventDefault();
+  window.open('importacionDiaria/imprimir/' + $(this).val(),'_blank');
 });
 
 //si cambia el select dentro del modal de ver importacion
@@ -392,6 +400,7 @@ function generarFilaTotalesDia(data){
     id_importacion_diaria_mesas: '',
     siglas_juego: 'TOTALES',
     nro_mesa: '',
+    saldo_fichas: data.saldo_diario_fichas,
     droop: data.total_diario,
     reposiciones: data.total_diario_reposiciones,
     retiros: data.total_diario_retiros,
@@ -408,6 +417,7 @@ function generarFilaVerImp(data){
   fila.find('.v_juego').text(data.siglas_juego);
   fila.find('.v_mesa').text(data.nro_mesa);
   fila.find('.v_drop').text(data.droop);
+  fila.find('.v_saldofichas').text(data.saldo_fichas);
   fila.find('.v_reposiciones').text(data.reposiciones);
   fila.find('.v_retiros').text(data.retiros);
   fila.find('.v_utilidad').text(data.utilidad);

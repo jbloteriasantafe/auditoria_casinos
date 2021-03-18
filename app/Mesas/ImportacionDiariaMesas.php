@@ -31,7 +31,7 @@ class ImportacionDiariaMesas extends Model
   protected $appends = array('hold_diario','conversion_total');
 
   public function getHoldDiarioAttribute(){
-     if($this->droop != 0){
+     if($this->total_diario != 0){
        return round(($this->utilidad_diaria_total * 100)/$this->total_diario,2);
      }else{
        return '--';

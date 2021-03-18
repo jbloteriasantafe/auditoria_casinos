@@ -41,6 +41,9 @@ use \DateTime;
 use \DateInterval;
 use Carbon\Carbon;
 
+use Dompdf\Dompdf;
+use PDF;
+
 class ImportadorController extends Controller
 {
   private static $atributos = [
@@ -178,7 +181,7 @@ public function importarDiario(Request $request){
         diferencia_cierre, utilidad_calculada)
         SELECT 
         csv.id_archivo, csv.row_1, csv.row_2, csv.row_3, csv.row_4, csv.row_5, csv.row_6,
-        csv.row_4 - (csv.row_3 - csv.row_5 + csv.row_6),
+        csv.row_4 - (csv.row_3 + csv.row_5 - csv.row_6),
         NULL,NULL
         FROM filas_csv_mesas_bingos as csv
         WHERE csv.id_archivo = '%d' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';",
@@ -221,9 +224,16 @@ public function importarDiario(Request $request){
     $arreglo = [];
     $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
     while(date('m',strtotime($fecha)) == $mes){
-      $importacion = ImportacionDiariaMesas::where($reglas)->select('id_importacion_diaria_mesas','validado')
-      ->where('fecha','=',$fecha)->whereNull('deleted_at')->first();
-      $tiene_cierre = Cierre::where($reglas)->where('fecha','=',$fecha)->whereNull('deleted_at')->count() > 0;
+      $importacion = ImportacionDiariaMesas::where($reglas)->where('fecha','=',$fecha)->whereNull('deleted_at')->first();
+      $tiene_cierre = false;
+      if(!is_null($importacion)){
+        $tiene_cierre = true;
+        $detalles = $importacion->detalles()->orderBy('siglas_juego','asc')->orderBy('nro_mesa','asc')->get();
+        foreach($detalles as $d){
+          if(!$tiene_cierre) break;
+          $tiene_cierre &= !is_null($d->cierre()) && !is_null($d->cierre_anterior());
+        }
+      }
       $arreglo[] = ["fecha" => $fecha,"importacion" => $importacion,"tiene_cierre" => $tiene_cierre];
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
     }
@@ -340,5 +350,22 @@ public function importarDiario(Request $request){
     }
     ImportacionDiariaMesas::destroy($id);
     return 1;
+  }
+
+  public function imprimirDiario($id_importacion){
+    $controllerDiarias = new ImportadorController;
+    $importacion = ImportacionDiariaMesas::find($id_importacion);
+    $det_importacion = $importacion->detalles()->orderBy('siglas_juego','asc')->orderBy('nro_mesa','asc')->get();
+    $casino = $importacion->casino;
+
+    $view = view('Informes.informeDiario', compact(['importacion','det_importacion','casino']));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view);
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(20, 815, $importacion->casino->codigo."/".$importacion->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $dompdf->stream('informe_diario_'.$importacion->casino->codigo.'_'.$importacion->fecha.'.pdf', Array('Attachment'=>0));
   }
 }

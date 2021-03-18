@@ -752,6 +752,7 @@ Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@
 Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
 Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
 Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
+Route::get('importacionDiaria/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
 Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
 Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');

@@ -151,17 +151,6 @@ public function imprimirPlanilla($id_informe){
                                   ->distinct('detalle_relevamiento_apuestas.id_mesa_de_panio')
                                   ->get();
 
-
-   $mesasImportadasAbiertas = DB::table('detalle_importacion_diaria_mesas')
-                                    ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
-                                           '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
-                                    ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
-                                    ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
-                                    ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
-                                    ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->get();
     $array_t = '';
     $hay_rels_sin_visar = 0;
     $cant_turnos = 0;
@@ -201,7 +190,6 @@ public function imprimirPlanilla($id_informe){
 
     $informe->turnos_sin_minimo = $array_t;
     $informe->mesas_relevadas_abiertas = json_encode($mesasRelevadasAbiertas);
-    $informe->mesas_importadas_abiertas = json_encode($mesasImportadasAbiertas);
     $informe->mesas_con_diferencia = $mesas_con_diferencia;
     $informe->ap_sin_validar =  $aperturas;
     $informe->cie_sin_validar = $cierres;
@@ -212,16 +200,6 @@ public function imprimirPlanilla($id_informe){
     $informe->save();
 
   }
-  //La cant de mesas relevadas como abiertas coincide con la cant de Mesas
-  //importadas con utilidad !=0
-  if($informe->mesas_importadas_abiertas == $informe->mesas_relevadas_abiertas){
-    $relevamientos_incorrectos='false';
-  }else {
-    $relevamientos_incorrectos='true';
-  }
-
-  $rel->relevamientos_incorrectos=$relevamientos_incorrectos;
-
   if(count($informe->minimos) == 0){
     $this->asociarMinimos($informe);
   }
