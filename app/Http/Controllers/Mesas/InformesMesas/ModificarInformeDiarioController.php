@@ -349,9 +349,8 @@ class ModificarInformeDiarioController extends Controller
 
     $detImportacion->utilidad_calculada = $detImportacion->saldo_fichas + $detImportacion->droop - $detImportacion->reposiciones + $detImportacion->retiros;
     $detImportacion->diferencia_cierre = $detImportacion->utilidad - $detImportacion->utilidad_calculada;
-    //dd($detImportacion);
+    
     $detImportacion->save();
-
     $this->actualizarTotales($detImportacion);
   }
 

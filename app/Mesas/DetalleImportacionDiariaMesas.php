@@ -11,31 +11,18 @@ class DetalleImportacionDiariaMesas extends Model
   protected $primaryKey = 'id_detalle_importacion_diaria_mesas';
   protected $visible = array('id_detalle_importacion_diaria_mesas',
                              'id_importacion_diaria_mesas',
-                             'id_mesa_de_panio',
-                             'id_moneda',
-                             'fecha',
-                             'utilidad',
-                             'droop',
-                             'id_juego_mesa',
+                             'siglas_juego',
                              'nro_mesa',//es el nro_admin de la mesa
-                             'nombre_juego',
-                             'codigo_moneda',
-                             'diferencia_cierre',//UTILIDAD IMPORTADA - UTILIDAD CALCULADA
+                             'droop',
+                             'utilidad',
                              'reposiciones',
                              'retiros',
-                             'tipo_mesa',
-                             'hold',
-                             'utilidad_calculada',
-                             'id_cierre_mesa',
-                             'id_ultimo_cierre',
                              'saldo_fichas', //NO PUEDE SER NULL -> 0 POR DEFECTO
-                             'cotizacion',
-                             'conversion',
-                             'codigo_mesa'
+                             'utilidad_calculada',
+                             'diferencia_cierre',//UTILIDAD IMPORTADA - UTILIDAD CALCULADA
+                             'hold',
                            );
-
-                           //win es utilidad y drop es el total que tuvo la mesas
-  protected $appends = array('hold','conversion','codigo_mesa');
+  protected $appends = array('hold','conversion');
 
   public function getHoldAttribute(){
       if($this->droop != 0){
@@ -43,45 +30,33 @@ class DetalleImportacionDiariaMesas extends Model
       }else{
         return '--';
       }
-
   }
 
   public function getConversionAttribute(){
       if($this->cotizacion != 0 && $this->cotizacion != null){
-        return round($this->cotizacion * $this->utilidad,3);
+        return round($this->importacion_diaria_mesas->cotizacion * $this->utilidad,3);
       }else{
         return '--';
       }
-
   }
-
-  public function getCodigoMesaAttribute()
-  {
-    return $this->mesa->codigo_mesa;
-  }
-
-  public function moneda(){
-    return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');
-  }
-
-  public function mesa(){
-    return $this->belongsTo('App\Mesas\Mesa','id_mesa_de_panio','id_mesa_de_panio');
-  }
-
-  public function juego(){
-    return $this->belongsTo('App\Mesas\JuegoMesa','id_juego_mesa','id_juego_mesa');
-  }
-
   public function importacion_diaria_mesas(){
     return $this->belongsTo('App\Mesas\ImportacionDiariaMesas','id_importacion_diaria_mesas','id_importacion_diaria_mesas');
   }
 
-  public function cierre(){
-    return $this->belongsTo('App\Mesas\Cierre','id_cierre_mesa','id_cierre_mesa');
-  }
-
-  public function cierre_anterior(){
-    return $this->belongsTo('App\Mesas\Cierre','id_ultimo_cierre','id_cierre_mesa');
+  public function juego_mesa(){
+    $imp = $this->importacion_diaria_mesas;
+    $id_casino = $imp->casino->id_casino;
+    $fecha = $imp->fecha;
+    $siglas_juego = $this->siglas_juego;
+    
+    $juego =  JuegoMesa::withTrashed()->where('juego_mesa.id_casino',$id_casino)
+    ->where(function($q) use ($siglas_juego){
+      return $q->where('juego_mesa.siglas','like',$siglas_juego)->orWhere('juego_mesa.nombre_juego','like',$siglas_juego);
+    })
+    ->where(function ($q) use ($fecha){
+      return $q->whereNull('juego_mesa.deleted_at')->orWhere('juego_mesa.deleted_at','<',$fecha);
+    })->first();
+    return $juego;
   }
 
   public function getTableName(){

@@ -472,7 +472,7 @@ function cargarTabla(data){
   var fila=$('#moldeModif').clone();
   fila.removeAttr('id');
   fila.find('.nro_modificar').text(data.nro_mesa);
-  fila.find('.juego_modificar').text(data.nombre_juego);
+  fila.find('.juego_modificar').text(data.siglas_juego);
   fila.find('.moneda_modificar').text(mon);
   fila.find('#cierre_modificar').val(data.id_cierre_mesa).attr('data-importacion',data.id_importacion_diaria_mesas);
   fila.find('#id_imp_modificar').val(data.id_detalle_importacion_diaria_mesas);
@@ -489,7 +489,7 @@ function generarFilaVerImpValidar(data){
       fila.removeAttr('id');
       fila.attr('id', data.id_importacion_diaria_mesas);
 
-      fila.find('.v_juego').text(data.nombre_juego);
+      fila.find('.v_juego').text(data.siglas_juego);
       fila.find('.v_mesa').text(data.nro_mesa);
       fila.find('.v_drop').text(data.droop);
       fila.find('.v_reposiciones').text(data.reposiciones);
@@ -509,7 +509,7 @@ function cargarImportacion(data){
 
   var fila=$('#moldeModifImp').clone();
   fila.removeAttr('id');
-  fila.find('.v_juego').text(data.nombre_juego);
+  fila.find('.v_juego').text(data.siglas_juego);
   fila.find('.v_mesa').text(data.nro_mesa);
   fila.find('.v_drop').val(data.droop);
   fila.find('.v_utilidad').val(data.utilidad);

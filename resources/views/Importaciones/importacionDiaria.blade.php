@@ -9,7 +9,6 @@
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
-<link rel="stylesheet" href="/css/paginacion.css">
 
 @endsection
 @section('contenidoVista')
@@ -54,18 +53,18 @@
                             <div class="col-xs-3">
                               <h5>Fecha</h5>
                               <div class="form-group">
-                                <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
+                                <div class='input-group date' id='dtpFecha' data-link-field="dtpFecha_hidden" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                   <input type='text' class="form-control" id="B_fecha_filtro" placeholder="aaaa-mm-dd" value=" "/>
                                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                 </div>
+                                <input type="hidden" id="dtpFecha_hidden" value=""/>
                               </div>
                             </div>
 
                             <div class="col-xs-3">
                               <h5>Casino</h5>
                               <select class="form-control" name="" id="filtroCas" >
-                                <option value="0" selected>- Todos los Casinos -</option>
                                 @foreach ($casinos as $cas)
                                 <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                                 @endforeach
@@ -74,7 +73,6 @@
                             <div class="col-xs-3">
                               <h5>Moneda</h5>
                               <select class="form-control" name="" id="filtroMon" >
-                                <option value="0" selected>- Todas las Monedas -</option>
                                 @foreach ($moneda as $mon)
                                 <option value="{{$mon->id_moneda}}">{{$mon->descripcion}}</option>
                                 @endforeach
@@ -104,10 +102,11 @@
                     <table id="tablaResultadosDiarios" class="table table-fixed tablesorter ">
                       <thead>
                         <tr align="center" >
-                          <th class="col-xs-2 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
-                          <th class="col-xs-3" estado="desc" value="casino.nombre" style="font-size:14px; text-align:center !important;">CASINO<i class="fas fa-sort"></i></th>
+                          <th class="col-xs-3 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
+                          <th class="col-xs-2" estado="desc" value="casino.nombre" style="font-size:14px; text-align:center !important;">CASINO<i class="fas fa-sort"></i></th>
                           <th class="col-xs-2" estado="desc" value="moneda.descripcion" style="font-size:14px; text-align:center !important;">MONEDA<i class="fas fa-sort"></i></th>
-                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">ESTADO</th>
+                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">IMP.</th>
+                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">REL.</th>
                           <th class="col-xs-3"  style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
@@ -117,11 +116,11 @@
                     <table>
                       <tbody>
                         <tr id="moldeFilaImpD" class="filaClone" style="display:none">
-                          <td class="col-xs-2 d_fecha" style="text-align:center !important;"></td>
-                          <td class="col-xs-3 d_casino" style="text-align:center !important;"></td>
+                          <td class="col-xs-3 d_fecha" style="text-align:center !important;"></td>
+                          <td class="col-xs-2 d_casino" style="text-align:center !important;"></td>
                           <td class="col-xs-2 d_moneda" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 d_dif" style="text-align:center !important;"></td>
-
+                          <td class="col-xs-1 d_importado" style="text-align:center !important;"></td>
+                          <td class="col-xs-1 d_relevado" style="text-align:center !important;"></td>
                           <td class="col-xs-3 d_accion" style="text-align:center !important;">
                             <button type="button" class="btn btn-info infoImpD" value="" >
                                     <i class="fas fa-fw fa-search-plus"></i>
@@ -139,9 +138,6 @@
                         </tr>
                       </tbody>
                     </table>
-                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-
-                    </div>
                   </div>
                 </div>
           </div>
@@ -251,7 +247,6 @@
                         </tr>
                       </thead>
                       <tbody  id='cuerpoTablaImpM' >
-
                       </tbody>
                     </table>
                     <table>
@@ -271,7 +266,6 @@
                             <button type="button" class="btn btn-success eliminarMes" value="" >
                                     <i class="fa fa-fw fa-trash"></i>
                             </button>
-
                           </td>
                         </tr>
                     </table>
@@ -363,20 +357,17 @@
                 <div class="col-xs-3 rowCasino">
                   <h5>CASINO*</h5>
                   <select class="form-control" id="casinoSel">
-                    <option value="0" selected>- Seleccione un Casino -</option>
                     @foreach ($casinos as $cas)
                     <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                     @endforeach
-
                   </select>
                 </div>
                 <div class="col-xs-3 rowMoneda">
                   <h5>MONEDA*</h5>
                   <select class="form-control" id="monedaSel">
-                    <option value="0" selected>- Seleccione Moneda -</option>
-                    <option value="1">PESOS</option>
-                    <option value="2">DÓLARES</option>
-
+                    @foreach ($moneda as $m)
+                    <option value="{{$m->id_moneda}}">{{$m->siglas}}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="col-xs-3 rowCotizacionDiaria">
@@ -475,6 +466,7 @@
                 <option value="1" selected>RULETA</option>
                 <option value="2">CARTAS</option>
                 <option value="3">DADOS</option>
+                <option value="">NO EN BD</option>
               </select>
             </div>
         </div>
@@ -895,9 +887,8 @@
 
   <script src="js/math.min.js" type="text/javascript"></script>
 
-  <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
-  <script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>
+  <!--<script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>-->
 
 
 @endsection

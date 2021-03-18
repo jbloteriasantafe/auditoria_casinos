@@ -29,11 +29,14 @@ $(document).ready(function() {
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd',
+    format: 'MM yyyy',
     pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2
-  });
+    startView: 3,
+    minView: 3,
+    ignoreReadonly: true,
+  }).data('datetimepicker').setDate(new Date());;
+  $('#filtroCas').val($('#filtroCas option:first').val());
+  $('#filtroMon').val($('#filtroMon option:first').val());
   $('#buscar-importacionesDiarias').click();
 });
 
@@ -121,7 +124,7 @@ $('#btn-guardarDiario').on('click', function(e){
 
   let formData = new FormData;
   formData.append('name', $('#modalImportacionDiaria #archivo')[0].files[0].name);
-  formData.append('fecha', $('#B_fecha_imp').val());
+  formData.append('fecha', $('#fecha_importacion').val());
   formData.append('id_moneda', $('#monedaSel').val());
   formData.append('id_casino', $('#casinoSel').val());
   formData.append('cotizacion_diaria', $('#cotizacion_diaria').val());
@@ -187,31 +190,23 @@ $('#modalImportacionDiaria #archivo').on('fileselect', function(event) {
   $('#modalImportacionDiaria #archivo').attr('data-borrado','false');
 });
 
-$('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orden){
+$('#buscar-importacionesDiarias').click(function(e){
   e.preventDefault();
 
-  let sort_by = (columna != null) ? {columna: columna,orden: orden} : {
+  let sort_by = {
     columna: $('#tablaResultadosDiarios .activa').attr('value'),
     orden:   $('#tablaResultadosDiarios .activa').attr('estado')
   };
 
-  if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+  if(typeof sort_by['columna'] == 'undefined' || typeof sort_by['orden'] == 'undefined'){
     sort_by = {columna: 'fecha',orden: 'desc'} ;
   }
 
-  let size = 10;
-  //Fix error cuando librería saca los selectores
-  if(!isNaN($('#herramientasPaginacion').getPageSize())){
-    size = $('#herramientasPaginacion').getPageSize();
-  }
-
   const formData = {
-    fecha: $('#B_fecha_filtro').val(),
+    fecha: $('#dtpFecha_hidden').val(),
     id_moneda:$('#filtroMon').val(),
-    casino: $('#filtroCas').val(),
-    page: (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage(),
+    id_casino: $('#filtroCas').val(),
     sort_by: sort_by,
-    page_size: (page_size == null || isNaN(page_size))? size : page_size,
   }
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
@@ -223,29 +218,32 @@ $('#buscar-importacionesDiarias').click(function(e,pagina,page_size,columna,orde
 
     success: function (data){
       $('#tablaResultadosDiarios tbody tr').remove();
-      $('#herramientasPaginacion').generarTitulo(formData.page,formData.page_size,data.importaciones.total,clickIndice);
-      for (let i = 0; i < data.importaciones.data.length; i++) {
-          $('#cuerpoTablaImpD').append(generarFilaImportaciones(data.importaciones.data[i]));
+      for (let i = 0; i < data.importaciones.length; i++) {
+        $('#cuerpoTablaImpD').append(generarFilaImportaciones(data.casino,data.moneda,data.importaciones[i]));
       }
-      $('#herramientasPaginacion').generarIndices(formData.page,formData.page_size,data.importaciones.total,clickIndice);
     },
     error: function(data){ console.log(data); },
   })
 });
 
-function generarFilaImportaciones(data){
+function generarFilaImportaciones(casino,moneda,imp){
   const fila = $('#moldeFilaImpD').clone();
-  fila.attr('id', data.id_importacion_diaria_mesas);
-  fila.find('.d_fecha').text(data.fecha);
-  fila.find('.d_casino').text(data.nombre);
-  fila.find('.d_moneda').text(data.descripcion);
+  const id = imp.importacion == null? "" : imp.importacion.id_importacion_diaria_mesas;
+  fila.attr('id', id);
+  fila.find('.d_fecha').text(imp.fecha);
+  fila.find('.d_casino').text(casino);
+  fila.find('.d_moneda').text(moneda);
 
-  if(data.diferencias) fila.find('.d_dif').append($('<i>').addClass('fas fa-fw fa-times' ).css('color', '#D32F2F').css('text-align','center'));
-  else                 fila.find('.d_dif').append($('<i>').addClass('fas fa-check-circle').css('color', '#4CAF50').css('text-align','center'));
-  
-  fila.find('button').val(data.id_importacion_diaria_mesas);
-  if(data.validado)  fila.find('.d_accion').find('.valImpD,.eliminarDia').remove();
-
+  const classbool = ['fas fa-fw fa-times','fas fa-check-circle'];
+  const colorbool = ['#D32F2F','#4CAF50'];
+  const importado = (imp.importacion !== null) | 0; //cast to int
+  const cierre = imp.tiene_cierre | 0;
+  fila.find('.d_importado').append($('<i>').addClass(classbool[importado]).css('color',colorbool[importado]).css('text-align','center'));
+  fila.find('.d_relevado').append($('<i>').addClass(classbool[cierre]).css('color',colorbool[cierre]).css('text-align','center'));
+  if(id === ""){
+    fila.find('.d_accion').empty().append('<span>&nbsp;</span>');
+  }
+  else fila.find('button').val(id);
   fila.css('display', 'block');
   return fila;
 }
@@ -266,20 +264,9 @@ $(document).on('click','#tablaResultadosDiarios thead tr th[value]',function(e){
     }
   }
   $('#tablaResultadosDiarios th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+  $('#buscar-importacionesDiarias').click();
 });
 
-
-function clickIndice(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-
-  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  const columna = $('#tablaResultadosDiarios .activa').attr('value');
-  const orden = $('#tablaResultadosDiarios .activa').attr('estado');
-  $('#buscar-importacionesDiarias').trigger('click',[pageNumber,tam,columna,orden]);
-}
 
 //fin PAGINACION
 
@@ -289,7 +276,7 @@ function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
   $('#mensajeExito').hide();
   $('#observacionesImpD').val('');
   $('#selectMesa').val(tipo_mesa);
-  const tipo = $('#selectMesa option:selected').text();
+  const tipo = $('#selectMesa option:selected').val() == ""? "" : $('#selectMesa option:selected').text();
   $('#guardar-observacion').val(id_imp).data('modo',modo).toggle(modo == 'validar');
   $('#datosImpDiarios > tr').remove();
   
@@ -403,7 +390,7 @@ function habilitarInputDiario(){
 function generarFilaTotalesDia(data){
   const fila = generarFilaVerImp({
     id_importacion_diaria_mesas: '',
-    nombre_juego: 'TOTALES',
+    siglas_juego: 'TOTALES',
     nro_mesa: '',
     droop: data.total_diario,
     reposiciones: data.total_diario_reposiciones,
@@ -418,7 +405,7 @@ function generarFilaTotalesDia(data){
 function generarFilaVerImp(data){
   const fila = $('#moldeImpDiarios').clone();
   fila.attr('id', data.id_importacion_diaria_mesas);
-  fila.find('.v_juego').text(data.nombre_juego);
+  fila.find('.v_juego').text(data.siglas_juego);
   fila.find('.v_mesa').text(data.nro_mesa);
   fila.find('.v_drop').text(data.droop);
   fila.find('.v_reposiciones').text(data.reposiciones);
