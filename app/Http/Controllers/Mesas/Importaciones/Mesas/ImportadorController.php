@@ -99,11 +99,17 @@ class ImportadorController extends Controller
     else if ($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
   }
   $detalles = collect($detalles)->map(function($v,$idx){
-    $cierre1 = $v->cierre();
-    $cierre2 = $v->cierre_anterior();
+    $cierre = $v->cierre();
+    $estado_cierre = is_null($cierre)? 'SIN RELEVAR' : $cierre->estado_cierre->descripcion;
+    
+    $cierre_anterior = $v->cierre_anterior();
+    $estado_cierre_anterior = is_null($cierre_anterior)? 'SIN RELEVAR' : $cierre_anterior->estado_cierre->descripcion;
+
     $v = $v->toArray();
-    $v['cierre1'] = $cierre1;
-    $v['cierre2'] = $cierre2;
+    $v['cierre'] = $cierre;
+    $v['estado_cierre'] = $estado_cierre;
+    $v['cierre_anterior'] = $cierre_anterior;
+    $v['estado_cierre_anterior'] = $estado_cierre_anterior;
     return $v;
   });
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];

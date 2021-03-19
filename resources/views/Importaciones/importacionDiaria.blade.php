@@ -530,54 +530,56 @@
             </div>
           </div>
           <hr>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="col-md-4">
-                <b>Fecha cierre 1: </b>
-                <span>9999-99-99</span>
-              </div>
-              <div class="col-md-4">
-                <b>Estado: </b>
-                <span>ESTADO ESTADO</span>
-              </div>
-              <div class="col-md-4">
-                <b>Fichas: </b>
-                <span>9999999</span>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="col-md-4">
-                <b>Fecha cierre 2: </b>
-                <span>9999-99-99</span>
-              </div>
-              <div class="col-md-4">
-                <b>Estado: </b>
-                <span>ESTADO ESTADO</span>
-              </div>
-              <div class="col-md-4">
-                <b>Fichas: </b>
-                <span>9999999</span>
+          <div id="ajuste">
+            <div id="cierre" class="row">
+              <div class="col-md-12">
+                <div class="col-md-4">
+                  <b>Fecha cierre 1: </b>
+                  <span class='fecha_cierre'>9999-99-99</span>
+                </div>
+                <div class="col-md-4">
+                  <b>Estado: </b>
+                  <span class='estado_cierre'>ESTADO ESTADO</span>
+                </div>
+                <div class="col-md-4">
+                  <b>Fichas: </b>
+                  <span class='fichas_cierre'>9999999</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="col-md-4">
-                <b>Ajustar: </b>
-                <input class="form-control" value="9999999"/>
-              </div>
-              <div class="col-md-8">
-                <b>Observaciones: </b>
-                <input class="form-control" value=""/>
+            <div id="cierre_anterior" class="row">
+              <div class="col-md-12">
+                <div class="col-md-4">
+                  <b>Fecha cierre 2: </b>
+                  <span class='fecha_cierre'>9999-99-99</span>
+                </div>
+                <div class="col-md-4">
+                  <b>Estado: </b>
+                  <span class='estado_cierre'>ESTADO ESTADO</span>
+                </div>
+                <div class="col-md-4">
+                  <b>Fichas: </b>
+                  <span class='fichas_cierre'>9999999</span>
+                </div>
               </div>
             </div>
-          </div>
-          <br>
-          <div class="row">
-            <div class="col-md-1 col-md-offset-5">
-                <button type="button" class="btn btn-primary confirmar_ajuste">CONFIRMAR</button>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="col-md-4">
+                  <b>Ajuste: </b>
+                  <input class="form-control ajuste" value="0" type="number" step="0.01"/>
+                </div>
+                <div class="col-md-8">
+                  <b>Observaciones: </b>
+                  <input class="form-control observaciones" value=""/>
+                </div>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <div class="col-md-1 col-md-offset-5">
+                  <button id="confirmar_ajuste" type="button" class="btn btn-primary">CONFIRMAR</button>
+              </div>
             </div>
           </div>
           <hr style="margin: 1%;">

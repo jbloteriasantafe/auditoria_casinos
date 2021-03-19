@@ -21,6 +21,10 @@ class DetalleImportacionDiariaMesas extends Model
                              'utilidad_calculada',
                              'diferencia_cierre',//UTILIDAD IMPORTADA - UTILIDAD CALCULADA
                              'hold',
+                             'id_cierre_mesa',
+                             'id_cierre_mesa_anterior',
+                             'ajuste_fichas',
+                             'observacion'
                            );
   protected $appends = array('hold','conversion');
 
@@ -79,6 +83,8 @@ class DetalleImportacionDiariaMesas extends Model
   }
 
   public function cierre(){
+    if(!is_null($this->id_cierre_mesa)) return Cierre::find($this->id_cierre_mesa);
+
     $mesa = $this->mesa();
     if(is_null($mesa)) return null;
     $imp = $this->importacion_diaria_mesas;
@@ -89,6 +95,8 @@ class DetalleImportacionDiariaMesas extends Model
     ->whereNull('deleted_at')->first();
   }
   public function cierre_anterior(){
+    if(!is_null($this->id_cierre_mesa_anterior)) return Cierre::find($this->id_cierre_mesa_anterior);
+
     $mesa = $this->mesa();
     if(is_null($mesa)) return null;
     $imp = $this->importacion_diaria_mesas;

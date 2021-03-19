@@ -293,6 +293,7 @@ function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
   $('#mensajeExito').hide();
   $('#observacionesImpD').val('');
   $('#selectMesa').val(tipo_mesa);
+  $('#ajuste').hide();
   const tipo = $('#selectMesa option:selected').val() == ""? "" : $('#selectMesa option:selected').text();
   $('#guardar-observacion').val(id_imp).data('modo',modo).toggle(modo == 'validar');
   $('#datosImpDiarios > tr').remove();
@@ -300,10 +301,12 @@ function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
   if(modo == 'ver'){
     $('#modalVerImportacion .modal-title').text('| DETALLE IMPORTACIÓN DIARIA');
     $('#modalVerImportacion .modal-header').css('background-color','#0D47A1');
+    $('#ajuste input').attr('disabled',true);
   }
   else if(modo == 'validar'){
     $('#modalVerImportacion .modal-title').text('| VALIDAR IMPORTACIÓN DIARIA');
     $('#modalVerImportacion .modal-header').css('background-color','#6dc7be');
+    $('#ajuste input').attr('disabled',false);
   }
 
   $.get('importacionDiaria/verImportacion/' + id_imp + '/' + tipo, function(data){
@@ -410,7 +413,7 @@ function habilitarInputDiario(){
 //genera las filas a la tabla dentro del modal ver
 function generarFilaTotalesDia(data){
   const fila = generarFilaVerImp({
-    id_importacion_diaria_mesas: '',
+    id_detalle_importacion_diaria_mesas: '',
     siglas_juego: 'TOTALES',
     nro_mesa: '--',
     saldo_fichas: data.saldo_diario_fichas,
@@ -419,23 +422,91 @@ function generarFilaTotalesDia(data){
     retiros: data.total_diario_retiros,
     utilidad: data.utilidad_diaria_total,
     hold: '--',
+    cierre: 'CAMPO NO NULO',
+    cierre_anterior: 'CAMPO NO NULO',
   });
   fila.css('cssText','color:black;').find('.v_observar').parent().empty().append('--');
   fila.find('td').css('background','#aaa');
   return fila;
 };
 
+
+function clearNull(v){ return v == null? 0 : v };
+
+$(document).on('click','.v_observar',function(e){
+  e.preventDefault();
+  const fila = $(this).closest('tr');
+  const cierre = fila.data('cierre');
+  const estado_cierre = fila.data('estado_cierre');
+  const cierre_anterior = fila.data('cierre_anterior');
+  const estado_cierre_anterior = fila.data('estado_cierre_anterior');
+  if(cierre != null){
+    $('#cierre').find('.fecha_cierre').text(cierre.fecha);
+    $('#cierre').find('.estado_cierre').text(estado_cierre);
+    $('#cierre').find('.fichas_cierre').text(clearNull(cierre.total_pesos_fichas_c));
+  }
+  else{
+    $('#cierre').find('.fecha_cierre').text('--');
+    $('#cierre').find('.estado_cierre').text('SIN RELEVAR');
+    $('#cierre').find('.fichas_cierre').text('--');
+  }
+  if(cierre_anterior != null){
+    $('#cierre_anterior').find('.fecha_cierre').text(cierre_anterior.fecha);
+    $('#cierre_anterior').find('.estado_cierre').text(estado_cierre_anterior);
+    $('#cierre_anterior').find('.fichas_cierre').text(clearNull(cierre_anterior.total_pesos_fichas_c));
+  }
+  else{
+    $('#cierre_anterior').find('.fecha_cierre').text('--');
+    $('#cierre_anterior').find('.estado_cierre').text('SIN RELEVAR');
+    $('#cierre_anterior').find('.fichas_cierre').text('--');
+  }
+  const ajuste = fila.data('ajuste_fichas');
+  const observaciones = fila.data('observacion');
+  $('#ajuste .ajuste').val(ajuste);
+  $('#ajuste .observaciones').val(observaciones);
+  $('#confirmar_ajuste').val(fila.attr('id'));
+  $('#ajuste').show();
+});
+
+$('#confirmar_ajuste').click(function(){
+  const fila = $('#datosImpDiarios #'+$(this).val());
+  const ajuste = $('#ajuste .ajuste').val();
+  const observacion = $('#ajuste .observaciones').val();
+  fila.find('.v_ajuste').text(ajuste == ""? 0 : ajuste);
+  fila.data('ajuste_fichas',ajuste);
+  fila.data('observacion',observacion);
+  $('#ajuste').hide();
+});
+
 function generarFilaVerImp(data){
   const fila = $('#moldeImpDiarios').clone();
-  fila.attr('id', data.id_importacion_diaria_mesas);
+  fila.attr('id', data.id_detalle_importacion_diaria_mesas);
   fila.find('.v_juego').text(data.siglas_juego);
   fila.find('.v_mesa').text(data.nro_mesa);
   fila.find('.v_drop').text(data.droop);
   fila.find('.v_saldofichas').text(data.saldo_fichas);
+  const fichas          =          data.cierre? clearNull(data.cierre.total_pesos_fichas_c) : 0;
+  const fichas_anterior = data.cierre_anterior? clearNull(data.cierre_anterior.total_pesos_fichas_c) : 0;
+  const saldo_rel = parseFloat(fichas) - parseFloat(fichas_anterior);
+  fila.find('.v_saldofichas_rel').text(saldo_rel.toFixed(2));
+  fila.find('.v_diff').text(parseFloat(data.saldo_fichas)-saldo_rel);
+  fila.find('.v_ajuste').text(0.00);
   fila.find('.v_reposiciones').text(data.reposiciones);
   fila.find('.v_retiros').text(data.retiros);
   fila.find('.v_utilidad').text(data.utilidad);
   fila.find('.v_hold').text(data.hold);
+
+  fila.data('cierre',data.cierre);
+  fila.data('estado_cierre',data.estado_cierre);
+  fila.data('cierre_anterior',data.cierre_anterior);
+  fila.data('estado_cierre_anterior',data.estado_cierre_anterior);
+  fila.data('ajuste_fichas',data.ajuste_fichas);
+  fila.data('observacion',data.observacion);
+
+  if(!data.cierre || !data.cierre_anterior){
+    fila.find('td').css('color','red');
+    fila.attr('title','Sin cierre');
+  }
   fila.css('display', '');
   return fila;
 }
