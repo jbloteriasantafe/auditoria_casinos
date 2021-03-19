@@ -37,6 +37,7 @@ $(document).ready(function() {
   }).data('datetimepicker').setDate(new Date());;
   $('#filtroCas').val($('#filtroCas option:first').val());
   $('#filtroMon').val($('#filtroMon option:first').val());
+  $('#collapseFiltros').collapse('show');
   $('#buscar-importacionesDiarias').click();
 });
 
@@ -70,6 +71,18 @@ $("ul.pestImportaciones li").click(function() {
     else return;
     $(activeTab).fadeIn(); //Fade in the active ID content
 });
+
+$('#filtroCas').change(function() {
+  $('#buscar-importacionesDiarias').click();
+});
+
+$('#filtroMon').change(function() {
+  $('#buscar-importacionesDiarias').click();
+});
+
+$('#dtpFecha').on("change.datetimepicker",function(){
+  $('#buscar-importacionesDiarias').click();
+})
 
 $('#archivo').on('change',function(){
   $('#btn-guardarDiario').show();
@@ -399,15 +412,16 @@ function generarFilaTotalesDia(data){
   const fila = generarFilaVerImp({
     id_importacion_diaria_mesas: '',
     siglas_juego: 'TOTALES',
-    nro_mesa: '',
+    nro_mesa: '--',
     saldo_fichas: data.saldo_diario_fichas,
     droop: data.total_diario,
     reposiciones: data.total_diario_reposiciones,
     retiros: data.total_diario_retiros,
     utilidad: data.utilidad_diaria_total,
-    hold: '-',
+    hold: '--',
   });
-  fila.css('cssText','background-color:#aaa; color:black;');
+  fila.css('cssText','color:black;').find('.v_observar').parent().empty().append('--');
+  fila.find('td').css('background','#aaa');
   return fila;
 };
 
@@ -422,6 +436,16 @@ function generarFilaVerImp(data){
   fila.find('.v_retiros').text(data.retiros);
   fila.find('.v_utilidad').text(data.utilidad);
   fila.find('.v_hold').text(data.hold);
+  fila.css('display', '');
+  return fila;
+}
+
+function generarFilaCierre(data){
+  const fila = $('#moldeCierre').clone();
+  fila.attr('id', data.id_cierre_mesa);
+  fila.find('.c_fecha').text(data.fecha);
+  fila.find('.c_saldofichas').text(data.saldo_fichas);
+  fila.find('.c_estado').text(data.estado);
   fila.css('display', '');
   return fila;
 }

@@ -9,7 +9,12 @@
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
-
+<style>
+.small{
+  font-size: 85%;
+  text-align: center;
+}
+</style>
 @endsection
 @section('contenidoVista')
 
@@ -43,7 +48,7 @@
           <div class="row">
                 <div class="col-md-12">
                   <div class="panel panel-default">
-                      <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
+                      <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer" aria-expanded="true">
                         <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
                       </div>
 
@@ -78,7 +83,7 @@
                                 @endforeach
                               </select>
                             </div>
-                            <div class="col-xs-3" >
+                            <div class="col-xs-3" hidden>
                               <button id="buscar-importacionesDiarias" style="margin-top:30px" class="btn btn-infoBuscar" type="button" name="button">
                                 <i class="fa fa-fw fa-search"></i> BUSCAR
                               </button>
@@ -103,8 +108,8 @@
                       <thead>
                         <tr align="center" >
                           <th class="col-xs-2 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
-                          <th class="col-xs-2" estado="desc" value="casino.nombre" style="font-size:14px; text-align:center !important;">CASINO<i class="fas fa-sort"></i></th>
-                          <th class="col-xs-2" estado="desc" value="moneda.descripcion" style="font-size:14px; text-align:center !important;">MONEDA<i class="fas fa-sort"></i></th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">CASINO</th>
+                          <th class="col-xs-2"style="font-size:14px; text-align:center !important;">MONEDA</th>
                           <th class="col-xs-1" style="font-size:14px; text-align:center !important;">IMP.</th>
                           <th class="col-xs-1" style="font-size:14px; text-align:center !important;">REL.</th>
                           <th class="col-xs-1" style="font-size:14px; text-align:center !important;">VAL.</th>
@@ -472,59 +477,110 @@
               </select>
             </div>
         </div>
-        <br>
-        <br>
+        <hr>
         <div class="row">
-
-          <div class="col-xs-12">
-              <table  style="border-collapse: collapse; table-layout:auto" align="center" class="table table-bordered" >
-                <thead>
-                  <tr  >
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5  style="font-size: 13px; color:#000;text-align:center !important;">JUEGO</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5  style="font-size: 13px; color:#000;text-align:center !important;">NRO MESA</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">SALDO FICHAS</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">DROP</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">REPOSICIONES</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">RETIROS</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">UTILIDAD</h5>
-                    </th>
-                    <th  class="col-xs-1" style="text-align:center !important;padding:0px;">
-                      <h5 style="font-size: 13px; color:#000;text-align:center !important;">HOLD %</h5>
-                    </th>
-                  </tr>
-                </thead>
+         <div class="col-xs-12">
+          <table class="table table-fixed" style="margin-bottom: 0px;">
+            <thead>
+              <tr>
+                <th class="col-xs-1 small">JUEGO</th>
+                <th class="col-xs-1 small">NRO MESA</th>
+                <th class="col-xs-1 small">SALDO FICHAS</th>
+                <th class="col-xs-1 small">SALDO FICHAS (Rel.)</th>
+                <th class="col-xs-1 small">DIFF</th>
+                <th class="col-xs-1 small">AJUSTE</th>
+                <th class="col-xs-1 small">DROP</th>
+                <th class="col-xs-1 small">REPOSICIONES</th>
+                <th class="col-xs-1 small">RETIROS</th>
+                <th class="col-xs-1 small">UTILIDAD</th>
+                <th class="col-xs-1 small">HOLD %</th>
+                <th class="col-xs-1 small">&nbsp;</th>
+              </tr>
+            </thead>
+          </table>
+         </div>
+        </div>
+        <div class="row">
+          <div class="row">
+            <div class="col-xs-12" style="overflow-y: scroll;max-height: 400px;">
+              <table class="table table-fixed">
                 <tbody id="datosImpDiarios" >
                 </tbody>
               </table>
-              <div class="table table-responsive" id="mostrarTablaValidar"  style="display:none;">
-                <table class="table" style="padding:0px !important">
-                  <tbody>
-                  <tr id="moldeImpDiarios" class="filaClone"  style="display:none">
-                      <td class="col-xs-1 v_juego" style="text-align:center !important;padding:2px !important;">JJJJJJ</td>
-                      <td class="col-xs-1 v_mesa" style="text-align:center !important;padding:2px !important;">999999</td>
-                      <td class="col-xs-1 v_saldofichas" style="text-align:center !important;padding:2px !important;">-9999999.99</td>
-                      <td class="col-xs-1 v_drop" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
-                      <td class="col-xs-1 v_reposiciones" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
-                      <td class="col-xs-1 v_retiros" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
-                      <td class="col-xs-1 v_utilidad" style="text-align:right !important;padding:2px !important;">-9999999.99</td>
-                      <td class="col-xs-1 v_hold" style="text-align:center !important;padding:2px !important;">-9999999.99</td>
+              <table class="table" style="padding:0px !important" hidden>
+                  <tr id="moldeImpDiarios" class="filaClone" style="display:none">
+                    <td class="col-xs-1 v_juego small">JJJJJJ</td>
+                    <td class="col-xs-1 v_mesa small">999999</td>
+                    <td class="col-xs-1 v_saldofichas small" >-9999999.99</td>
+                    <td class="col-xs-1 v_saldofichas_rel small">-9999999.99</td>
+                    <td class="col-xs-1 v_diff small">-9999999.99</td>
+                    <td class="col-xs-1 v_ajuste small">-9999.99</td>
+                    <td class="col-xs-1 v_drop small" >-9999999.99</td>
+                    <td class="col-xs-1 v_reposiciones small">-9999999.99</td>
+                    <td class="col-xs-1 v_retiros small">-9999999.99</td>
+                    <td class="col-xs-1 v_utilidad small">-9999999.99</td>
+                    <td class="col-xs-1 v_hold small">-9999999.99</td>
+                    <td class="col-xs-1 small">
+                      <button type="button" class="btn btn-info v_observar">
+                        <i class="fas fa-fw fa-pencil-alt"></i>
+                      </button>
+                    </td>
                   </tr>
               </table>
             </div>
           </div>
+          <hr>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="col-md-4">
+                <b>Fecha cierre 1: </b>
+                <span>9999-99-99</span>
+              </div>
+              <div class="col-md-4">
+                <b>Estado: </b>
+                <span>ESTADO ESTADO</span>
+              </div>
+              <div class="col-md-4">
+                <b>Fichas: </b>
+                <span>9999999</span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="col-md-4">
+                <b>Fecha cierre 2: </b>
+                <span>9999-99-99</span>
+              </div>
+              <div class="col-md-4">
+                <b>Estado: </b>
+                <span>ESTADO ESTADO</span>
+              </div>
+              <div class="col-md-4">
+                <b>Fichas: </b>
+                <span>9999999</span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="col-md-4">
+                <b>Ajustar: </b>
+                <input class="form-control" value="9999999"/>
+              </div>
+              <div class="col-md-8">
+                <b>Observaciones: </b>
+                <input class="form-control" value=""/>
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="row">
+            <div class="col-md-1 col-md-offset-5">
+                <button type="button" class="btn btn-primary confirmar_ajuste">CONFIRMAR</button>
+            </div>
+          </div>
+          <hr style="margin: 1%;">
           <div class="row">
             <div class="col-md-12">
               <h5>OBSERVACIONES</h5>
