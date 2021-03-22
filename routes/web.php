@@ -755,6 +755,7 @@ Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importac
 Route::get('importacionDiaria/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarObservacion');
 Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
+Route::post('importacionDiaria/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
 Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');
 Route::post('importacionMensual/filtros','Mesas\Importaciones\Mesas\MensualController@filtros');
 Route::get('importacionMensual/verImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@buscar');
@@ -773,6 +774,7 @@ Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales
 Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
 Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
+
 
 Route::get('informeDiario/getDatos/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosAModificar');
 Route::get('informeDiario/getDatosImportacion/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosDetalle');

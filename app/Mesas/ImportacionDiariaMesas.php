@@ -25,10 +25,12 @@ class ImportacionDiariaMesas extends Model
                              'total_diario_reposiciones',
                              'utilidad_diaria_total',
                              'hold_diario',
-                             'conversion_total'
-
+                             'conversion_total',
+                             'saldo_fichas_relevado',
+                             'diferencia_saldo_fichas',
+                             'ajuste_fichas'
                            );
-  protected $appends = array('hold_diario','conversion_total');
+  protected $appends = array('hold_diario','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
 
   public function getHoldDiarioAttribute(){
      if($this->total_diario != 0){
@@ -45,6 +47,22 @@ class ImportacionDiariaMesas extends Model
      }else{
        return '--';
      }
+  }
+
+  public function getSaldoFichasRelevadoAttribute(){
+    $saldo = 0;
+    foreach($this->detalles as $d) $saldo+=$d->saldo_fichas_relevado;
+    return $saldo;
+  }
+
+  public function getAjusteFichasAttribute(){
+    $ajuste = 0;
+    foreach($this->detalles as $d) $ajuste+=$d->ajuste_fichas;
+    return $ajuste;
+  }
+
+  public function getDiferenciaSaldoFichasAttribute(){
+    return $this->saldo_diario_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas;
   }
 
   public function moneda(){

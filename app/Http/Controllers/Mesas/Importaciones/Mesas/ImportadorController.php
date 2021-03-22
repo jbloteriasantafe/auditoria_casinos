@@ -99,16 +99,14 @@ class ImportadorController extends Controller
     else if ($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
   }
   $detalles = collect($detalles)->map(function($v,$idx){
-    $cierre = $v->cierre();
+    $cierre = $v->cierre;
     $estado_cierre = is_null($cierre)? 'SIN RELEVAR' : $cierre->estado_cierre->descripcion;
     
-    $cierre_anterior = $v->cierre_anterior();
+    $cierre_anterior = $v->cierre_anterior;
     $estado_cierre_anterior = is_null($cierre_anterior)? 'SIN RELEVAR' : $cierre_anterior->estado_cierre->descripcion;
 
     $v = $v->toArray();
-    $v['cierre'] = $cierre;
     $v['estado_cierre'] = $estado_cierre;
-    $v['cierre_anterior'] = $cierre_anterior;
     $v['estado_cierre_anterior'] = $estado_cierre_anterior;
     return $v;
   });
@@ -245,7 +243,7 @@ public function importarDiario(Request $request){
         $detalles = $importacion->detalles()->orderBy('siglas_juego','asc')->orderBy('nro_mesa','asc')->get();
         foreach($detalles as $d){
           if(!$tiene_cierre) break;
-          $tiene_cierre &= !is_null($d->cierre()) && !is_null($d->cierre_anterior());
+          $tiene_cierre &= !is_null($d->cierre) && !is_null($d->cierre_anterior);
         }
       }
       $arreglo[] = ["fecha" => $fecha,"importacion" => $importacion,"tiene_cierre" => $tiene_cierre];
@@ -385,5 +383,16 @@ public function importarDiario(Request $request){
     $dompdf->getCanvas()->page_text(20, 815, $importacion->casino->codigo."/".$importacion->fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream('informe_diario_'.$importacion->casino->codigo.'_'.$importacion->fecha.'.pdf', Array('Attachment'=>0));
+  }
+
+  public function ajustarDetalle(Request $request){
+    $validator =  Validator::make($request->all(),[
+      'id_detalle_importacion_diaria_mesas' => 'required|exists:detalle_importacion_diaria_mesas,id_detalle_importacion_diaria_mesas'
+    ], array(), self::$atributos)->validate();
+    $dimp = DetalleImportacionDiariaMesas::find($request->id_detalle_importacion_diaria_mesas);
+    $dimp->ajuste_fichas = $request->ajuste_fichas;
+    $dimp->observacion = $request->observacion;
+    $dimp->save();
+    return $dimp;
   }
 }

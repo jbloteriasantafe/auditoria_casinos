@@ -19,14 +19,18 @@ class DetalleImportacionDiariaMesas extends Model
                              'retiros',
                              'saldo_fichas', //NO PUEDE SER NULL -> 0 POR DEFECTO
                              'utilidad_calculada',
-                             'diferencia_cierre',//UTILIDAD IMPORTADA - UTILIDAD CALCULADA
+                             'diferencia_cierre',//Remove?
                              'hold',
                              'id_cierre_mesa',
                              'id_cierre_mesa_anterior',
                              'ajuste_fichas',
-                             'observacion'
+                             'observacion',
+                             'cierre',
+                             'cierre_anterior',
+                             'saldo_fichas_relevado',
+                             'diferencia_saldo_fichas'
                            );
-  protected $appends = array('hold','conversion');
+  protected $appends = array('hold','conversion','cierre','cierre_anterior','saldo_fichas_relevado','diferencia_saldo_fichas');
 
   public function getHoldAttribute(){
       if($this->droop != 0){
@@ -82,7 +86,7 @@ class DetalleImportacionDiariaMesas extends Model
     return $mesa;
   }
 
-  public function cierre(){
+  public function getCierreAttribute(){
     if(!is_null($this->id_cierre_mesa)) return Cierre::find($this->id_cierre_mesa);
 
     $mesa = $this->mesa();
@@ -94,7 +98,7 @@ class DetalleImportacionDiariaMesas extends Model
     return Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
     ->whereNull('deleted_at')->first();
   }
-  public function cierre_anterior(){
+  public function getCierreAnteriorAttribute(){
     if(!is_null($this->id_cierre_mesa_anterior)) return Cierre::find($this->id_cierre_mesa_anterior);
 
     $mesa = $this->mesa();
@@ -106,6 +110,20 @@ class DetalleImportacionDiariaMesas extends Model
     return Cierre::where([['fecha','<',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
     ->whereNull('deleted_at')
     ->orderBy('fecha','desc')->first();
+  }
+
+  public function getSaldoFichasRelevadoAttribute(){
+    $fichas = $this->cierre;
+    $fichas = is_null($fichas)? 0 : $fichas->total_pesos_fichas_c;
+    $fichas_anterior = $this->cierre_anterior;
+    $fichas_anterior = is_null($fichas_anterior)? 0 : $fichas_anterior->total_pesos_fichas_c;
+    $saldo_relevado = $fichas - $fichas_anterior;
+    return $saldo_relevado;
+  }    
+
+  public function getDiferenciaSaldoFichasAttribute(){
+    $ajuste_fichas = $this->ajuste_fichas? $this->ajuste_fichas : 0;
+    return $this->saldo_fichas - $this->saldo_fichas_relevado + $ajuste_fichas;
   }
 
   public function getTableName(){

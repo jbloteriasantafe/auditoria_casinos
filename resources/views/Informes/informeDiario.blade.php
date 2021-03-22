@@ -58,54 +58,76 @@
         <tr>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">JUEGO</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">MESA</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">DIF.</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">SALDO EN FICHAS</th>
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">DROP</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">REP.</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">RET.</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">UTILIDAD</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">REPOS.</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray; ">RETIROS</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">UTIL.</th>
           @if($importacion->moneda->siglas != 'ARS')
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">COTIZACIÓN</th>
-          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">CONVERSIÓN</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">COTIZA CIÓN</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">CONVER SIÓN</th>
           @endif
           <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">HOLD</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">SALDO EN FICHAS</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">SALDO EN FICHAS (Rel.)</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">DIF.</th>
+          <th class=" tablaInicio" style="background-color: #c0c0c0; border-color: gray;">AJUSTE</th>
         </tr>
       </thead>
       <tbody>
         @foreach($det_importacion as $d)
         <tr>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->siglas_juego}}</td>
-          <td class="tablaCampos" style=" font-size:12px; border-color: gray;">{{$d->nro_mesa}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->diferencia_cierre}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->saldo_fichas}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->droop}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->reposiciones}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->retiros}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->utilidad}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->siglas_juego}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->nro_mesa}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->droop}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->reposiciones}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->retiros}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->utilidad}}</td>
           @if($importacion->moneda->siglas != 'ARS')
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$importacion->cotizacion}}</td>
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->conversion}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->conversion}}</td>
           @endif
-          <td class="tablaCampos" style="font-size:12px; border-color: gray;">{{$d->hold}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->hold}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->saldo_fichas}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->saldo_fichas_relevado}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->diferencia_saldo_fichas}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->ajuste_fichas}}</td>
         </tr>
         @endforeach
         <!-- fila totalizadora -->
         <tr>
-          <th style="font-size:12px; border-color: gray;">TOTALES</th>
-          <th style="font-size:12px; border-color: gray;">--</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->diferencias}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->saldo_diario_fichas}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->total_diario}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->total_diario_reposiciones}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->total_diario_retiros}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->utilidad_diaria_total}}</th>
+          <th style="font-size:10px; border-color: gray;">TOTALES</th>
+          <th style="font-size:10px; border-color: gray;">--</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario_reposiciones}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario_retiros}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->utilidad_diaria_total}}</th>
           @if($importacion->moneda->siglas != 'ARS')
-          <th style="font-size:12px; border-color: gray;">{{$importacion->cotizacion}}</th>
-          <th style="font-size:12px; border-color: gray;">{{$importacion->conversion_total}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->conversion_total}}</th>
           @endif
-          <th style="font-size:12px; border-color: gray;">{{$importacion->hold_diario}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->hold_diario}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_diario_fichas}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_fichas_relevado}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->diferencia_saldo_fichas}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->ajuste_fichas}}</th>
         </tr>
       </tbody>
+    </table>
+    <br><br>
+    <div class="primerEncabezado">Observaciones</div>
+    <table style="font-size:12px;table-layout: fixed;">
+      <tr>
+        <td width="8%;">&nbsp;</td>
+        <td>{{$importacion->observacion}}</td>
+      </tr>
+      @foreach($det_importacion as $d)
+      @if($d->observacion)
+      <tr>
+        <td>{{$d->siglas_juego.$d->nro_mesa}}</td>
+        <td>{{$d->observacion}}</td>
+      </tr>
+      @endif
+      @endforeach
     </table>
   </body>
 </html>

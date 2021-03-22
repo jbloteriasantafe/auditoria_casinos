@@ -301,12 +301,12 @@ function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
   if(modo == 'ver'){
     $('#modalVerImportacion .modal-title').text('| DETALLE IMPORTACIÓN DIARIA');
     $('#modalVerImportacion .modal-header').css('background-color','#0D47A1');
-    $('#ajuste input').attr('disabled',true);
+    $('#ajuste input,#ajuste button').attr('disabled',true);
   }
   else if(modo == 'validar'){
     $('#modalVerImportacion .modal-title').text('| VALIDAR IMPORTACIÓN DIARIA');
     $('#modalVerImportacion .modal-header').css('background-color','#6dc7be');
-    $('#ajuste input').attr('disabled',false);
+    $('#ajuste input,#ajuste button').attr('disabled',false);
   }
 
   $.get('importacionDiaria/verImportacion/' + id_imp + '/' + tipo, function(data){
@@ -317,7 +317,6 @@ function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
     for (let i = 0; i < data.detalles.length; i++) {
       $('#datosImpDiarios').append(generarFilaVerImp(data.detalles[i]));
     }
-    if(modo == 'ver') $('#datosImpDiarios').append(generarFilaTotalesDia(data.importacion));
     $('#modalVerImportacion').modal('show');
   });
 }
@@ -410,30 +409,9 @@ function habilitarInputDiario(){
   });
 }
 
-//genera las filas a la tabla dentro del modal ver
-function generarFilaTotalesDia(data){
-  const fila = generarFilaVerImp({
-    id_detalle_importacion_diaria_mesas: '',
-    siglas_juego: 'TOTALES',
-    nro_mesa: '--',
-    saldo_fichas: data.saldo_diario_fichas,
-    droop: data.total_diario,
-    reposiciones: data.total_diario_reposiciones,
-    retiros: data.total_diario_retiros,
-    utilidad: data.utilidad_diaria_total,
-    hold: '--',
-    cierre: 'CAMPO NO NULO',
-    cierre_anterior: 'CAMPO NO NULO',
-  });
-  fila.css('cssText','color:black;').find('.v_observar').parent().empty().append('--');
-  fila.find('td').css('background','#aaa');
-  return fila;
-};
-
-
 function clearNull(v){ return v == null? 0 : v };
 
-$(document).on('click','.v_observar',function(e){
+$(document).on('click','.v_ajustar',function(e){
   e.preventDefault();
   const fila = $(this).closest('tr');
   const cierre = fila.data('cierre');
@@ -472,29 +450,41 @@ $('#confirmar_ajuste').click(function(){
   const fila = $('#datosImpDiarios #'+$(this).val());
   const ajuste = $('#ajuste .ajuste').val();
   const observacion = $('#ajuste .observaciones').val();
-  fila.find('.v_ajuste').text(ajuste == ""? 0 : ajuste);
-  fila.data('ajuste_fichas',ajuste);
-  fila.data('observacion',observacion);
-  $('#ajuste').hide();
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: 'POST',
+    url: 'importacionDiaria/ajustarDetalle',
+    data: {
+      id_detalle_importacion_diaria_mesas: fila.attr('id'),
+      ajuste_fichas: ajuste,
+      observacion: observacion
+    },
+    dataType: 'json',
+    success: function (data){
+      fila.replaceWith(generarFilaVerImp(data));
+      $('#ajuste').hide();
+    },
+    error: function(data){ console.log(data); },
+  })
 });
 
 function generarFilaVerImp(data){
   const fila = $('#moldeImpDiarios').clone();
   fila.attr('id', data.id_detalle_importacion_diaria_mesas);
-  fila.find('.v_juego').text(data.siglas_juego);
-  fila.find('.v_mesa').text(data.nro_mesa);
-  fila.find('.v_drop').text(data.droop);
-  fila.find('.v_saldofichas').text(data.saldo_fichas);
-  const fichas          =          data.cierre? clearNull(data.cierre.total_pesos_fichas_c) : 0;
-  const fichas_anterior = data.cierre_anterior? clearNull(data.cierre_anterior.total_pesos_fichas_c) : 0;
-  const saldo_rel = parseFloat(fichas) - parseFloat(fichas_anterior);
-  fila.find('.v_saldofichas_rel').text(saldo_rel.toFixed(2));
-  fila.find('.v_diff').text(parseFloat(data.saldo_fichas)-saldo_rel);
-  fila.find('.v_ajuste').text(0.00);
-  fila.find('.v_reposiciones').text(data.reposiciones);
-  fila.find('.v_retiros').text(data.retiros);
-  fila.find('.v_utilidad').text(data.utilidad);
-  fila.find('.v_hold').text(data.hold);
+  function text(f,s){f.text(s).attr('title',s);};
+
+  text(fila.find('.v_juego'),data.siglas_juego);
+  text(fila.find('.v_mesa'),data.nro_mesa);
+  text(fila.find('.v_drop'),data.droop);
+  text(fila.find('.v_saldofichas'),data.saldo_fichas);
+  text(fila.find('.v_saldofichas_rel'),data.saldo_fichas_relevado);
+  text(fila.find('.v_diff'),data.diferencia_saldo_fichas);
+  fila.find('.v_diff').css('background-color',data.diferencia_saldo_fichas == 0.00? 'rgb(220,255,220)' : 'rgb(255,220,220)');
+  text(fila.find('.v_ajuste'),data.ajuste_fichas? data.ajuste_fichas : 0.0);
+  text(fila.find('.v_reposiciones'),data.reposiciones);
+  text(fila.find('.v_retiros'),data.retiros);
+  text(fila.find('.v_utilidad'),data.utilidad);
+  text(fila.find('.v_hold'),data.hold);
 
   fila.data('cierre',data.cierre);
   fila.data('estado_cierre',data.estado_cierre);
@@ -504,8 +494,7 @@ function generarFilaVerImp(data){
   fila.data('observacion',data.observacion);
 
   if(!data.cierre || !data.cierre_anterior){
-    fila.find('td').css('color','red');
-    fila.attr('title','Sin cierre');
+    fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRES');
   }
   fila.css('display', '');
   return fila;
