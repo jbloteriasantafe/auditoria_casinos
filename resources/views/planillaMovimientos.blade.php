@@ -83,7 +83,7 @@
     <div style="page-break-after:always;"></div>
     @endif
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo_portrait2.png" width="900">
+      <img src="img/logos/banner_nuevo2_portrait.png" width="900">
       <h2><span>RMTM 01-02 | Control de {{$tipo_planilla}} de MTMs.</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

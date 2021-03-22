@@ -42,7 +42,7 @@ p {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo_landscape2.png" width="900">
+              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
               <h2><span>RMTM08 | Control de Layout Parcial de sala (MTM)</span></h2>
         </div>
               <div class="camposTab titulo" style="top: -15px; right:-15px;">FECHA PLANILLA</div>

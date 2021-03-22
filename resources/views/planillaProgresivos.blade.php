@@ -42,7 +42,7 @@ p {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="900">
+              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
               <h2><span>RMTM ?? | Formato de evaluación a progresivos. </span></h2>
         </div>
               <div class="camposTab titulo" style="right:18px; top:-18px;">CASINO</div>

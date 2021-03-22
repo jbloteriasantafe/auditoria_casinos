@@ -48,7 +48,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo_landscape2.png" width="900">
+              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
               <h2><span style="color: #9c9c9c;">RMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
         </div>
               <div class="camposTab titulo" style="color: #9c9c9c;">CASINO | FECHA P.</div><div class="camposTab titulo" style="right:196px; color: #9c9c9c;">| SECTOR</div>

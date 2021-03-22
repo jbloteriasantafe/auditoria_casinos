@@ -152,7 +152,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
         <aside>
             <div class="contenedorLogo">
                 <a onclick="window.location = window.location.protocol + '//' + window.location.host + '/inicio'"  href="#">
-                  <img src="/img/logos/logo_nuevo_bn.png" alt="" width="48%" style="margin-top: 10px;">
+                  <img src="/img/logos/logo_nuevo2_bn.png" alt="" width="55%" style="margin-top: 6px;">
                 </a>
             </div>
             <!-- <div class="scrollMenu"> -->
