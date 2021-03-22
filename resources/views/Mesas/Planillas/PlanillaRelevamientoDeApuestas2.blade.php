@@ -50,7 +50,7 @@ footer
       @endif
         <div class="encabezadoImg">
 
-              <img src="img/logos/banner_loteria_landscape2_f.png" width="1090">
+              <img src="img/logos/banner_nuevo2_landscape.png" width="1090">
               <h2><span>RMES03 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
         </div>
         <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

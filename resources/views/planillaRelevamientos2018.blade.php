@@ -52,7 +52,7 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
         <!-- Encabezado para todas las páginas -->
         <div class="encabezado">
             <!-- Logo de la Lotería -->
-            <img src="img/logos/banner_nuevo_relevamiento_contadores.png" width="1090">
+            <img src="img/logos/banner_nuevo2_relevamiento_contadores.png" width="1090">
 
             <!-- Título de la planilla -->
             <div class="tituloPlanilla">

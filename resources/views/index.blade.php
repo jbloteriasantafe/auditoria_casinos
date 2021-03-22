@@ -53,7 +53,7 @@ $rutaImagen = $ruta.$varImg;
               <div id="contenedorFormulario" style="background-color: #fff; padding: 30px 15px; margin: 10px;">
                   <!-- /.login-logo -->
                     <div class="login-logo">
-                      <center><img src="img/logos/logo_nuevo.png" width="90%"></center> <!-- VER -->
+                      <center><img src="img/logos/logo_nuevo2.png" width="90%"></center> <!-- VER -->
                     </div>
                     <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
 
@@ -110,7 +110,7 @@ $rutaImagen = $ruta.$varImg;
                       <img src="/img/logos/logo-provincia.png" width="58px" style="float:right; margin:20px;">
                   </a>
                   <a href="http://www.loteriasantafe.gov.ar/">
-                      <img src="/img/logos/logo_nuevo_bn.png" width="135px" style="float:right; margin: 18px 5px 0px 5px;">
+                      <img src="/img/logos/logo_nuevo2_bn.png" width="135px" style="float:right; margin: 13px 5px 0px 5px;">
                   </a>
                   <a href="https://www.facebook.com/loteriadesantafe" style="color:white !important;">
                       <i class="fa fa-facebook-square fa-2x" style="float:right; margin:35px 30px 0px 10px;"></i>
