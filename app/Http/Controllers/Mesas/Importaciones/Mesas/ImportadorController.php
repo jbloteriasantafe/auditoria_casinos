@@ -190,8 +190,7 @@ public function importarDiario(Request $request){
       //@HACK: saldo_fichas calculado a pata hasta que lo manden en el archivo
       $crea_detalles = sprintf("INSERT INTO detalle_importacion_diaria_mesas
         (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, utilidad, reposiciones, retiros, 
-        saldo_fichas, 
-        diferencia_cierre, utilidad_calculada)
+        saldo_fichas)
         SELECT 
         csv.id_archivo, csv.row_1, csv.row_2, csv.row_3, csv.row_4, csv.row_5, csv.row_6,
         csv.row_4 - (csv.row_3 + csv.row_5 - csv.row_6),
