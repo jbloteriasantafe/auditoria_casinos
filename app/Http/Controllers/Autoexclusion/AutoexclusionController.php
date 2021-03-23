@@ -373,26 +373,46 @@ class AutoexclusionController extends Controller
       return ['codigo' => 200];
     }
 
-    //Función para obtener los datos de un autoexcluido a partir de un DNI
-    public function existeAutoexcluido($dni){
-      $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
-      $todos_vencidos = true;
-      foreach($aes as $ae){
-        $e = $ae->estado;
-        $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
-        $todos_vencidos = $vencido && $todos_vencidos;
-        if(!$todos_vencidos) break;
-      }
-      //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
-      if($todos_vencidos){
-        //Si ya estuvo AE retorno -1 sino 0
-        if(count($aes) > 0) return -1;
-        else return 0;
-      }
+  //Función para obtener los datos de un autoexcluido a partir de un DNI
+  public function existeAutoexcluido($dni){//NO CAMBIAR SIN VERIFICAR QUE API_existeAE siga estando correcto
+    $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
+    $todos_vencidos = true;
+    foreach($aes as $ae){
+      $e = $ae->estado;
+      $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+      $todos_vencidos = $vencido && $todos_vencidos;
+      if(!$todos_vencidos) break;
+    }
+    //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
+    if($todos_vencidos){
+      //Si ya estuvo AE retorno -1 sino 0
+      if(count($aes) > 0) return -1;
+      else return 0;
+    }
 
-      //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarl
-      $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
-      return $ae->id_autoexcluido;
+    //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarl
+    $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
+    return $ae->id_autoexcluido;
+  }
+
+  public function API_existeAE($dni){
+    $this->actualizarVencidosRenovados();
+    $estado = $this->existeAutoexcluido($dni);
+    if($estado == -1) return ['estado' => 'No AE','ya_estuvo_ae' => true];
+    if($estado ==  0) return ['estado' => 'No AE','ya_estuvo_ae' => false];
+    $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
+    $primer_ae = $ae->es_primer_ae;
+    $estado = $ae->estado;
+    $nombreEstado = $ae->estado->nombreEstado;
+    $puede_finalizar = $ae->es_primer_ae? ['desde' => $estado->fecha_renovacion,'hasta' => $estado->fecha_vencimiento] : false;
+
+    if($nombreEstado->id_nombre_estado == 1 || $nombreEstado->id_nombre_estado == 7)
+      return ['estado' => "Vigente",'cierre' => $estado->fecha_cierre_ae, 'puede_finalizar' => $puede_finalizar];
+    if($nombreEstado->id_nombre_estado == 2)
+      return ['estado' => "Renovado",'cierre' => $estado->fecha_cierre_ae];
+    if($nombreEstado->id_nombre_estado == 3 || $nombreEstado->id_nombre_estado == 6)
+      return ['estado' => "Validandose",'cierre' => $estado->fecha_cierre_ae, 'puede_finalizar' => $puede_finalizar];
+    return "ERROR";
   }
 
   public function buscarAutoexcluido ($id) {

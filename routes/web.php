@@ -914,3 +914,7 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('/{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
   Route::get('/mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
 });
+
+Route::group(['prefix' => 'autoexclusionAPI','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
+  Route::get('/existeAE/{dni}','Autoexclusion\AutoexclusionController@API_existeAE');
+});
