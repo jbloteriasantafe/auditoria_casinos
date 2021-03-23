@@ -90,7 +90,6 @@ $('#archivo').on('change',function(){
 $('#btn-importar').on('click', function(e){
   e.preventDefault();
   $('#cotizacion_diaria').prop('readonly',true);
-  $('#mensajeErrorJuegos').hide();
 
   ocultarErrorValidacion($('#B_fecha_imp'));
   ocultarErrorValidacion($('#monedaSel'));
@@ -117,6 +116,7 @@ $('#btn-importar').on('click', function(e){
   $('#btn-guardarDiario').hide();
 
   $('#modalImportacionDiaria').modal('show');
+  $('#mensajeErrorJuegos').hide();
 });
 
 $(document).on('change','#monedaSel',function(){
