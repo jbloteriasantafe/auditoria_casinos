@@ -289,7 +289,7 @@ $(document).on('click','#tablaResultadosDiarios thead tr th[value]',function(e){
 
 function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
   if(modo != 'ver' && modo != 'validar') return;
-
+  ocultarErrorValidacion($('#modalVerImportacion input'));
   $('#mensajeExito').hide();
   $('#observacionesImpD').val('');
   $('#selectMesa').val(tipo_mesa);
@@ -362,7 +362,11 @@ $('#guardar-observacion').on('click', function(e){
       $('#mensajeExito p').text(' ');
       $('#mensajeExito').show();
     },
-    error: function(data){ console.log(data); },
+    error: function(data){ 
+      const errores = data.responseJSON;
+      console.log(errores); 
+      if(errores.observacion) mostrarErrorValidacion($('#observacionesImpD'),errores.observacion[0],true);
+    },
   });
 })
 
@@ -413,6 +417,7 @@ function clearNull(v){ return v == null? 0 : v };
 
 $(document).on('click','.v_ajustar',function(e){
   e.preventDefault();
+  ocultarErrorValidacion($('#ajuste input'));
   const fila = $(this).closest('tr');
   const cierre = fila.data('cierre');
   const estado_cierre = fila.data('estado_cierre');
@@ -464,7 +469,12 @@ $('#confirmar_ajuste').click(function(){
       fila.replaceWith(generarFilaVerImp(data));
       $('#ajuste').hide();
     },
-    error: function(data){ console.log(data); },
+    error: function(data){ 
+      const errores = data.responseJSON;
+      console.log(errores);
+      if(errores.ajuste) mostrarErrorValidacion($('#ajuste .ajuste'),errores.ajuste[0],true);
+      if(errores.observacion) mostrarErrorValidacion($('#ajuste .observaciones'),errores.observacion[0],true);
+    },
   })
 });
 

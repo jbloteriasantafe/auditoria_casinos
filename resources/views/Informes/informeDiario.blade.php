@@ -113,18 +113,17 @@
         </tr>
       </tbody>
     </table>
-    <br><br>
-    <div class="primerEncabezado">Observaciones</div>
-    <table style="font-size:12px;table-layout: fixed;">
-      <tr>
-        <td width="8%;">&nbsp;</td>
-        <td>{{$importacion->observacion}}</td>
-      </tr>
+    <h5>Observaciones</h5>
+    <div class="tablaCampos">
+    {{$importacion->observacion}}
+    </div>
+    <br>
+    <table style="table-layout: fixed;">
       @foreach($det_importacion as $d)
       @if($d->observacion)
       <tr>
-        <td>{{$d->siglas_juego.$d->nro_mesa}}</td>
-        <td>{{$d->observacion}}</td>
+        <td class="tablaCampos" width="10%">{{$d->siglas_juego.$d->nro_mesa}}</td>
+        <td class="tablaCampos" >{{$d->observacion}}</td>
       </tr>
       @endif
       @endforeach

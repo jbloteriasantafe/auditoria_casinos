@@ -3,7 +3,12 @@
 namespace App\Mesas;
 
 use Illuminate\Database\Eloquent\Model;
-
+//Hay valores que se calculan  dinamicamente pero una vez validada la importacion se setean
+//Esto es porque las categorias y numeros de las mesas pueden cambiar. Entonces 1 mes puede 
+//"asignarle" un cierre y otro mes puede "asignarle" otro cierre si el ADM cambia la mesa.
+//Para evitar esto, al principio se le asigna por fecha, nombre de juego y numero de mesa
+//Pero luego una vez validado se lo "concreta" como una relacion en ids. Entonces si 1 año
+//despues vas a la misma importacion, te deberia devolver los mismos valores (mientras no se toquen los cierres)
 class DetalleImportacionDiariaMesas extends Model
 {
   protected $connection = 'mysql';
@@ -17,12 +22,11 @@ class DetalleImportacionDiariaMesas extends Model
                              'utilidad',
                              'reposiciones',
                              'retiros',
-                             'saldo_fichas', //NO PUEDE SER NULL -> 0 POR DEFECTO
+                             'saldo_fichas',
                              'utilidad_calculada',
-                             'diferencia_cierre',//Remove?
                              'hold',
-                             'id_cierre_mesa',
-                             'id_cierre_mesa_anterior',
+                             'id_cierre_mesa',//Se setea una vez validada la importacion
+                             'id_cierre_mesa_anterior',//Se setea una vez validada la importacion
                              'ajuste_fichas',
                              'observacion',
                              'cierre',
@@ -87,11 +91,11 @@ class DetalleImportacionDiariaMesas extends Model
   }
 
   public function getCierreAttribute(){
-    if(!is_null($this->id_cierre_mesa)) return Cierre::find($this->id_cierre_mesa);
+    $imp = $this->importacion_diaria_mesas;
+    if($imp->validado) return is_null($this->id_cierre_mesa)? null : Cierre::withTrashed()->find($this->id_cierre_mesa);
 
     $mesa = $this->mesa();
     if(is_null($mesa)) return null;
-    $imp = $this->importacion_diaria_mesas;
     $fecha = $imp->fecha;
     $id_moneda = $imp->id_moneda;
 
@@ -99,11 +103,11 @@ class DetalleImportacionDiariaMesas extends Model
     ->whereNull('deleted_at')->first();
   }
   public function getCierreAnteriorAttribute(){
-    if(!is_null($this->id_cierre_mesa_anterior)) return Cierre::find($this->id_cierre_mesa_anterior);
+    $imp = $this->importacion_diaria_mesas;
+    if($imp->validado) return is_null($this->id_cierre_mesa_anterior)? null : Cierre::withTrashed()->find($this->id_cierre_mesa_anterior);
 
     $mesa = $this->mesa();
     if(is_null($mesa)) return null;
-    $imp = $this->importacion_diaria_mesas;
     $fecha = $imp->fecha;
     $id_moneda = $imp->id_moneda;
 

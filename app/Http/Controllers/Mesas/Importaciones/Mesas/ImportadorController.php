@@ -68,7 +68,7 @@ class ImportadorController extends Controller
    */
   public function __construct()
   {
-    $this->middleware(['tiene_permiso:m_importar']);//rol a definir por gusti-> en ppio AUDITOR
+    $this->middleware(['tiene_permiso:m_importar']);//??
   }
 
   public function buscarTodo(){
@@ -219,13 +219,11 @@ public function importarDiario(Request $request){
       $importacion->nombre_csv = $request->archivo->getClientOriginalName();
       $importacion->save();
 
-      //$this->calcularDiffIDM($iid);
-      //DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
+      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
     });
     return 1;
   }
 
-  //fecha casino moneda
   public function filtros(Request $request){
     $fecha = isset($request->fecha)? $request->fecha : date('Y-m-d');
     $fecha = new \DateTime($fecha);
@@ -259,103 +257,26 @@ public function importarDiario(Request $request){
             "moneda" => Moneda::find($request->id_moneda)->siglas];
   }
 
-  public function guardarObservacion(Request $request){
+  public function guardarImportacionDiaria(Request $request){
     $validator = Validator::make($request->all(),[
       'id_importacion' => 'required|exists:importacion_diaria_mesas,id_importacion_diaria_mesas',
-      'observacion' => 'nullable'
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
-    $importacion = ImportacionDiariaMesas::find($request->id_importacion);
-    $importacion->observacion  = $request->observacion;
-    $importacion->validado = 1;
-    $importacion->save();
-    return response()->json(['ok' => true], 200);
-  }
-
-  /*
-  * Busca las imp. diarias no validadas, que tengan diferencias y recalcula las diferencias
-  */
-  public function calcularDiffIDM($id_importacion_diaria_mesas = null){
-    //Si nos manda el ID hacemos el procedimiento solo para esa importación, sino para todas.
-    $datos = DB::table('importacion_diaria_mesas as imp')
-    ->select('imp.id_importacion_diaria_mesas','cierre_mesa.id_cierre_mesa')
-    ->join('cierre_mesa', function($join){
-      $join->on('cierre_mesa.id_mesa_de_panio','=','det.id_mesa_de_panio')
-      ->on('cierre_mesa.fecha','=','det.fecha');
-    })
-    ->where('imp.diferencias','<>',0)->where('imp.validado','=','0')->whereNull('imp.deleted_at');
-    if(!is_null($id_importacion_diaria_mesas)) $datos = $datos->where('imp.id_importacion_diaria_mesas','=',$id_importacion_diaria_mesas);
-    $datos = $datos->orderBy('imp.fecha','asc')->get();
-    //por cada importacion
-    foreach ($datos as $imp){
-      $detalles = DetalleImportacionDiariaMesas::where('id_importacion_diaria_mesas','=',$imp->id_importacion_diaria_mesas)->get();
-      $cierre = Cierre::find($imp->id_cierre_mesa);
-      //busco el cierre anterior
-      $last_cierre = Cierre::where('fecha','<',$cierre->fecha)->where('id_mesa_de_panio','=',$cierre->id_mesa_de_panio)
-      ->orderBy('fecha','desc')->get()->first();
-      $diferencias = 0;
-      foreach($detalles as $d){
-        //Setea los cierres al detalle y recalcula la utilidad
-        $diferencias += $this->calcularDifCierresImp($cierre,$last_cierre,$d) > 0;
+      'observacion' => 'nullable|string|max:200'
+    ], ['max' => 'El valor es muy grande'], self::$atributos)->after(function($validator){  })->validate();
+    DB::transaction(function() use ($request){
+      $importacion = ImportacionDiariaMesas::find($request->id_importacion);
+      $importacion->observacion  = $request->observacion;
+      //Validado setearlo DESPUES de cada cierre porque las propiedades dinamicas lo chequean 
+      foreach($importacion->detalles as $d){
+        $cierre = $d->cierre;
+        $cierre_anterior = $d->cierre_anterior;
+        $d->id_cierre_mesa = is_null($cierre)? null : $cierre->id_cierre_mesa;
+        $d->id_cierre_mesa_anterior= is_null($cierre_anterior)? null : $cierre_anterior->id_cierre_mesa;
+        $d->save();
       }
-      $importacion = ImportacionDiariaMesas::find($imp->id_importacion_diaria_mesas);
-      $imp->diferencias = $diferencias;
-      $imp->save();
-      $this->actualizarTotalesImpDiaria($importacion->id_importacion_diaria_mesas);
-    }
-  }
-
-  //Setea los cierres al detalle y recalcula la utilidad
-  private function calcularDifCierresImp($cierre,$last_cierre,&$detalle_importacion){   
-    $dif_cierres      = 0;
-    $id_ultimo_cierre = null;
-    if(!is_null($last_cierre)){//Encontramos un cierre anterior al que tiene
-      $dif_cierres      = $cierre->total_pesos_fichas_c - $last_cierre->total_pesos_fichas_c;
-      $id_ultimo_cierre = $last_cierre->id_cierre_mesa;
-    }
-    $detalle_importacion->saldo_fichas       = $dif_cierres;
-    //UTILIDAD CALCULADA = (Cx+1 - Cx) + DROP - FILL + CREDIT
-    $calculado  = $dif_cierres + $detalle_importacion->droop - $detalle_importacion->reposiciones + $detalle_importacion->retiros;
-    $diferencia = abs($calculado - $detalle_importacion->utilidad);
-    $detalle_importacion->utilidad_calculada = $calculado;
-    $detalle_importacion->diferencia_cierre  = $diferencia;
-    $detalle_importacion->id_ultimo_cierre   = $id_ultimo_cierre;
-    $detalle_importacion->id_cierre_mesa     = $cierre->id_cierre_mesa;
-    $detalle_importacion->save();
-    return $diferencia;
-  }
-
-  public function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
-    $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
-    $total_diario = 0 ;
-    $diferencias = 0;
-    $utilidad_diaria_calculada = 0;
-    $utilidad_diaria_total = 0;
-    $saldo_diario_fichas = 0;
-    $total_diario_retiros = 0;
-    $total_diario_reposiciones = 0;
-    foreach ($imp->detalles as $datos_mesa) {
-      $total_diario+= $datos_mesa->droop;
-      $diferencias+= $datos_mesa->diferencia_cierre;
-      $utilidad_diaria_calculada+= $datos_mesa->utilidad_calculada;
-      $utilidad_diaria_total+= $datos_mesa->utilidad;
-      $saldo_diario_fichas+= $datos_mesa->saldo_fichas;
-      $total_diario_retiros+= $datos_mesa->retiros;
-      $total_diario_reposiciones+= $datos_mesa->reposiciones;
-    }
-    $imp->total_diario = $total_diario;
-    $imp->diferencias = $diferencias;
-    $imp->utilidad_diaria_calculada = $utilidad_diaria_calculada;
-    $imp->utilidad_diaria_total = $utilidad_diaria_total;
-    $imp->saldo_diario_fichas = $saldo_diario_fichas;
-    $imp->total_diario_retiros = $total_diario_retiros;
-    $imp->total_diario_reposiciones = $total_diario_reposiciones;
-    $imp->save();
+      $importacion->validado = 1;
+      $importacion->save();
+    });
+    return response()->json(['ok' => true], 200);
   }
 
   public function eliminar($id)
@@ -387,8 +308,14 @@ public function importarDiario(Request $request){
 
   public function ajustarDetalle(Request $request){
     $validator =  Validator::make($request->all(),[
-      'id_detalle_importacion_diaria_mesas' => 'required|exists:detalle_importacion_diaria_mesas,id_detalle_importacion_diaria_mesas'
-    ], array(), self::$atributos)->validate();
+      'id_detalle_importacion_diaria_mesas' => 'required|exists:detalle_importacion_diaria_mesas,id_detalle_importacion_diaria_mesas',
+      'ajuste' => 'nullable|numeric',
+      'observacion' => 'nullable|string|max:64',
+    ],[
+      'required' => 'No puede estar vacio',
+      'max' => 'El valor es muy grande',
+      'numeric' => 'El valor tiene que ser numérico',
+    ], self::$atributos)->validate();
     $dimp = DetalleImportacionDiariaMesas::find($request->id_detalle_importacion_diaria_mesas);
     $dimp->ajuste_fichas = $request->ajuste_fichas;
     $dimp->observacion = $request->observacion;

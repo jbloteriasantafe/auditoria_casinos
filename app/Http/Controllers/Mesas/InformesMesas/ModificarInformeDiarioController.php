@@ -354,11 +354,39 @@ class ModificarInformeDiarioController extends Controller
     $this->actualizarTotales($detImportacion);
   }
 
+  private function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
+    $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
+    $total_diario = 0 ;
+    $diferencias = 0;
+    $utilidad_diaria_calculada = 0;
+    $utilidad_diaria_total = 0;
+    $saldo_diario_fichas = 0;
+    $total_diario_retiros = 0;
+    $total_diario_reposiciones = 0;
+    foreach ($imp->detalles as $datos_mesa) {
+      $total_diario+= $datos_mesa->droop;
+      $diferencias+= $datos_mesa->diferencia_cierre;
+      $utilidad_diaria_calculada+= $datos_mesa->utilidad_calculada;
+      $utilidad_diaria_total+= $datos_mesa->utilidad;
+      $saldo_diario_fichas+= $datos_mesa->saldo_fichas;
+      $total_diario_retiros+= $datos_mesa->retiros;
+      $total_diario_reposiciones+= $datos_mesa->reposiciones;
+    }
+    $imp->total_diario = $total_diario;
+    $imp->diferencias = $diferencias;
+    $imp->utilidad_diaria_calculada = $utilidad_diaria_calculada;
+    $imp->utilidad_diaria_total = $utilidad_diaria_total;
+    $imp->saldo_diario_fichas = $saldo_diario_fichas;
+    $imp->total_diario_retiros = $total_diario_retiros;
+    $imp->total_diario_reposiciones = $total_diario_reposiciones;
+    $imp->save();
+  }
+
   private function actualizarTotales($detImportacion){
     $importacionDia = $detImportacion->importacion_diaria_mesas;
     $ff = explode('-',$importacionDia->fecha);
-    $diarioController = new ImportadorController;
-    $diarioController->actualizarTotalesImpDiaria($detImportacion->id_importacion_diaria_mesas);
+    
+    $this->actualizarTotalesImpDiaria($detImportacion->id_importacion_diaria_mesas);
 
     $mensual = ImportacionMensualMesas::where([
                                                 ['id_casino','=',$importacionDia->id_casino],

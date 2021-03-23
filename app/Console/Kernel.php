@@ -73,10 +73,6 @@ class Kernel extends ConsoleKernel
       echo($comando);
       foreach ($comando as $c) {
         switch ($c->nombre_comando) {
-          case 'IDM:calcularDiff':
-            $impController->calcularDiffIDM();
-            echo('Calculardiff');
-            break;
           case 'RAM:sortear':
             $relevamientoController->sortearMesasCommand();
             echo('Pedido sortear mesas realizado.');

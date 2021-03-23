@@ -490,10 +490,10 @@
                 <th class="col-xs-1 small">RETIROS</th>
                 <th class="col-xs-1 small">UTIL.</th>
                 <th class="col-xs-1 small">HOLD %</th>
-                <th class="col-xs-1 small" style="border-left: solid 1px #ddd;">SALDO FICHAS</th>
+                <th class="col-xs-1 small">SALDO FICHAS</th>
                 <th class="col-xs-1 small">SALDO FICHAS (Rel.)</th>
                 <th class="col-xs-1 small">DIFF</th>
-                <th class="col-xs-1 small" style="border-right: solid 1px #ddd;">AJUSTE</th>
+                <th class="col-xs-1 small">AJUSTE</th>
                 <th class="col-xs-1 small">&nbsp;</th>
               </tr>
             </thead>
