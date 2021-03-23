@@ -154,7 +154,7 @@
 
 
 </div> <!-- col-xl-3 | COLUMNA DERECHA - BOTONES -->
-
+</div>
 </div>
 
 <div class="col-lg-12 tab_content" id="pest_mensual" hidden="true">
