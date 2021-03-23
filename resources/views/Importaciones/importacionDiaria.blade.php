@@ -470,7 +470,8 @@
             <div class="col-xs-3">
               <h5>TIPO DE MESA</h5>
               <select class="form-control" name="" id="selectMesa">
-                <option value="1" selected>RULETA</option>
+                <option value="-1" selected>TODOS</option>
+                <option value="1">RULETA</option>
                 <option value="2">CARTAS</option>
                 <option value="3">DADOS</option>
                 <option value="">NO EN BD</option>

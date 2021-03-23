@@ -97,16 +97,16 @@
         <tr>
           <th style="font-size:10px; border-color: gray;">TOTALES</th>
           <th style="font-size:10px; border-color: gray;">--</th>
-          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario}}</th>
-          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario_reposiciones}}</th>
-          <th style="font-size:10px; border-color: gray;">{{$importacion->total_diario_retiros}}</th>
-          <th style="font-size:10px; border-color: gray;">{{$importacion->utilidad_diaria_total}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->droop}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->reposiciones}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->retiros}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->utilidad}}</th>
           @if($importacion->moneda->siglas != 'ARS')
           <th style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->conversion_total}}</th>
           @endif
           <th style="font-size:10px; border-color: gray;">{{$importacion->hold_diario}}</th>
-          <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_diario_fichas}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_fichas}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_fichas_relevado}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->diferencia_saldo_fichas}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->ajuste_fichas}}</th>

@@ -105,7 +105,9 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
              <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:70%;" hidden="true">
                <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
-               <li id="imp_mensual"><a href="#pest_mensual"  style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
+               @if(false)
+               <li id="imp_mensual"><a href="#pest_mensual" style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
+               @endif
             </ul>
 
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
@@ -807,18 +809,36 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               <!-- SEGUNDO NIVEL -->
                               <ul class="subMenu1 collapse" id="informes2">
                                 <li>
-                                  <div id="opcInfoDiario" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;">
+                                  <div id="opcInfoDiario" class="opcionesHover"
+                                  @if(false) 
+                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;"
+                                  @else
+                                  style="color:grey;"
+                                  @endif
+                                  >
                                     <span>Diario</span>
                                   </div>
                                 </li>
                                 <li>
-                                  <div id="opcInfoMensual" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;">
+                                  <div id="opcInfoMensual" class="opcionesHover"
+                                  @if(false)
+                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;"
+                                  @else
+                                  style="color:grey;"
+                                  @endif
+                                  >
                                     <span>Mensual</span>
                                   </div>
                                 </li>
 
                                 <li>
-                                  <div id="opcInfoInteranuales" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;">
+                                  <div id="opcInfoInteranuales" class="opcionesHover"
+                                  @if(false)
+                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;"
+                                  @else
+                                  style="color:grey;"
+                                  @endif
+                                  >
                                     <span>Anuales</span>
                                   </div>
                                 </li>
@@ -827,13 +847,17 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           @endif
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_canon'))
                           <li>
-                            <div id="barraCanon" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;">
-
+                            <div id="barraCanon" class="opcionesHover" 
+                            @if(false)
+                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;"
+                            @else
+                            style="color:grey;"
+                            @endif
+                            >
                                 <span class="icono" style="padding-bottom: 56px;">
                                   @svg('bolsa_pesos','iconoCanon')
                                 </span>
                                 <span>Canon</span>
-
                             </div>
                           </li>
                           @endif

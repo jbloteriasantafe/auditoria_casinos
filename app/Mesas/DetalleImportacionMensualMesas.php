@@ -12,7 +12,7 @@ class DetalleImportacionMensualMesas extends Model
   protected $visible = array('id_detalle_importacion_mensual_mesas',
                              'id_importacion_mensual_mesas',
                              'fecha_dia',
-                             'total_diario',//este es el drop
+                             'droop',
                              'utilidad',
                              'hold',
                              'cotizacion',
@@ -38,8 +38,8 @@ class DetalleImportacionMensualMesas extends Model
   'diferencias'];
 
   public function getHoldAttribute(){
-       if($this->total_diario != 0){
-         return round(($this->utilidad * 100)/$this->total_diario,2);
+       if($this->droop != 0){
+         return round(($this->utilidad * 100)/$this->droop,2);
        }else{
          return '--';
        }

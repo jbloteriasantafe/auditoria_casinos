@@ -5,7 +5,8 @@ namespace App\Mesas;
 use Illuminate\Database\Eloquent\Model;
 
 //Los cierres se tratan de buscar dinamicamente, una vez encontrados se setean para evitar
-//problemas en el futuro por si cambian el juego/nro de mesa (la "relacion" dinamica se romperia!)
+//problemas en el futuro por si cambian el juego/nro de mesa 
+//(los cierres estan enlazados directamente con las mesas y la "relacion dinamica" de los detalles con los cierres se romperia!) 
 class DetalleImportacionDiariaMesas extends Model
 {
   protected $connection = 'mysql';
@@ -16,20 +17,20 @@ class DetalleImportacionDiariaMesas extends Model
                              'siglas_juego',
                              'nro_mesa',//es el nro_admin de la mesa
                              'droop',
-                             'utilidad',
                              'reposiciones',
                              'retiros',
+                             'utilidad',
                              'saldo_fichas',
-                             'utilidad_calculada',
-                             'hold',
+                             'ajuste_fichas',
                              'id_cierre_mesa',//Se setea una vez validada la importacion
                              'id_cierre_mesa_anterior',//Se setea una vez validada la importacion
-                             'ajuste_fichas',
                              'observacion',
-                             'cierre',
-                             'cierre_anterior',
-                             'saldo_fichas_relevado',
-                             'diferencia_saldo_fichas'
+                             'hold',//dinamico
+                             'conversion',//dinamico
+                             'cierre',//dinamico
+                             'cierre_anterior',//dinamico
+                             'saldo_fichas_relevado',//dinamico
+                             'diferencia_saldo_fichas'//dinamico
                            );
   protected $appends = array('hold','conversion','cierre','cierre_anterior','saldo_fichas_relevado','diferencia_saldo_fichas');
 

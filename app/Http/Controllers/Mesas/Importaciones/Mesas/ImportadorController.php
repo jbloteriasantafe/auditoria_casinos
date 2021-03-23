@@ -91,12 +91,13 @@ class ImportadorController extends Controller
   $importacion =  ImportacionDiariaMesas::find($id_importacion);
   $detalles = [];
   foreach($importacion->detalles as $d){
-    $juego = $d->juego_mesa();
-    $tipo_mesa = is_null($juego)? null : $juego->tipo_mesa;
-    if(is_null($tipo_mesa)){
-      if(is_null($t_mesa)) $detalles[] = $d;
+    if($t_mesa == "TODOS") $detalles[] = $d;
+    else{
+      $juego = $d->juego_mesa();
+      $tipo_mesa = is_null($juego)? null : $juego->tipo_mesa;
+      if(is_null($tipo_mesa) && is_null($t_mesa)) $detalles[] = $d;
+      else if($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
     }
-    else if ($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
   }
   $detalles = collect($detalles)->map(function($v,$idx){
     $cierre = $v->cierre;
@@ -209,15 +210,16 @@ public function importarDiario(Request $request){
         WHERE d.id_importacion_diaria_mesas = '%d'
         GROUP BY d.id_importacion_diaria_mesas
       ) total
-      SET i.total_diario              = IFNULL(total.droop,0)       , i.utilidad_diaria_total = IFNULL(total.utilidad,0),
-          i.total_diario_reposiciones = IFNULL(total.reposiciones,0), i.total_diario_retiros  = IFNULL(total.retiros,0),
-          i.saldo_diario_fichas       = IFNULL(total.saldo_fichas,0)
+      SET i.droop        = IFNULL(total.droop,0)       , i.utilidad = IFNULL(total.utilidad,0),
+          i.reposiciones = IFNULL(total.reposiciones,0), i.retiros  = IFNULL(total.retiros,0),
+          i.saldo_fichas = IFNULL(total.saldo_fichas,0)
       WHERE i.id_importacion_diaria_mesas = '%d'",$iid,$iid);
 
       $pdo->exec($setea_totales);
   
       $importacion->nombre_csv = $request->archivo->getClientOriginalName();
       $importacion->save();
+      $importacion->actualizarCierres();
 
       DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
     });
@@ -265,27 +267,20 @@ public function importarDiario(Request $request){
     DB::transaction(function() use ($request){
       $importacion = ImportacionDiariaMesas::find($request->id_importacion);
       $importacion->observacion  = $request->observacion;
-      //Validado setearlo DESPUES de cada cierre porque las propiedades dinamicas lo chequean 
-      foreach($importacion->detalles as $d){
-        $cierre = $d->cierre;
-        $cierre_anterior = $d->cierre_anterior;
-        $d->id_cierre_mesa = is_null($cierre)? null : $cierre->id_cierre_mesa;
-        $d->id_cierre_mesa_anterior= is_null($cierre_anterior)? null : $cierre_anterior->id_cierre_mesa;
-        $d->save();
-      }
       $importacion->validado = 1;
       $importacion->save();
     });
     return response()->json(['ok' => true], 200);
   }
 
-  public function eliminar($id)
-  {
-    $imp = ImportacionDiariaMesas::find($id);
-    foreach ($imp->detalles as $d) {
-      $d->delete();
-    }
-    ImportacionDiariaMesas::destroy($id);
+  public function eliminar($id){
+    DB::transaction(function() use ($id){
+      $imp = ImportacionDiariaMesas::find($id);
+      foreach ($imp->detalles as $d) {
+        $d->delete();
+      }
+      ImportacionDiariaMesas::destroy($id);
+    });
     return 1;
   }
 

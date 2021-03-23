@@ -10,35 +10,32 @@ class ImportacionDiariaMesas extends Model
   protected $table = 'importacion_diaria_mesas';
   protected $primaryKey = 'id_importacion_diaria_mesas';
   protected $visible = array('id_importacion_diaria_mesas',
-                             'fecha',
                              'nombre_csv',
+                             'fecha',
+                             'validado',
                              'id_casino',
                              'id_moneda',
-                             'total_diario',
-                             'diferencias',
-                             'observacion',
-                             'validado',
+                             'droop',
+                             'reposiciones',
+                             'retiros',
+                             'utilidad',
+                             'saldo_fichas',
                              'cotizacion',
-                             'utilidad_diaria_calculada',
-                             'saldo_diario_fichas',
-                             'total_diario_retiros',
-                             'total_diario_reposiciones',
-                             'utilidad_diaria_total',
-                             'hold_diario',
-                             'conversion_total',
-                             'saldo_fichas_relevado',
-                             'diferencia_saldo_fichas',
-                             'ajuste_fichas'
+                             'observacion',
+                             'hold_diario',//dinamico
+                             'conversion_total',//dinamico
+                             'saldo_fichas_relevado',//dinamico
+                             'diferencia_saldo_fichas',//dinamico
+                             'ajuste_fichas',//dinamico
                            );
   protected $appends = array('hold_diario','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
 
   public function getHoldDiarioAttribute(){
-     if($this->total_diario != 0){
-       return round(($this->utilidad_diaria_total * 100)/$this->total_diario,2);
+     if($this->droop != 0){
+       return round(($this->utilidad * 100)/$this->droop,2);
      }else{
        return '--';
      }
-
   }
 
   public function getConversionTotalAttribute(){
@@ -62,7 +59,14 @@ class ImportacionDiariaMesas extends Model
   }
 
   public function getDiferenciaSaldoFichasAttribute(){
-    return $this->saldo_diario_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas;
+    return $this->saldo_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas;
+  }
+
+  public function actualizarCierres($actualizar_igual = false){
+    foreach($this->detalles as $d){
+      $d->getCierreAttribute($actualizar_igual);
+      $d->getCierreAnteriorAttribute($actualizar_igual);
+    }
   }
 
   public function moneda(){
@@ -83,12 +87,4 @@ class ImportacionDiariaMesas extends Model
   public function getId(){
     return $this->id_importacion_diaria_mesas;
   }
-
-  public function detallesConDiferencias(){
-    return $this->detalles()->where('diferencia_cierre','<>',0)
-    ->get()
-    ->sortBy('codigo_mesa')
-    ->values();
-  }
-
 }

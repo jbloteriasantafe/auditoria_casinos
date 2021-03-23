@@ -356,7 +356,7 @@ class ModificarInformeDiarioController extends Controller
 
   private function actualizarTotalesImpDiaria($id_importacion_diaria_mesas){
     $imp = ImportacionDiariaMesas::find($id_importacion_diaria_mesas);
-    $total_diario = 0 ;
+    $droop = 0 ;
     $diferencias = 0;
     $utilidad_diaria_calculada = 0;
     $utilidad_diaria_total = 0;
@@ -372,7 +372,7 @@ class ModificarInformeDiarioController extends Controller
       $total_diario_retiros+= $datos_mesa->retiros;
       $total_diario_reposiciones+= $datos_mesa->reposiciones;
     }
-    $imp->total_diario = $total_diario;
+    $imp->droop = $droop;
     $imp->diferencias = $diferencias;
     $imp->utilidad_diaria_calculada = $utilidad_diaria_calculada;
     $imp->utilidad_diaria_total = $utilidad_diaria_total;

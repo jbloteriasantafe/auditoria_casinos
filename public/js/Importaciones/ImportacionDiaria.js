@@ -24,6 +24,14 @@ $(document).ready(function() {
     minView: 2,
     container:$('#modalImportacionDiaria'),
   });
+
+  $('#collapseFiltros').collapse('show');
+  $('#buscar-importacionesDiarias').click();
+});
+
+function limpiarFiltrosDiaria(){
+  $('#filtroCas').val($('#filtroCas option:first').val());
+  $('#filtroMon').val($('#filtroMon option:first').val());
   $('#dtpFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -34,24 +42,14 @@ $(document).ready(function() {
     startView: 3,
     minView: 3,
     ignoreReadonly: true,
-  }).data('datetimepicker').setDate(new Date());;
-  $('#filtroCas').val($('#filtroCas option:first').val());
-  $('#filtroMon').val($('#filtroMon option:first').val());
-  $('#collapseFiltros').collapse('show');
-  $('#buscar-importacionesDiarias').click();
-});
-
-function limpiarFiltrosDiaria(){
-  $('#filtroCas').val('0');
-  $('#B_fecha_filtro').val('');
-  $('#filtroMon').val('0');
+  }).data('datetimepicker').setDate(new Date());
 }
 
 function limpiarFiltrosMensual(){
-  $('#filtroCasino').val('0');
-  $('#filtroFecha').val('');
-  $('#filtroMoneda').val('0');
+  $('#filtroCasino').val($('#filtroCasino option:first').val());
+  $('#filtroMoneda').val($('#filtroMoneda option:first').val());
 }
+
 //PESTAÑAS
 $("ul.pestImportaciones li").click(function() {
     $("ul.pestImportaciones li").removeClass("active"); //Remove any "active" class
@@ -222,6 +220,7 @@ $('#buscar-importacionesDiarias').click(function(e){
     sort_by: sort_by,
   }
 
+  $('#tablaResultadosDiarios tbody tr').remove();
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
@@ -230,7 +229,6 @@ $('#buscar-importacionesDiarias').click(function(e){
     dataType: 'json',
 
     success: function (data){
-      $('#tablaResultadosDiarios tbody tr').remove();
       for (let i = 0; i < data.importaciones.length; i++) {
         $('#cuerpoTablaImpD').append(generarFilaImportaciones(data.casino,data.moneda,data.importaciones[i]));
       }
@@ -287,7 +285,7 @@ $(document).on('click','#tablaResultadosDiarios thead tr th[value]',function(e){
 
 //fin PAGINACION
 
-function mostrarImportacion(id_imp,modo,tipo_mesa = 1,observacion = null){
+function mostrarImportacion(id_imp,modo,tipo_mesa = -1,observacion = null){
   if(modo != 'ver' && modo != 'validar') return;
   ocultarErrorValidacion($('#modalVerImportacion input'));
   $('#mensajeExito').hide();
@@ -445,14 +443,20 @@ $(document).on('click','.v_ajustar',function(e){
   }
   const ajuste = fila.data('ajuste_fichas');
   const observaciones = fila.data('observacion');
-  $('#ajuste .ajuste').val(ajuste);
+  const habilitar_ajuste = (fila.data('diferencia') != 0.0) && ($('#guardar-observacion').data('modo') == "validar");
+  $('#ajuste .ajuste').val(ajuste).attr('disabled',!habilitar_ajuste);
   $('#ajuste .observaciones').val(observaciones);
   $('#confirmar_ajuste').val(fila.attr('id'));
+
   $('#ajuste').show();
 });
 
 $('#confirmar_ajuste').click(function(){
+  //No deberia entrar pero si esta visualizando ignoro
+  if($('#guardar-observacion').data('modo') == "ver") return;
+
   const fila = $('#datosImpDiarios #'+$(this).val());
+  const id = fila.attr('id');
   const ajuste = $('#ajuste .ajuste').val();
   const observacion = $('#ajuste .observaciones').val();
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
@@ -460,7 +464,7 @@ $('#confirmar_ajuste').click(function(){
     type: 'POST',
     url: 'importacionDiaria/ajustarDetalle',
     data: {
-      id_detalle_importacion_diaria_mesas: fila.attr('id'),
+      id_detalle_importacion_diaria_mesas: id,
       ajuste_fichas: ajuste,
       observacion: observacion
     },
@@ -505,6 +509,10 @@ function generarFilaVerImp(data){
 
   if(!data.cierre || !data.cierre_anterior){
     fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRES');
+  }
+  if(data.diferencia_saldo_fichas == 0.0){
+    fila.find('.v_ajustar i').removeClass('fa-wrench').addClass('fa-search-plus');
+    fila.data('diferencia',data.diferencia_saldo_fichas);
   }
   fila.css('display', '');
   return fila;
