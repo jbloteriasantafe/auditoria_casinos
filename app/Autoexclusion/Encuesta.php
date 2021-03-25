@@ -2,9 +2,12 @@
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Encuesta extends Model
 {
+  use SoftDeletes;
+  
   protected $connection = 'mysql';
   protected $table = 'ae_encuesta';
   protected $primaryKey = 'id_encuesta';

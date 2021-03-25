@@ -2,9 +2,12 @@
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ImportacionAE extends Model
 {
+  use SoftDeletes;
+
   protected $connection = 'mysql';
   protected $table = 'ae_importacion';
   protected $primaryKey = 'id_importacion';
@@ -19,8 +22,6 @@ class ImportacionAE extends Model
                           'solicitud_ae', 'solicitud_revocacion',
                           'scandni','caratula'
                         ];
-
-  public $timestamps = false;
 
   public function ae(){
     return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');

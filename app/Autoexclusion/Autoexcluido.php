@@ -2,9 +2,12 @@
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Autoexcluido extends Model
 {
+  use SoftDeletes;
+
   protected $connection = 'mysql';
   protected $table = 'ae_datos';
   protected $primaryKey = 'id_autoexcluido';
@@ -22,8 +25,6 @@ class Autoexcluido extends Model
                               'id_estado_civil','id_capacitacion'];
 
   protected $appends = ['es_primer_ae','estado_transicionable'];
-
-  public $timestamps = false;
 
   public function getEsPrimerAeAttribute(){
     $ae = Autoexcluido::where('nro_dni','=',$this->nro_dni)->orderBy('id_autoexcluido','asc')->first();

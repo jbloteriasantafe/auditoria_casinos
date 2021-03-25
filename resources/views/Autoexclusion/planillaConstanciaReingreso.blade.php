@@ -19,7 +19,7 @@
 
   <body>
     <div class="encabezadoImg">
-        <img src="img/logos/nuevo_color.jpg" width="175">
+        <img src="img/logos/logo_nuevo2.png" width="160">
     </div>
     <hr style="border-bottom: 0px">
 

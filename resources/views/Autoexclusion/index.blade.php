@@ -281,8 +281,7 @@ input[required], select[required]{
                   <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-print"></i>
                   </button>
-                  @if($usuario->es_superusuario && false)
-                  <!-- Lo saco hasta que agregue soft deletes a AEs -->
+                  @if($usuario->es_superusuario)
                   <button id="btnEliminar" class="btn btn-info info" type="button" value="" title="ELIMINAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-trash"></i>
                   </button>

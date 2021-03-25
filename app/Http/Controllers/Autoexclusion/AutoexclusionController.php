@@ -120,6 +120,7 @@ class AutoexclusionController extends Controller
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')->whereNull('ae_importacion.deleted_at')
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
@@ -367,7 +368,6 @@ class AutoexclusionController extends Controller
           'caratula' => null,
         ];
         $ae_importacion[$request->tipo_archivo] = $request->archivo;
-        dump($ae_importacion);
         $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
       });
       return ['codigo' => 200];
