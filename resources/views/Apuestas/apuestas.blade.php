@@ -296,7 +296,10 @@ $cas = $usuario['usuario']->casinos;
                     <td class="col-xs-2 mesa_carga" rowspan="1" nowrap  style="text-align:center !important;"></td>
                     <td class="col-xs-2 moneda_carga" rowspan="1" nowrap style="text-align:left !important;">
                       @foreach($monedas as $moneda)
-                        <input type="radio" id="monedacarga" name="monedaApuesta" style="margin-left:5px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                      <div id="monedacarga" class="form-check">
+                        <input class="form-check-input monedaApuesta" type="radio" value="{{$moneda->id_moneda}}">
+                        <label class="form-check-label">{{$moneda->descripcion}}</span>
+                      </div>
                       @endforeach
                     </td>
                     <td class="col-xs-2 pos_carga" rowspan="1" nowrap style="text-align:center !important;"></td>
@@ -427,7 +430,10 @@ $cas = $usuario['usuario']->casinos;
                   <td class="col-xs-2 mesa_mod" rowspan="1" nowrap  style="text-align:center !important;"></td>
                   <td class="col-xs-2 moneda_mod" rowspan="1" nowrap style="text-align:left !important;">
                     @foreach($monedas as $moneda)
-                      <input type="radio" id="monedamodificar" name="monedaApuestaMod" style="margin-left:5px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                    <div id="monedamodificar" class="form-check">
+                      <input class="form-check-input monedaApuestaMod" type="radio" value="{{$moneda->id_moneda}}">
+                      <label class="form-check-label">{{$moneda->descripcion}}</span>
+                    </div>
                     @endforeach
                   </td>
                   <td class="col-xs-2 pos_mod" rowspan="1" nowrap style="text-align:center !important;"></td>
@@ -797,7 +803,10 @@ $cas = $usuario['usuario']->casinos;
                       <td class="col-xs-2 mesa_up" rowspan="1" nowrap  style="text-align:center !important;"></td>
                       <td class="col-xs-2 moneda_up" rowspan="1" nowrap style="text-align:center !important;">
                         @foreach($monedas as $moneda)
-                          <input type="radio" id="monedacargaBUp" name="monedaApuestaBUp" style="margin-left:5px !important" value="{{$moneda->id_moneda}}"><span style="font-family: Roboto-Regular; padding-left:10px;">{{$moneda->descripcion}}</span> <br>
+                        <div id="monedacargaBUp" class="form-check">
+                          <input class="form-check-input monedaApuestaBUp" type="radio" value="{{$moneda->id_moneda}}">
+                          <label class="form-check-label">{{$moneda->descripcion}}</span>
+                        </div>
                         @endforeach
                       </td>
                       <td class="col-xs-2 pos_up" rowspan="1" nowrap style="text-align:center !important;"></td>
