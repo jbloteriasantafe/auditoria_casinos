@@ -64,7 +64,7 @@ class InformesAEController extends Controller
         $reglas[]=['ae_datos.nro_dni','=',$request->dni];
       }
 
-      if($request->sexo != null){
+      if(!is_null($request->genero)){
         $reglas[]=['ae_datos.id_sexo','=',$request->genero];
       }
 
