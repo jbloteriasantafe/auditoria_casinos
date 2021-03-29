@@ -80,7 +80,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
         edad_desde: $('#buscadorRangoEtarioD').val(),
         edad_hasta: $('#buscadorRangoEtarioH').val(),
         dni:       $('#buscadorDni').val(),
-        sexo:      $('#buscadorSexo').val(),
+        genero:      $('#buscadorSexo').val(),
         localidad: $('#buscadorLocalidad').val(),
         provincia: $('#buscadorProvincia').val(),
         fecha_autoexclusion_desde: iso($('#dtpFechaAutoexclusionD')),
