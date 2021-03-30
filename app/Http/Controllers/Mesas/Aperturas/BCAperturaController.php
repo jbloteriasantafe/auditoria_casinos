@@ -156,110 +156,47 @@ class BCAperturaController extends Controller
   }
 
   public function obtenerDetallesApCierre($id_apertura,$id_cierre, $id_moneda){
-
     if($id_apertura == null || $id_cierre == null || $id_moneda == null){
       return response()->json(['error' => 'NULL pointer exception.'], 522);
-    }else{
-      $apertura = Apertura::find($id_apertura);
-      $cierre = Cierre::find($id_cierre);
-
-      $first = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
-                      ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
-                      ->where('id_moneda','=',$id_moneda)
-                      ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
-                      ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
-                      ->orderBy('valor_ficha','desc');
-
-      $fichas = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
-                      ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
-                      ->where('id_moneda','=',$id_moneda)
-                      ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
-                      ->orderBy('valor_ficha','desc')
-                      ->union($first)
-                      ->orderBy('valor_ficha','desc')
-                      ->get();
-
-      return ['fichas' => $fichas,
-              'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor')->values(),
-              'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor')->values(),
-              'cierre' => $cierre,
-              'casino' => $cierre->casino,
-              'cargador' => $cierre->fiscalizador,
-              'tipo_mesa'=> $cierre->tipo_mesa,
-             ];
     }
+    $apertura = Apertura::find($id_apertura);
+    $cierre = Cierre::find($id_cierre);
+    if(empty($apertura) || empty($cierre)){
+      return response()->json(['error' => 'NULL pointer exception.'], 522);
+    }
+
+    $fichas = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+    ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
+    ->where('id_moneda','=',$id_moneda)
+    ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
+    ->where(function($q) use ($apertura){
+      return $q->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)->orWhereNull('ficha_tiene_casino.deleted_at');
+    })
+    ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
+    ->orderBy('valor_ficha','desc')->get();
+
+    return ['fichas' => $fichas,'cierre' => $cierre, 
+            'detalles_apertura' => $apertura->detalles->sortByDesc('ficha_valor')->values(),
+            'detalles_cierre' => $cierre->detalles->sortByDesc('ficha_valor')->values(),
+            'casino' => $cierre->casino,  'cargador' => $cierre->fiscalizador, 'tipo_mesa'=> $cierre->tipo_mesa];
   }
 
+  public function obtenerApParaValidar($id){//Le agrega 15 cierres de la misma mesa
+    $ret = $this->getApertura($id);
+    $apertura = $ret['apertura'];
 
-  public function obtenerApParaValidar($id){
-    $apertura = Apertura::find($id);
+    //fechas de los cierres que puede hacer join
+    $ret['fechas_cierres'] = Cierre::join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
+    ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
+    ->where('cierre_mesa.fecha','<',$apertura->fecha)
+    ->where('cierre_mesa.id_casino','=',$apertura->id_casino)//Con id_mesa_de_panio deberia ya estar pero por las dudas
+    ->where('cierre_mesa.id_estado_cierre','<',4)
+    ->whereNull('cierre_mesa.deleted_at')
+    ->orderBy('fecha' , 'DESC')
+    ->take(15)
+    ->get();
 
-    $moneda =$apertura->moneda;
-    if(!empty($apertura)){
-
-      $first = DB::table('ficha')
-                        ->select(
-                                  'detalle_apertura.id_detalle_apertura',
-                                  'detalle_apertura.cantidad_ficha',
-                                  DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
-                                  'ficha.valor_ficha',
-                                  'ficha.id_ficha'
-                                )
-                        ->leftJoin('detalle_apertura','ficha.id_ficha','=','detalle_apertura.id_ficha')
-                        ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
-                        ->where('detalle_apertura.id_apertura_mesa','=',$id)
-                        ->where('ficha.id_moneda','=',$moneda->id_moneda)
-                        ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
-                        ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
-                        ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
-                        ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_apertura.cantidad_ficha','ficha.valor_ficha')
-                        ->orderBy('ficha.valor_ficha','desc');
-      $detalles = DB::table('ficha')
-                        ->select(
-                                  'detalle_apertura.id_detalle_apertura',
-                                  'detalle_apertura.cantidad_ficha',
-                                  DB::raw(  'SUM(detalle_apertura.cantidad_ficha * ficha.valor_ficha) as monto_ficha_apertura'),
-                                  'ficha.valor_ficha',
-                                  'ficha.id_ficha'
-                                )
-                        ->leftJoin('detalle_apertura','ficha.id_ficha','=','detalle_apertura.id_ficha')
-                        ->join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
-                        ->where('detalle_apertura.id_apertura_mesa','=',$id)
-                        ->where('ficha.id_moneda','=',$moneda->id_moneda)
-                        ->whereNull('ficha_tiene_casino.deleted_at')
-                        ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
-                        ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
-                        ->groupBy('detalle_apertura.id_detalle_apertura','ficha.id_ficha','detalle_apertura.cantidad_ficha','ficha.valor_ficha')
-                        ->orderBy('ficha.valor_ficha','desc')
-                        ->get();
-
-                        //fechas de los cierres que puede hacer join
-                        $cierres = Cierre::join('moneda','cierre_mesa.id_moneda','=','moneda.id_moneda')
-                                            ->where('cierre_mesa.id_mesa_de_panio','=',$apertura->id_mesa_de_panio)
-                                            ->where('cierre_mesa.fecha','<',$apertura->fecha)
-                                            ->where('cierre_mesa.id_estado_cierre','<',4)
-                                            ->whereNull('cierre_mesa.deleted_at')
-                                            ->orderBy('fecha' , 'DESC')
-                                            ->take(15)
-                                            ->get();
-
-
-      return response()->json(['apertura' => $apertura,
-                              'fechas_cierres' => $cierres,
-                              'detalles' => $detalles,
-                              'estado' => $apertura->estado,
-                              'fiscalizador' => $apertura->fiscalizador,
-                              'cargador' => $apertura->cargador,
-                              'mesa' => $apertura->mesa,
-                              'tipo_mesa' => $apertura->tipo_mesa,
-                              'juego' => $apertura->mesa->juego,
-                              'casino' => $apertura->casino,
-                              'moneda' => $moneda,
-                            ], 200);
-    }else{
-      return response()->json(['error' => 'Apertura no encontrado.'], 404);
-    }
-
+    return $ret;
   }
 
   /*

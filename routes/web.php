@@ -680,7 +680,6 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
 //gestion cierres y aperturas
 
   //Cierres
-  Route::get('/cierres', 'Mesas\Cierres\BCCierreController@buscarTodo');
   Route::post('cierres/filtrosCierres','Mesas\Cierres\BCCierreController@filtros');
   Route::post('cierres/guardar', 'Mesas\Cierres\ABMCierreController@guardar');
   Route::post('cierres/modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');

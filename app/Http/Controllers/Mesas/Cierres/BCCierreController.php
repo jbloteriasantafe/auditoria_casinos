@@ -62,40 +62,6 @@ class BCCierreController extends Controller
     return response()->json(['cierre' => $cierre], 200);
   }
 
-  public function buscarTodo(){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    $cas = array();
-    foreach($user->casinos as $casino){
-      $casinos[]=$casino->id_casino;
-      $cas[] = $casino;
-    }
-    $date = \Carbon\Carbon::today();
-
-    $cierres = DB::table('cierre_mesa')
-                  ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
-                  ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
-                  ->join('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
-                  ->whereMonth('cierre_mesa.fecha', $date->month)
-                  ->whereYear('cierre_mesa.fecha',$date->year)
-                  ->whereIn('mesa_de_panio.id_casino',$casinos)
-                  ->whereNull('cierre_mesa.deleted_at')
-                  ->orderBy('fecha' , 'desc')->first()
-                  ->get();
-
-    $estados = EstadoCierre::all();
-    $juegos = JuegoMesa::whereIn('id_casino',$casinos)->get();
-    $fichas = Ficha::all();
-
-    return  view('CierresAperturas.CierresAperturas', ['cierres' => $cierres,
-                             'estado_cierre' => $estados,
-                             'juegos' => $juegos,
-                             'casinos' => $cas,
-                             'fichas' => $fichas,
-                             'es_superusuario' => $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->es_superusuario,
-                            ]);
-  }
-
   public function getCierre($id){
     $cierre = Cierre::find($id);
     if(empty($cierre)){
