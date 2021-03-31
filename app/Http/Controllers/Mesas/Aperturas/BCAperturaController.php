@@ -172,7 +172,6 @@ class BCAperturaController extends Controller
     ->where(function($q) use ($apertura){
       return $q->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)->orWhereNull('ficha_tiene_casino.deleted_at');
     })
-    ->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)
     ->orderBy('valor_ficha','desc')->get();
 
     return ['fichas' => $fichas,'cierre' => $cierre, 
