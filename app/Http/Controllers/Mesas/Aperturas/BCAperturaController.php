@@ -85,35 +85,10 @@ class BCAperturaController extends Controller
       $casinos[]=$casino->id_casino;
       $cas[] = $casino;
     }
-    $date = \Carbon\Carbon::today();
-
-    $apertura = DB::table('apertura_mesa')
-                  ->select('apertura_mesa.id_apertura_mesa','apertura_mesa.hora',
-                            'apertura_mesa.id_estado_cierre','apertura_mesa.fecha',
-                            'casino.nombre','juego_mesa.siglas as nombre_juego',
-                            'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa'
-                          )
-                  ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','apertura_mesa.id_mesa_de_panio')
-                  ->join('casino','mesa_de_panio.id_casino','=','casino.id_casino')
-                  ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-                  ->leftJoin('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
-                  ->whereMonth('apertura_mesa.fecha', $date->month)
-                  ->whereYear('apertura_mesa.fecha',$date->year)
-                  ->whereIn('mesa_de_panio.id_casino',$casinos)
-                  ->whereNull('apertura_mesa.deleted_at')
-                  ->orderBy('fecha' , 'DESC')
-                  ->get();
-
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
-    $fichas = Ficha::all();
     $monedas = Moneda::all();
-    return  view('CierresAperturas.CierresAperturas', ['aperturas' => $apertura,
-                             'juegos' => $juegos,
-                             'casinos' => $cas,
-                             'fichas' => $fichas,
-                             'monedas' => $monedas,
-                             'es_superusuario' =>$user->es_superusuario
-                            ]);
+    return  view('CierresAperturas.CierresAperturas', ['juegos' => $juegos,
+                             'casinos' => $cas, 'monedas' => $monedas]);
   }
 
   public function getApertura($id){//agregar nombre juego
