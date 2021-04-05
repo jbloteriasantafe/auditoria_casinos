@@ -177,6 +177,4 @@ class InformesController extends Controller
 
    return ['diarios' => $diarios];
   }
-
-
 }

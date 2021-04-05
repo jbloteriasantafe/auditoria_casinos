@@ -755,6 +755,8 @@ Route::get('importacionDiaria/imprimir/{id}','Mesas\Importaciones\Mesas\Importad
 Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
 Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
 Route::post('importacionDiaria/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
+Route::get('importacionDiaria/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
+
 Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');
 Route::post('importacionMensual/filtros','Mesas\Importaciones\Mesas\MensualController@filtros');
 Route::get('importacionMensual/verImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@buscar');

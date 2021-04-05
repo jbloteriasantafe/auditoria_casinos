@@ -29,45 +29,37 @@
       height:300px;
   }
 </style>
-
   <head>
     <meta charset="utf-8">
     <title></title>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
-
   </head>
   <body>
-    <div class="encabezadoImg">
-          <img src="img/logos/banner_nuevo2_landscape.png" width="900">
-          <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
-    </div>
-          <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-          <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
-                print_r($hoy); ?></div>
-<!-- habria que ubicarlo mejor porque igual le hace padding :) -->
-    <h4 style="top:0px; text-align:center;padding-top:-40px !important;padding-bottom:-25px!important;bottom:-25px!important;">Resultados del mes {{$por_moneda[0]['mes']}} para {{$por_moneda[0]['casino']}}</h4>
-
+    <?php 
+    $fecha_planilla = date('j-m-y / h:i');
+    ?>
     @foreach($por_moneda as $moneda)
-      @if($loop->first)
-      <h4 style="font-family:Roboto-Regular;top:-10px;bottom:-20px!important;"><i>RESULTADOS EN {{$moneda['moneda']}}<i></h4>
-      @else
+      @if(!$loop->first)
       <div style="page-break-after:always;"></div>
+      @endif
       <div class="encabezadoImg">
             <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+            <br>
             <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
       </div>
       <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-      <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
-            print_r($hoy); ?></div>
-      <h4 style="font-family:Roboto-Regular;top:-10px;bottom:-20px!important;padding-top:-40px !important;"><i>RESULTADOS EN {{$moneda['moneda']}}<i></h4>
-
+      <div class="camposInfo" style="right:0px;">{{$fecha_planilla}}</div>
+      @if($loop->first)
+      <h4 style="top:-10px;bottom:-30px!important;padding-top:-40px !important;text-align: center;">
+        Resultados del mes {{$mes}} para {{$casino->nombre}}
+      </h4>
       @endif
+      <h4 style="top:-10px;bottom:-30px!important;padding-top:-30px !important;">
+        <i>RESULTADOS EN {{$moneda['moneda']}}<i>
+      </h4>
 
       <table style="border-collapse: collapse;" >
         <thead>
@@ -86,27 +78,27 @@
         <tbody>
           @foreach($moneda['detalles'] as $d)
           <tr>
-            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->fecha_dia}}</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$d->saldo_fichas_dia}}</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$d->total_diario}}</td> <!--  drop,efectivo,platita -->
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$d->utilidad}}</td>
-            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$d->hold}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['fecha']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['saldo_fichas']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['droop']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['utilidad']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}}</td>
             @if($moneda['moneda'] != 'ARS')
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$d->cotizacion}}</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$d->conversion}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['cotizacion']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
             @endif
           </tr>
           @endforeach
           <!-- fila totalizadora -->
           <tr>
-            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->fecha_dia}}</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$moneda['totales_moneda']->saldo_fichas_dia}}</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$moneda['totales_moneda']->total_diario}}</td> <!--  drop,efectivo,platita -->
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$moneda['totales_moneda']->utilidad}}</td>
-            <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$moneda['totales_moneda']->hold}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: center;font-weight: bold;">{{$mes.'-##'}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->saldo_fichas}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->droop}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->utilidad}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->hold}}</td>
             @if($moneda['moneda'] != 'ARS')
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">--</td>
-            <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">$moneda['totales_moneda']->conversion_total</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->conversion_total}}</td>
             @endif
           </tr>
         </tbody>
@@ -115,12 +107,14 @@
       <div style="page-break-after:always;"></div>
       <div class="encabezadoImg">
             <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+            <br>
             <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
       </div>
       <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-      <div class="camposInfo" style="right:0px;"></span><?php $hoy = date('j-m-y / h:i');
-            print_r($hoy); ?></div>
-      <h4 style="padding-top:-40px !important;">Resultado Mensual en {{$moneda['moneda']}}, por Juego</h4>
+      <div class="camposInfo" style="right:0px;">{{$fecha_planilla}}</div>
+      <h4 style="top:-10px;bottom:-40px!important;padding-top:-30px !important;">
+        Resultado Mensual en {{$moneda['moneda']}}, por Juego
+      </h4>
       <table style="border-collapse: collapse;" >
         <thead>
           <tr align="center" >
@@ -130,13 +124,21 @@
           </tr>
         </thead>
         <tbody>
+          <?php $utilidad = 0 ?>
           @foreach($moneda['juegos'] as $j)
-            <tr>
-              <td class="tablaCampos" style="text-align:center !important; font-size:13px !important">{{$j['nombre_juego']}}</td>
-              <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$j['total']}}</td>
-              <td class="tablaCampos" style="text-align:right !important; font-size:13px !important">{{$j['porcentaje']}} %</td>
-            </tr>
+          <?php $utilidad += $j->utilidad ?>
+          <tr>
+            <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$j->siglas_juego . $j->nro_mesa}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$j->utilidad}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$j->porcentaje}} %</td>
+          </tr>
           @endforeach
+          <tr>
+            <td class="tablaCampos" style="font-size: 13px;text-align: center">---</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$utilidad}}</td>
+            <!-- Deberia ser siempre 100% -->
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{round(100*$utilidad/$moneda['total']->utilidad,2)}} %</td>
+          </tr>
         </tbody>
       </table>
       <br>
