@@ -1416,7 +1416,7 @@ class LogMovimientoController extends Controller
         $logMov->estado_movimiento()->associate(4);
         $logMov->save();
         $estado_intervencionmtm = $logMov->sentido == 'REINGRESO'?  2 : 4;
-        $map = [
+        $map = [//Aca no estoy seguro porque no la descripción directamente
           11 => ['nuevo_estado' => 1, 'texto' => "Ingreso inicial validado."],
           12 => ['nuevo_estado' => 3, 'texto' => "Egreso definitivo validado."],
           4  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de isla validado."],
@@ -1424,6 +1424,9 @@ class LogMovimientoController extends Controller
           6  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de % devolución validado."],
           7  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de juego validado."],
           10 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización de firmware validada."],
+          13 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización de Sistema Operativo validada."],
+          14 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización del Validador de Billetes y Reset validado."],
+          15 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de cupo validado."]
         ];
         foreach($logMov->relevamientos_movimientos as $rel){
           if($rel->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
