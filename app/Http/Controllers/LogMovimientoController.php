@@ -345,43 +345,45 @@ class LogMovimientoController extends Controller
       }
     })->validate();
 
-    $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
-    foreach($maquinas as $m){
-      //crear log maquina
-      LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, "MTM enviada a fiscalizar.",1);
-      //busco los relevamientos que se crearon para asociarlos a una fiscalizacion
-      $relevamiento = RelevamientoMovimiento::where([
-        ['id_maquina'       ,'=',$m->id_maquina],
-        ['id_log_movimiento','=',$logMov->id_log_movimiento]
-      ])->get()->first();
-      $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
-      $relevamiento->save();
-      // Puede ser que haya agregado progresivos entre la creacion de la maquina y enviar a fiscalizar
-      // Por lo que rehago las tomas, lamentablemente se hace asi porque habria que reescribir mucho
-      foreach($relevamiento->toma_relevamiento_movimiento as $toma){
-        $toma->detalles_relevamiento_progresivo()->delete();
-        $toma->delete();
+    DB::transaction(function() use ($maquinas,$logMov,$request,$user_request){
+      $fiscalizacion = FiscalizacionMovController::getInstancia()->crearFiscalizacion($logMov->id_log_movimiento, false,$request['fecha']);
+      foreach($maquinas as $m){
+        //crear log maquina
+        LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, "MTM enviada a fiscalizar.",1);
+        //busco los relevamientos que se crearon para asociarlos a una fiscalizacion
+        $relevamiento = RelevamientoMovimiento::where([
+          ['id_maquina'       ,'=',$m->id_maquina],
+          ['id_log_movimiento','=',$logMov->id_log_movimiento]
+        ])->get()->first();
+        $relevamiento->fiscalizacion()->associate($fiscalizacion->id_fiscalizacion_movimiento);
+        $relevamiento->save();
+        // Puede ser que haya agregado progresivos entre la creacion de la maquina y enviar a fiscalizar
+        // Por lo que rehago las tomas, lamentablemente se hace asi porque habria que reescribir mucho
+        foreach($relevamiento->toma_relevamiento_movimiento as $toma){
+          $toma->detalles_relevamiento_progresivo()->delete();
+          $toma->delete();
+        }
+        TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($m->id_maquina,$relevamiento->id_relev_mov,[],
+        null,null,null,
+        null,null,null,
+        null,null,null,
+        null,null,0);
       }
-      TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($m->id_maquina,$relevamiento->id_relev_mov,[],
-      null,null,null,
-      null,null,null,
-      null,null,null,
-      null,null,0);
-    }
-    if($logMov->cant_maquinas == 0){
-      $logMov->estado_movimiento()->associate(2);//fiscalizando
-      $logMov->save();
-    }
-    $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
-    foreach ($usuarios as $u){
-      $user = Usuario::find($u->id_usuario);
-      if($user != null) $user->notify(new RelevamientoGenerado($fiscalizacion));
-    }
-
-    $date = date('Y-m-d h:i:s', time());
-    $titulo = "Relevamiento Movimientos";
-    $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
-    CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
+      if($logMov->cant_maquinas == 0){
+        $logMov->estado_movimiento()->associate(2);//fiscalizando
+        $logMov->save();
+      }
+      $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
+      foreach ($usuarios as $u){
+        $user = Usuario::find($u->id_usuario);
+        if($user != null) $user->notify(new RelevamientoGenerado($fiscalizacion));
+      }
+  
+      $date = date('Y-m-d h:i:s', time());
+      $titulo = "Relevamiento Movimientos";
+      $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
+      CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
+    });
     return 1;
   }
 
@@ -1416,30 +1418,44 @@ class LogMovimientoController extends Controller
         $logMov->estado_movimiento()->associate(4);
         $logMov->save();
         $estado_intervencionmtm = $logMov->sentido == 'REINGRESO'?  2 : 4;
-        $map = [//Aca no estoy seguro porque no la descripción directamente
-          11 => ['nuevo_estado' => 1, 'texto' => "Ingreso inicial validado."],
-          12 => ['nuevo_estado' => 3, 'texto' => "Egreso definitivo validado."],
-          4  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de isla validado."],
-          5  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de denominacion validado."],
-          6  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de % devolución validado."],
-          7  => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de juego validado."],
-          10 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización de firmware validada."],
-          13 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización de Sistema Operativo validada."],
-          14 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Actualización del Validador de Billetes y Reset validado."],
-          15 => ['nuevo_estado' => $estado_intervencionmtm, 'texto' => "Cambio de cupo validado."]
-        ];
+
+        //Todo esto es para seleccionar el nuevo estado y el mensaje
+        //Si es intervencion MTM, segun el sentido es "Reingreso" o "Egreso Temporal"
+        //Si no, si es ingreso inicial, es "Ingreso". Si es egreso definitivo, "Egreso Definitivo"
+        $nuevo_estado = null;
+        $texto = "";
+        $tipoMov = $logMov->tipo_movimiento;//Alias para no repetir tanto
+        //No tenemos que chequear que este deprecado porque lo validamos arriba.
+        if($tipoMov->es_intervencion_mtm){
+          $nuevo_estado = $logMov->sentido == 'REINGRESO'?  2 : 4;
+          $texto = ucwords(strtolower($logMov->tipo_movimiento->descripcion))." validado.";
+          $id = $tipoMov->id_tipo_movimiento;//Alias
+          //Para denominación, % devolucion, juego, cupo le agrego esto para que sea mas estetico
+          if($id == 5 || $id == 6 || $id == 7 || $id == 15){
+            $texto = 'Cambio de '.$texto;
+          }
+        }
+        else if($tipoMov->id_tipo_movimiento == 11){
+          $nuevo_estado = 1;
+          $texto = "Ingreso inicial validado.";
+        }
+        else if($tipoMov->id_tipo_movimiento == 12){
+          $nuevo_estado = 3;
+          $texto = "Egreso definitivo validado.";
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
         foreach($logMov->relevamientos_movimientos as $rel){
-          if($rel->id_estado_relevamiento == 4 && array_key_exists($logMov->id_tipo_movimiento,$map)){
+          if($rel->id_estado_relevamiento == 4 && !is_null($nuevo_estado)){
             $maquina = $rel->maquina()->withTrashed()->first();
-            $accion = $map[$logMov->id_tipo_movimiento];
-            if(array_key_exists('nuevo_estado',$accion)){
-              $maquina->estado_maquina()->associate($accion['nuevo_estado']);
-              $maquina->save();
-            }
-            $razon = $accion['texto']." \n";
+            $maquina->estado_maquina()->associate($nuevo_estado);
+            $maquina->save();
+
             $tomas = $rel->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
             $multiples_tomas = $rel->toma_relevamiento_movimiento()->count() > 1;
             //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
+            $razon = $texto." \n";
             foreach($tomas as $idx => $toma){
               if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
               $razon = $razon . $toma->observaciones . " \n";
