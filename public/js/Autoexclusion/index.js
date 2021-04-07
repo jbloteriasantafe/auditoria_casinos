@@ -473,7 +473,7 @@ const to_iso = function(d,m,y){
 -- No lo pongo como un request GET porque no es necesario cambiarlo siempre (capaz me olvide de algo en el where
 -- y con algun AE que agreguen se rompe todo)
 -- Lo pongo aca para que se vea que no lo saque de la galera
--- Saco los muy viejos, los DNI muy nuevos y las fechas muy nuevas (al 12... lo saque por grafico)
+-- Saco los muy viejos, los DNI muy nuevos y las fechas muy nuevas
 -- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
 
 CREATE OR REPLACE VIEW dni_stamp AS
