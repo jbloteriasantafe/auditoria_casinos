@@ -15,6 +15,8 @@ $(document).ready(function(){
   
   $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
   $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
+  $('#fecha_nacimiento').off('focus keydown keyup');//Saco los evento de DTP que genera problemas si quiero chequear
+  $('#fecha_nacimiento').change(cambioFechaNacimiento);
 
   const input_fecha = {
     language:  'es',
@@ -460,6 +462,10 @@ function mensajeExito(msg){
 function limpiarNull(val){
   return val == null? '' : val;
 }
+const to_iso = function(d,m,y){
+  //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
+  return y+(m < 10? '-0' : '-')+m+(d < 10? '-0' : '-')+d+'T00:00:00.000-03:00';
+}
 
 $('#nro_dni').change(function(){
   const dni = parseInt($(this).val());
@@ -468,13 +474,37 @@ $('#nro_dni').change(function(){
   const año = Math.floor(añofloat);
   const aux = añofloat - año;
   const mes = Math.floor(aux*11 + 1);
-  const to_iso = function(m,y){
-    //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
-    return y+(m < 10? '-0' : '-')+m+'-01'+'T00:00:00.000-03:00';
-  }
-  const fecha = new Date(to_iso(mes,año));
+  const fecha = new Date(to_iso(1,mes,año));
   $('#dtpFechaNacimiento').data('datetimepicker').setDate(fecha);
 })
+
+function cambioFechaNacimiento(){
+  ocultarErrorValidacion($('#fecha_nacimiento'));
+  let fecha = $(this).val();
+  if(fecha == null || fecha.length == 0) return;
+  const fecha_regexp_iterator = fecha.matchAll(/[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}/g);
+  const valido_regexp = Array.from(fecha_regexp_iterator).length == 1;
+  if(!valido_regexp){
+    $('#dtpFechaNacimiento').data("datetimepicker").reset();
+    setTimeout(function(){
+      mostrarErrorValidacion($('#fecha_nacimiento'),'El formato tiene que ser AAAA-MM-DD',true);
+    },250);
+    return;
+  }
+  const f = fecha.split('-');
+  const y = parseInt(f[0]), m = parseInt(f[1]), d = parseInt(f[2]);
+  const date = new Date(to_iso(d,m,y));
+  const hoy = new Date();
+  if(date == 'Invalid Date' || y <= 1900 || date >= hoy){
+    $('#dtpFechaNacimiento').data("datetimepicker").reset();
+    setTimeout(function(){
+      mostrarErrorValidacion($('#fecha_nacimiento'),'Valor inválido',true);
+    },250);
+    return;
+  }
+  $('#dtpFechaNacimiento').data('datetimepicker').setDate(new Date(to_iso(d,m,y)));
+}
+
 function validarDNI(){
   if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
     mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);
