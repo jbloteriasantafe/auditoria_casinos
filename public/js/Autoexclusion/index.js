@@ -469,11 +469,10 @@ const to_iso = function(d,m,y){
 
 /*
 -- Matias me habia pedido si podia aproximarse la fecha asi no tenian que mover mucho
--- Script para calcular la regresion, hacer select dstampu_linreg despues de correr
--- No lo pongo como un request GET porque no es necesario cambiarlo siempre (capaz me olvide de algo en el where
--- y con algun AE que agreguen se rompe todo)
--- Lo pongo aca para que se vea que no lo saque de la galera
--- Saco los muy viejos, los DNI muy nuevos y las fechas muy nuevas
+-- Script para calcular la regresion. No lo pongo como un request GET porque no es 
+-- necesario cambiarlo siempre (capaz me olvide de algo en el where y con algun AE que 
+-- agreguen se rompe todo). Lo pongo aca para que se vea que no lo saque de la galera.
+-- Saco los muy viejos, muy nuevos y los DNI muy altos (extranjeros).
 -- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
 
 DROP PROCEDURE IF EXISTS DniStampLinreg;
