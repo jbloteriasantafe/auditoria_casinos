@@ -164,7 +164,12 @@ $('#btn-guardarDiario').on('click', function(e){
       $('#mensajeExito h3').text('ÉXITO');
       $('#mensajeExito p').text('El archivo fue importado');
       $('#mensajeExito').show();
+      const fecha = formData.get('fecha').split('-').join('/');
+      $('#dtpFecha').data('datetimepicker').setDate(new Date(fecha));
+      $('#filtroCas').val(formData.get('id_casino'));
+      $('#filtroMon').val(formData.get('id_moneda'));
       $('#buscar-importacionesDiarias').trigger('click',[1,10,'fecha','desc']);
+
     },
     error: function (data) {
       ///debería mostrar el mensaje y nada más.
@@ -235,6 +240,11 @@ $('#buscar-importacionesDiarias').click(function(e){
     },
     error: function(data){ console.log(data); },
   })
+});
+
+$('#btn-informeMensual').click(function(e){
+  e.preventDefault();
+  window.open('importacionDiaria/imprimirMensual/' + $('#dtpFecha_hidden').val() + '/' + $('#filtroCas').val(),'_blank');
 });
 
 function generarFilaImportaciones(casino,moneda,imp){

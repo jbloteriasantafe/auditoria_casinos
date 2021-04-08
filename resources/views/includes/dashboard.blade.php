@@ -788,7 +788,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   <span class="icono" style="padding-bottom: 56px;">
                                     @svg('expedientes','iconoExpedientes')
                                   </span>
-                                  <span>Importaciones</span>
+                                  <span>Importaciones Diarias</span>
 
                               </div>
                           </li>

@@ -86,6 +86,11 @@
                                 <i class="fa fa-fw fa-search"></i> BUSCAR
                               </button>
                             </div>
+                            <div class="col-xs-3">
+                              <button  id="btn-informeMensual" style="margin-top:30px"class="btn" type="button" name="button">
+                                <i class="fa fa-fw fa-print"></i> INFORME MENSUAL
+                              </button>
+                            </div>
                         </div>
                         </div> <!-- panel-body -->
                     </div> <!-- collapse -->

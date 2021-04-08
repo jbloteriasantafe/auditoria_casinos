@@ -41,22 +41,33 @@
     <?php 
     $fecha_planilla = date('j-m-y / h:i');
     ?>
+    <div class="encabezadoImg">
+      <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+      <br>
+      <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
+    </div>
+    <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
+    <div class="camposInfo" style="right:0px;">{{$fecha_planilla}}</div>
+    <h4 style="top:-10px;bottom:-30px!important;padding-top:-40px !important;text-align: center;">
+      Resultados del mes {{$mes}} para {{$casino->nombre}}
+    </h4>
+
+    @if(empty($por_moneda))
+    <h4 style="text-align: center"><i>SIN IMPORTACIONES<i></h4>
+    @endif
+
     @foreach($por_moneda as $moneda)
       @if(!$loop->first)
       <div style="page-break-after:always;"></div>
-      @endif
       <div class="encabezadoImg">
-            <img src="img/logos/banner_nuevo2_landscape.png" width="900">
-            <br>
-            <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
+        <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+        <br>
+        <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
       </div>
       <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
       <div class="camposInfo" style="right:0px;">{{$fecha_planilla}}</div>
-      @if($loop->first)
-      <h4 style="top:-10px;bottom:-30px!important;padding-top:-40px !important;text-align: center;">
-        Resultados del mes {{$mes}} para {{$casino->nombre}}
-      </h4>
       @endif
+
       <h4 style="top:-10px;bottom:-30px!important;padding-top:-30px !important;">
         <i>RESULTADOS EN {{$moneda['moneda']}}<i>
       </h4>
@@ -82,7 +93,7 @@
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['saldo_fichas']}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['droop']}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['utilidad']}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}} %</td>
             @if($moneda['moneda'] != 'ARS')
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['cotizacion']}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
@@ -95,7 +106,7 @@
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->saldo_fichas}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->droop}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->utilidad}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->hold}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->hold}} %</td>
             @if($moneda['moneda'] != 'ARS')
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->conversion_total}}</td>
