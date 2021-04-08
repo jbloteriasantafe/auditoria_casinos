@@ -476,48 +476,40 @@ const to_iso = function(d,m,y){
 -- Saco los muy viejos, los DNI muy nuevos y las fechas muy nuevas
 -- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
 
-CREATE OR REPLACE VIEW dni_stamp AS
-select distinct ae.nro_dni, DATEDIFF(ae.fecha_nacimiento,'1970-01-01')*24*60*60 as stamp
-from ae_datos as ae
-where ae.deleted_at is null and ae.fecha_nacimiento is not null 
-and YEAR(ae.fecha_nacimiento) > 1940 and YEAR(ae.fecha_nacimiento) < 2002 
-and ae.nro_dni < 50000000
-ORDER BY `ae`.`nro_dni` asc;
+DROP PROCEDURE IF EXISTS DniStampLinreg;
+DELIMITER $$
+CREATE PROCEDURE DniStampLinreg()
+BEGIN
+    CREATE TEMPORARY TABLE temp_dni_stamp (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp
+        select distinct ae.nro_dni, DATEDIFF(ae.fecha_nacimiento,'1970-01-01')*24*60*60 as stamp
+        from ae_datos as ae
+        where ae.deleted_at is null and ae.fecha_nacimiento is not null 
+        and YEAR(ae.fecha_nacimiento) > 1940 and YEAR(ae.fecha_nacimiento) < 2002 
+        and ae.nro_dni < 50000000
+        ORDER BY `ae`.`nro_dni` asc;
 
-CREATE OR REPLACE VIEW dni_stamp_uniq AS
-select dni_stamp.nro_dni,MIN(dni_stamp.stamp) as stamp
-from dni_stamp
-group by dni_stamp.nro_dni;
+    CREATE TEMPORARY TABLE temp_dni_stamp_uniq (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp_uniq
+        select nro_dni,MIN(stamp) as stamp
+        from temp_dni_stamp
+        group by temp_dni_stamp.nro_dni;
+    
+    SET @x  := (SELECT SUM(nro_dni)         FROM temp_dni_stamp_uniq);
+    SET @x2 := (SELECT SUM(nro_dni*nro_dni) FROM temp_dni_stamp_uniq);
+    SET @y  := (SELECT SUM(stamp)           FROM temp_dni_stamp_uniq);
+    SET @y2 := (SELECT SUM(stamp*stamp)     FROM temp_dni_stamp_uniq);
+    SET @xy := (SELECT SUM(nro_dni*stamp)   FROM temp_dni_stamp_uniq);
+    SET @n  := (SELECT COUNT(nro_dni)       FROM temp_dni_stamp_uniq);
+    
+    DROP TABLE temp_dni_stamp_uniq;
+    DROP TABLE temp_dni_stamp;
+    
+    SELECT (@y*@x2 - @x*@xy)/(@n*@x2-@x*@x) as intercept, (@n*@xy - @x*@y )/(@n*@x2-@x*@x) as slope;
+END$$
 
-CREATE OR REPLACE VIEW dstampu_y AS
-SELECT SUM(aux.stamp) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_y2 AS
-SELECT SUM(aux.stamp*aux.stamp) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_x AS
-SELECT SUM(aux.nro_dni) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_x2 AS
-SELECT SUM(aux.nro_dni*aux.nro_dni) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_xy AS
-SELECT SUM(aux.nro_dni*aux.stamp) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_n AS
-SELECT COUNT(aux.nro_dni) as val
-FROM dni_stamp_uniq aux;
-
-CREATE OR REPLACE VIEW dstampu_linreg AS
-SELECT 
-(y.val*x2.val - x.val*xy.val)/(n.val*x2.val-x.val*x.val) as intercept,
-(n.val*xy.val - x.val*y.val )/(n.val*x2.val-x.val*x.val) as slope
-FROM dstampu_x as x,dstampu_x2 as x2,dstampu_y as y,dstampu_y2 as y2,dstampu_xy as xy,dstampu_n as n;
+-- En otra consulta
+Call DniStampLinreg();
 */
 
 $('#nro_dni').change(function(){
