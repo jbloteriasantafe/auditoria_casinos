@@ -72,59 +72,50 @@ class BCAnualesController extends Controller
       'anio' => 'required',
       'id_casino' => 'required|exists:casino,id_casino',
       'id_moneda' => 'required|exists:moneda,id_moneda',
-      'id_casino2' => 'nullable|exists:casino,id_casino',
+      'id_casino2' => 'nullable|exists:casino,id_casino|different:id_casino',
       'id_moneda2' => 'nullable|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      if($validator->getData()['id_casino'] == $validator->getData()['id_casino2']){
-        $validator->errors()->add('id_casino2','Elija otro casino.' );
+    ], ['different' => 'Elija otro casino.'], self::$atributos)->after(function($validator){
+      $data = $validator->getData();
+      $id_casino  = $data['id_casino'];
+      $id_moneda  = $data['id_moneda'];
+      $id_casino2 = $data['id_casino2'];
+      $id_moneda2 = $data['id_moneda2'];
+
+      $sin_mesas = Mesa::where([['id_moneda','=',$id_moneda],['id_casino','=',$id_casino]])
+      ->orWhere('multimoneda','=',1)->get()->count() == 0;
+      if($sin_mesas){
+        $validator->errors()->add('id_moneda','No existen informes para la moneda seleccionada.');
+        return;
       }
-      if(!empty($validator->getData()['id_moneda'])){
-        $cant_mesas_moneda1 = Mesa::where('id_moneda','=',$validator->getData()['id_moneda'])
-                                    ->where('id_casino','=',$validator->getData()['id_casino'])
-                                    ->orWhere('multimoneda','=',1)
-                                    ->get()->count();
-        if($cant_mesas_moneda1 == 0 ){
-          $validator->errors()->add('id_moneda','No existen informes para la moneda seleccionada.' );
-        }else{
-          if(!empty($request->id_casino2) && !empty($request->id_moneda)){ //distinto casino
-            $cant_mesas_moneda1_cas2 = Mesa::where([['id_moneda','=',$validator->getData()['id_moneda']],
-                                                ['id_casino','=',$validator->getData()['id_casino2']]
-                                                ])
-                                                ->orWhere('multimoneda','=',1)
-                                              ->get()->count();
-            if($cant_mesas_moneda1_cas2 == 0){
-                $validator->errors()->add('id_casino2','No existen informes para la moneda seleccionada.' );
-            }
-          }else{//distinta moneda
-            if(!empty($validator->getData()['id_moneda2']) && !empty($validator->getData()['id_casino2'])){
-              $cant_mesas_moneda2 = Mesa::where([['id_moneda','=',$validator->getData()['id_moneda']],
-                                                  ['id_casino','=',$validator->getData()['id_casino2']]
-                                                  ])
-                                          ->orWhere('multimoneda','=',1)
-                                         ->get()->count();
-              if($cant_mesas_moneda2 == 0){
-                $validator->errors()->add('id_moneda2','No existen informes para la moneda seleccionada del 2do casino.' );
-              }
-            }
-            else {
-              $cant_mesas_moneda2 = Mesa::where([['id_moneda','=',$validator->getData()['id_moneda']],
-                                                  ['id_casino','=',$validator->getData()['id_casino']]
-                                                  ])
-                                          ->orWhere('multimoneda','=',1)
-                                         ->get()->count();
-              if($cant_mesas_moneda2 == 0){
-                $validator->errors()->add('id_moneda2','No existen informes para la moneda seleccionada.' );
-              }
-            }
+
+      if(!empty($id_moneda2)){
+        $sin_mesas = Mesa::where([['id_moneda','=',$id_moneda2],['id_casino','=',$id_casino]])
+        ->orWhere('multimoneda','=',1)->get()->count() == 0;
+        if($sin_mesas){
+          $validator->errors()->add('id_moneda2','No existen informes para la moneda seleccionada del 2do casino.' );
+          return;
+        }  
+      }
+
+      if(!empty($id_casino2)){
+        $sin_mesas = Mesa::where([['id_moneda','=',$id_moneda],['id_casino','=',$id_casino2]])
+        ->orWhere('multimoneda','=',1)->get()->count() == 0;
+        if($sin_mesas){
+            $validator->errors()->add('id_casino2','No existen informes para la moneda seleccionada.');
+            return;
+        }
+        if(!empty($id_moneda2)){
+          $sin_mesas = Mesa::where([['id_moneda','=',$id_moneda2],['id_casino','=',$id_casino2]])
+          ->orWhere('multimoneda','=',1)->get()->count() == 0;
+          if($sin_mesas){
+            $validator->errors()->add('id_moneda2','No existen informes para la moneda seleccionada del 2do casino.' );
+            return;
           }
         }
       }
+
+
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
 
     $respuesta  = ImportacionMensualMesas::whereYear('fecha_mes','=',$request->anio)
                                             ->where('id_casino','=',$request->id_casino)

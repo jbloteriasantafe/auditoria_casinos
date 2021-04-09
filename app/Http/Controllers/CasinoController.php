@@ -295,7 +295,7 @@ private function asociarTurnos($turnos, $casino){
 
   public function meses(Request $request,$id_casino){
     $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->usuarioTieneCasino($id)){
+    if($usuario == null || !$usuario->usuarioTieneCasino($id_casino)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
 
