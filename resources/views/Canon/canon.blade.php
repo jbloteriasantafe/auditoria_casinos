@@ -142,7 +142,7 @@
         <div class="table table-responsive" id="dd"  style="display:none">
           <table class="table" >
             <tbody >
-              <tr id="clonartinicial" class"filaClone"  style="display:none">
+              <tr id="clonartinicial" class="filaClone"  style="display:none">
                 <td class="col-xs-2 fechaInicio" style="text-align:center !important"></td>
                 <td class="col-xs-1 mesInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 casinoInicio" style="text-align:center !important"></td>
@@ -440,7 +440,7 @@
 </div>
 
 <!-- modal para cargar pago -->
-<div class="modal fade" id="modalRegistrarPago" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
+<div class="modal fade" id="modalPago" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70% !important" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
@@ -455,11 +455,11 @@
               <h6 style="font-size:18px !important">CASINO</h6>
               <select class="form-control" name="" id="selectCasinoPago">
                 <option value="" class="default1">- Seleccione un Casino -</option>
+                @foreach ($casinos as $cas)
+                <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                @endforeach
               </select>
             </div>
-              <div class="col-xs-6">
-                <button type="button" class="btn btn-infoBuscar cargarPago" style="margin-top:36px!important;" name="button">CONTINUAR</button>
-              </div>
             </div>
             <br>
             <br>
@@ -534,77 +534,6 @@
     </div>
   </div>
 </div>
-
-<!-- modal para modificar pago -->
-<div class="modal fade" id="modalModificarPago" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width: 70% !important" >
-    <div class="modal-content">
-      <div class="modal-header" style="background-color:#FFA726;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| MODIFICAR PAGO </h3>
-      </div>
-      <div  id="colapsado" class="collapse in">
-        <div class="modal-body" style="font-family: Roboto;">
-          <div class="row" style="border-bottom:2px solid #ccc;">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="titCasino"></h6>
-            <br>
-          </div>
-            <br>
-            <br>
-            <div class="row" >
-              <div class="row">
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">FECHA</h5>
-                  <div class="form-group">
-                    <div class='input-group date' id='dtpFechaPagoModif' data-link-field="fecha_pago_modif" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                      <input type='text' class="form-control" id="fechaPagoModif" value=""/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">MES DE PAGO</h5>
-                  <select class="form-control" name="" id="selectMesPagoModif">
-
-                  </select>
-                </div>
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">COTIZACIÓN EURO</h5>
-                  <input type="text" name="" value="" id="cotEuroPagoModif" class="form-control">
-                </div>
-
-              </div>
-              <div class="row">
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">COTIZACIÓN DOLAR</h5>
-                  <input type="text" name="" value="" id="cotDolarPagoModif" class="form-control">
-                </div>
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">MONTO ABONADO</h5>
-                  <input type="text" name="" value="" id="montoPagoModif" class="form-control">
-                </div>
-                <div class="col-xs-4">
-                  <h5 style="font-size:16px !important;">INTERESES</h5>
-                  <input type="text" name="" value="" id="impuestosPagoModif" class="form-control">
-                </div>
-              </div>
-              <br>
-                <div class="row">
-                  <h5 style="font-size:16px !important; margin-left: 15 px !important">OBSERVACIONES</h5>
-                  <textarea name="name" rows="4" style="margin-left: 15 px !important" class="form-control" cols="auto" id=obsPagoModif""></textarea>
-                </div>
-            </div>
-        </div>
-      </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-warningModificar" id="guardarModifPago" value="nuevo" hidden="true">GUARDAR</button>
-        </div>
-      </div>
-    </div>
-</div>
-
 
 <div class="modal fade" id="modalAlertaActualizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">

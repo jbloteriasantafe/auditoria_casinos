@@ -214,7 +214,7 @@ class BPagosController extends Controller
   public function obtenerPago($id_detalle){
     $detalle = DetalleInformeFinalMesas::find($id_detalle);
     $casino = Casino::find($detalle->id_casino);
-    return response()->json([ 'detalle' => $detalle,'casino'=>$casino], 200);
+    return response()->json([ 'detalle' => $detalle,'casino'=>$casino, 'informe' => $detalle->informe_final_mesas], 200);
   }
 
   public function obtenerAnios($id_casino){
