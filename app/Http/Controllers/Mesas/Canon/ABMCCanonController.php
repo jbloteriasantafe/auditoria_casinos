@@ -143,5 +143,4 @@ class ABMCCanonController extends Controller
 
       return $nuevo_canon;
   }
-
 }

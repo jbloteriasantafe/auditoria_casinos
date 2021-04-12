@@ -371,8 +371,7 @@ $(document).on('change','#filtroCasino',function(){
     $('#mesFiltro option').not('.default').remove();
     $('#mesFiltro').prop('disabled',false);
 
-    $.get('casinos/getMeses/' + id, function(data){
-
+    $.get('canon/getMeses/' + id, function(data){
         for (var i = 0; i < data.meses.length; i++) {
           $('#mesFiltro').append($('<option>').val(data.meses[i].id_mes_casino).text(data.meses[i].nombre_mes).append($('</option>')))
         }
@@ -513,7 +512,7 @@ $(document).on('click','.cargarPago', function(e){
 
   var id=$('#selectCasinoPago').val();
 
-  $.get('casinos/getMeses/' + id, function(data){
+  $.get('canon/getMeses/' + id, function(data){
 
       for (var i = 0; i < data.meses.length; i++) {
         $('#selectMesPago').append($('<option>').val(data.meses[i].id_mes_casino).text(data.meses[i].nombre_mes).append($('</option>')))
@@ -606,7 +605,7 @@ $(document).on('click','.modificarPago',function(e){
   var id_det=$(this).val();
   $('#guardarModifPago').val(id_det);
 
-  $.get('casinos/getMeses/' + id, function(data){
+  $.get('canon/getMeses/' + id, function(data){
 
       for (var i = 0; i < data.meses.length; i++) {
         $('#selectMesPagoModif').append($('<option>').val(data.meses[i].id_mes_casino).text(data.meses[i].nombre_mes).append($('</option>')))

@@ -94,7 +94,7 @@ class APagosController extends Controller
           }
     }
     $mesCasino = MesCasino::find($request->mes);
-    $casino =$mesCasino->casino;
+    $casino = $mesCasino->casino;
     $ff = explode('-',$request->fecha_pago);
 
     $anioCuota = $request->anio_cuota;
@@ -275,14 +275,11 @@ class APagosController extends Controller
     $validator=  Validator::make($request->all(),[
       'id_detalle' => 'required|exists:detalle_informe_final_mesas,id_detalle_informe_final_mesas',
       'cotizacion_dolar' => ['required','regex:/^\d\d?\d?([,|.]?\d?\d?\d?)?$/'],//aaaa/aaaa o aaaa-aaaa
-      'cotizacion_euro' =>  ['required',
-                          'regex:/^\d\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'impuestos' => ['required',
-                          'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'cotizacion_euro' =>  ['required','regex:/^\d\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'impuestos' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'fecha_pago' => 'required|date',
       'mes' =>  ['required','exists:mes_casino,id_mes_casino'],
-      'total_pago_pesos' =>  ['required',
-                          'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'total_pago_pesos' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
     ], array(), self::$atributos)->after(function($validator){
       if(!empty($validator->getData()['mes']) && !empty($validator->getData()['total_pago_pesos'])){
         $validator = $this->validarMontoPagado($validator->getData()['mes'],
@@ -295,8 +292,7 @@ class APagosController extends Controller
           }
     }
     $pago = DetalleInformeFinalMesas::find($request->id_detalle);
-    $mesCasino = MesCasino::find($request->mes);
-    $casino =$mesCasino->casino;
+    $casino = $pago->casino;
     $ff = explode('-',$request->fecha_pago);
     if($ff[1] == '01'){
       $anioCuota = $ff[0]-1;

@@ -90,7 +90,6 @@ class ActualizarValoresController extends Controller
 
   public function actualizarValores($id_casino){
     $casino = Casino::find($id_casino);
-    $meses = $casino->meses;
     $informe = InformeFinalMesas::where('id_casino','=',$id_casino)
                                   ->where('anio_final','=',date('Y'))
                                   ->first();
@@ -99,7 +98,8 @@ class ActualizarValoresController extends Controller
                                   ->where('anio_final','=',date('Y')+1)
                                   ->first();
     $ok = $this->verRequisitos($id_casino)['ok'];
-    if($yaEstaCreado == null && (count($meses) != count($informe->detalles) || $ok == 0)){
+    
+    if($yaEstaCreado == null && (count($casino->meses()) != count($informe->detalles) || $ok == 0)){
       return response()->json([ 'ERROR' => 'No es posible actualizar los valores del canon, aún quedan meses sin pagar.'], 401);
     }
     else{
@@ -201,9 +201,7 @@ class ActualizarValoresController extends Controller
 
 
   public function forzarActualizacion($id_casino,$anio_final){
-
     $casino = Casino::find($id_casino);
-    $meses = $casino->meses;
     $yaEstaCreado = InformeFinalMesas::where('id_casino','=',$id_casino)
                                   ->where('anio_inicio','=',$anio_final)
                                   ->where('anio_final','=',$anio_final+1)

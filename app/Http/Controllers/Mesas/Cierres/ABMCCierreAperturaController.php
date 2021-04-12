@@ -28,7 +28,6 @@ use App\Mesas\DetalleApertura;
 use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
-use App\MesCasino;
 use App\Mesas\DetalleInformeFinalMesas;
 
 use App\Http\Controllers\Mesas\InformeFiscalizadores\GenerarInformesFiscalizadorController;
@@ -179,45 +178,22 @@ class ABMCCierreAperturaController extends Controller
 
 
     public function desvincularApertura($id_apertura){
-      //buscar id mes casino para hacer join con el detalle del informe
       $apertura = Apertura::findOrFail($id_apertura);
-      $ffdia = Carbon::parse($apertura->fecha)->day-0;
-      $ffmes = Carbon::parse($apertura->fecha)->format('n');
-      $ffy = Carbon::parse($apertura->fecha)->format('Y');
-      $mes = MesCasino::where('id_casino','=',$apertura->id_casino)
-                          ->where('dia_inicio','<=',$ffdia)
-                          ->where('dia_fin','>=',$ffdia)
-                          ->where('nro_mes','=',$ffmes)
-                          ->get()->first();
-      //dd($mes,$ffdia,$ffmes,$apertura->id_casino);
-      // foreach ($meses as $m) {
-      //   if($m->dia_inicio <= $ff[2] && $m->dia_fin >= $ff[2]){
-      //     $mes = $m;
-      //     break;
-      //   }
-      // }
-
-      if($mes->nro_cuota <= $mes->nro_mes){
-        $anioCuota = 'anio_inicio';
-      }else{
-        $anioCuota = 'anio_final';
-      }
-      $detInformePago = DetalleInformeFinalMesas::join('informe_final_mesas','informe_final_mesas.id_informe_final_mesas','=','detalle_informe_final_mesas.id_informe_final_mesas')
-                                                  ->where('id_mes_casino','=',$mes->id_mes_casino)
-                                                  ->where('informe_final_mesas.'.$anioCuota,'=',$ffy)->get();
-
       $fechamascincuenta = Carbon::parse($apertura->fecha)->addDay(50)->format('Y-m-d');
       $fhoy = Carbon::now()->format('Y-m-d');
-      if(count($detInformePago) == 0 && $fhoy <= $fechamascincuenta){
-        $vinculo = $apertura->cierre_apertura;
-        $cierre = $vinculo->cierre;
-        $cierre->estado_cierre()->associate(1);
-        $cierre->save();
-        $vinculo->delete();
-        $apertura->estado_cierre()->associate(1);
-        $apertura->save();
+      if($fhoy <= $fechamascincuenta){
+        DB::transaction(function() use ($apertura){
+          $vinculo = $apertura->cierre_apertura;
+          $cierre = $vinculo->cierre;
+          $cierre->estado_cierre()->associate(1);
+          $cierre->save();
+          $vinculo->delete();
+          $apertura->estado_cierre()->associate(1);
+          $apertura->save();
+        });
         return 1;
       }
+      return 0;
     }
 
     public function revivirElPasado(){

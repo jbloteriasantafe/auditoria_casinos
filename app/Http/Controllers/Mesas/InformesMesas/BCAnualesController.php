@@ -113,8 +113,6 @@ class BCAnualesController extends Controller
           }
         }
       }
-
-
     })->validate();
 
     $respuesta  = ImportacionMensualMesas::whereYear('fecha_mes','=',$request->anio)

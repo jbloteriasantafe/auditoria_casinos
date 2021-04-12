@@ -8,7 +8,6 @@ use App\Casino;
 use App\Turno;
 use App\Mesas\Ficha;
 use App\Mesas\FichaTieneCasino;
-use App\MesCasino;
 use Carbon\Carbon;
 use Validator;
 
@@ -155,8 +154,6 @@ class CasinoController extends Controller
     $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
     $casino->save();
 
-    $this->actualizarMeses($casino->id_casino);
-
     $tcontroller = new TurnosController;
     foreach ($request['turnos'] as $tt) {
       $tcontroller->guardar($tt,$casino->id_casino);
@@ -255,24 +252,22 @@ class CasinoController extends Controller
   }
 
 private function asociarTurnos($turnos, $casino){
-  $turnos_anteriores = $casino->turnos;
-  $array_nuevos = array();
-  //update or create
-  foreach ($turnos as $t) {
+    $turnos_anteriores = $casino->turnos;
+    $array_nuevos = array();
+    //update or create
+    foreach ($turnos as $t) {
+      $tuur = Turno::updateOrCreate(['nro_turno' => $t['nro'], 'dia_desde' => $t['desde'],
+                              'dia_hasta'=> $t['hasta'], 'entrada'=>$t['entrada'],
+                              'salida'=>$t['salida'], 'id_casino'=>$casino->id_casino]);
+      $array_nuevos[] = $tuur->id_turno;
+    }
+    //y despues las que tenia left outer join las nuevas con collections las eliminadas
+    $filtered = $turnos_anteriores->whereNotIn('id_turno', $array_nuevos);
 
-    $tuur = Turno::updateOrCreate(['nro_turno' => $t['nro'], 'dia_desde' => $t['desde'],
-                            'dia_hasta'=> $t['hasta'], 'entrada'=>$t['entrada'],
-                            'salida'=>$t['salida'], 'id_casino'=>$casino->id_casino]);
-    $array_nuevos[] = $tuur->id_turno;
+    foreach ($filtered as $turno) {
+      $turno->delete();//softdelete
+    }
   }
-  //y despues las que tenia left outer join las nuevas con collections las eliminadas
-  $filtered = $turnos_anteriores->whereNotIn('id_turno', $array_nuevos);
-
-  foreach ($filtered as $turno) {
-    $turno->delete();//softdelete
-  }
-}
-
 
   public function eliminarCasino($id){
     $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
@@ -300,69 +295,9 @@ private function asociarTurnos($turnos, $casino){
     }
 
     $casino = Casino::find($id_casino);
-    $meses = $casino->meses()->orderBy('nro_cuota','asc')->get();
-    return ['casino' => $casino, 'meses' => $meses];
+    return ['casino' => $casino, 'meses' => $casino->meses()];
   }
 
-  public function actualizarMeses($id_casino){
-    $casino = Casino::find($id_casino);
-    $meses = $casino->meses;
-    foreach($meses as $mes){
-      $mes->casino()->dissociate();
-      $mes->delete();
-    }
-    $ff = explode('-',$casino->fecha_inicio);
-    $nombres = ['Enero','Febrero','Marzo','Abril','Mayo',
-                'Junio','Julio','Agosto','Septiembre',
-                'Octubre','Noviembre','Diciembre'
-                ];
-
-    $nro_cuota = 1;
-    for ($i=0; $i <= 11 ; $i++) {
-      $fecha = Carbon::createFromDate($ff[0],$ff[1],$ff[2])->addMonths($i);
-      if($ff[1] == $fecha->month){
-        if($ff[2] == '01'){
-          $mes = new MesCasino;
-          $mes->nombre_mes = $nombres[$fecha->format('n')-1];
-          $mes->nro_cuota = $nro_cuota;
-          $mes->dia_inicio = 1;
-          $mes->dia_fin = $fecha->daysInMonth;
-          $mes->nro_mes = $fecha->format('n');
-          $mes->casino()->associate($casino->id_casino);
-          $mes->save();
-          $nro_cuota++;
-        }else{
-          $mes1 = new MesCasino;
-          $mes1->nombre_mes = $nombres[$fecha->format('n')-1].' 01 al '.($fecha->day-1);
-          $mes1->nro_cuota = 13;
-          $mes1->dia_inicio = 1;
-          $mes1->dia_fin = $fecha->day-1;
-          $mes1->nro_mes = $fecha->format('n');
-          $mes1->casino()->associate($casino->id_casino);
-          $mes1->save();
-          $mes2 = new MesCasino;
-          $mes2->nombre_mes = $nombres[$fecha->format('n')-1].($fecha->day).' al '.$fecha->daysInMonth;
-          $mes2->nro_cuota = $nro_cuota;
-          $mes2->dia_inicio = $ff[2];
-          $mes2->dia_fin = $fecha->daysInMonth;
-          $mes2->nro_mes = $fecha->format('n');
-          $mes2->casino()->associate($casino->id_casino);
-          $mes2->save();
-          $nro_cuota++;
-        }
-      }else{
-        $mes2 = new MesCasino;
-        $mes2->nombre_mes = $nombres[$fecha->format('n')-1];
-        $mes2->nro_cuota = $nro_cuota;
-        $mes2->dia_inicio = 1;
-        $mes2->dia_fin = $fecha->daysInMonth;
-        $mes2->nro_mes = $fecha->format('n');
-        $mes2->casino()->associate($casino->id_casino);
-        $mes2->save();
-        $nro_cuota++;
-      }
-    }
-  }
   //1 lunes,...,7 Domingo
   public function validarTurnos($validator){
     //valido que no estén repetidos ->collect
@@ -517,5 +452,4 @@ private function asociarTurnos($turnos, $casino){
 
     return $fichas;
   }
-
 }

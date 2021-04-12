@@ -75,7 +75,6 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
   Route::delete('/eliminarCasino/{id}','CasinoController@eliminarCasino');
   Route::get('/get', 'CasinoController@getAll');
   Route::get('/getCasinos', 'CasinoController@getParaUsuario');
-  Route::get('/getMeses/{id_casino}', 'CasinoController@meses');
   Route::get('/getFichas','CasinoController@getFichas');
 });
 
@@ -787,7 +786,7 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
   Route::get('/canon','Mesas\Canon\IndexController@index');
   Route::post('canon/modificar','Mesas\Canon\ABMCCanonController@modificar');
   Route::get('canon/obtenerCanon/{id_cas}','Mesas\Canon\ABMCCanonController@obtenerCanon');
-
+  Route::get('canon/getMeses/{id_casino}', 'CasinoController@meses');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function () {
