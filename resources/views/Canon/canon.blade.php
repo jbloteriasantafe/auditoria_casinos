@@ -465,8 +465,23 @@
             <br>
             <div class="row desplegarPago" hidden="true" >
               <div class="row">
-                <div class="col-xs-3">
-                  <h6 style="font-size:16px !important;">FECHA</h6>
+                <div class="col-xs-4">
+                  <h5>Año inicio período</h5>
+                  <div class="form-group">
+                    <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
+                      <input type='text' class="form-control" id="fechaPagoFil" placeholder="aaaa" value=""/>
+                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-4">
+                  <h6 style="font-size:16px !important;">MES A PAGAR</h6>
+                  <select class="form-control" name="" id="selectMesPago">
+                  </select>
+                </div>
+                <div class="col-xs-4">
+                  <h6 style="font-size:16px !important;">FECHA DE PAGO</h6>
                   <div class="form-group">
                     <div class='input-group date' id='dtpFechaPago' data-link-field="fecha_pago" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
                       <input type='text' class="form-control" id="fechaPago" value=""/>
@@ -475,61 +490,38 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-3">
-                  <h6 style="font-size:16px !important;">MES DE PAGO</h6>
-                  <select class="form-control" name="" id="selectMesPago">
-
-                  </select>
-                </div>
-                  <div class="col-xs-3">
-                    <h5>Año</h5>
-                    <div class="form-group">
-                      <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
-                        <input type='text' class="form-control" id="fechaPagoFil" placeholder="aaaa" value=""/>
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              <div class="row">
                 <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">COTIZACIÓN EURO</h6>
                   <input type="text" name="" value="" id="cotEuroPago" class="form-control">
                 </div>
-
-              </div>
-              <div class="row">
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">COTIZACIÓN DOLAR</h6>
                   <input type="text" name="" value="" id="cotDolarPago" class="form-control">
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">MONTO ABONADO</h6>
                   <input type="text" name="" value="" id="montoPago" class="form-control">
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                   <h6 style="font-size:16px !important;">INTERESES</h6>
                   <input type="text" name="" value="" id="impuestosPago" class="form-control">
                 </div>
               </div>
               <br>
-                <div class="row">
+              <div class="row">
+                <div class="col-xs-12">
                   <h6 style="font-size:16px !important;">OBSERVACIONES</h6>
-                  <textarea name="name" rows="4"  class="form-control" cols="auto" id="obsPago"></textarea>
+                  <textarea name="name" rows="4"  class="form-control" cols="auto" id="obsPago" style="resize: vertical"></textarea>
                 </div>
+              </div>
             </div>
         </div>
-        <span id="help" class="help-block" style="margin-top:50px !important;color: #0D47A1 !important;float:left; font-size:12px !important;padding-left:5px !important"><i>*Asegúrese de que se encuentre Importado el informe del mes que desea registrar como pago.</i></span>
-
       </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="guardarPago" value="nuevo" hidden="true">GUARDAR</button>
         </div>
-        <div id="mensajeImportacionError" hidden>
-          <br>
-          <span style="font-family:'Roboto-Black'; font-size:16px; color:#EF5350;">ERROR</span>
-          <br>
-          <span style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Verifique la Importación del mes que desea registrar como pago, esté cargada en el sistema.</span>
-        </div> <!-- mensaje -->
       </div>
     </div>
   </div>

@@ -848,11 +848,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_canon'))
                           <li>
                             <div id="barraCanon" class="opcionesHover" 
-                            @if(false)
                             onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;"
-                            @else
-                            style="color:grey;"
-                            @endif
                             >
                                 <span class="icono" style="padding-bottom: 56px;">
                                   @svg('bolsa_pesos','iconoCanon')

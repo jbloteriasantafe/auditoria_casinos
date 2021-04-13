@@ -24,7 +24,10 @@ class DetalleInformeFinalMesas extends Model
                               'cotizacion_euro_actual',
                               'cotizacion_dolar_anterior',
                               'id_casino',
-                              'id_mes_casino',
+                              'dia_inicio',
+                              'dia_fin',
+                              'mes',
+                              'anio',
                               'cuota_dolar_actual',//*se calcula
                               'cuota_euro_actual',//*se calcula
                               'cuota_dolar_anterior',//*se calcula

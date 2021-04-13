@@ -368,7 +368,11 @@ $(document).on('change','#filtroCasino',function(){
 //btn de ver datos canon
 $('#buscarDatos').on('click',function(e){
   e.preventDefault();
-  limpiarVer();
+  $('#casinoDatos').val('');
+  $('#valorBase').val('');
+  $('#valorPago').val('');
+  $('#periodoValido').val('');
+
   var id_casino=$('#verDatosCanon').val();
 
   if(id_casino != 0){
@@ -384,20 +388,15 @@ $('#buscarDatos').on('click',function(e){
       $('.modificacion').hide();
       $('#baseNuevoEuro').val(data.canon.valor_base_euro);
       $('#baseNuevoDolar').val(data.canon.valor_base_dolar);
-
+      $('#guardarModificacion').hide();
     })
-
   }
-
-  $('#guardarModificacion').hide();
-
 })
 
 //DENTRO DEL MODAL VER DATOS ACTUALES
 $(document).on('click','.modificarCanon',function(e){
   e.preventDefault();
 
-  // limpiarModificar();
   ocultarErrorValidacion($('#baseNuevoDolar'));
   ocultarErrorValidacion($('#baseNuevoEuro'));
 
@@ -429,7 +428,6 @@ $('#guardarModificacion').on('click',function(e){
       dataType: 'json',
 
       success: function (data){
-
           $('#modalVerYModificar').modal('hide');
           $('#mensajeExito h3').text('EXITO!');
           $('#mensajeExito p').text('Los datos del Canon han sido modificados.');
@@ -451,30 +449,49 @@ $('#guardarModificacion').on('click',function(e){
     })
 })
 
-function cargarMeses(id_casino){
+function cargarMeses(id_casino,anio_inicio,sync = false){
   $('#selectMesPago option').remove();
-  $.get('canon/getMeses/' + id_casino, function(data){
+  if(id_casino == "" || anio_inicio == "") return;
+  anio_inicio = parseInt(anio_inicio);
+  $.ajax({
+    type: 'GET',
+    url: 'canon/getMeses/' + id_casino,
+    async: !sync,
+    success: function (data){
+      const mes_inicial = data.meses[0].nro_mes;
       for (var i = 0; i < data.meses.length; i++) {
         const m = data.meses[i];
-        const option = $('<option>').text(m.nombre_mes).data('nro_mes',m.nro_mes)
-        .data('dia_inicio',m.dia_inicio).data('dia_fin',m.dia_fin);
+        const anio_mes = m.nro_mes < mes_inicial || m.nro_cuota == 13? anio_inicio+1 : anio_inicio;
+        const option = $('<option>').text(`${m.nombre_mes} - ${anio_mes}`)
+        .data('dia_inicio',m.dia_inicio).data('dia_fin',m.dia_fin).data('nro_mes',m.nro_mes).data('anio',anio_mes);
         $('#selectMesPago').append(option);
       }
+    }
   });
 }
 
-$(document).on('change','#selectCasinoPago', function(){
+$('#selectCasinoPago').change(function(){
   if($(this).val() != ""){
     $('.desplegarPago').show();
     $('#guardarPago').show();
     //Solo hago la carga dinamica de meses si esta cargando uno nuevo
-    if($('#guardarPago').attr('data-modo') == 'ver') cargarMeses($(this).val());
+    if($('#guardarPago').attr('data-modo') == 'nuevo') cargarMeses($(this).val(),$('#fechaPagoFil').val());
   }
   else{
     $('.desplegarPago').hide();
     $('#guardarPago').hide();
   }
-})
+});
+
+$('#fechaPagoFil').change(function(){
+  if($(this).val() != ""){
+    $('#selectMesPago').attr('disabled',false);
+    cargarMeses($('#selectCasinoPago').val(),$(this).val());
+  }
+  else{
+    $('#selectMesPago').attr('disabled',true).empty();
+  }
+});
 
 function modalPago(modo,id,id_casino){
   limpiar();
@@ -485,24 +502,38 @@ function modalPago(modo,id,id_casino){
     $('#guardarPago').removeClass('btn-successAceptar').addClass('btn-warningModificar').val(id).attr('data-modo',modo);
     $('#selectCasinoPago').val(id_casino).change();
     $('#selectCasinoPago').attr('disabled',true);
-    cargarMeses(id_casino);
     $.get('canon/obtenerPago/' + id, function(data){
+      $('#fechaPagoFil').val(data.informe.anio_inicio);
+      cargarMeses(id_casino,data.informe.anio_inicio,true);
       const d = data.detalle;
+      const opcion_mes = $('#selectMesPago option').filter(function(){
+        const t = $(this);
+        console.log(t.data('dia_inicio'),t.data('dia_fin'),t.data('nro_mes'),t.data('anio'),'checking',
+        d.dia_inicio,d.dia_fin,d.mes,d.anio);
+        return t.data('dia_inicio') == d.dia_inicio && t.data('dia_fin') == d.dia_fin && 
+               t.data('nro_mes')    == d.mes        && t.data('anio')    == d.anio;
+      })
+      //No deberia pasar nunca de que haya muchos pero pongo el primero si ocurre
+      if(opcion_mes.length >= 1) opcion_mes.eq(0).attr('selected','selected');
+      else{
+        // No hay ningun mes con esos parametros, solo deberia ocurrir si cambian 
+        // la fecha de inicio del casino (que no se puede)
+        // Como salvaguarda le creo una opcion y desahibalito la edición
+        $('#selectMesPago option').remove();
+        $('#selectMesPago').append($('<option>').text(`${d.dia_inicio} al ${d.dia_fin} | ${d.mes}/${d.anio}`)
+        .data('dia_inicio',d.dia_inicio).data('dia_fin',d.dia_fin).data('nro_mes',d.nro_mes).data('anio',d.anio));
+        $('#dtpFecha span').hide();
+        $('#fechaPagoFil').attr('disabled',true);
+      }
+      $('#fechaPago').val(d.fecha_cobro);
       $('#cotEuroPago').val(d.cotizacion_euro_actual);
       $('#cotDolarPago').val(d.cotizacion_dolar_actual);
-      $('#obsPago').val(d.observaciones);
-      $('#fechaPago').val(d.fecha_cobro);
       $('#impuestosPago').val(d.impuestos);
-      $('#selectMesPago').find(d.id_mes_casino).prop('selected',true);
-      const primer_mes =  $('#selectMesPago option:first').data('nro_mes');
-      const nro_mes    = $('#selectMesPago option:selected').data('nro_mes');
-      const nro_cuota    = $('#selectMesPago option:selected').data('nro_cuota');
-      const es_anio_final = nro_mes < primer_mes || nro_cuota == 13;//Dio vuelta o el nro de cuota es la 13.
-      $('#fechaPagoFil').val(es_anio_final? data.informe.anio_final : data.informe.anio_inicio);      
       $('#montoPago').val(d.total_pagado);
+      $('#obsPago').val(d.observaciones);
     });
   }
-  else if(modo == 'ver'){
+  else if(modo == 'nuevo'){
     $('#modalPago .modal-title').text("| CARGA DE PAGO");
     $('#modalPago .modal-header').css('background-color','#6dc7be');
     $('#guardarPago').removeClass('btn-warningModificar').addClass('btn-successAceptar').val('').attr('data-modo',modo);
@@ -516,7 +547,7 @@ function modalPago(modo,id,id_casino){
 //btn REGISTRAR PAGO (CARGA LOS CASINOS)
 $('#pagoCanon').on('click',function(e){
   e.preventDefault();
-  modalPago('ver',null,null);
+  modalPago('nuevo',null,null);
 })
 
 //MODIFICAR UN PAGO YA CARGADO
@@ -529,23 +560,21 @@ $(document).on('click','.modificarPago',function(e){
 $('#guardarPago').on('click',function(e){
   e.preventDefault();
 
-  var imp= $('#impuestosPago').val();
-  if(imp < 0 || imp == null){
-    imp=0;
-  }
-
   const mesSeleccionado = $('#selectMesPago option:selected');
-  var formData= {
-    cotizacion_dolar: $('#cotDolarPago').val(),
-    cotizacion_euro: $('#cotEuroPago').val(),
-    impuestos: imp,
-    fecha_pago: $('#fechaPago').val(),
-    total_pago_pesos:$('#montoPago').val(),
-    mes: mesSeleccionado.data('mes'),
+  const formData = {
+    id_detalle: $('#guardarPago').val(),
+    id_casino: $('#selectCasinoPago').val(),
+    anio_inicio_periodo: $('#fechaPagoFil').val(),
+    anio: mesSeleccionado.data('anio'),
+    mes: mesSeleccionado.data('nro_mes'),
     dia_inicio: mesSeleccionado.data('dia_inicio'),
-    dia_fin: mesSeleccionado.data('dia_inicio'),
-    anio_cuota:$('#fechaPagoFil').val(),
-  }
+    dia_fin: mesSeleccionado.data('dia_fin'),
+    fecha_pago: $('#fechaPago').val(),
+    cotizacion_euro: $('#cotEuroPago').val(),
+    cotizacion_dolar: $('#cotDolarPago').val(),
+    total_pago_pesos:$('#montoPago').val(),
+    impuestos: $('#impuestosPago').val() == null? 0 : $('#impuestosPago').val(),
+  };
 
   $.ajaxSetup({
       headers: {
@@ -553,9 +582,15 @@ $('#guardarPago').on('click',function(e){
       }
   });
 
+  let url = 'canon2/';
+  const modo = $('#guardarPago').attr('data-modo');
+  if(modo == 'nuevo') url+='guardarPago';
+  else if(modo == 'modificar') url+='modificarPago';
+  else return;
+
   $.ajax({
       type: 'POST',
-      url: 'canon/guardarPago',
+      url: url,
       data: formData,
       dataType: 'json',
 
@@ -568,97 +603,30 @@ $('#guardarPago').on('click',function(e){
           $('#btn-buscar-pagos').trigger('click',[1,10,'DIFM.fecha_cobro','desc']);
 
       },
-
       error: function (data) {
         var response = data.responseJSON.errors;
 
-          if(typeof response.cotizacion_dolar !== 'undefined'){
-            mostrarErrorValidacion($('#cotDolarPago'), response.cotizacion_dolar[0]);
-          }
-          if(typeof response.cotizacion_euro !== 'undefined'){
-            mostrarErrorValidacion($('#cotEuroPago'), response.cotizacion_euro[0]);
-          }
-          if(typeof response.impuestos !== 'undefined'){
-            mostrarErrorValidacion($('#impuestosPago'), response.impuestos[0]);
-          }
-          if(typeof response.fecha_pago !== 'undefined'){
-            mostrarErrorValidacion($('#fechaPago'), response.fecha_pago[0]);
-          }
-          if(typeof response.total_pago_pesos !== 'undefined'){
-            mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
-          }
-          if(typeof response.anio_cuota !== 'undefined'){
-            mostrarErrorValidacion($('#dtpFecha'), response.anio_cuota[0]);
-          }
-          if(typeof response.mes !== 'undefined'){
-            mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
-          }
-          if(typeof response.importaciones !== 'undefined'){
-            $('#help').hide();
-            $('#mensajeImportacionError').show();
-          }
-      }
-    })
-});
-
-
-//GUARDAR DENTRO DEL  MODAL DE MODIFICAR PAGO
-$('#guardarModifPago').on('click',function(e){
-  e.preventDefault();
-
-  var formData= {
-    id_detalle: $(this).val(),
-    cotizacion_dolar: $('#cotDolarPago').val(),
-    cotizacion_euro: $('#cotEuroPago').val(),
-    impuestos: $('#impuestosPago').val(),
-    fecha_pago: $('#fechaPago').val(),
-    total_pago_pesos:$('#montoPago').val(),
-    mes:$('#selectMesPago').val(),
-  }
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  $.ajax({
-      type: 'POST',
-      url: 'canon/modificarPago',
-      data: formData,
-      dataType: 'json',
-
-      success: function (data){
-
-          $('#modalModificarPago').modal('hide');
-          $('#mensajeExito h3').text('EXITO!');
-          $('#mensajeExito p').text('Los datos del Pago han sido modificados.');
-          $('#mensajeExito').show();
-          $('#btn-buscar-pagos').trigger('click',[1,10,'DIFM.fecha_cobro','desc']);
-
-      },
-
-      error: function (data) {
-        var response = data.responseJSON.errors;
-
-          if(typeof response.cotizacion_dolar !== 'undefined'){
-            mostrarErrorValidacion($('#cotDolarPago'), response.cotizacion_dolar[0]);
-          }
-          if(typeof response.cotizacion_euro !== 'undefined'){
-            mostrarErrorValidacion($('#cotEuroPago'), response.cotizacion_euro[0]);
-          }
-          if(typeof response.impuestos !== 'undefined'){
-            mostrarErrorValidacion($('#impuestosPago'), response.impuestos[0]);
-          }
-          if(typeof response.fecha_pago !== 'undefined'){
-            mostrarErrorValidacion($('#fechaPago'), response.fecha_pago[0]);
-          }
-          if(typeof response.total_pago_pesos !== 'undefined'){
-            mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
-          }
-          if(typeof response.mes !== 'undefined'){
-            mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
-          }
+        if(typeof response.cotizacion_dolar !== 'undefined'){
+          mostrarErrorValidacion($('#cotDolarPago'), response.cotizacion_dolar[0]);
+        }
+        if(typeof response.cotizacion_euro !== 'undefined'){
+          mostrarErrorValidacion($('#cotEuroPago'), response.cotizacion_euro[0]);
+        }
+        if(typeof response.impuestos !== 'undefined'){
+          mostrarErrorValidacion($('#impuestosPago'), response.impuestos[0]);
+        }
+        if(typeof response.fecha_pago !== 'undefined'){
+          mostrarErrorValidacion($('#fechaPago'), response.fecha_pago[0]);
+        }
+        if(typeof response.total_pago_pesos !== 'undefined'){
+          mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
+        }
+        if(typeof response.anio_cuota !== 'undefined'){
+          mostrarErrorValidacion($('#dtpFecha'), response.anio_cuota[0]);
+        }
+        if(typeof response.mes !== 'undefined'){
+          mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
+        }
       }
     })
 });
@@ -670,6 +638,8 @@ function limpiar(){
   $('#selectCasinoPago').val("").change();
   $('#dtpFechaPago').data('datetimepicker').reset();
   $('#dtpFecha').data('datetimepicker').reset();
+  $('#dtpFecha span').show();
+  $('#fechaPagoFil').attr('disabled',false);
   $('#fechaPago').val('');
   $('#montoPago').val('');
   $('#cotEuroPago').val('');
@@ -685,20 +655,6 @@ function limpiar(){
   ocultarErrorValidacion($('#impuestosPago'));
   ocultarErrorValidacion($('#selectMesPago'));
   ocultarErrorValidacion($('#fechaPagoFil'));
-}
-
-function limpiarVer(){
-  $('#casinoDatos').val('');
-  $('#valorBase').val('');
-  $('#valorPago').val('');
-  $('#periodoValido').val('');
-
-}
-
-function limpiarModificar(){
-  $('#casinoDatos').val('');
-  $('#baseNuevoEuro').val('');
-  $('#baseNuevoDolar').val('');
 }
 
 function generarFila(data){
@@ -765,12 +721,10 @@ function cargarTablaInforme(data,t){
     $('#mostrarTabla2').css('display','block');
   }
 
-
   return fila;
 }
 
 function cargarTablaActualizacion(data,t){
-
     var fila = $('#clonarTA').clone();
     fila.removeAttr('id');
     if(t==1){
@@ -799,7 +753,6 @@ function cargarTablaActualizacion(data,t){
 
     fila.css('display','');
     $('#mostrarTablaAct').css('display','block');
-
 
     return fila;
   }
