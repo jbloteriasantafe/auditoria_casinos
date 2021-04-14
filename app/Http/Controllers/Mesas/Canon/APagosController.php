@@ -63,36 +63,46 @@ class APagosController extends Controller
 
   //crear,  pago->recibe cotizaciones, impuestos, fecha_pago, mes_pago y total_pago_pesos
 
+  /* 
+    id_detalle: $('#guardarPago').val(),
+    id_casino: $('#selectCasinoPago').val(),
+    anio_inicio: $('#fechaAnioInicio').val(),
+    anio: mesSeleccionado.data('anio'),
+    mes: mesSeleccionado.data('mes'),
+    dia_inicio: mesSeleccionado.data('dia_inicio'),
+    dia_fin: mesSeleccionado.data('dia_fin'),
+    fecha_pago: $('#fechaPago').val(),
+    cotizacion_euro: $('#cotEuroPago').val(),
+    cotizacion_dolar: $('#cotDolarPago').val(),
+    total_pago_pesos:$('#montoPago').val(),
+    impuestos: $('#impuestosPago').val() == null? 0 : $('#impuestosPago').val(),
+  
+  */
   public function crear(Request $request){
     $validator=  Validator::make($request->all(),[
-      'cotizacion_dolar' => ['required','regex:/^\d\d?\d?([,|.]?\d?\d?\d?)?$/'],//aaaa/aaaa o aaaa-aaaa
-      'cotizacion_euro' =>  ['required',
-                          'regex:/^\d\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'impuestos' => ['required',
-                          'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      //'id_detalle_informe_final_mesas' => 'nullable',
+      'id_casino' => 'required|exists:casino,id_casino',
+      'anio_inicio' => 'required|integer|min:1',
+      'anio' => 'required|integer|gte:anio_inicio',
+      'mes' => 'required|integer|min:1|max:12',
+      'dia_inicio' => 'required|integer|min:1',
+      'dia_fin' => 'required|integer|max:31',
       'fecha_pago' => 'required|date',
-      'mes' =>  ['required','exists:mes_casino,id_mes_casino'],
-      'total_pago_pesos' =>  ['required',
-                          'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'anio_cuota' => 'required|date_format:Y'
+      'cotizacion_euro' => 'required|numeric',
+      'cotizacion_dolar' => 'required|numeric',
+      'total_pago_pesos' => 'required|numeric',
+      'impuestos' => 'required|numeric'
     ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
       //validar que el canon este creado, validar que la cuota no esté paga.
-      if(!empty($validator->getData()['mes']) && !empty($validator->getData()['total_pago_pesos'])){
-        $validator  =$this->validarFecha($validator);
-        $validator = $this->validarCanonYCuota($validator->getData()['mes'],$validator);
-          //validar que el total pago no sea menor que lo que deberia pagar
-        $validator = $this->validarMontoPagado($validator->getData()['mes'],
-        $validator->getData()['total_pago_pesos'],$validator);
-        $validator = $this->verificarImportacionMensual($validator, $validator->getData()['mes']);
-      }
-
-
+      $validator = $this->validarFecha($validator);
+      $validator = $this->validarCanonYCuota($validator->getData()['mes'],$validator);
+        //validar que el total pago no sea menor que lo que deberia pagar
+      $validator = $this->validarMontoPagado($validator->getData()['mes'],
+      $validator->getData()['total_pago_pesos'],$validator);
+      $validator = $this->verificarImportacionMensual($validator, $validator->getData()['mes']);
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-    }
+
     $mesCasino = MesCasino::find($request->mes);
     $casino = $mesCasino->casino;
     $ff = explode('-',$request->fecha_pago);

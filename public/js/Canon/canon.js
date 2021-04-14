@@ -556,9 +556,9 @@ $('#guardarPago').on('click',function(e){
 
   const mesSeleccionado = $('#selectMesPago option:selected');
   const formData = {
-    id_detalle: $('#guardarPago').val(),
+    id_detalle_informe_final_mesas: $('#guardarPago').val(),
     id_casino: $('#selectCasinoPago').val(),
-    anio_inicio_periodo: $('#fechaAnioInicio').val(),
+    anio_inicio: $('#fechaAnioInicio').val(),
     anio: mesSeleccionado.data('anio'),
     mes: mesSeleccionado.data('mes'),
     dia_inicio: mesSeleccionado.data('dia_inicio'),
