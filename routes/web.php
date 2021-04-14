@@ -786,7 +786,7 @@ Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
   Route::get('/canon','Mesas\Canon\IndexController@index');
   Route::post('canon/modificar','Mesas\Canon\ABMCCanonController@modificar');
   Route::get('canon/obtenerCanon/{id_cas}','Mesas\Canon\ABMCCanonController@obtenerCanon');
-  Route::get('canon/getMeses/{id_casino}', 'CasinoController@meses');
+  Route::get('canon/getMesesCuotas/{id_casino}', 'Mesas\Canon\ABMCCanonController@mesesCuotasCanon');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function () {
@@ -796,7 +796,6 @@ Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function ()
 Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
   Route::post('canon/guardarPago','Mesas\Canon\APagosController@crear');
   Route::post('canon/modificarPago','Mesas\Canon\APagosController@modificar');
-
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {

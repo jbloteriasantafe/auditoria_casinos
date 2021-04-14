@@ -70,51 +70,6 @@ class Casino extends Model
     return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
   }
 
-  public function meses(){
-    $generar_fila = function($fecha_inicio,$fecha_fin,$id_casino,$nro_cuota){
-      $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-      $dia_inicio = intval($fecha_inicio->format('d'));
-      $nro_mes    = intval($fecha_fin->format('m'));
-      $dia_fin    = intval($fecha_fin->format('d'));
-      $nombre_mes = $meses[$nro_mes-1];
-
-      $fin_de_mes = intval((clone $fecha_inicio)->modify('last day of')->format('d'));
-      if($dia_inicio != 1 || $dia_fin != $fin_de_mes){//Si esta incompleto el mes
-        $nombre_mes .= ' ' . ($dia_inicio<10? '0' : '') .$dia_inicio . ' al ' . ($dia_fin<10? '0' : '') . $dia_fin;
-      }
-
-      return (object)[
-        'nombre_mes' => $nombre_mes,
-        'nro_mes' => $nro_mes,
-        'nro_cuota' => $nro_cuota,
-        'dia_inicio' => $dia_inicio,
-        'dia_fin' => $dia_fin,
-        'id_casino' => $id_casino
-      ];
-    };
-
-    $fecha = new \DateTime($this->fecha_inicio);
-    $retorno = [];
-    for($nro_cuota = 1;$nro_cuota < 13;$nro_cuota++){
-      $retorno[] = $generar_fila($fecha,
-                                  (clone $fecha)->modify('last day of'),
-                                  $this->id_casino,
-                                  $nro_cuota);
-      $fecha->modify('+1 month')->modify('first day of');
-    }
-
-    $fecha = new \DateTime($this->fecha_inicio);
-    //Si empezo iniciado el mes se le agrega una cuota mas con los dias que le faltaron
-    if($fecha->format('d') != '1'){
-      $retorno[] = $generar_fila((clone $fecha)->modify('first day of'),
-                                  (clone $fecha)->modify('-1 day'),
-                                  $this->id_casino,
-                                  13);
-    }
-  
-    return $retorno;
-  }
-
   public function detalles_informe_final_mesas(){
     return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
   }

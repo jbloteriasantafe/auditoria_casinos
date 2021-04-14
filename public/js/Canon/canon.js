@@ -34,7 +34,7 @@ $(document).ready(function() {
       });
     });
       $(function(){
-        $('#dtpFecha').datetimepicker({
+        $('#dtpFechaAnioInicio').datetimepicker({
           language:  'es',
           todayBtn:  1,
           autoclose: 1,
@@ -288,82 +288,51 @@ $('#btn-buscar-pagos').click(function(e,pagina,page_size,columna,orden){
 
   $('#tablaInicial tbody tr').remove();
 
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
+  let size = 10;
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }
-  else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaInicial .activa').attr('value'),orden: $('#tablaInicial .activa').attr('estado')} ;
+  page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  let sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaInicial .activa').attr('value'),orden: $('#tablaInicial .activa').attr('estado')} ;
 
   if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-    var sort_by =  {columna: 'DIFM.fecha_cobro',orden: 'desc'} ;
+    sort_by =  {columna: 'DIFM.fecha_cobro',orden: 'desc'} ;
   }
 
-    var formData= {
-      fecha: $('#B_fecha_filtro').val(),
-      mes:$('#mesFiltro').val(),
-      id_casino: $('#filtroCasino').val(),
-      page: page_number,
-      sort_by: sort_by,
-      page_size: page_size,
+  const mesSeleccionado = $('#mesFiltro option:selected');
+  const formData = {
+    fecha: $('#B_fecha_filtro').val(),
+    mes: mesSeleccionado.data('mes'),
+    dia_inicio: mesSeleccionado.data('dia_inicio'),
+    dia_fin: mesSeleccionado.data('dia_fin'),
+    id_casino: $('#filtroCasino').val(),
+    page: page_number,
+    sort_by: sort_by,
+    page_size: page_size,
   }
 
   $.ajax({
-      type: 'POST',
-      url: 'canon/buscarPagos',
-      data: formData,
-      dataType: 'json',
-
-      success: function (data) {
-
-          $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.pagos.total,clickIndice);
-
-          for (var i = 0; i < data.pagos.data.length; i++) {
-            var fila=  generarFila(data.pagos.data[i]);
-            console.log('fila',fila);
-            $('#tablaInicial tbody').append(fila);
-          }
-
-          $('#herramientasPaginacion').generarIndices(page_number,page_size,data.pagos.total,clickIndice);
-      },
-      error: function (data) {
-          console.log('Error:', data);
-      }
-    });
-});
-
-$(document).on('change','#filtroCasino',function(){
-  var id= $(this).val();
-
-  if(id != 0){
-    $('#mesFiltro option').not('.default').remove();
-    $('#mesFiltro').prop('disabled',false);
-
-    $.get('canon/getMeses/' + id, function(data){
-        for (var i = 0; i < data.meses.length; i++) {
-          const m = data.meses[i];
-          const option = $('<option>').text(m.nombre_mes)
-          .data('nro_mes',m.nro_mes).data('dia_inicio',m.dia_inicio).data('dia_fin',m.dia_fin);
-          $('#mesFiltro').append(option);
+    type: 'POST',
+    url: 'canon/buscarPagos',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+        $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.pagos.total,clickIndice);
+        for (let i = 0; i < data.pagos.data.length; i++) {
+          $('#tablaInicial tbody').append(generarFila(data.pagos.data[i]));
         }
-    })
-  }else{
-    $('#mesFiltro option').not('.default').remove();
-    $('#mesFiltro').prop('disabled',true);
-    $('#mesFiltro').val(0);
-  }
-})
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,data.pagos.total,clickIndice);
+    },
+    error: function (data) {
+        console.log('Error:', data);
+    }
+  });
+});
 
 //btn de ver datos canon
 $('#buscarDatos').on('click',function(e){
@@ -449,33 +418,58 @@ $('#guardarModificacion').on('click',function(e){
     })
 })
 
-function cargarMeses(id_casino,anio_inicio,sync = false){
-  $('#selectMesPago option').remove();
+function generarOpcionMes(mes,dia_inicio,dia_fin,anio){
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  //asumo que mes 1-12 por lo que no hay que hacer+1
+  const ultimo_dia_mes = new Date(anio,mes,0).getDate();
+  let dias_str = "";
+  if(dia_inicio != 1 || dia_fin != ultimo_dia_mes) dias_str = ` ${dia_inicio} al ${dia_fin}`;
+  const anio_str = isNaN(anio)? '' : (' - '+anio);
+  return $('<option>').text(meses[mes-1]+dias_str+anio_str)
+  .data('dia_inicio',dia_inicio).data('dia_fin',dia_fin).data('mes',mes).data('anio',anio)
+}
+
+function cargarMeses(select,id_casino,anio_inicio = null,sync = false){
+  console.log(select);
+  select.find('option').remove();
   if(id_casino == "" || anio_inicio == "") return;
   anio_inicio = parseInt(anio_inicio);
   $.ajax({
     type: 'GET',
-    url: 'canon/getMeses/' + id_casino,
+    url: 'canon/getMesesCuotas/' + id_casino,
     async: !sync,
     success: function (data){
-      const mes_inicial = data.meses[0].nro_mes;
-      for (var i = 0; i < data.meses.length; i++) {
-        const m = data.meses[i];
+      const meses = data.meses;
+      anio_inicio = parseInt(anio_inicio);
+      const mes_inicial = meses[0].nro_mes;
+      for (var i = 0; i < meses.length; i++) {
+        const m = meses[i];
         const anio_mes = m.nro_mes < mes_inicial || m.nro_cuota == 13? anio_inicio+1 : anio_inicio;
-        const option = $('<option>').text(`${m.nombre_mes} - ${anio_mes}`)
-        .data('dia_inicio',m.dia_inicio).data('dia_fin',m.dia_fin).data('nro_mes',m.nro_mes).data('anio',anio_mes);
-        $('#selectMesPago').append(option);
+        select.append(generarOpcionMes(m.nro_mes,m.dia_inicio,m.dia_fin,anio_mes));
       }
     }
   });
 }
+
+$(document).on('change','#filtroCasino',function(){
+  const id= $(this).val();
+  if(id != 0){
+    $('#mesFiltro').prop('disabled',false);
+    cargarMeses($('#mesFiltro'),id,null);
+  }else{
+    $('#mesFiltro option').remove();
+    $('#mesFiltro').prop('disabled',true);
+  }
+  $('#mesFiltro').prepend($('<option>').text('Todos los Meses').data('mes',0));
+})
 
 $('#selectCasinoPago').change(function(){
   if($(this).val() != ""){
     $('.desplegarPago').show();
     $('#guardarPago').show();
     //Solo hago la carga dinamica de meses si esta cargando uno nuevo
-    if($('#guardarPago').attr('data-modo') == 'nuevo') cargarMeses($(this).val(),$('#fechaPagoFil').val());
+    if($('#guardarPago').attr('data-modo') == 'nuevo') 
+      cargarMeses($('#selectMesPago'),$(this).val(),$('#fechaAnioInicio').val());
   }
   else{
     $('.desplegarPago').hide();
@@ -483,10 +477,10 @@ $('#selectCasinoPago').change(function(){
   }
 });
 
-$('#fechaPagoFil').change(function(){
+$('#fechaAnioInicio').change(function(){
   if($(this).val() != ""){
     $('#selectMesPago').attr('disabled',false);
-    cargarMeses($('#selectCasinoPago').val(),$(this).val());
+    cargarMeses($('#selectMesPago'),$('#selectCasinoPago').val(),$(this).val());
   }
   else{
     $('#selectMesPago').attr('disabled',true).empty();
@@ -503,27 +497,27 @@ function modalPago(modo,id,id_casino){
     $('#selectCasinoPago').val(id_casino).change();
     $('#selectCasinoPago').attr('disabled',true);
     $.get('canon/obtenerPago/' + id, function(data){
-      $('#fechaPagoFil').val(data.informe.anio_inicio);
-      cargarMeses(id_casino,data.informe.anio_inicio,true);
+      $('#fechaAnioInicio').val(data.informe.anio_inicio);
+      cargarMeses($('#selectMesPago'),id_casino,data.informe.anio_inicio,true);
       const d = data.detalle;
       const opcion_mes = $('#selectMesPago option').filter(function(){
         const t = $(this);
-        console.log(t.data('dia_inicio'),t.data('dia_fin'),t.data('nro_mes'),t.data('anio'),'checking',
-        d.dia_inicio,d.dia_fin,d.mes,d.anio);
-        return t.data('dia_inicio') == d.dia_inicio && t.data('dia_fin') == d.dia_fin && 
-               t.data('nro_mes')    == d.mes        && t.data('anio')    == d.anio;
+        return  t.data('dia_inicio') == d.dia_inicio && t.data('dia_fin') == d.dia_fin && 
+                t.data('mes')        == d.mes        && t.data('anio')    == d.anio;
       })
       //No deberia pasar nunca de que haya muchos pero pongo el primero si ocurre
-      if(opcion_mes.length >= 1) opcion_mes.eq(0).attr('selected','selected');
+      if(opcion_mes.length >= 1){
+        opcion_mes.eq(0).attr('selected','selected');
+        $('#selectMesPago').attr('disabled',false);
+      }
       else{
         // No hay ningun mes con esos parametros, solo deberia ocurrir si cambian 
         // la fecha de inicio del casino (que no se puede)
-        // Como salvaguarda le creo una opcion y desahibalito la edición
+        // Como salvaguarda le creo una opcion y deshabilito la edición
         $('#selectMesPago option').remove();
-        $('#selectMesPago').append($('<option>').text(`${d.dia_inicio} al ${d.dia_fin} | ${d.mes}/${d.anio}`)
-        .data('dia_inicio',d.dia_inicio).data('dia_fin',d.dia_fin).data('nro_mes',d.nro_mes).data('anio',d.anio));
+        $('#selectMesPago').append(generarOpcionMes(d.mes,d.dia_inicio,d.dia_fin,d.anio));
         $('#dtpFecha span').hide();
-        $('#fechaPagoFil').attr('disabled',true);
+        $('#fechaAnioInicio').attr('disabled',true);
       }
       $('#fechaPago').val(d.fecha_cobro);
       $('#cotEuroPago').val(d.cotizacion_euro_actual);
@@ -564,9 +558,9 @@ $('#guardarPago').on('click',function(e){
   const formData = {
     id_detalle: $('#guardarPago').val(),
     id_casino: $('#selectCasinoPago').val(),
-    anio_inicio_periodo: $('#fechaPagoFil').val(),
+    anio_inicio_periodo: $('#fechaAnioInicio').val(),
     anio: mesSeleccionado.data('anio'),
-    mes: mesSeleccionado.data('nro_mes'),
+    mes: mesSeleccionado.data('mes'),
     dia_inicio: mesSeleccionado.data('dia_inicio'),
     dia_fin: mesSeleccionado.data('dia_fin'),
     fecha_pago: $('#fechaPago').val(),
@@ -582,7 +576,7 @@ $('#guardarPago').on('click',function(e){
       }
   });
 
-  let url = 'canon2/';
+  let url = 'canon/';
   const modo = $('#guardarPago').attr('data-modo');
   if(modo == 'nuevo') url+='guardarPago';
   else if(modo == 'modificar') url+='modificarPago';
@@ -622,7 +616,7 @@ $('#guardarPago').on('click',function(e){
           mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
         }
         if(typeof response.anio_cuota !== 'undefined'){
-          mostrarErrorValidacion($('#dtpFecha'), response.anio_cuota[0]);
+          mostrarErrorValidacion($('#dtpFechaAnioInicio'), response.anio_cuota[0]);
         }
         if(typeof response.mes !== 'undefined'){
           mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
@@ -637,16 +631,16 @@ function limpiar(){
   $('.desplegarPago').hide();
   $('#selectCasinoPago').val("").change();
   $('#dtpFechaPago').data('datetimepicker').reset();
-  $('#dtpFecha').data('datetimepicker').reset();
+  $('#dtpFechaAnioInicio').data('datetimepicker').reset();
   $('#dtpFecha span').show();
-  $('#fechaPagoFil').attr('disabled',false);
+  $('#fechaAnioInicio').attr('disabled',false);
   $('#fechaPago').val('');
   $('#montoPago').val('');
   $('#cotEuroPago').val('');
   $('#cotDolarPago').val('');
   $('#impuestosPago').val('');
   $('#obsPago').val('');
-  $('#fechaPagoFil').val('');
+  $('#fechaAnioInicio').val('');
   $('#selectMesPago option').remove();
   ocultarErrorValidacion($('#fechaPago'));
   ocultarErrorValidacion($('#montoPago'));
@@ -654,7 +648,7 @@ function limpiar(){
   ocultarErrorValidacion($('#cotDolarPago'));
   ocultarErrorValidacion($('#impuestosPago'));
   ocultarErrorValidacion($('#selectMesPago'));
-  ocultarErrorValidacion($('#fechaPagoFil'));
+  ocultarErrorValidacion($('#fechaAnioInicio'));
 }
 
 function generarFila(data){

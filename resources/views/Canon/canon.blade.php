@@ -468,8 +468,8 @@
                 <div class="col-xs-4">
                   <h5>Año inicio período</h5>
                   <div class="form-group">
-                    <div class='input-group date' id='dtpFecha' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
-                      <input type='text' class="form-control" id="fechaPagoFil" placeholder="aaaa" value=""/>
+                    <div class='input-group date' id='dtpFechaAnioInicio' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
+                      <input type='text' class="form-control" id="fechaAnioInicio" placeholder="aaaa" value=""/>
                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                     </div>

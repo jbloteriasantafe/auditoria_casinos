@@ -288,16 +288,6 @@ private function asociarTurnos($turnos, $casino){
     return $todos;
   }
 
-  public function meses(Request $request,$id_casino){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->usuarioTieneCasino($id_casino)){
-      return ['error' => 'El usuario no tiene accesso a ese casino'];
-    }
-
-    $casino = Casino::find($id_casino);
-    return ['casino' => $casino, 'meses' => $casino->meses()];
-  }
-
   //1 lunes,...,7 Domingo
   public function validarTurnos($validator){
     //valido que no estén repetidos ->collect
