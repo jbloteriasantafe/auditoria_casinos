@@ -10,7 +10,7 @@ class Producido extends Model
   protected $connection = 'mysql';
   protected $table = 'producido';
   protected $primaryKey = 'id_producido';
-  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda');
+  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda','md5');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
 

@@ -10,7 +10,7 @@ class ContadorHorario extends Model
   protected $connection = 'mysql';
   protected $table = 'contador_horario';
   protected $primaryKey = 'id_contador_horario';
-  protected $visible = array('id_contador_horario','fecha','cerrado',  'id_tipo_moneda');
+  protected $visible = array('id_contador_horario','fecha','cerrado',  'id_tipo_moneda','md5');
   public $timestamps = false;
 
   public function casino(){

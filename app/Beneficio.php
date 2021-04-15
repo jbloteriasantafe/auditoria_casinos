@@ -9,7 +9,7 @@ class Beneficio extends Model
   protected $connection = 'mysql';
   protected $table = 'beneficio';
   protected $primaryKey = 'id_beneficio';
-  protected $visible = array('id_beneficio','fecha','coinin','coinout','valor','porcentaje_devolucion','cantidad_maquinas','promedio_por_maquina','observacion','validado');
+  protected $visible = array('id_beneficio','fecha','coinin','coinout','valor','porcentaje_devolucion','cantidad_maquinas','promedio_por_maquina','observacion','validado','md5');
   public $timestamps = false;
 
   public function casino(){
