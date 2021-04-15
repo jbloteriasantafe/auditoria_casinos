@@ -344,9 +344,6 @@ $(document).on('click','.planilla', function(){
 
               head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')));
               head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
-              // head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')));
-              // head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')));
-              // head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
 
               for (var i = 0; i < data.detalles_producido.length; i++) {
                   agregarFilaDetalleProducido(data.detalles_producido[i]);
@@ -588,20 +585,11 @@ $('#btn-guardarContador').on('click', function(e){
 });
 
 function habilitarInputContador(){
-  // $('#modalImportacionContadores').find('.modal-body').children().show();
-  // $('#modalImportacionContadores').find('.modal-body').children('#iconoCarga').hide();
-
-  // $('#modalImportacionContadores #mensajeInformacion').hide();
-  // $('#modalImportacionContadores #rowFecha').hide();
-
   //Inicializa el fileinput para cargar los CSV
   $('#modalImportacionContadores #archivo')[0].files[0] = null;
   $('#modalImportacionContadores #archivo').attr('data-borrado','false');
   $("#modalImportacionContadores #archivo").fileinput('destroy').fileinput({
       language: 'es',
-    //       showPreview: false,
-          // allowedFileExtensions: ["csv", "txt"],
-    //       elErrorContainer: "#alertaArchivo"
       language: 'es',
       showRemove: false,
       showUpload: false,
@@ -770,10 +758,6 @@ function agregarFilaDetalleProducido(producido) {
 
   fila.append($('<td>').addClass('col-xs-5').text(producido.nro_admin));
   fila.append($('<td>').addClass('col-xs-7').text(producido.valor));
-  // fila.append($('<td>').addClass('col-xs-3').text(producido.coinout));
-  // fila.append($('<td>').addClass('col-xs-2').text(producido.jackpot));
-  // fila.append($('<td>').addClass('col-xs-2').text(producido.progresivo));
-
   $('#tablaVistaPrevia tbody').append(fila);
 }
 
@@ -880,7 +864,6 @@ $('#btn-guardarProducido').on('click',function(e){
           $('#modalImportacionProducidos #mensajeError').show();
           //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
           $('#modalImportacionProducidos #rowArchivo').hide();
-          // $('#modalImportacionProducidos #rowFecha').hide();
           $('#modalImportacionProducidos #mensajeInvalido').hide();
           $('#modalImportacionProducidos #mensajeInformacion').hide();
           $('#modalImportacionProducidos #iconoCarga').hide();
@@ -895,13 +878,8 @@ $('#btn-guardarProducido').on('click',function(e){
 function habilitarInputProducido(){
   //Inicializa el fileinput para cargar los CSV
   $('#modalImportacionProducidos #archivo')[0].files[0] = null;
-  // console.log($('#modalImportacionProducidos #archivo'));
   $('#modalImportacionProducidos #archivo').attr('data-borrado','false');
   $("#modalImportacionProducidos #archivo").fileinput('destroy').fileinput({
-      language: 'es',
-    //       showPreview: false,
-          // allowedFileExtensions: ["csv", "txt"],
-    //       elErrorContainer: "#alertaArchivo"
       language: 'es',
       showRemove: false,
       showUpload: false,
@@ -923,8 +901,6 @@ function habilitarInputProducido(){
 
 function procesarDatosProducidos(e) {
     var csv = e.target.result;
-
-    // procesarDatosContador(csv);
 
     // var allTextLines = csv.split(/\r\n|\n/);
     var allTextLines = csv.split('\n');
@@ -1031,20 +1007,15 @@ function procesarDatosProducidos(e) {
       //Ocultar botón de subida
       $('#btn-guardarProducido').hide();
     }
-
-
-
 }
 
 //Eventos de la librería del input
 $('#modalImportacionProducidos #archivo').on('fileerror', function(event, data, msg) {
-   // $('#modalImportacionProducidos #rowMoneda').hide();
    $('#modalImportacionProducidos #mensajeInformacion').hide();
    $('#modalImportacionProducidos #mensajeInvalido').show();
    $('#modalImportacionProducidos #mensajeInvalido p').text(msg);
    //Ocultar botón SUBIR
    $('#btn-guardarProducido').hide();
-
 });
 
 $('#modalImportacionProducidos #archivo').on('fileclear', function(event) {
@@ -1053,7 +1024,6 @@ $('#modalImportacionProducidos #archivo').on('fileclear', function(event) {
     $('#modalImportacionProducidos #archivo')[0].files[0] = null;
     $('#modalImportacionProducidos #mensajeInformacion').hide();
     $('#modalImportacionProducidos #mensajeInvalido').hide();
-    // $('#modalImportacionProducidos #rowMoneda').hide();
     //Ocultar botón SUBIR
     $('#btn-guardarProducido').hide();
 });
@@ -1073,7 +1043,6 @@ $('#btn-reintentarProducido').click(function(e) {
   //Mostrar: rowArchivo
   $('#modalImportacionProducidos #rowArchivo').show();
   //Ocultar: rowFecha, mensajes, iconoCarga
-  // $('#modalImportacionContadores #rowFecha').hide();
   $('#modalImportacionProducidos #mensajeError').hide();
   $('#modalImportacionProducidos #mensajeInvalido').hide();
   $('#modalImportacionProducidos #mensajeInformacion').hide();
@@ -1218,10 +1187,6 @@ function habilitarInputBeneficio(){
   $('#modalImportacionBeneficios #archivo').attr('data-borrado','false');
   $("#modalImportacionBeneficios #archivo").fileinput('destroy').fileinput({
       language: 'es',
-    //       showPreview: false,
-          // allowedFileExtensions: ["csv", "txt"],
-    //       elErrorContainer: "#alertaArchivo"
-      language: 'es',
       showRemove: false,
       showUpload: false,
       showCaption: false,
@@ -1242,7 +1207,6 @@ function habilitarInputBeneficio(){
 
 function procesarDatosBeneficios(e) {
     var csv = e.target.result;
-    // procesarDatosContador(csv);
 
     // var allTextLines = csv.split(/\r\n|\n/);
     var allTextLines = csv.split('\n');
@@ -1250,7 +1214,6 @@ function procesarDatosBeneficios(e) {
     console.log(allTextLines.length);
 
     if (allTextLines.length > 4) {
-        console.log('ASD');
         var data = allTextLines[4].split(';');
 
         var tarr = [];
@@ -1409,8 +1372,6 @@ function agregarFilasImportaciones(data, id) {
 //Detectar el cambio de TIPO DE ARCHIVO
 $('#tipo_archivo').on('change',function(){
     setearValueFecha();
-
-    // $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
 });
 
 function clickIndice(e,pageNumber,tam){
@@ -1462,13 +1423,6 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
     $('#tablaImportaciones th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
-  // var page_size = (page_size != null) ? page_size : 5;
-  // var page_number = (pagina != null) ? pagina : 1;
-  // var sort_by = (columna != null) ? {columna,orden} : null;
-  // if(sort_by == null){ // limpio las columnas
-  //   $('#tablaImportaciones th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  // }
-
   var formData = {
     fecha: $('#fecha_busqueda_hidden').val(),
     casinos: $('#casino_busqueda').val(),
@@ -1496,10 +1450,6 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
           $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.contadores.total,clickIndice);
 
           $('#tituloTabla').text('Todos los contadores');
-          // $('#tituloTabla').generarTitulo(page_number,page_size,resultados.contadores.total,clickIndice);
-          // $('#indicesPaginacion').generarIndices(page_number,page_size,resultados.contadores.total,clickIndice);
-
-          // $('#tituloTabla h4').before($('<h4>').css('font-weight','bold').text('CONTADORES')).before($('<br>'));
 
           for (var i = 0; i < resultados.contadores.data.length; i++) {
               agregarFilasImportaciones(resultados.contadores.data[i],resultados.contadores.data[i].id_contador_horario);
@@ -1514,13 +1464,8 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
           $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.beneficios.total,clickIndice);
 
           $('#tituloTabla').text('Todos los Beneficios');
-          // $('#tituloTabla').generarTitulo(page_number,page_size,resultados.beneficios.total,clickIndice);
-          // $('#indicesPaginacion').generarIndices(page_number,page_size,resultados.beneficios.total,clickIndice);
-
-          // $('#tituloTabla h4').before($('<h4>').css('font-weight','bold').text('BENEFICIOS')).before($('<br>'));
 
           for (var i = 0; i < resultados.beneficios.data.length; i++) {
-              // agregarFilasImportaciones(resultados.beneficios.data[i],resultados.beneficios.data[i].id_beneficio);
               agregarFilasImportaciones(resultados.beneficios.data[i], null);
           }
         }
@@ -1533,31 +1478,12 @@ $('#btn-buscarImportaciones').click(function(e,pagina,page_size,columna,orden){
 
           $('#tituloTabla').text('Todos los PRODUCIDOS');
 
-          // $('#tituloTabla').generarTitulo(page_number,page_size,resultados.producidos.total,clickIndice);
-          // $('#indicesPaginacion').generarIndices(page_number,page_size,resultados.producidos.total,clickIndice);
-
-          // $('#tituloTabla h4').before($('<h4>').css('font-weight','bold').text('PRODUCIDOS')).before($('<br>'));
-
           for (var i = 0; i < resultados.producidos.data.length; i++) {
               agregarFilasImportaciones(resultados.producidos.data[i],resultados.producidos.data[i].id_producido);
           }
         }
 
       }
-
-
-
-      // $('#tituloTabla').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-      // $('#tablaRelevamientos tbody tr').remove();
-      // for (var i = 0; i < resultados.data.length; i++) {
-      //   $('#tablaRelevamientos tbody').append(crearFilaTabla(resultados.data[i]));
-      //   console.log(resultados.data[i]);
-      // }
-      //
-      // $('[data-toggle="tooltip"]').tooltip();
-      //
-      // $('#indicesPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-
     },
     error: function (data) {
       console.log('Error:', data);

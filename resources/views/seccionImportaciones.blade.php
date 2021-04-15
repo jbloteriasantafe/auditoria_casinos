@@ -340,17 +340,9 @@ $id_usuario = session('id_usuario');
                           <p style="color:#aaa;font-family:Roboto-Regular;font-size:16px;margin-left:10px;">Se muestran los primeros 30 registros.</p>
                       </div>
                   </div>
-                  <!-- <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong id="titulo-modal-eliminar">¿Seguro desea eliminar el CONTADOR?</strong>
-                          </div>
-                      </div>
-                  </form> -->
                 </div>
 
                 <div class="modal-footer">
-                  <!-- <button type="button" class="btn btn-dangerEliminar" id="btn-cancelarPlanilla" value="0">ELIMINAR</button> -->
                   <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
                 </div>
             </div>
@@ -389,7 +381,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| IMPORTAR CONTADOR</h3>
@@ -424,13 +415,14 @@ $id_usuario = session('id_usuario');
                       </style>
 
                   <div id="rowArchivo" class="row" style="">
-                          <div class="col-xs-12">
-                              <h5>ARCHIVO</h5>
-                              <div class="zona-file">
-                                <input id="archivo" data-borrado="false" type="file" name="" >
-                                <br> <span id="alertaArchivo" class="alertaSpan"></span>
-                              </div>
-                          </div>
+                    <div class="col-xs-12">
+                        <h5>ARCHIVO</h5>
+                        <div class="zona-file">
+                          <input id="archivo" data-borrado="false" type="file" name="" >
+                          <br> <span id="alertaArchivo" class="alertaSpan"></span>
+                        </div>
+                    </div>
+                    @include('includes.md5hash')
                   </div>
 
                   <div class="row" id="valoresArchivoContador">
@@ -504,7 +496,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarProducidos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoProducidos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| IMPORTAR PRODUCIDO</h3>
@@ -515,27 +506,15 @@ $id_usuario = session('id_usuario');
                 <div class="modal-body modalCuerpo">
 
                   <div id="rowArchivo" class="row" style="">
-                          <div class="col-xs-12">
-                              <h5>ARCHIVO</h5>
-                              <div class="zona-file">
-                                <input id="archivo" data-borrado="false" type="file" name="" >
-                                <br> <span id="alertaArchivo" class="alertaSpan"></span>
-                              </div>
-                          </div>
+                    <div class="col-xs-12">
+                        <h5>ARCHIVO</h5>
+                        <div class="zona-file">
+                          <input id="archivo" data-borrado="false" type="file" name="" >
+                          <br> <span id="alertaArchivo" class="alertaSpan"></span>
+                        </div>
+                    </div>
+                    @include('includes.md5hash')
                   </div>
-
-                  <!-- <div id="rowFecha" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-                          <div class="col-xs-6">
-                              <h5>FECHA</h5>
-
-                              <div class='input-group date' id='fecha' data-link-field="fecha_hidden" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                  <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                              </div>
-                              <input type="hidden" id="fecha_hidden" value=""/>
-                          </div>
-                  </div> -->
 
                   <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                           <div class="col-md-12">
@@ -590,7 +569,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarBeneficios" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoBeneficios" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| IMPORTAR BENEFICIO</h3>
@@ -609,6 +587,7 @@ $id_usuario = session('id_usuario');
                                 <br> <span id="alertaArchivo" class="alertaSpan"></span>
                               </div>
                           </div>
+                          @include('includes.md5hash')
                   </div>
 
                   <div id="rowMoneda" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
@@ -719,6 +698,7 @@ $id_usuario = session('id_usuario');
     @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="js/seccionImportaciones.js" charset="utf-8"></script>
+    <script src="js/md5.js" charset="utf-8"></script>
 
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
