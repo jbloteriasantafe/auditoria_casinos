@@ -427,9 +427,6 @@ function generarFilaTabla(event,controlador,superusuario){
   else{
     fila.find('.sentido').text('---');
   }
-
-  const nro_exp = event.nro_exp_org + '-' + event.nro_exp_interno + '-' + event.nro_exp_control;
-  fila.find('.expediente').text(nro_exp).attr('title',nro_exp);
   
   fila.find('.estado').attr('title',event.estado_rel_descripcion);
   let iclass = 'fa-exclamation';

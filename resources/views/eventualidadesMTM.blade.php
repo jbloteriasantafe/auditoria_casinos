@@ -122,12 +122,11 @@
                   <tr>
                     <th class="col-xs-1" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-2" value="log_movimiento.fecha" estado="" >FECHA <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-1" value="log_movimiento.islas" estado="">ISLAS <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2">EXPEDIENTE</th>
+                    <th class="col-xs-2" value="log_movimiento.islas" estado="">ISLAS <i class="fa fa-sort"></i></th>
                     <th class="col-xs-2" value="tipo_movimiento.descripcion" estado="">TIPO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-1" value="log_movimiento.sentido" estado="">SENTIDO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-1" value="estado_movimiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" estado="">ACCIÓN</th>
+                    <th class="col-xs-3" estado="">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
@@ -292,8 +291,7 @@
     <tr id="filaEjemploTablaEventualidades">
       <td class="col-xs-1 casino">INVALIDO</td>
       <td class="col-xs-2 fecha">99 DIC 9999</td>
-      <td class="col-xs-1 isla">999999</td>
-      <td class="col-xs-2 expediente">---</td>
+      <td class="col-xs-2 isla">999999</td>
       <td class="col-xs-2 tipo">***</td>
       <td class="col-xs-1 sentido" style="text-align: center;">
         <i class="fa fa-fw fa-building"></i>
@@ -302,7 +300,7 @@
       <td class="col-xs-1 estado"  style="text-align: center;">
         <i class="fas fa-fw fa-exclamation" style="color: rgb(255,255,0);align: center;"></i>
       </td>
-      <td class="col-xs-2 accion">
+      <td class="col-xs-3 accion">
         <button class="btn btn-info btn_verEvmtm" title="VER">
           <i class="fa fa-fw fa-search"></i>
         </button>
