@@ -176,6 +176,10 @@ $cas = $usuario['usuario']->casinos;
 
         <div class="modal-footer">
           <!-- INPUTS QUE ME SIRVEN PARA ENVIAR JSON EN EL POST DE VALIDAR -->
+          <button id="datosUltimoEgresoTemporal" type="button" class="btn btn-informacion" value="" title="CARGAR DATOS ULTIMO EGRESO TEMPORAL">
+            <i class="fas fa-file-alt"></i>
+            <i class="fas fa-undo-alt"></i>
+          </button>
           <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">SALIR</button>
         </div> <!-- modal footer -->

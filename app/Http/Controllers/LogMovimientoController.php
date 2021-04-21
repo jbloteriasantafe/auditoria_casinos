@@ -1119,9 +1119,10 @@ class LogMovimientoController extends Controller
       }
       foreach($toma->detalles_relevamiento_progresivo as $detProg){
         $pozo = $detProg->pozo;
-	if(is_null($pozo)) continue;
+        //@HACK: Aca tal vez habria que hacer withTrashed y chequear la fecha deleted_at con respecto a la del log_movimiento
+	      if(is_null($pozo)) continue;
         $prog = $pozo->progresivo;
-	if(is_null($prog)) continue;
+	      if(is_null($prog)) continue;
         $pozo_arr = $pozo->toArray();
         $prog_arr = $prog->toArray();
 
@@ -1137,6 +1138,29 @@ class LogMovimientoController extends Controller
       }
     }
 
+    $datos_ultimo_relev = null;
+    //Cuando se genera un Egreso Definitivo y ya estaba en Egreso Temporal
+    //A veces no se puede retomar el formulario porque la maquina fue destruida
+    //Permito que pueda recargar los mismos datos del ultimo egreso temporal
+    if(!is_null($rel->id_fiscalizacion_movimiento)){
+      $maq = $rel->maquina;//Necesito el objeto
+      //Solo permito copiar el formulario si la maquina esta en egreso temporal
+      $mtm_en_egreso_temporal = $maq->id_estado_maquina == 4;
+
+      $ultimo_relev = $maq->relevamiento_movimiento()
+      ->whereNull('id_fiscalizacion_movimiento')//Intervencion MTM
+      ->orderBy('fecha_relev_sala','desc')->first();//Agarro el ultimo
+      //Y la ultima intervencion MTM es de egreso temporal y esta validada
+      $ultimo_relev_es_egreso = $ultimo_relev->log_movimiento->sentido == 'EGRESO TEMPORAL';
+      $ultimo_relev_visado = $ultimo_relev->id_estado_relevamiento == 4;
+
+      if($mtm_en_egreso_temporal && $ultimo_relev_es_egreso && $ultimo_relev_visado){
+        $datos_ultimo_relev = $ultimo_relev->toma_relevamiento_movimiento()->first();
+        //No hay recursion infinita porque no va a entrar al if de id_fiscalizacion_movimiento arriba
+        $datos_ultimo_relev = $this->obtenerRelevamientoToma($datos_ultimo_relev->id_relevamiento_movimiento);
+      }
+    }
+    
 
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     $log = $rel->log_movimiento;
@@ -1144,7 +1168,8 @@ class LogMovimientoController extends Controller
      'fiscalizador' => $fisca,'cargador' => $cargador,
      'tipo_movimiento' =>  $log->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
-     'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control ];
+     'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
+     'datos_ultimo_relev' => $datos_ultimo_relev ];
   }
 
   public function buscarEventualidadesMTMs(Request $request){

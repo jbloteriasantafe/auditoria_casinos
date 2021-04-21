@@ -56,6 +56,7 @@ $(document).on('click','.btn-verRelMov',function(e){
 });
 
 function mostrarFiscalizacion(id_fiscalizacion,modo,refrescando = false){
+  $('#datosUltimoEgresoTemporal').prop('disabled',true).data('datos',null).hide();
   $('#guardarRel').prop('disabled', true);
   $('#guardarRel').attr('modo',modo).toggle(modo == "CARGAR");
   $('#guardarRel').attr('data-fis',id_fiscalizacion);
@@ -80,12 +81,16 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
   $('#guardarRel').attr('toma', toma);
   $.get('/relevamientos_movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
     $('#guardarRel').prop('disabled', true).hide();
+    $('#datosUltimoEgresoTemporal').prop('disabled',true).data('datos',null).hide();
     const estado_rel = data.relevamiento.id_estado_relevamiento;
     if (modo_ventana == "CARGAR"){
       //GENERADO || CARGANDO || SIN RELEVAR
       if(estado_rel == 1 || estado_rel == 2 || estado_rel == 5){
         divRelMovSetearModo("CARGAR");
         $('#guardarRel').prop('disabled', false).show();
+        const puede_recargar = data.datos_ultimo_relev != null;
+        $('#datosUltimoEgresoTemporal').prop('disabled',!puede_recargar).toggle(puede_recargar)
+        .data('datos',data.datos_ultimo_relev);
       }
       else divRelMovSetearModo("VER");
     }
@@ -137,6 +142,7 @@ $(document).on('click','#guardarRel',function(){
       divRelMovMarcarListaMaq(formData.id_maquina);
       mensajeExito({mensajes :['Los datos se han cargado correctamente']});
       $('#guardarRel').prop('disabled', true);
+      $('#datosUltimoEgresoTemporal').prop('disabled',true).data('datos',null).hide();
       $('#btn-buscarRelMov').click();
       if(data.fisFinalizada){
         $('#modalCargarRelMov').modal('hide');
@@ -316,4 +322,9 @@ $('#collapseFiltros').keypress(function(e){
   if(e.charCode == 13){//Enter
     $('#btn-buscarRelMov').click();
   }
+})
+
+$('#datosUltimoEgresoTemporal').click(function(e){
+  divRelMovSetear($(this).data('datos'));
+  $(this).data('datos',null).attr('disabled',true); 
 })
