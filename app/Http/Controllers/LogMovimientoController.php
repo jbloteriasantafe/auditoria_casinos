@@ -1427,68 +1427,64 @@ class LogMovimientoController extends Controller
       RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relevMov, $request->estado == 'valido'? 1 : 0, $request->observacion);
 
       if(!is_null($relevMov->id_fiscalizacion_movimiento)){
-        $relss = RelevamientoMovimiento::where('id_fiscalizacion_movimiento','=',$relevMov->id_fiscalizacion_movimiento)
-        ->whereIn('id_estado_relevamiento',[4,6])->get();
         $fisMov = $relevMov->fiscalizacion;
-        if($fisMov->relevamientos_movimientos()->count() == count($relss)){
+        $rels_fis = $fisMov->relevamientos_movimientos();
+        if((clone $rels_fis)->count() == 
+           (clone $rels_fis)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
           $fisMov->estado_relevamiento()->associate(4);
           $fisMov->save();
         }
       }
 
-      $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
-                ->whereIn('id_estado_relevamiento',[4,6])->get();
-
-      if($logMov->relevamientos_movimientos()->count() == count($relss)){
+      $rels_log = $logMov->relevamientos_movimientos();
+      if((clone $rels_log)->count() == 
+         (clone $rels_log)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
         $logMov->estado_relevamiento()->associate(4);
         $logMov->estado_movimiento()->associate(4);
         $logMov->save();
-        $estado_intervencionmtm = $logMov->sentido == 'REINGRESO'?  2 : 4;
+      }
+      //Todo esto es para seleccionar el nuevo estado y el mensaje
+      //Si es intervencion MTM, segun el sentido es "Reingreso" o "Egreso Temporal"
+      //Si no, si es ingreso inicial, es "Ingreso". Si es egreso definitivo, "Egreso Definitivo"
+      $nuevo_estado = null;
+      $texto = "";
+      $tipoMov = $logMov->tipo_movimiento;//Alias para no repetir tanto
+      //No tenemos que chequear que este deprecado porque lo validamos arriba.
+      if($tipoMov->es_intervencion_mtm){
+        $nuevo_estado = $logMov->sentido == 'REINGRESO'?  2 : 4;
+        $texto = ucwords(strtolower($logMov->tipo_movimiento->descripcion))." validado.";
+        $id = $tipoMov->id_tipo_movimiento;//Alias
+        //Para denominación, % devolucion, juego, cupo le agrego esto para que sea mas estetico
+        if($id == 5 || $id == 6 || $id == 7 || $id == 15){
+          $texto = 'Cambio de '.$texto;
+        }
+      }
+      else if($tipoMov->id_tipo_movimiento == 11){
+        $nuevo_estado = 1;
+        $texto = "Ingreso inicial validado.";
+      }
+      else if($tipoMov->id_tipo_movimiento == 12){
+        $nuevo_estado = 3;
+        $texto = "Egreso definitivo validado.";
+      }
+      else{
+        throw new \Exception('Unreachable');
+      }
 
-        //Todo esto es para seleccionar el nuevo estado y el mensaje
-        //Si es intervencion MTM, segun el sentido es "Reingreso" o "Egreso Temporal"
-        //Si no, si es ingreso inicial, es "Ingreso". Si es egreso definitivo, "Egreso Definitivo"
-        $nuevo_estado = null;
-        $texto = "";
-        $tipoMov = $logMov->tipo_movimiento;//Alias para no repetir tanto
-        //No tenemos que chequear que este deprecado porque lo validamos arriba.
-        if($tipoMov->es_intervencion_mtm){
-          $nuevo_estado = $logMov->sentido == 'REINGRESO'?  2 : 4;
-          $texto = ucwords(strtolower($logMov->tipo_movimiento->descripcion))." validado.";
-          $id = $tipoMov->id_tipo_movimiento;//Alias
-          //Para denominación, % devolucion, juego, cupo le agrego esto para que sea mas estetico
-          if($id == 5 || $id == 6 || $id == 7 || $id == 15){
-            $texto = 'Cambio de '.$texto;
-          }
-        }
-        else if($tipoMov->id_tipo_movimiento == 11){
-          $nuevo_estado = 1;
-          $texto = "Ingreso inicial validado.";
-        }
-        else if($tipoMov->id_tipo_movimiento == 12){
-          $nuevo_estado = 3;
-          $texto = "Egreso definitivo validado.";
-        }
-        else{
-          throw new \Exception('Unreachable');
-        }
-        foreach($logMov->relevamientos_movimientos as $rel){
-          if($rel->id_estado_relevamiento == 4 && !is_null($nuevo_estado)){
-            $maquina = $rel->maquina()->withTrashed()->first();
-            $maquina->estado_maquina()->associate($nuevo_estado);
-            $maquina->save();
+      if($relevMov->id_estado_relevamiento == 4 && !is_null($nuevo_estado)){
+        $maquina = $relevMov->maquina()->withTrashed()->first();
+        $maquina->estado_maquina()->associate($nuevo_estado);
+        $maquina->save();
 
-            $tomas = $rel->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
-            $multiples_tomas = $rel->toma_relevamiento_movimiento()->count() > 1;
-            //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
-            $razon = $texto." \n";
-            foreach($tomas as $idx => $toma){
-              if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
-              $razon = $razon . $toma->observaciones . " \n";
-            }
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
-          }
+        $tomas = $relevMov->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
+        $multiples_tomas = $relevMov->toma_relevamiento_movimiento()->count() > 1;
+        //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
+        $razon = $texto." \n";
+        foreach($tomas as $idx => $toma){
+          if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
+          $razon = $razon . $toma->observaciones . " \n";
         }
+        LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
       }
       DB::commit();
     }

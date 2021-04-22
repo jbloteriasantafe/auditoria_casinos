@@ -446,7 +446,7 @@ function generarFilaTabla(event,controlador,superusuario){
   fila.find('.isla').text(islas).attr('title',islas);
   fila.find('button').attr('data-casino',event.id_casino).val(event.id_log_movimiento);
 
-  fila.find('.btn_validarEvmtm').toggle(estado == 3 && (superusuario || controlador));
+  fila.find('.btn_validarEvmtm').toggle((estado == 1 || estado == 2 || estado == 3) && (superusuario || controlador));
   fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 2 );
   if((event.puede_reingreso == 0 && event.puede_egreso_temporal == 0) 
   || event.deprecado == 1
