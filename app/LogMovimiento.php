@@ -14,7 +14,7 @@ class LogMovimiento extends Model
 
   protected $visible = array('id_log_movimiento','fecha','id_casino',
   'id_expediente','id_estado_movimiento','id_estado_relevamiento',
-  'id_tipo_movimiento','carga_finalizada', 'cant_maquinas', 'tipo_carga',
+  'carga_finalizada', 'cant_maquinas', 'tipo_carga',
   'islas','sentido', 'nro_exp_org','nro_exp_interno','nro_exp_control');
 
   public $timestamps = false;
@@ -44,8 +44,26 @@ class LogMovimiento extends Model
   public function fiscalizaciones(){
      return $this->hasMany('App\FiscalizacionMov','id_log_movimiento','id_log_movimiento');
   }
-  public function tipo_movimiento(){
-    return $this->belongsTo('App\TipoMovimiento','id_tipo_movimiento','id_tipo_movimiento');
+
+  public function tipos_movimiento(){
+    return $this->belongsToMany('App\TipoMovimiento','logmov_tipomov','id_log_movimiento','id_tipo_movimiento');
+  }
+  public function tipo_movimiento_str($sep = ', '){
+    return implode($sep,$this->tipos_movimiento()->pluck('descripcion')->toArray());
+  }
+  public function es_intervencion_mtm(){
+    $count = 0;
+    $es_intervencion_mtm = true;
+    foreach($this->tipos_movimiento as $t){
+      //ERROR: tipo movimiento deprecado
+      if($t->deprecado) return "deprecado";
+      $es_intervencion_mtm = $es_intervencion_mtm && $t->es_intervencion_mtm;
+      $count += 1;
+    }
+    //ERROR: no se puede tener mas de 1 tipo mov y no ser todos intervencion mtm
+    if($count > 1 && !$es_intervencion_mtm) return "tipos_multiples_invalidos";
+    if($this->sentido == '---' && $es_intervencion_mtm) return "intervencion_mtm_sin_sentido";
+    return $es_intervencion_mtm;
   }
 
   public function log_clicks_movs(){

@@ -52,7 +52,7 @@ class RelevamientoCargado extends Notification
       $log = LogMovimiento::find($this->fiscalizacion->id_log_movimiento);
       $titulo = 'Tienes un movimiento de MTMs para validar';
       $main = 'Te notificamos que el movimiento del día '.$log->fecha.' del tipo '
-             .$log->tipo_movimiento->descripcion.' ya ha sido fiscalizado.';
+             .$log->tipo_movimiento_str().' ya ha sido fiscalizado.';
       return (new MailMessage)
             ->subject('Tienes una intervención de MTMs para revisar - CAS Lotería de Santa Fe')
             ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,

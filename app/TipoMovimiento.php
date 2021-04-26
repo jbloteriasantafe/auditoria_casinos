@@ -21,7 +21,7 @@ class TipoMovimiento extends Model
   }
 
   public function log_movimientos(){
-    return $this->hasMany('App\LogMovimiento', 'id_tipo_movimiento', 'id_tipo_movimiento');
+    return $this->belongsToMany('App\LogMovimiento','logmov_tipomov','id_tipo_movimiento','id_log_movimiento');
   }
 
   public function log_maquinas(){

@@ -83,24 +83,19 @@ function agregarMTMEv(id_maquina, nro_admin) {
 
 //botón imprimir dentro del modal
 $(document).on('click','#btn-impr',function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
-  let mtmEv = [];
-  $('#tablaMTM tbody > tr').each(function(){
-    const maquina={
-      id_maquina : $(this).attr('id')
-    }
-    mtmEv.push(maquina);
-  });
   const formData = {
-    id_tipo_movimiento: $('#modalNuevaEvMTM').find('#tipoMov').val(),
-    maquinas: mtmEv,
     sentido: $('#sentidoMov').val(),
-    id_casino: $('#casinoNuevaEvMTM').val()
+    id_casino: $('#casinoNuevaEvMTM').val(),
+    tipos_movimiento: 
+      $('#listaTipoMovs .tipo_mov_lista').map(function(){
+        return $(this).attr('data-id');
+      }).toArray(),
+    maquinas: 
+      $('#tablaMTM tbody > tr').map(function(){
+        return $(this).attr('id');
+      }).toArray(),
   };
 
   $.ajax({
@@ -509,3 +504,15 @@ $(document).on('click','#tablaResultadosEvMTM thead tr th[value]',function(e){
   $('#tablaResultadosEvMTM th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
+
+$('#agregarTipoMov').click(function(e){
+  const opcion = $('#tipoMov option:selected');
+  if($(`#listaTipoMovs div.tipo_mov_lista[data-id="${opcion.val()}"]`).length == 0){
+    const div = $('<div>').addClass('col-md-4 tipo_mov_lista').text(opcion.text()).attr('data-id',opcion.val());  
+    $('#listaTipoMovs').append(div);
+  }
+});
+
+$(document).on('click','#listaTipoMovs div.tipo_mov_lista',function(e){
+  $(this).remove();
+})

@@ -66,15 +66,30 @@ class ExpedienteController extends Controller
 
   public function obtenerExpediente($id){
     $expediente = Expediente::find($id);
+
+    
+    $tipo_descripcion = 'GROUP_CONCAT(DISTINCT(tipo_movimiento.descripcion) ORDER BY tipo_movimiento.descripcion ASC SEPARATOR ", ")';
     $notasMovimiento = DB::table('expediente')
-                ->select('nota.*','tipo_movimiento.descripcion as movimiento')
+                ->select('nota.*')
+                ->selectRaw($tipo_descripcion.' as movimiento')
                 ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+                ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','nota.id_log_movimiento')
+                ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','logmov_tipomov.id_tipo_movimiento')
+                ->whereNull('nota.id_tipo_movimiento')
                 ->where('expediente.id_expediente','=',$id)
                 ->where('nota.es_disposicion',0)
-                ->orderBy('nota.fecha','DESC')
+                ->groupBY('nota.id_nota');
 
-                ->get();
+    //Estas son legacy de cuando habia 1 solo tipo por movimiento
+    $notasMovimiento2 = DB::table('expediente')
+    ->select('nota.*','tipo_movimiento.descripcion as movimiento')
+    ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
+    ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+    ->whereNotNull('nota.id_tipo_movimiento')
+    ->where('expediente.id_expediente','=',$id)
+    ->where('nota.es_disposicion',0);
+
+    $notasMovimiento = $notasMovimiento->union($notasMovimiento2)->orderBy('fecha','asc')->get();
 
     $notas = DB::table('expediente')
                 ->select('nota.*', 'expediente.tema')
@@ -139,12 +154,7 @@ class ExpedienteController extends Controller
         'notas_asociadas.*.fecha'=>'required|date',
         'notas_asociadas.*.identificacion'=>'required',
         'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento'
-        //'notas.*.file' => 'sometimes|mimes:pdf',
-        // 'notas.*.disposiciones' => 'nullable',
-        // 'notas.*.disposiciones.*.nro_disposicion'=> ['required','regex:/^\d\d\d$/'],
-        // 'notas.*.disposiciones.*.nro_disposicion_anio'=> ['required','regex:/^\d\d$/']
-        // 'id_tipo_movimiento' => 'integer|exists:tipo_movimiento,id_tipo_movimiento| nullable', /////////////////////////////////////////////agrego tipo movimiento
+        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
     ], array(), self::$atributos)->after(function ($validator){
 
 
@@ -606,25 +616,15 @@ class ExpedienteController extends Controller
     if($id_expediente==0){
       return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
     }else{
-      $logs= LogMovimiento::where([['id_expediente','=',$id_expediente],['id_tipo_movimiento','=',2]])->get(); //chequeo que exista un egreso
+      $logs = DB::table('log_movimiento')
+      ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+      ->where('logmov_tipomov.id_tipo_movimiento','=',2)->count(); //chequeo que exista un egreso
 
-      if(count($logs) == 0){
+      if($logs == 0){
         return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
       }else{
         return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();//agrega reingreso
       }
     }
   }
-
-  public function obtenerMovimientosExpediente($id_expediente)
-  {
-    $movimientos = DB::table('log_movimiento')
-                      ->select('log_movimiento.id_log_movimiento','tipo_movimiento.descripcion','log_movimiento.fecha')
-                      ->join('expediente','expediente.id_expediente','=','log_movimiento.id_expediente')
-                      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
-                      ->where('expediente.id_expediente','=', $id_expediente)
-                      ->get();
-    return $movimientos;
-  }
-
 }
