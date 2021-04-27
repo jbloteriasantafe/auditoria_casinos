@@ -38,6 +38,7 @@ use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\TipoCausaNoTomaProgresivo;
 use App\Pozo;
+use Illuminate\Support\Facades\Storage;
 
 /*
 # Nueva forma de trabajo de MOVIMIENTOS (Marzo 2020 - Octavio)
@@ -554,6 +555,18 @@ class LogMovimientoController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
+  private function fingerprint(){//Deberia ser unico cada vez que se llama a menos que llame mas de una vez por decisegundo..
+    $user = session('id_usuario');
+    $path = sha1(request()->path());
+    
+    $time = microtime(true);
+    $micro_time = sprintf("%06d",($time - floor($time)) * 1000000);
+    $date = new DateTime(date('Y-m-d H:i:s',$time));
+    $timestamp = $date->format('Y-m-d\TH:i:s').'.'.$micro_time[0];//Trunco el primer digito
+
+    return implode('|',[$user,$path,$timestamp]);
+  }
+
   public function imprimirEventualidadMTM($id_log_mov){
     $logMov = LogMovimiento::find($id_log_mov);
     $casino = $logMov->casino;
@@ -579,7 +592,59 @@ class LogMovimientoController extends Controller
     $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    $todos_los_rels = $relevamientos;
+    $paginas = count($todos_los_rels);
+    $pagina = 1;
+    $fingerprint = $this->fingerprint();
+    $codigo = $casino->codigo."/".$logMov->fecha;
+    $files = [];
+    foreach($todos_los_rels as $r){
+      $relevamientos = [$r];
+      $filename = $fingerprint."-".$pagina.".pdf";
+      $files[] = $filename;
+      $this->dispatch(new \App\Jobs\CrearPDF('planillaMovimientos',compact('relevamientos','tipo_planilla'),$codigo,
+                                              $pagina,$paginas,$filename));
+      $pagina++;
+    }
+
+    //Sincronizar hasta que esten creados todos los archivos
+    $absFileNames = [];
+    {
+      $max_seconds = 60;
+      $elapsed_seconds = 0;
+      $sleep_seconds = 1;
+      while($elapsed_seconds < $max_seconds){
+        sleep($sleep_seconds);
+        $elapsed_seconds+=$sleep_seconds;
+        $allFiles = true;
+        foreach($files as $f){
+          $allFiles = $allFiles & Storage::exists($f);
+        }
+        if($allFiles) break;
+      }
+      if($elapsed_seconds >= $max_seconds) return "Error de timeout al crear el archivo";
+    }
+    //Paso a path absoluto los inputs y el output
+    $nfiles = array_map(function($f){return Storage::getAdapter()->applyPathPrefix($f);},$files);
+    $input_files_list = '"'.implode('" "',$nfiles).'"';
+    $output_file = Storage::getAdapter()->applyPathPrefix($fingerprint.'.pdf');
+    $command = 'pdfunite '.$input_files_list.' "'.$output_file.'"';
+    $output = [];
+    $rtrn = 0;
+    exec($command,$output);
+    if(count($output) != 0){
+      dump("No se pudo crear el archivo");
+      dump($output);
+      dump(count($output));
+      dump($rtrn);
+      return -1;
+    }
+    foreach($files as $f){
+      Storage::delete($f);
+    }
+
+    return response()->file($output_file)->deleteFileAfterSend(true);
+    //return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
   public function imprimirMovimiento($id_log_mov){
