@@ -19,6 +19,7 @@
     text-overflow: ellipsis;
     border: 1px solid lightgray;
     border-radius: 25px;
+    text-align: center;
   }
 </style>
 @endsection
