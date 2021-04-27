@@ -31,13 +31,13 @@ class CrearPDF implements ShouldQueue
      * @return void
      */
     public function __construct(string $planilla,array $compct, string $codigo,
-                                int $pagina,int $pagina_offset,int $paginas, string $filename)
+                                int $pagina,int $paginas, string $filename)
     {
         $this->planilla = $planilla;
         $this->compct = $compct;
         $this->codigo = $codigo;
         $this->pagina = $pagina;
-        $this->pagina_offset = $pagina_offset;
+        $this->pagina_offset = 0;//@TODO
         $this->paginas = $paginas;
         $this->filename = $filename;
     }
@@ -56,7 +56,7 @@ class CrearPDF implements ShouldQueue
         $dompdf->render();
         $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
         $dompdf->getCanvas()->page_text(20, 815, $this->codigo, $font, 10, array(0,0,0));
-        $dompdf->getCanvas()->page_text(515, 815, "Página ".$this->pagina." de ".$this->paginas, $font, 10, array(0,0,0));
+        $dompdf->getCanvas()->page_text(515, 815, "Página ".($this->pagina+$this->pagina_offset)." de ".$this->paginas, $font, 10, array(0,0,0));
         Storage::put($this->filename,$dompdf->output());
     }
 }
