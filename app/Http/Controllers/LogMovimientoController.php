@@ -1371,6 +1371,7 @@ class LogMovimientoController extends Controller
         'maquinas' => 'required',
         'maquinas.*' => 'required|exists:maquina,id_maquina',
     ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
       $data = $validator->getData();
       $sentido = $data['sentido'];
       foreach($data['tipos_movimiento'] as $id_tipo_movimiento){

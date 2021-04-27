@@ -115,8 +115,8 @@ $(document).on('click','#btn-impr',function(e){
       console.log('Error:',data);
       var response = data.responseJSON;
       let err = false;
-      if(typeof response.tipo_movimiento !== 'undefined'){
-        mostrarErrorValidacion($('#tipomov'),response.tipo_movimiento[0]);
+      if(typeof response.tipos_movimiento !== 'undefined'){
+        mostrarErrorValidacion($('#tipoMov'),"Elija al menos un tipo de movimiento");
         err = true;
       }
       if(typeof response.maquinas !== 'undefined'){
