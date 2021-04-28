@@ -614,9 +614,11 @@ class LogMovimientoController extends Controller
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
     }
+    // Mucho del beneficio es que si tenes 100+ maquinas hay mucho en memoria y crashea o demora, 
+    // asi se divide un poco y se va haciendo de a partes
 
     // Este valor depende de tu planilla cuantas paginas generas con 1 detalle
-    // Si bien es 1 por pagina para esta lo dejo asi para documentación
+    // Si bien es 1 por pagina para esta de movimientos lo dejo asi para documentación
     $paginas_por_relevamiento = 1;//Unidad [pag/rel]
     $paginas_totales = count($todos_los_rels) / $paginas_por_relevamiento;
     $chunk_size = $paginas_por_pdf/$paginas_por_relevamiento; //Unidad [rels/pdf] = [pag/pdf]/[pag/rel]

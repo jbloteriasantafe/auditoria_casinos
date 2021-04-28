@@ -26,7 +26,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
-    <div class="col-md-3">
+    <div class="col-md-3" style="overflow-y: scroll; height: 950px;">
         <h5>Máquinas</h5>
         <table class="table tablaMTM">
         <thead>
