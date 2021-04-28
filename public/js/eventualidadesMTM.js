@@ -37,6 +37,7 @@ $('#cantidad').on('keypress',function(e){
 
 function initModalNuevaEvMTM(){
   $('#tablaMTM tbody tr').remove();
+  $('#listaTipoMovs .tipo_mov_lista').remove();
   $.get('eventualidadesMTM/tiposMovIntervMTM', function(data){
     $('#tipoMov option').remove();
     data.tipos_movimientos.forEach(tm => {
