@@ -38,6 +38,7 @@ use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\TipoCausaNoTomaProgresivo;
 use App\Pozo;
+use App\PdfParalelo;
 use Illuminate\Support\Facades\Storage;
 
 /*
@@ -542,130 +543,25 @@ class LogMovimientoController extends Controller
       );
     }
 
-    $tipo_planilla = "movimientos";
-    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$fiscalizacionMov->fecha_envio_fiscalizar, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-  }
-
-  private function fingerprint(){//Deberia ser unico cada vez que se llama a menos que llame mas de una vez por decisegundo..
-    $user = session('id_usuario');
-    $path = sha1(request()->path());
-    
-    $time = microtime(true);
-    $micro_time = sprintf("%06d",($time - floor($time)) * 1000000);
-    $date = new DateTime(date('Y-m-d H:i:s',$time));
-    $timestamp = $date->format('Y-m-d\TH:i:s').'.'.$micro_time[0];//Trunco el primer digito
-
-    return implode('|',[$user,$path,$timestamp]);
-  }
-
-  private function borrarArchivos($files){
-    foreach($files as $f){
-      if(Storage::exists($f)) Storage::delete($f);
-    }
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"movimientos",$relevamientos);
   }
 
   public function imprimirEventualidadMTM($id_log_mov){
     $logMov = LogMovimiento::find($id_log_mov);
     $casino = $logMov->casino;
     $tipoMovimiento = $logMov->tipo_movimiento_str();
-    $todos_los_rels = array();
+    $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
     foreach ($logMov->relevamientos_movimientos as $idx => $relev) {
-      $todos_los_rels[] = $relController->generarPlanillaMaquina(
+      $relevamientos[] = $relController->generarPlanillaMaquina(
         $relev,
         $tipoMovimiento,
         $logMov->sentido,
         $casino
       );
     }
-
-    $tipo_planilla = "intervenciones";
-    if(false){//Version single threaded
-      //Con ~100 paginas supera los 60 segundos por PDF tirando excepsion
-      $relevamientos = $todos_los_rels;
-      $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-      $dompdf = new Dompdf();
-      $dompdf->set_paper('A4', 'portrait');
-      $dompdf->loadHtml($view->render());
-      $dompdf->render();
-      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
-      $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-      return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-    }
-
-
-    // Este valor depende de tu planilla cuantas paginas generas con 1 detalle
-    // Si bien es 1 por pagina para esta lo dejo asi para documentación
-    $paginas_por_relevamiento = 1;//Unidad [pag/rel]
-    // Encontre que tratar de no tener mucha cantidad de paginas por archivo
-    // es mas rapido, supongo que es porque los procesos se bloquean guardando
-    // a disco y permiten que la CPU schedulee a otro proceso para siga procesando
-    // Si son muy pocas empezas a tener overhead de la llamada de los procesos
-    // Pero en realidad no varia tanto entre mejor y peor caso
-    $paginas_por_pdf = 8;//Unidad [pag/pdf]
-
-    $fingerprint = $this->fingerprint();
-    $codigo = $casino->codigo."/".$logMov->fecha;
-    $chunk_size = $paginas_por_pdf/$paginas_por_relevamiento; //Unidad [rels/pdf] = [pag/pdf]/[pag/rel]
-    $chunked_array = array_chunk($todos_los_rels,$chunk_size);
     
-    $files = [];
-    $codigo = $casino->codigo."/".$logMov->fecha;
-    $paginas_totales = $paginas_por_relevamiento*count($todos_los_rels);
-    foreach($chunked_array as $idx => $chunk){
-      $relevamientos = $chunk;
-      $filename = $fingerprint."-".$idx.".pdf";
-      $files[] = $filename;
-      $this->dispatch(new \App\Jobs\CrearPDF(
-        'planillaMovimientos', compact('relevamientos','tipo_planilla'), $filename,
-        $codigo              , $idx*$paginas_por_pdf                   , $paginas_totales
-      ));
-    }
-
-    //Sincronizar con un spinlock hasta que esten creados todos los archivos
-    $absFileNames = [];
-    {
-      $max_seconds = 120;
-      $elapsed_seconds = 0;
-      $sleep_seconds = 5;
-      while($elapsed_seconds < $max_seconds){
-        sleep($sleep_seconds);
-        $elapsed_seconds+=$sleep_seconds;
-        $allFiles = true;
-        foreach($files as $f){
-          $allFiles = $allFiles & Storage::exists($f);
-        }
-        if($allFiles) break;
-      }
-      if($elapsed_seconds >= $max_seconds){
-        $this->borrarArchivos($files);
-        return "Error de timeout al crear el archivo";
-      }
-    }
-    //Paso a path absoluto los inputs y el output
-    $nfiles = array_map(function($f){return Storage::getAdapter()->applyPathPrefix($f);},$files);
-    $input_files_list = '"'.implode('" "',$nfiles).'"';
-    $output_file = Storage::getAdapter()->applyPathPrefix($fingerprint.'.pdf');
-    $command = 'pdfunite '.$input_files_list.' "'.$output_file.'" 2>&1';
-    $output = [];
-    $rtrn = 0;
-    exec($command,$output,$rtrn);
-    if(count($output) != 0 || $rtrn != 0){
-      $this->borrarArchivos($files);
-      return "No se pudo crear el archivo: Error ".$rtrn."<br>".implode("<br>",$output);
-    }
-    $this->borrarArchivos($files);
-    return response()->file($output_file)->deleteFileAfterSend(true);
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"intervenciones",$relevamientos);
   }
 
   public function imprimirMovimiento($id_log_mov){
@@ -693,17 +589,48 @@ class LogMovimientoController extends Controller
       );
     }
 
-    $tipo_planilla = "movimientos";
-    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"movimientos",$relevamientos);
+  }
 
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  // @SPEED: otro speedup tal vez podria ser guardar el html del view y renderizarlo con alguna aplicación de sistema
+  private function imprimirPlanillaMovimientos(string $codigo_casino,string $fecha,string $tipo_planilla,array $todos_los_rels){
+    // Encontre que tratar de no tener mucha cantidad de paginas por archivo
+    // es mas rapido, supongo que es porque los procesos se bloquean guardando
+    // a disco y permiten que la CPU schedulee a otro proceso para siga procesando
+    // Si son muy pocas empezas a tener overhead de la llamada de los procesos
+    // Pero en realidad no varia tanto entre mejor y peor caso
+    $paginas_por_pdf = 8;//Unidad [pag/pdf]
+
+    if(count($todos_los_rels) < $paginas_por_pdf){//Version single threaded
+      //Con ~100 paginas supera los 60 segundos por PDF tirando excepción, por eso el multiprocesamiento
+      $relevamientos = $todos_los_rels;
+      $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'portrait');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$fecha, $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    }
+
+    // Este valor depende de tu planilla cuantas paginas generas con 1 detalle
+    // Si bien es 1 por pagina para esta lo dejo asi para documentación
+    $paginas_por_relevamiento = 1;//Unidad [pag/rel]
+    $paginas_totales = count($todos_los_rels) / $paginas_por_relevamiento;
+    $chunk_size = $paginas_por_pdf/$paginas_por_relevamiento; //Unidad [rels/pdf] = [pag/pdf]/[pag/rel]
+    $chunked_relevamientos = array_chunk($todos_los_rels,$chunk_size);
+    $chunked_compacts = [];
+    foreach($chunked_relevamientos as $idx => $chunk){
+      $relevamientos = $chunk;
+      $chunked_compacts[] = compact('relevamientos','tipo_planilla');
+    }
+
+    $salida = PdfParalelo::generarPdf('planillaMovimientos',$chunked_compacts,$codigo_casino."/".$fecha,$paginas_por_pdf,$paginas_totales);
+
+    if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
+    return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);
   }
 
   // 2/03/2020 - Octavio

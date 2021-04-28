@@ -24,11 +24,7 @@ class CrearPDF implements ShouldQueue
     public $codigo = null;
     public $pag_offset = null;
     public $pags = null;
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
+
     public function __construct(string $planilla,array $compct, string $filename,
                                 string $codigo,int $pag_offset,int $pags){
         $this->planilla = $planilla;
@@ -39,13 +35,13 @@ class CrearPDF implements ShouldQueue
         $this->pags = $pags;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
-
     // Si cambias el Job hay que restartear para eliminar el cache con
+    // sudo supervisorctl restart all
+    // Los que estan ejecutandose estan en la tabla jobs
+    // Los que fallaron dejan un log en failed_jobs
+    // Si cambias el /etc/supervisor/conf.d/laravel-worker.conf 
+    // sudo supervisorctl reread
+    // sudo supervisorctl update
     // sudo supervisorctl restart all
     public function handle(){
         $view = View::make($this->planilla, $this->compct);
@@ -55,7 +51,7 @@ class CrearPDF implements ShouldQueue
         $dompdf->set_paper('A4', 'portrait');
         $dompdf->loadHtml($view->render());
         $dompdf->render();
-        
+
         $script = sprintf('
             $p = $PAGE_NUM + %d;
             $font = $fontMetrics->getFont("helvetica", "regular");
