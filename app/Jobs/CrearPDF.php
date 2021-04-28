@@ -20,26 +20,23 @@ class CrearPDF implements ShouldQueue
     public $planilla = null;
     public $compct = null;
     public $view = null;
-    public $codigo = null;
-    public $pagina = null;
-    public $pagina_offset = null;
-    public $paginas = null;
     public $filename = null;
+    public $codigo = null;
+    public $pag_offset = null;
+    public $pags = null;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(string $planilla,array $compct, string $codigo,
-                                int $pagina,int $paginas, string $filename)
-    {
+    public function __construct(string $planilla,array $compct, string $filename,
+                                string $codigo,int $pag_offset,int $pags){
         $this->planilla = $planilla;
         $this->compct = $compct;
-        $this->codigo = $codigo;
-        $this->pagina = $pagina;
-        $this->pagina_offset = 0;//@TODO
-        $this->paginas = $paginas;
         $this->filename = $filename;
+        $this->codigo = $codigo;
+        $this->pag_offset = $pag_offset;
+        $this->pags = $pags;
     }
 
     /**
@@ -47,16 +44,25 @@ class CrearPDF implements ShouldQueue
      *
      * @return void
      */
+
+    // Si cambias el Job hay que restartear para eliminar el cache con
+    // sudo supervisorctl restart all
     public function handle(){
         $view = View::make($this->planilla, $this->compct);
         $dompdf = new Dompdf();
+        $dompdf->set_option("isPhpEnabled", true);
         $dompdf->set_base_path(public_path());
         $dompdf->set_paper('A4', 'portrait');
         $dompdf->loadHtml($view->render());
         $dompdf->render();
-        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-        $dompdf->getCanvas()->page_text(20, 815, $this->codigo, $font, 10, array(0,0,0));
-        $dompdf->getCanvas()->page_text(515, 815, "Página ".($this->pagina+$this->pagina_offset)." de ".$this->paginas, $font, 10, array(0,0,0));
+        
+        $script = sprintf('
+            $p = $PAGE_NUM + %d;
+            $font = $fontMetrics->getFont("helvetica", "regular");
+            $pdf->text(20,815,"%s",$font,10,array(0,0,0));
+            $pdf->text(500, 815,"Página ".$p." de %s", $font, 10, array(0,0,0));
+        ',$this->pag_offset,$this->codigo,$this->pags);
+        $dompdf->getCanvas()->page_script($script);
         Storage::put($this->filename,$dompdf->output());
     }
 }
