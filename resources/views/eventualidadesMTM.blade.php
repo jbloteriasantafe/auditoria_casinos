@@ -12,6 +12,16 @@
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/lista-datos.css">
 <link rel="stylesheet" href="/css/paginacion.css">
+<style>
+  .tipo_mov_lista {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border: 1px solid lightgray;
+    border-radius: 25px;
+    text-align: center;
+  }
+</style>
 @endsection
 
 <div class="col-md-9">
@@ -122,12 +132,11 @@
                   <tr>
                     <th class="col-xs-1" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-2" value="log_movimiento.fecha" estado="" >FECHA <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-1" value="log_movimiento.islas" estado="">ISLAS <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2">EXPEDIENTE</th>
+                    <th class="col-xs-2" value="log_movimiento.islas" estado="">ISLAS <i class="fa fa-sort"></i></th>
                     <th class="col-xs-2" value="tipo_movimiento.descripcion" estado="">TIPO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-1" value="log_movimiento.sentido" estado="">SENTIDO <i class="fa fa-sort"></i></th>
                     <th class="col-xs-1" value="estado_movimiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" estado="">ACCIÓN</th>
+                    <th class="col-xs-3" estado="">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaEvMTM" style="max-height: 356px;">
@@ -183,32 +192,53 @@
               </select>
             </div>
             <div class="col-md-3">
-              <h5>Agregar Máquina</h5>
-              <div class="input-group lista-datos-group">
-                <input id="inputMTM" class="form-control" type="text" value="" autocomplete="off">
-                <span class="input-group-btn">
-                  <button id="agregarMTMEv" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
-                </span>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <h5>Tipo Movimiento</h5>
-              <select class="form-control" id="tipoMov">
-              </select>
-            </div>
-            <div class="col-md-3">
               <h5>SENTIDO</h5>
               <select class="form-control" id="sentidoMov">
                 <option value="EGRESO TEMPORAL">EGRESO TEMPORAL</option>
                 <option value="REINGRESO">REINGRESO</option>
               </select>
             </div>
-            <br>
           </div> <!-- FIN ROW 1 -->
-
-          <div class="row"> <!-- ROW 2 -->
+          <hr style="margin: 1%;">
+          <div class="row">
             <div class="col-md-12">
-              <h6>MÁQUINAS SELECCIONADAS</h6>
+              <h3 style="margin: 0px;">TIPOS DE MOVIMIENTOS</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="input-group col-md-3">
+                <select class="form-control" id="tipoMov">                 
+                </select>
+                <span class="input-group-btn">
+                  <button id="agregarTipoMov" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                </span>
+              </div>
+              <br>
+            </div>
+          </div>
+          <div class="row">
+            <div id="listaTipoMovs" class="col-md-12">
+            </div>
+          </div>
+          <hr style="margin: 1%;">
+          <div class="row">
+            <div class="col-md-12">
+              <h3 style="margin: 0px;">MÁQUINAS SELECCIONADAS</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="input-group lista-datos-group col-md-3">
+                <input id="inputMTM" class="form-control" type="text" value="" autocomplete="off">
+                <span class="input-group-btn">
+                  <button id="agregarMTMEv" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row"> <!-- ROW 2 -->
+            <div class="col-md-12" style="overflow-y: scroll;max-height: 367px;">
               <table id="tablaMTM" class="table">
                 <thead>
                   <tr>
@@ -221,7 +251,6 @@
               </table>
             </div>
           </div> <!-- FIN ROW 2 -->
-
         </div> <!-- colapsado -->
       </div> <!-- modal body -->
       <div class="modal-footer">
@@ -292,8 +321,7 @@
     <tr id="filaEjemploTablaEventualidades">
       <td class="col-xs-1 casino">INVALIDO</td>
       <td class="col-xs-2 fecha">99 DIC 9999</td>
-      <td class="col-xs-1 isla">999999</td>
-      <td class="col-xs-2 expediente">---</td>
+      <td class="col-xs-2 isla">999999</td>
       <td class="col-xs-2 tipo">***</td>
       <td class="col-xs-1 sentido" style="text-align: center;">
         <i class="fa fa-fw fa-building"></i>
@@ -302,7 +330,7 @@
       <td class="col-xs-1 estado"  style="text-align: center;">
         <i class="fas fa-fw fa-exclamation" style="color: rgb(255,255,0);align: center;"></i>
       </td>
-      <td class="col-xs-2 accion">
+      <td class="col-xs-3 accion">
         <button class="btn btn-info btn_verEvmtm" title="VER">
           <i class="fa fa-fw fa-search"></i>
         </button>

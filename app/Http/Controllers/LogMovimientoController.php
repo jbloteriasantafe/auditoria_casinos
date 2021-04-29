@@ -38,6 +38,8 @@ use App\TipoMaquina;
 use App\EstadoMaquina;
 use App\TipoCausaNoTomaProgresivo;
 use App\Pozo;
+use App\PdfParalelo;
+use Illuminate\Support\Facades\Storage;
 
 /*
 # Nueva forma de trabajo de MOVIMIENTOS (Marzo 2020 - Octavio)
@@ -195,7 +197,7 @@ class LogMovimientoController extends Controller
 
   public function obtenerMovimiento($id){
     $movimiento = LogMovimiento::find($id);
-    return ["movimiento" => $movimiento, "tipo" => $movimiento->tipo_movimiento, "casino" => $movimiento->casino];
+    return ["movimiento" => $movimiento, "tipo" => $movimiento->tipo_movimiento_str(), "casino" => $movimiento->casino];
   }
 
   public function movimientos(){
@@ -265,7 +267,7 @@ class LogMovimientoController extends Controller
     }
 
     if(!empty($request->tipo_movimiento)){
-      $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request['tipo_movimiento']];
+      $reglas[]=['tipo_movimiento.id_tipo_movimiento','=', $request['tipo_movimiento']];
     }
 
     $sort_by = ['columna' => 'log_movimiento.id_log_movimiento', 'orden' => 'DESC'];
@@ -281,7 +283,8 @@ class LogMovimientoController extends Controller
     ) as nro_exp")
     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
     ->join('casino', 'log_movimiento.id_casino', '=', 'casino.id_casino')
-    ->join('tipo_movimiento','log_movimiento.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
+    ->join('logmov_tipomov','log_movimiento.id_log_movimiento','=','logmov_tipomov.id_log_movimiento')
+    ->join('tipo_movimiento','logmov_tipomov.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
     ->join('estado_movimiento','log_movimiento.id_estado_movimiento','=','estado_movimiento.id_estado_movimiento')
     ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
     ->where($reglas)->where($where_exp_control)->where($where_exp_interno)->where($where_exp_org)
@@ -381,7 +384,7 @@ class LogMovimientoController extends Controller
   
       $date = date('Y-m-d h:i:s', time());
       $titulo = "Relevamiento Movimientos";
-      $descripcion = "El movimiento: ".$logMov->tipo_movimiento->descripcion." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
+      $descripcion = "El movimiento: ".$logMov->tipo_movimiento_str()." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
       CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
     });
     return 1;
@@ -519,7 +522,7 @@ class LogMovimientoController extends Controller
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
-            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido, 
+            'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido, 
             'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion,
             'nro_exp_org' => $log->nro_exp_org,'nro_exp_interno' => $log->nro_exp_interno,'nro_exp_control' => $log->nro_exp_control];
   }
@@ -528,7 +531,7 @@ class LogMovimientoController extends Controller
     $fiscalizacionMov = FiscalizacionMov::find($id_fiscalizacion_movimiento);
     $logMov = $fiscalizacionMov->log_movimiento;
     $casino = $logMov->casino;
-    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
+    $tipoMovimiento = $logMov->tipo_movimiento_str();
     $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
     foreach($fiscalizacionMov->relevamientos_movimientos as $idx => $relev){
@@ -540,23 +543,13 @@ class LogMovimientoController extends Controller
       );
     }
 
-    $tipo_planilla = "movimientos";
-    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$fiscalizacionMov->fecha_envio_fiscalizar, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"movimientos",$relevamientos);
   }
 
   public function imprimirEventualidadMTM($id_log_mov){
     $logMov = LogMovimiento::find($id_log_mov);
     $casino = $logMov->casino;
-    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
+    $tipoMovimiento = $logMov->tipo_movimiento_str();
     $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
     foreach ($logMov->relevamientos_movimientos as $idx => $relev) {
@@ -567,23 +560,13 @@ class LogMovimientoController extends Controller
         $casino
       );
     }
-
-    $tipo_planilla = "intervenciones";
-    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"intervenciones",$relevamientos);
   }
 
   public function imprimirMovimiento($id_log_mov){
     $logMov = LogMovimiento::find($id_log_mov);
-    $tipoMovimiento = $logMov->tipo_movimiento->descripcion;
+    $tipoMovimiento = $logMov->tipo_movimiento_str();
     $casino = $logMov->casino;
     $relevamientos = array();
     $relController = RelevamientoMovimientoController::getInstancia();
@@ -606,17 +589,50 @@ class LogMovimientoController extends Controller
       );
     }
 
-    $tipo_planilla = "movimientos";
-    $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$logMov->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"movimientos",$relevamientos);
+  }
 
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  // @SPEED: otro speedup tal vez podria ser guardar el html del view y renderizarlo con alguna aplicación de sistema
+  private function imprimirPlanillaMovimientos(string $codigo_casino,string $fecha,string $tipo_planilla,array $todos_los_rels){
+    // Encontre que tratar de no tener mucha cantidad de paginas por archivo
+    // es mas rapido, supongo que es porque los procesos se bloquean guardando
+    // a disco y permiten que la CPU schedulee a otro proceso para siga procesando
+    // Si son muy pocas empezas a tener overhead de la llamada de los procesos
+    // Pero en realidad no varia tanto entre mejor y peor caso
+    $paginas_por_pdf = 8;//Unidad [pag/pdf]
+
+    if(count($todos_los_rels) < $paginas_por_pdf){//Version single threaded
+      //Con ~100 paginas supera los 60 segundos por PDF tirando excepción, por eso el multiprocesamiento
+      $relevamientos = $todos_los_rels;
+      $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'portrait');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$fecha, $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+      return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    }
+    // Mucho del beneficio es que si tenes 100+ maquinas hay mucho en memoria y crashea o demora, 
+    // asi se divide un poco y se va haciendo de a partes
+
+    // Este valor depende de tu planilla cuantas paginas generas con 1 detalle
+    // Si bien es 1 por pagina para esta de movimientos lo dejo asi para documentación
+    $paginas_por_relevamiento = 1;//Unidad [pag/rel]
+    $paginas_totales = count($todos_los_rels) / $paginas_por_relevamiento;
+    $chunk_size = $paginas_por_pdf/$paginas_por_relevamiento; //Unidad [rels/pdf] = [pag/pdf]/[pag/rel]
+    $chunked_relevamientos = array_chunk($todos_los_rels,$chunk_size);
+    $chunked_compacts = [];
+    foreach($chunked_relevamientos as $idx => $chunk){
+      $relevamientos = $chunk;
+      $chunked_compacts[] = compact('relevamientos','tipo_planilla');
+    }
+
+    $salida = PdfParalelo::generarPdf('planillaMovimientos',$chunked_compacts,$codigo_casino."/".$fecha,$paginas_por_pdf,$paginas_totales);
+
+    if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
+    return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);
   }
 
   // 2/03/2020 - Octavio
@@ -787,7 +803,7 @@ class LogMovimientoController extends Controller
                           ->whereIn('log_movimiento.id_casino',$casinos)
                           ->get();
       $log = LogMovimiento::find($id_log_movimiento);
-      return ['fiscalizaciones' => $fiscalizaciones,'tipo_mov' => $log->tipo_movimiento->descripcion,'sentido' => $log->sentido,
+      return ['fiscalizaciones' => $fiscalizaciones,'tipo_mov' => $log->tipos_movimiento()->first()->descripcion,'sentido' => $log->sentido,
               'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control
       ];
   }
@@ -884,7 +900,6 @@ class LogMovimientoController extends Controller
         $logMovimiento->tiene_expediente = 0;
         $logMovimiento->estado_relevamiento()->associate(1); // Generado
         $logMovimiento->estado_movimiento()->associate(6); // Notificado
-        $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
         // Los movimientos de INGRESO INICIAL / EGRESO DEFINITIVO no tienen un sentido
         $logMovimiento->sentido = "---";
         $f = date("Y-m-d");
@@ -894,10 +909,12 @@ class LogMovimientoController extends Controller
         $logMovimiento->save();
         $logMovimiento->controladores()->attach($user->id_usuario);
         $logMovimiento->save();
+        $logMovimiento->tipos_movimiento()->sync([$request['id_tipo_movimiento']]);
 
         $log = DB::table('log_movimiento')
             ->select('log_movimiento.*', 'tipo_movimiento.descripcion', 'casino.id_casino', 'expediente.*')
-            ->join('tipo_movimiento', 'tipo_movimiento.id_tipo_movimiento', '=', 'log_movimiento.id_tipo_movimiento')
+            ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_tipo_movimiento')
+            ->join('tipo_movimiento', 'tipo_movimiento.id_tipo_movimiento', '=', 'logmov_tipomov.id_tipo_movimiento')
             ->join('casino', 'casino.id_casino', '=', 'log_movimiento.id_casino')
             ->join('expediente', 'expediente.id_expediente', '=', 'log_movimiento.id_expediente')
             ->where('log_movimiento.id_log_movimiento', '=', $logMovimiento->id_log_movimiento)
@@ -967,7 +984,7 @@ class LogMovimientoController extends Controller
     $tiene_exp = !is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos';
     if($tiene_exp && !$eliminarConExpediente) return 0;
     DB::transaction(function() use($log){
-      $log->tipo_movimiento()->dissociate();
+      $log->tipos_movimiento()->detach();
       $log->estado_movimiento()->dissociate();
       $log->expediente()->dissociate();
       $log->controladores()->detach();
@@ -999,9 +1016,11 @@ class LogMovimientoController extends Controller
   public function eliminarMovimiento(Request $request,$validar_es_intervencion = false){
     /* Las intervenciones MTM se pueden eliminar libremente
      * Los ingresos solo si se es el unico que queda. Los egresos ponen la maquina en inhabilitada */
+    $tipo_ingreso = false;
+    $tipo_egreso  = false;
     $validator = Validator::make($request->all(),
     ['id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento'], array(), self::$atributos)
-    ->after(function($validator) use ($validar_es_intervencion){
+    ->after(function($validator) use ($validar_es_intervencion,&$tipo_ingreso,&$tipo_egreso){
       if(!$validator->errors()->any()){ //Si el log_movimiento existe
         $data = $validator->getData();
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
@@ -1015,21 +1034,30 @@ class LogMovimientoController extends Controller
         if(!is_null($log->expediente) && $log->expediente->concepto != 'expediente_auxiliar_para_movimientos'){
           $validator->errors()->add('id_log_movimiento','El movimiento ya tiene asignado un expediente.');
         }
-        if($validar_es_intervencion && !$log->tipo_movimiento->es_intervencion_mtm){
+        $es_intervencion_mtm = $log->es_intervencion_mtm();
+        if(!is_bool($es_intervencion_mtm)){
+          $validator->errors()->add('id_tipo_movimiento','Tipo movimiento inconsistente.');
+          return;
+        }
+        if($validar_es_intervencion && !$es_intervencion_mtm){
           $validator->errors()->add('id_tipo_movimiento','No puede eliminar un movimiento que no es una intervencion.');
         }
-        if(!$log->tipo_movimiento->es_intervencion_mtm && is_null($log->id_expediente)){
+        if(!$es_intervencion_mtm && is_null($log->id_expediente)){
           $validator->errors()->add('id_tipo_movimiento','Movimiento incosistente, no se puede eliminar.');
         }
         //No sigo validando si ya me dieron error los de arriba
         if($validator->errors()->any()) return;
-        $tipo_mov = $log->tipo_movimiento->id_tipo_movimiento;
-        //INGRESO o INGRESO INICIAL
-        if($tipo_mov == 1 || $tipo_mov == 11){
-          foreach($log->relevamientos_movimientos as $rel){
-            $maquina = $rel->maquina;
-            if($maquina->relevamiento_movimiento()->count() > 1){
-              $validator->errors()->add('maquina','La maquina '.$maquina->nro_admin.' tiene movimientos.');
+        if(!$es_intervencion_mtm){
+          $tipo_mov = $log->tipos_movimiento()->first()->id_tipo_movimiento;
+          //INGRESO o INGRESO INICIAL
+          $tipo_ingreso = $tipo_mov == 1 || $tipo_mov == 11;
+          $tipo_egreso  = $tipo_mov == 2 || $tipo_mov == 12;//Se usa abajo 
+          if($tipo_ingreso){
+            foreach($log->relevamientos_movimientos as $rel){
+              $maquina = $rel->maquina;
+              if($maquina->relevamiento_movimiento()->count() > 1){
+                $validator->errors()->add('maquina','La maquina '.$maquina->nro_admin.' tiene movimientos.');
+              }
             }
           }
         }
@@ -1037,15 +1065,14 @@ class LogMovimientoController extends Controller
     })->validate();
 
     $ret = 0;
-    DB::transaction(function() use (&$ret,$request){
+    DB::transaction(function() use (&$ret,$request,$tipo_ingreso,$tipo_egreso){
       $log = LogMovimiento::find($request->id_log_movimiento);
-      $tipo_mov = $log->tipo_movimiento->id_tipo_movimiento;
-      if($tipo_mov == 1 || $tipo_mov == 11){//Borrando un ingreso
+      if($tipo_ingreso){//Borro las maquinas que creo el movimiento
         foreach($log->relevamientos_movimientos as $rel){
           MTMController::getInstancia()->eliminarMTM($rel->maquina->id_maquina);
         }
       }
-      else if($tipo_mov == 2 ||  $tipo_mov == 12){//Borrando un egreso
+      else if($tipo_egreso){//Si borro un egreso inhabilito las maquinas
         foreach($log->relevamientos_movimientos as $rel){
           $maquina = $rel->maquina;
           $maquina->id_estado_maquina = 6;//INHABILITADA
@@ -1064,16 +1091,16 @@ class LogMovimientoController extends Controller
   /////////////////////////////////EXPEDIENTES//////////////////////////////////
 
   public function movimientosSinExpediente(Request $req){
+    $tipo_descripcion = 'GROUP_CONCAT(DISTINCT(tipo_movimiento.descripcion) ORDER BY tipo_movimiento.descripcion ASC SEPARATOR ", ")';
     $logs= DB::table('log_movimiento')
-             ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha',
-              'tipo_movimiento.descripcion','log_movimiento.sentido','casino.nombre','casino.id_casino')
-              ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=',
-              'log_movimiento.id_tipo_movimiento')
+             ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha','log_movimiento.sentido','casino.nombre','casino.id_casino')
+             ->selectRaw($tipo_descripcion.' as descripcion')
+              ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+              ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','logmov_tipomov.id_tipo_movimiento')
               ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
               ->where('log_movimiento.tiene_expediente','=',0)
               ->whereIn('casino.id_casino',$req['id_casino'])
-              ->groupBy('tipo_movimiento.descripcion','log_movimiento.id_log_movimiento','log_movimiento.fecha',
-               'casino.nombre','casino.id_casino')
+              ->groupBy('log_movimiento.id_log_movimiento','log_movimiento.fecha','casino.nombre','casino.id_casino')
               ->orderBy('log_movimiento.fecha','desc')
               ->get();
 
@@ -1119,9 +1146,10 @@ class LogMovimientoController extends Controller
       }
       foreach($toma->detalles_relevamiento_progresivo as $detProg){
         $pozo = $detProg->pozo;
-	if(is_null($pozo)) continue;
+        //@HACK: Aca tal vez habria que hacer withTrashed y chequear la fecha deleted_at con respecto a la del log_movimiento
+	      if(is_null($pozo)) continue;
         $prog = $pozo->progresivo;
-	if(is_null($prog)) continue;
+	      if(is_null($prog)) continue;
         $pozo_arr = $pozo->toArray();
         $prog_arr = $prog->toArray();
 
@@ -1137,14 +1165,39 @@ class LogMovimientoController extends Controller
       }
     }
 
+    $datos_ultimo_relev = null;
+    //Cuando se genera un Egreso Definitivo y ya estaba en Egreso Temporal
+    //A veces no se puede retomar el formulario porque la maquina fue destruida
+    //Permito que pueda recargar los mismos datos del ultimo egreso temporal
+    if(!is_null($rel->id_fiscalizacion_movimiento)){
+      $maq = $rel->maquina()->withTrashed()->first();//Necesito el objeto
+      //Solo permito copiar el formulario si la maquina esta en egreso temporal
+      $mtm_en_egreso_temporal = $maq->id_estado_maquina == 4;
 
+      $ultimo_relev = $maq->relevamiento_movimiento()
+      ->whereNull('id_fiscalizacion_movimiento')//Intervencion MTM
+      ->orderBy('fecha_relev_sala','desc')->first();//Agarro el ultimo
+      if(!is_null($ultimo_relev)){
+        //Y la ultima intervencion MTM es de egreso temporal y esta validada
+        $ultimo_relev_es_egreso = $ultimo_relev->log_movimiento->sentido == 'EGRESO TEMPORAL';
+        $ultimo_relev_visado = $ultimo_relev->id_estado_relevamiento == 4;
+
+        if($mtm_en_egreso_temporal && $ultimo_relev_es_egreso && $ultimo_relev_visado){
+          $datos_ultimo_relev = $ultimo_relev->toma_relevamiento_movimiento()->first();
+          //No hay recursion infinita porque no va a entrar al if de id_fiscalizacion_movimiento arriba
+          $datos_ultimo_relev = $this->obtenerRelevamientoToma($datos_ultimo_relev->id_relevamiento_movimiento);
+        }
+      }
+    }
+    
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     $log = $rel->log_movimiento;
     return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
      'fiscalizador' => $fisca,'cargador' => $cargador,
-     'tipo_movimiento' =>  $log->tipo_movimiento , 'estado' => $rel->estado_relevamiento,
+     'tipo_movimiento' =>  $log->tipo_movimiento_str() , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
-     'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control ];
+     'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
+     'datos_ultimo_relev' => $datos_ultimo_relev ];
   }
 
   public function buscarEventualidadesMTMs(Request $request){
@@ -1164,11 +1217,7 @@ class LogMovimientoController extends Controller
       $reglas=array();
 
       if(isset($request->id_tipo_movimiento)){
-        $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
-      }
-
-      if(isset($request->nro_admin)){
-        $reglas[]=['relevamiento_movimiento.id_tipo_movimiento','=', $request->nro_admin];
+        $reglas[]=['tipo_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
       }
 
       if(isset($request->isla)){
@@ -1202,15 +1251,16 @@ class LogMovimientoController extends Controller
       foreach ($usuario->casinos as $casino) {
         $casinos[] = $casino->id_casino;
       }
-
+      $tipo_descripcion = 'GROUP_CONCAT(DISTINCT(tipo_movimiento.descripcion) ORDER BY tipo_movimiento.descripcion ASC SEPARATOR ", ")';
       $resultados= DB::table('log_movimiento')
-      ->select('log_movimiento.*','tipo_movimiento.*',
+      ->select('log_movimiento.*',
         'estado_movimiento.descripcion as estado_mov_descripcion',
         'estado_relevamiento.descripcion as estado_rel_descripcion',
-        'casino.*',
-        'tipo_movimiento.*')
+        'casino.*')
+      ->selectRaw($tipo_descripcion.' as descripcion')
       ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_movimiento.id_tipo_movimiento')
+      ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+      ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','logmov_tipomov.id_tipo_movimiento')
       ->join('estado_movimiento','estado_movimiento.id_estado_movimiento','=','log_movimiento.id_estado_movimiento')
       ->leftJoin('estado_relevamiento','log_movimiento.id_estado_relevamiento','=','estado_relevamiento.id_estado_relevamiento')
       ->leftJoin('relevamiento_movimiento','relevamiento_movimiento.id_log_movimiento','=','log_movimiento.id_log_movimiento')
@@ -1224,6 +1274,9 @@ class LogMovimientoController extends Controller
                       ->whereMonth('log_movimiento.fecha','=', $fecha[1]);
       }
       $sort_by = $request->sort_by;
+      if($sort_by['columna'] == 'tipo_movimiento.descripcion'){
+        $sort_by['columna'] = DB::raw($tipo_descripcion);
+      }
       $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
         // Como no tiene hora la fecha, si queremos que los cargados mas tarde pero
         // en el mismo dia aparezcan despues, ordenamos por ID.
@@ -1261,31 +1314,36 @@ class LogMovimientoController extends Controller
   //suponiendo que me va a enviar un array con los ids de maquina
   public function nuevaEventualidadMTM( Request $request){
     $validator = Validator::make($request->all(), [
-        'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
-        'maquinas' => 'required',
-        'maquinas.*.id_maquina' => 'required|exists:maquina,id_maquina',
+        'id_casino' => 'required|exists:casino,id_casino',
         'sentido' => ['required','string',Rule::in(['EGRESO TEMPORAL', 'REINGRESO'])],
-        'id_casino' => 'required|exists:casino,id_casino'
+        'tipos_movimiento' => 'required',
+        'tipos_movimiento.*' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
+        'maquinas' => 'required',
+        'maquinas.*' => 'required|exists:maquina,id_maquina',
     ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
       $data = $validator->getData();
-      if($data['id_tipo_movimiento']==9){
-        $validator->errors()->add('tipo_movimiento', 'No se ha seleccionado el tipo de movimiento.');
-      }
       $sentido = $data['sentido'];
-      $tipo = TipoMovimiento::find($data['id_tipo_movimiento']);
-      //Verifico que el tipo pueda realizar un movimiento en ese sentido
-      if($sentido == 'EGRESO TEMPORAL' && !$tipo->puede_egreso_temporal){
-        $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
+      foreach($data['tipos_movimiento'] as $id_tipo_movimiento){
+        $tipo = TipoMovimiento::find($id_tipo_movimiento);
+        //Verifico que el tipo pueda realizar un movimiento en ese sentido
+        if($sentido == 'EGRESO TEMPORAL' && !$tipo->puede_egreso_temporal){
+          $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
+        }
+        if($sentido == 'REINGRESO' && !$tipo->puede_reingreso){
+          $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
+        }
+        if($tipo->deprecado){
+          $validator->errors()->add('tipo_movimiento', 'Tipo de movimiento "'.$tipo->descripcion.'" invalido.');      
+        }
       }
-      if($sentido == 'REINGRESO' && !$tipo->puede_reingreso){
-        $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
-      }
+
       $id_casino = $data['id_casino'];
       if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino($id_casino)){
         $validator->errors()->add('id_casino','El usuario no puede acceder a este casino.');
       }
       foreach($data['maquinas'] as $m){
-        if(Maquina::find($m['id_maquina'])->id_casino != $id_casino){
+        if(Maquina::find($m)->id_casino != $id_casino){
           $validator->errors()->add('id_casino','Las maquinas que no corresponden con el casino.');
           break;
         }
@@ -1298,17 +1356,17 @@ class LogMovimientoController extends Controller
       $logMovimiento = new LogMovimiento;
       $logMovimiento->fecha= date("Y-m-d");
       $logMovimiento->tiene_expediente = 0;
-      $logMovimiento->tipo_movimiento()->associate($request['id_tipo_movimiento']);
       $logMovimiento->estado_movimiento()->associate(6);//creado
       $logMovimiento->estado_relevamiento()->associate(1);//generado
       $logMovimiento->sentido = $request['sentido'];
       $logMovimiento->save();
-  
+      $logMovimiento->tipos_movimiento()->sync($request['tipos_movimiento']);
+
       foreach ($request['maquinas'] as $mtm) {
-        $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm['id_maquina']],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
+        $relevamiento = RelevamientoMovimiento::where([['id_maquina','=', $mtm],['id_log_movimiento','=',$logMovimiento->id_log_movimiento]])->get()->first();
         // Deberia entrar siempre, a menos que mande varias veces la misma maquina
         if($relevamiento == null){
-          $maq = Maquina::find($mtm['id_maquina']);
+          $maq = Maquina::find($mtm);
           $relevamiento = RelevamientoMovimientoController::getInstancia()->crearRelevamientoMovimiento($logMovimiento->id_log_movimiento, $maq);
           $this->guardarIslasMovimiento($logMovimiento,$maq);
         }
@@ -1350,7 +1408,7 @@ class LogMovimientoController extends Controller
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => null,
-            'tipo_movimiento' => $log->tipo_movimiento->descripcion, 'sentido' => $log->sentido,
+            'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido,
             'casino' => $log->casino,
             'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control
           ];
@@ -1362,6 +1420,7 @@ class LogMovimientoController extends Controller
     $fisMov = null;
     $logMov = null;
     $id_usuario = session('id_usuario');
+    $es_intervencion_mtm = true;
 
     $validator = Validator::make($request->all(), [
       'id_relev_mov' => 'required|exists:relevamiento_movimiento,id_relev_mov',
@@ -1371,18 +1430,26 @@ class LogMovimientoController extends Controller
       'nro_exp_interno' =>  'nullable|string|max:7',
       'nro_exp_control' => 'nullable|string|max:1',
       'estado' => ['required', Rule::in(['valido', 'error']) ]
-    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relevMov,$id_usuario){
+    ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relevMov,$id_usuario,&$es_intervencion_mtm){
       if(count($validator->errors()) == 0){
         $relevMov = RelevamientoMovimiento::find($validator->getData()['id_relev_mov']);
         $logMov = $relevMov->log_movimiento;
         if(!Usuario::find($id_usuario)->usuarioTieneCasino($logMov->id_casino)){
           $validator->errors->add('id_relev_mov','El usuario no puede acceder a ese movimiento.');
         }
-        if($logMov->tipo_movimiento->deprecado){
-          $validator->errors->add('id_relev_mov','Este tipo de movimiento esta deprecado.');
+
+        $es_intervencion_mtm = $logMov->es_intervencion_mtm();
+        if($es_intervencion_mtm === "deprecado"){
+          $validator->errors()->add('id_relev_mov','Este tipo de movimiento esta deprecado.');
         }
-        if($logMov->sentido == '---' && $logMov->tipo_movimiento->es_intervencion_mtm){
-          $validator->errors->add('id_relev_mov','La intervencion MTM no posee sentido.');
+        else if($es_intervencion_mtm === "tipos_multiples_invalidos"){
+          $validator->errors()->add('id_tipo_movimiento','No se permiten multiples tipos con no-intervenciones MTM.');
+        }
+        else if($es_intervencion_mtm === "intervencion_mtm_sin_sentido"){
+          $validator->errors()->add('id_relev_mov','La intervencion MTM no posee sentido.');
+        }
+        else if(!is_bool($es_intervencion_mtm)){
+          $validator->errors()->add('id_tipo_movimiento','Error en el tipo del movimiento.');
         }
       }
     })->validate();
@@ -1401,68 +1468,60 @@ class LogMovimientoController extends Controller
       RelevamientoMovimientoController::getInstancia()->validarRelevamientoTomaConObservacion($relevMov, $request->estado == 'valido'? 1 : 0, $request->observacion);
 
       if(!is_null($relevMov->id_fiscalizacion_movimiento)){
-        $relss = RelevamientoMovimiento::where('id_fiscalizacion_movimiento','=',$relevMov->id_fiscalizacion_movimiento)
-        ->whereIn('id_estado_relevamiento',[4,6])->get();
         $fisMov = $relevMov->fiscalizacion;
-        if($fisMov->relevamientos_movimientos()->count() == count($relss)){
+        $rels_fis = $fisMov->relevamientos_movimientos();
+        if((clone $rels_fis)->count() == 
+           (clone $rels_fis)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
           $fisMov->estado_relevamiento()->associate(4);
           $fisMov->save();
         }
       }
 
-      $relss = RelevamientoMovimiento::where('id_log_movimiento','=',$logMov->id_log_movimiento)
-                ->whereIn('id_estado_relevamiento',[4,6])->get();
-
-      if($logMov->relevamientos_movimientos()->count() == count($relss)){
+      $rels_log = $logMov->relevamientos_movimientos();
+      if((clone $rels_log)->count() == 
+         (clone $rels_log)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
         $logMov->estado_relevamiento()->associate(4);
         $logMov->estado_movimiento()->associate(4);
         $logMov->save();
-        $estado_intervencionmtm = $logMov->sentido == 'REINGRESO'?  2 : 4;
+      }
+      //Todo esto es para seleccionar el nuevo estado y el mensaje del logMaquina
+      //Si es intervencion MTM, segun el sentido el estado es "Reingreso" o "Egreso Temporal"
+      //Si no, si es ingreso inicial, es "Ingreso". Si es egreso definitivo, "Egreso Definitivo"
+      $nuevo_estado = null;
+      $texto = "";
+      //No tenemos que chequear que este deprecado porque lo validamos arriba.
+      if($es_intervencion_mtm){
+        $nuevo_estado = $logMov->sentido == 'REINGRESO'?  2 : 4;
+        $texto  = '('.$logMov->sentido.') Intervención MTM "';
+        $texto .= ucwords(strtolower($logMov->tipo_movimiento_str())).'" validada.';
+      }
+      //Esta validado arriba que si tiene 1 es ingreso inicial/egreso definitivo, podemos agarrar el primero
+      else if($logMov->tipos_movimiento()->first()->id_tipo_movimiento == 11){
+        $nuevo_estado = 1;
+        $texto = "Ingreso inicial validado.";
+      }
+      else if($logMov->tipos_movimiento()->first()->id_tipo_movimiento == 12){
+        $nuevo_estado = 3;
+        $texto = "Egreso definitivo validado.";
+      }
+      else{
+        throw new \Exception('Unreachable');
+      }
 
-        //Todo esto es para seleccionar el nuevo estado y el mensaje
-        //Si es intervencion MTM, segun el sentido es "Reingreso" o "Egreso Temporal"
-        //Si no, si es ingreso inicial, es "Ingreso". Si es egreso definitivo, "Egreso Definitivo"
-        $nuevo_estado = null;
-        $texto = "";
-        $tipoMov = $logMov->tipo_movimiento;//Alias para no repetir tanto
-        //No tenemos que chequear que este deprecado porque lo validamos arriba.
-        if($tipoMov->es_intervencion_mtm){
-          $nuevo_estado = $logMov->sentido == 'REINGRESO'?  2 : 4;
-          $texto = ucwords(strtolower($logMov->tipo_movimiento->descripcion))." validado.";
-          $id = $tipoMov->id_tipo_movimiento;//Alias
-          //Para denominación, % devolucion, juego, cupo le agrego esto para que sea mas estetico
-          if($id == 5 || $id == 6 || $id == 7 || $id == 15){
-            $texto = 'Cambio de '.$texto;
-          }
-        }
-        else if($tipoMov->id_tipo_movimiento == 11){
-          $nuevo_estado = 1;
-          $texto = "Ingreso inicial validado.";
-        }
-        else if($tipoMov->id_tipo_movimiento == 12){
-          $nuevo_estado = 3;
-          $texto = "Egreso definitivo validado.";
-        }
-        else{
-          throw new \Exception('Unreachable');
-        }
-        foreach($logMov->relevamientos_movimientos as $rel){
-          if($rel->id_estado_relevamiento == 4 && !is_null($nuevo_estado)){
-            $maquina = $rel->maquina()->withTrashed()->first();
-            $maquina->estado_maquina()->associate($nuevo_estado);
-            $maquina->save();
+      if($relevMov->id_estado_relevamiento == 4 && !is_null($nuevo_estado)){
+        $maquina = $relevMov->maquina()->withTrashed()->first();
+        $maquina->estado_maquina()->associate($nuevo_estado);
+        $maquina->save();
 
-            $tomas = $rel->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
-            $multiples_tomas = $rel->toma_relevamiento_movimiento()->count() > 1;
-            //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
-            $razon = $texto." \n";
-            foreach($tomas as $idx => $toma){
-              if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
-              $razon = $razon . $toma->observaciones . " \n";
-            }
-            LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
-          }
+        $tomas = $relevMov->toma_relevamiento_movimiento()->orderBy('toma_relev_mov.id_toma_relev_mov','asc')->get();
+        $multiples_tomas = $relevMov->toma_relevamiento_movimiento()->count() > 1;
+        //Multiples tomas por relevamiento estan deprecadas pero las considero por las dudas.
+        $razon = $texto." \n";
+        foreach($tomas as $idx => $toma){
+          if($multiples_tomas) $razon = $razon . "Toma " . ($idx+1) . ": \n";
+          $razon = $razon . $toma->observaciones . " \n";
         }
+        LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon, $logMov->id_tipo_movimiento);
       }
       DB::commit();
     }

@@ -424,7 +424,7 @@ $('#btn-notaMov').click(function(e){
         });
 
         var fecha = convertirDate(data.movimiento.fecha);
-        var descripcion = fecha + " - " + data.tipo.descripcion + " - " + data.casino.nombre;
+        var descripcion = fecha + " - " + data.tipo + " - " + data.casino.nombre;
         clonNota.find('.descripcionTipoMovimiento').val(descripcion).attr('id', id_movimiento);
         clonNota.find('.borrarNotaMov').attr('id', id_movimiento);
         $('#moldeNotaMov').before(clonNota);                                    //Agregar la nota con el movimiento existente para editarla

@@ -110,8 +110,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 <tr>
                   <th class="col-md-1" value="casino.nombre" estado="">CASINO<i class="fa fa-sort"></i></th>
                   <th class="col-md-1" value="log_movimiento.id_log_movimiento" estado="">NÚMERO<i class="fa fa-sort"></i></th>
-                  <th class="col-md-1" value="log_movimiento.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                  <th class="col-md-2" value="expediente.nro_exp_org" estado="">EXPEDIENTE<i class="fa fa-sort"></i></th>
+                  <th class="col-md-2" value="log_movimiento.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                  <th class="col-md-1" value="expediente.nro_exp_org" estado="">EXPED.<i class="fa fa-sort"></i></th>
                   <th class="col-md-2" value="log_movimiento.islas" estado="">ISLAS<i class="fa fa-sort"></i></th>
                   <th class="col-md-2" value="tipo_movimiento.descripcion" estado="">TIPO MOVIMIENTO<i class="fa fa-sort"></i></th>
                   <th class="col-md-1" value="log_movimiento.id_estado_movimiento" estado="">ESTADO<i class="fa fa-sort"></i></th>
@@ -1058,8 +1058,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
         <i class="fa fa-fw fa-search"></i>
       </button>
      </td>
-     <td class="col-xs-1 fecha_mov" style="font-size: 100%">99 DIC 9999</td>
-     <td class="col-xs-2 nro_exp_mov">9999-999-9</td>
+     <td class="col-xs-2 fecha_mov" style="font-size: 100%">99 DIC 9999</td>
+     <td class="col-xs-1 nro_exp_mov">9999-999-9</td>
      <td class="col-xs-2 islas_mov">9999-9999-...</td>
      <td class="col-xs-2 tipo_mov">TIPO9999</td>
      <td class="col-xs-1 icono_mov" style="text-align: center;">

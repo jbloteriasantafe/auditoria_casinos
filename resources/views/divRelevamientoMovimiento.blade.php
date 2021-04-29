@@ -19,14 +19,14 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     <div class="col-md-4">
         <h5 class="row">Expediente</h5>
         <div class="row">
-            <div class="col-md-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx"></div>
-            <div class="col-md-5"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx"></div>
-            <div class="col-md-2"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x"></div>
+            <div class="col-md-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx" maxlength=5></div>
+            <div class="col-md-5"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx" maxlength=7></div>
+            <div class="col-md-2"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x" maxlength=1></div>
         </div>
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
-    <div class="col-md-3">
+    <div class="col-md-3" style="overflow-y: scroll; height: 950px;">
         <h5>Máquinas</h5>
         <table class="table tablaMTM">
         <thead>
@@ -206,12 +206,23 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                     </div>
                 </div>
                 <hr>
+                <!-- 1 era muy chico y 2 muy grande, tuve que hacer 1.5 asi -->
+                <!-- |   PAD (6)  | COL(3) | COL (3) | -->
+                <!-- |PAD         |PAD |ERR|VAL|  PAD| -->
                 <div class="row">
-                    <div class="col-lg-1 col-lg-offset-10">
-                        <button type="button" class="btn btn-danger error"><b>ERROR</b></button>
+                    <div class="col-lg-3 col-lg-offset-6">
+                        <div class="row">
+                            <div class="col-lg-6 col-lg-offset-6">
+                                <button type="button" class="btn btn-danger error"><b>ERROR</b></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-lg-1">
-                        <button type="button" class="btn btn-success validar"><b>VALIDAR</b></button>
+                    <div class="col-lg-3">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <button type="button" class="btn btn-success validar"><b>VALIDAR</b></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif

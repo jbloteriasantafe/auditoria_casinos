@@ -37,6 +37,7 @@ $('#cantidad').on('keypress',function(e){
 
 function initModalNuevaEvMTM(){
   $('#tablaMTM tbody tr').remove();
+  $('#listaTipoMovs .tipo_mov_lista').remove();
   $.get('eventualidadesMTM/tiposMovIntervMTM', function(data){
     $('#tipoMov option').remove();
     data.tipos_movimientos.forEach(tm => {
@@ -83,24 +84,19 @@ function agregarMTMEv(id_maquina, nro_admin) {
 
 //botón imprimir dentro del modal
 $(document).on('click','#btn-impr',function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
-  let mtmEv = [];
-  $('#tablaMTM tbody > tr').each(function(){
-    const maquina={
-      id_maquina : $(this).attr('id')
-    }
-    mtmEv.push(maquina);
-  });
   const formData = {
-    id_tipo_movimiento: $('#modalNuevaEvMTM').find('#tipoMov').val(),
-    maquinas: mtmEv,
     sentido: $('#sentidoMov').val(),
-    id_casino: $('#casinoNuevaEvMTM').val()
+    id_casino: $('#casinoNuevaEvMTM').val(),
+    tipos_movimiento: 
+      $('#listaTipoMovs .tipo_mov_lista').map(function(){
+        return $(this).attr('data-id');
+      }).toArray(),
+    maquinas: 
+      $('#tablaMTM tbody > tr').map(function(){
+        return $(this).attr('id');
+      }).toArray(),
   };
 
   $.ajax({
@@ -120,8 +116,8 @@ $(document).on('click','#btn-impr',function(e){
       console.log('Error:',data);
       var response = data.responseJSON;
       let err = false;
-      if(typeof response.tipo_movimiento !== 'undefined'){
-        mostrarErrorValidacion($('#tipomov'),response.tipo_movimiento[0]);
+      if(typeof response.tipos_movimiento !== 'undefined'){
+        mostrarErrorValidacion($('#tipoMov'),"Elija al menos un tipo de movimiento");
         err = true;
       }
       if(typeof response.maquinas !== 'undefined'){
@@ -427,9 +423,6 @@ function generarFilaTabla(event,controlador,superusuario){
   else{
     fila.find('.sentido').text('---');
   }
-
-  const nro_exp = event.nro_exp_org + '-' + event.nro_exp_interno + '-' + event.nro_exp_control;
-  fila.find('.expediente').text(nro_exp).attr('title',nro_exp);
   
   fila.find('.estado').attr('title',event.estado_rel_descripcion);
   let iclass = 'fa-exclamation';
@@ -449,7 +442,7 @@ function generarFilaTabla(event,controlador,superusuario){
   fila.find('.isla').text(islas).attr('title',islas);
   fila.find('button').attr('data-casino',event.id_casino).val(event.id_log_movimiento);
 
-  fila.find('.btn_validarEvmtm').toggle(estado == 3 && (superusuario || controlador));
+  fila.find('.btn_validarEvmtm').toggle((estado == 1 || estado == 2 || estado == 3) && (superusuario || controlador));
   fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 2 );
   if((event.puede_reingreso == 0 && event.puede_egreso_temporal == 0) 
   || event.deprecado == 1
@@ -512,3 +505,15 @@ $(document).on('click','#tablaResultadosEvMTM thead tr th[value]',function(e){
   $('#tablaResultadosEvMTM th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
+
+$('#agregarTipoMov').click(function(e){
+  const opcion = $('#tipoMov option:selected');
+  if($(`#listaTipoMovs div.tipo_mov_lista[data-id="${opcion.val()}"]`).length == 0){
+    const div = $('<div>').addClass('col-md-4 tipo_mov_lista').text(opcion.text()).attr('data-id',opcion.val());  
+    $('#listaTipoMovs').append(div);
+  }
+});
+
+$(document).on('click','#listaTipoMovs div.tipo_mov_lista',function(e){
+  $(this).remove();
+})

@@ -372,6 +372,7 @@ Route::post('importaciones/importarProducido','ImportacionController@importarPro
 Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
 Route::get('importaciones/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
 Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
+Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
