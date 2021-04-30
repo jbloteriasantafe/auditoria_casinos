@@ -32,43 +32,37 @@ use App\Mesas\ImportacionDiariaMesas;
 use App\Mesas\Canon;
 
 //los valores "reales" del canon se almacenan en la actualizacion, y aca los que se cobran.
-class ABMCCanonController extends Controller
-{
-  private static $atributos = [
-    'id_cierre_mesa' => 'Identificacion del Cierre',
-    'fecha' => 'Fecha',
-    'hora_inicio' => 'Hora de Apertura',
-    'hora_fin' => 'Hora del Cierre',
-    'total_pesos_fichas_c' => 'Total de pesos en Fichas',
-    'total_anticipos_c' => 'Total de Anticipos',
-    'id_fiscalizador'=>'Fiscalizador',
-    'id_mesa_de_panio'=> 'Mesa de Paño',
-    'id_estado_cierre'=>'Estado',
-  ];
-
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
+class ABMCCanonController extends Controller {
   public function __construct()
   {
     $this->middleware(['tiene_permiso:m_abmc_canon']);
   }
 
-  //un buscar
-
   public function obtenerCanon($id_casino){
     $canon = Canon::where('id_casino','=',$id_casino)->get()->first();
     if(empty($canon) || $canon == null){
-      $canon = $this->crear($id_casino);
+      $casino = Casino::find($id_casino);
+      $ff = date('m',strtotime($casino->fecha_inicio));
+      $meshoy = date('m');
+      //si el mes de pago es mayor o igual al mes de creacion del casino =>
+      //el año inicio del canon es el actual, sino es el anterior
+      if($ff >= $meshoy){
+        $periodo_anio_inicio = date('Y')-1;
+      }else{
+        $periodo_anio_inicio = date('Y');
+      }
+      $canon = new Canon;
+      $canon->id_casino= $id_casino;
+      $canon->periodo_anio_inicio = $periodo_anio_inicio;
+      $canon->periodo_anio_fin= ($periodo_anio_inicio+1);
+      $canon->valor_base_dolar = 0;
+      $canon->valor_base_euro = 0;
+      $canon->valor_real_dolar = 0;
+      $canon->valor_real_euro = 0;
+      $canon->save();
     }
-    //$estado = $this->verRequisitos();
     return ['canon' => $canon];
-
   }
-
-  //un modificar
 
   public function modificar(Request $request){
     $validator=  Validator::make($request->all(),[
@@ -77,7 +71,7 @@ class ABMCCanonController extends Controller
                           'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'valor_base_euro' =>  ['required',
                           'regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']
-    ], array(), self::$atributos)->after(function($validator){
+    ], [], [])->after(function($validator){
 
     })->validate();
     if(isset($validator)){
@@ -116,32 +110,6 @@ class ABMCCanonController extends Controller
       return ['sin cambios'];
     }
 
-  }
-
-  //un crear, que se va a crear en blanco cuando crea el casino
-
-  public function crear($id_casino){
-      $casino = Casino::find($id_casino);
-      $ff = date('m',strtotime($casino->fecha_inicio));
-      $meshoy = date('m');
-      //si el mes de pago es mayor o igual al mes de creacion del casino =>
-      //el año inicio del canon es el actual, sino es el anterior
-      //dd($ff,$meshoy);
-      if($ff >= $meshoy){
-        $periodo_anio_inicio = date('Y')-1;
-      }else{
-        $periodo_anio_inicio = date('Y');
-      }
-      $nuevo_canon = new Canon;
-      $nuevo_canon->id_casino= $id_casino;
-      $nuevo_canon->periodo_anio_inicio = $periodo_anio_inicio;
-      $nuevo_canon->periodo_anio_fin= ($periodo_anio_inicio+1);
-      $nuevo_canon->valor_base_dolar = 0;
-      $nuevo_canon->valor_base_euro = 0;
-      $nuevo_canon->valor_real_dolar = 0;
-      $nuevo_canon->valor_real_euro = 0;
-
-      return $nuevo_canon;
   }
 
   public function mesesCuotasCanon(Request $request,$id_casino){

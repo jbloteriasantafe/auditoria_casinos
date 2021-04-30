@@ -103,127 +103,94 @@ $(document).on('change','#selectActualizacion', function(e){
   $('.desplegarActualizar').hide();
   $('.datosActualizacion').hide();
   $('.datosReg').hide();
-
-  var id=$(this).val();
-
-  if(id != 0){
-      $('#añoInicioAct1 option').remove();
-      $('#añoInicioAct2 option').remove();
-
-    $('#añoInicioAct1').prop('disabled',false);
-    $('#añoInicioAct2').prop('disabled',false);
-
-    $.get('canon/obtenerAnios/'+ id, function(data){
-
-      if(data.anios.length > 0){
-        for (var i = 0; i < data.anios.length; i++) {
-          $('#mensajeErrorInforme').hide();
-          $('#añoInicioAct1').append($('<option>').val(data.anios[i].anio_inicio).text(data.anios[i].anio_inicio).append($('</option>')))
-          $('#añoInicioAct2').append($('<option>').val(data.anios[i].anio_final).text(data.anios[i].anio_final).append($('</option>')))
-        }
-      }
-      else{
-          $('.datosReg').show();
-        $('#mensajeErrorInforme').find('.msjtext').text('No hay años para filtrar, puede que no se hayan cargado pagos de Canon, durante un año completo.');
-        $('#mensajeErrorInforme').show();
-      }
-    })
-  }else{
-    $('#añoInicioAct1 option').remove();
-    $('#añoInicioAct2 option').remove();
-
-  $('#añoInicioAct1').prop('disabled',true);
-  $('#añoInicioAct2').prop('disabled',true);
+  const id = $(this).val();
+  $('#periodo option').remove();
+  if(id == 0){
+    $('#periodo').prop('disabled',true);
+    return;
   }
+
+  $('#periodo').prop('disabled',false);
+  $.get('canon/obtenerAnios/'+ id, function(data){
+    for (let i = 0; i < data.anios.length; i++) {
+      const a = data.anios[i];
+      $('#mensajeErrorInforme').hide();
+      $('#periodo').append($('<option>').val(a.anio_inicio).text(a.anio_inicio+'-'+a.anio_final));
+    }
+    if(data.anios.length == 0){
+      $('.datosReg').show();
+      $('#mensajeErrorInforme').find('.msjtext').text('No hay años para filtrar, puede que no se hayan cargado pagos de Canon, durante un año completo.');
+      $('#mensajeErrorInforme').show();
+    }
+  });
 })
 
 //BUSCAR DE DICHA PESTAÑA
 $('#buscarActualizar').on('click',function(e){
-    e.preventDefault();
-    $('.desplegarActualizar').hide();
-    $('.datosActualizacion').hide();
+  e.preventDefault();
+  $('.desplegarActualizar').hide();
+  $('.datosActualizacion').hide();
 
-    $('#anio1 tbody tr').not('.default1').remove();
-    $('#anio2 tbody tr').not('.default2').remove();
-    $('#tablaActualizacion tbody tr').remove();
-   if($('#añoInicioAct1').val() != $('#añoInicioAct2').val()){
-     var formData= {
-       id_casino: $('#selectActualizacion').val(),
-       anio_inicio:$('#añoInicioAct1').val(),
-       anio_final: $('#añoInicioAct2').val(),
-     }
+  $('#anio1 tbody tr').not('.default1').remove();
+  $('#anio2 tbody tr').not('.default2').remove();
+  $('#tablaActualizacion tbody tr').remove();
+  const formData = {
+    id_casino: $('#selectActualizacion').val(),
+    anio_inicio:$('#periodo').val(),
+  }
 
-     $.ajaxSetup({
-         headers: {
-             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-         }
-     });
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')} });
 
-     $.ajax({
-         type: 'POST',
-         url: 'canon/verInforme',
-         data: formData,
-         dataType: 'json',
+  $.ajax({
+    type: 'POST',
+    url: 'canon/verInforme',
+    data: formData,
+    dataType: 'json',
 
-         success: function (data){
-           var result = Object.keys(data.detalles).map(function(key) {
-             return [Number(key), data.detalles[key]];
-           });
+    success: function (data){
+      const result = Object.keys(data.detalles).map(function(key) {
+        return [Number(key), data.detalles[key]];
+      });
 
-           if(result.length > 0){
-             $('.casinoInformeFinal').text(' EURO').css('text-align','center').css('color','#000');
-             $('.casinoInformeFinal2').text(' DÓLAR').css('text-align','center').css('color','#000');
+      if(result.length == 0){
+        $('.datosReg').show();
+        $('#actualizarCanon').hide();
+        $('#mensajeErrorInforme').show();
+        return;
+      }
 
-             var f=data.informe.anio_inicio - 1;
-             var d=data.informe.anio_final;
-             var e=data.informe.anio_inicio;
-             $('.rdo1').text('Rdo.Bruto ' + f + '/' + e);
-             $('.rdo2').text('Rdo.Bruto ' + e + '/' + d);
-             $('.cotizacion1').text('Cotización ' + f + '/' + e );
-             $('.cotizacion2').text('Cotización ' + e + '/' + d );
-             $('.valor1').text('Monto ' + f + '/' + e );
-             $('.valor2').text('Monto ' + e + '/' + d );
+      $('.casinoInformeFinal').text('EURO').css('text-align','center').css('color','#000');
+      $('.casinoInformeFinal2').text('DÓLAR').css('text-align','center').css('color','#000');
 
-               for (var i = 0; i < result.length; i++) {
-                 //console.log('det data',data.detalles{});
-                 var fila=cargarTablaInforme(result[i][1],1);
-                 $('#anio1').append(fila);
-               }
+      const e = data.informe.anio_inicio;
+      const f = e - 1;
+      const d = data.informe.anio_final;
+      $('.rdo1').text('Rdo.Bruto ' + f + '/' + e);
+      $('.rdo2').text('Rdo.Bruto ' + e + '/' + d);
+      $('.cotizacion1').text('Cotización ' + f + '/' + e );
+      $('.cotizacion2').text('Cotización ' + e + '/' + d );
+      $('.valor1').text('Monto ' + f + '/' + e );
+      $('.valor2').text('Monto ' + e + '/' + d );
 
-               for (var i = 0; i < result.length; i++) {
-                 var fila2=cargarTablaInforme(result[i][1],2);
-                 $('#anio2').append(fila2);
-               }
+      for (let i = 0; i < result.length; i++) {
+        const fila = cargarTablaInforme(result[i][1],1);
+        $('#anio1').append(fila);
+      }
 
+      for (let i = 0; i < result.length; i++) {
+        const fila2 = cargarTablaInforme(result[i][1],2);
+        $('#anio2').append(fila2);
+      }
 
-                 $('.desplegarActualizar').show();
-                   $('.datosReg').show();
+      $('.desplegarActualizar').show();
+      $('.datosReg').show();
+      $('#actualizarCanon').show();
+      $('#actualizarCanon').val( $('#selectActualizacion').val());
+      $('#mensajeErrorInforme').hide();
+    },
 
-                   $('#actualizarCanon').show();
-                   $('#actualizarCanon').val( $('#selectActualizacion').val());
-                   $('#mensajeErrorInforme').hide();
-
-            }else{
-              $('.datosReg').show();
-              $('#actualizarCanon').hide();
-              $('#mensajeErrorInforme').show();
-            }
-
-
-         },
-
-         error: function (data) {
-           $('.datosReg').show();
-           $('#actualizarCanon').hide();
-           $('#mensajeErrorInforme').show();
-
-         }
-       })
-   }
-   else{
-     mostrarErrorValidacion($('#añoInicioAct2'),'Debe ser diferente al año inicial',false);
-   }
-
+    error: function (x) {console.log(x);}
+  });
 })
 
 //DESEA ACTUALIZAR EL CANON-BTN GRANDE

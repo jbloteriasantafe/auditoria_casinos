@@ -63,21 +63,6 @@ class APagosController extends Controller
 
   //crear,  pago->recibe cotizaciones, impuestos, fecha_pago, mes_pago y total_pago_pesos
 
-  /* 
-    id_detalle: $('#guardarPago').val(),
-    id_casino: $('#selectCasinoPago').val(),
-    anio_inicio: $('#fechaAnioInicio').val(),
-    anio: mesSeleccionado.data('anio'),
-    mes: mesSeleccionado.data('mes'),
-    dia_inicio: mesSeleccionado.data('dia_inicio'),
-    dia_fin: mesSeleccionado.data('dia_fin'),
-    fecha_pago: $('#fechaPago').val(),
-    cotizacion_euro: $('#cotEuroPago').val(),
-    cotizacion_dolar: $('#cotDolarPago').val(),
-    total_pago_pesos:$('#montoPago').val(),
-    impuestos: $('#impuestosPago').val() == null? 0 : $('#impuestosPago').val(),
-  
-  */
   public function crear(Request $request){
     $validator=  Validator::make($request->all(),[
       //'id_detalle_informe_final_mesas' => 'nullable',

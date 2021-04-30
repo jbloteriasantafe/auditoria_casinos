@@ -184,13 +184,8 @@
             </select>
           </div>
           <div class="col-xs-3">
-            <h5>AÑO INICIO</h5>
-            <select class="form-control" name="" id="añoInicioAct1">
-            </select>
-          </div>
-          <div class="col-xs-3">
-            <h5>AÑO FINAL</h5>
-            <select class="form-control" name="" id="añoInicioAct2">
+            <h5>PERÍODO</h5>
+            <select class="form-control" name="" id="periodo">
             </select>
           </div>
           <div class="col-xs-3">

@@ -804,7 +804,6 @@ Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
   Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
   Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
   Route::post('canon/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
-
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {

@@ -27,34 +27,10 @@ use App\Mesas\Moneda;
 use App\Mesas\ImagenesBunker;
 use App\Mesas\DetalleImgBunker;
 use App\Mesas\Canon;
-use App\Mesas\ImportacionDiariaMesas;
-use App\Mesas\InformeFinalMesas;
-use App\Mesas\DetalleInformeFinalMesas;
-use App\Mesas\ImportacionMensualMesas;
 use App\Http\Controllers\UsuarioController;
 
-
-class IndexController extends Controller
-{
-  private static $atributos = [
-    'id_cierre_mesa' => 'Identificacion del Cierre',
-    'fecha' => 'Fecha',
-    'hora_inicio' => 'Hora de Apertura',
-    'hora_fin' => 'Hora del Cierre',
-    'total_pesos_fichas_c' => 'Total de pesos en Fichas',
-    'total_anticipos_c' => 'Total de Anticipos',
-    'id_fiscalizador'=>'Fiscalizador',
-    'id_mesa_de_panio'=> 'Mesa de Paño',
-    'id_estado_cierre'=>'Estado',
-  ];
-
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
-  public function __construct()
-  {
+class IndexController extends Controller{
+  public function __construct(){
     $this->middleware(['tiene_permiso:m_ver_seccion_canon']);
   }
 
