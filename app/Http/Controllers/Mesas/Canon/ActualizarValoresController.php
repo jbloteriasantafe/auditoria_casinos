@@ -168,7 +168,6 @@ class ActualizarValoresController extends Controller
   }
 
   public function actualizarValoresCanon($informeNuevo){
-
     $canon = Canon::where('id_casino','=',$informeNuevo->id_casino)
                     ->get()->first();
     $canon->delete();
@@ -185,7 +184,6 @@ class ActualizarValoresController extends Controller
   }
 
   public function crearCanon($informeNuevo){
-
     $nuevo_canon = new Canon;
     $nuevo_canon->id_casino= $informeNuevo->id_casino;
     $nuevo_canon->periodo_anio_inicio = $informeNuevo->anio_inicio;
@@ -195,97 +193,6 @@ class ActualizarValoresController extends Controller
     $nuevo_canon->valor_real_dolar = $informeNuevo->base_actual_dolar;
     $nuevo_canon->valor_real_euro = $informeNuevo->base_actual_euro;
     $nuevo_canon->save();
-    //$nuevo_canon->delete();
     return $nuevo_canon;
-  }
-
-
-  public function forzarActualizacion($id_casino,$anio_final){
-    $casino = Casino::find($id_casino);
-    $yaEstaCreado = InformeFinalMesas::where('id_casino','=',$id_casino)
-                                  ->where('anio_inicio','=',$anio_final)
-                                  ->where('anio_final','=',$anio_final+1)
-                                  ->first();
-                                  //dd($yaEstaCreado,$id_casino,date('Y'),date('Y')+1);
-    $ok = $this->verRequisitos($id_casino)['ok'];
-    if($yaEstaCreado == null && $ok != 0){
-      $informe = InformeFinalMesas::where('id_casino','=',$id_casino)
-                                    ->where('anio_final','=',$anio_final)
-                                    ->first();
-        //obtengo el informe anterior
-        $informeAnterior = InformeFinalMesas::where('anio_final','=',$anio_final)
-                                    ->where('id_casino','=',$id_casino)
-                                    ->get()->first();
-        if($informeAnterior == null){
-          $informeAnterior = [
-                              'base_actual_dolar' =>0,
-                              'base_actual_euro' => 0,
-                              'monto_actual_euro' => 0,
-                              'monto_actual_dolar' => 0,
-                              'monto_actual_euro' => 0,
-                              'detalles' => null,
-                              'variacion_total_euro' => 0,
-                              'variacion_total_dolar' => 0,
-                            ];
-        }
-        $informeNuevo = new InformeFinalMesas;
-        $informeNuevo->anio_inicio = $anio_final;
-        $informeNuevo->anio_final = $anio_final+1;
-        $nueva_base_euro =  (($informeAnterior->variacion_total_euro + 100)/100)*$informeAnterior->base_actual_euro;
-        $nueva_base_dolar = (($informeAnterior->variacion_total_dolar + 100)/100)*$informeAnterior->base_actual_dolar;
-
-        $informeNuevo->base_actual_dolar = $nueva_base_dolar;
-        $informeNuevo->base_anterior_dolar = $informeAnterior->base_actual_dolar;
-
-        $informeNuevo->base_actual_euro = $nueva_base_euro;
-        $informeNuevo->base_anterior_euro = $informeAnterior->base_actual_euro;
-
-        //defino las nuevas bases
-        switch ($informeAnterior) {
-          case ($nueva_base_dolar > $informeAnterior->base_cobrado_dolar):
-            $informeNuevo->base_cobrado_dolar = $nueva_base_dolar;
-            break;
-
-          default:
-            $informeNuevo->base_cobrado_dolar = $informeAnterior->base_cobrado_dolar;
-            break;
-        }
-        switch ($informeAnterior) {
-          case ($nueva_base_euro > $informeAnterior->base_cobrado_euro):
-            $informeNuevo->base_cobrado_euro = $nueva_base_euro;
-            break;
-
-          default:
-            $informeNuevo->base_cobrado_euro = $informeAnterior->base_cobrado_euro;
-            break;
-        }
-        $informeNuevo->casino()->associate($id_casino);
-        $informeNuevo->save();
-
-        //actualizar valor del canon
-        $canon = $this->crearCanon($informeNuevo);
-
-        return response()->json([ 'canon' => $canon,
-        'informeNuevo' => $informeNuevo,
-        'informeAnterior' => $informeAnterior], 200);
-
-    }
-    else {
-      // dd('holis');
-      $canon = Canon::where('periodo_anio_fin','=',$yaEstaCreado->anio_final)
-                      ->where('periodo_anio_inicio','=',$yaEstaCreado->anio_inicio)
-                      ->where('id_casino','=',$id_casino)
-                      ->withTrashed()
-                      ->get()->first();
-      if($canon == null){
-        $canon = $this->crearCanon($yaEstaCreado);
-      }
-      $informeAnterior = InformeFinalMesas::where('anio_final','=',$anio_final)
-                                  ->where('id_casino','=',$id_casino)
-                                  ->get()->first();
-      return response()->json([ 'canon' => $canon,
-      'informeNuevo' => $yaEstaCreado,
-      'informeAnterior' => $informeAnterior], 200);
-    }
   }
 }

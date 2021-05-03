@@ -38,6 +38,15 @@ class ABMCCanonController extends Controller {
     $this->middleware(['tiene_permiso:m_abmc_canon']);
   }
 
+  private static $instance;
+
+  public static function getInstancia() {
+      if(!isset(self::$instance)){
+          self::$instance = new ABMCCanonController();
+      }
+      return self::$instance;
+  }
+
   public function obtenerCanon($id_casino){
     $canon = Canon::where('id_casino','=',$id_casino)->get()->first();
     if(empty($canon) || $canon == null){

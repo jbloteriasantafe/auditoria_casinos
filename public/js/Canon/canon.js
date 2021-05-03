@@ -68,32 +68,18 @@ $(document).ready(function() {
 
 //PESTAÑAS
 $("ul.pestCanon li").click(function() {
-
     $("ul.pestCanon li").removeClass("active"); //Remove any "active" class
     $(this).addClass("active"); //Add "active" class to selected tab
     $(".tab_content").hide(); //Hide all tab content
 
-    var activeTab = $(this).find("a").attr("href"); //Find the href attribute value to
-                //identify the active tab + content
-                console.log(activeTab);
+    const activeTab = $(this).find("a").attr("href"); //Find the href attribute value to
     if(activeTab == '#pant_canon_valores'){
-      $('#añoInicioAct1').prop('disabled',true);
-      $('#añoInicioAct2').prop('disabled',true);
-      $('#selectActualizacion').val(0);
-      $('#añoInicioAct1 option').remove();
-      $('#añoInicioAct2 option').remove();
-      $('#mensajeError').hide();
-      $('.desplegarActualizar').hide();
-      $('.datosReg').hide();
-      $('.datosActualizacion').hide();
-      $('#collapseFiltros3').trigger('click');
-      $('#actualizarCanon').hide();
-      $('#mensajeErrorInforme').hide();
-      ocultarErrorValidacion($('#añoInicioAct2'));
-
+      $('#periodo').prop('disabled',true);
+      $('#periodo option').remove();
+      $('#selectActualizacion').val(0).change();
+      $('#collapseFiltros3').collapse("show")
     }
     $(activeTab).fadeIn(); //Fade in the active ID content
-    return false;
 });
 
 //INICIO PESTAÑA CANON 2*****//
@@ -411,7 +397,8 @@ function cargarMeses(select,id_casino,anio_inicio = null,sync = false){
       const mes_inicial = meses[0].nro_mes;
       for (var i = 0; i < meses.length; i++) {
         const m = meses[i];
-        const anio_mes = m.nro_mes < mes_inicial || m.nro_cuota == 13? anio_inicio+1 : anio_inicio;
+        const anio_mes = m.nro_mes < mes_inicial || (m.nro_mes == mes_inicial && m.dia_inicio != mes_inicial.dia_inicio)? 
+        anio_inicio+1 : anio_inicio;
         select.append(generarOpcionMes(m.nro_mes,m.dia_inicio,m.dia_fin,anio_mes));
       }
     }
@@ -489,9 +476,7 @@ function modalPago(modo,id,id_casino){
       $('#fechaPago').val(d.fecha_cobro);
       $('#cotEuroPago').val(d.cotizacion_euro_actual);
       $('#cotDolarPago').val(d.cotizacion_dolar_actual);
-      $('#impuestosPago').val(d.impuestos);
-      $('#montoPago').val(d.total_pagado);
-      $('#obsPago').val(d.observaciones);
+      $('#montoPago').val(d.total_mes_actual);
     });
   }
   else if(modo == 'nuevo'){
@@ -517,6 +502,16 @@ $(document).on('click','.modificarPago',function(e){
   modalPago('modificar',$(this).val(),$(this).attr('data-casino'));
 })
 
+$(document).on('click','.eliminarPago',function(e){
+  e.preventDefault();
+  $.ajax({
+    type: 'DELETE',
+    url: 'canon/borrarPago/' + $(this).val(),
+    success: function(x){$('#btn-buscar-pagos').click();},
+    error: function(x){console.log(x);}
+  });
+})
+
 //GUARDAR DENTRO DEL MODAL CARGAR NUEVO PAGO
 $('#guardarPago').on('click',function(e){
   e.preventDefault();
@@ -534,7 +529,6 @@ $('#guardarPago').on('click',function(e){
     cotizacion_euro: $('#cotEuroPago').val(),
     cotizacion_dolar: $('#cotDolarPago').val(),
     total_pago_pesos:$('#montoPago').val(),
-    impuestos: $('#impuestosPago').val() == null? 0 : $('#impuestosPago').val(),
   };
 
   $.ajaxSetup({
@@ -543,11 +537,9 @@ $('#guardarPago').on('click',function(e){
       }
   });
 
-  let url = 'canon/';
+  let url = 'canon/crearOModificarPago';
   const modo = $('#guardarPago').attr('data-modo');
-  if(modo == 'nuevo') url+='guardarPago';
-  else if(modo == 'modificar') url+='modificarPago';
-  else return;
+  if(modo != 'nuevo' && modo != 'modificar') return;
 
   $.ajax({
       type: 'POST',
@@ -565,28 +557,34 @@ $('#guardarPago').on('click',function(e){
 
       },
       error: function (data) {
-        var response = data.responseJSON.errors;
+        var response = data.responseJSON;
 
         if(typeof response.cotizacion_dolar !== 'undefined'){
-          mostrarErrorValidacion($('#cotDolarPago'), response.cotizacion_dolar[0]);
+          mostrarErrorValidacion($('#cotDolarPago'), parseError(response.cotizacion_dolar[0]));
         }
         if(typeof response.cotizacion_euro !== 'undefined'){
-          mostrarErrorValidacion($('#cotEuroPago'), response.cotizacion_euro[0]);
-        }
-        if(typeof response.impuestos !== 'undefined'){
-          mostrarErrorValidacion($('#impuestosPago'), response.impuestos[0]);
+          mostrarErrorValidacion($('#cotEuroPago'), parseError(response.cotizacion_euro[0]));
         }
         if(typeof response.fecha_pago !== 'undefined'){
-          mostrarErrorValidacion($('#fechaPago'), response.fecha_pago[0]);
+          mostrarErrorValidacion($('#fechaPago'), parseError(response.fecha_pago[0]));
         }
         if(typeof response.total_pago_pesos !== 'undefined'){
-          mostrarErrorValidacion($('#montoPago'), response.total_pago_pesos[0]);
+          mostrarErrorValidacion($('#montoPago'), parseError(response.total_pago_pesos[0]));
         }
-        if(typeof response.anio_cuota !== 'undefined'){
-          mostrarErrorValidacion($('#dtpFechaAnioInicio'), response.anio_cuota[0]);
+        if(typeof response.anio_inicio !== 'undefined'){
+          mostrarErrorValidacion($('#fechaAnioInicio'), parseError(response.anio_inicio[0]));
+        }
+        if(typeof response.anio !== 'undefined'){
+          mostrarErrorValidacion($('#selectMesPago'), parseError(response.anio[0]));
         }
         if(typeof response.mes !== 'undefined'){
-          mostrarErrorValidacion($('#selectMesPago'), response.mes[0]);
+          mostrarErrorValidacion($('#selectMesPago'), parseError(response.mes[0]));
+        }
+        if(typeof response.dia_inicio !== 'undefined'){
+          mostrarErrorValidacion($('#selectMesPago'), parseError(response.dia_inicio[0]));
+        }
+        if(typeof response.dia_fin !== 'undefined'){
+          mostrarErrorValidacion($('#selectMesPago'), parseError(response.dia_fin[0]));
         }
       }
     })
@@ -605,15 +603,12 @@ function limpiar(){
   $('#montoPago').val('');
   $('#cotEuroPago').val('');
   $('#cotDolarPago').val('');
-  $('#impuestosPago').val('');
-  $('#obsPago').val('');
   $('#fechaAnioInicio').val('');
   $('#selectMesPago option').remove();
   ocultarErrorValidacion($('#fechaPago'));
   ocultarErrorValidacion($('#montoPago'));
   ocultarErrorValidacion($('#cotEuroPago'));
   ocultarErrorValidacion($('#cotDolarPago'));
-  ocultarErrorValidacion($('#impuestosPago'));
   ocultarErrorValidacion($('#selectMesPago'));
   ocultarErrorValidacion($('#fechaAnioInicio'));
 }
@@ -622,17 +617,16 @@ function generarFila(data){
   var fila = $('#clonartinicial').clone();
   fila.removeAttr('id');
   fila.attr('id',data.id_detalle_informe_final_mesas);
-
-  fila.find('.mesInicio').text(data.nombre_mes);
+  const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  fila.find('.mesInicio').text(meses[data.mes-1]+' '+data.dia_inicio+'-'+data.dia_fin);
   fila.find('.fechaInicio').text(data.fecha_cobro);
   fila.find('.casinoInicio').text(data.nombre);
   fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
   fila.find('.euroInicio').text(data.cotizacion_euro_actual);
-  fila.find('.impInicio').text(data.impuestos);
-  fila.find('.modificarPago').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);
+  fila.find('button').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);
 
   fila.css('display','');
-  $('#dd').css('display','block');
+  $('#tablaInicio').css('display','block');
 
   return fila;
 }
@@ -748,4 +742,23 @@ function clickIndice(e,pageNumber,tam){
   var columna = $('#tablaInicial .activa').attr('value');
   var orden = $('#tablaInicial .activa').attr('estado');
   $('#btn-buscar-pagos').trigger('click',[pageNumber,tam,columna,orden]);
+}
+
+function parseError(response){
+  errors = {
+      'validation.unique'       :'El valor tiene que ser único y ya existe el mismo.',
+      'validation.required'     :'El campo es obligatorio.',
+      'validation.max.string'   :'El valor es muy largo.',
+      'validation.exists'       :'El valor no es valido.',
+      'validation.min.numeric'  :'El valor no es valido.',
+      'validation.integer'      :'El valor tiene que ser un número entero.',
+      'validation.regex'        :'El valor no es valido.',
+      'validation.required_if'  :'El valor es requerido.',
+      'validation.required_with':'El valor es requerido.',
+      'validation.before'       :'El valor supera el limite.',
+      'validation.after'        :'El valor precede el limite.',
+      'validation.max.numeric'  :'El valor supera el limite.',
+  };
+  if(response in errors) return errors[response];
+  return response;
 }

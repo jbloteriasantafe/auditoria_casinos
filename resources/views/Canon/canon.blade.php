@@ -127,30 +127,28 @@
           <thead>
             <tr align="center" >
               <th class="col-xs-2 activa" value="DIFM.fecha_cobro" estado="desc" style="font-size:14px;text-align:center !important;">FECHA DE PAGO<i class="fas fa-fw fa-sort-down"></i></th>
-              <th class="col-xs-1 " value="mes_casino.nro_mes" estado="desc" style="font-size:14px;text-align:center !important;">MES<i class="fas fa-fw fa-sort"></th>
+              <th class="col-xs-2 " value="mes_casino.nro_mes" estado="desc" style="font-size:14px;text-align:center !important;">MES<i class="fas fa-fw fa-sort"></th>
               <th class="col-xs-2" value="casino.nombre" estado="desc" style="font-size:14px;text-align:center !important;">CASINO<i class="fas fa-fw fa-sort"></th>
               <th class="col-xs-2" style="font-size:14px; text-align:center !important;">COTIZACIÓN DOLAR</th>
               <th class="col-xs-2" style="font-size:14px; text-align:center !important;">COTIZACIÓN EURO</th>
-              <th class="col-xs-2" style="font-size:14px; text-align:center !important;">IMPUESTOS</th>
-              <th class="col-xs-1" style="font-size:14px; text-align:center !important;"></th>
-
+              <th class="col-xs-2" style="font-size:14px; text-align:center !important;"></th>
             </tr>
           </thead>
           <tbody>
           </tbody>
         </table>
-        <div class="table table-responsive" id="dd"  style="display:none">
+        <div class="table table-responsive" id="tablaInicio"  style="display:none">
           <table class="table" >
             <tbody >
               <tr id="clonartinicial" class="filaClone"  style="display:none">
                 <td class="col-xs-2 fechaInicio" style="text-align:center !important"></td>
-                <td class="col-xs-1 mesInicio" style="text-align:center !important"></td>
+                <td class="col-xs-2 mesInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 casinoInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 dolarInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 euroInicio" style="text-align:center !important"></td>
-                <td class="col-xs-2 impInicio" style="text-align:center !important"></td>
-                <td class="col-xs-1" style="text-align:center !important">
+                <td class="col-xs-2" style="text-align:center !important">
                   <button type="button" name="button" class="btn btn-success modificarPago"><i class="fas fa-fw fa-pencil-alt "></i> </button>
+                  <button type="button" name="button" class="btn btn-success eliminarPago"><i class="fas fa-fw fa-trash-alt "></i> </button>
                 </td>
               </tr>
             </tbody>
@@ -228,7 +226,7 @@
                     <td class="cotizacion2" style="text-align:center !important;font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
                     <td class="valor1" style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
                     <td class="valor2" style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
-                    <td style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Variación Euro en %</td>
+                    <td style="text-align:center !important;font-weight:bold;background-color:#81C784;font-size:13px !important;border-right: 1px solid #aaa !important;">Variación %</td>
               </tbody>
             </table>
           </div>
@@ -263,7 +261,7 @@
                   <td class="cotizacion2" style="font-weight:bold;background-color:#FFD54F; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Dólar</td>
                   <td class="valor1" style="font-weight:bold;background-color:#FFD54F; font-size:13px !important;border-right: 1px solid #aaa !important;">Dólares</td>
                   <td class="valor2" style="font-weight:bold;background-color:#FFD54F; font-size:13px !important;border-right: 1px solid #aaa !important;">Dólares</td>
-                  <td style="font-weight:bold;background-color:#FFD54F; font-size:13px !important;border-right: 1px solid #aaa !important;">Variación Dólar en %</td>
+                  <td style="font-weight:bold;background-color:#FFD54F; font-size:13px !important;border-right: 1px solid #aaa !important;">Variación %</td>
                 </tr>
               </tbody>
             </table>
@@ -487,28 +485,17 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">COTIZACIÓN EURO</h6>
                   <input type="text" name="" value="" id="cotEuroPago" class="form-control">
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">COTIZACIÓN DOLAR</h6>
                   <input type="text" name="" value="" id="cotDolarPago" class="form-control">
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">MONTO ABONADO</h6>
                   <input type="text" name="" value="" id="montoPago" class="form-control">
-                </div>
-                <div class="col-xs-3">
-                  <h6 style="font-size:16px !important;">INTERESES</h6>
-                  <input type="text" name="" value="" id="impuestosPago" class="form-control">
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-xs-12">
-                  <h6 style="font-size:16px !important;">OBSERVACIONES</h6>
-                  <textarea name="name" rows="4"  class="form-control" cols="auto" id="obsPago" style="resize: vertical"></textarea>
                 </div>
               </div>
             </div>

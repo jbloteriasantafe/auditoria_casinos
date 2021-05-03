@@ -27,14 +27,14 @@ class BPagosController extends Controller{
       $filtros[] = ['DIFM.id_casino','=',$request->id_casino];
     }
     if(!empty($request->mes) && $request->mes != 0){
-      $filtros[] = ['mes_casino.nro_mes','=',$request->mes];
+      $filtros[] = ['DIFM.mes','=',$request->mes];
     }
 
     $resultados = DB::table('detalle_informe_final_mesas as DIFM')
     ->join('casino','casino.id_casino','=','DIFM.id_casino')
-    ->join('mes_casino','mes_casino.id_mes_casino','=','DIFM.id_mes_casino')
     ->where($filtros)
-    ->whereIn('DIFM.id_casino',$cas);
+    ->whereIn('DIFM.id_casino',$cas)
+    ->whereNull('DIFM.deleted_at');
 
     if(!empty($request->fecha)){
       $fecha = explode("-", $request->fecha);

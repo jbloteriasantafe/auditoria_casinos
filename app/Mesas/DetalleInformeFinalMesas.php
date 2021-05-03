@@ -3,12 +3,11 @@
 namespace App\Mesas;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-//se van a crear 13, uno de los cuales va a repetir
-//los valores 'cuota' son los montos/utilidades del mes pasados
-//a sus valores en EUR/USD --
 class DetalleInformeFinalMesas extends Model
 {
+  use SoftDeletes;
   protected $connection = 'mysql';
   protected $table = 'detalle_informe_final_mesas';
   protected $primaryKey = 'id_detalle_informe_final_mesas';
@@ -34,26 +33,14 @@ class DetalleInformeFinalMesas extends Model
                               'cuota_euro_anterior',//*se calcula
                               'variacion_euro',//*se calcula
                               'variacion_dolar',//*se calcula
-                              'siglas_mes',
-                              'nro_cuota'
+                              'siglas_mes'
                            );
   protected $appends = array('cuota_euro_actual','cuota_dolar_actual',
                             'cuota_euro_anterior','cuota_dolar_anterior',
-                            'variacion_euro','variacion_dolar',
-                            'siglas_mes','nro_cuota'
-                          );
-  public function getNroCuotaAttribute(){
-    return $this->mes_casino->nro_cuota;
-  }
+                            'variacion_euro','variacion_dolar');
 
-  public function getSiglasMesAttribute(){
-    return $this->mes_casino->siglas;
-  }
   public function getCuotaDolarActualAttribute(){
-    $div1 = $this->total_mes_actual/2;
-    //dd($this->total_mes_actual,$div1);
-    $div2 = $div1/$this->cotizacion_dolar_actual;
-   return round($div2,2);
+   return round(($this->total_mes_actual/2)/$this->cotizacion_dolar_actual,2);
   }
 
   public function getCuotaEuroActualAttribute(){

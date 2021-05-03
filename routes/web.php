@@ -795,8 +795,8 @@ Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function ()
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
-  Route::post('canon/guardarPago','Mesas\Canon\APagosController@crear');
-  Route::post('canon/modificarPago','Mesas\Canon\APagosController@modificar');
+  Route::post('canon/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+  Route::delete('canon/borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
