@@ -253,8 +253,8 @@ $('#btn-buscar-pagos').click(function(e,pagina,page_size,columna,orden){
   const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   let sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaInicial .activa').attr('value'),orden: $('#tablaInicial .activa').attr('estado')} ;
 
-  if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-    sort_by =  {columna: 'DIFM.fecha_cobro',orden: 'desc'} ;
+  if(typeof sort_by['columna'] == 'undefined'){
+    sort_by =  "";
   }
 
   const mesSeleccionado = $('#mesFiltro option:selected');
@@ -394,10 +394,12 @@ function cargarMeses(select,id_casino,anio_inicio = null,sync = false){
     success: function (data){
       const meses = data.meses;
       anio_inicio = parseInt(anio_inicio);
-      const mes_inicial = meses[0].nro_mes;
-      for (var i = 0; i < meses.length; i++) {
+      const mes_inicial = meses[0];
+      for (let i = 0; i < meses.length; i++) {
         const m = meses[i];
-        const anio_mes = m.nro_mes < mes_inicial || (m.nro_mes == mes_inicial && m.dia_inicio != mes_inicial.dia_inicio)? 
+        console.log(m);
+        console.log(mes_inicial);
+        const anio_mes = m.nro_mes < mes_inicial.nro_mes || (m.nro_mes == mes_inicial.nro_mes && m != mes_inicial) ? 
         anio_inicio+1 : anio_inicio;
         select.append(generarOpcionMes(m.nro_mes,m.dia_inicio,m.dia_fin,anio_mes));
       }
@@ -553,8 +555,7 @@ $('#guardarPago').on('click',function(e){
           $('#mensajeExito h3').text('EXITO!');
           $('#mensajeExito p').text('Los datos del Pago han sido guardados.');
           $('#mensajeExito').show();
-          $('#btn-buscar-pagos').trigger('click',[1,10,'DIFM.fecha_cobro','desc']);
-
+          $('#btn-buscar-pagos').click();
       },
       error: function (data) {
         var response = data.responseJSON;
@@ -618,9 +619,11 @@ function generarFila(data){
   fila.removeAttr('id');
   fila.attr('id',data.id_detalle_informe_final_mesas);
   const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  fila.find('.anioInicio').text(data.anio);
   fila.find('.mesInicio').text(meses[data.mes-1]+' '+data.dia_inicio+'-'+data.dia_fin);
-  fila.find('.fechaInicio').text(data.fecha_cobro);
   fila.find('.casinoInicio').text(data.nombre);
+  fila.find('.montoInicio').text(data.total_mes_actual);
+  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
   fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
   fila.find('.euroInicio').text(data.cotizacion_euro_actual);
   fila.find('button').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);

@@ -90,7 +90,7 @@ class APagosController extends Controller
       'mes' => 'required|integer',
       'dia_inicio' => 'required|integer',
       'dia_fin' => 'required|integer',
-      'fecha_pago' => 'required|date',
+      'fecha_pago' => 'nullable|date',
       'cotizacion_dolar' => ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
       'cotizacion_euro' =>  ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
       'total_pago_pesos' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']

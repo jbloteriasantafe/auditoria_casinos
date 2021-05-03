@@ -126,12 +126,13 @@
         <table id="tablaInicial" class="table table-fixed tablesorter ">
           <thead>
             <tr align="center" >
-              <th class="col-xs-2 activa" value="DIFM.fecha_cobro" estado="desc" style="font-size:14px;text-align:center !important;">FECHA DE PAGO<i class="fas fa-fw fa-sort-down"></i></th>
-              <th class="col-xs-2 " value="mes_casino.nro_mes" estado="desc" style="font-size:14px;text-align:center !important;">MES<i class="fas fa-fw fa-sort"></th>
-              <th class="col-xs-2" value="casino.nombre" estado="desc" style="font-size:14px;text-align:center !important;">CASINO<i class="fas fa-fw fa-sort"></th>
-              <th class="col-xs-2" style="font-size:14px; text-align:center !important;">COTIZACIÓN DOLAR</th>
-              <th class="col-xs-2" style="font-size:14px; text-align:center !important;">COTIZACIÓN EURO</th>
-              <th class="col-xs-2" style="font-size:14px; text-align:center !important;"></th>
+              <th class="col-xs-2" value="DIFM.anio" style="text-align:center !important;">AÑO<i class="fas fa-fw fa-sort"></i></th>
+              <th class="col-xs-2 " value="DIFM.mes" style="14px;text-align:center !important;">MES<i class="fas fa-fw fa-sort"></th>
+              <th class="col-xs-2" value="casino.nombre" style="text-align:center !important;">CASINO<i class="fas fa-fw fa-sort"></th>
+              <th class="col-xs-2" style="text-align:center !important;">Rdo Bruto</th>
+              <th class="col-xs-1" style="text-align:center !important;">COT. EUR.</th>
+              <th class="col-xs-1" style="text-align:center !important;">COT. DOL.</th>
+              <th class="col-xs-2" style="text-align:center !important;"></th>
             </tr>
           </thead>
           <tbody>
@@ -141,11 +142,12 @@
           <table class="table" >
             <tbody >
               <tr id="clonartinicial" class="filaClone"  style="display:none">
-                <td class="col-xs-2 fechaInicio" style="text-align:center !important"></td>
+                <td class="col-xs-2 anioInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 mesInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2 casinoInicio" style="text-align:center !important"></td>
-                <td class="col-xs-2 dolarInicio" style="text-align:center !important"></td>
-                <td class="col-xs-2 euroInicio" style="text-align:center !important"></td>
+                <td class="col-xs-2 montoInicio" style="text-align:center !important"></td>
+                <td class="col-xs-1 euroInicio" style="text-align:center !important"></td>
+                <td class="col-xs-1 dolarInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2" style="text-align:center !important">
                   <button type="button" name="button" class="btn btn-success modificarPago"><i class="fas fa-fw fa-pencil-alt "></i> </button>
                   <button type="button" name="button" class="btn btn-success eliminarPago"><i class="fas fa-fw fa-trash-alt "></i> </button>

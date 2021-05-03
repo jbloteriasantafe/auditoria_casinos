@@ -42,16 +42,16 @@ class BPagosController extends Controller{
       ->whereMonth('DIFM.fecha_cobro','=', $fecha[1]);
     }
 
-    $sort_by = ['columna' => 'DIFM.fecha_cobro','orden','desc'];
-    if(!empty( $request->sort_by)){
-      $sort_by = $request->sort_by;
-    }
-
-    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
-      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-    })->paginate($request->page_size);
     
-    return ['pagos' => $resultados];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+      $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
+    }
+    else{
+      $resultados = $resultados->orderByRaw('DIFM.anio DESC,DIFM.mes DESC');
+    }
+    
+    return ['pagos' => $resultados->paginate($request->page_size)];
   }
 
   public function verInformeFinalMesas(Request $request){
