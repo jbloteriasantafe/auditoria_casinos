@@ -138,6 +138,7 @@ $('#buscarActualizar').on('click',function(e){
         return [Number(key), data.detalles[key]];
       });
       let meses = {};
+
       const poner_en_meses = function(d){
         const key = siglaMes(d.mes,d.dia_inicio,d.dia_fin,d.anio);
         if(!meses[key]) meses[key] = {};
@@ -176,45 +177,38 @@ $('#buscarActualizar').on('click',function(e){
       $('.valor1').text('Monto ' + f + '/' + e );
       $('.valor2').text('Monto ' + e + '/' + d );
 
-      let fila = function(x){return fila.clone().removeAttr('id').css('display','')};
-      const anterior = data.informe_anterior.id_informe_final_mesas;
+      const anterior = data.informe_anterior?.id_informe_final_mesas;
       const actual = data.informe.id_informe_final_mesas;
       for(sigla in meses){
-        const m_anterior = meses[sigla][anterior];
         const m_actual = meses[sigla][actual];
+        const m_anterior = meses[sigla][anterior];
+        
         const filaE = $('#clonarT').clone().removeAttr('id').css('display','');
         filaE.find('.mesT').text(sigla);
-        filaE.find('.rdo1T').text(m_anterior.bruto);
-        filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
-        filaE.find('.monto1T').text(m_anterior.bruto_euro.toFixed(2));
         filaE.find('.rdo2T').text(m_actual.bruto);
         filaE.find('.cot2T').text(m_actual.cotizacion_euro);
         filaE.find('.monto2T').text(m_actual.bruto_euro.toFixed(2));
-        filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro)*100).toFixed(2)+'%');
+
         const filaD = $('#clonarT').clone().removeAttr('id').css('display','');
         filaD.find('.mesT').text(sigla);
-        filaD.find('.rdo1T').text(m_anterior.bruto);
-        filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
-        filaD.find('.monto1T').text(m_anterior.bruto_dolar.toFixed(2));
         filaD.find('.rdo2T').text(m_actual.bruto);
         filaD.find('.cot2T').text(m_actual.cotizacion_dolar);
         filaD.find('.monto2T').text(m_actual.bruto_dolar.toFixed(2));
-        filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar)*100).toFixed(2)+'%');
+
+        if(m_anterior){
+          filaE.find('.rdo1T').text(m_anterior.bruto);
+          filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
+          filaE.find('.monto1T').text(m_anterior.bruto_euro.toFixed(2));
+          filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro)*100).toFixed(2)+'%');
+          filaD.find('.rdo1T').text(m_anterior.bruto);
+          filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
+          filaD.find('.monto1T').text(m_anterior.bruto_dolar.toFixed(2));
+          filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar)*100).toFixed(2)+'%');
+        }
 
         $('#anio1').append(filaE);
         $('#anio2').append(filaD);
       }
-
-      /*
-      for (let i = 0; i < result.length; i++) {
-        const fila = cargarTablaInforme(result[i][1],1);
-        $('#anio1').append(fila);
-      }
-
-      for (let i = 0; i < result.length; i++) {
-        const fila2 = cargarTablaInforme(result[i][1],2);
-        $('#anio2').append(fila2);
-      }*/
 
       $('#mostrarTabla1').css('display','block');
       $('#mostrarTabla2').css('display','block');
@@ -229,29 +223,6 @@ $('#buscarActualizar').on('click',function(e){
     error: function (x) {console.log(x);}
   });
 })
-
-
-function cargarTablaInforme(data,t){
-  const fila = $('#clonarT').clone();
-  fila.removeAttr('id');
-  fila.find('.mesT').text(data.siglas_mes);
-  fila.find('.rdo1T').text(data.total_mes_anio_anterior);
-  fila.find('.rdo2T').text(data.total_mes_actual);
-
-  const cotizacion1 = (t==1)*data.cotizacion_euro_anterior+(t==2)*data.cotizacion_dolar_anterior;
-  const cotizacion2 = (t==1)*data.cotizacion_euro_actual+(t==2)*data.cotizacion_dolar_actual;
-  fila.find('.cotT').text(cotizacion1);
-  fila.find('.cot2T').text(cotizacion2);
-
-  const variacion = (t==1)*data.variacion_euro + (t==2)*data.variacion_dolar;
-  fila.find('.variacionT').text(variacion).css('color',variacion < 0? '#D32F2F' : '#2fd337');
-  const monto1 = (t==1)*data.cuota_euro_anterior + (t==2)*data.cuota_dolar_anterior;
-  const monto2 = (t==1)*data.cuota_euro_actual + (t==2)*data.cuota_dolar_actual;
-  fila.find('.montoT').text(monto1);
-  fila.find('.monto2T').text(monto2);
-  fila.css('display',''); 
-  return fila;
-}
 
 //DESEA ACTUALIZAR EL CANON-BTN GRANDE
 $('#actualizarCanon').on('click',function(e){
