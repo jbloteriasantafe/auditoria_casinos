@@ -121,8 +121,8 @@ class ABMCCanonController extends Controller {
 
   }
 
-  public function mesesCuotasCanon(Request $request,$id_casino){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+  public function mesesCuotasCanon($id_casino,$anio_inicio){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($usuario == null || !$usuario->usuarioTieneCasino($id_casino)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
@@ -137,7 +137,8 @@ class ABMCCanonController extends Controller {
     };
 
     $casino = Casino::find($id_casino);
-    $fecha = new \DateTime($casino->fecha_inicio);
+    $inicio = explode('-',$casino->fecha_inicio);
+    $fecha = new \DateTime($anio_inicio.'-'.$inicio[1].'-'.$inicio[2]);
     $cuotas = [];
     for($nro_cuota = 1;$nro_cuota < 13;$nro_cuota++){
       $desde = $fecha;
@@ -155,5 +156,14 @@ class ABMCCanonController extends Controller {
     }
 
     return ['casino' => $casino, 'meses' => $cuotas];
+  }
+
+  public function mesesCargados($id_casino,$anio_inicio){
+    $r = DB::table('informe_final_mesas as ifm')->select('difm.*')
+    ->join('detalle_informe_final_mesas as difm','ifm.id_informe_final_mesas','=','difm.id_informe_final_mesas')
+    ->whereNull('ifm.deleted_at')->whereNull('difm.deleted_at')->where('ifm.id_casino','=',$id_casino)
+    ->where('ifm.anio_inicio','=',$anio_inicio)
+    ->orderBy('difm.anio','asc')->orderBy('difm.mes','asc')->orderBy('difm.dia_inicio','asc')->get();
+    return $r; 
   }
 }

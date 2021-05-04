@@ -146,8 +146,10 @@ class APagosController extends Controller
       $detalle_intercalado = DetalleInformeFinalMesas::where($reglas_intercalado)
       ->whereNull('deleted_at')
       ->where(function($q) use ($dia_inicio,$dia_fin){
-        return $q->where('dia_inicio','<=',$dia_fin)->orWhere('dia_fin','>=',$dia_inicio);
-      })->count() > 0;
+        return $q->where([['dia_inicio','>=',$dia_inicio],['dia_fin','<=',$dia_inicio]])
+        ->orWhere([['dia_inicio','>=',$dia_fin],['dia_fin','<=',$dia_fin]]);
+      });
+      $detalle_intercalado = $detalle_intercalado->count() > 0;
       if($detalle_intercalado){
         $validator->errors()->add('dia_inicio','Ya se encuentra cargado un detalle para este periodo');
       }
@@ -163,7 +165,8 @@ class APagosController extends Controller
           $informe->id_casino = $request->id_casino;
           $informe->anio_inicio = $request->anio_inicio;
           //Practicamente siempre pasa el año, a menos que el casino inicie el 1 de enero
-          $pasa_el_año = count(ABMCCanonController::getInstancia()->mesesCuotasCanon($request,$request->id_casino)['meses']) >= 13;
+          $pasa_el_año = count(ABMCCanonController::getInstancia()->mesesCuotasCanon($request,$request->id_casino,$request->anio_inicio)['meses']) 
+                         >= 13;
           $informe->anio_final = $request->anio_inicio + ($pasa_el_año? 1 : 0);
           $informe->base_actual_dolar = 0;
           $informe->base_actual_euro  = 0;

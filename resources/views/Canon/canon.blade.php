@@ -130,8 +130,8 @@
               <th class="col-xs-2 " value="DIFM.mes" style="14px;text-align:center !important;">MES<i class="fas fa-fw fa-sort"></th>
               <th class="col-xs-2" value="casino.nombre" style="text-align:center !important;">CASINO<i class="fas fa-fw fa-sort"></th>
               <th class="col-xs-2" style="text-align:center !important;">Rdo Bruto</th>
-              <th class="col-xs-1" style="text-align:center !important;">COT. EUR.</th>
-              <th class="col-xs-1" style="text-align:center !important;">COT. DOL.</th>
+              <th class="col-xs-1" style="text-align:center !important;">$/EUR</th>
+              <th class="col-xs-1" style="text-align:center !important;">$/USD</th>
               <th class="col-xs-2" style="text-align:center !important;"></th>
             </tr>
           </thead>
@@ -235,15 +235,15 @@
           <div class="table table-responsive" id="mostrarTabla1"  style="display:none">
             <table class="table" style="padding:0px !important">
               <tbody >
-                <tr class"filaClone" id="clonarT1" style="display:none; padding:0px !important;">
-                  <td class="mest1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="rdo1t1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="rdo2t1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="cotEuroT1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="cotEuro2T1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="euroT1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="euro2T1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="variacionET1" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                <tr class="filaClone" id="clonarT" style="display:none; padding:0px !important;">
+                  <td class="mesT" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="rdo1T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="rdo2T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="cot1T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="cot2T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="monto1T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="monto2T" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
+                  <td class="variacionT" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
                 </tr>
               </tbody>
             </table>
@@ -274,16 +274,6 @@
           <div class="table table-responsive" id="mostrarTabla2"  style="display:none;">
             <table class="table" style="padding:0px !important">
               <tbody >
-                <tr class"filaClone" id="clonarT2" style="display:none; padding:0px !important">
-                  <td class="mesT2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="rdo1T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="rdo2T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="cotDolar1T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="cotDolar2T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="dolar1T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="dolar2T2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                  <td class="variacionDT2" style="padding:1px !important;text-align:center !important; font-size:12px !important"></td>
-                </tr>
               </tbody>
             </table>
           </div>

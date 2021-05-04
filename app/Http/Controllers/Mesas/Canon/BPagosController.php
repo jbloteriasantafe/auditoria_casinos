@@ -48,7 +48,7 @@ class BPagosController extends Controller{
       $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
     }
     else{
-      $resultados = $resultados->orderByRaw('DIFM.anio DESC,DIFM.mes DESC');
+      $resultados = $resultados->orderByRaw('DIFM.anio DESC,DIFM.mes DESC,DIFM.dia_inicio DESC');
     }
     
     return ['pagos' => $resultados->paginate($request->page_size)];
@@ -56,11 +56,17 @@ class BPagosController extends Controller{
 
   public function verInformeFinalMesas(Request $request){
     $informe = InformeFinalMesas::where('id_casino','=',$request->id_casino)
-    ->where('anio_inicio','=',$request->anio_inicio)->first();
+    ->where('anio_inicio','=',$request->anio_inicio)->whereNull('deleted_at')->first();
+
+    $informe_anterior = InformeFinalMesas::where('id_casino','=',$request->id_casino)
+    ->where('anio_inicio','=',$request->anio_inicio-1)->whereNull('deleted_at')->first();
 
     if($informe == null) return response()->json(['error' => 'INFORME NO ENCONTRADO'], 404);
   
-    return ['informe' => $informe,'detalles' => $informe->detalles()->orderByRaw('anio ASC,mes ASC')->get()];
+    return ['informe_anterior'  => $informe_anterior,
+            'informe'           => $informe,
+            'detalles_anterior' => $informe_anterior->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get(),
+            'detalles'          => $informe->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get()];
   }
 
   public function obtenerPago($id_detalle){

@@ -137,8 +137,26 @@ $('#buscarActualizar').on('click',function(e){
       const result = Object.keys(data.detalles).map(function(key) {
         return [Number(key), data.detalles[key]];
       });
+      let meses = {};
+      const poner_en_meses = function(d){
+        const key = siglaMes(d.mes,d.dia_inicio,d.dia_fin,d.anio);
+        if(!meses[key]) meses[key] = {};
+        meses[key][d.id_informe_final_mesas] = {
+          anio: d.anio,
+          mes: d.mes,
+          dia_inicio: d.dia_inicio,
+          dia_fin: d.dia_fin,          
+          bruto: d.total_mes_actual,
+          cotizacion_euro: d.cotizacion_euro_actual,
+          cotizacion_dolar: d.cotizacion_dolar_actual,
+          bruto_euro: (d.total_mes_actual/2)/d.cotizacion_euro_actual,
+          bruto_dolar: (d.total_mes_actual/2)/d.cotizacion_dolar_actual,
+        };
+      }
+      data.detalles_anterior.forEach(poner_en_meses);
+      data.detalles.forEach(poner_en_meses);
 
-      if(result.length == 0){
+      if(Object.keys(meses).length == 0){
         $('.datosReg').show();
         $('#actualizarCanon').hide();
         $('#mensajeErrorInforme').show();
@@ -158,6 +176,36 @@ $('#buscarActualizar').on('click',function(e){
       $('.valor1').text('Monto ' + f + '/' + e );
       $('.valor2').text('Monto ' + e + '/' + d );
 
+      let fila = function(x){return fila.clone().removeAttr('id').css('display','')};
+      const anterior = data.informe_anterior.id_informe_final_mesas;
+      const actual = data.informe.id_informe_final_mesas;
+      for(sigla in meses){
+        const m_anterior = meses[sigla][anterior];
+        const m_actual = meses[sigla][actual];
+        const filaE = $('#clonarT').clone().removeAttr('id').css('display','');
+        filaE.find('.mesT').text(sigla);
+        filaE.find('.rdo1T').text(m_anterior.bruto);
+        filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
+        filaE.find('.monto1T').text(m_anterior.bruto_euro.toFixed(2));
+        filaE.find('.rdo2T').text(m_actual.bruto);
+        filaE.find('.cot2T').text(m_actual.cotizacion_euro);
+        filaE.find('.monto2T').text(m_actual.bruto_euro.toFixed(2));
+        filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro)*100).toFixed(2)+'%');
+        const filaD = $('#clonarT').clone().removeAttr('id').css('display','');
+        filaD.find('.mesT').text(sigla);
+        filaD.find('.rdo1T').text(m_anterior.bruto);
+        filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
+        filaD.find('.monto1T').text(m_anterior.bruto_dolar.toFixed(2));
+        filaD.find('.rdo2T').text(m_actual.bruto);
+        filaD.find('.cot2T').text(m_actual.cotizacion_dolar);
+        filaD.find('.monto2T').text(m_actual.bruto_dolar.toFixed(2));
+        filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar)*100).toFixed(2)+'%');
+
+        $('#anio1').append(filaE);
+        $('#anio2').append(filaD);
+      }
+
+      /*
       for (let i = 0; i < result.length; i++) {
         const fila = cargarTablaInforme(result[i][1],1);
         $('#anio1').append(fila);
@@ -166,7 +214,10 @@ $('#buscarActualizar').on('click',function(e){
       for (let i = 0; i < result.length; i++) {
         const fila2 = cargarTablaInforme(result[i][1],2);
         $('#anio2').append(fila2);
-      }
+      }*/
+
+      $('#mostrarTabla1').css('display','block');
+      $('#mostrarTabla2').css('display','block');
 
       $('.desplegarActualizar').show();
       $('.datosReg').show();
@@ -178,6 +229,29 @@ $('#buscarActualizar').on('click',function(e){
     error: function (x) {console.log(x);}
   });
 })
+
+
+function cargarTablaInforme(data,t){
+  const fila = $('#clonarT').clone();
+  fila.removeAttr('id');
+  fila.find('.mesT').text(data.siglas_mes);
+  fila.find('.rdo1T').text(data.total_mes_anio_anterior);
+  fila.find('.rdo2T').text(data.total_mes_actual);
+
+  const cotizacion1 = (t==1)*data.cotizacion_euro_anterior+(t==2)*data.cotizacion_dolar_anterior;
+  const cotizacion2 = (t==1)*data.cotizacion_euro_actual+(t==2)*data.cotizacion_dolar_actual;
+  fila.find('.cotT').text(cotizacion1);
+  fila.find('.cot2T').text(cotizacion2);
+
+  const variacion = (t==1)*data.variacion_euro + (t==2)*data.variacion_dolar;
+  fila.find('.variacionT').text(variacion).css('color',variacion < 0? '#D32F2F' : '#2fd337');
+  const monto1 = (t==1)*data.cuota_euro_anterior + (t==2)*data.cuota_dolar_anterior;
+  const monto2 = (t==1)*data.cuota_euro_actual + (t==2)*data.cuota_dolar_actual;
+  fila.find('.montoT').text(monto1);
+  fila.find('.monto2T').text(monto2);
+  fila.css('display',''); 
+  return fila;
+}
 
 //DESEA ACTUALIZAR EL CANON-BTN GRANDE
 $('#actualizarCanon').on('click',function(e){
@@ -372,24 +446,20 @@ $('#guardarModificacion').on('click',function(e){
 })
 
 function generarOpcionMes(mes,dia_inicio,dia_fin,anio){
-  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  //asumo que mes 1-12 por lo que no hay que hacer+1
-  const ultimo_dia_mes = new Date(anio,mes,0).getDate();
-  let dias_str = "";
-  if(dia_inicio != 1 || dia_fin != ultimo_dia_mes) dias_str = ` ${dia_inicio} al ${dia_fin}`;
   const anio_str = isNaN(anio)? '' : (' - '+anio);
-  return $('<option>').text(meses[mes-1]+dias_str+anio_str)
+  return $('<option>').text(siglasMes(mes,dia_inicio,dia_fin,anio)+anio_str)
   .data('dia_inicio',dia_inicio).data('dia_fin',dia_fin).data('mes',mes).data('anio',anio)
 }
 
+// "sync" Se podria sacar poniendo un callback que se llama al final de success como un argumento pero hace el codigo
+// un poco mas complicado
 function cargarMeses(select,id_casino,anio_inicio = null,sync = false){
-  console.log(select);
   select.find('option').remove();
   if(id_casino == "" || anio_inicio == "") return;
   anio_inicio = parseInt(anio_inicio);
   $.ajax({
     type: 'GET',
-    url: 'canon/getMesesCuotas/' + id_casino,
+    url: 'canon/getMesesCuotas/' + id_casino + '/' + anio_inicio,
     async: !sync,
     success: function (data){
       const meses = data.meses;
@@ -397,8 +467,6 @@ function cargarMeses(select,id_casino,anio_inicio = null,sync = false){
       const mes_inicial = meses[0];
       for (let i = 0; i < meses.length; i++) {
         const m = meses[i];
-        console.log(m);
-        console.log(mes_inicial);
         const anio_mes = m.nro_mes < mes_inicial.nro_mes || (m.nro_mes == mes_inicial.nro_mes && m != mes_inicial) ? 
         anio_inicio+1 : anio_inicio;
         select.append(generarOpcionMes(m.nro_mes,m.dia_inicio,m.dia_fin,anio_mes));
@@ -424,8 +492,7 @@ $('#selectCasinoPago').change(function(){
     $('.desplegarPago').show();
     $('#guardarPago').show();
     //Solo hago la carga dinamica de meses si esta cargando uno nuevo
-    if($('#guardarPago').attr('data-modo') == 'nuevo') 
-      cargarMeses($('#selectMesPago'),$(this).val(),$('#fechaAnioInicio').val());
+    if($('#guardarPago').attr('data-modo') == 'nuevo') $('#fechaAnioInicio').change();
   }
   else{
     $('.desplegarPago').hide();
@@ -434,13 +501,30 @@ $('#selectCasinoPago').change(function(){
 });
 
 $('#fechaAnioInicio').change(function(){
-  if($(this).val() != ""){
-    $('#selectMesPago').attr('disabled',false);
-    cargarMeses($('#selectMesPago'),$('#selectCasinoPago').val(),$(this).val());
+  const anio_inicio = $(this).val();
+  if(anio_inicio.length == 0){
+    return $('#selectMesPago').attr('disabled',true).empty();
   }
-  else{
-    $('#selectMesPago').attr('disabled',true).empty();
-  }
+  $('#selectMesPago').attr('disabled',false);
+  const id_casino = $('#selectCasinoPago').val();
+
+  cargarMeses($('#selectMesPago'),id_casino,anio_inicio,true);
+  //Saco los que ya esten cargados para facilitar la carga
+  $.get('canon/mesesCargados/'+id_casino+'/'+anio_inicio, function(data){
+    data.forEach(function(m){
+      const ops = $('#selectMesPago option');
+      for(const opidx in ops){
+        const op = ops.eq(opidx);
+        if(op.data('anio') == m.anio && op.data('mes') == m.mes && op.data('dia_inicio') == m.dia_inicio){
+          op.remove();
+          break;
+        }
+      }
+    });
+    if($('#selectMesPago option').length == 0){
+      $('#selectMesPago').append('<option>Todos los meses están cargados</option>').attr('disabled',true);
+    } 
+  });
 });
 
 function modalPago(modo,id,id_casino){
@@ -614,18 +698,24 @@ function limpiar(){
   ocultarErrorValidacion($('#fechaAnioInicio'));
 }
 
+function siglaMes(nro_mes,dia_inicio,dia_fin,anio){//Necesitas el anio para saber si febrero esta completo
+  const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const ultimo_dia_mes = new Date(anio,nro_mes,0).getDate();
+  let dia_str = "";
+  if(dia_inicio != 1 || ultimo_dia_mes != parseInt(dia_fin)) dia_str = " "+dia_inicio+"-"+dia_fin;
+  return meses[nro_mes-1]+dia_str;
+}
+
 function generarFila(data){
   var fila = $('#clonartinicial').clone();
   fila.removeAttr('id');
   fila.attr('id',data.id_detalle_informe_final_mesas);
-  const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
   fila.find('.anioInicio').text(data.anio);
-  fila.find('.mesInicio').text(meses[data.mes-1]+' '+data.dia_inicio+'-'+data.dia_fin);
+  fila.find('.mesInicio').text(siglaMes(data.mes,data.dia_inicio,data.dia_fin,data.anio));
   fila.find('.casinoInicio').text(data.nombre);
-  fila.find('.montoInicio').text(data.total_mes_actual);
-  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
-  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
-  fila.find('.euroInicio').text(data.cotizacion_euro_actual);
+  fila.find('.montoInicio').text(data.total_mes_actual.toFixed(2));
+  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual.toFixed(2));
+  fila.find('.euroInicio').text(data.cotizacion_euro_actual.toFixed(2));
   fila.find('button').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);
 
   fila.css('display','');
@@ -634,53 +724,6 @@ function generarFila(data){
   return fila;
 }
 
-function cargarTablaInforme(data,t){
-  if(t==1){
-    var fila = $('#clonarT1').clone();
-    fila.removeAttr('id');
-
-    fila.find('.mest1').text(data.siglas_mes);
-    fila.find('.cotEuroT1').text(data.cotizacion_euro_anterior);
-    fila.find('.cotEuro2T1').text(data.cotizacion_euro_actual);
-    fila.find('.rdo1t1').text(data.total_mes_anio_anterior);
-    fila.find('.rdo2t1').text(data.total_mes_actual);
-    if(data.variacion_euro < 0){
-      fila.find('.variacionET1').text(data.variacion_euro).css('color','#D32F2F');
-    }
-    else{
-      fila.find('.variacionET1').text(data.variacion_euro);
-    }
-    fila.find('.variacionET1').text(data.variacion_euro);
-    fila.find('.euroT1').text(data.cuota_euro_anterior);
-    fila.find('.euro2T1').text(data.cuota_euro_actual);
-    fila.css('display','');
-    $('#mostrarTabla1').css('display','block');
-  }
-  else {
-    var fila = $('#clonarT2').clone();
-    fila.removeAttr('id');
-
-    fila.find('.mesT2').text(data.siglas_mes);
-    fila.find('.cotDolar1T2').text(data.cotizacion_dolar_anterior);
-    fila.find('.cotDolar2T2').text(data.cotizacion_dolar_actual);
-    fila.find('.rdo1T2').text(data.total_mes_anio_anterior);
-    fila.find('.rdo2T2').text(data.total_mes_actual);
-    if(data.variacion_euro < 0){
-      fila.find('.variacionDT2').text(data.variacion_dolar).css('color','#D32F2F');
-    }
-    else{
-      fila.find('.variacionDT2').text(data.variacion_dolar);
-    }
-    fila.find('.dolar1T2').text(data.cuota_dolar_anterior);
-    fila.find('.dolar2T2').text(data.cuota_dolar_actual);
-
-
-    fila.css('display','');
-    $('#mostrarTabla2').css('display','block');
-  }
-
-  return fila;
-}
 
 function cargarTablaActualizacion(data,t){
     var fila = $('#clonarTA').clone();
