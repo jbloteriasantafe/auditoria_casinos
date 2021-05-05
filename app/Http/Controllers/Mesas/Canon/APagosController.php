@@ -62,7 +62,8 @@ class APagosController extends Controller
 
   public function borrar($id_detalle){
     $ret = 0;
-    DB::transaction(function() use ($id_detalle,&$ret){
+    $controller = $this;
+    DB::transaction(function() use ($id_detalle,&$ret,$controller){
       $d = DetalleInformeFinalMesas::find($id_detalle);
       if(is_null($d)){
         $ret = -1;
@@ -75,6 +76,7 @@ class APagosController extends Controller
         return;
       }
       if($i->detalles()->count() == 0) $i->delete();
+      else $this->recalcularTotales($i);
     });
     return $ret;
   }
@@ -182,9 +184,50 @@ class APagosController extends Controller
       $detalle->fecha_cobro = $request->fecha_pago;
       $detalle->cotizacion_dolar_actual = $request->cotizacion_dolar;
       $detalle->cotizacion_euro_actual  = $request->cotizacion_euro;
-      $detalle->total_mes_actual        = $request->total_pago_pesos;
+      $detalle->bruto_peso        = $request->total_pago_pesos;
+      $detalle->medio_bruto_euro  = ($request->total_pago_pesos/2)/$request->cotizacion_euro;
+      $detalle->medio_bruto_dolar = ($request->total_pago_pesos/2)/$request->cotizacion_dolar;
       $detalle->save();
+
+      $this->recalcularTotales($informe);
     });
     return ['informe' => $informe,'detalle' => $detalle];
+  }
+
+  public function recalcularTotalesDetalle($detalle){
+    DB::transaction(function() use ($detalle){
+      $anio       = $detalle->anio;
+      $mes        = $detalle->mes;
+      $dia_inicio = $detalle->dia_inicio;
+      $acumulado  = DB::table('detalle_informe_final_mesas')
+      ->whereNull('deleted_at')->where('id_informe_final_mesas',$detalle->id_informe_final_mesas)
+      ->where(function($q) use ($anio,$mes,$dia_inicio){
+        return $q->where([['anio','<',$anio]])->orWhere([['anio','=',$anio],['mes','<',$mes]])
+        ->orWhere([['anio','=',$anio],['mes','=',$mes],['dia_inicio','<=',$dia_inicio]]);
+      })
+      ->selectRaw('SUM(bruto_peso)        as total_peso,
+                   SUM(medio_bruto_euro)  as medio_total_euro,
+                   SUM(medio_bruto_dolar) as medio_total_dolar')
+      ->groupBy('id_informe_final_mesas')->first();
+
+      $detalle->total_peso        = $acumulado->total_peso;
+      $detalle->medio_total_euro  = $acumulado->medio_total_euro;
+      $detalle->medio_total_dolar = $acumulado->medio_total_dolar;
+      $detalle->save();
+    });
+  }
+
+  public function recalcularTotales($informe){
+    DB::transaction(function() use ($informe){
+      foreach($informe->detalles as $d){
+        $this->recalcularTotalesDetalle($d);
+      }
+
+      $ultimo_detalle = $informe->detalles()->orderByRaw('anio desc, mes desc, dia_inicio desc')->first();
+      $informe->total_peso        = $ultimo_detalle->total_peso;
+      $informe->medio_total_euro  = $ultimo_detalle->medio_total_euro;
+      $informe->medio_total_dolar = $ultimo_detalle->medio_total_dolar;
+      $informe->save();
+    });
   }
 }

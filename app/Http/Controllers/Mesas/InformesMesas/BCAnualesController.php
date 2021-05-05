@@ -186,11 +186,11 @@ class BCAnualesController extends Controller
               $impMNew->diferencias = 0;
               $impMNew->validado = 1;
               $impMNew->observacion = 'Autogenerado a partir de informes finales';
-              $impMNew->utilidad_calculada =  $cuota->total_mes_actual;
+              $impMNew->utilidad_calculada =  $cuota->bruto_peso;
               $impMNew->retiros_mes = 0;
               $impMNew->reposiciones_mes = 0;
               $impMNew->saldo_fichas_mes = 0;
-              $impMNew->total_utilidad_mensual =  $cuota->total_mes_actual;
+              $impMNew->total_utilidad_mensual =  $cuota->bruto_peso;
               $impMNew->save();
             } else {
               // es 1 ->busco la 13
@@ -201,7 +201,7 @@ class BCAnualesController extends Controller
                           ->where('mes_casino.nro_cuota','like',13)
                           ->get()->first();
                           if($det != null)  {
-                            $latrece = $det->total_mes_actual;
+                            $latrece = $det->bruto_peso;
                           }
 
 
@@ -214,11 +214,11 @@ class BCAnualesController extends Controller
                 $impMNew->diferencias = 0;
                 $impMNew->validado = 1;
                 $impMNew->observacion = 'Autogenerado a partir de informes finales';
-                $impMNew->utilidad_calculada =  $cuota->total_mes_actual + $latrece;
+                $impMNew->utilidad_calculada =  $cuota->bruto_peso + $latrece;
                 $impMNew->retiros_mes = 0;
                 $impMNew->reposiciones_mes = 0;
                 $impMNew->saldo_fichas_mes = 0;
-                $impMNew->total_utilidad_mensual =  $cuota->total_mes_actual + $latrece;
+                $impMNew->total_utilidad_mensual =  $cuota->bruto_peso + $latrece;
                 $impMNew->save();
               }else{
                 if($cuota->mes_casino->nro_cuota != 13){

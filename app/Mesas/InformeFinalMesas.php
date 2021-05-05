@@ -29,7 +29,10 @@ class InformeFinalMesas extends Model
                               'monto_actual_euro',/*calculado*/
                               'monto_actual_dolar',/*calculado*/
                               'variacion_total_euro',/*calculado*/
-                              'variacion_total_dolar'/*calculado*/
+                              'variacion_total_dolar',/*calculado*/
+                              'total_peso',
+                              'medio_total_euro',
+                              'medio_total_dolar',
                           );
 
   protected $appends = array('monto_anterior_dolar','monto_anterior_euro',
@@ -88,7 +91,7 @@ class InformeFinalMesas extends Model
   public function getUtilidadesActualAttribute(){
     $total = 0;
     foreach ($this->detalles as $pago) {
-      $total +=$pago->total_mes_actual;
+      $total +=$pago->bruto_peso;
     }
     return round($total,2);
   }

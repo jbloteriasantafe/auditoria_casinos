@@ -147,11 +147,11 @@ $('#buscarActualizar').on('click',function(e){
           mes: d.mes,
           dia_inicio: d.dia_inicio,
           dia_fin: d.dia_fin,          
-          bruto: d.total_mes_actual,
+          bruto: d.bruto_peso,
           cotizacion_euro: d.cotizacion_euro_actual,
           cotizacion_dolar: d.cotizacion_dolar_actual,
-          bruto_euro: (d.total_mes_actual/2)/d.cotizacion_euro_actual,
-          bruto_dolar: (d.total_mes_actual/2)/d.cotizacion_dolar_actual,
+          bruto_euro: (d.bruto_peso/2)/d.cotizacion_euro_actual,
+          bruto_dolar: (d.bruto_peso/2)/d.cotizacion_dolar_actual,
         };
       }
       data.detalles_anterior.forEach(poner_en_meses);
@@ -418,7 +418,7 @@ $('#guardarModificacion').on('click',function(e){
 
 function generarOpcionMes(mes,dia_inicio,dia_fin,anio){
   const anio_str = isNaN(anio)? '' : (' - '+anio);
-  return $('<option>').text(siglasMes(mes,dia_inicio,dia_fin,anio)+anio_str)
+  return $('<option>').text(siglaMes(mes,dia_inicio,dia_fin,anio)+anio_str)
   .data('dia_inicio',dia_inicio).data('dia_fin',dia_fin).data('mes',mes).data('anio',anio)
 }
 
@@ -533,7 +533,7 @@ function modalPago(modo,id,id_casino){
       $('#fechaPago').val(d.fecha_cobro);
       $('#cotEuroPago').val(d.cotizacion_euro_actual);
       $('#cotDolarPago').val(d.cotizacion_dolar_actual);
-      $('#montoPago').val(d.total_mes_actual);
+      $('#montoPago').val(d.bruto_peso);
     });
   }
   else if(modo == 'nuevo'){
@@ -684,9 +684,9 @@ function generarFila(data){
   fila.find('.anioInicio').text(data.anio);
   fila.find('.mesInicio').text(siglaMes(data.mes,data.dia_inicio,data.dia_fin,data.anio));
   fila.find('.casinoInicio').text(data.nombre);
-  fila.find('.montoInicio').text(data.total_mes_actual.toFixed(2));
-  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual.toFixed(2));
-  fila.find('.euroInicio').text(data.cotizacion_euro_actual.toFixed(2));
+  fila.find('.montoInicio').text(data.bruto_peso);
+  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
+  fila.find('.euroInicio').text(data.cotizacion_euro_actual);
   fila.find('button').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);
 
   fila.css('display','');

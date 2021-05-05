@@ -17,7 +17,7 @@ class DetalleInformeFinalMesas extends Model
                               'impuestos',
                               'fecha_cobro',
                               'total_mes_anio_anterior',//utilidad
-                              'total_mes_actual',//utilidad
+                              'bruto_peso',//utilidad
                               'cotizacion_euro_anterior',
                               'cotizacion_dolar_actual',
                               'cotizacion_euro_actual',
@@ -33,18 +33,20 @@ class DetalleInformeFinalMesas extends Model
                               'cuota_euro_anterior',//*se calcula
                               'variacion_euro',//*se calcula
                               'variacion_dolar',//*se calcula
-                              'siglas_mes'
+                              'total_peso',
+                              'medio_total_euro',
+                              'medio_total_dolar',
                            );
   protected $appends = array('cuota_euro_actual','cuota_dolar_actual',
                             'cuota_euro_anterior','cuota_dolar_anterior',
                             'variacion_euro','variacion_dolar');
 
   public function getCuotaDolarActualAttribute(){
-   return round(($this->total_mes_actual/2)/$this->cotizacion_dolar_actual,2);
+   return round(($this->bruto_peso/2)/$this->cotizacion_dolar_actual,2);
   }
 
   public function getCuotaEuroActualAttribute(){
-   return round(($this->total_mes_actual/2)/$this->cotizacion_euro_actual,2);
+   return round(($this->bruto_peso/2)/$this->cotizacion_euro_actual,2);
   }
 
   public function getCuotaEuroAnteriorAttribute(){
