@@ -12,84 +12,29 @@ class DetalleInformeFinalMesas extends Model
   protected $table = 'detalle_informe_final_mesas';
   protected $primaryKey = 'id_detalle_informe_final_mesas';
   protected $visible = array( 'id_detalle_informe_final_mesas',
-                              'id_informe_final_mesas',
-                              'total_pagado',
-                              'impuestos',
-                              'fecha_cobro',
-                              'total_mes_anio_anterior',//utilidad
-                              'bruto_peso',//utilidad
-                              'cotizacion_euro_anterior',
-                              'cotizacion_dolar_actual',
-                              'cotizacion_euro_actual',
-                              'cotizacion_dolar_anterior',
                               'id_casino',
                               'dia_inicio',
                               'dia_fin',
                               'mes',
                               'anio',
-                              'cuota_dolar_actual',//*se calcula
-                              'cuota_euro_actual',//*se calcula
-                              'cuota_dolar_anterior',//*se calcula
-                              'cuota_euro_anterior',//*se calcula
-                              'variacion_euro',//*se calcula
-                              'variacion_dolar',//*se calcula
+                              'fecha_cobro',
+                              'id_informe_final_mesas',
+                              'bruto_peso',
+                              'medio_bruto_euro',
+                              'medio_bruto_dolar',
+                              'cotizacion_dolar_actual',
+                              'cotizacion_euro_actual',
                               'total_peso',
                               'medio_total_euro',
                               'medio_total_dolar',
                            );
-  protected $appends = array('cuota_euro_actual','cuota_dolar_actual',
-                            'cuota_euro_anterior','cuota_dolar_anterior',
-                            'variacion_euro','variacion_dolar');
-
-  public function getCuotaDolarActualAttribute(){
-   return round(($this->bruto_peso/2)/$this->cotizacion_dolar_actual,2);
-  }
-
-  public function getCuotaEuroActualAttribute(){
-   return round(($this->bruto_peso/2)/$this->cotizacion_euro_actual,2);
-  }
-
-  public function getCuotaEuroAnteriorAttribute(){
-    if($this->total_mes_anio_anterior != null && $this->total_mes_anio_anterior != 0){
-      $div1 = $this->total_mes_anio_anterior/2;
-      $div2 = $div1/$this->cotizacion_euro_anterior;
-      return round($div2,2);
-    }
-   return 0;
-  }
-
-  public function getCuotaDolarAnteriorAttribute(){
-    if($this->total_mes_anio_anterior != null && $this->total_mes_anio_anterior != 0){
-      return round(($this->total_mes_anio_anterior/2)/$this->cotizacion_dolar_anterior,2);
-    }
-    return 0;
-  }
-
-  public function getVariacionEuroAttribute(){
-    $variacion_total = 0;
-    if($this->cuota_euro_anterior != 0 && $this->cuota_euro_actual != 0){
-      $variacion_total = (($this->cuota_euro_actual/ $this->cuota_euro_anterior)*100)-100;
-    }
-    return round($variacion_total,2);
-  }
-
-  public function getVariacionDolarAttribute(){
-    $variacion_total = 0;
-    if($this->cuota_dolar_anterior != 0 && $this->cuota_dolar_actual != 0){
-      $variacion_total = (($this->cuota_dolar_actual / $this->cuota_dolar_anterior)*100)-100;
-    }
-    return round($variacion_total,2);
-  }
-
+                           
   public function informe_final_mesas(){
     return $this->belongsTo('App\Mesas\InformeFinalMesas','id_informe_final_mesas','id_informe_final_mesas');
   }
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
-  }
-  public function mes_casino(){
-    return $this->belongsTo('App\MesCasino','id_mes_casino','id_mes_casino')->withTrashed();
   }
 
   public function getTableName(){

@@ -84,7 +84,7 @@ class APagosController extends Controller
   public function crearOModificar(Request $request){
     $detalle = null;
     $informe = null;
-    $validator = Validator::make($request->all(),[
+    Validator::make($request->all(),[
       'id_detalle_informe_final_mesas' => 'nullable|exists:detalle_informe_final_mesas,id_detalle_informe_final_mesas',
       'id_casino' => 'required|exists:casino,id_casino',
       'anio_inicio' => 'required|integer',
@@ -229,5 +229,26 @@ class APagosController extends Controller
       $informe->medio_total_dolar = $ultimo_detalle->medio_total_dolar;
       $informe->save();
     });
+  }
+
+  public function modificarInformeBase(Request $request){
+    Validator::make($request->all(),[
+      'id_casino' => 'required|exists:casino,id_casino',
+      'valor_base_euro' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'valor_base_dolar' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']
+    ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        $validator->errors()->add('id_casino','No puede acceder a este casino');
+        return;
+      }
+    });
+    $informe = BPagosController::getInstancia()->obtenerInformeBase($request->id_casino);
+    $informe->base_anterior_euro = $request->valor_base_euro;
+    $informe->base_anterior_dolar = $request->valor_base_dolar;
+    $informe->save();
+    return 1;
   }
 }

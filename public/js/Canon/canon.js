@@ -150,12 +150,38 @@ $('#buscarActualizar').on('click',function(e){
           bruto: d.bruto_peso,
           cotizacion_euro: d.cotizacion_euro_actual,
           cotizacion_dolar: d.cotizacion_dolar_actual,
-          bruto_euro: (d.bruto_peso/2)/d.cotizacion_euro_actual,
-          bruto_dolar: (d.bruto_peso/2)/d.cotizacion_dolar_actual,
+          bruto_euro: parseFloat(d.medio_bruto_euro).toFixed(2),
+          bruto_dolar: parseFloat(d.medio_bruto_dolar).toFixed(2)
         };
       }
       data.detalles_anterior.forEach(poner_en_meses);
       data.detalles.forEach(poner_en_meses);
+      {
+        const d = data.informe_anterior;
+        if(d){
+          if(!meses['TOTAL']) meses['TOTAL'] = {};
+          meses['TOTAL'][d.id_informe_final_mesas] = {
+            anio: 'TOTAL',mes: 'TOTAL',dia_inicio: 'TOTAL',dia_fin: 'TOTAL',
+            bruto: d.total_peso, 
+            cotizacion_euro: '', cotizacion_dolar: '',
+            bruto_euro: parseFloat(d.medio_total_euro).toFixed(2),
+            bruto_dolar: parseFloat(d.medio_total_dolar).toFixed(2)
+          };
+        }
+      }
+      {
+        const d = data.informe;
+        if(d){
+          if(!meses['TOTAL']) meses['TOTAL'] = {};
+          meses['TOTAL'][d.id_informe_final_mesas] = {
+            anio: 'TOTAL',mes: 'TOTAL',dia_inicio: 'TOTAL',dia_fin: 'TOTAL',
+            bruto: d.total_peso, 
+            cotizacion_euro: '', cotizacion_dolar: '',
+            bruto_euro: parseFloat(d.medio_total_euro).toFixed(2),
+            bruto_dolar:parseFloat(d.medio_total_dolar).toFixed(2)
+          };
+        }
+      }
 
       if(Object.keys(meses).length == 0){
         $('.datosReg').show();
@@ -167,15 +193,17 @@ $('#buscarActualizar').on('click',function(e){
       $('.casinoInformeFinal').text('EURO').css('text-align','center').css('color','#000');
       $('.casinoInformeFinal2').text('DÓLAR').css('text-align','center').css('color','#000');
 
-      const e = data.informe.anio_inicio;
-      const f = e - 1;
-      const d = data.informe.anio_final;
-      $('.rdo1').text('Rdo.Bruto ' + f + '/' + e);
-      $('.rdo2').text('Rdo.Bruto ' + e + '/' + d);
-      $('.cotizacion1').text('Cotización ' + f + '/' + e );
-      $('.cotizacion2').text('Cotización ' + e + '/' + d );
-      $('.valor1').text('Monto ' + f + '/' + e );
-      $('.valor2').text('Monto ' + e + '/' + d );
+      {
+        const e = data.informe.anio_inicio;
+        const f = e - 1;
+        const d = data.informe.anio_final;
+        $('.rdo1').text('Rdo.Bruto ' + f + '/' + e);
+        $('.rdo2').text('Rdo.Bruto ' + e + '/' + d);
+        $('.cotizacion1').text('Cotización ' + f + '/' + e );
+        $('.cotizacion2').text('Cotización ' + e + '/' + d );
+        $('.valor1').text('Monto ' + f + '/' + e );
+        $('.valor2').text('Monto ' + e + '/' + d );
+      }
 
       const anterior = data.informe_anterior?.id_informe_final_mesas;
       const actual = data.informe.id_informe_final_mesas;
@@ -187,23 +215,23 @@ $('#buscarActualizar').on('click',function(e){
         filaE.find('.mesT').text(sigla);
         filaE.find('.rdo2T').text(m_actual.bruto);
         filaE.find('.cot2T').text(m_actual.cotizacion_euro);
-        filaE.find('.monto2T').text(m_actual.bruto_euro.toFixed(2));
+        filaE.find('.monto2T').text(m_actual.bruto_euro);
 
         const filaD = $('#clonarT').clone().removeAttr('id').css('display','');
         filaD.find('.mesT').text(sigla);
         filaD.find('.rdo2T').text(m_actual.bruto);
         filaD.find('.cot2T').text(m_actual.cotizacion_dolar);
-        filaD.find('.monto2T').text(m_actual.bruto_dolar.toFixed(2));
+        filaD.find('.monto2T').text(m_actual.bruto_dolar);
 
         if(m_anterior){
           filaE.find('.rdo1T').text(m_anterior.bruto);
           filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
-          filaE.find('.monto1T').text(m_anterior.bruto_euro.toFixed(2));
-          filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro)*100).toFixed(2)+'%');
+          filaE.find('.monto1T').text(m_anterior.bruto_euro);
+          filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro-1)*100).toFixed(2)+'%');
           filaD.find('.rdo1T').text(m_anterior.bruto);
           filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
-          filaD.find('.monto1T').text(m_anterior.bruto_dolar.toFixed(2));
-          filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar)*100).toFixed(2)+'%');
+          filaD.find('.monto1T').text(m_anterior?.bruto_dolar);
+          filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar-1)*100).toFixed(2)+'%');
         }
 
         $('#anio1').append(filaE);
@@ -219,7 +247,6 @@ $('#buscarActualizar').on('click',function(e){
       $('#actualizarCanon').val( $('#selectActualizacion').val());
       $('#mensajeErrorInforme').hide();
     },
-
     error: function (x) {console.log(x);}
   });
 })
@@ -231,51 +258,6 @@ $('#actualizarCanon').on('click',function(e){
   $('#modalAlertaActualizacion').modal('show');
 })
 
-$('#aceptarActualizacion').on('click',function(e){
-  e.preventDefault();
-
-  $('#modalAlertaActualizacion').modal('hide');
-
-  $('.datosActualizacion').show();
-  var id=$(this).val();
-  var anio=$('#añoInicioAct2').val();
-  $("#tablaActualizacion tbody tr").each(function(){
-        $(this).remove();
-      });
-  $.get('canon/generarTablaActualizacion1/' + id  + '/' + anio, function(data){
-    if(data!=null){
-      var t1 = 'Valores '+data.informeAnterior.anio_inicio+'/'+
-              data.informeAnterior.anio_final;
-      $('#t_valor_ant').text(t1);
-      var t2 = 'Montos '+(data.informeAnterior.anio_inicio-1)+'/'+
-              (data.informeAnterior.anio_final-1);
-      $('#t_monto_ant').text(t2);
-
-      var t3 = 'Montos '+data.informeAnterior.anio_inicio+'/'+
-              data.informeAnterior.anio_final;
-      $('#t_monto_act').text(t3);
-
-      var t4 = 'Valores Base '+data.informeAnterior.anio_inicio+'/'+
-              data.informeAnterior.anio_final;
-      $('#t4_valor_base_ant').text(t4);
-
-      var t5 = 'Valores Base '+data.informeNuevo.anio_inicio+'/'+
-              data.informeNuevo.anio_final;
-      $('#t_valor_base_act').text(t5);
-
-      var t6 = 'Valores '+data.informeNuevo.anio_inicio+'/'+
-              data.informeNuevo.anio_final;
-      $('#t_valor_base_nuevo').text(t6);
-      var euro= cargarTablaActualizacion(data,1);
-      var dolar= cargarTablaActualizacion(data,2);
-
-      $('#tablaActualizacion').show();
-      $('#tablaActualizacion').append(euro);
-      $('#tablaActualizacion').append(dolar);
-
-    }
-  })
-})
 //FIN PESTAÑA CANON 2****//
 
 //****PESTAÑA CANON 1 ***//
@@ -340,80 +322,68 @@ $('#buscarDatos').on('click',function(e){
   $('#valorPago').val('');
   $('#periodoValido').val('');
 
-  var id_casino=$('#verDatosCanon').val();
-
-  if(id_casino != 0){
-    $.get('canon/obtenerCanon/' + id_casino,function(data){
-      var casino=(data.canon.nombre).toUpperCase();
-
-      $('#casinoDatos').text('REQUERIMIENTOS ACTUALES EN CASINO ' + casino);
-      $('#valorBaseD').text('VALOR BASE DÓLAR: ').append($('<h5>').css('cssText','color:#0D47A1 !important').text(data.canon.valor_base_dolar).css('display','inline').prop('disabled',true));
-      $('#valorBaseE').text('VALOR BASE EURO: ').append($('<h5>').css('cssText','color:#0D47A1 !important').text(data.canon.valor_base_euro).css('display','inline').prop('disabled',true));
-      $('#periodoValido').text('PERIODO DE VALIDEZ: ').append($('<h5>').css('cssText','color:#0D47A1 !important').text(data.canon.periodo_anio_inicio + ' - ' + data.canon.periodo_anio_fin).css('display','inline').prop('disabled',true));
-      $('#guardarModificacion').val(id_casino);
-      $('#modalVerYModificar').modal('show');
-      $('.modificacion').hide();
-      $('#baseNuevoEuro').val(data.canon.valor_base_euro);
-      $('#baseNuevoDolar').val(data.canon.valor_base_dolar);
+  const id_casino = $('#verDatosCanon').val();
+  if(id_casino == 0) return;
+  $.get('canon/obtenerInformeBase/' + id_casino,function(data){
+    if(!data){   
+      $('#casinoDatos').text('NECESITA CARGAR ALGUN PAGO ANTES DE INGRESAR EL VALOR BASE');
+      $('#valoresBaseCasino').hide();
+      $('#nuevosValoresBaseCasino').hide();
       $('#guardarModificacion').hide();
-    })
-  }
+      return;
+    }
+    $('#valoresBaseCasino').show();
+    $('#nuevosValoresBaseCasino').show();
+    $('#guardarModificacion').show();
+
+    $('#casinoDatos').text('VALORES BASE ORIGINALES ACTUALES PARA ' + $('#verDatosCanon option:selected').text().toUpperCase());
+
+    $('#valorBaseE p').text(data.base_anterior_euro+0);//cast null to int
+    $('#valorBaseD p').text(data.base_anterior_dolar+0);
+    $('#periodoValido p').text((data.anio_inicio+0) + ' - ' + (data.anio_final + 1));
+
+    $('#baseNuevoEuro').val(data.base_anterior_euro);
+    $('#baseNuevoDolar').val(data.base_anterior_dolar)
+
+    $('#guardarModificacion').val(id_casino);
+    $('#modalVerYModificar').modal('show');
+  });
 })
-
-//DENTRO DEL MODAL VER DATOS ACTUALES
-$(document).on('click','.modificarCanon',function(e){
-  e.preventDefault();
-
-  ocultarErrorValidacion($('#baseNuevoDolar'));
-  ocultarErrorValidacion($('#baseNuevoEuro'));
-
-  $('.modificacion').show();
-  $('#guardarModificacion').show();
-});
 
 //GUARDAR DENTRO DEL MODAL DE VER DATOS ACTUALES/MODIFICAR
 $('#guardarModificacion').on('click',function(e){
-
   e.preventDefault();
 
-  var formData= {
+  const formData = {
     id_casino: $(this).val(),
     valor_base_dolar:$('#baseNuevoDolar').val(),
     valor_base_euro:$('#baseNuevoEuro').val(),
   }
 
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   $.ajax({
-      type: 'POST',
-      url: 'canon/modificar',
-      data: formData,
-      dataType: 'json',
-
-      success: function (data){
-          $('#modalVerYModificar').modal('hide');
-          $('#mensajeExito h3').text('EXITO!');
-          $('#mensajeExito p').text('Los datos del Canon han sido modificados.');
-          $('#mensajeExito').show();
-          $('#btn-buscar-pagos').trigger('click',[1,10,'DIFM.fecha_cobro','desc']);
-      },
-
-      error: function (data) {
-        var response = data.responseJSON.errors;
-
-          if(typeof response.valor_base_euro !== 'undefined'){
-            mostrarErrorValidacion($('#baseNuevoDolar'), response.valor_base_euro[0]);
-          }
-          if(typeof response.valor_base_dolar !== 'undefined'){
-            mostrarErrorValidacion($('#baseNuevoEuro'), response.valor_base_dolar[0]);
-          }
-
+    type: 'POST',
+    url: 'canon/modificarInformeBase',
+    data: formData,
+    dataType: 'json',
+    success: function (data){
+        $('#modalVerYModificar').modal('hide');
+        $('#mensajeExito h3').text('EXITO!');
+        $('#mensajeExito p').text('Los datos del Canon han sido modificados.');
+        $('#mensajeExito').show();
+        $('#btn-buscar-pagos').click();
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      if(typeof response.valor_base_euro !== 'undefined'){
+        mostrarErrorValidacion($('#baseNuevoDolar'), response.valor_base_euro[0]);
       }
-    })
+      if(typeof response.valor_base_dolar !== 'undefined'){
+        mostrarErrorValidacion($('#baseNuevoEuro'), response.valor_base_dolar[0]);
+      }
+    }
+  });
 })
 
 function generarOpcionMes(mes,dia_inicio,dia_fin,anio){
@@ -695,39 +665,6 @@ function generarFila(data){
   return fila;
 }
 
-
-function cargarTablaActualizacion(data,t){
-    var fila = $('#clonarTA').clone();
-    fila.removeAttr('id');
-    if(t==1){
-      fila.css('background-color','#FFD54F');
-      fila.find('.monedaActualizacion').text('Dólar');
-      fila.find('.valoresActualizacion').text('$' + data.informeAnterior.base_cobrado_dolar);
-      fila.find('.pagos1Actualizacion').text('$' + data.informeAnterior.monto_anterior_dolar);
-      fila.find('.pagos2Actualizacion').text('$' + data.informeAnterior.monto_actual_dolar);
-      fila.find('.variacionActualizacion').text('%' + data.informeAnterior.variacion_total_dolar);
-      fila.find('.vBaseActualizacion').text('$' + data.informeNuevo.base_anterior_dolar);
-      fila.find('.vBaseNuevoActualizacion').text('$' + data.informeNuevo.base_actual_dolar);
-      fila.find('.vFinalesActualizacion').text('$' + data.informeNuevo.base_cobrado_dolar);
-    }
-    if(t==2){
-      fila.css('background-color','#81C784');
-
-      fila.find('.monedaActualizacion').text('Euro');
-      fila.find('.valoresActualizacion').text('$' + data.informeAnterior.base_cobrado_euro);
-      fila.find('.pagos1Actualizacion').text('$' + data.informeAnterior.monto_anterior_euro);
-      fila.find('.pagos2Actualizacion').text('$' + data.informeAnterior.monto_actual_euro);
-      fila.find('.variacionActualizacion').text('%' + data.informeAnterior.variacion_total_euro);
-      fila.find('.vBaseActualizacion').text('$' + data.informeNuevo.base_anterior_euro);
-      fila.find('.vBaseNuevoActualizacion').text('$' + data.informeNuevo.base_actual_euro);
-      fila.find('.vFinalesActualizacion').text('$' + data.informeNuevo.base_cobrado_euro);
-    }
-
-    fila.css('display','');
-    $('#mostrarTablaAct').css('display','block');
-
-    return fila;
-  }
 /*****************PAGINACION******************/
 $(document).on('click','#tablaInicial thead tr th[value]',function(e){
 

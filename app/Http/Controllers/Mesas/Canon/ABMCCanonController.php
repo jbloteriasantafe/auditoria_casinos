@@ -39,12 +39,11 @@ class ABMCCanonController extends Controller {
   }
 
   private static $instance;
-
   public static function getInstancia() {
-      if(!isset(self::$instance)){
-          self::$instance = new ABMCCanonController();
-      }
-      return self::$instance;
+    if(!isset(self::$instance)){
+      self::$instance = new ABMCCanonController();
+    }
+    return self::$instance;
   }
 
   public function obtenerCanon($id_casino){

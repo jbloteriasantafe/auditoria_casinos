@@ -798,12 +798,14 @@ Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function ()
 Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
   Route::post('canon/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
   Route::delete('canon/borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+  Route::post('canon/modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
   Route::post('canon/buscarPagos','Mesas\Canon\BPagosController@filtros');
   Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
   Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+  Route::get('canon/obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
   Route::post('canon/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
 });
 

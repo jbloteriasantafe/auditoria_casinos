@@ -377,48 +377,45 @@
       <div class="modal-header" style="background-color:#0D47A1;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| DATOS DEL CANON </h3>
+        <h3 class="modal-title">| VALOR BASE ORIGINAL</h3>
       </div>
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
-          <div class="row" style="border-bottom:2px solid #ccc;">
+          <div class="row">
             <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="casinoDatos" ></h6>
-            <br>
-            <div class="row">
+            <div class="row" id="valoresBaseCasino">
               <div class="col-xs-7" >
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseD">VALOR BASE DÓLAR: </h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseE">VALOR BASE EURO: </h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="periodoValido">PERIODO DE VALIDEZ: </h6>
-                <br>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseE">VALOR BASE EURO:
+                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
+                </h6>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseD">VALOR BASE DÓLAR: 
+                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
+                </h6>
+                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="periodoValido">PERIODO DE VALIDEZ: 
+                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
+                </h6>
               </div>
-              <button  type="button" class="btn btn-warning modificarCanon" style="margin-bottom:10px !important;font-family:Roboto-Regular !important; font-weight: bold !important;margin-top:120px !important;float:right;margin-right: 20px !important;" name="button">MODIFICAR</button>
             </div>
-
           </div>
-          <div class="row modificacion" hidden="true">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important; font-weight:bold">MODIFICACIONES:</h6>
-            <br>
-            <div class="row " >
-              <div class="col-xs-12" style="border-right:1px solid #ccc" id="datosCasinoModif">
-                <h6 style="font-size:16px; text-align:center !important;border-bottom:1px solid #ccc"></h6>
-                <br>
-                <div class="col-xs-6">
-                  <h6 style="font-size:16px">VALOR BASE DÓLAR:</h6>
-                  <input type="text" class="form-control" id="baseNuevoDolar" name="" value="">
-                </div>
+          <hr>
+          <div class="row" id="nuevosValoresBaseCasino">
+            <div class="row" >
+              <div class="col-xs-12">
                 <div class="col-xs-6">
                   <h6 style="font-size:16px">VALOR BASE EURO:</h6>
                   <input type="text" class="form-control" id="baseNuevoEuro" name="" value="">
                 </div>
-
+                <div class="col-xs-6">
+                  <h6 style="font-size:16px">VALOR BASE DÓLAR:</h6>
+                  <input type="text" class="form-control" id="baseNuevoDolar" name="" value="">
+                </div>
               </div>
-
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-warningModificar" id="guardarModificacion" value="nuevo" hidden="true">GUARDAR</button>
+          <button type="button" class="btn btn-warningModificar" id="guardarModificacion" value="nuevo">GUARDAR</button>
         </div>
       </div>
     </div>

@@ -15,6 +15,14 @@ class BPagosController extends Controller{
     $this->middleware(['tiene_permiso:m_b_pagos']);
   }
 
+  private static $instance;
+  public static function getInstancia() {
+    if(!isset(self::$instance)){
+      self::$instance = new BPagosController();
+    }
+    return self::$instance;
+  }
+
   public function filtros(Request $request){
     $user =UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $cas = array();
@@ -79,7 +87,14 @@ class BPagosController extends Controller{
     $anios = DB::table('informe_final_mesas as ifm')->select('ifm.anio_inicio', 'ifm.anio_final')
     //join para eliminar anios sin meses cargados
     ->join('detalle_informe_final_mesas as difm','difm.id_informe_final_mesas','=','ifm.id_informe_final_mesas')
-    ->where('ifm.id_casino','=',$id_casino)->distinct()->get();
+    ->where('ifm.id_casino','=',$id_casino)->whereNull('ifm.deleted_at')->distinct()->get();
     return ['anios' => $anios];
+  }
+
+  public function obtenerInformeBase($id_casino){
+    $d = DetalleInformeFinalMesas::where('id_casino','=',$id_casino)
+    ->orderBy('anio','asc')->orderBy('mes','asc')->orderBy('dia_inicio','asc')
+    ->orderBy('id_detalle_informe_final_mesas','asc')->first();
+    return is_null($d)? null : $d->informe_final_mesas;
   }
 }
