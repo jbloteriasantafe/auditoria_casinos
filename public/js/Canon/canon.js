@@ -75,7 +75,7 @@ $("ul.pestCanon li").click(function() {
 //SELECT Q HABILITA Y PERMITE CARGAR SELECTS DE AÑOS DEPENIENDO EL CASINO
 $(document).on('change','#selectActualizacion', function(e){
   e.preventDefault();
-  $('#tablasBaseCanon').hide();
+  $('#tablasMontosVB').hide();
   $('#divBaseCanon').hide();
   const id = $(this).val();
   $('#periodo option').remove();
@@ -102,7 +102,7 @@ $(document).on('change','#selectActualizacion', function(e){
 //BUSCAR DE DICHA PESTAÑA
 $('#buscarActualizar').on('click',function(e){
   e.preventDefault();
-  $('#tablasBaseCanon').hide();
+  $('#tablasMontosVB').hide();
   $('#tablaEuro,#tablaDolar').find('tbody tr').remove();
 
   const formData = {
@@ -119,8 +119,22 @@ $('#buscarActualizar').on('click',function(e){
     dataType: 'json',
 
     success: function (data){
-      let meses = {};
+      const porcentaje = function(obj,viejo,nuevo){
+        const p = ((nuevo/viejo - 1)*100).toFixed(2);
+        obj.text(p+"%").css('color',p>=0?'green':'red');
+      }
+      $('#filaEuroBaseCanon .base').text(data.actual.base_euro);
+      porcentaje( $('#filaEuroBaseCanon .variacion'),data.actual.base_euro,data.nuevo.base_euro);
+      $('#filaEuroBaseCanon .baseNuevo').text(data.nuevo.base_euro);
+      $('#filaEuroBaseCanon .canon').text(data.actual.canon_euro);
+      $('#filaEuroBaseCanon .canonNuevo').text(data.nuevo.canon_euro);
+      $('#filaDolarBaseCanon .base').text(data.actual.base_dolar);
+      porcentaje($('#filaDolarBaseCanon .variacion'),data.actual.base_dolar,data.nuevo.base_dolar);
+      $('#filaDolarBaseCanon .baseNuevo').text(data.nuevo.base_dolar);
+      $('#filaDolaraseCanon .canon').text(data.actual.canon_dolar);
+      $('#filaDolaraseCanon .canonNuevo').text(data.nuevo.canon_dolar);
 
+      let meses = {};
       const poner_en_meses = function(d){
         const key = siglaMes(d.mes,d.dia_inicio,d.dia_fin,d.anio);
         if(!meses[key]) meses[key] = {};
@@ -205,11 +219,11 @@ $('#buscarActualizar').on('click',function(e){
           filaE.find('.rdo1T').text(m_anterior.bruto);
           filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
           filaE.find('.monto1T').text(m_anterior.bruto_euro);
-          filaE.find('.variacionT').text(((m_actual.bruto_euro/m_anterior.bruto_euro-1)*100).toFixed(2)+'%');
+          porcentaje(filaE.find('.variacionT'),m_anterior.bruto_euro,m_actual.bruto_euro);
           filaD.find('.rdo1T').text(m_anterior.bruto);
           filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
           filaD.find('.monto1T').text(m_anterior?.bruto_dolar);
-          filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar-1)*100).toFixed(2)+'%');
+          porcentaje(filaD.find('.variacionT'),m_anterior.bruto_dolar,m_actual.bruto_dolar);
         }
 
         $('#tablaEuro').append(filaE);
@@ -217,7 +231,7 @@ $('#buscarActualizar').on('click',function(e){
       }
       $('#tablaEuro,#tablaDolar').find('tbody tr:last td').css('border-top','2px solid #ccc')
 
-      $('#tablasBaseCanon').show();
+      $('#tablasMontosVB').show();
       $('#divBaseCanon').show();
       $('#mensajeErrorInforme').hide();
     },
@@ -304,12 +318,10 @@ $('#buscarDatos').on('click',function(e){
   $.get('canon/obtenerInformeBase/' + id_casino,function(data){
     if(!data){   
       $('#casinoDatos').text('NECESITA CARGAR ALGUN PAGO ANTES DE INGRESAR EL VALOR BASE');
-      $('#valoresBaseCasino').hide();
       $('#nuevosValoresBaseCasino').hide();
       $('#guardarModificacion').hide();
       return;
     }
-    $('#valoresBaseCasino').show();
     $('#nuevosValoresBaseCasino').show();
     $('#guardarModificacion').show();
 

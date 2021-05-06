@@ -74,7 +74,20 @@ class BPagosController extends Controller{
     return ['informe_anterior'  => $informe_anterior,
             'informe'           => $informe,
             'detalles_anterior' => is_null($informe_anterior)? [] : $informe_anterior->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get(),
-            'detalles'          => $informe->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get()];
+            'detalles'          => $informe->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get(),
+            'actual' => [
+              'base_euro'  => 321,
+              'canon_euro'       => 123,
+              'base_dolar' => 987,
+              'canon_dolar'      => 789
+            ],
+            'nuevo' => [
+              'base_euro'  => 333,
+              'canon_euro'       => 444,
+              'base_dolar' => 555,
+              'canon_dolar'      => 666
+            ]
+          ];
   }
 
   public function obtenerPago($id_detalle){

@@ -9,7 +9,29 @@
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
 <link rel="stylesheet" href="/css/paginacion.css">
-
+<style>
+.headerGrisVB{
+  text-align:center !important;
+  font-weight:bold;
+  font-size:13px !important;
+  background-color:#E0E0E0;
+  border-right: 1px solid #aaa !important;
+}
+.headerEuroVB{
+  text-align:center !important;
+  font-weight:bold;
+  font-size:13px !important;
+  background-color:#81B0C7;
+  border-right: 1px solid #aaa !important;
+}
+.headerDolarVB{
+  text-align:center !important;
+  font-weight:bold;
+  font-size:13px !important;
+  background-color:#81C784;
+  border-right: 1px solid #aaa !important;;
+}
+</style>
 @endsection
 @section('contenidoVista')
 
@@ -207,7 +229,39 @@
               <span class="msjtext" style="font-family:'Roboto-Regular'; font-size:16px; color:#555;">Aún no hay Informes generados para las fechas y el casino ingresados.</span>
             </div> <!-- mensaje -->
           </div>
-          <div id="tablasBaseCanon" class="row" hidden="true">
+          <div id="tablasMontosVB" class="row" hidden="true">
+            <div id="tablaBaseCanon" class="row">
+              <table class="col-xs-12 table table-bordered" id="tablaVB" style="padding:0px !important">
+                <thead>
+                  <tr>
+                    <td class="headerGrisVB">MONEDA</td>
+                    <td class="headerGrisVB">VALOR BASE ANTERIOR</td>
+                    <td class="headerGrisVB">VARIACION</td>
+                    <td class="headerGrisVB">VALOR BASE NUEVO</td>
+                    <td class="headerGrisVB">CANON ANTERIOR</td>
+                    <td class="headerGrisVB">CANON NUEVO</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="filaEuroBaseCanon">
+                    <td class="headerEuroVB">EURO</td>
+                    <td class="base" style="text-align:center !important;">213</td>
+                    <td class="variacion" style="text-align:center !important;">XX%</td>
+                    <td class="baseNuevo" style="text-align:center !important;">213</td>
+                    <td class="canon" style="text-align:center !important;">213</td>
+                    <td class="canonNuevo" style="text-align:center !important;">213</td>
+                  </tr>
+                  <tr id="filaEuroBaseCanon">
+                    <td class="headerDolarVB">DOLAR</td>
+                    <td class="base" style="text-align:center !important;">213</td>
+                    <td class="variacion" style="text-align:center !important;">XX%</td>
+                    <td class="baseNuevo" style="text-align:center !important;">213</td>
+                    <td class="canon" style="text-align:center !important;">213</td>
+                    <td class="canonNuevo" style="text-align:center !important;">213</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <div class="row">
               <table class="col-xs-12 table table-bordered" id="tablaEuro" style="padding:0px !important">
                 <thead>
@@ -215,14 +269,14 @@
                     <th class="casinoInformeFinal" colspan="8" style="text-align: center;color: darkblue !important;">EURO</th>
                   </tr>
                   <tr>
-                    <td  style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;">Meses</td>
-                    <td class="rdo1" style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
-                    <td class="rdo2" style="text-align:center !important;font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;">Rdo. Bruto</td>
-                    <td class="cotizacion1" style="text-align:center !important;font-weight:bold;background-color:#81B0C7; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
-                    <td class="cotizacion2" style="text-align:center !important;font-weight:bold;background-color:#81B0C7; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Euro</td>
-                    <td class="valor1" style="text-align:center !important;font-weight:bold;background-color:#81B0C7;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
-                    <td class="valor2" style="text-align:center !important;font-weight:bold;background-color:#81B0C7;font-size:13px !important;border-right: 1px solid #aaa !important;">Euros</td>
-                    <td style="text-align:center !important;font-weight:bold;background-color:#81B0C7;font-size:13px !important;border-right: 1px solid #aaa !important;">Variación %</td>
+                    <td class="headerGrisVB">Meses</td>
+                    <td class="rdo1 headerGrisVB">Rdo. Bruto</td>
+                    <td class="rdo2 headerGrisVB">Rdo. Bruto</td>
+                    <td class="cotizacion1 headerEuroVB">Cot. Euro</td>
+                    <td class="cotizacion2 headerEuroVB">Cot. Euro</td>
+                    <td class="valor2 headerEuroVB">Euros</td>
+                    <td class="valor2 headerEuroVB">Euros</td>
+                    <td class="headerEuroVB">Variación %</td>
                   </tr>
                 </thead>
                 <tbody width="auto">
@@ -236,14 +290,14 @@
                     <th class="casinoInformeFinal2" colspan="8" style="text-align: center;color: green !important;">DÓLAR</th>
                   </tr>
                   <tr>
-                    <td style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;border-left: 1px solid #aaa !important;">Meses</td>
-                    <td class="rdo1" style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;" >Rdo. Bruto</td>
-                    <td class="rdo2" style="font-weight:bold;font-size:13px !important;background-color:#E0E0E0;border-right: 1px solid #aaa !important;" >Rdo. Bruto</td>
-                    <td class="cotizacion1" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Dólar</td>
-                    <td class="cotizacion2" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Cot. Dólar</td>
-                    <td class="valor1" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Dólares</td>
-                    <td class="valor2" style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Dólares</td>
-                    <td style="font-weight:bold;background-color:#81C784; font-size:13px !important;border-right: 1px solid #aaa !important;">Variación %</td>
+                    <td class="headerGrisVB">Meses</td>
+                    <td class="rdo1 headerGrisVB" >Rdo. Bruto</td>
+                    <td class="rdo2 headerGrisVB" >Rdo. Bruto</td>
+                    <td class="cotizacion1 headerDolarVB">Cot. Dólar</td>
+                    <td class="cotizacion2 headerDolarVB">Cot. Dólar</td>
+                    <td class="valor1 headerDolarVB">Dólares</td>
+                    <td class="valor2 headerDolarVB">Dólares</td>
+                    <td class="headerDolarVB">Variación %</td>
                   </tr>
                 </thead>
                 <tbody width="auto">
@@ -283,20 +337,10 @@
       <div  id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row">
-            <h6 style="margin-left: 10px;font-size:17px;text-align:center !important;font-weight:bold" id="casinoDatos" ></h6>
-            <div class="row" id="valoresBaseCasino">
-              <div class="col-xs-7" >
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseE">VALOR BASE EURO:
-                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
-                </h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="valorBaseD">VALOR BASE DÓLAR: 
-                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
-                </h6>
-                <h6 style="font-size:16px; margin-left:20px;border-bottom:1px solid #ccc;padding:3px !important" id="periodoValido">PERIODO DE VALIDEZ: 
-                  <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
-                </h6>
-              </div>
-            </div>
+            <h6 style="font-size:17px;text-align:center !important;font-weight:bold;" id="casinoDatos"></h6>
+            <h6 style="font-size:16px;text-align:center !important;" id="periodoValido">
+              PERIODO DE VALIDEZ: <p style="color: rgb(13, 71, 161) !important; display: inline;">0</p>
+            </h6>
           </div>
           <hr>
           <div class="row" id="nuevosValoresBaseCasino">
