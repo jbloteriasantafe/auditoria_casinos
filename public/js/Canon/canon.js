@@ -1,69 +1,58 @@
 $(document).ready(function() {
-    $('#barraCanon').attr('aria-expanded','true');
+  $('#barraCanon').attr('aria-expanded','true');
 
-    $('.tituloSeccionPantalla').hide();
-    $('#barraCanon').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-    $('#barraCanon').addClass('opcionesSeleccionado');
+  $('.tituloSeccionPantalla').hide();
+  $('#barraCanon').attr('style','border-left: 6px solid #185891; background-color: #131836;');
+  $('#barraCanon').addClass('opcionesSeleccionado');
 
-    //pestañas
-    $('#pestCanon').show();
-    $('#pestCanon').css('display','inline-block');
+  //pestañas
+  $('#pestCanon').show();
+  $('#pestCanon').css('display','inline-block');
 
-    $(".tab_content").hide(); //Hide all content
-    $("ul.pestCanon li:first").addClass("active").show(); //Activate first tab
-    $(".tab_content:first").show(); //Show first tab content
+  $(".tab_content").hide(); //Hide all content
+  $("ul.pestCanon li:first").addClass("active").show(); //Activate first tab
+  $(".tab_content:first").show(); //Show first tab content
 
-    $('#collapseFiltros').focus();
-    $('#verDatosCanon').val(0);
-    $('#mesFiltro option').not('.default').remove();
-    $('#mesFiltro').prop('disabled',true);
-    $('#B_fecha_filtro').val('');
-    $('#mesFiltro').val(0);
-    $('#filtroCasino').val(0);
+  $('#collapseFiltros').focus();
+  $('#B_fecha_filtro').val('');
 
-    $(function(){
-      $('#dtpFechaPago').datetimepicker({
-        language:  'es',
-        todayBtn:  1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'yyyy-mm-dd',
-        pickerPosition: "bottom-left",
-        startView: 4,
-        minView: 2
-      });
-    });
-      $(function(){
-        $('#dtpFechaAnioInicio').datetimepicker({
-          language:  'es',
-          todayBtn:  1,
-          autoclose: 1,
-          todayHighlight: 1,
-          format: 'yyyy',
-          pickerPosition: "bottom-left",
-          startView: 4,
-          viewSelect:'decade',
-          minView: 4,
-          maxView:4,
-          ignoreReadonly: true,
-      });
-    });
+  $('#dtpFechaPago').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2
+  });
 
-    $(function(){
-        $('#dtpFechaFiltro').datetimepicker({
-          language:  'es',
-          todayBtn:  1,
-          autoclose: 1,
-          todayHighlight: 1,
-          format: 'yyyy-mm-dd',
-          pickerPosition: "bottom-left",
-          startView: 4,
-          minView: 2
-        });
-      });
+  $('#dtpFechaAnioInicio').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    viewSelect:'decade',
+    minView: 4,
+    maxView:4,
+    ignoreReadonly: true,
+  });
 
-    $('#btn-buscar-pagos').trigger('click',[1,10,'DIFM.fecha_cobro','desc']);
+  $('#dtpFechaFiltro').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2
+  });
 
+  $('#btn-buscar-pagos').click();
 });
 
 //PESTAÑAS
@@ -86,9 +75,8 @@ $("ul.pestCanon li").click(function() {
 //SELECT Q HABILITA Y PERMITE CARGAR SELECTS DE AÑOS DEPENIENDO EL CASINO
 $(document).on('change','#selectActualizacion', function(e){
   e.preventDefault();
-  $('.desplegarActualizar').hide();
-  $('.datosActualizacion').hide();
-  $('.datosReg').hide();
+  $('#tablasBaseCanon').hide();
+  $('#divBaseCanon').hide();
   const id = $(this).val();
   $('#periodo option').remove();
   if(id == 0){
@@ -104,7 +92,7 @@ $(document).on('change','#selectActualizacion', function(e){
       $('#periodo').append($('<option>').val(a.anio_inicio).text(a.anio_inicio+'-'+a.anio_final));
     }
     if(data.anios.length == 0){
-      $('.datosReg').show();
+      $('#divBaseCanon').show();
       $('#mensajeErrorInforme').find('.msjtext').text('No hay años para filtrar, puede que no se hayan cargado pagos de Canon, durante un año completo.');
       $('#mensajeErrorInforme').show();
     }
@@ -114,12 +102,9 @@ $(document).on('change','#selectActualizacion', function(e){
 //BUSCAR DE DICHA PESTAÑA
 $('#buscarActualizar').on('click',function(e){
   e.preventDefault();
-  $('.desplegarActualizar').hide();
-  $('.datosActualizacion').hide();
+  $('#tablasBaseCanon').hide();
+  $('#tablaEuro,#tablaDolar').find('tbody tr').remove();
 
-  $('#anio1 tbody tr').not('.default1').remove();
-  $('#anio2 tbody tr').not('.default2').remove();
-  $('#tablaActualizacion tbody tr').remove();
   const formData = {
     id_casino: $('#selectActualizacion').val(),
     anio_inicio:$('#periodo').val(),
@@ -134,9 +119,6 @@ $('#buscarActualizar').on('click',function(e){
     dataType: 'json',
 
     success: function (data){
-      const result = Object.keys(data.detalles).map(function(key) {
-        return [Number(key), data.detalles[key]];
-      });
       let meses = {};
 
       const poner_en_meses = function(d){
@@ -184,14 +166,10 @@ $('#buscarActualizar').on('click',function(e){
       }
 
       if(Object.keys(meses).length == 0){
-        $('.datosReg').show();
-        $('#actualizarCanon').hide();
+        $('#divBaseCanon').show();
         $('#mensajeErrorInforme').show();
         return;
       }
-
-      $('.casinoInformeFinal').text('EURO').css('text-align','center').css('color','#000');
-      $('.casinoInformeFinal2').text('DÓLAR').css('text-align','center').css('color','#000');
 
       {
         const e = data.informe.anio_inicio;
@@ -234,29 +212,19 @@ $('#buscarActualizar').on('click',function(e){
           filaD.find('.variacionT').text(((m_actual.bruto_dolar/m_anterior.bruto_dolar-1)*100).toFixed(2)+'%');
         }
 
-        $('#anio1').append(filaE);
-        $('#anio2').append(filaD);
+        $('#tablaEuro').append(filaE);
+        $('#tablaDolar').append(filaD);
       }
+      $('#tablaEuro,#tablaDolar').find('tbody tr:last td').css('border-top','2px solid #ccc')
 
-      $('#mostrarTabla1').css('display','block');
-      $('#mostrarTabla2').css('display','block');
-
-      $('.desplegarActualizar').show();
-      $('.datosReg').show();
-      $('#actualizarCanon').show();
-      $('#actualizarCanon').val( $('#selectActualizacion').val());
+      $('#tablasBaseCanon').show();
+      $('#divBaseCanon').show();
       $('#mensajeErrorInforme').hide();
     },
     error: function (x) {console.log(x);}
   });
 })
 
-//DESEA ACTUALIZAR EL CANON-BTN GRANDE
-$('#actualizarCanon').on('click',function(e){
-  e.preventDefault();
-  $('#aceptarActualizacion').val($(this).val());
-  $('#modalAlertaActualizacion').modal('show');
-})
 
 //FIN PESTAÑA CANON 2****//
 
@@ -304,12 +272,21 @@ $('#btn-buscar-pagos').click(function(e,pagina,page_size,columna,orden){
     success: function (data) {
         $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.pagos.total,clickIndice);
         for (let i = 0; i < data.pagos.data.length; i++) {
-          $('#tablaInicial tbody').append(generarFila(data.pagos.data[i]));
+          const d = data.pagos.data[i];
+          const fila = $('#clonartinicial').clone().attr('id',d.id_detalle_informe_final_mesas).css('display','');
+          fila.find('.anioInicio').text(d.anio);
+          fila.find('.mesInicio').text(siglaMes(d.mes,d.dia_inicio,d.dia_fin,d.anio));
+          fila.find('.casinoInicio').text(d.nombre);
+          fila.find('.montoInicio').text(d.bruto_peso);
+          fila.find('.dolarInicio').text(d.cotizacion_dolar_actual);
+          fila.find('.euroInicio').text(d.cotizacion_euro_actual);
+          fila.find('button').val(d.id_detalle_informe_final_mesas).attr('data-casino',d.id_casino);
+          $('#tablaInicial tbody').append(fila);
         }
         $('#herramientasPaginacion').generarIndices(page_number,page_size,data.pagos.total,clickIndice);
     },
     error: function (data) {
-        console.log('Error:', data);
+      console.log(data);
     }
   });
 });
@@ -336,7 +313,7 @@ $('#buscarDatos').on('click',function(e){
     $('#nuevosValoresBaseCasino').show();
     $('#guardarModificacion').show();
 
-    $('#casinoDatos').text('VALORES BASE ORIGINALES ACTUALES PARA ' + $('#verDatosCanon option:selected').text().toUpperCase());
+    $('#casinoDatos').text('VALORES BASE ORIGINALES PARA ' + $('#verDatosCanon option:selected').text().toUpperCase());
 
     $('#valorBaseE p').text(data.base_anterior_euro+0);//cast null to int
     $('#valorBaseD p').text(data.base_anterior_dolar+0);
@@ -645,24 +622,6 @@ function siglaMes(nro_mes,dia_inicio,dia_fin,anio){//Necesitas el anio para sabe
   let dia_str = "";
   if(dia_inicio != 1 || ultimo_dia_mes != parseInt(dia_fin)) dia_str = " "+dia_inicio+"-"+dia_fin;
   return meses[nro_mes-1]+dia_str;
-}
-
-function generarFila(data){
-  var fila = $('#clonartinicial').clone();
-  fila.removeAttr('id');
-  fila.attr('id',data.id_detalle_informe_final_mesas);
-  fila.find('.anioInicio').text(data.anio);
-  fila.find('.mesInicio').text(siglaMes(data.mes,data.dia_inicio,data.dia_fin,data.anio));
-  fila.find('.casinoInicio').text(data.nombre);
-  fila.find('.montoInicio').text(data.bruto_peso);
-  fila.find('.dolarInicio').text(data.cotizacion_dolar_actual);
-  fila.find('.euroInicio').text(data.cotizacion_euro_actual);
-  fila.find('button').val(data.id_detalle_informe_final_mesas).attr('data-casino',data.id_casino);
-
-  fila.css('display','');
-  $('#tablaInicio').css('display','block');
-
-  return fila;
 }
 
 /*****************PAGINACION******************/
