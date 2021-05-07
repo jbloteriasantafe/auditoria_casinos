@@ -206,28 +206,34 @@ $('#buscarActualizar').on('click',function(e){
         const m_anterior = meses[sigla][anterior];
         
         const filaE = $('#clonarT').clone().removeAttr('id').css('display','');
-        filaE.find('.mesT').text(sigla);
-        filaE.find('.rdo2T').text(m_actual.bruto);
-        filaE.find('.cot2T').text(m_actual.cotizacion_euro);
-        filaE.find('.monto2T').text(m_actual.bruto_euro);
 
         const filaD = $('#clonarT').clone().removeAttr('id').css('display','');
+        filaE.find('.mesT').text(sigla);
         filaD.find('.mesT').text(sigla);
-        filaD.find('.rdo2T').text(m_actual.bruto);
-        filaD.find('.cot2T').text(m_actual.cotizacion_dolar);
-        filaD.find('.monto2T').text(m_actual.bruto_dolar);
+
+        if(m_actual){
+          filaE.find('.rdo2T').text(m_actual.bruto);
+          filaE.find('.cot2T').text(m_actual.cotizacion_euro);
+          filaE.find('.monto2T').text(m_actual.bruto_euro);
+          filaD.find('.rdo2T').text(m_actual.bruto);
+          filaD.find('.cot2T').text(m_actual.cotizacion_dolar);
+          filaD.find('.monto2T').text(m_actual.bruto_dolar);
+        }
 
         if(m_anterior){
           filaE.find('.rdo1T').text(m_anterior.bruto);
           filaE.find('.cot1T').text(m_anterior.cotizacion_euro);
           filaE.find('.monto1T').text(m_anterior.bruto_euro);
-          porcentaje(filaE.find('.variacionT'),m_anterior.bruto_euro,m_actual.bruto_euro);
           filaD.find('.rdo1T').text(m_anterior.bruto);
           filaD.find('.cot1T').text(m_anterior.cotizacion_dolar);
           filaD.find('.monto1T').text(m_anterior?.bruto_dolar);
-          porcentaje(filaD.find('.variacionT'),m_anterior.bruto_dolar,m_actual.bruto_dolar);
         }
 
+        if(m_actual && m_anterior){
+          porcentaje(filaE.find('.variacionT'),m_anterior.bruto_euro,m_actual.bruto_euro);
+          porcentaje(filaD.find('.variacionT'),m_anterior.bruto_dolar,m_actual.bruto_dolar);
+        }
+        
         $('#tablaEuro').append(filaE);
         $('#tablaDolar').append(filaD);
       }

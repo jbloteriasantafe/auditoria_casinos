@@ -158,7 +158,7 @@ class APagosController extends Controller
           $informe->id_casino = $request->id_casino;
           $informe->anio_inicio = $request->anio_inicio;
           //Practicamente siempre pasa el año, a menos que el casino inicie el 1 de enero
-          $pasa_el_año = count($this->mesesCuotasCanon($request,$request->id_casino,$request->anio_inicio)['meses']) 
+          $pasa_el_año = count(BPagosController::getInstancia()->mesesCuotasCanon($request->id_casino,$request->anio_inicio)['meses']) 
                          >= 13;
           $informe->anio_final = $request->anio_inicio + ($pasa_el_año? 1 : 0);
           $informe->base_actual_dolar = 0;

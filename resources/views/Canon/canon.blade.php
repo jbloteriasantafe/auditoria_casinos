@@ -420,16 +420,16 @@
               </div>
               <div class="row">
                 <div class="col-xs-4">
+                  <h6 style="font-size:16px !important;">MONTO EN PESOS</h6>
+                  <input type="text" name="" value="" id="montoPago" class="form-control">
+                </div>
+                <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">COTIZACIÓN EURO</h6>
                   <input type="text" name="" value="" id="cotEuroPago" class="form-control">
                 </div>
                 <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">COTIZACIÓN DOLAR</h6>
                   <input type="text" name="" value="" id="cotDolarPago" class="form-control">
-                </div>
-                <div class="col-xs-4">
-                  <h6 style="font-size:16px !important;">MONTO EN PESOS</h6>
-                  <input type="text" name="" value="" id="montoPago" class="form-control">
                 </div>
               </div>
             </div>
