@@ -51,15 +51,6 @@ class APagosController extends Controller
     'id_estado_cierre'=>'Estado',
   ];
 
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
-  public function __construct(){
-    $this->middleware(['tiene_permiso:m_a_pagos']);
-  }
-
   public function borrar($id_detalle){
     $ret = 0;
     $controller = $this;
@@ -167,7 +158,7 @@ class APagosController extends Controller
           $informe->id_casino = $request->id_casino;
           $informe->anio_inicio = $request->anio_inicio;
           //Practicamente siempre pasa el año, a menos que el casino inicie el 1 de enero
-          $pasa_el_año = count(ABMCCanonController::getInstancia()->mesesCuotasCanon($request,$request->id_casino,$request->anio_inicio)['meses']) 
+          $pasa_el_año = count($this->mesesCuotasCanon($request,$request->id_casino,$request->anio_inicio)['meses']) 
                          >= 13;
           $informe->anio_final = $request->anio_inicio + ($pasa_el_año? 1 : 0);
           $informe->base_actual_dolar = 0;

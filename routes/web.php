@@ -776,24 +776,9 @@ Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filt
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
 Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
 
-
 Route::get('informeDiario/getDatos/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosAModificar');
 Route::get('informeDiario/getDatosImportacion/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosDetalle');
 Route::post('informeDiario/almacenarDatos','Mesas\InformesMesas\ModificarInformeDiarioController@almacenarDatos');
-
-
-
-Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
-  Route::get('/canon','Mesas\Canon\IndexController@index');
-  Route::post('canon/modificar','Mesas\Canon\ABMCCanonController@modificar');
-  Route::get('canon/obtenerCanon/{id_cas}','Mesas\Canon\ABMCCanonController@obtenerCanon');
-  Route::get('canon/getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\ABMCCanonController@mesesCuotasCanon');
-  Route::get('canon/mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\ABMCCanonController@mesesCargados');
-});
-
-Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function () {
-  Route::get('canon/generarTablaActualizacion1/{id}/{anio}','Mesas\Canon\ActualizarValoresController@forzarActualizacion');
-});
 
 Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
   Route::post('canon/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
@@ -801,7 +786,10 @@ Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
   Route::post('canon/modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
 });
 
+Route::get('/canon','Mesas\Canon\BPagosController@index')->middleware(['tiene_permiso:m_ver_seccion_canon']);
 Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
+  Route::get('canon/getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+  Route::get('canon/mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
   Route::post('canon/buscarPagos','Mesas\Canon\BPagosController@filtros');
   Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
   Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
