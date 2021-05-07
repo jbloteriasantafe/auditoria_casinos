@@ -31,6 +31,20 @@ class InformeFinalMesas extends Model
     return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_informe_final_mesas','id_informe_final_mesas');
   }
 
+  public function informe_anterior(){
+    $informe = InformeFinalMesas::where('id_casino','=',$this->id_casino)
+    ->where('anio_inicio','<',$this->anio_inicio)
+    ->orderBy('anio_inicio','desc')->orderBy('id_informe_final_mesas','desc')->first();
+    return $informe;
+  }
+
+  public function informe_proximo(){
+    $informe = InformeFinalMesas::where('id_casino','=',$this->id_casino)
+    ->where('anio_inicio','>',$this->anio_inicio)
+    ->orderBy('anio_inicio','asc')->orderBy('id_informe_final_mesas','asc')->first();
+    return $informe;
+  }
+
   public function getTableName(){
     return $this->table;
   }

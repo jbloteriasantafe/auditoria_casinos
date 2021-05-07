@@ -123,16 +123,18 @@ $('#buscarActualizar').on('click',function(e){
         const p = ((nuevo/viejo - 1)*100).toFixed(2);
         obj.text(p+"%").css('color',p>=0?'green':'red');
       }
-      $('#filaEuroBaseCanon .base').text(data.actual.base_euro);
-      porcentaje( $('#filaEuroBaseCanon .variacion'),data.actual.base_euro,data.nuevo.base_euro);
-      $('#filaEuroBaseCanon .baseNuevo').text(data.nuevo.base_euro);
-      $('#filaEuroBaseCanon .canon').text(data.actual.canon_euro);
-      $('#filaEuroBaseCanon .canonNuevo').text(data.nuevo.canon_euro);
-      $('#filaDolarBaseCanon .base').text(data.actual.base_dolar);
-      porcentaje($('#filaDolarBaseCanon .variacion'),data.actual.base_dolar,data.nuevo.base_dolar);
-      $('#filaDolarBaseCanon .baseNuevo').text(data.nuevo.base_dolar);
-      $('#filaDolaraseCanon .canon').text(data.actual.canon_dolar);
-      $('#filaDolaraseCanon .canonNuevo').text(data.nuevo.canon_dolar);
+      
+      $('#filaEuroBaseCanon  .base').text(parseFloat(data.actual.euro.base).toFixed(2));
+      $('#filaDolarBaseCanon .base').text(parseFloat(data.actual.dolar.base).toFixed(2));
+      $('#filaEuroBaseCanon  .baseNuevo').text(parseFloat(data.nuevo.euro.base).toFixed(2));
+      $('#filaDolarBaseCanon .baseNuevo').text(parseFloat(data.nuevo.dolar.base).toFixed(2));
+      $('#filaEuroBaseCanon  .canon').text(parseFloat(data.actual.euro.canon).toFixed(2));
+      $('#filaDolarBaseCanon .canon').text(parseFloat(data.actual.dolar.canon).toFixed(2));
+      $('#filaEuroBaseCanon  .canonNuevo').text(parseFloat(data.nuevo.euro.canon).toFixed(2));
+      $('#filaDolarBaseCanon .canonNuevo').text(parseFloat(data.nuevo.dolar.canon).toFixed(2));
+
+      porcentaje($('#filaEuroBaseCanon  .variacion'),data.actual.euro.base,data.nuevo.euro.base);
+      porcentaje($('#filaDolarBaseCanon .variacion'),data.actual.euro.base,data.nuevo.euro.base);
 
       let meses = {};
       const poner_en_meses = function(d){

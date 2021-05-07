@@ -251,7 +251,7 @@
                     <td class="canon" style="text-align:center !important;">213</td>
                     <td class="canonNuevo" style="text-align:center !important;">213</td>
                   </tr>
-                  <tr id="filaEuroBaseCanon">
+                  <tr id="filaDolarBaseCanon">
                     <td class="headerDolarVB">DOLAR</td>
                     <td class="base" style="text-align:center !important;">213</td>
                     <td class="variacion" style="text-align:center !important;">XX%</td>

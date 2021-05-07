@@ -64,29 +64,21 @@ class BPagosController extends Controller{
 
   public function verInformeFinalMesas(Request $request){
     $informe = InformeFinalMesas::where('id_casino','=',$request->id_casino)
-    ->where('anio_inicio','=',$request->anio_inicio)->whereNull('deleted_at')->first();
-
-    $informe_anterior = InformeFinalMesas::where('id_casino','=',$request->id_casino)
     ->where('anio_inicio','=',$request->anio_inicio-1)->whereNull('deleted_at')->first();
 
+    $informe_anterior = $informe->informe_anterior();
+
     if($informe == null) return response()->json(['error' => 'INFORME NO ENCONTRADO'], 404);
-  
+
+    $actual = $this->calcularValorBaseYCanon($informe_anterior);
+    $nuevo = $this->actualizarBaseCanon($actual,$informe_anterior,$informe);
+
     return ['informe_anterior'  => $informe_anterior,
             'informe'           => $informe,
             'detalles_anterior' => is_null($informe_anterior)? [] : $informe_anterior->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get(),
             'detalles'          => $informe->detalles()->orderByRaw('anio ASC,mes ASC,dia_inicio ASC')->get(),
-            'actual' => [
-              'base_euro'  => 321,
-              'canon_euro'       => 123,
-              'base_dolar' => 987,
-              'canon_dolar'      => 789
-            ],
-            'nuevo' => [
-              'base_euro'  => 333,
-              'canon_euro'       => 444,
-              'base_dolar' => 555,
-              'canon_dolar'      => 666
-            ]
+            'actual' => $actual,
+            'nuevo' => $nuevo
           ];
   }
 
@@ -97,10 +89,12 @@ class BPagosController extends Controller{
   }
 
   public function obtenerAnios($id_casino){
-    $anios = DB::table('informe_final_mesas as ifm')->select('ifm.anio_inicio', 'ifm.anio_final')
+    $anios = DB::table('informe_final_mesas as ifm')
+    ->selectRaw('(ifm.anio_inicio+1) as anio_inicio, (ifm.anio_final+1) as anio_final')
     //join para eliminar anios sin meses cargados
     ->join('detalle_informe_final_mesas as difm','difm.id_informe_final_mesas','=','ifm.id_informe_final_mesas')
-    ->where('ifm.id_casino','=',$id_casino)->whereNull('ifm.deleted_at')->distinct()->get();
+    ->where('ifm.id_casino','=',$id_casino)->whereNull('ifm.deleted_at')
+    ->whereNull('ifm.base_anterior_dolar')->whereNull('ifm.base_anterior_euro')->distinct()->get();
     return ['anios' => $anios];
   }
 
@@ -109,5 +103,45 @@ class BPagosController extends Controller{
     ->orderBy('anio','asc')->orderBy('mes','asc')->orderBy('dia_inicio','asc')
     ->orderBy('id_detalle_informe_final_mesas','asc')->first();
     return is_null($d)? null : $d->informe_final_mesas;
+  }
+
+  private function actualizarBaseCanon($ret,$i,$i2){
+    $total  = is_null($i)?      0.0 : $i->medio_total_euro;
+    $total2 = is_null($i2)?     0.0 : $i2->medio_total_euro;
+
+    $base = empty($total)? INF : $ret['euro']['base']*($total2/$total);
+    $ret['euro']['canon'] = max($ret['euro']['base'],$base);
+    $ret['euro']['base'] = $base;
+
+    $total  = is_null($i)?      0.0 : $i->medio_total_dolar;
+    $total2 = is_null($i2)?     0.0 : $i2->medio_total_dolar;
+
+    $base = empty($total)? INF : $ret['dolar']['base']*($total2/$total);
+    $ret['dolar']['canon'] = max($ret['dolar']['base'],$base);
+    $ret['dolar']['base'] = $base;
+
+    foreach($ret as $midx => $moneda){
+      foreach($moneda as $vidx => $val){
+        $ret[$midx][$vidx] = is_infinite($val)? 'Infinity' : $val;
+      }
+    }
+
+    return $ret;
+  }
+
+  private function calcularValorBaseYCanon($informe){
+    $ret = ['euro' => ['base' => 0,'canon' => 0],'dolar' => ['base' => 0,'canon' => 0]];
+    if(is_null($informe)) return $ret;
+    $i = $this->obtenerInformeBase($informe->id_casino);
+    $ret['euro']['base']   = $i->base_anterior_euro;
+    $ret['euro']['canon']  = $i->base_anterior_euro;
+    $ret['dolar']['base']  = $i->base_anterior_dolar;
+    $ret['dolar']['canon'] = $i->base_anterior_dolar;
+    while($i->id_informe_final_mesas != $informe->id_informe_final_mesas){
+      $i2 = $i->informe_proximo();
+      $ret = $this->actualizarBaseCanon($ret,$i,$i2);
+      $i = $i2;
+    }
+    return $ret;
   }
 }
