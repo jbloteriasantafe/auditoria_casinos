@@ -99,7 +99,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
               </ul>
 
               <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
-                <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Recaudado Mensual (Bruto)</a></li>
+                <li id="canon1" ><a href="#pant_canon_meses"  style="font-family:Roboto-condensed;font-size:20px; ">Recaudado Mensual (Bruto)</a></li>
                 <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Valor base y Canon</a></li>
               </ul>
 

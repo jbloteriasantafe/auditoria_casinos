@@ -86,7 +86,7 @@ class APagosController extends Controller
       'fecha_pago' => 'nullable|date',
       'cotizacion_dolar' => ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
       'cotizacion_euro' =>  ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
-      'total_pago_pesos' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']
+      'bruto_peso' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']
     ], array(), self::$atributos)->after(function($validator) use(&$detalle,&$informe){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
@@ -175,9 +175,9 @@ class APagosController extends Controller
       $detalle->fecha_cobro = $request->fecha_pago;
       $detalle->cotizacion_dolar_actual = $request->cotizacion_dolar;
       $detalle->cotizacion_euro_actual  = $request->cotizacion_euro;
-      $detalle->bruto_peso        = $request->total_pago_pesos;
-      $detalle->medio_bruto_euro  = ($request->total_pago_pesos/2)/$request->cotizacion_euro;
-      $detalle->medio_bruto_dolar = ($request->total_pago_pesos/2)/$request->cotizacion_dolar;
+      $detalle->bruto_peso        = $request->bruto_peso;
+      $detalle->medio_bruto_euro  = ($request->bruto_peso/2)/$request->cotizacion_euro;
+      $detalle->medio_bruto_dolar = ($request->bruto_peso/2)/$request->cotizacion_dolar;
       $detalle->save();
 
       $this->recalcularTotales($informe);

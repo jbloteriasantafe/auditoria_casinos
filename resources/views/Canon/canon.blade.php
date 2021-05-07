@@ -35,11 +35,11 @@
 @endsection
 @section('contenidoVista')
 
-<div class="col-lg-12 tab_content" id="pant_canon_pagos" hidden="true">
+<div class="col-lg-12 tab_content" id="pant_canon_meses" hidden="true">
 
 <div class="row">
   <div class="col-md-12">
-    <a href="" id="pagoCanon" dusk="btn-nuevo" style="text-decoration: none;">
+    <a href="" id="mesCanon" dusk="btn-nuevo" style="text-decoration: none;">
       <div class="panel panel-default panelBotonNuevo">
         <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
           <div class="backgroundNuevo"></div>
@@ -47,7 +47,7 @@
             <div class="col-xs-12">
               <center>
                 <h5 class="txtLogo">+</h5>
-                <h4 class="txtNuevo">REGISTRAR NUEVO PAGO<h4>
+                <h4 class="txtNuevo">REGISTRAR NUEVO MES<h4>
               </center>
             </div>
           </div>
@@ -95,41 +95,37 @@
 
           <div class="row">
             <div class="col-xs-3">
-              <h5>Fecha de Pago</h5>
-              <div class="form-group">
-                <div class='input-group date' id='dtpFechaFiltro' data-link-field="fecha_filtro" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" id="B_fecha_filtro" value="" placeholder="aaaa-mm-dd"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-xs-3">
               <h5>Casino</h5>
               <select class="form-control" name="" id="filtroCasino" >
-                <option value="0" selected>- Todos los Casinos -</option>
+                <option value="" selected>- Todos los Casinos -</option>
                 @foreach ($casinos as $cas)
                 <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
                 @endforeach
               </select>
             </div>
             <div class="col-xs-3">
+              <h5>Año</h5>
+              <div class="form-group">
+                <div class='input-group date' id='dtpFechaFiltro' data-link-field="fecha_filtro" data-date-format="yyyy" data-link-format="yyyy">
+                  <input type='text' class="form-control" id="B_fecha_filtro" value="" placeholder="aaaa"/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-xs-3">
               <h5>Mes</h5>
               <select class="form-control" name="" id="mesFiltro">
-                <option value="0" selected class="default">Todos los Meses</option>
+                <option value="" selected class="default">Todos los Meses</option>
               </select>
             </div>
             <br>
             <div class="col-xs-3" style="padding-top:20px;">
-              <button id="btn-buscar-pagos" class="btn btn-infoBuscar" type="button" name="button" style="margin-top:10px">
+              <button id="btn-buscar-meses" class="btn btn-infoBuscar" type="button" name="button" style="margin-top:10px">
                 <i class="fa fa-fw fa-search"></i> BUSCAR
               </button>
             </div>
-
           </div> <!-- row / botón buscar -->
-          <span class="help-block" style="color: #0D47A1 !important;float:left; font-size:12px !important;padding-left:5px !important"><i>*Debe seleccionar un Casino para que se carguen los Meses de Pago</i></span>
-
         </div> <!-- panel-body -->
       </div> <!-- collapse -->
     </div> <!-- .panel-default -->
@@ -141,7 +137,7 @@
   <div class="col-md-12">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4>Pagos de canon registrados</h4>
+        <h4>Meses registrados</h4>
       </div>
       <div class="panel-body">
         <table id="tablaInicial" class="table table-fixed tablesorter ">
@@ -170,8 +166,8 @@
                 <td class="col-xs-1 euroInicio" style="text-align:center !important"></td>
                 <td class="col-xs-1 dolarInicio" style="text-align:center !important"></td>
                 <td class="col-xs-2" style="text-align:center !important">
-                  <button type="button" name="button" class="btn btn-success modificarPago"><i class="fas fa-fw fa-pencil-alt "></i> </button>
-                  <button type="button" name="button" class="btn btn-success eliminarPago"><i class="fas fa-fw fa-trash-alt "></i> </button>
+                  <button type="button" name="button" class="btn btn-success modificarMes"><i class="fas fa-fw fa-pencil-alt "></i> </button>
+                  <button type="button" name="button" class="btn btn-success eliminarMes"><i class="fas fa-fw fa-trash-alt "></i> </button>
                 </td>
               </tr>
             </tbody>
@@ -366,8 +362,7 @@
     </div>
   </div>
 
-<!-- modal para cargar pago -->
-<div class="modal fade" id="modalPago" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
+<div class="modal fade" id="modalMes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width: 70% !important" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
@@ -380,7 +375,7 @@
             <div class="row" >
               <div class="col-xs-6">
               <h6 style="font-size:18px !important">CASINO</h6>
-              <select class="form-control" name="" id="selectCasinoPago">
+              <select class="form-control" name="" id="selectCasino">
                 <option value="" class="default1">- Seleccione un Casino -</option>
                 @foreach ($casinos as $cas)
                 <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
@@ -404,9 +399,15 @@
                 </div>
                 <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">MES</h6>
-                  <select class="form-control" name="" id="selectMesPago">
+                  <select class="form-control" name="" id="selectMes">
                   </select>
                 </div>
+                <div class="col-xs-4">
+                  <h6 style="font-size:16px !important;">MONTO EN PESOS</h6>
+                  <input type="text" name="" value="" id="montoPesos" class="form-control">
+                </div>
+              </div>
+              <div class="row">
                 <div class="col-xs-4">
                   <h6 style="font-size:16px !important;">FECHA DE PAGO</h6>
                   <div class="form-group">
@@ -415,20 +416,26 @@
                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                     </div>
+                    <input class="form-control" type="hidden" id="fecha_pago" value=""/>
                   </div>
                 </div>
-              </div>
-              <div class="row">
                 <div class="col-xs-4">
-                  <h6 style="font-size:16px !important;">MONTO EN PESOS</h6>
-                  <input type="text" name="" value="" id="montoPago" class="form-control">
+                  <h6 style="font-size:16px !important;">FECHA DE COTIZACION</h6>
+                  <div class="form-group">
+                    <div class='input-group date' id='dtpFechaCotizacion' data-link-field="fecha_cotizacion" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                      <input type='text' class="form-control" id="fechaCotizacion" value=""/>
+                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                    </div>
+                    <input class="form-control" type="hidden" id="fecha_cotizacion" value=""/>
+                  </div>
                 </div>
-                <div class="col-xs-4">
-                  <h6 style="font-size:16px !important;">COTIZACIÓN EURO</h6>
+                <div class="col-xs-2">
+                  <h6 style="font-size:16px !important;">$/EUR</h6>
                   <input type="text" name="" value="" id="cotEuroPago" class="form-control">
                 </div>
-                <div class="col-xs-4">
-                  <h6 style="font-size:16px !important;">COTIZACIÓN DOLAR</h6>
+                <div class="col-xs-2">
+                  <h6 style="font-size:16px !important;">$/USD</h6>
                   <input type="text" name="" value="" id="cotDolarPago" class="form-control">
                 </div>
               </div>
@@ -436,7 +443,7 @@
         </div>
       </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="guardarPago" value="nuevo" hidden="true">GUARDAR</button>
+          <button type="button" class="btn btn-successAceptar" id="guardarMes" value="nuevo" hidden="true">GUARDAR</button>
         </div>
       </div>
     </div>

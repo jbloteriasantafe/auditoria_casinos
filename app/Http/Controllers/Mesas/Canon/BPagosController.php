@@ -16,7 +16,7 @@ class BPagosController extends Controller{
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     return view ('Canon.canon',['casinos'=>$user->casinos]);
   }
-  
+
   private static $instance;
   public static function getInstancia() {
     if(!isset(self::$instance)){
@@ -39,6 +39,9 @@ class BPagosController extends Controller{
     if(!empty($request->mes) && $request->mes != 0){
       $filtros[] = ['DIFM.mes','=',$request->mes];
     }
+    if(!empty($request->anio)){
+      $filtros[] = ['DIFM.anio','=',$request->anio];
+    }
 
     $resultados = DB::table('detalle_informe_final_mesas as DIFM')
     ->join('casino','casino.id_casino','=','DIFM.id_casino')
@@ -46,13 +49,6 @@ class BPagosController extends Controller{
     ->whereIn('DIFM.id_casino',$cas)
     ->whereNull('DIFM.deleted_at');
 
-    if(!empty($request->fecha)){
-      $fecha = explode("-", $request->fecha);
-      $resultados = $resultados->whereYear('DIFM.fecha_cobro', '=', $fecha[0])
-      ->whereMonth('DIFM.fecha_cobro','=', $fecha[1]);
-    }
-
-    
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
       $resultados = $resultados->orderBy($sort_by['columna'],$sort_by['orden']);
