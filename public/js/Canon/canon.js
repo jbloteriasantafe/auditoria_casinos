@@ -468,6 +468,15 @@ $('#fechaAnioInicio').change(function(){
   });
 });
 
+$('#fechaPago').change(function(){
+  let fecha = new Date($(this).val()+'T00:00:00.000-03:00');
+  const dia = 60*60*60*24;
+  while(fecha.getDay() == 0 || fecha.getDay() == 6){
+    fecha = new Date(fecha-dia);
+  }
+  $('#dtpFechaCotizacion').data('datetimepicker').setDate(fecha);
+});
+
 function modalMes(modo,id,id_casino){
   limpiar();
 
@@ -500,7 +509,8 @@ function modalMes(modo,id,id_casino){
         $('#dtpFecha span').hide();
         $('#fechaAnioInicio').attr('disabled',true);
       }
-      $('#fechaPago').val(d.fecha_cobro);
+      $('#fechaPago').val(d.fecha_pago);
+      $('#fechaCotizacion').val(d.fecha_cotizacion);
       $('#cotEuroPago').val(d.cotizacion_euro_actual);
       $('#cotDolarPago').val(d.cotizacion_dolar_actual);
       $('#montoPesos').val(d.bruto_peso);
@@ -551,6 +561,7 @@ $('#guardarMes').on('click',function(e){
     dia_inicio: mesSeleccionado.data('dia_inicio'),
     dia_fin: mesSeleccionado.data('dia_fin'),
     fecha_pago: $('#fechaPago').val(),
+    fecha_cotizacion: $('#fechaCotizacion').val(),
     cotizacion_euro: $('#cotEuroPago').val(),
     cotizacion_dolar: $('#cotDolarPago').val(),
     bruto_peso: $('#montoPesos').val(),

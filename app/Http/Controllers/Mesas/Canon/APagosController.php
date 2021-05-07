@@ -84,6 +84,7 @@ class APagosController extends Controller
       'dia_inicio' => 'required|integer',
       'dia_fin' => 'required|integer',
       'fecha_pago' => 'nullable|date',
+      'fecha_cotizacion' => 'nullable|date',
       'cotizacion_dolar' => ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
       'cotizacion_euro' =>  ['required','regex:/^[0-9]*[,|.]?[0-9]{0,3}$/'],
       'bruto_peso' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/']
@@ -172,7 +173,8 @@ class APagosController extends Controller
       $detalle->dia_fin = $request->dia_fin;
       $detalle->mes = $request->mes;
       $detalle->anio = $request->anio;
-      $detalle->fecha_cobro = $request->fecha_pago;
+      $detalle->fecha_pago = $request->fecha_pago;
+      $detalle->fecha_cotizacion = $request->fecha_cotizacion;
       $detalle->cotizacion_dolar_actual = $request->cotizacion_dolar;
       $detalle->cotizacion_euro_actual  = $request->cotizacion_euro;
       $detalle->bruto_peso        = $request->bruto_peso;
