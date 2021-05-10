@@ -37,14 +37,8 @@ use Carbon\Carbon;
 use Exception;
 use App\Http\Controllers\UsuarioController;
 
-//alta BAJA y consulta de mesas sorteadas
 class InformesController extends Controller
 {
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
    public function __construct()
    {
        $this->middleware([ 'tiene_permiso:m_bc_diario_mensual']);
@@ -119,62 +113,5 @@ class InformesController extends Controller
     }
 
     return ['mensuales' => $mensual];
-  }
-
-  public function filtrarDiarios(Request $request){
-
-    $reglas = array();
-    $casinos = array();
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if(!empty($request['id_casino']) || $request['id_casino'] != 0){
-      $casinos[] = $request['id_casino'];
-    }else{
-      foreach ($user->casinos as $cass) {
-        $casinos[]=$cass->id_casino;
-      }
-    }
-    if(!empty($request['id_moneda']) || $request['id_moneda'] != 0){
-      $reglas[]=['moneda.id_moneda','=',$request['id_moneda']];
-    }
-
-    if(!empty( $request->sort_by)){
-      $sort_by = $request->sort_by;
-    }else{
-
-        $sort_by = ['columna' => 'importacion_diaria_mesas.fecha','orden'=>'desc'];
-    }
-    if(!empty($request['fecha']) || $request['fecha'] != 0){
-
-      $fecha = explode('-',$request['fecha']);
-      $diarios = DB::table('importacion_diaria_mesas')
-                    ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
-                    ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                    ->where('importacion_diaria_mesas.validado','>',0)
-                    ->where($reglas)
-                    ->whereYear('fecha','=',$fecha[0])
-                    ->whereMonth('fecha','=',$fecha[1])
-                    ->whereDay('fecha','=',$fecha[2])
-                    ->whereIn('casino.id_casino',$casinos)
-                    ->where('importacion_diaria_mesas.id_moneda','=',1)
-                    ->when($sort_by,function($query) use ($sort_by){
-                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                })
-                    ->paginate($request->page_size);
-    }else{
-    //  dd($casinos,$sort_by,$request->page_size);
-      $diarios = DB::table('importacion_diaria_mesas')
-                    ->join('casino','casino.id_casino','=','importacion_diaria_mesas.id_casino')
-                    ->join('moneda','moneda.id_moneda','=','importacion_diaria_mesas.id_moneda')
-                    ->where('importacion_diaria_mesas.validado','>',0)
-                    ->where($reglas)
-                    ->whereIn('casino.id_casino',$casinos)
-                    ->where('importacion_diaria_mesas.id_moneda','=',1)
-                    ->when($sort_by,function($query) use ($sort_by){
-                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                })
-                    ->paginate($request->page_size);
-    }
-
-   return ['diarios' => $diarios];
   }
 }

@@ -62,8 +62,4 @@ class IndexController extends Controller
   public function indexMensuales(){
     return view('Informes.seccionInformesMensuales',['casinos'=>UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos]);
   }
-
-  public function indexDiarios(){
-    return view ('Informes.seccionInformesDiarios',['casinos'=>UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->casinos]);
-  }
 }

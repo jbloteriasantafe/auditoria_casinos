@@ -55,27 +55,10 @@ use App\Http\Controllers\UsuarioController;
 
 class BCInformesController extends Controller
 {
-  private static $atributos = [
-  ];
-
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
    public function __construct()
    {
        $this->middleware(['tiene_permiso:m_bc_diario_mensual']);//rol a definir por gusti-> en ppio AUDITOR
    }
-
-
-  public function imprimirDiario($id_importacion){
-    return "Deprecado";
-  }
-
-  public function imprimirMensual($fecha,$id_casino){
-    return "Deprecado";
-  }
 
   public function obtenerDatosGraficos(Request $request){
     $monthNames = [".-.","Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -163,5 +146,4 @@ class BCInformesController extends Controller
 
     return['por_moneda' => $por_moneda,'fecha' =>$fecha,'nombre_mes' => $nombre_mes];
   }
-
 }

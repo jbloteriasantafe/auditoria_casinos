@@ -280,8 +280,6 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
 });
 
-
-
 /**********
 Relevamientos
 ***********/
@@ -765,33 +763,24 @@ Route::get('/informeAnual',function(){
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
 Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
-Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexDiarios');
-Route::get('informeDiario/imprimir/{id_imp}','Mesas\InformesMesas\BCInformesController@imprimirDiario');
-Route::post('informeDiario/buscar','Mesas\InformesMesas\InformesController@filtrarDiarios');
 Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales');
 Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
-Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
-
-Route::get('informeDiario/getDatos/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosAModificar');
-Route::get('informeDiario/getDatosImportacion/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosDetalle');
-Route::post('informeDiario/almacenarDatos','Mesas\InformesMesas\ModificarInformeDiarioController@almacenarDatos');
-
-Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
-  Route::post('canon/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
-  Route::delete('canon/borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
-  Route::post('canon/modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
-});
 
 Route::get('/canon','Mesas\Canon\BPagosController@index')->middleware(['tiene_permiso:m_ver_seccion_canon']);
-Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
-  Route::get('canon/getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
-  Route::get('canon/mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
-  Route::post('canon/buscarPagos','Mesas\Canon\BPagosController@filtros');
-  Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-  Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-  Route::get('canon/obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
-  Route::post('canon/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_a_pagos']], function () {
+  Route::post('/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+  Route::delete('/borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+  Route::post('/modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+});
+Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_b_pagos']], function () {
+  Route::get('/getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+  Route::get('/mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+  Route::post('/buscarPagos','Mesas\Canon\BPagosController@filtros');
+  Route::get('/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+  Route::get('/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+  Route::get('/obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+  Route::post('/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {

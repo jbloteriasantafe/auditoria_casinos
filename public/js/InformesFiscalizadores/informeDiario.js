@@ -102,25 +102,15 @@ $(document).on('click','.imprimirDiario',function(){
 
 
 function generarFila(data){
-
-  // var fila = $('#moldeInfoDia').clone();
-  // fila.removeAttr('id');
-  // fila.attr('id',data.informe_fiscalizadores)
-  //
-  //  fila.find('.d_fecha').text(data.fecha);
-  //  fila.find('.d_casino').text(data.nombre);
-  //  fila.find('.imprimirDiario').val(data.informe_fiscalizadores);
-  var fila = $(document.createElement('tr'));
+  const fila = $(document.createElement('tr'));
 
   fila.attr('id',data.id_informe_fiscalizadores)
-      .append($('<td>').addClass('col-xs-4').text(data.fecha).css('text-align','center'))
-      .append($('<td>').addClass('col-xs-4').text(data.nombre).css('text-align','center'))
-      .append($('<td>').addClass('col-xs-4').append($('<button>').addClass('btn btn-successAceptar imprimirDiario').val(data.id_informe_fiscalizadores)
-                          .append($('<i>').addClass('fa fa-fw fa-print').append($('</i>')
-                          .append($('</button>'))))))
-    // fila.css('display','block');
-    // $('#molde1').css('display','block');
-      return fila;
+  .append($('<td>').addClass('col-xs-4').text(data.fecha).css('text-align','center'))
+  .append($('<td>').addClass('col-xs-4').text(data.nombre).css('text-align','center'))
+  .append($('<td>').addClass('col-xs-4').append($('<button>').addClass('btn btn-successAceptar imprimirDiario').val(data.id_informe_fiscalizadores)
+                      .append($('<i>').addClass('fa fa-fw fa-print').append($('</i>')
+                      .append($('</button>'))))));
+  return fila;
 }
 
 
