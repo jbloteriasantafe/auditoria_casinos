@@ -1,7 +1,7 @@
 @extends('includes.dashboard')
 
 @section('headerLogo')
-
+<span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -18,8 +18,7 @@
 @endsection
 @section('contenidoVista')
 
-<div class="col-lg-12 tab_content" id="pest_diaria" hidden="true">
-
+<div class="col-lg-12">
   <div class="row">
     <div class="col-xl-3">
       <div class="row">
@@ -938,6 +937,25 @@
 <meta name="_token" content="{!! csrf_token() !!}" />
 
 @endsection
+
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">| Mesas - Importaciones Diarias</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <h5>Procedimiento de importaciones contables diarias de Mesas de Paño</h5>
+  <p>
+  En esta seccion puede: 
+    <ol>
+      <li>Importar los reportes diarios informados por los casinos.</li>
+      <li>Verificar los saldos de fichas reportados con los relevados por los fiscalizadores en los cierres.</li>
+      <li>Generar un informe con diferencias, diario o totalizado mensualmente.</li>
+    </ol>
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
 @section('scripts')
 

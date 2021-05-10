@@ -239,7 +239,7 @@ class APagosController extends Controller
       }
     });
     $informe = BPagosController::getInstancia()->obtenerInformeBase($request->id_casino);
-    $informe->base_anterior_euro = $request->valor_base_euro;
+    $informe->base_anterior_euro  = $request->valor_base_euro;
     $informe->base_anterior_dolar = $request->valor_base_dolar;
     $informe->save();
     return 1;

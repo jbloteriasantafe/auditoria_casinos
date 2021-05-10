@@ -103,13 +103,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                 <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Valor base y Canon</a></li>
               </ul>
 
-             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:70%;" hidden="true">
-               <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
-               @if(false)
-               <li id="imp_mensual"><a href="#pest_mensual" style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
-               @endif
-            </ul>
-
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
               <ul class="opcionesBarraSuperior" style=" width:20%;float:right;">
 
@@ -807,17 +800,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                               <!-- SEGUNDO NIVEL -->
                               <ul class="subMenu1 collapse" id="informes2">
-                                <li>
-                                  <div id="opcInfoDiario" class="opcionesHover"
-                                  @if(false) 
-                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
-                                  >
-                                    <span>Diario</span>
-                                  </div>
-                                </li>
                                 <li>
                                   <div id="opcInfoMensual" class="opcionesHover"
                                   @if(false)

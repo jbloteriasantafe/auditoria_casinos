@@ -740,28 +740,25 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::get('apuestas/obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
 
-//informes fiscalizadores
-Route::get('/informeDiarioBasico','Mesas\InformeFiscalizadores\BCInformesController@index');
-Route::post('informeDiarioBasico/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
-Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
-Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
+//informes fiscalizadores (compara Cierres contra Aperturas y verifica Apuestas Minimas)
+Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m_ver_seccion_informe_fiscalizadores'], function () {
+  Route::get('/','Mesas\InformeFiscalizadores\BCInformesController@index');
+  Route::post('/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
+  Route::post('//buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
+  Route::get('/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
+});
 
-//importaciones
-Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
-Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
-Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
-Route::get('importacionDiaria/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
-Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
-Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
-Route::post('importacionDiaria/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
-Route::get('importacionDiaria/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
-
-Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');
-Route::post('importacionMensual/filtros','Mesas\Importaciones\Mesas\MensualController@filtros');
-Route::get('importacionMensual/verImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@buscar');
-Route::post('importacionMensual/guardar','Mesas\Importaciones\Mesas\MensualController@guardarObservacion');
-Route::get('importacionMensual/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@eliminar');
+Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function (){
+  Route::get('/','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
+  Route::post('/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+  Route::post('/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
+  Route::get('/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
+  Route::get('/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
+  Route::post('/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
+  Route::get('/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
+  Route::post('/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
+  Route::get('/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
+});
 
 //informes
 Route::get('/informeAnual',function(){
