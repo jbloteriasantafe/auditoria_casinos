@@ -814,11 +814,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                                 <li>
                                   <div id="opcInfoInteranuales" class="opcionesHover"
-                                  @if(false)
                                   onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
                                   >
                                     <span>Anuales</span>
                                   </div>

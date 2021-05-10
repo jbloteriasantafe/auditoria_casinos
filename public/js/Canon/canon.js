@@ -1,6 +1,5 @@
 $(document).ready(function() {
   $('#barraCanon').attr('aria-expanded','true');
-
   $('.tituloSeccionPantalla').hide();
   $('#barraCanon').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#barraCanon').addClass('opcionesSeleccionado');
@@ -470,7 +469,7 @@ $('#fechaAnioInicio').change(function(){
 
 $('#fechaPago').change(function(){
   let fecha = new Date($(this).val()+'T00:00:00.000-03:00');
-  const dia = 60*60*60*24;
+  const dia = 1000*60*60*24;
   while(fecha.getDay() == 0 || fecha.getDay() == 6){
     fecha = new Date(fecha-dia);
   }

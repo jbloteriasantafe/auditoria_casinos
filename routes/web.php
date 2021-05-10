@@ -758,11 +758,14 @@ Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_v
   Route::get('/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
 });
 
-//informes
-Route::get('/informeAnual',function(){
-  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
-Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
+Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anuales'],function (){
+  Route::get('/',function(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);
+  });
+  Route::post('/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
+});
+
 Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales');
 Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
 Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
