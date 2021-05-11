@@ -2,56 +2,13 @@
 
 namespace App\Http\Controllers\Mesas\InformesMesas;
 
-use Auth;
-use Session;
 use Illuminate\Http\Request;
-use Response;
 use App\Http\Controllers\Controller;
-
-use Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
-
-use App\Mesas\ImportacionMensualMesas;
-use App\Mesas\DetalleImportacionMensualMesas;
 use App\Http\Controllers\Mesas\Importaciones\Mesas\ImportadorController;
-use App\Http\Controllers\Mesas\Importaciones\Mesas\MensualController;
-
-use Dompdf\Dompdf;
-
-use PDF;
-use View;
-
-use App\Usuario;
-use App\Mesas\CSVImporter;
-use App\Casino;
-use App\Relevamiento;
-use App\SecRecientes;
-use App\Http\Controllers\RolesPermissions\RoleFinderController;
-
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-
-use App\Mesas\Mesa;
-use App\Mesas\Cierre;
-use App\Mesas\CampoModificado;
-
-use App\Mesas\Moneda;
 use App\Mesas\JuegoMesa;
-use App\Mesas\SectorMesas;
-use App\Mesas\TipoMesa;
-
 use App\Mesas\ImportacionDiariaMesas;
 use App\Mesas\DetalleImportacionDiariaMesas;
-
-use App\Mesas\ComandoEnEspera;
-
-use \DateTime;
-use \DateInterval;
 use Carbon\Carbon;
-
-use App\Http\Controllers\UsuarioController;
 
 class BCMensualesController extends Controller
 {
