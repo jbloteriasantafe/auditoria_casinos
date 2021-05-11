@@ -99,7 +99,7 @@ class BPagosController extends Controller{
   public function obtenerInformeBase($id_casino){
     $d = DetalleInformeFinalMesas::where('id_casino','=',$id_casino)
     ->orderBy('anio','asc')->orderBy('mes','asc')->orderBy('dia_inicio','asc')
-    ->orderBy('id_detalle_informe_final_mesas','asc')->first();
+    ->orderBy('id_detalle_informe_final_mesas','asc')->get()->first();
     return is_null($d)? null : $d->informe_final_mesas;
   }
 
