@@ -53,9 +53,9 @@ $('#buscar-informes-anuales').on('click', function(e){
   var formData = {
     anio: fecha == null? (new Date()).getFullYear() : fecha,
     id_casino:  c1,
-    id_casino2: c2 == 0? '' : c2,
+    id_casino2: c2,
     id_moneda:  m1,
-    id_moneda2: m2 == 0? '' : m2,
+    id_moneda2: m2,
   }
 
   const leyenda1 = $('#CasInformeA option:selected').text() + ' - ' +$('#MonInformeA option:selected').text();
@@ -72,31 +72,26 @@ $('#buscar-informes-anuales').on('click', function(e){
     success: function (data){
       $('#mensajeErrorFiltros').hide();
       $('#B_fecha_filtro').val(fecha);
-      if(c1 == 0 && c2 == 0) return;
-
-      if(c2 != 0){
-        if(c1 != 0){
-          grarGraficoCasinos([data.casino1,data.casino2],[leyenda1,leyenda2]);
-        }
-        else grarGraficoCasinos([data.casino2],[leyenda2]);
+      const datas = [data.casino1];
+      const names = [leyenda1];
+      if(c2 != "" && m2 != ""){
+        datas.push(data.casino2);
+        names.push(leyenda2);
       }
-      else grarGraficoCasinos([data.casino1],[leyenda1]);
+      grarGraficoCasinos(datas,names);
     },
 
     error: function (data) {
       const response = data.responseJSON;
-      if(typeof response.id_casino !== 'undefined'){
-        $('#mensajeF').text(response.id_casino[0]);
+      const keys = Object.keys(response);
+      const errors = [];
+      for(const kidx in keys){
+        const k  = keys[kidx];
+        for(const erridx in response[k]){
+          errors.push(response[k][erridx]);
+        }
       }
-      if(typeof response.id_moneda !== 'undefined'){
-        $('#mensajeF').text(response.id_moneda[0]);
-      }
-      if(typeof response.id_casino2 !== 'undefined'){
-        $('#mensajeF').text(response.id_casino2[0]);
-      }
-      if(typeof response.id_moneda2 !== 'undefined'){
-        $('#mensajeF').text(response.id_moneda2[0]);
-      }
+      $('#mensajeF').empty().append(errors.join('<br>'));
       $('#mensajeErrorFiltros').show();      
     }
    });
@@ -104,20 +99,18 @@ $('#buscar-informes-anuales').on('click', function(e){
 
 function grarGraficoCasinos(datas,names){
   let i = 0;
-  console.log(datas);
-  console.log(names);
-  for(i = 0;i < Math.min(datas.length,chart.series.length);i++){
-    let name = names[i]? names[i] : 'N/A';
-    let data = [NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN];
+  for(;i < Math.min(datas.length,chart.series.length);i++){
+    const name = names[i]? names[i] : 'N/A';
+    const data = [0,0,0,0,0,0,0,0,0,0,0,0];
     datas[i].forEach(function(x){
-      if(isNaN(data[x.mes-1])) data[x.mes-1]  = x.total_utilidad_mensual;
-      else                     data[x.mes-1] += x.total_utilidad_mensual;
+      data[x.mes-1]  = x.total_utilidad_mensual;
     });
-    chart.series[i].update({name: name,data: data,showInLegend: true},true);
+    chart.series[i].update({name: name,data: data,showInLegend: true},false);
     chart.series[i].show();
   }
   for(;i<chart.series.length;i++){
-    chart.series[i].update({name:'N/A',data: [],showInLegend: false},true);
+    chart.series[i].update({name:'N/A',data: [],showInLegend: false},false);
     chart.series[i].hide();
   }
+  chart.redraw();
 }

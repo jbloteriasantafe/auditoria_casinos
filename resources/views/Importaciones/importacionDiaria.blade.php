@@ -940,7 +940,7 @@
 
 <!-- Comienza modal de ayuda -->
 @section('tituloDeAyuda')
-<h3 class="modal-title" style="color: #fff;">| Mesas - Importaciones Diarias</h3>
+<h3 class="modal-title" style="color: #fff;">Mesas - Importaciones Diarias</h3>
 @endsection
 @section('contenidoAyuda')
 <div class="col-md-12">
@@ -958,23 +958,14 @@
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-
   <!-- JavaScript personalizado -->
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="/js/lista-datos.js" type="text/javascript"></script>
-
   <script src="js/fileinput.min.js" type="text/javascript"></script>
-
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
   <script src="js/math.min.js" type="text/javascript"></script>
-
   <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
-  <!--<script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>-->
-
-
 @endsection

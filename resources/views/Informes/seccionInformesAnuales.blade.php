@@ -1,6 +1,6 @@
 @extends('includes.dashboard')
 @section('headerLogo')
-
+<span class="etiquetaLogoInformes">@svg('informes','iconoInformes')</span>
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -93,6 +93,19 @@
 </div>
 
 @endsection
+
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">Mesas - Informes Anuales Contables</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <p>
+  En esta seccion puede obtener un grafico totalizado al año de lo importado en "Mesas - Importaciones Diarias".
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
 @section('scripts')
 <!-- JavaScript personalizado -->

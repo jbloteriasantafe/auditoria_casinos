@@ -25,9 +25,9 @@ class BCAnualesController extends Controller
       $id_casino2 = $data['id_casino2'];
       $id_moneda2 = $data['id_moneda2'];
 
-      if(((!empty($id_casino2) && empty($id_moneda2))) || (!empty($id_casino2) && empty($id_moneda2))){
+      if(((!empty($id_casino2) &&  empty($id_moneda2))) ||
+          ( empty($id_casino2) && !empty($id_moneda2))){
         $validator->errors()->add('id_casino2','Seleccione un casino Y una moneda.');
-        $validator->errors()->add('id_moneda2','Seleccione un casino Y una moneda.');
         return;
       }
 

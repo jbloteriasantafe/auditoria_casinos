@@ -1,6 +1,5 @@
 @extends('includes.dashboard')
 @section('headerLogo')
-
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -453,6 +452,20 @@
 <meta name="_token" content="{!! csrf_token() !!}" />
 
 @endsection
+
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">Mesas - Canon</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <p>
+  En esta sección puede cargar en la base de datos las recaudaciones mensuales de cada casino, con la fecha de pago y cotización.
+  Con estos datos el sistema puede calcular el Valor Base y Canon del próximo periodo.
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
 @section('scripts')
 
