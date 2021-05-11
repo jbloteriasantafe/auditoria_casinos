@@ -3,7 +3,7 @@ $(document).ready(function() {
   $('#barraInformesMesas').attr('aria-expanded','true');
   $('#informes2').removeClass();
   $('#informes2').addClass('subMenu1 collapse in');
-  $('.tituloSeccionPantalla').text('Informes Anuales Contables');
+  $('.tituloSeccionPantalla').text('Mesas - Informes Anuales Contables');
   $('#opcInfoInteranuales').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcInfoInteranuales').addClass('opcionesSeleccionado');
 

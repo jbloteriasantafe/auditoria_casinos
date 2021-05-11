@@ -93,10 +93,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                 <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
                 <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
              </ul>
-              <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:70%;" hidden="true">
-                <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
-                <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
-              </ul>
 
               <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
                 <li id="canon1" ><a href="#pant_canon_meses"  style="font-family:Roboto-condensed;font-size:20px; ">Recaudado Mensual (Bruto)</a></li>
@@ -802,11 +798,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               <ul class="subMenu1 collapse" id="informes2">
                                 <li>
                                   <div id="opcInfoMensual" class="opcionesHover"
-                                  @if(false)
                                   onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
                                   >
                                     <span>Mensual</span>
                                   </div>

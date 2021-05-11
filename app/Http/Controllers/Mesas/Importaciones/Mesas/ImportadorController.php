@@ -61,14 +61,12 @@ class ImportadorController extends Controller
     'siglas' => 'Código de Identificación',
   ];
 
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
-  public function __construct()
-  {
-    $this->middleware(['tiene_permiso:m_importar']);//??
+  private static $instance;
+  public static function getInstancia() {
+    if (!isset(self::$instance)) {
+      self::$instance = new ImportadorController();
+    }
+    return self::$instance;
   }
 
   public function buscarTodo(){
@@ -316,12 +314,8 @@ public function importarDiario(Request $request){
     return $dimp;
   }
 
-  public function imprimirMensual($fecha,$id_casino){
-    $casino = Casino::find($id_casino);
-    $date = explode('-',$fecha);
-    $mes = $date[0].'-'.$date[1];
+  public function mensualPorMonedaPorJuego($id_casino,$date){
     $por_moneda = array();
-
     foreach(Moneda::all() as $moneda){
       $detalles = ImportacionDiariaMesas::whereYear('fecha','=',$date[0])
       ->whereMonth('fecha','=',$date[1])
@@ -366,8 +360,15 @@ public function importarDiario(Request $request){
         'total' => $total,
       ];
     }
+    return $por_moneda;
+  }
 
-    $view= view('Informes.informeMes', compact('por_moneda','casino','mes'));
+  public function imprimirMensual($fecha,$id_casino){
+    $casino = Casino::find($id_casino);
+    $date = explode('-',$fecha);
+    $mes = $date[0].'-'.$date[1];
+    $por_moneda = $this->mensualPorMonedaPorJuego($id_casino,$date);
+    $view = view('Informes.informeMes', compact('por_moneda','casino','mes'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);

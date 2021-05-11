@@ -748,7 +748,7 @@ Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m
 
 Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function (){
   Route::get('/','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-  Route::post('/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
+  Route::post('/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario')->middleware(['tiene_permiso:m_importar']);
   Route::post('/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
   Route::get('/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
   Route::get('/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
@@ -766,9 +766,14 @@ Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anu
   Route::post('/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
 });
 
-Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales');
-Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
-Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
+Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_diario_mensual'],function(){
+  Route::get('/',function(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    return view('Informes.seccionInformesMensuales',['casinos'=>$usuario->casinos]);
+  });
+  Route::post('obtenerDatos','Mesas\InformesMesas\BCMensualesController@obtenerDatosGraficos');
+});
+
 
 Route::get('/canon','Mesas\Canon\BPagosController@index')->middleware(['tiene_permiso:m_ver_seccion_canon']);
 Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_a_pagos']], function () {

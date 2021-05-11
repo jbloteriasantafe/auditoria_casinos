@@ -39,11 +39,6 @@ use App\Http\Controllers\UsuarioController;
 
 class InformesController extends Controller
 {
-   public function __construct()
-   {
-       $this->middleware([ 'tiene_permiso:m_bc_diario_mensual']);
-   }
-
   public function filtrarMensuales(Request $request){
     $monthNames = [".-.","Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
