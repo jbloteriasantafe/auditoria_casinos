@@ -640,4 +640,37 @@ class AutoexclusionController extends Controller
     });
     return 1;
   }
+
+  public function API_fechas(Request $request,string $token,string $dni){
+    $this->actualizarVencidosRenovados();
+    $ae = AE\Autoexcluido::where('nro_dni',$dni)
+    ->join('ae_estado','ae_datos.id_autoexcluido','=','ae_estado.id_autoexcluido')
+    ->orderBy('fecha_ae','desc')->get()->first();
+    if(is_null($ae)){
+      return $this->errorOut(['error' => 'SIN AE']);
+    }
+    $e = $ae->estado;
+    if($e->nombreEstado->descripcion == 'Vencido'){
+      return $this->errorOut(['error' => 'SIN AE']);
+    }
+    $ret = ['fecha_ae' => $e->fecha_ae,'fecha_cierre_ae' => $e->fecha_cierre_ae];
+    if($ae->es_primer_ae){
+      $ret['fecha_renovacion']  = $e->fecha_renovacion;
+      $ret['fecha_vencimiento'] = $e->fecha_vencimiento;
+    }
+    return $ret;
+  }
+  public function API_finalizar(Request $request,string $token,string $dni){
+    $this->actualizarVencidosRenovados();
+    return $token.'-finalizar-'.$dni;
+  }
+  public function API_agregar(Request $request,string $token){
+    $this->actualizarVencidosRenovados();
+    return $token.'-agregar';
+  }
+
+  private function errorOut($map){
+    $this->actualizarVencidosRenovados();
+    return response()->json($map,422);
+  }
 }
