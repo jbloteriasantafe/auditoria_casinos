@@ -65,9 +65,7 @@ class GenerarInformesFiscalizadorController extends Controller
       $informes = InformeFiscalizadores::where('id_casino','=',$cierre_apertura->id_casino)
                                           ->where('fecha','=',$cierre_apertura->fecha_produccion)
                                           ->get();
-        //$this->calcularApRelevadas($informes->first(),$aperturas);
-        //dd([count($informes) == 0 , [count($asociados) , count($aperturas)]]);
-      //dd('nope',$informes,(count($asociados) == count($aperturas)));
+
       // NOTE: veo si esta creado, si no lo está: se crea, sino se revisa y se actualiza el estado
       if(count($informes) == 0 && (count($asociados) == count($aperturas))){
         //case: no está
@@ -145,24 +143,6 @@ class GenerarInformesFiscalizadorController extends Controller
                                    ->distinct('detalle_relevamiento_apuestas.id_mesa_de_panio')
                                    ->get();
 
-
-    $mesasImportadasAbiertas = DB::table('detalle_importacion_diaria_mesas')
-                                     ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                     ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
-                                            '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
-                                     ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
-                                     ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
-                                     ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                     ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
-                                     ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                     ->get();
-
-      // $cantidad_con_minimo =  DB::table('detalle_relevamiento_apuestas')
-      //                                 ->select('id_mesa_de_panio')
-      //                                 ->whereIn('id_relevamiento_apuestas',$ids_rels)
-      //                                 ->where('minimo','=',$informe->apuesta_minima->apuesta_minim)
-      //                                 ->distinct('id_mesa_de_panio')
-      //                                 ->get()->count();
       $cierres = Cierre::where('fecha','=',$informe->fecha)
                         ->where('id_casino','=',$informe->id_casino)
                         ->get();
@@ -198,7 +178,7 @@ class GenerarInformesFiscalizadorController extends Controller
         $informe->mesas_con_diferencia = $mesas_con_diferencia;
       }
       $informe->mesas_relevadas_abiertas = json_encode($mesasRelevadasAbiertas);
-      $informe->mesas_importadas_abiertas = json_encode($mesasImportadasAbiertas);
+      $informe->mesas_importadas_abiertas = [];
       $informe->save();
     }
 

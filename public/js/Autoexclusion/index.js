@@ -15,6 +15,8 @@ $(document).ready(function(){
   
   $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
   $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
+  $('#fecha_nacimiento').off('focus keydown keyup');//Saco los evento de DTP que genera problemas si quiero chequear
+  $('#fecha_nacimiento').change(cambioFechaNacimiento);
 
   const input_fecha = {
     language:  'es',
@@ -460,21 +462,90 @@ function mensajeExito(msg){
 function limpiarNull(val){
   return val == null? '' : val;
 }
+const to_iso = function(d,m,y){
+  //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
+  return y+(m < 10? '-0' : '-')+m+(d < 10? '-0' : '-')+d+'T00:00:00.000-03:00';
+}
+
+/*
+-- Matias me habia pedido si podia aproximarse la fecha asi no tenian que mover mucho.
+-- Script para calcular la regresion. No lo pongo como un request GET porque no es 
+-- necesario cambiarlo siempre (capaz me olvide de algo en el where y con algun AE que 
+-- agreguen se rompe todo). Lo pongo aca para que se vea que no lo saque de la galera.
+-- Saco los muy viejos, muy nuevos y los DNI muy altos (extranjeros).
+-- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
+
+DROP PROCEDURE IF EXISTS DniStampLinreg;
+DELIMITER $$
+CREATE PROCEDURE DniStampLinreg()
+BEGIN
+    CREATE TEMPORARY TABLE temp_dni_stamp (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp
+        select distinct ae.nro_dni, DATEDIFF(ae.fecha_nacimiento,'1970-01-01')*24*60*60 as stamp
+        from ae_datos as ae
+        where ae.deleted_at is null and ae.fecha_nacimiento is not null 
+        and YEAR(ae.fecha_nacimiento) > 1940 and YEAR(ae.fecha_nacimiento) < 2002 
+        and ae.nro_dni < 50000000
+        ORDER BY `ae`.`nro_dni` asc;
+
+    CREATE TEMPORARY TABLE temp_dni_stamp_uniq (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp_uniq
+        select nro_dni,MIN(stamp) as stamp
+        from temp_dni_stamp
+        group by temp_dni_stamp.nro_dni;
+    
+    SET @x  := (SELECT SUM(nro_dni)         FROM temp_dni_stamp_uniq);
+    SET @x2 := (SELECT SUM(nro_dni*nro_dni) FROM temp_dni_stamp_uniq);
+    SET @y  := (SELECT SUM(stamp)           FROM temp_dni_stamp_uniq);
+    SET @y2 := (SELECT SUM(stamp*stamp)     FROM temp_dni_stamp_uniq);
+    SET @xy := (SELECT SUM(nro_dni*stamp)   FROM temp_dni_stamp_uniq);
+    SET @n  := (SELECT COUNT(nro_dni)       FROM temp_dni_stamp_uniq);
+    
+    DROP TABLE temp_dni_stamp_uniq;
+    DROP TABLE temp_dni_stamp;
+    
+    SELECT (@y*@x2 - @x*@xy)/(@n*@x2-@x*@x) as intercept, (@n*@xy - @x*@y )/(@n*@x2-@x*@x) as slope;
+END$$
+
+-- En otra consulta
+Call DniStampLinreg();
+*/
 
 $('#nro_dni').change(function(){
   const dni = parseInt($(this).val());
-  //Obtenido regresionando los datos de AE con sus año-mes de nacimiento
-  const añofloat = (dni / 100000.0)*0.1439930709+1939.7556710372;
-  const año = Math.floor(añofloat);
-  const aux = añofloat - año;
-  const mes = Math.floor(aux*11 + 1);
-  const to_iso = function(m,y){
-    //@HACK timezone de Argentina, supongo que esta bien porque el servidor esta en ARG
-    return y+(m < 10? '-0' : '-')+m+'-01'+'T00:00:00.000-03:00';
-  }
-  const fecha = new Date(to_iso(mes,año));
+  //Obtenido regresionando segun arriba 07/04/2021 Octavio
+  const segundos = dni*44.8858-942979898.2748;
+  const fecha = new Date(segundos*1000);
   $('#dtpFechaNacimiento').data('datetimepicker').setDate(fecha);
 })
+
+function cambioFechaNacimiento(){
+  ocultarErrorValidacion($('#fecha_nacimiento'));
+  let fecha = $(this).val();
+  if(fecha == null || fecha.length == 0) return;
+  const fecha_regexp_iterator = fecha.matchAll(/[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}/g);
+  const valido_regexp = Array.from(fecha_regexp_iterator).length == 1;
+  if(!valido_regexp){
+    $('#dtpFechaNacimiento').data("datetimepicker").reset();
+    setTimeout(function(){
+      mostrarErrorValidacion($('#fecha_nacimiento'),'El formato tiene que ser AAAA-MM-DD',true);
+    },250);
+    return;
+  }
+  const f = fecha.split('-');
+  const y = parseInt(f[0]), m = parseInt(f[1]), d = parseInt(f[2]);
+  const date = new Date(to_iso(d,m,y));
+  const hoy = new Date();
+  if(date == 'Invalid Date' || y <= 1900 || date >= hoy){
+    $('#dtpFechaNacimiento').data("datetimepicker").reset();
+    setTimeout(function(){
+      mostrarErrorValidacion($('#fecha_nacimiento'),'Valor inválido',true);
+    },250);
+    return;
+  }
+  $('#dtpFechaNacimiento').data('datetimepicker').setDate(new Date(to_iso(d,m,y)));
+}
+
 function validarDNI(){
   if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
     mostrarErrorValidacion($('#nro_dni') , 'El número de DNI debe ser un dato de tipo numérico' , false);

@@ -70,10 +70,6 @@ class Casino extends Model
     return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
   }
 
-  public function meses(){
-    return $this->hasMany('App\MesCasino','id_casino','id_casino');
-  }
-
   public function detalles_informe_final_mesas(){
     return $this->hasMany('App\Mesas\DetalleInformeFinalMesas','id_casino','id_casino');
   }

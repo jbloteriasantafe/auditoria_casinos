@@ -470,44 +470,24 @@ class informesController extends Controller
     $suma = 0;
     $datos = $arreglo = array();
     
-    //Hay logs repetidos con ids distintos por algun motivo...
+    //@HACK: Hay logs repetidos con ids distintos por algun motivo...
     //Los agrupamos, para eso necesitamos cada campo, menos el id_log_maquina
-    //Antes se hacia asi y  retornaba duplicados! no cambiar 
-    //Sin saber esto
-    /*$logs = LogMaquina::join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','log_maquina.id_tipo_movimiento')
-    ->where('id_maquina' , $id_maquina)->orderBy('fecha', 'desc')->get();*/
+    //y retornaba duplicados! no cambiar sin saber esto
     
     $columnas_str = "";
-    $columnas = Schema::getColumnListing('log_maquina');
-    foreach($columnas as $col){
-      if($col != "id_log_maquina"){
-        $columnas_str .= ", l.".$col;
-      }
-    }
+    $columnas = array_filter(Schema::getColumnListing('log_maquina'),function($x){return $x != "id_log_maquina";});
+    $columnas = array_map(function($x){return 'l.'.$x;},$columnas);
+    $columnas_str = implode(',',$columnas);
     $columnas = Schema::getColumnListing('tipo_movimiento');
-    foreach($columnas as $col){
-      $columnas_str .= ", t.".$col;
-    }
+    $columnas = array_map(function($x){return 't.'.$x;},$columnas);
+    $columnas_str = $columnas_str.','.implode(',',$columnas);
+    $logs = DB::table('log_maquina as l')
+    ->selectRaw("GROUP_CONCAT(DISTINCT(l.id_log_maquina) separator '/') as ids_logs_maquinas,".$columnas_str)
+    ->join('tipo_movimiento as t','l.id_tipo_movimiento','=','t.id_tipo_movimiento')
+    ->where('l.id_maquina','=',$id_maquina)
+    ->groupBy(DB::raw($columnas_str))
+    ->orderBy('l.fecha','desc')->get()->toArray();
 
-    $query="SELECT 
-    GROUP_CONCAT(DISTINCT(l.id_log_maquina) separator '/') as ids_logs_maquinas
-    "
-    .
-    $columnas_str
-    .
-    "
-    from log_maquina l
-    join tipo_movimiento t on (l.id_tipo_movimiento = t.id_tipo_movimiento)
-    where l.id_maquina = :id_maquina
-    GROUP BY
-    " 
-    .
-    substr($columnas_str,1)//saco la coma
-    ."
-    order by l.fecha desc";
-        
-    $parametros = ['id_maquina' => $id_maquina];
-    $logs = DB::select(DB::raw($query),$parametros);
     usort($logs,function($a,$b){
       //Comparo primero por fecha y si son iguales por el id mas chico.
       //Se simplificaria si tuviera hora minuto segundo...
@@ -519,16 +499,13 @@ class informesController extends Controller
       $ids_a = explode('/',$a->ids_logs_maquinas);
       $ids_b = explode('/',$b->ids_logs_maquinas);
       $smallest_a = $ids_a[0];
-      $smallest_b = $ids_b[0];
       foreach($ids_a as $ida){
         if($ida < $smallest_a) $smallest_a = $ida;
       }
       foreach($ids_b as $idb){
-        if($idb < $smallest_b) $smallest_b = $idb;
+        if($idb < $smallest_a) return -1;
       }
-      if($smallest_a < $smallest_b) return 1;
-      else if($smallest_a > $smallest_b) return -1;
-      return 0;
+      return 1;
     });
 
     while($fin){
@@ -551,7 +528,7 @@ class informesController extends Controller
     ->join('maquina','maquina.id_maquina','=','detalle_relevamiento.id_maquina')
     ->join('relevamiento','relevamiento.id_relevamiento','=','detalle_relevamiento.id_relevamiento')
     ->where('maquina.id_maquina','=',$id_maquina)
-    ->where('relevamiento.fecha_carga','<>',$fechax)//$fechax->year().'-'.$fechax->month().'-'.$fechax->day())
+    ->where('relevamiento.fecha_carga','<>',$fechax)
     ->orderBy('relevamiento.fecha_carga','desc')
     ->take(5)->get();
 

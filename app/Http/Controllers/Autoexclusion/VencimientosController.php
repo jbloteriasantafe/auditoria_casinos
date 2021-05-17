@@ -86,6 +86,7 @@ class VencimientosController extends Controller
         ->where('ae_estado.fecha_vencimiento', '>=', $fecha_hoy)
         ->where('ae_estado.fecha_vencimiento', '<=', $fecha_tope)
         ->where('ae_estado.id_nombre_estado', '!=', 2) //@TODO: ver si hay que excluir tambien otros estados
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
         ->paginate($request->page_size);
 
       return $resultados;

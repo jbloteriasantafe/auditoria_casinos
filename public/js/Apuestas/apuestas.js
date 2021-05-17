@@ -272,7 +272,7 @@ $('#btn-guardar-backUp').on('click',function(e){
       var min =$(this).find('.min_up').val();
       var max = $(this).find('.max_up').val();
       if($(this).find('.moneda_up').find('#monedacargaBUp').length > 0){
-        var mon=$(this).find('input[name=monedaApuestaBUp]:checked').val()
+        var mon=$(this).find('input.monedaApuestaBUp:checked').val();
       }
       else{
         var mon= $(this).attr('data-moneda');
@@ -508,7 +508,7 @@ $('#btn-guardar').on('click',function(e){
 
     if($(this) != 'undefined'){
       if($(this).find('.moneda_carga').find('#monedacarga').length > 0){
-        var mon=$(this).find('input[name=monedaApuesta]:checked').val()
+        var mon=$(this).find('input.monedaApuesta:checked').val();
       }
       else{
         var mon= $(this).attr('data-moneda');
@@ -666,11 +666,6 @@ $(document).on('click', '.modificarApuesta', function(e){
 
           aux_nro_fila++;
         }
-      for (var i = 0; i < data.detalles.length; i++) {
-        if(data.detalles[i].detalle.multimoneda == 1){
-          $('#tablaModificar').find('#' + data.detalles[i].detalle.id_detalle_relevamiento_apuestas).find("input[name='monedaApuestaMod'][value='"+data.detalles[i].detalle.id_moneda+"']").prop('checked',true);
-        }
-      }
   })
    $('#modalModificar').modal('show');
 
@@ -698,7 +693,7 @@ $('#btn-guardar-modif').on('click',function(e){
 
     if($(this) != 'undefined'){
       if($(this).find('.moneda_mod').find('#monedamodificar').length > 0){
-        var mon=$(this).find('input[name=monedaApuestaMod]:checked').val()
+        var mon=$(this).find('input.monedaApuestaMod:checked').val();
       }
       else{
         var mon= $(this).attr('data-moneda');
@@ -1182,7 +1177,7 @@ function generarFilaCarga(data,nro_row,e){
       fila.find('.max_carga').attr('id','detalles'+nro_row+'maximo');
 
       if(data.multimoneda == 1){
-        fila.find('.moneda_carga').find('#monedacarga').prop('disabled',false);
+        fila.find('.moneda_carga').find('#monedacarga input').prop('disabled',false).attr('name','monedaApuesta'+data.id_detalle);
       }else{
         fila.attr('data-moneda',data.id_moneda);
           fila.find('#monedacarga').remove();
@@ -1257,7 +1252,7 @@ function generarFilaCargaBUp(data,nro_row,e){
       }
     }
     if(data.multimoneda == 1){
-      fila.find('.moneda_up').find('#monedacargaBUp').prop('disabled',false);
+      fila.find('.moneda_up').find('#monedacargaBUp input').prop('disabled',false).attr('name','monedaApuestaBUp'+data.id_detalle);
     }else{
       fila.attr('data-moneda',data.id_moneda);
         fila.find('#monedacargaBUp').remove();
@@ -1282,7 +1277,8 @@ function generarFilaModificar(data,nro_row,e){
   fila.find('.max_mod').attr('id','detalles'+nro_row+'maximo');
 
   if(data.multimoneda == 1){
-    fila.find('.moneda_mod').find('#monedamodificar').prop('disabled',false);
+    fila.find('.moneda_mod').find('#monedamodificar input').prop('disabled',false).attr('name','monedaApuestaMod'+data.id_detalle_relevamiento_apuestas);    
+    fila.find('.moneda_mod').find(`input[value="${data.id_moneda}"]`).prop('checked',true);
   }else{
     fila.attr('data-moneda',data.id_moneda);
       fila.find('#monedamodificar').remove();

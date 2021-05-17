@@ -64,8 +64,8 @@ class InformesAEController extends Controller
         $reglas[]=['ae_datos.nro_dni','=',$request->dni];
       }
 
-      if($request->sexo != null){
-        $reglas[]=['ae_datos.id_sexo','=',$request->sexo];
+      if(!is_null($request->genero)){
+        $reglas[]=['ae_datos.id_sexo','=',$request->genero];
       }
 
       if(!empty($request->localidad)){
@@ -124,7 +124,8 @@ class InformesAEController extends Controller
         ->when($sort_by,function($query) use ($sort_by){
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
-        ->where($reglas);
+        ->where($reglas)
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at');
 
       if(!empty($request->dia_semanal)){
         $resultados = $resultados->whereRaw('WEEKDAY(ae_estado.fecha_ae) = ?',$request->dia_semanal - 1);

@@ -225,7 +225,7 @@ function eventoModificar(id_maquina){
 }
 
 //Mostrar modal con los datos del Casino cargados
-$(document).on('click','.modificar',function(e,id_maquina){
+$(document).on('click','#cuerpoTabla .modificar',function(e,id_maquina){
   console.log('sii');
   $(this).prop('disabled', true);
   $('#modalMaquina').find('#navIsla').show();
@@ -243,7 +243,8 @@ $(document).on('click','.modificar',function(e,id_maquina){
 })
 
 //Mostrar modal con los datos del Casino cargados
-$(document).on('click','.detalle',function(){
+//Hay que aclarar la tabla porque se usa .detalle por algun motivo en el modal
+$(document).on('click','#cuerpoTabla .detalle',function(){
       limpiarModal();
       //Modificar los colores del modal
       $('.modal-title').text('DETALLES MÁQUINA');

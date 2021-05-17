@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
-$cas = $usuario['usuario']->casinos;
 ?>
 @extends('includes.dashboard')
 
@@ -150,57 +149,7 @@ $cas = $usuario['usuario']->casinos;
                     <th class="" style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                   </tr>
                 </thead>
-                <tbody  id='cuerpoTablaCyA' >
-                  @foreach($aperturas as $a)
-                  <tr id="{{$a->id_apertura_mesa}}">
-                    <td class=""  style="text-align:center !important;">{{$a->fecha}}</td>
-                    <td class=""  style="text-align:center !important;">{{$a->nro_mesa}}</td>
-                    <td class=""  style="text-align:center !important;">{{$a->nombre_juego}}</td>
-                    <td class=""  style="text-align:center !important;">{{$a->hora}}</td>
-                    <td class=""  style="text-align:center !important;">{{$a->siglas_moneda}}</td>
-                    <td class=""  style="text-align:center !important;">{{$a->nombre}}</td>
-
-                    @if($a->id_estado_cierre == 3)
-                      <td class="" style="text-align:center !important"> <button type="button" name="button"> <i class="fa fa-fw fa-check"   align="center"  style="color: #4CAF50;text-align:center !important;"></i></button></td>
-                    @endif
-                    @if($a->id_estado_cierre == 2)
-                    <td class="" style="text-align:center !important"> <button type="button" name="button"></button> <i class="fas fa-fw fa-exclamation" align="center" style="color: #FFC107;text-align:center !important;"></i></td>
-                    @endif
-                    @if($a->id_estado_cierre == 1)
-                      <td class="" style="text-align:center !important">  <i class="fas fa-fw fa-times"  align="center" style="color: #D32F2F;text-align:center !important;"></td>
-                    @endif
-
-                    <td class="" style="text-align:center !important;">
-                      @if($a->id_estado_cierre == 3)
-                        <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}">
-                          <i class="fa fa-fw fa-search-plus"></i>
-                        </button>
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_aperturas'))
-                        <button type="button" class="btn btn-info desvincular" value="{{$a->id_apertura_mesa}}">
-                          <i class="fas fa-fw fa-unlink"></i>
-                        </button>
-                        @endif
-                        @else
-                        <button type="button" class="btn btn-info infoCyA" value="{{$a->id_apertura_mesa}}" >
-                          <i class="fa fa-fw fa-search-plus"></i>
-                        </button>
-                        <button type="button" class="btn btn-warning modificarCyA" value="{{$a->id_apertura_mesa}}">
-                          <i class="fas fa-fw fa-pencil-alt"></i>
-                        </button>
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_aperturas'))
-                        <button type="button" class="btn btn-success validarCyA" value="{{$a->id_apertura_mesa}}">
-                          <i class="fa fa-fw fa-check"></i>
-                        </button>
-                        @endif
-                      @endif
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
-                        <button type="button" class="btn btn-success eliminarCyA" value="{{$a->id_apertura_mesa}}">
-                          <i class="fa fa-fw fa-trash"></i>
-                        </button>
-                      @endif
-                    </td>
-                  </tr>
-                  @endforeach
+                <tbody  id='cuerpoTablaCyA'>
                 </tbody>
               </table>
             </div>

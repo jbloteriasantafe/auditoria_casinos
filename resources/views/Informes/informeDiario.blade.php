@@ -105,7 +105,7 @@
           <th style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->conversion_total}}</th>
           @endif
-          <th style="font-size:10px; border-color: gray;">{{$importacion->hold_diario}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->hold}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_fichas}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->saldo_fichas_relevado}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->diferencia_saldo_fichas}}</th>

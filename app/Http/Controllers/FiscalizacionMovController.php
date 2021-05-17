@@ -100,7 +100,7 @@ class FiscalizacionMovController extends Controller
     $reglas=array();
 
     if(isset($request->id_tipo_movimiento)){
-      $reglas[]=['log_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
+      $reglas[]=['tipo_movimiento.id_tipo_movimiento','=', $request->id_tipo_movimiento];
     }
 
     $sort_by = ['columna' => 'fiscalizacion_movimiento.id_fiscalizacion_movimiento', 'orden' => 'DESC'];
@@ -117,7 +117,8 @@ class FiscalizacionMovController extends Controller
     ->selectRaw("GROUP_CONCAT(DISTINCT(maquina.nro_admin) ORDER BY maquina.nro_admin ASC SEPARATOR ', ') as maquinas")
     ->join('log_movimiento','log_movimiento.id_log_movimiento','=', 'fiscalizacion_movimiento.id_log_movimiento')
     ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-    ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=', 'log_movimiento.id_tipo_movimiento')
+    ->join('logmov_tipomov','log_movimiento.id_log_movimiento','=','logmov_tipomov.id_log_movimiento')
+    ->join('tipo_movimiento','logmov_tipomov.id_tipo_movimiento','=', 'tipo_movimiento.id_tipo_movimiento')
     ->join('relevamiento_movimiento','relevamiento_movimiento.id_fiscalizacion_movimiento','=','fiscalizacion_movimiento.id_fiscalizacion_movimiento')
     ->join('maquina','maquina.id_maquina','=','relevamiento_movimiento.id_maquina')
     ->leftJoin('estado_relevamiento','estado_relevamiento.id_estado_relevamiento','=','fiscalizacion_movimiento.id_estado_relevamiento')

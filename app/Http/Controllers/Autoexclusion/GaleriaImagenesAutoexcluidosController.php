@@ -68,19 +68,22 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,ae_importacion.id_importacion,'foto1' as tipo_archivo,ae_importacion.foto1 as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
-        ->where($reglas)->whereNotNull('ae_importacion.foto1')->whereRaw('LENGTH(ae_importacion.foto1) > 0');
+        ->where($reglas)->whereNotNull('ae_importacion.foto1')->whereRaw('LENGTH(ae_importacion.foto1) > 0')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_importacion.deleted_at')->whereNull('ae_estado.deleted_at');
 
       $resultados_foto2 = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,ae_importacion.id_importacion,'foto2' as tipo_archivo,ae_importacion.foto2 as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
-        ->where($reglas)->whereNotNull('ae_importacion.foto2')->whereRaw('LENGTH(ae_importacion.foto2) > 0');
+        ->where($reglas)->whereNotNull('ae_importacion.foto2')->whereRaw('LENGTH(ae_importacion.foto2) > 0')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_importacion.deleted_at')->whereNull('ae_estado.deleted_at');
       
       $resultados_sin_foto = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,0 as id_importacion,'sin_foto' as tipo_archivo,'SIN FOTO' as nombre")
         ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
-        ->where($reglas)->whereNull('ae_importacion.foto1')->whereNull('ae_importacion.foto2');
+        ->where($reglas)->whereNull('ae_importacion.foto1')->whereNull('ae_importacion.foto2')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_importacion.deleted_at')->whereNull('ae_estado.deleted_at');
 
       $count =  (clone $resultados_foto1)->count() + (clone $resultados_foto2)->count() + (clone $resultados_sin_foto)->count();
       $union = $resultados_foto1->union($resultados_foto2);
@@ -106,6 +109,7 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
         ->where('ae_datos.nro_dni', '=', $nro_dni)
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
         ->orderBy('ae_datos.id_autoexcluido','desc')
         ->take(1)->get();
 

@@ -1,7 +1,7 @@
 @extends('includes.dashboard')
 
 @section('headerLogo')
-
+<span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
 @endsection
 @section('estilos')
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -18,31 +18,28 @@
 @endsection
 @section('contenidoVista')
 
-<div class="col-lg-12 tab_content" id="pest_diaria" hidden="true">
-
+<div class="col-lg-12">
   <div class="row">
     <div class="col-xl-3">
-          <div class="row">
-            <div class="col-md-12">
-              <a href="" id="btn-importar" dusk="btn-nuevo" style="text-decoration: none;">
-                <div class="panel panel-default panelBotonNuevo">
-                  <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
-                    <div class="backgroundNuevo"></div>
-                      <div class="row">
-                        <div class="col-xs-12">
-                          <center>
-                              <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">IMPORTAR INFORME DIARIO</h4>
-                          </center>
-                        </div>
-                        </div>
-                    </div>
-                  </a>
+      <div class="row">
+        <div class="col-md-12">
+          <a href="" id="btn-importar" dusk="btn-nuevo" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+              <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">IMPORTAR INFORME DIARIO</h4>
+                  </center>
+                </div>
               </div>
             </div>
-
+          </a>
         </div>
-
+      </div>
+    </div>
     <div class="col-xl-9">
           <!-- FILTROS -->
           <div class="row">
@@ -87,7 +84,12 @@
                               <button id="buscar-importacionesDiarias" style="margin-top:30px" class="btn btn-infoBuscar" type="button" name="button">
                                 <i class="fa fa-fw fa-search"></i> BUSCAR
                               </button>
-                          </div>
+                            </div>
+                            <div class="col-xs-3">
+                              <button  id="btn-informeMensual" style="margin-top:30px"class="btn" type="button" name="button">
+                                <i class="fa fa-fw fa-print"></i> INFORME MENSUAL
+                              </button>
+                            </div>
                         </div>
                         </div> <!-- panel-body -->
                     </div> <!-- collapse -->
@@ -936,24 +938,34 @@
 
 @endsection
 
-@section('scripts')
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">Mesas - Importaciones Diarias</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <h5>Procedimiento de importaciones contables diarias de Mesas de Paño</h5>
+  <p>
+  En esta seccion puede: 
+    <ol>
+      <li>Importar los reportes diarios informados por los casinos.</li>
+      <li>Verificar los saldos de fichas reportados con los relevados por los fiscalizadores en los cierres.</li>
+      <li>Generar un informe con diferencias, diario o totalizado mensualmente.</li>
+    </ol>
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
+@section('scripts')
   <!-- JavaScript personalizado -->
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="/js/lista-datos.js" type="text/javascript"></script>
-
   <script src="js/fileinput.min.js" type="text/javascript"></script>
-
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
   <script src="js/math.min.js" type="text/javascript"></script>
-
   <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
-  <!--<script src="js/Importaciones/importacionMensual.js" charset="utf-8"></script>-->
-
-
 @endsection

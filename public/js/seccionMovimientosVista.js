@@ -394,9 +394,9 @@ function setearEstadoFila(fila, estado, tipo) {
     }break;
     case 'FISCALIZANDO':{ 
       fila.find('.boton_nuevo').hide();
-      fila.find('.boton_cargar').show();
+      fila.find('.boton_cargar').hide();
       fila.find('.boton_fiscalizar').show();
-      fila.find('.boton_validar').hide();
+      fila.find('.boton_validar').show();
       const icono = $('<i>').addClass('fas').addClass('fa-chalkboard-teacher').css('color',color.amarillo);
       fila.find('.icono_mov i').replaceWith(icono);
     };break;

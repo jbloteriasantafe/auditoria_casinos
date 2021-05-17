@@ -50,8 +50,7 @@ class RelevamientoGenerado extends Notification
     public function toMail($notifiable)
     {
         $titulo = 'Tienes un movimiento para relevar';
-        $main = 'Tienes un movimiento del tipo '.TipoMovimiento::find($this->fiscalizacion->log_movimiento->id_tipo_movimiento)
-                                 ->descripcion.' para relevar.';
+        $main = 'Tienes un movimiento del tipo '.$this->fiscalizacion->log_movimiento->tipo_movimiento_str().' para relevar.';
         return (new MailMessage)
               ->subject('Tienes un movimiento para relevar - CAS Lotería de Santa Fe')
               ->markdown('vendor.mail.Notificacion.index', ['titulo' => $titulo,

@@ -75,7 +75,6 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
   Route::delete('/eliminarCasino/{id}','CasinoController@eliminarCasino');
   Route::get('/get', 'CasinoController@getAll');
   Route::get('/getCasinos', 'CasinoController@getParaUsuario');
-  Route::get('/getMeses/{id_casino}', 'CasinoController@meses');
   Route::get('/getFichas','CasinoController@getFichas');
 });
 
@@ -281,8 +280,6 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
 });
 
-
-
 /**********
 Relevamientos
 ***********/
@@ -373,6 +370,7 @@ Route::post('importaciones/importarProducido','ImportacionController@importarPro
 Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
 Route::get('importaciones/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
 Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
+Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
@@ -680,7 +678,6 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
 //gestion cierres y aperturas
 
   //Cierres
-  Route::get('/cierres', 'Mesas\Cierres\BCCierreController@buscarTodo');
   Route::post('cierres/filtrosCierres','Mesas\Cierres\BCCierreController@filtros');
   Route::post('cierres/guardar', 'Mesas\Cierres\ABMCierreController@guardar');
   Route::post('cierres/modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
@@ -741,70 +738,57 @@ Route::get('mesas-juegos/bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@elimi
   Route::get('apuestas/obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post( 'apuestas/modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
 
-//informes fiscalizadores
-Route::get('/informeDiarioBasico','Mesas\InformeFiscalizadores\BCInformesController@index');
-Route::post('informeDiarioBasico/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
-Route::post('/informeDiarioBasico/buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
-Route::get('informeDiarioBasico/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
-
-//importaciones
-Route::get('/importacionDiaria','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-Route::post('importacionDiaria/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario');
-Route::post('importacionDiaria/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
-Route::get('importacionDiaria/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
-Route::get('importacionDiaria/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
-Route::post('importacionDiaria/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
-Route::get('importacionDiaria/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
-Route::post('importacionDiaria/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
-Route::post('importacionMensual/importar','Mesas\Importaciones\Mesas\MensualController@importarMensual');
-Route::post('importacionMensual/filtros','Mesas\Importaciones\Mesas\MensualController@filtros');
-Route::get('importacionMensual/verImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@buscar');
-Route::post('importacionMensual/guardar','Mesas\Importaciones\Mesas\MensualController@guardarObservacion');
-Route::get('importacionMensual/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\MensualController@eliminar');
-
-//informes
-Route::get('/informeAnual',function(){
-  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);});
-Route::post('/informeAnual/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
-Route::get('/informeDiario','Mesas\InformesMesas\IndexController@indexDiarios');
-Route::get('informeDiario/imprimir/{id_imp}','Mesas\InformesMesas\BCInformesController@imprimirDiario');
-Route::post('informeDiario/buscar','Mesas\InformesMesas\InformesController@filtrarDiarios');
-Route::get('/informeMensual','Mesas\InformesMesas\IndexController@indexMensuales');
-Route::post('informeMensual/buscar','Mesas\InformesMesas\InformesController@filtrarMensuales');
-Route::post('informeMensual/obtenerDatos','Mesas\InformesMesas\BCInformesController@obtenerDatosGraficos');
-Route::get('informeMensual/imprimir/{fecha}/{id_casino}','Mesas\InformesMesas\BCInformesController@imprimirMensual');
-
-
-Route::get('informeDiario/getDatos/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosAModificar');
-Route::get('informeDiario/getDatosImportacion/{id}','Mesas\InformesMesas\ModificarInformeDiarioController@obtenerDatosDetalle');
-Route::post('informeDiario/almacenarDatos','Mesas\InformesMesas\ModificarInformeDiarioController@almacenarDatos');
-
-
-
-Route::group(['middleware' => ['tiene_permiso:m_abmc_canon']], function () {
-  Route::get('/canon','Mesas\Canon\IndexController@index');
-  Route::post('canon/modificar','Mesas\Canon\ABMCCanonController@modificar');
-  Route::get('canon/obtenerCanon/{id_cas}','Mesas\Canon\ABMCCanonController@obtenerCanon');
-
+//informes fiscalizadores (compara Cierres contra Aperturas y verifica Apuestas Minimas)
+Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m_ver_seccion_informe_fiscalizadores'], function () {
+  Route::get('/','Mesas\InformeFiscalizadores\BCInformesController@index');
+  Route::post('/buscar', 'Mesas\InformeFiscalizadores\BCInformesController@filtros');
+  Route::post('//buscarInformes','Mesas\InformeFiscalizadores\BCInformesController@filtros');
+  Route::get('/imprimir/{id_informe_fiscalizacion}','Mesas\InformeFiscalizadores\BCInformesController@imprimirPlanilla');
 });
 
-Route::group(['middleware' => ['tiene_permiso:m_actualizar_canon']], function () {
-  Route::get('canon/generarTablaActualizacion1/{id}/{anio}','Mesas\Canon\ActualizarValoresController@forzarActualizacion');
+Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function (){
+  Route::get('/','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
+  Route::post('/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario')->middleware(['tiene_permiso:m_importar']);
+  Route::post('/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
+  Route::get('/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
+  Route::get('/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
+  Route::post('/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
+  Route::get('/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
+  Route::post('/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
+  Route::get('/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
 });
 
-Route::group(['middleware' => ['tiene_permiso:m_a_pagos']], function () {
-  Route::post('canon/guardarPago','Mesas\Canon\APagosController@crear');
-  Route::post('canon/modificarPago','Mesas\Canon\APagosController@modificar');
-
+Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anuales'],function (){
+  Route::get('/',function(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    return view('Informes.seccionInformesAnuales',['casinos'=>$usuario->casinos]);
+  });
+  Route::post('/obtenerDatos','Mesas\InformesMesas\BCAnualesController@buscarPorAnioCasinoMoneda');
 });
 
-Route::group(['middleware' => ['tiene_permiso:m_b_pagos']], function () {
-  Route::post('canon/buscarPagos','Mesas\Canon\BPagosController@filtros');
-  Route::get('canon/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-  Route::get('canon/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-  Route::post('canon/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_diario_mensual'],function(){
+  Route::get('/',function(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    return view('Informes.seccionInformesMensuales',['casinos'=>$usuario->casinos]);
+  });
+  Route::post('obtenerDatos','Mesas\InformesMesas\BCMensualesController@obtenerDatosGraficos');
+});
 
+
+Route::get('/canon','Mesas\Canon\BPagosController@index')->middleware(['tiene_permiso:m_ver_seccion_canon']);
+Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_a_pagos']], function () {
+  Route::post('/crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+  Route::delete('/borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+  Route::post('/modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+});
+Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_b_pagos']], function () {
+  Route::get('/getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+  Route::get('/mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+  Route::post('/buscarPagos','Mesas\Canon\BPagosController@filtros');
+  Route::get('/obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+  Route::get('/obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+  Route::get('/obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+  Route::post('/verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
 });
 
 Route::group(['middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {

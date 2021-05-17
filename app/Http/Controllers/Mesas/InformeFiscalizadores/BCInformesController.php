@@ -129,7 +129,7 @@ public function imprimirPlanilla($id_informe){
   $mesas_con_diferencia =json_decode($informe->mesas_con_diferencia);
   $fecha_maxima = Carbon::parse($informe->fecha)->addDays(150)->format("Y-m-d");
   $fecha_informe = Carbon::parse($informe->fecha)->format("Y-m-d");
-  //dd($fecha_maxima ,$fecha_informe);
+
   if($fecha_maxima >= $fecha_informe){
     $turnos_sin_minimo = DB::table('relevamiento_apuestas_mesas')
                                   ->select('nro_turno','id_estado_relevamiento')
@@ -170,7 +170,7 @@ public function imprimirPlanilla($id_informe){
 
     $controllerCA = new ABMCCierreAperturaController;
     $mesas_con_diferencia = json_encode($controllerCA->obtenerMesasConDiferencias($informe->fecha));
-    //
+
     $aperturas = Apertura::where('fecha','=',$informe->fecha)
                             ->where('id_estado_cierre','=',1)
                             ->where('id_casino','=',$informe->id_casino)
@@ -196,9 +196,7 @@ public function imprimirPlanilla($id_informe){
     $informe->cant_mesas_con_diferencia = count(json_decode($mesas_con_diferencia));
     $informe->cant_aperturas = $aperturas_totales;
     $informe->cant_cierres = $cierres_totales;
-    //dd($informe);
     $informe->save();
-
   }
   if(count($informe->minimos) == 0){
     $this->asociarMinimos($informe);

@@ -66,13 +66,8 @@ class NotaController extends Controller
     $nota->save();
 
     if(!empty($request['id_tipo_movimiento']) || $request['id_tipo_movimiento']!= 0 ){
-      if($request['id_tipo_movimiento'] != 3){//3=REINGRESO
-          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-          $nota->save();
-      }else{//es REINGRESO
-          $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-          $nota->save();
-      }
+      $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
+      $nota->save();
     }
     $nota->save();
   }

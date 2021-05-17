@@ -93,22 +93,11 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                 <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
                 <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
              </ul>
-              <ul class="nav nav-tabs nav-justified informesMes" id="informesMes" style=" width:70%;" hidden="true">
-                <li id="gestInformes" ><a href="#gestionInfoMes"  style="font-family:Roboto-condensed;font-size:20px; ">Informes Mensuales</a></li>
-                <li id="graficos"><a href="#graficosMes"  style="font-family:Roboto-condensed;font-size:20px;">Gráficos Mensuales</a></li>
-              </ul>
 
               <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
-                <li id="canon1" ><a href="#pant_canon_pagos"  style="font-family:Roboto-condensed;font-size:20px; ">Detalles Canon y Pagos</a></li>
-                <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Actualización Valores</a></li>
+                <li id="canon1" ><a href="#pant_canon_meses"  style="font-family:Roboto-condensed;font-size:20px; ">Recaudado Mensual (Bruto)</a></li>
+                <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Valor base y Canon</a></li>
               </ul>
-
-             <ul class="nav nav-tabs nav-justified pestImportaciones" id="pestImportaciones" style=" width:70%;" hidden="true">
-               <li id="imp_diaria" ><a href="#pest_diaria"  style="font-family:Roboto-condensed;font-size:20px; ">Importaciones Diarias</a></li>
-               @if(false)
-               <li id="imp_mensual"><a href="#pest_mensual" style="font-family:Roboto-condensed;font-size:20px;">Importaciones Mensuales</a></li>
-               @endif
-            </ul>
 
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
               <ul class="opcionesBarraSuperior" style=" width:20%;float:right;">
@@ -117,7 +106,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                   ?>
                   <li class="dropdown" id="marcaLeido" onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')" style="right:1%;">
-                    <!-- <a href="#" class="iconoBarraSuperior"><i class="fa fa-times"></i></a> -->
                     <!--Icono de notificaciones -->
 
                   <a href="#" id="notificaciones" style="text-decoration:none;position:relative;top:1px;" class="dropdown-toggle" data-toggle="dropdown" type="button">
@@ -788,7 +776,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                   <span class="icono" style="padding-bottom: 56px;">
                                     @svg('expedientes','iconoExpedientes')
                                   </span>
-                                  <span>Importaciones</span>
+                                  <span>Importaciones Diarias</span>
 
                               </div>
                           </li>
@@ -809,23 +797,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                               <!-- SEGUNDO NIVEL -->
                               <ul class="subMenu1 collapse" id="informes2">
                                 <li>
-                                  <div id="opcInfoDiario" class="opcionesHover"
-                                  @if(false) 
-                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiario'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
-                                  >
-                                    <span>Diario</span>
-                                  </div>
-                                </li>
-                                <li>
                                   <div id="opcInfoMensual" class="opcionesHover"
-                                  @if(false)
                                   onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
                                   >
                                     <span>Mensual</span>
                                   </div>
@@ -833,11 +806,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                                 <li>
                                   <div id="opcInfoInteranuales" class="opcionesHover"
-                                  @if(false)
                                   onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;"
-                                  @else
-                                  style="color:grey;"
-                                  @endif
                                   >
                                     <span>Anuales</span>
                                   </div>
@@ -848,11 +817,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_canon'))
                           <li>
                             <div id="barraCanon" class="opcionesHover" 
-                            @if(false)
                             onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;"
-                            @else
-                            style="color:grey;"
-                            @endif
                             >
                                 <span class="icono" style="padding-bottom: 56px;">
                                   @svg('bolsa_pesos','iconoCanon')

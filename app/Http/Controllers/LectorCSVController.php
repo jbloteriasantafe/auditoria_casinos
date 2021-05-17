@@ -514,10 +514,10 @@ class LectorCSVController extends Controller
   // y con esto se va agregado en los detalles_contadores
   // luego elimina los temporales
   public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$casino){
-
     $contador = new ContadorHorario;
     $contador->id_casino = $casino;
     $contador->cerrado = 0;
+    $contador->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $contador->save();
 
     $pdo = DB::connection('mysql')->getPdo();
@@ -614,10 +614,11 @@ class LectorCSVController extends Controller
   // como santa fe y melincue tiene en el archivo el beneficio en su ultima linea
   // tambien se crea el archivo de beneficio
   public function importarProducidoSantaFeMelincue($archivoCSV,$casino){
-
     $producido = new Producido;
     $producido->id_casino = $casino;
     $producido->validado = 0;
+    $md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->md5 = $md5; 
     $producido->save();
 
     $pdo = DB::connection('mysql')->getPdo();
@@ -728,6 +729,8 @@ class LectorCSVController extends Controller
             $pdo->exec($query);
           }
       }
+      $ben->md5 = $md5;
+      $ben->save();
     }
 
     $pdo=null;
@@ -789,8 +792,9 @@ class LectorCSVController extends Controller
                               valor = CAST(REPLACE(@9,',','.') as DECIMAL(15,2)),
               porcentaje_devolucion = 100*(CAST(REPLACE(@5,',','.') as DECIMAL(15,2)) + CAST(REPLACE(@6,',','.') as DECIMAL(15,2)))/(CAST(REPLACE(@4,',','.') as DECIMAL(15,2))),
                   cantidad_maquinas = '%d',
-               promedio_por_maquina = CAST(REPLACE(@9,',','.') as DECIMAL(15,2))/'%d'
-                      ",$path,$casino,"%Y%m%d",$cantidad_maquinas,$cantidad_maquinas);
+               promedio_por_maquina = CAST(REPLACE(@9,',','.') as DECIMAL(15,2))/'%d
+                                md5 = '%s'",$path,$casino,"%Y%m%d",$cantidad_maquinas,$cantidad_maquinas,
+                      DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash);
 
     $pdo->exec($query);
     //usar query en vez de exec
@@ -802,7 +806,7 @@ class LectorCSVController extends Controller
                               ->whereYear('fecha','=',$fecha[0])
                               ->whereMonth('fecha','=', $fecha[1])
                               ->get();
-      //['fecha','=',$ben->fecha]])->get();
+
       if($beneficios != null){
         foreach($beneficios as $beneficio){
           $query = sprintf(" DELETE FROM beneficio
@@ -824,11 +828,11 @@ class LectorCSVController extends Controller
   // creadito a plata, esta denominacion la toma del maestro de maquinas
   // se deja de manera estatica la denominacion que se tomo al momento de cargar
   public function importarContadorRosario($archivoCSV,$fecha,$id_tipo_moneda){
-
         $contador = new ContadorHorario;
         $contador->id_casino = 3;
         $contador->cerrado = 0;
         $contador->fecha = $fecha;
+        $contador->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
         $contador->id_tipo_moneda = $id_tipo_moneda;
         $contador->save();
 
@@ -944,6 +948,7 @@ class LectorCSVController extends Controller
     $producido = new Producido;
     $producido->id_casino = 3;
     $producido->validado = 0;
+    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
     $producido->fecha = $fecha;
 
     $producido->id_tipo_moneda = $id_tipo_moneda;
@@ -1051,26 +1056,7 @@ class LectorCSVController extends Controller
 
       DB::table('producido_temporal')->insert($arreglo_a_insertar); 
     } //FIN FORMA NUEVA
-    
-    /* FORMA VIEJA
-    {
-      $query = sprintf("LOAD DATA local INFILE '%s'
-                        INTO TABLE producido_temporal
-                        CHARACTER SET latin1
-                        FIELDS TERMINATED BY ';'
-                        OPTIONALLY ENCLOSED BY '\"'
-                        ESCAPED BY '\"'
-                        LINES TERMINATED BY '\\n'
-                        IGNORE %d LINES
-                        (@0,@1,@2,@3,@4)
-                        SET id_producido = '%d',
-                                  maquina = SUBSTRING(@1,1,4),
-                                    valor = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2))
-                        ",$path,$linIgnore,$producido->id_producido);
-
-      $pdo->exec($query);
-    }*/
-    
+        
     $query = sprintf("INSERT INTO detalle_producido (valor,id_maquina,id_producido)
                       SELECT prod.valor, mtm.id_maquina, prod.id_producido
                       FROM producido_temporal AS prod
@@ -1090,12 +1076,6 @@ class LectorCSVController extends Controller
     $pdo=null;
 
     // implementacion para contemplar los casos en que las mtms no reporten
-    /*$mtms= Maquina::select("id_maquina","nro_admin")
-                ->where("id_casino","=",3)
-                ->where("id_tipo_moneda","=",$id_tipo_moneda)
-                ->whereNull("deleted_at")
-                ->whereIn("id_estado_maquina",[1,2,4,5,6,7])
-                ->get();*/
     $mtms= Maquina::where(['id_casino','=',3],['id_tipo_moneda','=',$id_tipo_moneda])
     ->whereNull("deleted_at")->whereIn("id_estado_maquina",[1,2,4,5,6,7]);
 
@@ -1165,12 +1145,14 @@ class LectorCSVController extends Controller
                        ",$id_tipo_moneda,$id_beneficio);
     $pdo->exec($query);
 
-    $query = sprintf(" INSERT INTO beneficio (id_casino,fecha,coinin,coinout,valor,porcentaje_devolucion,cantidad_maquinas,promedio_por_maquina,id_tipo_moneda)
-                       SELECT 3,fecha,coinin,coinout,valor,IF(coinin = 0,0,coinout/coinin),'%d',(valor/'%d'),'%d'
+    $query = sprintf(" INSERT INTO beneficio (id_casino,fecha,coinin,coinout,valor,porcentaje_devolucion,cantidad_maquinas,promedio_por_maquina,id_tipo_moneda,md5)
+                       SELECT 3,fecha,coinin,coinout,valor,IF(coinin = 0,0,coinout/coinin),'%d',(valor/'%d'),'%d','%s'
                        FROM beneficio_temporal
                        WHERE id_beneficio = '%d'
                          AND fecha IS NOT NULL
-                       ",$cantidad_maquinas,$cantidad_maquinas,$id_tipo_moneda,$id_beneficio);
+                       ",$cantidad_maquinas,$cantidad_maquinas,$id_tipo_moneda,
+                       DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash,
+                       $id_beneficio);
 
     $pdo->exec($query);
 

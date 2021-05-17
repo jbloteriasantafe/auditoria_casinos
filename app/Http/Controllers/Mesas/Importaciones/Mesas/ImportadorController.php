@@ -61,14 +61,12 @@ class ImportadorController extends Controller
     'siglas' => 'Código de Identificación',
   ];
 
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
-  public function __construct()
-  {
-    $this->middleware(['tiene_permiso:m_importar']);//??
+  private static $instance;
+  public static function getInstancia() {
+    if (!isset(self::$instance)) {
+      self::$instance = new ImportadorController();
+    }
+    return self::$instance;
   }
 
   public function buscarTodo(){
@@ -314,5 +312,70 @@ public function importarDiario(Request $request){
     $dimp->observacion = $request->observacion;
     $dimp->save();
     return $dimp;
+  }
+
+  public function mensualPorMonedaPorJuego($id_casino,$date){
+    $por_moneda = array();
+    foreach(Moneda::all() as $moneda){
+      $detalles = ImportacionDiariaMesas::whereYear('fecha','=',$date[0])
+      ->whereMonth('fecha','=',$date[1])
+      ->where('id_casino','=',$id_casino)
+      ->where('id_moneda','=',$moneda->id_moneda)
+      ->whereNull('deleted_at')
+      ->orderBy('fecha','asc')->get()->toArray();//si no hago toArray me retorna vacio despues...
+      
+      if(count($detalles) == 0) continue;
+      
+      $total = DB::table('importacion_diaria_mesas as IDM')
+      ->whereYear('IDM.fecha','=',$date[0])->whereMonth('IDM.fecha','=',$date[1])
+      ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$moneda->id_moneda)
+      ->whereNull('IDM.deleted_at')
+      ->selectRaw('SUM(IDM.droop) as droop, SUM(IDM.retiros) as retiros, SUM(IDM.utilidad) as utilidad, SUM(IDM.saldo_fichas) as saldo_fichas,
+       "---" as hold, 0 as conversion_total')
+      ->groupBy('IDM.id_casino','IDM.id_moneda')
+      ->first();
+
+      if($total->droop != 0){
+        $total->hold = round(($total->utilidad * 100)/$total->droop,2);
+      }
+      foreach($detalles as $d) $total->conversion_total += $d['conversion_total'];
+
+      $juegos = DB::table('importacion_diaria_mesas as IDM')
+      ->join('detalle_importacion_diaria_mesas as DIDM','IDM.id_importacion_diaria_mesas','=','DIDM.id_importacion_diaria_mesas')
+      ->whereYear('IDM.fecha','=',$date[0])->whereMonth('IDM.fecha','=',$date[1])
+      ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$moneda->id_moneda)
+      ->whereNull('IDM.deleted_at')->whereNull('DIDM.deleted_at')
+      ->selectRaw('DIDM.siglas_juego, DIDM.nro_mesa, SUM(DIDM.utilidad) as utilidad')
+      ->groupBy('DIDM.siglas_juego','DIDM.nro_mesa')
+      ->orderBy('DIDM.siglas_juego','asc')
+      ->orderBy('DIDM.nro_mesa','asc')
+      ->get();
+
+      foreach($juegos as $j) $j->porcentaje = round(100*$j->utilidad/$total->utilidad,2);
+      
+      $por_moneda[] = [
+        'moneda' => $moneda->siglas,
+        'juegos' => $juegos,
+        'detalles' => $detalles,
+        'total' => $total,
+      ];
+    }
+    return $por_moneda;
+  }
+
+  public function imprimirMensual($fecha,$id_casino){
+    $casino = Casino::find($id_casino);
+    $date = explode('-',$fecha);
+    $mes = $date[0].'-'.$date[1];
+    $por_moneda = $this->mensualPorMonedaPorJuego($id_casino,$date);
+    $view = view('Informes.informeMes', compact('por_moneda','casino','mes'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view);
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$mes, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    return $dompdf->stream('informe_mensual_'.$casino->codigo."-".$mes.'.pdf', Array('Attachment'=>0));
   }
 }

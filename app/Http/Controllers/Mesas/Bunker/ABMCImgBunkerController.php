@@ -173,8 +173,6 @@ class ABMCImgBunkerController extends Controller
             ];
   }
 
-
-
   public function cargar(Request $request){
     $validator=  Validator::make($request->all(),[
       'id_imagenes_bunker' => 'required|exists:imagenes_bunker,id_imagenes_bunker',
@@ -187,7 +185,6 @@ class ABMCImgBunkerController extends Controller
       'detalles.*.drop_visto' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'detalles.*.minutos_video' => 'nullable|date_format:"H:i"',
       'detalles.*.diferencias' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-
     ], array(), self::$atributos)->after(function($validator){
       //falta agregar validaciones de minutos cuando el drop es != coso
       if(!empty($validator->getData()['detalles'])){
@@ -237,80 +234,53 @@ class ABMCImgBunkerController extends Controller
 
 
   public function filtros(Request $request){
-
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $cas = array();
-
     $filtros = array();
 
     if(!empty($request->identificacion)){
       $filtros[]= ['dib.nombre_cd','=',$request->identificacion];
     }
+
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = array();
+    foreach($user->casinos as $c) $cas[] = $c->id_casino;
     if(!empty($request->id_casino) && $request->id_casino != 0){
-      $cas[]= $request->id_casino;
-    }else{
-      foreach ($user->casinos as $cass) {
-        $cas[]=$cass->id_casino;
-      }
-    }
-    if(!empty( $request->sort_by)){
-      $sort_by = $request->sort_by;
-    }else{
-        $sort_by = ['columna' => 'img.created_at','orden'=>'desc'];
+      $filtros[]= ['img.id_casino','=',$request->id_casino];
     }
 
-    if(empty($request->mes)){
-      $resultados = DB::table('imagenes_bunker as img')
-                        ->select('img.*','casino.*')
-                ->leftJoin('detalle_img_bunker as dib','dib.id_imagenes_bunker',
-                            '=','img.id_imagenes_bunker')
-                ->join('casino','casino.id_casino','=','img.id_casino')
-                ->where($filtros)
-                ->whereIn('img.id_casino',$cas)
-                ->distinct('img.id_imagenes_bunker')
-                ->whereNull('img.deleted_at')
-                ->when($sort_by,function($query) use ($sort_by){
-                                return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                            })
-                ->paginate($request->page_size);
-    }else{
-      //$mes=explode("-",$request->mes);
-      $resultados = DB::table('imagenes_bunker as img')
-                        ->select('img.*','casino.*')
-                        ->leftJoin('detalle_img_bunker as dib','dib.id_imagenes_bunker',
-                                    '=','img.id_imagenes_bunker')
-                        ->join('casino','casino.id_casino','=','img.id_casino')
-                        ->where($filtros)
-                        ->whereIn('img.id_casino',$cas)
-                        ->where('img.mes_anio' , '=', $request->mes)
-                        ->whereNull('img.deleted_at')
-                        ->distinct('img.id_imagenes_bunker')
-                        ->when($sort_by,function($query) use ($sort_by){
-                                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                    })
-                        ->paginate($request->page_size);
+    if(!empty($request->mes)){
+      $filtros[]= ['img.mes_anio','=',$request->mes];
     }
+
+    $sort_by = ['columna' => 'img.created_at','orden'=>'desc'];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+    }
+
+    $resultados = DB::table('imagenes_bunker as img')
+    ->select('img.*','casino.*')
+    ->leftJoin('detalle_img_bunker as dib','dib.id_imagenes_bunker',
+                '=','img.id_imagenes_bunker')
+    ->join('casino','casino.id_casino','=','img.id_casino')
+    ->where($filtros)
+    ->whereIn('img.id_casino',$cas)
+    ->distinct('img.id_imagenes_bunker')
+    ->whereNull('img.deleted_at')
+    ->when($sort_by,function($query) use ($sort_by){
+                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+                })
+    ->paginate($request->page_size);
     return ['datos' => $resultados];
   }
 
   public function consultarDiferencias($drop,$id_detalle){
     $detalle = DetalleImgBunker::find($id_detalle);
-    if($detalle != null){
+    if(is_null($detalle)) return  ['diferencia' => 'DATOS INCORRECTOS'];
 
-      $importacion = DetalleImportacionDiariaMesas::where('id_mesa_de_panio','=',$detalle->id_mesa_de_panio)
-                          ->where('fecha','=',$detalle->fecha)
-                          ->get()->first();
-      if($importacion == null){
-        return ['diferencia' => $drop];
-      }else{
-        $diferencia = abs($drop - $importacion->droop);
-        return ['diferencia' => $diferencia];
-      }
-
-
-    }else{
-      return  ['diferencia' => 'DATOS INCORRECTOS'];
-    }
+    $importacion = DetalleImportacionDiariaMesas::where('id_mesa_de_panio','=',$detalle->id_mesa_de_panio)
+    ->join('importacion_diaria_mesas','importacion_diaria_mesas.id_importacion_diaria_mesas','=','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas')
+    ->join('cierre_mesa','cierre_mesa.id_cierre_mesa','=','detalle_importacion_diaria_mesas.id_cierre_mesa')
+    ->where('importacion_diaria_mesas.fecha','=',$detalle->fecha)->get()->first();
+    $importado_drop = is_null($importacion)? 0 : $importacion->droop;
+    return ['diferencia' => abs($drop - $importado_drop)];
   }
-
 }

@@ -1,17 +1,12 @@
 $(document).ready(function() {
+  $('.tituloSeccionPantalla').text('Mesas - Importaciones Diarias');
   $('#barraImportaciones').attr('aria-expanded','true');
-  $('.tituloSeccionPantalla').hide();
   $('#barraImportaciones').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#barraImportaciones').addClass('opcionesSeleccionado');
   $('#pestImportaciones').show();
   $('#pestImportaciones').css('display','inline-block');
-  //pestañas
-  $(".tab_content").hide(); //Hide all content
-  $("ul.pestImportaciones li:first").addClass("active").show(); //Activate first tab
-  $(".tab_content:first").show(); //Show first tab content
   
   limpiarFiltrosDiaria();
-  limpiarFiltrosMensual();
 
   $('#dtpFechaImp').datetimepicker({
     language:  'es',
@@ -44,31 +39,6 @@ function limpiarFiltrosDiaria(){
     ignoreReadonly: true,
   }).data('datetimepicker').setDate(new Date());
 }
-
-function limpiarFiltrosMensual(){
-  $('#filtroCasino').val($('#filtroCasino option:first').val());
-  $('#filtroMoneda').val($('#filtroMoneda option:first').val());
-}
-
-//PESTAÑAS
-$("ul.pestImportaciones li").click(function() {
-    $("ul.pestImportaciones li").removeClass("active"); //Remove any "active" class
-    $(this).addClass("active"); //Add "active" class to selected tab
-    $(".tab_content").hide(); //Hide all tab content
-
-    var activeTab = $(this).find("a").attr("href"); //Find the href attribute value to
-                //identify the active tab + content
-    if(activeTab == '#pest_mensual'){
-      limpiarFiltrosMensual();
-      $('#buscar-impMensuales').click();
-    }
-    else if(activeTab == '#pest_diaria'){
-      limpiarFiltrosDiaria();
-      $('#buscar-importacionesDiarias').click();
-    }
-    else return;
-    $(activeTab).fadeIn(); //Fade in the active ID content
-});
 
 $('#filtroCas').change(function() {
   $('#buscar-importacionesDiarias').click();
@@ -164,7 +134,12 @@ $('#btn-guardarDiario').on('click', function(e){
       $('#mensajeExito h3').text('ÉXITO');
       $('#mensajeExito p').text('El archivo fue importado');
       $('#mensajeExito').show();
+      const fecha = formData.get('fecha').split('-').join('/');
+      $('#dtpFecha').data('datetimepicker').setDate(new Date(fecha));
+      $('#filtroCas').val(formData.get('id_casino'));
+      $('#filtroMon').val(formData.get('id_moneda'));
       $('#buscar-importacionesDiarias').trigger('click',[1,10,'fecha','desc']);
+
     },
     error: function (data) {
       ///debería mostrar el mensaje y nada más.
@@ -235,6 +210,11 @@ $('#buscar-importacionesDiarias').click(function(e){
     },
     error: function(data){ console.log(data); },
   })
+});
+
+$('#btn-informeMensual').click(function(e){
+  e.preventDefault();
+  window.open('importacionDiaria/imprimirMensual/' + $('#dtpFecha_hidden').val() + '/' + $('#filtroCas').val(),'_blank');
 });
 
 function generarFilaImportaciones(casino,moneda,imp){

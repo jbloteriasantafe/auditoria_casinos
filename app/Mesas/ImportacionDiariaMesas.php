@@ -22,15 +22,15 @@ class ImportacionDiariaMesas extends Model
                              'saldo_fichas',
                              'cotizacion',
                              'observacion',
-                             'hold_diario',//dinamico
+                             'hold',//dinamico
                              'conversion_total',//dinamico
                              'saldo_fichas_relevado',//dinamico
                              'diferencia_saldo_fichas',//dinamico
                              'ajuste_fichas',//dinamico
                            );
-  protected $appends = array('hold_diario','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
+  protected $appends = array('hold','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
 
-  public function getHoldDiarioAttribute(){
+  public function getHoldAttribute(){
      if($this->droop != 0){
        return round(($this->utilidad * 100)/$this->droop,2);
      }else{
@@ -40,7 +40,7 @@ class ImportacionDiariaMesas extends Model
 
   public function getConversionTotalAttribute(){
      if($this->cotizacion != 0 && $this->cotizacion != null){
-       return round($this->cotizacion * $this->utilidad_diaria_total,3);
+       return round($this->cotizacion * $this->utilidad,3);
      }else{
        return '--';
      }

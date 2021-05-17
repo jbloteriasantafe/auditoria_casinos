@@ -132,7 +132,7 @@ class DetalleImportacionDiariaMesas extends Model
     $fecha = $imp->fecha;
     $id_moneda = $imp->id_moneda;
     $cierre =  Cierre::where([['fecha','<',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->first();
+    ->whereNull('deleted_at')->orderBy('fecha','desc')->first();
 
     if(!is_null($cierre)){
       $this->id_cierre_mesa_anterior = $cierre->id_cierre_mesa;

@@ -2,9 +2,12 @@
 namespace App\Autoexclusion;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContactoAE extends Model
 {
+  use SoftDeletes;
+
   protected $connection = 'mysql';
   protected $table = 'ae_datos_contacto';
   protected $primaryKey = 'id_datos_contacto';
@@ -17,8 +20,6 @@ class ContactoAE extends Model
                               'nombre_localidad','nombre_provincia',
                               'telefono', 'vinculo',
                               'domicilio',   'id_autoexcluido'];
-
-  public $timestamps = false;
 
   public function ae(){
     return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');

@@ -75,7 +75,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
-
   <body>
     @foreach ($relevamientos as $idx_rel => $relevamiento)
     @foreach ($relevamiento->tomas as $idx_toma => $toma)

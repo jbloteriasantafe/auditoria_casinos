@@ -489,11 +489,7 @@ $(document).on('click', '.desvincular', function(e){
 });
 
 $(document).on('click', '#btn-desvincular', function(e){
-
-  var id=$(this).val();
-
-  $.get('aperturas/desvincularApertura/' + id, function(data){
-
+  $.get('aperturas/desvincularApertura/' + $(this).val(), function(data){
     if(data==1){
       $('#modalDesvinculacion').modal('hide');
       $('#mensajeExito p').text('Se ha desvinculado el cierre de esta Apertura.');
