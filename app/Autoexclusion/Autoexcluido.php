@@ -75,6 +75,9 @@ class Autoexcluido extends Model
     return $this->hasOne('App\Autoexclusion\Encuesta','id_autoexcluido','id_autoexcluido');
   }
 
+  public function sexo(){
+    return $this->belongsTo('App\Autoexclusion\SexoAE','id_sexo','id_sexo');
+  }
   public function ocupacion(){
     return $this->belongsTo('App\Autoexclusion\OcupacionAE','id_ocupacion','id_ocupacion');
   }

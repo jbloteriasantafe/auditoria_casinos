@@ -8,7 +8,7 @@ class OcupacionAE extends Model
   protected $connection = 'mysql';
   protected $table = 'ae_ocupacion';
   protected $primaryKey = 'id_ocupacion';
-  protected $visible = array('id_ocupacion','nombre');
+  protected $visible = array('id_ocupacion','nombre','codigo');
   public $timestamps = false;
 
   public function autoexcluidos(){

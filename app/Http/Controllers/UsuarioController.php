@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Response;
+use App\APIToken;
 use App\Usuario;
 use App\Rol;
 use App\Casino;
@@ -405,8 +406,14 @@ class UsuarioController extends Controller
     return $rta;
   }
 
-  public function quienSoy(){
-    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
+  public function quienSoy($token = null){
+    $id_usuario = session('id_usuario');
+    if(!is_null($token)){
+      $api_token = APIToken::where('ip',request()->ip())->where('token',$token)->get()->first();
+      if(is_null($api_token)) return ['usuario' => null];
+      $id_usuario = $api_token->id_usuario;
+    }
+    $usuario = $this->buscarUsuario($id_usuario)['usuario'];
     return ['usuario' => $usuario];
   }
 
