@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Response;
-use App\APIToken;
 use App\Usuario;
 use App\Rol;
 use App\Casino;
@@ -15,6 +14,7 @@ use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
+use App\Http\Controllers\AuthenticationController;
 
 class UsuarioController extends Controller
 {
@@ -284,6 +284,8 @@ class UsuarioController extends Controller
 
   //sin la session iniciada usa esta funcion ----
   public function buscarUsuario($id_usuario){
+    //@BUG si id_usuario = 0
+    if(empty($id_usuario) && $id_usuario !== 0) return ['usuario' => null, 'roles' => null, 'casinos' => null];
     $usuario = Usuario::find($id_usuario);
     return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
   }
@@ -406,13 +408,8 @@ class UsuarioController extends Controller
     return $rta;
   }
 
-  public function quienSoy($token = null){
-    $id_usuario = session('id_usuario');
-    if(!is_null($token)){
-      $api_token = APIToken::where('ip',request()->ip())->where('token',$token)->get()->first();
-      if(is_null($api_token)) return ['usuario' => null];
-      $id_usuario = $api_token->id_usuario;
-    }
+  public function quienSoy(){
+    $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
     $usuario = $this->buscarUsuario($id_usuario)['usuario'];
     return ['usuario' => $usuario];
   }

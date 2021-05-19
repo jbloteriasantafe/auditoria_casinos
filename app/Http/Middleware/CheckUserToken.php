@@ -28,14 +28,12 @@ class CheckUserToken
       if($url == 'API'){
         //Si accede una URL con prefijo API y no esta logeado, no verifico el usuario
         //verifico el token e ip.
-        $path = explode('/',$request->path());
-        if(count($path) > 2){
-          $token = $path[1];
-          $ip = $request->ip();
-          $esta_en_bd = APIToken::where('ip',$ip)->where('token',$token)->count() > 0;
-          if($esta_en_bd) return $next($request);
-        }
-        return response()->json(['mensaje' => 'Token o IP invalida.'],422,[['Content-Type', 'application/json']]);
+        $token = $request->header('API-Token');
+        $ip = $request->ip();
+        $esta_en_bd = APIToken::where('ip',$ip)->where('token',$token)->count() > 0;
+        
+        if($esta_en_bd) return $next($request);
+        return response()->json(['error' => 'Token o IP invalida.'],422,[['Content-Type', 'application/json']]);
       }
 
       $token = $request->session()->has('token') ? $request->session()->get('token') : null;

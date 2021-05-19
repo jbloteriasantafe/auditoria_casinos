@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Autoexclusion;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
 use Dompdf\Dompdf;
 use View;
 use Validator;
@@ -548,8 +549,8 @@ class AutoexclusionController extends Controller
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
-  public function cambiarEstadoAE($id,$id_estado,$token = null){
-    $usuario = UsuarioController::getInstancia()->quienSoy($token)['usuario'];
+  public function cambiarEstadoAE($id,$id_estado){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae = AE\Autoexcluido::find($id);
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
     $estado = $ae->estado;
@@ -630,7 +631,7 @@ class AutoexclusionController extends Controller
     return 1;
   }
 
-  public function API_fechas(Request $request,string $token,string $dni){
+  public function API_fechas(Request $request,string $dni){
     $id = $this->existeAutoexcluido($dni);
     //0 No tuvo, -1 Ya tuvo y estan vencidos
     if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
@@ -648,24 +649,24 @@ class AutoexclusionController extends Controller
     return $ret;
   }
 
-  public function API_finalizar(Request $request,string $token,string $dni){
+  public function API_finalizar(Request $request,string $dni){
     $id = $this->existeAutoexcluido($dni);
     if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
-    $ret = $this->cambiarEstadoAE($id,4,$token);//Fin. por AE
+    $ret = $this->cambiarEstadoAE($id,4);//Fin. por AE
     return $ret !== 1? $ret : response()->json('Finalizado',200);
   }
 
-  public function API_agregar(Request $request,string $token){
-    $user = UsuarioController::getInstancia()->quienSoy($token)['usuario'];
+  public function API_agregar(Request $request){
+    $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
 
-    Validator::make($request->all(), [
+    $validator = Validator::make($request->all(), [
       'ae_datos.nro_dni'          => 'required|integer',
       'ae_datos.apellido'         => 'required|string|max:100',
       'ae_datos.nombres'          => 'required|string|max:150',
       'ae_datos.fecha_nacimiento' => 'required|date',
       'ae_datos.sexo'             => 'required|string|max:4|exists:ae_sexo,codigo',
       'ae_datos.domicilio'        => 'required|string|max:100',
-      'ae_datos.nro_domicilio'    => 'required|string|max:11',
+      'ae_datos.nro_domicilio'    => 'required|integer',
       'ae_datos.piso'             => 'nullable|string|max:5',
       'ae_datos.dpto'             => 'nullable|string|max:5',
       'ae_datos.codigo_postal'    => 'nullable|string|max:10',
@@ -684,14 +685,17 @@ class AutoexclusionController extends Controller
       if($id > 0){
         return $validator->errors()->add('nro_dni','AE VIGENTE');
       }
-    })->validate();
+    });
+
+    if($validator->errors()->any()) return $this->errorOut($validator->errors());
+
 
     $except = ['sexo'         => ['id_sexo',        'ae_sexo'],
                'ocupacion'    => ['id_ocupacion',   'ae_ocupacion'],
                'capacitacion' => ['id_capacitacion','ae_capacitacion'],
                'estado_civil' => ['id_estado_civil','ae_estado_civil']];
 
-    DB::transaction(function() use($request,$user,$except){
+    DB::transaction(function() use($request,$api_token,$except){
       $ae = new AE\Autoexcluido;
       $ae_datos = $request['ae_datos'];
 
@@ -711,14 +715,14 @@ class AutoexclusionController extends Controller
       $contacto->save();
 
       $ae_estado = $request['ae_estado'];
-      $ae_estado['id_usuario'] = $user->id_usuario;
+      $ae_estado['id_usuario'] = $api_token->usuario->id_usuario;
+      $ae_estado['id_nombre_estado'] = 1;//Vigente
+      $ae_estado['id_plataforma'] = $api_token->id_plataforma;
       $this->setearEstado($ae,$ae_estado);
-      $estado->save();
-
       $this->subirImportacionArchivos($ae,[]);
     });
 
-    return $ae;
+    return 1;
   }
 
   private function errorOut($map){

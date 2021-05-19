@@ -899,7 +899,7 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('/mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
 });
 
-Route::group(['prefix' =>'API/{token}/'],function(){
+Route::group(['prefix' =>'API/'],function(){
   Route::group(['prefix' => 'AE'],function(){
     Route::get('/',function(){//Para probar el acceso
       return 1;

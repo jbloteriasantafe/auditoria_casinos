@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
+use App\APIToken;
 
 class AuthenticationController extends Controller
 {
@@ -123,5 +124,22 @@ class AuthenticationController extends Controller
 
     $data = json_encode($retorno);
     return $data;
+  }
+
+  public function obtenerIdUsuario(){
+    $id_usuario = request()->session()->has('id_usuario') ? request()->session()->get('id_usuario') : null;
+    if(is_null($id_usuario)){
+      $api_token = $this->obtenerAPIToken();
+      if(!is_null($api_token)){
+        $id_usuario = $api_token->id_usuario;
+      }
+    }
+    return $id_usuario;
+  }
+
+  public function obtenerAPIToken(){
+    $APIToken = request()->header('API-Token');
+    $api_token = APIToken::where('ip',request()->ip())->where('token',$APIToken)->orderBy('id_api_token','asc')->get()->first();
+    return $api_token;
   }
 }
