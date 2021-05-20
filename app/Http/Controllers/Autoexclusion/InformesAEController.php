@@ -127,6 +127,11 @@ class InformesAEController extends Controller
         ->where($reglas)
         ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at');
 
+      if(!is_null($request->finalizo)){
+          if($request->finalizo) $resultados = $resultados->whereNotNull('ae_estado.fecha_revocacion_ae');
+          else                   $resultados = $resultados->whereNull('ae_estado.fecha_revocacion_ae');
+      }
+
       if(!empty($request->dia_semanal)){
         $resultados = $resultados->whereRaw('WEEKDAY(ae_estado.fecha_ae) = ?',$request->dia_semanal - 1);
       }

@@ -305,6 +305,10 @@ class AutoexclusionController extends Controller
       $estado->fecha_renovacion  = (clone $fecha_ae)->modify('+149 day')->format('Y-m-d');
       $estado->fecha_vencimiento = (clone $fecha_ae)->modify('+179 day')->format('Y-m-d');
       $estado->fecha_cierre_ae   = (clone $fecha_ae)->modify('+364 day')->format('Y-m-d');
+      $estado->fecha_revocacion_ae = null;
+      if($estado->id_nombre_estado == 4){//Fin por AE
+        $estado->fecha_revocacion_ae = date('Y-m-d');
+      }
       $estado->save();
     }
  
@@ -389,7 +393,7 @@ class AutoexclusionController extends Controller
     $todos_vencidos = true;
     foreach($aes as $ae){
       $e = $ae->estado;
-      $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+      $vencido = $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
       $todos_vencidos = $vencido && $todos_vencidos;
       if(!$todos_vencidos) break;
     }
@@ -517,6 +521,11 @@ class AutoexclusionController extends Controller
       'fecha_cierre_definitivo' => date('d/m/Y', strtotime($ae->estado->fecha_cierre_ae))
     );
 
+    //Si revoco, le permitimos entrar a partir de la fecha del vencimiento
+    if(!is_null($ae->estado->fecha_revocacion_ae)){
+      $datos['fecha_cierre_definitivo'] = date('d/m/Y',strtotime($ae->estado->fecha_vencimiento));
+    }
+
     $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -580,7 +589,7 @@ class AutoexclusionController extends Controller
   public function actualizarVencidosRenovados(){
     DB::transaction(function (){
       $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->get();
-      foreach($vigentes as $v){
+      foreach($vigentes as $v){//Vigentes que pasan a renovados por 1er AE o que vencieron
         $ae = $v->ae;
         $nuevo_estado = $ae->estado_transicionable;
         //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
@@ -588,21 +597,20 @@ class AutoexclusionController extends Controller
           $v->id_nombre_estado = 2;
           $v->save();
         }
-        if($nuevo_estado == 5){//Vencido, para las segundas o + AEs en general
+        if($nuevo_estado == 5){//Vencido
           $v->id_nombre_estado = 5;
           $v->save();
         }
       }
     });
-    DB::transaction(function (){
-      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7])->get();
-      foreach($renovados as $r){
-        $ae = $r->ae;
+    DB::transaction(function (){//Renovados que vencieron a los 12 meses o finalizados que vencieron a los 6 meses
+      $renovados_y_finalizados = AE\EstadoAE::whereIn('id_nombre_estado',[2,4])->get();
+      foreach($renovados_y_finalizados as $e){
+        $ae = $e->ae;
         $nuevo_estado = $ae->estado_transicionable;
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
         if($nuevo_estado == 5){//Vencido
-          $r->id_nombre_estado = 5;
-          $r->save();
+          $e->id_nombre_estado = 5;
+          $e->save();
         }
       }
     });
@@ -722,7 +730,7 @@ class AutoexclusionController extends Controller
       $this->subirImportacionArchivos($ae,[]);
     });
 
-    return 1;
+    return response()->json('Agregado',200);
   }
 
   private function errorOut($map){

@@ -873,19 +873,6 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::get('/{dni?}','Autoexclusion\AutoexclusionController@index');
 });
 
-Route::group(['prefix' => 'vencimientos','middleware' => 'tiene_permiso:ver_seccion_ae_vencimientos'], function () {
-  Route::get('/','Autoexclusion\VencimientosController@todo');
-  Route::get('/buscarAutoexcluidos','Autoexclusion\VencimientosController@buscarAutoexcluidos');
-  Route::get('/imprimirFormularioFinalizacion/{id}','Autoexclusion\VencimientosController@imprimirFormularioFinalizacion');
-  Route::post('/finalizarAutoexclusion','Autoexclusion\VencimientosController@finalizarAutoexclusion');
-});
-
-Route::group(['prefix' => 'autoexclusionesFinalizadas','middleware' => 'tiene_permiso:ver_seccion_ae_finalizadas'], function () {
-  Route::get('/','Autoexclusion\AutoexclusionesFinalizadasController@todo');
-  Route::get('/buscarAutoexcluidos','Autoexclusion\AutoexclusionesFinalizadasController@buscarAutoexcluidos');
-  Route::get('/verSolicitudFinalizacion/{id_autoexcluido}','Autoexclusion\AutoexclusionesFinalizadasController@verSolicitudFinalizacion');
-});
-
 Route::group(['prefix' => 'informesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_listado'], function () {
   Route::get('/','Autoexclusion\InformesAEController@todo');
   Route::get('/buscarAutoexcluidos','Autoexclusion\InformesAEController@buscarAutoexcluidos');
