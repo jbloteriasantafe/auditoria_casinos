@@ -576,6 +576,10 @@ class AutoexclusionController extends Controller
       return $this->errorOut(['id_autoexcluido' => 'No puede cambiar a ese estado']);
     }
 
+    if($estado->id_nombre_estado == $id_estado){
+      return $this->errorOut(['id_autoexcluido' => 'Ya se encuentra en ese estado']);
+    }
+
     if($id_estado == 4){//Si es fin por AE guardo la fecha que lo pidio revocar.
       $estado->fecha_revocacion_ae = date('Y-m-d');
     }
@@ -653,6 +657,7 @@ class AutoexclusionController extends Controller
     if($ae->es_primer_ae){
       $ret['fecha_renovacion']  = $e->fecha_renovacion;
       $ret['fecha_vencimiento'] = $e->fecha_vencimiento;
+      if(!is_null($e->fecha_revocacion_ae)) $ret['fecha_revocacion_ae'] = $e->fecha_revocacion_ae;
     }
     return $ret;
   }
