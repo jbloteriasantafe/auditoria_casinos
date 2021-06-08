@@ -663,6 +663,10 @@ class LectorCSVController extends Controller
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
     if($producidos != null){
       foreach($producidos as $prod){
+        $query = sprintf(" DELETE FROM ajuste_temporal_producido
+                           WHERE id_producido = '%d'",$prod->id_producido);
+        $pdo->exec($query);    
+
         $query = sprintf(" DELETE FROM ajuste_producido
                            WHERE id_detalle_producido IN (
                              SELECT id_detalle_producido
@@ -967,6 +971,10 @@ class LectorCSVController extends Controller
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',3],['fecha','=',$producido->fecha],['id_tipo_moneda',$id_tipo_moneda]])->get();
     if($producidos != null){
       foreach($producidos as $prod){
+        $query = sprintf(" DELETE FROM ajuste_temporal_producido
+                           WHERE id_producido = '%d'",$prod->id_producido);
+        $pdo->exec($query);    
+
         $query = sprintf(" DELETE FROM ajuste_producido
                            WHERE id_detalle_producido IN (
                              SELECT id_detalle_producido

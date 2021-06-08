@@ -159,6 +159,19 @@ class ProducidoController extends Controller
                    })->validate();
 
      $pdo = DB::connection('mysql')->getPdo();
+      
+     $query = sprintf(" DELETE FROM ajuste_temporal_producido
+                        WHERE id_producido = '%d'",$prod->id_producido);
+     $pdo->exec($query);                     
+
+     $query = sprintf(" DELETE FROM ajuste_producido
+     WHERE id_detalle_producido IN (
+       SELECT id_detalle_producido
+       FROM detalle_producido
+       WHERE id_producido = '%d'
+     )",$prod->id_producido);
+
+     $pdo->exec($query);
 
      $query = sprintf(" DELETE FROM detalle_producido
                         WHERE id_producido = '%d'
@@ -196,16 +209,6 @@ class ProducidoController extends Controller
     $producido=Producido::find($id_producido);
     $casino=$producido->casino->id_casino;
     $fecha_fin= date('Y-m-d' , strtotime($producido->fecha. ' + 1 days'));
-
-    // $pdo = DB::connection('mysql')->getPdo();
-    //
-    // $primera_vez=0;
-    //
-    // $query = sprintf(self::$string_query , $id_producido,$fecha_fin);
-    // $resultados=$pdo->query($query);
-    //
-    // $conDiferencia=array();
-    //dd($id_maquina);
     $tipos_ajuste = TipoAjuste::all();
     $pdo = DB::connection('mysql')->getPdo();
 
@@ -228,15 +231,14 @@ class ProducidoController extends Controller
                         'id_detalle_contador_inicial' => $ajusteTemporal->id_detalle_contador_inicial,
                         'id_detalle_contador_final' => $ajusteTemporal->id_detalle_contador_final,
                         'coinin_inicio' => $ajusteTemporal->coinin_ini,
-                        'coinout_inicio' => $ajusteTemporal->coinuot_ini,
+                        'coinout_inicio' => $ajusteTemporal->coinout_ini,
                         'jackpot_inicio' => $ajusteTemporal->jackpot_ini,
                         'progresivo_inicio' => $ajusteTemporal->progresivo_ini,
                         'coinin_final' => $ajusteTemporal->coinin_fin,
-                        'coinout_final' =>  $ajusteTemporal->coinuot_fin,
+                        'coinout_final' =>  $ajusteTemporal->coinout_fin,
                         'jackpot_final' => $ajusteTemporal->jackpot_fin,
                         'progresivo_final' =>$ajusteTemporal->progresivo_fin,
                         'producido_dinero' => $ajusteTemporal->producido_sistema,
-                        //'producido_cred' => $ajusteTemporal->, lo saque porque front no lo usa y para guardar tampoco en back
                         'denominacion' => $mtm->denominacion,
                         'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
                         'diferencia' => $ajusteTemporal->diferencia,
@@ -246,35 +248,30 @@ class ProducidoController extends Controller
               'id_contador_final' => $ajusteTemporal->id_contador_final,
               'id_contador_inicial' => $ajusteTemporal->id_contador_inicial ,
               'tipos_ajuste' => $tipos_ajuste,
-              //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
-            ];
-    }else{
-
-      foreach ($mtm_datos as $row) {
-          $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
-                                                  $row['id_detalle_producido'],
-                                                  $row['id_detalle_contador_inicial'],
-                                                  $row['id_detalle_contador_final'],
-                                                  $row['coinin_ini'],$row['coinout_ini'],
-                                                  $row['jackpot_ini'],$row['progresivo_ini'],
-                                                  $row['coinin_fin'],$row['coinout_fin'],
-                                                  $row['jackpot_fin'],$row['progresivo_fin'],
-                                                  $row['valor_producido'],$row['denominacion'], $row['denominacion_carga_inicial'],$row['denominacion_carga_final']
-                                                );
-          if(!empty($diferencia))
-          {
-            $conDiferencia[]=$diferencia;
-          }
-          $id_contador_final = $row['id_contador_final'];
-          $id_contador_inicial = $row['id_contador_inicial'];
-      }
-      return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_final' => $id_contador_final,
-              'id_contador_inicial' => $id_contador_inicial ,
-              'tipos_ajuste' => $tipos_ajuste,
-              //'validado' => ['estaValidado' => $validado , 'producido_fin' => $id_final]
             ];
     }
+    foreach ($mtm_datos as $row) {
+        $diferencia = $this->calcularDiferencia($casino,$row['id_maquina'],$row['nro_admin'],
+                                                $row['id_detalle_producido'],
+                                                $row['id_detalle_contador_inicial'],
+                                                $row['id_detalle_contador_final'],
+                                                $row['coinin_ini'],$row['coinout_ini'],
+                                                $row['jackpot_ini'],$row['progresivo_ini'],
+                                                $row['coinin_fin'],$row['coinout_fin'],
+                                                $row['jackpot_fin'],$row['progresivo_fin'],
+                                                $row['valor_producido'],$row['denominacion'], $row['denominacion_carga_inicial'],$row['denominacion_carga_final']
+                                              );
+        if(!empty($diferencia)){
+          $conDiferencia[]=$diferencia;
+        }
+        $id_contador_final = $row['id_contador_final'];
+        $id_contador_inicial = $row['id_contador_inicial'];
+    }
+    return ['producidos_con_diferencia' => $conDiferencia,
+            'id_contador_final' => $id_contador_final,
+            'id_contador_inicial' => $id_contador_inicial ,
+            'tipos_ajuste' => $tipos_ajuste,
+          ];
   }
 
   // ajustarProducido
@@ -586,7 +583,6 @@ class ProducidoController extends Controller
   // guardarAjuste guarda el ajuste realizado por el auditor
   // solo se guarda si luego del ajuste , la diferencia es nula, es decir, es correto el ajuste
   public function guardarAjuste(Request $request){
-
       Validator::make($request->all(), [
               'producidos_ajustados' => 'nullable',
               'producidos_ajustados.*.coinin_inicial' => 'required|integer',
@@ -603,15 +599,7 @@ class ProducidoController extends Controller
               'producidos_ajustados.*.producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
               'producidos_ajustados.*.prodObservaciones' => 'nullable',
               'estado' => 'required',//3 finalizado, 2 pausa
-              //'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda'
-      ], array(), self::$atributos)->after(function($validator){
-        //consistencia de maquina y fecha. puede que id_detalle_contador_final e id_detalle_contador_inicial
-        // $validator->getData()['id_detalle_producido'];
-        // foreach ($validator->getData()['producidos'] as $un_detalle_ajustado) {
-        //   if($un_detalle_ajustado['id_detalle_contador_final'] != 0  )
-        // }
-
-      })->validate();
+      ], array(), self::$atributos)->after(function($validator){})->validate();
       $index=0;
       $resultados=array();
       $errores=array();
