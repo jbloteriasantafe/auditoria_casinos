@@ -662,29 +662,8 @@ class LectorCSVController extends Controller
     //si ya hay producidos para esa fecha pero aun no esta validado primero borra todos los detalles producido y luego el producido
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
     if($producidos != null){
-      foreach($producidos as $prod){
-        $query = sprintf(" DELETE FROM ajuste_temporal_producido
-                           WHERE id_producido = '%d'",$prod->id_producido);
-        $pdo->exec($query);    
-
-        $query = sprintf(" DELETE FROM ajuste_producido
-                           WHERE id_detalle_producido IN (
-                             SELECT id_detalle_producido
-                             FROM detalle_producido
-                             WHERE id_producido = '%d'
-                           )",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM detalle_producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-      }
+      $pc = ProducidoController::getInstancia();
+      foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
     }
 
     $query = sprintf(" INSERT INTO detalle_producido (valor,id_maquina,id_producido)
@@ -966,35 +945,14 @@ class LectorCSVController extends Controller
     $producido->id_tipo_moneda = $id_tipo_moneda;
     $producido->save();
 
-    $pdo = DB::connection('mysql')->getPdo();
-    DB::connection()->disableQueryLog();
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',3],['fecha','=',$producido->fecha],['id_tipo_moneda',$id_tipo_moneda]])->get();
     if($producidos != null){
-      foreach($producidos as $prod){
-        $query = sprintf(" DELETE FROM ajuste_temporal_producido
-                           WHERE id_producido = '%d'",$prod->id_producido);
-        $pdo->exec($query);    
-
-        $query = sprintf(" DELETE FROM ajuste_producido
-                           WHERE id_detalle_producido IN (
-                             SELECT id_detalle_producido
-                             FROM detalle_producido
-                             WHERE id_producido = '%d'
-                           )",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM detalle_producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-      }
+      $pc = ProducidoController::getInstancia();
+      foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
     }
 
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
 
     $path = $archivoCSV->getRealPath();
 

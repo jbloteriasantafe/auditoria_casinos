@@ -108,7 +108,6 @@ use Illuminate\Http\Request;
                         </tr>
                       </thead>
                       <tbody style="height: 350px;">
-
                       </tbody>
                     </table>
                   </div>
@@ -119,57 +118,20 @@ use Illuminate\Http\Request;
             <!-- /.col-lg-12 col-xl-9 -->
             <div class="col-lg-12 col-xl-3">
               <div class="row">
-                @foreach($ultimos as $p_a_validar)
-                @if($p_a_validar['producido']!=null && empty($p_a_validar['validado']))
-                <div class="col-lg-12">
-                 <a href="" class="btn-ajustar" style="text-decoration: none;" value="{{$p_a_validar['producido']->id_casino}}" data-producido="{{$p_a_validar['producido']->id_producido}}">
-                  <div class="panel panel-default panelBotonNuevo">
-                      <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                      <div class="backgroundNuevo"></div>
-                      <div class="row">
-                          <div class="col-xs-12">
-                            <center>
-                                <h5 class="txtLogo">+<span style="font-size:100px; position:relative; top:-8px;">{{$p_a_validar['descripcion']}}</span></h5>
-                                <h4 class="txtNuevo">AJUSTAR ÚLTIMO PRODUCIDO</h4>
-                            </center>
-                          </div>
-                      </div>
-                  </div>
-                 </a>
-                </div>
-                @endif
-                @endforeach
-              </div>
-
-              <div class="row">
                 <div class="col-lg-12">
                   <a href="importaciones" style="text-decoration:none;">
-                      <div class="tarjetaSeccionMenor" align="center">
-                        <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
-                        <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                        <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                      </div>
-                  </a>
-                  <!-- <a href="importaciones" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor">
-                        <div class="imagenSeccionMenor" >
-                            <img src="/img/tarjetas/resoluciones.jpg" alt="">
-                        </div>
-                        <div class="fondoSeccionMenor">
-                            <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                            <img width="180" class="iconoSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                        </div>
+                    <div class="tarjetaSeccionMenor" align="center">
+                      <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
+                      <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
+                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
                     </div>
-                  </a> -->
+                  </a>
                 </div>
               </div>
-
             </div>
         </div>  <!-- /#row -->
 
-
 <!--Modal nuevo para ajustes-->
-
 <div class="modal fade" id="modalCargaProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 60%;">
     <div class="modal-content" >
@@ -467,10 +429,7 @@ use Illuminate\Http\Request;
     @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
-
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
-
-
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
