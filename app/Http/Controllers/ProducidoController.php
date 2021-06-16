@@ -26,6 +26,36 @@ class ProducidoController extends Controller
   private static $atributos=[];
 
   private function queryDP($id_producido){
+    //la denominacion carga es la que se utilizo para convertir a plata al momento de importar, la denominacion sale de la que tenia la maquina al importarte que no necesariamente es la misma al momento de validar producido
+    //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
+    //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
+    
+    //Lo paso a creditos, en Rosario se usa "denominacion_carga" porque se toma la que esta al momento al importar
+    //En SantaFe/Mel uso la de la maquina (tiene denominacion_carga = 1 por defecto)
+    //Como la division es de izquierda a derecha, termina pasando a creditos
+    //x/denominacion_carga/denominacion
+    //Si es de SantaFe Melinque => x/1/denominacion = x/denominacion
+    //Si es de Rosario => x/denominacion_carga/1 = x/denominacion_carga
+
+    $a_credito_ini = 'IFNULL(dc_ini.denominacion_carga,1.0)/IF(p.id_casino = 3,1.0,m.denominacion)';
+    $coinin_ini = 'IFNULL(dc_ini.coinin,.0)/'.$a_credito_ini;
+    $coinout_ini = 'IFNULL(dc_ini.coinout,.0)/'.$a_credito_ini;
+    $jackpot_ini = 'IFNULL(dc_ini.jackpot,.0)/'.$a_credito_ini;
+    $progresivo_ini = 'IFNULL(dc_ini.progresivo,.0)/'.$a_credito_ini;
+    $a_credito_fin = 'IFNULL(dc_fin.denominacion_carga,1.0)/IF(p.id_casino = 3,1.0,m.denominacion)';
+    $coinin_fin = 'IFNULL(dc_fin.coinin,.0)/'.$a_credito_fin;
+    $coinout_fin = 'IFNULL(dc_fin.coinout,.0)/'.$a_credito_fin;
+    $jackpot_fin = 'IFNULL(dc_fin.jackpot,.0)/'.$a_credito_fin;
+    $progresivo_fin = 'IFNULL(dc_fin.progresivo,.0)/'.$a_credito_fin;
+
+    //plata para santa fe y credito para rosario
+    $valor_inicio = sprintf('%s - %s - %s - %s',$coinin_ini,$coinout_ini,$jackpot_ini,$progresivo_ini);
+    $valor_final  = sprintf('%s - %s - %s - %s',$coinin_fin,$coinout_fin,$jackpot_fin,$progresivo_fin);
+    //Se pasa a plata para comparar 
+    $delta        = sprintf('ROUND(m.denominacion*((%s) - (%s)),2)',$valor_final,$valor_inicio);//plata - plata para santa fe, credito - credito para rosario
+    $diferencia   = sprintf('ROUND((%s)-dp.valor,2)',$delta);//plata - plata
+    $valor_cred   = 'dp.valor/m.denominacion'; //(Al parecer) El valor_producido esta siempre en plata independiente del casino
+
     return DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
@@ -45,12 +75,14 @@ class ProducidoController extends Controller
     })
     ->where('p.id_producido','=',$id_producido)->whereNull('dp.id_tipo_ajuste')
     ->orderBy('m.nro_admin','asc')
-    ->selectRaw('dp.valor as valor_producido, dp.id_detalle_producido,
+    ->selectRaw('p.id_casino as casino, dp.valor as producido_dinero, dp.id_detalle_producido,
     m.nro_admin, m.id_maquina, m.denominacion,
     cont_ini.id_contador_horario as id_contador_inicial, 
     cont_fin.id_contador_horario as id_contador_final,
-    dc_ini.coinin as coinin_ini, dc_ini.coinout as coinout_ini, dc_ini.jackpot as jackpot_ini, dc_ini.progresivo as progresivo_ini, dc_ini.id_detalle_contador_horario as id_detalle_contador_inicial, dc_ini.denominacion_carga as denominacion_carga_inicial,
-    dc_fin.coinin as coinin_fin, dc_fin.coinout as coinout_fin, dc_fin.jackpot as jackpot_fin, dc_fin.progresivo as progresivo_fin, dc_fin.id_detalle_contador_horario as id_detalle_contador_final,   dc_fin.denominacion_carga as denominacion_carga_final');
+    dc_ini.id_detalle_contador_horario as id_detalle_contador_inicial,'.$coinin_ini.' as coinin_inicio,'.$coinout_ini.' as coinout_inicio,'.$jackpot_ini.' as jackpot_inicio,'.$progresivo_ini.' as progresivo_inicio,
+    dc_fin.id_detalle_contador_horario as id_detalle_contador_final,  '.$coinin_fin.' as coinin_final,'.$coinout_fin.' as coinout_final,'.$jackpot_fin.' as jackpot_final,'.$progresivo_fin.' as progresivo_final,
+    '.$delta.' as delta,'.$diferencia.' as diferencia,'.$valor_cred.' as producido_cred')
+    ->whereRaw($diferencia.' <> 0');
   }
 
   public static function getInstancia() {
@@ -126,10 +158,10 @@ class ProducidoController extends Controller
   // con la informacion necesaria para ser evaluados por el auditor
   // TODO el guardado temporal no esta funcionando, pero no se usa tampoco
   public function datosAjusteMTM($id_maquina,$id_producido){
-    $mtm_datos = $this->queryDP($id_producido)->where('m.id_maquina','=',$id_maquina)->get();
+    $conDiferencia = $this->queryDP($id_producido)->where('m.id_maquina','=',$id_maquina)->get();
     
     //si no trae los datos es porque se guardó temporalmente el ajuste
-    if(empty($mtm_datos)){
+    if(count($conDiferencia) == 0){
       $ajusteTemporal = AjusteTemporalProducido::where([['id_producido','=',$id_producido],['id_maquina','=',$id_maquina]])->first();
       $mtm = Maquina::find($id_maquina);
       $conDiferencia = ['id_maquina' => $id_maquina,
@@ -150,67 +182,34 @@ class ProducidoController extends Controller
                         'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
                         'diferencia' => $ajusteTemporal->diferencia,
                         'observacion'=> $ajusteTemporal->observacion];
+                        
       return ['producidos_con_diferencia' => $conDiferencia,
               'id_contador_inicial' => $ajusteTemporal->id_contador_inicial,
               'id_contador_final' => $ajusteTemporal->id_contador_final,
               'tipos_ajuste' => TipoAjuste::all()];
     }
 
-    $conDiferencia = []; 
-    $id_contador_final = null;
-    $id_contador_inicial = null;
-    foreach ($mtm_datos as $row) {
-        $diferencia = $this->calcularDiferencia(Producido::find($id_producido)->casino->id_casino,
-                                                $row->id_maquina,$row->nro_admin,
-                                                $row->id_detalle_producido,
-                                                $row->id_detalle_contador_inicial,
-                                                $row->id_detalle_contador_final,
-                                                $row->coinin_ini,$row->coinout_ini,
-                                                $row->jackpot_ini,$row->progresivo_ini,
-                                                $row->coinin_fin,$row->coinout_fin,
-                                                $row->jackpot_fin,$row->progresivo_fin,
-                                                $row->valor_producido,$row->denominacion,
-                                                $row->denominacion_carga_inicial,$row->denominacion_carga_final);
-        if(!empty($diferencia)){
-          $conDiferencia[] = $diferencia;
-        }
-        $id_contador_final   = $row->id_contador_final;
-        $id_contador_inicial = $row->id_contador_inicial;
-    }
     return ['producidos_con_diferencia' => $conDiferencia,
-            'id_contador_inicial' => $id_contador_inicial,
-            'id_contador_final' => $id_contador_final,
+            'id_contador_inicial' => $conDiferencia[0]->id_contador_inicial,
+            'id_contador_final' => $conDiferencia[0]->id_contador_final,
             'tipos_ajuste' => TipoAjuste::all()];
   }
 
   // ajustarProducido
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
-      $producido = Producido::find($id_producido);
-      $resultados = $this->queryDP($id_producido)->get();
       //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
-      $conDiferencia = [];
-      foreach ($resultados as $row) {
-          $diferencia = $this->calcularDiferencia($producido->casino->id_casino,$row->id_maquina,$row->nro_admin,
-                                                  $row->id_detalle_producido,
-                                                  $row->id_detalle_contador_inicial,
-                                                  $row->id_detalle_contador_final,
-                                                  $row->coinin_ini,$row->coinout_ini,
-                                                  $row->jackpot_ini,$row->progresivo_ini,
-                                                  $row->coinin_fin,$row->coinout_fin,
-                                                  $row->jackpot_fin,$row->progresivo_fin,
-                                                  $row->valor_producido,$row->denominacion,
-                                                  $row->denominacion_carga_inicial,$row->denominacion_carga_final);
-
-          if(!empty($diferencia)) $conDiferencia[]=$diferencia;
-
-          //al estar deentro del for, solo contara el valor final
-          $id_contador_final = $row->id_contador_final;
-          $id_contador_inicial = $row->id_contador_inicial;
+      $conDiferencia = $this->queryDP($id_producido)->get();
+      $id_contador_final = null;
+      $id_contador_inicial = null;
+      if(count($conDiferencia) > 0){
+        $id_contador_final = $conDiferencia[0]->id_contador_final;
+        $id_contador_inicial = $conDiferencia[0]->id_contador_inicial;
       }
 
       //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
       //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
       //aca en donde tiene efecto el resultado de calcularDiferencia()
+      $producido = Producido::find($id_producido);
       if($producido->ajustes_producido->count() == 0){
           $conDiferencia2 = [];
           $contadorAjusteAutomatico = 0;
@@ -236,7 +235,7 @@ class ProducidoController extends Controller
       if(count($conDiferencia) == 0){
         $producido->validado = 1;
         $producido->save();
-        $contador_final = ContadorHorario::find($id_contador_final);
+        $contador_final = ContadorHorario::find($id_contador_final);//???
         $contador_final->cerrado= 1;
         $contador_final->save();
         $producido_fin = Producido::where([['producido.fecha'         ,'=', strtotime($producido->fecha. ' + 1 days')] , 
@@ -254,77 +253,6 @@ class ProducidoController extends Controller
               'moneda' => $producido->tipo_moneda];
   }
 
-  // calcularDiferencia calcula la diferencia que hay entre el producido calculado a partir de los contadores
-  // y el producido importado
-  // considera los casos donde no hay contadores importados, en ese caso los setea como 0
-  // tiene en cuenta la denominacion para la conversion a dinero, solo en caso del casino de rosario, porque los contadores
-  // se importan en creditos
-  public function calcularDiferencia($casino,$id_maquina,$nro_admin,$id_detalle_producido , $id_detalle_contador_inicial , $id_detalle_contador_final , $coinin_ini ,$coinout_ini ,$jackpot_ini,$progresivo_ini , $coinin_fin ,$coinout_fin ,$jackpot_fin,$progresivo_fin , $valor_producido, $denominacion,$denominacion_carga_inicial, $denominacion_carga_final){     
-      //la denominacion carga es la que se utilizo para convertir a plata al momento de importar, la denominacion sale de la que tenia la maquina al importarte que no necesariamente es la misma al momento de validar producido
-      //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
-      //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
-      if($id_detalle_contador_inicial == null){//Valores por defecto si fue un leftJoin nulo
-        $coinin_ini     = 0;
-        $coinout_ini    = 0;
-        $jackpot_ini    = 0;
-        $progresivo_ini = 0;
-        $denominacion_carga_inicial = 1;
-      }
-      if($id_detalle_contador_final == null){
-        $coinin_fin     = 0;
-        $coinout_fin    = 0;
-        $jackpot_fin    = 0;
-        $progresivo_fin = 0;
-        $denominacion_carga_final = 1;
-      }
-
-      $coinin_ini    /= $denominacion_carga_inicial;
-      $coinout_ini   /= $denominacion_carga_inicial;
-      $jackpot_ini   /= $denominacion_carga_inicial;
-      $progresivo_ini/= $denominacion_carga_inicial;
-      $coinin_fin    /= $denominacion_carga_final;
-      $coinout_fin   /= $denominacion_carga_final;
-      $jackpot_fin   /= $denominacion_carga_final;
-      $progresivo_fin/= $denominacion_carga_final;
-
-      $valor_inicio = $coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini;//plata para santa fe y credito para rosario
-      $valor_final  = $coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin;//plata para santa fe y credito para rosario
-      $delta        = $valor_final - $valor_inicio;//plata - plata para santa fe, credito - credito para rosario
-
-      //Paso a plata para comparar 
-      if($casino == '3') $delta *= $denominacion; 
-      $delta      = round($delta,2);
-      $diferencia = round($delta - $valor_producido,2); //plata - plata
-      //Si alguno de los campos es null al hacer la division queda 0 -> ver que se termina guardando en la BD <-- No entiendo este comentario
-      if($diferencia == 0) return [];
-
-      //Se retornan los valores en creditos
-      //en este punto se trabaja con la denominacion actual de la maquina, la cual pude no ser la misma que la denomincaicon al momento de la carga
-      //rosario ya esta en creditos
-      if($casino!='3'){
-        $coinin_ini     /= $denominacion;//credito
-        $coinout_ini    /= $denominacion;//credito
-        $jackpot_ini    /= $denominacion;//credito
-        $coinin_fin     /= $denominacion;//credito
-        $coinin_fin     /= $denominacion;//credito
-        $coinout_fin    /= $denominacion;//credito
-        $jackpot_fin    /= $denominacion;//credito
-        $progresivo_fin /= $denominacion;//credito
-      }
-      //(Al parecer) El valor_producido esta siempre en plata independiente del casino
-      $valor_cred = $valor_producido / $denominacion;//credito
-
-      return ['id_detalle_contador_final' => $id_detalle_contador_final, 'id_detalle_contador_inicial' => $id_detalle_contador_inicial,
-              'id_maquina'           => $id_maquina,           'nro_admin'         => $nro_admin,
-              'id_detalle_producido' => $id_detalle_producido, 'casino'            => $casino,
-              'coinin_inicio'        => $coinin_ini,      'coinout_inicio'    => $coinout_ini,
-              'jackpot_inicio'       => $jackpot_ini,     'progresivo_inicio' => $progresivo_ini,
-              'coinin_final'         => $coinin_fin,      'coinout_final'     => $coinout_fin,
-              'jackpot_final'        => $jackpot_fin,     'progresivo_final'  => $progresivo_fin,
-              'producido_dinero'     => $valor_producido, 'producido_cred'    => $valor_cred,
-              'denominacion' => $denominacion, 'delta' => $delta, 'diferencia' => $diferencia];
-  }
-
   // verAjusteAutomatico genera los ajustes automaticos
   // pueden ser calculados numericamente de forma automatica
   public function verAjusteAutomatico($arreglo_diferencia){
@@ -332,7 +260,7 @@ class ProducidoController extends Controller
     while($numero % 10  == 0){
       $numero = intdiv($numero , 10);
     }
-    //dd($arreglo_diferencia);
+    
     if(abs($numero)== 1){ //aca concluyo que es multiplo 10
       //si dio vuelta coinin
       if($arreglo_diferencia['coinin_final'] < $arreglo_diferencia['coinin_inicio']){ // si coinin final mas chico que inicial checkeo si dio vuelta
