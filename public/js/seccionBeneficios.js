@@ -283,7 +283,7 @@ $(document).on('click','.ver-producido',function(e){
   e.preventDefault();
   id_producido=$(this).attr('data-idProducido')
   console.log(id_producido);
-  window.open('producidos/generarPlanilla/' + id_producido,'_blank');
+  window.open('beneficios/generarPlanillaProducido/' + id_producido,'_blank');
 });
 
 //Generar las filas para la tabla de los beneficios mensuales

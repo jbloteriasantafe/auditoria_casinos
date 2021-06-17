@@ -15,8 +15,4 @@ class TipoAjuste extends Model
   public function detalles_producidos(){
     return $this->HasMany('App\DetalleProducido','id_tipo_ajuste','id_tipo_ajuste');
   }
-  public function ajuste_temporal_producido(){
-    return $this->HasMany('App\AjusteTemporalProducido','id_tipo_ajuste','id_tipo_ajuste');
-  }
-
 }

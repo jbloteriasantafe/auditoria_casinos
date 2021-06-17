@@ -12,7 +12,6 @@ use App\DetalleProducido;
 use App\AjusteProducido;
 use App\DetalleContadorHorario;
 use App\ContadorHorario;
-use App\AjusteTemporalProducido;
 use View;
 use Dompdf\Dompdf;
 use App\TipoAjuste;
@@ -25,7 +24,7 @@ class ProducidoController extends Controller
 
   private static $atributos=[];
 
-  private function queryDP($id_producido){
+  private function obtenerDiferencias($id_producido,$id_maquina = null){
     //la denominacion carga es la que se utilizo para convertir a plata al momento de importar, la denominacion sale de la que tenia la maquina al importarte que no necesariamente es la misma al momento de validar producido
     //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
     //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
@@ -52,11 +51,11 @@ class ProducidoController extends Controller
     $valor_inicio = sprintf('%s - %s - %s - %s',$coinin_ini,$coinout_ini,$jackpot_ini,$progresivo_ini);
     $valor_final  = sprintf('%s - %s - %s - %s',$coinin_fin,$coinout_fin,$jackpot_fin,$progresivo_fin);
     //Se pasa a plata para comparar 
-    $delta        = sprintf('ROUND(m.denominacion*((%s) - (%s)),2)',$valor_final,$valor_inicio);//plata - plata para santa fe, credito - credito para rosario
+    $delta        = sprintf('ROUND(m.denominacion*((%s) - (%s)),2)',$valor_final,$valor_inicio);//denominacion * (creditos-creditos) = plata
     $diferencia   = sprintf('ROUND((%s)-dp.valor,2)',$delta);//plata - plata
     $valor_cred   = 'dp.valor/m.denominacion'; //(Al parecer) El valor_producido esta siempre en plata independiente del casino
 
-    return DB::table('producido as p')
+    $retorno = DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
     ->join('contador_horario as cont_ini',function($j){
@@ -77,12 +76,23 @@ class ProducidoController extends Controller
     ->orderBy('m.nro_admin','asc')
     ->selectRaw('p.id_casino as casino, dp.valor as producido_dinero, dp.id_detalle_producido,
     m.nro_admin, m.id_maquina, m.denominacion,
-    cont_ini.id_contador_horario as id_contador_inicial, 
-    cont_fin.id_contador_horario as id_contador_final,
     dc_ini.id_detalle_contador_horario as id_detalle_contador_inicial,'.$coinin_ini.' as coinin_inicio,'.$coinout_ini.' as coinout_inicio,'.$jackpot_ini.' as jackpot_inicio,'.$progresivo_ini.' as progresivo_inicio,
     dc_fin.id_detalle_contador_horario as id_detalle_contador_final,  '.$coinin_fin.' as coinin_final,'.$coinout_fin.' as coinout_final,'.$jackpot_fin.' as jackpot_final,'.$progresivo_fin.' as progresivo_final,
     '.$delta.' as delta,'.$diferencia.' as diferencia,'.$valor_cred.' as producido_cred')
     ->whereRaw($diferencia.' <> 0');
+
+    //El valor opcional de id_maquina es para solo obtener una fila, hace mas rapido el request
+    if(!is_null($id_maquina)) $retorno = $retorno->where('m.id_maquina','=',$id_maquina);
+
+    return $retorno->get();
+  }
+
+  private function contadoresDeProducido($id_producido){
+    $p = Producido::find($id_producido);
+    $inicial = ContadorHorario::where([['fecha','=',$p->fecha ],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get();
+    $fecha_fin = date("Y-m-d", strtotime($p->fecha." +1 days"));
+    $final   = ContadorHorario::where([['fecha','=',$fecha_fin],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get();
+    return ['inicial' => $inicial, 'final' => $final];
   }
 
   public static function getInstancia() {
@@ -143,7 +153,6 @@ class ProducidoController extends Controller
     })->validate();
     
     DB::transaction(function() use ($id_producido){
-      AjusteTemporalProducido::where('id_producido','=',$id_producido)->delete();
       $prod = Producido::find($id_producido);
       foreach($prod->detalles as $d){
         $a = $d->ajuste_producido;
@@ -156,55 +165,15 @@ class ProducidoController extends Controller
 
   // datosAjusteMTM obitne los producidos con las maquinas que dan diferencias
   // con la informacion necesaria para ser evaluados por el auditor
-  // TODO el guardado temporal no esta funcionando, pero no se usa tampoco
   public function datosAjusteMTM($id_maquina,$id_producido){
-    $conDiferencia = $this->queryDP($id_producido)->where('m.id_maquina','=',$id_maquina)->get();
-    
-    //si no trae los datos es porque se guardó temporalmente el ajuste
-    if(count($conDiferencia) == 0){
-      $ajusteTemporal = AjusteTemporalProducido::where([['id_producido','=',$id_producido],['id_maquina','=',$id_maquina]])->first();
-      $mtm = Maquina::find($id_maquina);
-      $conDiferencia = ['id_maquina' => $id_maquina,
-                        'nro_admin' => $mtm->nro_admin,
-                        'id_detalle_producido' => $ajusteTemporal->id_detalle_producido,
-                        'id_detalle_contador_inicial' => $ajusteTemporal->id_detalle_contador_inicial,
-                        'id_detalle_contador_final' => $ajusteTemporal->id_detalle_contador_final,
-                        'coinin_inicio' => $ajusteTemporal->coinin_ini,
-                        'coinout_inicio' => $ajusteTemporal->coinout_ini,
-                        'jackpot_inicio' => $ajusteTemporal->jackpot_ini,
-                        'progresivo_inicio' => $ajusteTemporal->progresivo_ini,
-                        'coinin_final' => $ajusteTemporal->coinin_fin,
-                        'coinout_final' =>  $ajusteTemporal->coinout_fin,
-                        'jackpot_final' => $ajusteTemporal->jackpot_fin,
-                        'progresivo_final' =>$ajusteTemporal->progresivo_fin,
-                        'producido_dinero' => $ajusteTemporal->producido_sistema,
-                        'denominacion' => $mtm->denominacion,
-                        'delta' => $ajusteTemporal->producido_calculado,/*calculado*/
-                        'diferencia' => $ajusteTemporal->diferencia,
-                        'observacion'=> $ajusteTemporal->observacion];
-                        
-      return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_inicial' => $ajusteTemporal->id_contador_inicial,
-              'id_contador_final' => $ajusteTemporal->id_contador_final,
-              'tipos_ajuste' => TipoAjuste::all()];
-    }
-
-    return ['producidos_con_diferencia' => $conDiferencia,
-            'id_contador_inicial' => $conDiferencia[0]->id_contador_inicial,
-            'id_contador_final' => $conDiferencia[0]->id_contador_final,
+    return ['producidos_con_diferencia' => $this->obtenerDiferencias($id_producido,$id_maquina),
             'tipos_ajuste' => TipoAjuste::all()];
   }
 
   // ajustarProducido
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
       //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
-      $conDiferencia = $this->queryDP($id_producido)->get();
-      $id_contador_final = null;
-      $id_contador_inicial = null;
-      if(count($conDiferencia) > 0){
-        $id_contador_final = $conDiferencia[0]->id_contador_final;
-        $id_contador_inicial = $conDiferencia[0]->id_contador_inicial;
-      }
+      $conDiferencia = $this->obtenerDiferencias($id_producido);
 
       //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
       //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
@@ -231,24 +200,20 @@ class ProducidoController extends Controller
           $conDiferencia=$conDiferencia2;
       }
 
-      $id_final = 0;
-      if(count($conDiferencia) == 0){
-        $producido->validado = 1;
-        $producido->save();
-        $contador_final = ContadorHorario::find($id_contador_final);//???
-        $contador_final->cerrado= 1;
-        $contador_final->save();
-        $producido_fin = Producido::where([['producido.fecha'         ,'=', strtotime($producido->fecha. ' + 1 days')] , 
-                                           ['producido.id_tipo_moneda','=', $producido->id_tipo_moneda],
-                                           ['producido.id_casino'     ,'=', $producido->id_casino]])->first();
-        $id_final = ($producido_fin != null) ? $producido_fin->id_producido : 0;
+      if(count($conDiferencia) == 0) {
+        DB::transaction(function() use ($producido,$id_producido){
+          $producido->validado = 1;
+          $producido->save();
+          //Siempre hay contador final? puede ser nulo?
+          $contador_final = $this->contadoresDeProducido($id_producido)['final'];
+          $contador_final->cerrado= 1;
+          $contador_final->save();
+        });
       }
 
       return ['producidos_con_diferencia' => $conDiferencia,
-              'id_contador_final' => $id_contador_final,
-              'id_contador_inicial' => $id_contador_inicial,
               'tipos_ajuste' => TipoAjuste::all(),
-              'validado' => ['estaValidado' => $producido->validado , 'producido_fin' => $id_final],
+              'validado' => ['estaValidado' => $producido->validado],
               'fecha_produccion' => $producido->fecha,
               'moneda' => $producido->tipo_moneda];
   }
@@ -393,20 +358,6 @@ class ProducidoController extends Controller
 
       if($request->estado == 3){
         foreach ($request->producidos_ajustados as $detalle_ajustado){
-          //consulto si tenia un ajuste guardado como temporal y lo elimino
-          //porque se supone que lo esta guardando
-          $consultaTemporalesMTM = AjusteTemporalProducido::where([['id_producido','=',$request['id_producido']],['id_maquina','=',$detalle_ajustado['id_maquina']]])->get();
-          if(count($consultaTemporalesMTM) > 0){
-            try{
-              $consultaTemporalesMTM->maquina()->dissociate();
-              $consultaTemporalesMTM->producido()->dissociate();
-              $consultaTemporalesMTM->tipo_ajuste()->dissociate();
-              $consultaTemporalesMTM->delete();
-            }catch(Exception $e){
-              //no tenia ajuste temporal
-            }
-          }
-
           $detalle_final=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_final']) ;
           $detalle_inicio=DetalleContadorHorario::find($detalle_ajustado['id_detalle_contador_inicial']) ;
           $detalle_producido = DetalleProducido::find($detalle_ajustado['id_detalle_producido']);
@@ -558,58 +509,8 @@ class ProducidoController extends Controller
           $estado = 1;// validacion finalizada para esta mtm
         }
       }elseif ($request->estado == 2) {//esta pausado
-        //por mas que no haya puesto todavia una justificación para el ajuste
-        //se guarda como temporal (no se valida nada) y se guarda en una tabla aparte
-        //todos los datos que se mostraon en pantalla y ocultos para poder reabrir
-        //en la proxima oportunidad para ajustar finalmente el producido.
-
-        $id_maquina = $request['producidos_ajustados'][0]['id_maquina'];
-        $mtm = Maquina::find($id_maquina);
-        $denominacion = $mtm->denominacion;
-        $input  = $request['producidos_ajustados'][0];
-
-        $ajusteTemporal = new AjusteTemporalProducido;
-        $ajusteTemporal->producido()->associate($request->id_producido);
-
-        if(!empty($input->id_tipo_ajuste)){
-          $ajusteTemporal->tipo_ajuste()->associate($input->id_tipo_ajuste);
-        }
-        $ajusteTemporal->maquina()->associate($id_maquina);
-        $ajusteTemporal->id_contador_horario_ini = $request->id_contador_inicial;
-        $ajusteTemporal->id_contador_horario_fin = $request->id_contador_final;
-        $ajusteTemporal->coinin_ini = $input['coinin_inicial'];
-        $ajusteTemporal->coinin_fin = $input['coinin_final'];
-        $ajusteTemporal->coinout_ini = $input['coinout_inicial'];
-        $ajusteTemporal->coinout_fin = $input['coinout_final'];
-        $ajusteTemporal->jackpot_ini = $input['jackpot_inicial'];
-        $ajusteTemporal->jackpot_fin = $input['jackpot_final'];
-        $ajusteTemporal->progresivo_ini = $input['progresivo_inicial'];
-        $ajusteTemporal->progresivo_fin = $input['progresivo_final'];
-
-        $ajusteTemporal->id_detalle_producido = $input['id_detalle_producido'];
-        $ajusteTemporal->id_detalle_contador_inicial = $input['id_detalle_contador_inicial'];
-        $ajusteTemporal->id_detalle_contador_final = $input['id_detalle_contador_final'];
-        $ajusteTemporal->producido_sistema = $input['producido']; //es el producido importado
-
-        //se agrega el campo observacion
-        $ajusteTemporal->observacion=$input['prodObservaciones'];
-
-
-        //calculo el producido calculado
-        $valor_inicio= $ajusteTemporal->coinin_ini * $denominacion - $ajusteTemporal->coinout_ini * $denominacion - $ajusteTemporal->ackpot_ini * $denominacion- $ajusteTemporal->progresivo_ini * $denominacion;//plata
-        $valor_final= $ajusteTemporal->coinin_fin * $denominacion- $ajusteTemporal->coinout_fin * $denominacion- $ajusteTemporal->jackpot_fin * $denominacion- $ajusteTemporal->progresivo_fin * $denominacion;//plata
-
-        $delta = $valor_final - $valor_inicio;
-        //lo asigno
-        $ajusteTemporal->producido_calculado = $delta;
-
-        //calculo la DIFERENCIAS
-        $ajusteTemporal->diferencia = $delta - $ajusteTemporal->producido_sistema ;
-        $ajusteTemporal->save();
         $estado=2;
       }
-
-
 
       return [
         'estado' => $estado,

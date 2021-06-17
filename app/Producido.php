@@ -39,10 +39,6 @@ class Producido extends Model
     return $this->belongsTo('App\TipoMoneda','id_tipo_moneda','id_tipo_moneda');
   }
 
-  public function ajuste_temporal_producido(){
-    return $this->HasMany('App\AjusteTemporalProducido','id_producido','id_producido');
-  }
-
   public static function boot(){
     parent::boot();
     Producido::observe(new ProducidoObserver());

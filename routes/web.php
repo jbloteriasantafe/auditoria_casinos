@@ -475,13 +475,15 @@ Route::delete('mtm_a_pedido/eliminarMmtAPedido/{id}','MaquinaAPedidoController@e
 /*******************
 PRODUCIDOS-AJUSTES PRODUCIDO
 ******************/
-Route::get('producidos','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
-Route::get('producidos/buscarProducidos','ProducidoController@buscarProducidos');
-Route::get('producidos/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
-Route::get('producidos/checkEstado/{id}','ProducidoController@checkEstado');
-Route::post('producidos/guardarAjusteProducidos','ProducidoController@guardarAjuste');
-Route::get('producidos/ajustarProducido/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
-Route::get('producidos/maquinasProducidos/{id_producido}','ProducidoController@ajustarProducido');
+Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccion_producidos'],function (){
+  Route::get('','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
+  Route::get('/buscarProducidos','ProducidoController@buscarProducidos');
+  Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
+  Route::get('/checkEstado/{id}','ProducidoController@checkEstado');
+  Route::post('/guardarAjuste','ProducidoController@guardarAjuste');
+  Route::get('/datosAjusteMTM/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
+  Route::get('/ajustarProducido/{id_producido}','ProducidoController@ajustarProducido');
+});
 
 /***********
  Estadisticas
@@ -496,14 +498,19 @@ Route::get('estadisticas_relevamientos/buscarMaquinas/{id_casino}','Relevamiento
 /**********
  Beneficios
 ***********/
-Route::get('beneficios','BeneficioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_beneficios');
-Route::post('beneficios/buscarBeneficios','BeneficioController@buscarBeneficios');
-Route::post('beneficios/obtenerBeneficiosParaValidar','BeneficioController@obtenerBeneficiosParaValidar');
-Route::post('beneficios/ajustarBeneficio','BeneficioController@ajustarBeneficio');
-Route::post('beneficios/validarBeneficios','BeneficioController@validarBeneficios');
-Route::post('beneficios/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');
-Route::get('beneficios/generarPlanilla/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@generarPlanilla');
-Route::post('beneficios/cargarImpuesto','BeneficioController@cargarImpuesto');
+
+Route::group(['prefix' => 'beneficios','middleware' => 'tiene_permiso:ver_seccion_beneficios'],function (){
+  Route::get('/','BeneficioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_beneficios');
+  Route::post('/buscarBeneficios','BeneficioController@buscarBeneficios');
+  Route::post('/obtenerBeneficiosParaValidar','BeneficioController@obtenerBeneficiosParaValidar');
+  Route::post('/ajustarBeneficio','BeneficioController@ajustarBeneficio');
+  Route::post('/validarBeneficios','BeneficioController@validarBeneficios');
+  Route::post('/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');
+  Route::get('/generarPlanilla/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@generarPlanilla');
+  Route::get('/generarPlanillaProducido/{id_producido}','ProducidoController@generarPlanilla');
+  Route::post('/cargarImpuesto','BeneficioController@cargarImpuesto');
+});
+
 /*********
 LAYOUT
 *********/
@@ -513,8 +520,6 @@ Route::get('menu_layout',function(){
 Route::get('layout_parcial','LayoutController@buscarTodo')->middleware('tiene_permiso:ver_seccion_layout_parcial');
 Route::post('/layouts/crearLayoutParcial','LayoutController@crearLayoutParcial');
 Route::post('/layouts/usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
-
-
 
 //PARCIAL
 Route::get('/layouts/existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
@@ -571,12 +576,6 @@ Route::get('informesMTM/obtenerEstadoParqueDeCasino/{id_casino}','informesContro
 
 Route::get('informeContableMTM','informesController@buscarTodoInformeContable');//carga pagina
 Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');//informe ultimos 30 dias
-// Route::get('informeContableMTM/{id_casino}/{nro_admin}/{fecha?}','informesController@obtenerInformeContableMaquina');//informe de fecha
-
-
-Route::get('menu_informes',function(){
-  return view('menu_informes');
-});
 
 //seccion informes mtm (pestaña informes)
 Route::get('informesMTM','informesController@obtenerUltimosBeneficiosPorCasino');

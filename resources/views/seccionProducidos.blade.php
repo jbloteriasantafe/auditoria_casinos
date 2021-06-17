@@ -274,14 +274,6 @@ use Illuminate\Http\Request;
                       <br>
                     </div>
                     <div class="col-lg-2">
-                      <input id="data-contador-final" type="text" class="form-control" >
-                      <br>
-                    </div>
-                    <div class="col-lg-2">
-                      <input id="data-contador-inicial" type="text" class="form-control" >
-                      <br>
-                    </div>
-                    <div class="col-lg-2">
                       <input id="data-producido" type="text" class="form-control" >
                       <br>
                     </div>
