@@ -173,8 +173,6 @@ class ProducidoController extends Controller
   // ajustarProducido
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
       //Son las maquinas que efectivamente dan diferencia junto con el valor que difiere
-      //@SPEED: esta es la consulta cuello de botella, ya estan todos los joins indexados en la DB. 
-      //        Tal vez precalcular la diferencia a la hora de importar producido y contadores?? (armar una vista materializada)
       $diferencias = $this->obtenerDiferencias($id_producido);
 
       // Si no tiene ajustes y hay diferencias, le crea los ajustes. (primera vez que se abre el producido) 
@@ -185,7 +183,7 @@ class ProducidoController extends Controller
         $diferencias_filtradas = [];//Tal vez se lo pueda meter adentro, no estoy seguro como afecta el scoping la ultima linea
         DB::transaction(function() use ($diff,&$diferencias,&$diferencias_filtradas){
           foreach ($diferencias as $diff) {
-            $diferencia_ajuste = new AjusteProducido;//@SPEED: sentencia INSERT INTO ajuste_producido ?
+            $diferencia_ajuste = new AjusteProducido;
             $diferencia_ajuste->producido_calculado  = $diff['delta'];
             $diferencia_ajuste->producido_sistema    = $diff['producido_dinero'];
             $diferencia_ajuste->diferencia           = $diff['diferencia'];
