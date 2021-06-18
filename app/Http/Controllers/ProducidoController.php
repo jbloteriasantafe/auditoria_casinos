@@ -53,7 +53,7 @@ class ProducidoController extends Controller
     //Se pasa a plata para comparar 
     $delta        = sprintf('ROUND(m.denominacion*((%s) - (%s)),2)',$valor_final,$valor_inicio);//denominacion * (creditos-creditos) = plata
     $diferencia   = sprintf('ROUND((%s)-dp.valor,2)',$delta);//plata - plata
-    $valor_cred   = 'dp.valor/m.denominacion'; //(Al parecer) El valor_producido esta siempre en plata independiente del casino
+    $valor_cred   = 'dp.valor/m.denominacion'; //(Al parecer) El dp.valor esta siempre en plata independiente del casino
 
     $retorno = DB::table('producido as p')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
@@ -172,38 +172,36 @@ class ProducidoController extends Controller
 
   // ajustarProducido
   public function ajustarProducido($id_producido){//valido en vista que se pueda cargar.
-      //condiferencia son las maquinas que efectivamente dan diferencia junto con el valor operado que difiere (creo)
-      $conDiferencia = $this->obtenerDiferencias($id_producido);
+      //Son las maquinas que efectivamente dan diferencia junto con el valor que difiere
+      //@SPEED: esta es la consulta cuello de botella, ya estan todos los joins indexados en la DB. 
+      //        Tal vez precalcular la diferencia a la hora de importar producido y contadores?? (armar una vista materializada)
+      $diferencias = $this->obtenerDiferencias($id_producido);
 
-      //VER SI SE PUEDE OPTIMIZAR- RECORRER DE NUEVO Y GUARDAR LAS DIFERENCIAS TARDA
-      //en ajustes_producido se guardan las diferencias entre "producido calculado" y "producido sistema", relacionado a un detalle_producido, el cual tiene la maquina y el producido
-      //aca en donde tiene efecto el resultado de calcularDiferencia()
-
-      //Si no tiene ajustes y hay diferencias, le crea el ajuste. Se fija si le puede hacer la vuelta de contadores automaticamente
-      //Si no puede, lo devuelve como respuesta para ajustar manualmente
+      // Si no tiene ajustes y hay diferencias, le crea los ajustes. (primera vez que se abre el producido) 
+      // Se fija si lo puede ajustar automaticoamente
+      // Si no puede, lo devuelve como respuesta para ajustar manualmente
       $producido = Producido::find($id_producido);
       if($producido->ajustes_producido->count() == 0){
-          $conDiferencia2 = [];
-          $contadorAjusteAutomatico = 0;
-          foreach ($conDiferencia as $diferencia) {
-              $diferencia_ajuste = new AjusteProducido;
-              $diferencia_ajuste->producido_calculado  = $diferencia['delta'];
-              $diferencia_ajuste->producido_sistema    = $diferencia['producido_dinero'];
-              $diferencia_ajuste->diferencia           = $diferencia['diferencia'];
-              $diferencia_ajuste->id_detalle_producido = $diferencia['id_detalle_producido'];
-              $diferencia_ajuste->save();
+        $diferencias_filtradas = [];//Tal vez se lo pueda meter adentro, no estoy seguro como afecta el scoping la ultima linea
+        DB::transaction(function() use ($diff,&$diferencias,&$diferencias_filtradas){
+          foreach ($diferencias as $diff) {
+            $diferencia_ajuste = new AjusteProducido;//@SPEED: sentencia INSERT INTO ajuste_producido ?
+            $diferencia_ajuste->producido_calculado  = $diff['delta'];
+            $diferencia_ajuste->producido_sistema    = $diff['producido_dinero'];
+            $diferencia_ajuste->diferencia           = $diff['diferencia'];
+            $diferencia_ajuste->id_detalle_producido = $diff['id_detalle_producido'];
+            $diferencia_ajuste->save();
 
-              // veo si puedo hacer vuelta de contadores automaticamente
-              if($this->verAjusteAutomatico($diferencia)){//si no puedo ajustar retorna verdadero
-                $conDiferencia2[]=$diferencia;
-              }else {
-                $contadorAjusteAutomatico++;
-              }
+            // veo si puedo hacer vuelta de contadores automaticamente
+            if(!$this->probarAjusteAutomatico($diff)){//Si no hay ajuste, lo devuelvo como diferencia
+              $diferencias_filtradas[]=$diff;
+            }
           }
-          $conDiferencia=$conDiferencia2;
+          $diferencias = $diferencias_filtradas;
+        });
       }
 
-      if(count($conDiferencia) == 0) {
+      if(count($diferencias) == 0) {
         DB::transaction(function() use ($producido,$id_producido){
           $producido->validado = 1;
           $producido->save();
@@ -214,7 +212,7 @@ class ProducidoController extends Controller
         });
       }
 
-      return ['producidos_con_diferencia' => $conDiferencia,
+      return ['producidos_con_diferencia' => $diferencias,
               'tipos_ajuste' => TipoAjuste::all(),
               'validado' => ['estaValidado' => $producido->validado],
               'fecha_produccion' => $producido->fecha,
@@ -230,61 +228,50 @@ class ProducidoController extends Controller
   }
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
-  public function verAjusteAutomatico($arreglo_diferencia){
-    //pasa la diferencia a creditos
-    $numero = $arreglo_diferencia['diferencia']/$arreglo_diferencia['denominacion'];
-    while($numero % 10  == 0){//Si es multiplo de 10, lo divide por 10 (?)
-      $numero = intdiv($numero , 10);
-    }
-    
-    //aca solo entra si $numero == 10 ... (?)
-    if(abs($numero)==1){
-      $tipos_de_vueltas = ['coinin','coinout','jackpot','progresivo'];
-      foreach($tipos_de_vueltas as $t){
-        $contador_final  = $t.'_final';
-        $contador_inicio = $t.'_inicio';
+  public function probarAjusteAutomatico($diff){
+    return false;//DESHABILITO EL AJUSTE AUTOMATICO, HAY QUE PROBARLO. ESTA MAL CREO COMO ESTA
+
+    $contadores = ['coinin','coinout','jackpot','progresivo'];
+
+    if(fmod($arreglo_diferencia['diferencia'],1000000) == 0){
+      foreach($contadores as $c){
+        $contador_final  = $c.'_final';
+        $contador_inicio = $c.'_inicio';
         //En principio si final > inicio y le sumamos, seria invariante y no haria nada
-        //Tal vez se puede hacer por DB?
+        //@SPEED: Tal vez se puede hacer por DB?
         if($contador_final < $contador_inicio){
-          $arreglo_diferencia[$contador_final] += 100000000;//Le suma una vuelta de contadores
-          $diferencia = $this->recalcularDiferencia($arreglo_diferencia);
-          $arreglo_diferencia[$contador_final] -= 100000000;//Lo vuelvo al original
+          $diff[$contador_final] += 100000000;//Le suma una vuelta de contadores
+          $diferencia = $this->recalcularDiferencia($diff);
+          $diff[$contador_final] -= 100000000;//Lo vuelvo al original
           if($diferencia == 0){
-            $detalle_producido = DetalleProducido::find($arr['id_detalle_producido']);
+            $detalle_producido = DetalleProducido::find($diff['id_detalle_producido']);
             $detalle_producido->id_tipo_ajuste = 1;
             $detalle_producido->save();
-            return false;
+            return true;
           }
         }
       }
     }
-
-    if(  $arreglo_diferencia['coinin_final']     <= $arreglo_diferencia['coinin_inicio']
-      && $arreglo_diferencia['coinout_final']    <= $arreglo_diferencia['coinout_inicio']
-      && $arreglo_diferencia['jackpot_final']    <= $arreglo_diferencia['jackpot_inicio']
-      && $arreglo_diferencia['progresivo_final'] <= $arreglo_diferencia['progresivo_inicio']
-    ){//si TODOS los contadores finales son menores o iguales a los iniciales -> posible reset
-      $valor_inicio = $arreglo_diferencia['coinin_inicio'] 
-                    - $arreglo_diferencia['coinout_inicio'] 
-                    - $arreglo_diferencia['jackpot_inicio'] 
-                    - $arreglo_diferencia['progresivo_inicio'];//credito
-      $valor_final  = ($arreglo_diferencia['coinin_final']  + $arreglo_diferencia['coinin_inicio'])
-                    - ($arreglo_diferencia['coinout_final'] + $arreglo_diferencia['coinout_inicio'])
-                    - ($arreglo_diferencia['jackpot_final'] + $arreglo_diferencia['jackpot_inicio']) 
-                    - ($arreglo_diferencia['progresivo_final'] + $arreglo_diferencia['progresivo_inicio'] ) ;//credito
-
-      $delta = $valor_final - $valor_inicio;//credito - credito
-      $diferencia = round(($delta*$arreglo_diferencia['denominacion']), 2) - $arreglo_diferencia['producido_dinero']; //plata - plata
-
-      if(round($diferencia,2) == 0){
-        $detalle_producido=DetalleProducido::find($arreglo_diferencia['id_detalle_producido']);
+    //si TODOS los contadores finales son menores o iguales a los iniciales -> posible reset
+    //@SPEED: Tambien chequeable por DB
+    $posible_reset_contadores = true;
+    foreach($contadores as $c){
+      $posible_reset_contadores = $posible_reset_contadores && ($diff[$c.'_final'] <= $diff[$c.'_inicio']);
+    }
+    if($posible_reset_contadores){
+      //No estoy seguro porque a los finales les suma los iniciales...
+      //No seria equivalente a poner los iniciales en 0? ver recalcularDiferencia
+      foreach($contadores as $c) $diff[$t.'_final'] += $diff[$t.'_inicial'];
+      $diferencia = $this->recalcularDiferencia($diff);
+      foreach($contadores as $c) $diff[$t.'_final'] -= $diff[$t.'_inicial'];
+      if($diferencia == 0){
+        $detalle_producido = DetalleProducido::find($diff['id_detalle_producido']);
         $detalle_producido->id_tipo_ajuste = 2;
         $detalle_producido->save();
-        return false;
+        return true;
       }
     }
-
-    return true;
+    return false;
   }
 
   // guardarAjuste guarda el ajuste realizado por el auditor

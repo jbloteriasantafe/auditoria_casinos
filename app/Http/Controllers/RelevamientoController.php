@@ -883,7 +883,7 @@ class RelevamientoController extends Controller
                   $no_tomadas++;
               }else{
                 // se tomo, pero da diferencia, en este punto se evalua si es truncada
-                if(fmod($diferencia,1000000) == 0){
+                if(fmod($diferencia,1000000) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
                   $det->no_toma = 'TRUNCAMIENTO';
                   $truncadas++;
                 }else{
