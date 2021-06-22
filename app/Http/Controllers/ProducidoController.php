@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Producido;
 use App\Casino;
+use App\TipoMoneda;
 use App\Maquina;
 use App\DetalleProducido;
 use App\AjusteProducido;
@@ -105,8 +106,9 @@ class ProducidoController extends Controller
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
-    return view('seccionProducidos' , ['casinos' => $usuario->casinos, 'producidos' => [], 'ultimos' => []]);
+    return view('seccionProducidos' , ['casinos' => $usuario->casinos, 'producidos' => [],'monedas' => TipoMoneda::all()]);
   }
+
   // buscarProducidos
   public function buscarProducidos(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -115,32 +117,53 @@ class ProducidoController extends Controller
     foreach ($usuario->casinos as $casino) $casinos[] = $casino->id_casino;
 
     $reglas = [];
-    if($request->validado  != '-') $reglas[] = ['validado','=',$request->validado];
-    if($request->id_casino != '0') $reglas[] = ['id_casino','=',$request->id_casino];
+    
+    if($request->id_casino != null)      $reglas[] = ['p.id_casino','=',$request->id_casino];
+    if($request->fecha_inicio != null)   $reglas[] = ['p.fecha','>=',$request->fecha_inicio];
+    if($request->fecha_fin != null)      $reglas[] = ['p.fecha','<=',$request->fecha_fin];
+    if($request->id_tipo_moneda != null) $reglas[] = ['p.id_tipo_moneda','=',$request->id_tipo_moneda];
+    if($request->validado  != '-')       $reglas[] = ['p.validado','=',$request->validado];
+    
+    $sort_by = $request->sort_by;
+    if(empty($sort_by)) $sort_by = ['columna' => 'p.fecha','orden' => 'desc'];
 
-    //ultimos producidos cargados en el sistema con el estado de los contadores y archivos asociados.
-    $resultados = Producido::whereIn('id_casino',$casinos)->where($reglas)->orderBy('fecha','desc');
-    if($request->fecha_inicio != null){
-      $fecha_fin = $request->fecha_fin == null ? date('Y-m-d') : $request->fecha_fin;
-      $resultados = $resultados->whereBetween('fecha',[$request->fecha_inicio, $fecha_fin])->get();
-    }else {
-      $resultados = $resultados->take(50)->get();
-    }
+    $resultado = DB::table('producido as p')
+    ->select('p.id_producido','p.fecha','p.validado as producido_validado','tm.descripcion as moneda','cas.nombre as casino')
+    ->selectRaw('IF(COUNT(distinct cont_ini.id_contador_horario) <> 1,
+                      "Cantidad incorrecta de contador",
+                      IF(SUM(cont_ini.cerrado) = 0,"Contador sin cerrar",NULL)
+                    ) as error_contador_ini')
+    ->selectRaw('IF(COUNT(distinct cont_fin.id_contador_horario) <> 1,
+                      "Cantidad incorrecta de contador",
+                      NULL
+                    ) as error_contador_fin')
+    ->selectRaw('IF(COUNT(distinct sec.id_sector) <> COUNT(distinct r_val.id_sector),
+                      "No todos los sectores estan relevados o validados",
+                      NULL
+                    ) as error_relevamientos')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+    ->join('casino as cas','cas.id_casino','=','p.id_casino')
+    ->leftJoin('contador_horario as cont_ini',function($j){
+      return $j->on('cont_ini.fecha','=','p.fecha')
+      ->on('cont_ini.id_casino','=','p.id_casino')->on('cont_ini.id_tipo_moneda','=','p.id_tipo_moneda');
+    })
+    ->leftJoin('contador_horario as cont_fin',function($j){
+      return $j->on('cont_fin.fecha','=',DB::raw('DATE_ADD(p.fecha,INTERVAL 1 DAY)'))
+      ->on('cont_fin.id_casino','=','p.id_casino')->on('cont_fin.id_tipo_moneda','=','p.id_tipo_moneda');
+    })
+    ->leftJoin('sector as sec','sec.id_casino','=','p.id_casino')
+    ->leftJoin('relevamiento as r_val',function($j){//Relevamientos validados
+      return $j->on('r_val.id_sector','=','sec.id_sector')
+      ->on('r_val.fecha','=',DB::raw('DATE_ADD(p.fecha,INTERVAL 1 DAY)'))
+      ->where('r_val.backup','=','0')->whereIn('r_val.id_estado_relevamiento',[4,7]);
+    })
+    ->where($reglas)->whereIn('p.id_casino',$casinos)
+    ->groupBy('p.id_producido','p.fecha','p.validado','tm.descripcion','cas.nombre')
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    });
 
-    $producidos = [];
-    foreach($resultados as $resultado){
-      $fecha_inicio = $resultado->fecha;
-      $fecha_fin = date('Y-m-d' , strtotime($resultado->fecha. ' + 1 days'));
-
-      //cerrado con fecha inicio
-      $cerrado = ContadorController::getInstancia()->estaCerrado($fecha_inicio,$resultado->id_casino ,$resultado->tipo_moneda);
-      //validado en la fecha fin
-      $validado = RelevamientoController::getInstancia()->estaValidado($fecha_fin,$resultado->id_casino, $resultado->tipo_moneda);
-      $producidos[] = ['producido' => $resultado ,'cerrado' => $cerrado ,'validado' => $validado ,'casino' =>$resultado->casino , 'tipo_moneda' => $resultado->tipo_moneda];
-    }
-
-    if($request->orden == 'asc') $producidos = array_reverse($producidos);
-    return ['producidos' => $producidos];
+    return $resultado->paginate($request->page_size);
   }
 
   // eliminarProducido elimina el producido y los detalles producidos asociados

@@ -477,7 +477,7 @@ PRODUCIDOS-AJUSTES PRODUCIDO
 ******************/
 Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccion_producidos'],function (){
   Route::get('','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
-  Route::get('/buscarProducidos','ProducidoController@buscarProducidos');
+  Route::post('/buscarProducidos','ProducidoController@buscarProducidos');
   Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
   Route::get('/checkEstado/{id}','ProducidoController@checkEstado');
   Route::post('/guardarAjuste','ProducidoController@guardarAjuste');

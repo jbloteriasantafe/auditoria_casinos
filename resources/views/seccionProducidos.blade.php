@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 ?>
 
 @section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css"/>
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -30,18 +31,17 @@ use Illuminate\Http\Request;
                         <div id="collapseFiltros" class="panel-collapse collapse">
                           <div class="panel-body">
                               <div class="row"> <!-- Primera fila -->
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Casino</h5>
-                                  <select class="form-control" id="selectCasinos">
-                                    <option value="0">- Seleccione un casino -</option>
-                                     @foreach ($casinos as $casino)
-                                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                  <select class="form-control" id="selectCasino">
+                                    <option value="" selected>- Todos los casinos -</option>
+                                     @foreach ($casinos as $c)
+                                     <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
                                      @endforeach
                                   </select>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Fecha de inicio</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
@@ -50,11 +50,9 @@ use Illuminate\Http\Request;
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
                                   </div>
-
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Fecha de finalización</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
@@ -63,9 +61,17 @@ use Illuminate\Http\Request;
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_fin" value=""/>
                                   </div>
-
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
+                                  <h5>MONEDA</h5>
+                                  <select class="form-control" id="selectMoneda">
+                                    <option value="" selected>- Todas las monedas -</option>
+                                    @foreach($monedas as $m)
+                                    <option value="{{$m->id_tipo_moneda}}">{{$m->descripcion}}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="col-lg-4">
                                   <h5>Validado</h5>
                                   <select class="form-control" id="selectValidado">
                                     <option value="-">-</option>
@@ -98,18 +104,19 @@ use Illuminate\Http\Request;
                     <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
                       <thead>
                         <tr>
-                          <th class="col-xs-2">CASINO</th>
-                          <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                          <th class="col-xs-1">MONEDA</th>
-                          <th class="col-xs-1">VALIDADO</th>
-                          <th class="col-xs-1">CONT INI</th>
-                          <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
+                          <th class="col-xs-1">CASINO</th>
+                          <th class="col-xs-2" style="text-align: center;" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                          <th class="col-xs-1" style="text-align: center;">MONEDA</th>
+                          <th class="col-xs-2" style="text-align: center;">VALIDADO</th>
+                          <th class="col-xs-2" style="text-align: center;">CONT INI</th>
+                          <th class="col-xs-2" style="text-align: center;">RELEVAMIENTOS VISADOS</th>
                           <th class="col-xs-2">ACCIÓN</th>
                         </tr>
                       </thead>
                       <tbody style="height: 350px;">
                       </tbody>
                     </table>
+                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                   </div>
                 </div>
                   </div>
@@ -130,6 +137,30 @@ use Illuminate\Http\Request;
               </div>
             </div>
         </div>  <!-- /#row -->
+
+<table hidden>
+  <tr id="filaEjemploProducidos">
+    <td class="col-xs-1 casino">CASINO</td>
+    <td class="col-xs-2 fecha" style="text-align: center;">9999-99-99</td>
+    <td class="col-xs-1 moneda" style="text-align: center;">MONEDA</td>
+    <td class="col-xs-2 producido_valido" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 contador_inicial_cerrado" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 relevamiento_valido" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 acciones">
+      <button class="btn btn-warning carga popInfo"><i class="fa fa-fw fa-upload"></i></button>
+      <button class="btn btn-info planilla"><i class="fa fa-fw fa-print"></i></button>
+    </td>
+  </tr>
+</table>
 
 <!--Modal nuevo para ajustes-->
 <div class="modal fade" id="modalCargaProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -420,6 +451,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
 
