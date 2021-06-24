@@ -156,8 +156,8 @@ use Illuminate\Http\Request;
       <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
     </td>
     <td class="col-xs-2 acciones">
-      <button class="btn btn-warning carga popInfo"><i class="fa fa-fw fa-upload"></i></button>
-      <button class="btn btn-info planilla"><i class="fa fa-fw fa-print"></i></button>
+      <button class="btn btn-warning carga" title="VALIDAR PRODUCIDO"><i class="fa fa-fw fa-upload"></i></button>
+      <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
     </td>
   </tr>
 </table>
@@ -171,23 +171,18 @@ use Illuminate\Http\Request;
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title modalVerMas" id="myModalLabel">VALIDAR AJUSTES</h3>
       </div>
-
-      <div  id="colapsado" class="collapse in">
+      <div id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
-
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
-            <h6 style="padding-left:15px">
-              Máquinas con diferencias: 
-              <span id="maquinas_con_diferencias">---</span>
-            </h6>
+            <h6 style="padding-left:15px">Máquinas con diferencias: <span id="maquinas_con_diferencias">---</span></h6>
           </div>
           <div class="row" >
             <div class="col-md-3">
               <h6><b>MÁQUINAS</b></h6>
               <table id="tablaMaquinas" class="table" style="display: block;">
                 <thead style="display: block;position: relative;">
-                  <tr >
+                  <tr>
                     <th class="col-xs-2">Nº ADMIN</th>
                     <th class="col-xs-2"></th>
                   </tr>
@@ -195,15 +190,15 @@ use Illuminate\Http\Request;
                 <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
                 </tbody>
               </table>
-              <table>
-              <tbody id="filaClon" style="display:none" class="filaCl" >
+              <table hidden>
+                <tr id="filaClon">
                   <td class="col-md-3 nroAdm" value=""> nro admin</td>
-                  <td class="col-md-2 idMaqTabla" value=""> <button type="button" class="btn btn-info infoMaq" value="">
-                    <i class="fa fa-fw fa-eye"></i>
-                  </button></td>
-              </tbody>
+                  <td class="col-md-2 idMaqTabla" value="">
+                    <button type="button" class="btn btn-info infoMaq" value=""><i class="fa fa-fw fa-eye"></i></button>
+                  </td>
+                </tr>
               </table>
-            </div> <!-- tablafechas -->
+            </div>
 
             <div id="columnaDetalle" class="col-md-9" style="border-right:2px solid #ccc;" hidden>
               <h6 id="detallesEs"><b>DETALLES</b></h6>
@@ -330,105 +325,26 @@ use Illuminate\Http\Request;
       </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-warningModificar" id="btn-guardar" value="nuevo">GUARDAR TEMPORALMENTE</button>
         <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR AJUSTES</button>
         <button type="button" class="btn btn-default" id="btn-salir" >SALIR</button>
         <button type="button" class="btn btn-info success" id="btn-salir-validado" hidden="true">VALIDAR</button>
-
         <div class="mensajeSalida">
             <br>
-            <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS SIN GUARDAR</span>
+            <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS REALIZADOS</span>
             <br>
-            <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
-            <span style="font-family:'Roboto'; color:#555;">Presione GUARDAR TEMPORALMENTE para guardando los cambios y luego SALIR.</span>
+            <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir.</span>
         </div>
-
         <div class="mensajeFin" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
-            <br>
-
+          <br>
+          <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
+          <br>
         </div>
-
         <input type="hidden" id="id_producido" value="0">
-
-          </div> <!-- modal body -->
-      </div> <!--  modal colap-->
-    </div>  <!-- modal content -->
-  </div> <!--  modal dialog -->
+      </div> <!-- modal body -->
+    </div> <!--  modal colap-->
+  </div>  <!-- modal content -->
+</div> <!--  modal dialog -->
 </div> <!-- modal fade -->
-
-
-
-
-
-    <!-- Modal planilla relevamientos -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:80%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                  <div class="modal-body modalCuerpo">
-
-                    <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <!-- Carga de archivos! | Uno para el modal de nuevo y otro para modificar -->
-                                    <div class="zona-file-lg">
-                                        <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                    </div>
-
-                                    <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                                </div>
-                            </div>
-
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                    <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                    <input type="hidden" id="id_producido" value="0">
-                  </div>
-              </div>
-            </div>
-          </div>
-    </div>
-
-
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-title">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div>
-
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

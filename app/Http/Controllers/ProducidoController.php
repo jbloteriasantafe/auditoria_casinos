@@ -300,6 +300,7 @@ class ProducidoController extends Controller
   public function guardarAjuste(Request $request){
       Validator::make($request->all(), [
               'producidos_ajustados' => 'nullable',
+              'producidos_ajustados.*.denominacion' => 'required|numeric',
               'producidos_ajustados.*.coinin_inicial' => 'required|integer',
               'producidos_ajustados.*.coinin_final' => 'required|integer',
               'producidos_ajustados.*.coinout_inicial' => 'required|integer',
@@ -312,6 +313,7 @@ class ProducidoController extends Controller
               'producidos_ajustados.*.id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.id_detalle_contador_final' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
               'producidos_ajustados.*.producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+              'producidos_ajustados.*.id_tipo_ajuste' => 'required|exists:tipo_ajuste,id_tipo_ajuste',
               'producidos_ajustados.*.prodObservaciones' => 'nullable',
               'estado' => 'required',//3 finalizado, 2 pausa
       ], array(), self::$atributos)->after(function($validator){})->validate();
