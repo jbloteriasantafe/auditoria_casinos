@@ -64,7 +64,10 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
   }
 })
 
-$(document).on('change','#frmCargaProducidos observacionesAjuste',function(){
+$(document).on('change','#tipoAjuste',function(){
+  //1, 2, 3, 4, 5, 6
+  const solo_finales = [1,2];
+  //if()
   $(this).removeClass('alerta');
 })
 
@@ -146,7 +149,7 @@ $('#btn-salir-validado').on('click', function(e){
 })
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.idMaqTabla',function(e){
-  $('#observacionesAjuste option').not('.default1').remove();
+  $('#tipoAjuste option').not('.default1').remove();
   $('#cuerpoTabla tr').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
@@ -170,10 +173,10 @@ $(document).on('click','.idMaqTabla',function(e){
     $('#jackFin').val(data.producidos_con_diferencia[0].jackpot_final);
     $('#progFin').val(data.producidos_con_diferencia[0].progresivo_final);
     $('#prodCalc').val(data.producidos_con_diferencia[0].delta).prop('disabled', true);
-    $('#prodSist').val(data.producidos_con_diferencia[0].producido_dinero);
+    $('#prodSist').val(data.producidos_con_diferencia[0].producido);
     $('#diferencias').text(data.producidos_con_diferencia[0].diferencia).prop('disabled', true);
     for (let i = 0; i < data.tipos_ajuste.length; i++) {
-      $('#observacionesAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));
+      $('#tipoAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));
     }
     //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
     $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
@@ -209,7 +212,7 @@ function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
 
   $('#mensajeExito').hide();
 
-  const producido = {
+  const formData = {
     id_maquina : id,
     denominacion: $('#data-denominacion').val(),
     coinin_inicial:     parseInt($('#coininIni').val()),
@@ -224,15 +227,8 @@ function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
     id_detalle_contador_final:   $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null,
     id_detalle_contador_inicial: $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null,
     producido:         $('#prodSist').val(),
-    id_tipo_ajuste:    $('#observacionesAjuste').val(),
+    id_tipo_ajuste:    $('#tipoAjuste').val(),
     prodObservaciones: $('#prodObservaciones').val(),
-  };
-
-  const formData = {
-    producidos_ajustados : [producido],
-    estado : 3,
-    id_tipo_moneda : $('#frmCargaProducidos').attr('data-tipoMoneda'),
-    id_producido: $('#id_producido').val()
   };
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -242,31 +238,31 @@ function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
       data: formData,
       dataType: 'json',
       success: function (data) {
+        if(data.todas_ajustadas){
+          $('#columnaDetalle').hide();
+          $('#btn-finalizar').hide();
+          $('#modalCargaProducidos').modal('hide');
+          $('#mensajeExito h3').text('EXITO');
+          $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
+          $('#mensajeExito div').css('background-color','#4DB6AC');
+          $('#mensajeExito').show();
+          $('#btn-buscar').trigger('click');
+          return;
+        }
+        if(data.hay_diferencia){
+          $('#columnaDetalle').show();
+          $('#btn-finalizar').show();
+          $('#textoExito').text('Se encontraron diferencias al tratar de ajustar la maquina.').show();
+          return;
+        }
+
         $('#columnaDetalle').hide();
         $('#btn-finalizar').hide();
-        switch (data.estado) {
-          case 1: //Ha finalizado el ajuste de UNA máquina
-            $('#cuerpoTabla').find(id).remove();
-            $('#btn-finalizar').hide();
-            $('#modalCargaProducidos .mensajeFin').show();
-            $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
-            for (var i = 0; i < data.resueltas.length; i++) {
-              $('#cuerpoTabla #' + data.resueltas[i]).remove();
-            }
-            $('#columnaDetalle').hide();
-            $('#textoExito').text('Se arreglaron ' + data.resueltas.length + ' máquinas. Y ocurrieron ' + data.errores.length + ' errores.');
-            break;
-          case 3: //SE HAN FINALIZADO LOS AJUSTES DE TODAS LAS MÁQUINAS
-            $('#modalCargaProducidos').modal('hide');
-            $('#mensajeExito h3').text('EXITO');
-            $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
-            $('#mensajeExito div').css('background-color','#4DB6AC');
-            $('#mensajeExito').show();
-            $('#btn-buscar').trigger('click');
-            break;
-          default:
-            break;
-        }
+        $('#modalCargaProducidos .mensajeFin').show();
+        $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
+        const fila = $('#cuerpoTabla #' + formData.id_maquina);
+        $('#textoExito').text('Maquina '+fila.find('.nroAdm').text()+' ajustada');
+        fila.remove();
       },
       error: function (data) {
         console.log('ERROR');
@@ -291,17 +287,8 @@ function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
   $('#diferencias').val("");
   $('#data-detalle-final').val("");
   $('#data-detalle-inicial').val("");
-  $('#observacionesAjuste option').not('.default1').remove().val(0);
+  $('#tipoAjuste option').not('.default1').remove().val(0);
   $('#descripcion_validacion').text('');
-}
-
-function checkEstado(id_producido){
-  $.get('producidos/checkEstado/' + id_producido, function(data){
-    if(data.estado == 1){
-      var boton = '<button class="btn btn-warning carga popInfo" type="button" value="' + id_producido + '" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Ajustar"><i class="fa fa-fw fa-upload"></i></button>'
-      $('#tablaImportacionesProducidos #' + id_producido).find('td').eq(6).prepend(boton);
-    }
-  });
 }
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR

@@ -207,119 +207,86 @@ use Illuminate\Http\Request;
               <div class="detalleMaq" >
                 <h5 id="info-denominacion"></h5>
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
-
                   <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
                       <h5>COININ. INICIAL</h5>
                       <input id="coininIni" type="text" class="form-control">
-                      <br>
                     </div> <!-- nro admin -->
                     <div class="col-lg-3">
                       <h5>COINOUT INI.</h5>
                       <input id="coinoutIni" type="text" class="form-control" >
-                      <br>
                     </div> <!-- Fisca toma -->
-
                     <div class="col-lg-3">
                       <h5>JACKPOT INI.</h5>
                       <input id="jackIni" type="text" class="form-control">
-                      <br>
                     </div> <!-- fisca carga-->
                     <div class="col-lg-3">
                       <h5>PROG. INICIAL</h5>
                       <input id="progIni" type="text" class="form-control" >
-                      <br>
                     </div> <!-- nro admin -->
-
                   </div>
-
-                  <div class="row" style="border-left:1px solid #ccc;border-right:1px solid #ccc;">
-
-                    <br>
-
+                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <div class="col-lg-3">
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>COINOUT FINAL</h5>
                       <input id="coinoutFin" type="text" class="form-control">
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>JACKPOT FINAL</h5>
                       <input id="jackFin" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>PROG. FINAL</h5>
                       <input id="progFin" type="text" class="form-control" >
-                      <br>
                     </div>
                   </div>
-
                   <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
                     <div class="col-lg-3">
                       <h5>PRODUC.CALC.</h5>
                       <input id="prodCalc" type="text" class="form-control" readonly="readonly">
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>PRODUCIDO SIST.</h5>
                       <input id="prodSist" type="text" class="form-control" >
-                      <br>
-                    </div>
-
-                    <div class="col-lg-3">
-                        <h5>DIFERENCIAS</h5>
-                        <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
                     </div>
                     <div class="col-lg-3">
-                        <h5>OBSERVACIONES</h5>
-                        <select class="form-control" id="observacionesAjuste">
-                           <option class="default1" value="0">-Tipo Ajuste-</option>
-                        </select>
+                      <h5>DIFERENCIAS</h5>
+                      <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
+                    </div>
+                    <div class="col-lg-3">
+                      <h5>TIPO AJUSTE</h5>
+                      <select class="form-control" id="tipoAjuste">
+                          <option class="default1" value="0">-Tipo Ajuste-</option>
+                      </select>
                     </div>
                   </div>
-
                   <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
-                      <div class="col-lg-12">
-                        <h5>OBSERVACIONES</h5>
-                        <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
-                        <br>
-                      </div>
-                      
+                    <div class="col-lg-12">
+                      <h5>OBSERVACIONES</h5>
+                      <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
                     </div>
-
+                  </div>
                   <div class="row" hidden>
                     <div class="col-lg-2">
                       <input id="data-denominacion" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-producido" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-detalle-inicial" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-detalle-final" type="text" class="form-control" >
-                      <br>
                     </div>
                   </div>
                 </form>
-
               </div>
-
-
             </div>
           </div>  <!-- fin row inicial -->
-
           <div class="row" align="right" style="margin-right:20px; font-weight:bold">
           <h4 id="textoExito" hidden>Se arreglaron: 0 máquinas</h4>
       </div>

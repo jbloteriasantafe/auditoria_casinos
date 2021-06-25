@@ -479,7 +479,6 @@ Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccio
   Route::get('','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
   Route::post('/buscarProducidos','ProducidoController@buscarProducidos');
   Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
-  Route::get('/checkEstado/{id}','ProducidoController@checkEstado');
   Route::post('/guardarAjuste','ProducidoController@guardarAjuste');
   Route::get('/datosAjusteMTM/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
   Route::get('/ajustarProducido/{id_producido}','ProducidoController@ajustarProducido');
