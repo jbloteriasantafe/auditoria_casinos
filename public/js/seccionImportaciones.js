@@ -248,113 +248,100 @@ $('#btn-minimizar').click(function(){
 });
 
 $(document).on('click','.planilla', function(){
-  var tipo_importacion = $('#tablaImportaciones').attr('data-tipo');
-
-  //Mostrar el título correspondiente
-  switch (tipo_importacion) {
-    case '1':
-      $('#modalPlanilla h3.modal-title').text('VISTA PREVIA CONTADOR');
-      break;
-    case '2':
-      $('#modalPlanilla h3.modal-title').text('VISTA PREVIA PRODUCIDO');
-      break;
-    case '3':
-      $('#modalPlanilla h3.modal-title').text('VISTA PREVIA BENEFICIO');
-      break;
-  }
-
-  var head = $('#tablaVistaPrevia thead tr');
-
   //Limpiar el modal
   $('#modalPlanilla #fecha').val('');
   $('#modalPlanilla #casino').val('');
   $('#modalPlanilla #tipo_moneda').val('');
+  const head = $('#tablaVistaPrevia thead tr');
   head.children().remove();
   $('#tablaVistaPrevia tbody tr').remove();
 
-  //Comprobar el tipo de importacion. BENEFICIO tiene una ruta diferente a CONTADOR y PRODUCIDO
-  if (tipo_importacion == 3) {
-      //el request contiene mes anio id_tipo_moneda id_casino
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      });
+  let url = "";
+  let success = function(){};
+  let formData = {};
+  const tipo_importacion = $('#tablaImportaciones').attr('data-tipo');
+  const id_importacion = $(this).val();
+  if(tipo_importacion == 3){
+    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA BENEFICIO');
+    url = 'importaciones/previewBeneficios';
+    formData = {
+      mes: $(this).attr('data-mes'),
+      anio: $(this).attr('data-anio'),
+      id_tipo_moneda: $(this).attr('data-moneda'),
+      id_casino: $(this).attr('data-casino'),
+    }
+    success = function (data) {
+      $('#modalPlanilla #fecha').val(convertirDate(data.beneficios[0].fecha).substring(3,11));
+      $('#modalPlanilla #casino').val(data.casino.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
 
-      var formData = {
-          mes: $(this).attr('data-mes'),
-          anio: $(this).attr('data-anio'),
-          id_tipo_moneda: $(this).attr('data-moneda'),
-          id_casino: $(this).attr('data-casino'),
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('VALOR')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('% DEVOLUCION')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROMEDIO')));
+
+      for (let i = 0; i < data.beneficios.length; i++) {
+        agregarFilaDetalleBeneficio(data.beneficios[i]);
+      };
+    }
+  }
+  else if(tipo_importacion == 2){
+    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA PRODUCIDO');
+    url = 'importaciones/previewProducidos';
+    formData = { id: id_importacion }
+    success =  function (data) {
+      $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
+      $('#modalPlanilla #casino').val(data.casino.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
+
+      head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')));
+      head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
+
+      for (let i = 0; i < data.detalles_producido.length; i++) {
+        agregarFilaDetalleProducido(data.detalles_producido[i]);
       }
+    };
+  }
+  else if(tipo_importacion == 1){
+    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA CONTADOR');
+    url = 'importaciones/previewContadores';
+    formData = { id: id_importacion }
+    success =  function (data) {
+      $('#modalPlanilla #fecha').val(convertirDate(data.contador.fecha));
+      $('#modalPlanilla #casino').val(data.casino.nombre);
+      $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
 
-      $.ajax({
-          type: 'POST',
-          url: 'importaciones/previewBeneficios',
-          data: formData,
-          dataType: 'json',
-          success: function (data) {
-            console.log(data);
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')));
+      head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COININ')));
+      head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')));
+      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
 
-            $('#modalPlanilla #fecha').val(convertirDate(data.beneficios[0].fecha).substring(3,11));
-            $('#modalPlanilla #casino').val(data.casino.nombre);
-            $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-
-            // head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('VALOR')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('% DEVOLUCION')));
-            head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROMEDIO')));
-
-            for (var i = 0; i < data.beneficios.length; i++) {
-                agregarFilaDetalleBeneficio(data.beneficios[i]);
-            }
-          },
-          error: function (data) {
-            console.log(data);
-          }
-      });
-  }else {
-      var id_importacion = $(this).val();
-
-      $.get('importaciones/obtenerVistaPrevia/' + tipo_importacion + '/' + id_importacion, function(data){
-          //Armar la tabla según el tipo de importacion
-          switch (tipo_importacion) {
-            case '1':
-              $('#modalPlanilla #fecha').val(convertirDate(data.contador.fecha));
-              $('#modalPlanilla #casino').val(data.casino.nombre);
-              $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-
-              head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')));
-              head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COININ')));
-              head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')));
-              head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')));
-              head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
-
-              for (var i = 0; i < data.detalles_contador.length; i++) {
-                  agregarFilaDetalleContador(data.detalles_contador[i]);
-              }
-              break;
-            case '2':
-              $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
-              $('#modalPlanilla #casino').val(data.casino.nombre);
-              $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-
-              head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')));
-              head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
-
-              for (var i = 0; i < data.detalles_producido.length; i++) {
-                  agregarFilaDetalleProducido(data.detalles_producido[i]);
-              }
-              break;
-          }
-      });
+      for (let i = 0; i < data.detalles_contador.length; i++) {
+        agregarFilaDetalleContador(data.detalles_contador[i]);
+      }
+    };
+  }
+  else{
+    console.log('Error tipo de importacion',tipo_importacion);
+    return;
   }
 
-  //Mostrar el modal de la vista previa
-  $('#modalPlanilla').modal('show');
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  const s = function(data){
+    success(data);
+    $('#modalPlanilla').modal('show');
+  }
+  $.ajax({
+    type: 'POST',
+    url: url,
+    data: formData,
+    dataType: 'json',
+    success: s,
+    error: function (data) { console.log(data); }
+  });
 });
 
 $(document).on('click','.borrar',function(){

@@ -65,50 +65,31 @@ class ImportacionController extends Controller
     return ['beneficios'=>$beneficios, 'casino' => $casino, 'tipo_moneda' => $tipo_moneda];
   }
 
-  public function obtenerVistaPrevia($tipo_importacion,$id){
-    $detalles_contador=null;
-    $detalles_producido=null;
-    $contador=null;
-    $producido=null;
+  public function previewProducidos(Request $request){
+    $producido = Producido::find($request->id);
+    $detalles_producido = DB::table('producido')
+                      ->select('detalle_producido.*','maquina.nro_admin')
+                      ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
+                      ->join('maquina','maquina.id_maquina','=','detalle_producido.id_maquina')
+                      ->where('producido.id_producido','=',$request->id)
+                      ->take(30)
+                      ->get();
 
-    switch ($tipo_importacion) {
-      case 1: //contador
-        $contador = ContadorHorario::find($id);
+    return ['producido' => $producido,'tipo_moneda'  =>  $producido->tipo_moneda, 'casino' => $producido->casino,'detalles_producido'=> $detalles_producido];
+  }
 
-        //$contadores = (ContadorHorario::find($id))->detalles;
-        $detalles_contador = DB::table('contador_horario')
-                          ->select('detalle_contador_horario.*','maquina.nro_admin')
-                          ->join('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
-                          ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
-                          ->where('contador_horario.id_contador_horario','=',$id)
-                          ->take(30)
-                          ->get();
+  public function previewContadores(Request $request){
+    $contador = ContadorHorario::find($request->id);
 
-        $tipo_moneda = $contador->tipo_moneda;
-        $casino = $contador->casino;
-        break;
-      case 2: //producidos
-        $producido = Producido::find($id);
-        //$producidos = (Producido::find($id))->detalles;
-        $detalles_producido = DB::table('producido')
-                          ->select('detalle_producido.*','maquina.nro_admin')
-                          ->join('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-                          ->join('maquina','maquina.id_maquina','=','detalle_producido.id_maquina')
-                          ->where('producido.id_producido','=',$id)
-                          ->take(30)
-                          ->get();
+    $detalles_contador = DB::table('contador_horario')
+                      ->select('detalle_contador_horario.*','maquina.nro_admin')
+                      ->join('detalle_contador_horario','detalle_contador_horario.id_contador_horario','=','contador_horario.id_contador_horario')
+                      ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
+                      ->where('contador_horario.id_contador_horario','=',$request->id)
+                      ->take(30)
+                      ->get();
 
-        $tipo_moneda = $producido->tipo_moneda;
-        $casino = $producido->casino;
-        break;
-      default:
-        //nothing :)
-        break;
-    }
-
-    return ['contador' => $contador , 'producido' => $producido,
-            'tipo_moneda'  => $tipo_moneda, 'casino' => $casino,
-            'detalles_contador' => $detalles_contador,'detalles_producido'=> $detalles_producido];
+    return ['contador' => $contador, 'tipo_moneda'  => $contador->tipo_moneda, 'casino' => $contador->casino, 'detalles_contador' => $detalles_contador];
   }
 
   public function buscar(Request $request){

@@ -368,8 +368,9 @@ Route::get('importaciones/{id_casino}/{fecha_busqueda?}/{orden?}','ImportacionCo
 Route::post('importaciones/importarContador','ImportacionController@importarContador');
 Route::post('importaciones/importarProducido','ImportacionController@importarProducido');
 Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
-Route::get('importaciones/obtenerVistaPrevia/{tipo_importacion}/{id}','ImportacionController@obtenerVistaPrevia');
 Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
+Route::post('importaciones/previewProducidos','ImportacionController@previewProducidos');
+Route::post('importaciones/previewContadores','ImportacionController@previewContadores');
 Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
