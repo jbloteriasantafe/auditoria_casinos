@@ -669,7 +669,7 @@ class LogMovimientoController extends Controller
         'cant_lineas' => 'required|numeric|max:100000',
         'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
         'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'cant_creditos' => 'required|numeric|max:100',
+        'cant_creditos' => 'required|numeric',
         'fecha_sala' => 'required|date',
         'observaciones' => 'nullable|max:280',
         'mac' => 'nullable|max:100',
