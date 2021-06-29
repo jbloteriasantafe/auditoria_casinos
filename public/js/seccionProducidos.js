@@ -132,7 +132,7 @@ $(document).on('click','.carga',function(e){
       const fila = $('#filaClon').clone().removeAttr('id');
       fila.attr('id',  data.producidos_con_diferencia[i].id_maquina);
       fila.find('.nroAdm').text(data.producidos_con_diferencia[i].nro_admin);
-      fila.find('.idMaqTabla').val(data.producidos_con_diferencia[i].id_maquina);
+      fila.find('.infoMaq').val(data.producidos_con_diferencia[i].id_maquina);
       $('#cuerpoTabla').append(fila);
       $('#btn-salir-validado').hide();
       $('#btn-salir').show();
@@ -140,7 +140,6 @@ $(document).on('click','.carga',function(e){
   });
   $('#frmCargaProducidos').attr('data-tipoMoneda' ,tr_html.find('.tipo_moneda').attr('data-tipo'));
   $('#modalCargaProducidos').modal('show');
-  $('#').modal('hide');
 });
 
 $('#btn-salir-validado').on('click', function(e){
@@ -148,9 +147,9 @@ $('#btn-salir-validado').on('click', function(e){
   $('#btn-buscar').trigger('click');
 })
 //si presiona el ojo de alguna de las máquinas listadas
-$(document).on('click','.idMaqTabla',function(e){
+$(document).on('click','.infoMaq',function(e){
   $('#tipoAjuste option').not('.default1').remove();
-  $('#cuerpoTabla tr').css('background-color','#FFFFFF');
+  $('#cuerpoTabla .idMaqTabla').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
 
@@ -190,7 +189,7 @@ $(document).on('click','.idMaqTabla',function(e){
 
 $("#btn-finalizar").click(function(e){
   e.preventDefault();
-  guardarFilaDiferenciaCero($(this).attr('data-id'));
+  guardarFilaDiferenciaCero();
   $('#modalCargaProducidos .mensajeSalida span').hide();
 })
 
@@ -206,14 +205,12 @@ $('#btn-salir').click(function(){
 });
 
 /************   FUNCIONES   ***********/
-function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
-  //si apreta guardar sin todos arreglados
+function guardarFilaDiferenciaCero(){ //POST CON DATOS CARGADOS
   if($('#diferencias').text()!='0') return;
 
   $('#mensajeExito').hide();
 
   const formData = {
-    id_maquina : id,
     denominacion: $('#data-denominacion').val(),
     coinin_inicial:     parseInt($('#coininIni').val()),
     coinin_final:       parseInt($('#coininFin').val()),
@@ -228,7 +225,7 @@ function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
     id_detalle_contador_inicial: $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null,
     producido:         $('#prodSist').val(),
     id_tipo_ajuste:    $('#tipoAjuste').val(),
-    prodObservaciones: $('#prodObservaciones').val(),
+    observacion: $('#prodObservaciones').val(),
   };
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -260,8 +257,8 @@ function guardarFilaDiferenciaCero(id){ //POST CON DATOS CARGADOS
         $('#btn-finalizar').hide();
         $('#modalCargaProducidos .mensajeFin').show();
         $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
-        const fila = $('#cuerpoTabla #' + formData.id_maquina);
-        $('#textoExito').text('Maquina '+fila.find('.nroAdm').text()+' ajustada');
+        const fila = $('#cuerpoTabla #' + $("#btn-finalizar").attr('data-id'));
+        $('#textoExito').text('Maquina '+fila.find('.nroAdm').text()+' ajustada').show();
         fila.remove();
       },
       error: function (data) {
@@ -304,7 +301,9 @@ function agregarFilaTabla(producido){
   fila.find('.fecha').text(producido.fecha);
   fila.find('.moneda').text(producido.moneda);
   fila.find('button').val(producido.id_producido);
-  if(producido.error_contador_ini != null || producido.producido_validado != 0){
+  //Tienen que estar el contador inicial importado (y cerrado), el contador final importado y el producido sin validar para permitir cargar
+  //El contador final es el que se va a "cerrar" cuando se validen los ajustes
+  if(producido.error_contador_ini != null || producido.error_contador_fin != null || producido.producido_validado != 0){
     fila.find('.carga').remove();
   }
 

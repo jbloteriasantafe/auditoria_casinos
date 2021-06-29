@@ -187,7 +187,7 @@ use Illuminate\Http\Request;
                     <th class="col-xs-2"></th>
                   </tr>
                 </thead>
-                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
+                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;max-height: 600px;">
                 </tbody>
               </table>
               <table hidden>
