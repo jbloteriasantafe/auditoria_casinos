@@ -207,25 +207,32 @@ use Illuminate\Http\Request;
               <div class="detalleMaq" >
                 <h5 id="info-denominacion"></h5>
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
-                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
+                  <div class="row" style="padding-bottom: 5px;">
+                    <div class="col-lg-6 col-lg-offset-3">
+                      <select class="form-control" id="tipoAjuste" style="text-align: center;">
+                        <option class="default1" value="0" >-Tipo Ajuste-</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
                       <h5>COININ. INICIAL</h5>
                       <input id="coininIni" type="text" class="form-control">
-                    </div> <!-- nro admin -->
+                    </div>
                     <div class="col-lg-3">
                       <h5>COINOUT INI.</h5>
                       <input id="coinoutIni" type="text" class="form-control" >
-                    </div> <!-- Fisca toma -->
+                    </div>
                     <div class="col-lg-3">
                       <h5>JACKPOT INI.</h5>
                       <input id="jackIni" type="text" class="form-control">
-                    </div> <!-- fisca carga-->
+                    </div>
                     <div class="col-lg-3">
                       <h5>PROG. INICIAL</h5>
                       <input id="progIni" type="text" class="form-control" >
-                    </div> <!-- nro admin -->
+                    </div>
                   </div>
-                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                  <div class="row cont_finales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <div class="col-lg-3">
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
@@ -243,27 +250,21 @@ use Illuminate\Http\Request;
                       <input id="progFin" type="text" class="form-control" >
                     </div>
                   </div>
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <div class="col-lg-3">
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                    <div class="col-lg-4" style="text-align: center;">
                       <h5>PRODUC.CALC.</h5>
                       <input id="prodCalc" type="text" class="form-control" readonly="readonly">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-4" style="text-align: center;">
                       <h5>PRODUCIDO SIST.</h5>
                       <input id="prodSist" type="text" class="form-control" >
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-4" style="text-align: center;">
                       <h5>DIFERENCIAS</h5>
                       <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
                     </div>
-                    <div class="col-lg-3">
-                      <h5>TIPO AJUSTE</h5>
-                      <select class="form-control" id="tipoAjuste">
-                          <option class="default1" value="0">-Tipo Ajuste-</option>
-                      </select>
-                    </div>
                   </div>
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <div class="col-lg-12">
                       <h5>OBSERVACIONES</h5>
                       <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>

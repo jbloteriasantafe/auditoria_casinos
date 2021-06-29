@@ -65,11 +65,19 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
 })
 
 $(document).on('change','#tipoAjuste',function(){
-  //1, 2, 3, 4, 5, 6
-  const solo_finales = [1,2];
-  //if()
-  $(this).removeClass('alerta');
-})
+  //Ver tabla en ProducidoController:guardarAjuste
+  const permitir_finales   = [1,2,3,6];
+  const permitir_iniciales = [5,6];
+  const permitir_producido = [4,6];
+  const id_tipo_ajuste     = parseInt($(this).val());
+
+  $('.cont_finales input').attr('disabled',!permitir_finales.includes(id_tipo_ajuste));
+  $('.cont_iniciales input').attr('disabled',!permitir_iniciales.includes(id_tipo_ajuste));
+  $('#prodSist').attr('disabled',!permitir_producido.includes(id_tipo_ajuste));
+  //Vuelvo a los valores originales
+  $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
+  $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
+});
 
 //Permite hacer aritmetica basica en los campos
 $(document).on('focusout' ,'#frmCargaProducidos input' , function(e){
@@ -149,6 +157,7 @@ $('#btn-salir-validado').on('click', function(e){
 //si presiona el ojo de alguna de las máquinas listadas
 $(document).on('click','.infoMaq',function(e){
   $('#tipoAjuste option').not('.default1').remove();
+  $('#tipoAjuste').change();
   $('#cuerpoTabla .idMaqTabla').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
@@ -173,6 +182,11 @@ $(document).on('click','.infoMaq',function(e){
     $('#progFin').val(data.producidos_con_diferencia[0].progresivo_final);
     $('#prodCalc').val(data.producidos_con_diferencia[0].delta).prop('disabled', true);
     $('#prodSist').val(data.producidos_con_diferencia[0].producido);
+
+    //Guardo los valores originales para researlos al cambio de TipoAjuste
+    $('.cont_finales input,.cont_iniciales input').each(function(){$(this).data('original',$(this).val());})
+    $('#prodSist').data('original',$('#prodSist').val());
+
     $('#diferencias').text(data.producidos_con_diferencia[0].diferencia).prop('disabled', true);
     for (let i = 0; i < data.tipos_ajuste.length; i++) {
       $('#tipoAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));

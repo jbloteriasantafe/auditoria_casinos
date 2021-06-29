@@ -213,7 +213,7 @@ class ProducidoController extends Controller
       $producido = Producido::find($id_producido);
       if($producido->ajustes_producido->count() == 0){
         $diferencias_filtradas = [];//Tal vez se lo pueda meter adentro, no estoy seguro como afecta el scoping la ultima linea
-        DB::transaction(function() use ($diff,&$diferencias,&$diferencias_filtradas){
+        DB::transaction(function() use (&$diferencias,&$diferencias_filtradas){
           foreach ($diferencias as $diff) {
             $diferencia_ajuste = new AjusteProducido;
             $diferencia_ajuste->producido_calculado  = $diff['delta'];
@@ -299,166 +299,161 @@ class ProducidoController extends Controller
   // guardarAjuste guarda el ajuste realizado por el auditor
   // solo se guarda si luego del ajuste , la diferencia es nula, es decir, es correto el ajuste
   public function guardarAjuste(Request $request){
-      Validator::make($request->all(), [
-        'denominacion'       => 'required|numeric',
-        'coinin_inicial'     => 'required|integer',//Los contadores vienen EN CREDITOS
-        'coinin_final'       => 'required|integer',
-        'coinout_inicial'    => 'required|integer',
-        'coinout_final'      => 'required|integer',
-        'jackpot_inicial'    => 'required|integer',
-        'jackpot_final'      => 'required|integer',
-        'progresivo_inicial' => 'required|integer',
-        'progresivo_final'   => 'required|integer',
-        'id_detalle_producido'        => 'required|exists:detalle_producido,id_detalle_producido',
-        'id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
-        'id_detalle_contador_final'   => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
-        'producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],//producido es EN PLATA
-        'id_tipo_ajuste' => 'required|exists:tipo_ajuste,id_tipo_ajuste',
-        'observacion' => 'nullable'
-      ], array(), self::$atributos)->after(function($validator){})->validate();
+    Validator::make($request->all(), [
+      'denominacion'       => 'required|numeric',
+      'coinin_inicial'     => 'required|integer',//Los contadores vienen EN CREDITOS
+      'coinin_final'       => 'required|integer',
+      'coinout_inicial'    => 'required|integer',
+      'coinout_final'      => 'required|integer',
+      'jackpot_inicial'    => 'required|integer',
+      'jackpot_final'      => 'required|integer',
+      'progresivo_inicial' => 'required|integer',
+      'progresivo_final'   => 'required|integer',
+      'id_detalle_producido'        => 'required|exists:detalle_producido,id_detalle_producido',
+      'id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
+      'id_detalle_contador_final'   => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
+      'producido' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],//producido es EN PLATA
+      'id_tipo_ajuste' => 'required|exists:tipo_ajuste,id_tipo_ajuste',
+      'observacion' => 'nullable'
+    ], array(), self::$atributos)->after(function($validator){})->validate();
 
-      $detalle_final     = DetalleContadorHorario::find($request['id_detalle_contador_final']);
-      $detalle_producido = DetalleProducido::find($request['id_detalle_producido']);
-      $contadores        = $this->contadoresDeProducido($detalle_producido->id_producido);
-      if($detalle_final == null){
-        $detalle_final = new DetalleContadorHorario;
-        $detalle_final->id_contador_horario = $contadores['final']->id_contador_horario;
-        $detalle_final->id_maquina = $detalle_producido->id_maquina;
-      }
-      $detalle_inicio    = DetalleContadorHorario::find($request['id_detalle_contador_inicial']);
-      if($detalle_inicio == null){
-        $detalle_inicio = new DetalleContadorHorario;
-        $detalle_inicio->id_contador_horario = $contadores['inicial']->id_contador_horario;
-        $detalle_inicio->id_maquina = $detalle_producido->id_maquina;
-      }
+    $detalle_final     = DetalleContadorHorario::find($request['id_detalle_contador_final']);
+    $detalle_producido = DetalleProducido::find($request['id_detalle_producido']);
+    $contadores        = $this->contadoresDeProducido($detalle_producido->id_producido);
+    if($detalle_final == null){
+      $detalle_final = new DetalleContadorHorario;
+      $detalle_final->id_contador_horario = $contadores['final']->id_contador_horario;
+      $detalle_final->id_maquina = $detalle_producido->id_maquina;
+    }
+    $detalle_inicio    = DetalleContadorHorario::find($request['id_detalle_contador_inicial']);
+    if($detalle_inicio == null){
+      $detalle_inicio = new DetalleContadorHorario;
+      $detalle_inicio->id_contador_horario = $contadores['inicial']->id_contador_horario;
+      $detalle_inicio->id_maquina = $detalle_producido->id_maquina;
+    }
 
-      //Tabla de guia
-      // Contadores iniciales, finales y el producido se usan para calcular la diferencia
-      // Solamente si esta da 0 se guarda el ajuste
-      // La ultima columna indica que se guarda en la base de datos
-      // La observación y el tipo de ajuste se guarda en todas, independientemente del tipo
+    //Tabla de guia
+    // Contadores iniciales, finales y el producido se usan para calcular la diferencia
+    // Solamente si esta da 0 se guarda el ajuste
+    // La ultima columna indica que se guarda en la base de datos
+    // La observación y el tipo de ajuste se guarda en todas, independientemente del tipo
 
-      // TIPO DE AJUSTE                     | INICIALES | FINALES   | PRODUCIDO | SOBREESCRIBE?
-      //-------------------------------------------------------------------------------------------------------
-      //(1) Vuelta de Contadores            | BD        | $request  | BD        | NADA
-      //(2) Reset de Contadores             | BD        | $request  | BD        | NADA
-      //(3) Cambio/Falta contadores finales | BD        | $request  | BD        | FINALES
-      //(4) Error producido                 | BD        | BD        | $request  | PRODUCIDO
-      //(5) Cambio de contadores iniciales  | $request  | BD        | BD        | INICIALES
-      //(6) Multiples ajustes               | $request  | $request  | $request  | INICIALES, FINALES, PRODUCIDO
+    // TIPO DE AJUSTE                     | INICIALES | FINALES   | PRODUCIDO | SOBREESCRIBE?
+    //-------------------------------------------------------------------------------------------------------
+    //(1) Vuelta de Contadores            | BD        | $request  | BD        | NADA
+    //(2) Reset de Contadores             | BD        | $request  | BD        | NADA
+    //(3) Cambio/Falta contadores finales | BD        | $request  | BD        | FINALES
+    //(4) Error producido                 | BD        | BD        | $request  | PRODUCIDO
+    //(5) Cambio de contadores iniciales  | $request  | BD        | BD        | INICIALES
+    //(6) Multiples ajustes               | $request  | $request  | $request  | INICIALES, FINALES, PRODUCIDO
 
-      // $detalle_producido->valor es el producido INFORMADO POR EL CASINO en el producido (no tiene errores de vuelta de contadores, reset, etc)
-      //@BUG: Si se modifican los contadores iniciales, no puede ser que den diferencias para atras???????
-      if(in_array($request['id_tipo_ajuste'],[1,2,3,4])){
-        $request['coinin_inicial']     = $detalle_inicial->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
-        $request['coinout_inicial']    = $detalle_inicial->coinout / $request['denominacion'];
-        $request['jackpot_inicial']    = $detalle_inicial->jackpot / $request['denominacion'];
-        $request['progresivo_inicial'] = $detalle_inicial->progresivo / $request['denominacion'];
-      }
-      if(in_array($request['id_tipo_ajuste'],[4,5])){
-        $request['coinin_final']     = $detalle_final->coinin / $request['denominacion'];
-        $request['coinout_final']    = $detalle_final->coinout / $request['denominacion'];
-        $request['jackpot_final']    = $detalle_final->jackpot / $request['denominacion'];
-        $request['progresivo_final'] = $detalle_final->progresivo / $request['denominacion'];
-      }
-      if(in_array($request['id_tipo_ajuste'],[1,2,3,5])){//Queda mas claro en un IF aparte esto
-        $request['producido'] = $detalle_producido->valor;
-      }
-  
-      $diferencia = $this->recalcularDiferencia($request);
-      if($diferencia != 0) return ['todas_ajustadas' => 0,'hay_diferencia' => 1];
-        
-      $producido = $detalle_producido->producido;
-      if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
-        //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
-        $detalle_inicio->coinin     = $request['coinin_inicial']     * $request['denominacion'];//Se guarda en plata
-        $detalle_inicio->coinout    = $request['coinout_inicial']    * $request['denominacion'];
-        $detalle_inicio->jackpot    = $request['jackpot_inicial']    * $request['denominacion'];
-        $detalle_inicio->progresivo = $request['progresivo_inicial'] * $request['denominacion'];
-        //Si el casino es Rosario, se tiene que cargar la denominacion de carga
-        if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
-        $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
-      }
-      if(in_array($request['id_tipo_ajuste'],[3,6])){//Le guardo el contador final
-        $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion'];
-        $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion'];
-        $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion'];
-        $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion'];
-        if($producido->id_casino == 3) $detalle_final->denominacion_carga = $request['denominacion'];
-        $detalle_final->save();
-      }
-      if(in_array($request['id_tipo_ajuste'],[4,6])){//Le guardo el producido
-        $detalle_producido->valor = $request['producido'];
-      }
-  
-      //Se agregan las observaciones, estas son independientes del tipo de ajuste
-      $detalle_producido->observacion    = $request['observacion'];
-      $detalle_producido->id_tipo_ajuste = $request['id_tipo_ajuste'];
-      $detalle_producido->save();
-  
-      //Me fijo si faltan ajustes
-      $faltan_ajustes = DB::table('producido as p')
-      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
-      //Con este JOIN me quedo solo con los detalles que tenian diferencias al momento de ajustar
-      ->join('ajuste_producido as ap','ap.id_detalle_producido','=','dp.id_detalle_producido')
-      //Si les falta el tipo de ajuste, faltan ajustar
-      ->whereNull('dp.id_tipo_ajuste')->where('p.id_producido','=',$producido->id_producido)->get()->count() > 0;
-  
-      if(!$faltan_ajustes){ //Si no faltan, valido el producido y cierro el contador final
-        $producido = Producido::find($request->id_producido);
-        $producido->validado = 1 ;
-        $producido->save();
-        $contador_horario = $detalle_final->contador_horario;
-        $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
-        $contador_horario->save();
-      }
-  
-      return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];
+    // $detalle_producido->valor es el producido INFORMADO POR EL CASINO en el producido (no tiene errores de vuelta de contadores, reset, etc)
+    //@BUG: Si se modifican los contadores iniciales, no puede ser que den diferencias para atras???????
+    if(in_array($request['id_tipo_ajuste'],[1,2,3,4])){
+      $request['coinin_inicial']     = $detalle_inicial->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
+      $request['coinout_inicial']    = $detalle_inicial->coinout / $request['denominacion'];
+      $request['jackpot_inicial']    = $detalle_inicial->jackpot / $request['denominacion'];
+      $request['progresivo_inicial'] = $detalle_inicial->progresivo / $request['denominacion'];
+    }
+    if(in_array($request['id_tipo_ajuste'],[4,5])){
+      $request['coinin_final']     = $detalle_final->coinin / $request['denominacion'];
+      $request['coinout_final']    = $detalle_final->coinout / $request['denominacion'];
+      $request['jackpot_final']    = $detalle_final->jackpot / $request['denominacion'];
+      $request['progresivo_final'] = $detalle_final->progresivo / $request['denominacion'];
+    }
+    if(in_array($request['id_tipo_ajuste'],[1,2,3,5])){//Queda mas claro en un IF aparte esto
+      $request['producido'] = $detalle_producido->valor;
+    }
+
+    $diferencia = $this->recalcularDiferencia($request);
+    if($diferencia != 0) return ['todas_ajustadas' => 0,'hay_diferencia' => 1];
+      
+    $producido = $detalle_producido->producido;
+    if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
+      //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
+      $detalle_inicio->coinin     = $request['coinin_inicial']     * $request['denominacion'];//Se guarda en plata
+      $detalle_inicio->coinout    = $request['coinout_inicial']    * $request['denominacion'];
+      $detalle_inicio->jackpot    = $request['jackpot_inicial']    * $request['denominacion'];
+      $detalle_inicio->progresivo = $request['progresivo_inicial'] * $request['denominacion'];
+      //Si el casino es Rosario, se tiene que cargar la denominacion de carga
+      if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
+      $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
+    }
+    if(in_array($request['id_tipo_ajuste'],[3,6])){//Le guardo el contador final
+      $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion'];
+      $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion'];
+      $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion'];
+      $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion'];
+      if($producido->id_casino == 3) $detalle_final->denominacion_carga = $request['denominacion'];
+      $detalle_final->save();
+    }
+    if(in_array($request['id_tipo_ajuste'],[4,6])){//Le guardo el producido
+      $detalle_producido->valor = $request['producido'];
+    }
+
+    //Se agregan las observaciones, estas son independientes del tipo de ajuste
+    $detalle_producido->observacion    = $request['observacion'];
+    $detalle_producido->id_tipo_ajuste = $request['id_tipo_ajuste'];
+    $detalle_producido->save();
+
+    //Me fijo si faltan ajustes
+    $faltan_ajustes = DB::table('producido as p')
+    ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+    //Con este JOIN me quedo solo con los detalles que tenian diferencias al momento de ajustar
+    ->join('ajuste_producido as ap','ap.id_detalle_producido','=','dp.id_detalle_producido')
+    //Si les falta el tipo de ajuste, faltan ajustar
+    ->whereNull('dp.id_tipo_ajuste')->where('p.id_producido','=',$producido->id_producido)->get()->count() > 0;
+
+    if(!$faltan_ajustes){ //Si no faltan, valido el producido y cierro el contador final
+      $producido = Producido::find($request->id_producido);
+      $producido->validado = 1 ;
+      $producido->save();
+      $contador_horario = $detalle_final->contador_horario;
+      $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
+      $contador_horario->save();
+    }
+
+    return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];
   }
   // generarPlanilla crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
   // junto a los ajustes , ya sean automaticos o manual
   public function generarPlanilla($id_producido){
-    $producido = Producido::find($id_producido);
-    $resultados = DB::table('detalle_producido')->join('ajuste_producido','detalle_producido.id_detalle_producido','=','ajuste_producido.id_detalle_producido')
-                                        ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
-                                        ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
-                                        ->where('detalle_producido.id_producido',$id_producido)
-                                        ->select('maquina.nro_admin as nro_maquina','ajuste_producido.producido_calculado as prod_calc',
-                                        'ajuste_producido.producido_sistema as prod_sist','ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado', 'detalle_producido.observacion as obs')
-                                        ->orderBy('nro_maquina','asc')
-                                        ->get();
+    $resultados = DB::table('detalle_producido')
+    ->join('ajuste_producido','detalle_producido.id_detalle_producido','=','ajuste_producido.id_detalle_producido')
+    ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
+    ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
+    ->where('detalle_producido.id_producido',$id_producido)
+    ->select('maquina.nro_admin as nro_maquina','ajuste_producido.producido_calculado as prod_calc','ajuste_producido.producido_sistema as prod_sist',
+             'ajuste_producido.diferencia as diferencia','tipo_ajuste.descripcion as d','detalle_producido.valor as prod_calc_operado',
+             'detalle_producido.observacion as obs')
+    ->orderBy('nro_maquina','asc')
+    ->get();
 
-    $pro= new \stdClass();
-    $pro->casinoNom = $producido->casino->nombre;
+    $producido = Producido::find($id_producido);
+    $pro = new \stdClass();
+    $pro->casinoNom   = $producido->casino->nombre;
     $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
-    if($pro->tipo_moneda == 'ARS'){
-      $pro->tipo_moneda = 'Pesos';
-    }
-    else{
-      $pro->tipo_moneda = 'Dólares';
-    }
-    $año = $producido->fecha[0].$producido->fecha[1].$producido->fecha[2].$producido->fecha[3];
-    $mes = $producido->fecha[5].$producido->fecha[6];
-    $dia = $producido->fecha[8].$producido->fecha[9];
-    $pro->fecha_prod = $dia."-".$mes."-".$año;
+    if($pro->tipo_moneda == 'ARS')      $pro->tipo_moneda = 'Pesos';
+    else if($pro->tipo_moneda == 'USB') $pro->tipo_moneda = 'Dólares';
+    $pro->fecha_prod = implode('-',array_reverse(explode('-',$producido->fecha)));
 
     $ajustes = array();
     $MTMobservaciones= array();
     foreach($resultados as $resultado){
       $res = new \stdClass();
-      $res->maquina = $resultado->nro_maquina;
-      $res->calculado = number_format($resultado->prod_calc, 2, ",", ".");
-      $res->sistema = number_format($resultado->prod_sist, 2, ",", ".");
-      $res->dif = number_format($resultado->diferencia, 2, ",", ".");
-      $res->descripcion = $resultado->d;
-      $res->calculado_operado=number_format($resultado->prod_calc_operado, 2, ",", ".");
+      $res->maquina           = $resultado->nro_maquina;
+      $res->descripcion       = $resultado->d;
+      $res->calculado         = number_format($resultado->prod_calc, 2, ",", ".");
+      $res->sistema           = number_format($resultado->prod_sist, 2, ",", ".");
+      $res->dif               = number_format($resultado->diferencia, 2, ",", ".");
+      $res->calculado_operado = number_format($resultado->prod_calc_operado, 2, ",", ".");
       $ajustes[] = $res;
       // agrego a una lista todas aquellas mtm con observaciones para ser motrada en otra tabla
       if ($resultado->obs!=""){
-        $resObs=new \stdClass();
+        $resObs = new \stdClass();
         $resObs->maquina = $resultado->nro_maquina;
-        $resObs->observacion=$resultado->obs;
-        $MTMobservaciones[]=$resObs;
+        $resObs->observacion = $resultado->obs;
+        $MTMobservaciones[] = $resObs;
       }
     };
 
