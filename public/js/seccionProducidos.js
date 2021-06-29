@@ -163,8 +163,8 @@ $(document).on('click','.infoMaq',function(e){
   $('#modalCargaProducidos .mensajeFin').hide();
 
   e.preventDefault();
-  var id_maq = $(this).val();
-  var id_prod = $('#modalCargaProducidos #id_producido').val();
+  const id_maq = $(this).val();
+  const id_prod = $('#modalCargaProducidos #id_producido').val();
 
   //ME TRAE TODOS LOS DATOS DE UNA MÁQUINA DETERMINADA, AL PŔESIONAR EL OJO
   $.get('producidos/datosAjusteMTM/' + id_maq + '/' + id_prod, function(data){
@@ -304,8 +304,7 @@ function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-    $('#alertaArchivo').hide();
-    window.open('producidos/generarPlanilla/' + $(this).val(),'_blank');
+  window.open('producidos/generarPlanilla/' + $(this).val(),'_blank');
 });
 
 //función para generar el listado inicial
