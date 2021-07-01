@@ -2,6 +2,7 @@
 /vendor
 /Backups
 .env
+/laravel-worker.cnf
 /public/js/lista-datos-backup.js
 /app/Http/Controllers/pruebaController.php
 /public/Mesas/*

@@ -401,6 +401,7 @@ class MTMController extends Controller
       $MTM->denominacion     = $request->denominacion;
       $MTM->juega_progresivo = $request->juega_progresivo;
       $MTM->id_casino        = $log_movimiento->id_casino;
+      $MTM->id_formula       = $request->formula["id_formula"];
       $MTM->save();
 
       $juegos  = array(); //arreglo con todos los juegos
@@ -427,7 +428,6 @@ class MTMController extends Controller
       $MTM->casino()->associate($request->id_casino);
       $MTM->juegos()->sync($juegos);
       $MTM->isla()->associate($request->id_isla);
-      $MTM->formula()->associate($request->formula['id_formula']);
       $MTM->estado_maquina()->associate(6);//Estado = Inhabilitada -->viene a ser un estado PENDIENTE DE HABILITACION
       if(!empty($request->id_tipo_gabinete)){$MTM->tipoGabinete()->associate($request->id_tipo_gabinete);}
       if(!empty($request->id_tipo_maquina) ){$MTM->tipoMaquina()->associate($request->id_tipo_maquina);}
