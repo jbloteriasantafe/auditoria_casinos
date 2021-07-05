@@ -95,9 +95,9 @@ class ProducidoController extends Controller
 
   private function contadoresDeProducido($id_producido){
     $p = Producido::find($id_producido);
-    $inicial = ContadorHorario::where([['fecha','=',$p->fecha ],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get();
+    $inicial = ContadorHorario::where([['fecha','=',$p->fecha ],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get()->first();
     $fecha_fin = date("Y-m-d", strtotime($p->fecha." +1 days"));
-    $final   = ContadorHorario::where([['fecha','=',$fecha_fin],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get();
+    $final   = ContadorHorario::where([['fecha','=',$fecha_fin],['id_casino','=',$p->id_casino],['id_tipo_moneda','=',$p->id_tipo_moneda]])->get()->first();
     return ['inicial' => $inicial, 'final' => $final];
   }
 
@@ -237,8 +237,10 @@ class ProducidoController extends Controller
           $producido->save();
           //Siempre hay contador final? puede ser nulo?
           $contador_final = $this->contadoresDeProducido($id_producido)['final'];
-          $contador_final->cerrado= 1;
-          $contador_final->save();
+          if(!is_null($contador_final)){
+            $contador_final->cerrado = 1;
+            $contador_final->save();
+          }
         });
       }
 
