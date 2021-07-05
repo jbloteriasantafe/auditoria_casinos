@@ -216,10 +216,10 @@ class ProducidoController extends Controller
         DB::transaction(function() use (&$diferencias,&$diferencias_filtradas){
           foreach ($diferencias as $diff) {
             $diferencia_ajuste = new AjusteProducido;
-            $diferencia_ajuste->producido_calculado  = $diff['delta'];
-            $diferencia_ajuste->producido_sistema    = $diff['producido'];
-            $diferencia_ajuste->diferencia           = $diff['diferencia'];
-            $diferencia_ajuste->id_detalle_producido = $diff['id_detalle_producido'];
+            $diferencia_ajuste->producido_calculado  = $diff->delta;
+            $diferencia_ajuste->producido_sistema    = $diff->producido;
+            $diferencia_ajuste->diferencia           = $diff->diferencia;
+            $diferencia_ajuste->id_detalle_producido = $diff->id_detalle_producido;
             $diferencia_ajuste->save();
 
             // veo si puedo hacer vuelta de contadores automaticamente
