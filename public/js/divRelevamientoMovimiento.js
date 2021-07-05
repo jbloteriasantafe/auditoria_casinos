@@ -313,3 +313,37 @@ function divRelMovSetearModo(modo){
         divRM.find('.validacion').show();
     }
 }
+
+$('#divRelMov').find('.cant_lineas,.creditos,.apuesta').focusout(function(e){
+    const arr =  [$('#divRelMov .cant_lineas').val(),$('#divRelMov .creditos').val(),$('#divRelMov .apuesta').val()];
+    let llenados = 0;
+    for(const idx in arr){
+        if(arr[idx] != "") llenados++;
+    }
+    if(llenados != 2) return;
+    //apuesta, cant_lineas son double y creditos int en la tabla...
+    const vals = [parseFloat(arr[0]),parseInt(arr[1]),parseFloat(arr[2])];
+    let nans = 0;
+    for(const idx in vals){
+        if(isNaN(vals[idx])) nans++;
+    }
+    if(nans > 1) return;//Siempre hay 1 NaN porque hay 1 vacio
+    //Almenos 2 valores fueron ingresados
+    //Apuesta/Creditos = CantLineas
+    //Si no borro calculo el restante
+    if($(this).val() == "") return;
+    //En los formularios subidos veo que cuando ponen creditos = 0 ponen Cantlineas en 0, sigo esa convención
+    const div = function(a,b){ return b == 0? 0 : a/b; };
+    if($(this).hasClass('cant_lineas')){
+        if(arr[1] != "") $('#divRelMov .apuesta').val(vals[0]*vals[1]);
+        else             $('#divRelMov .creditos').val(div(vals[2],vals[0]));
+    }
+    if($(this).hasClass('creditos')){
+        if(arr[0] != "") $('#divRelMov .apuesta').val(vals[0]*vals[1]);
+        else             $('#divRelMov .cant_lineas').val(div(vals[2],vals[1]));
+    }
+    if($(this).hasClass('apuesta')){
+        if(arr[0] != "") $('#divRelMov .creditos').val(div(vals[2],vals[0]));
+        else             $('#divRelMov .cant_lineas').val(div(vals[2],vals[1]));
+    }
+});
