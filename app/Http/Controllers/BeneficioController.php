@@ -14,6 +14,7 @@ use App\AjusteBeneficio;
 use App\Producido;
 use App\BeneficioMensual;
 use App\Porcentaje;
+use App\Casino;
 
 class BeneficioController extends Controller
 {
@@ -28,6 +29,43 @@ class BeneficioController extends Controller
 
   private static $atributos=[];
 
+  //Aca en principio se puede agrupar por id_producido... hay 1 solo con la misma fecha,casino y moneda
+  //@SPEED: precalcular la suma y guardarla en el producido (OJO cambiarla si se ajusta el Detalle Producido)
+  private static $view_producido_valor = "CREATE OR REPLACE VIEW v_producido_valor AS
+  SELECT p.fecha,p.id_casino,p.id_tipo_moneda,SUM(IFNULL(dp.valor,0)) as suma
+  FROM producido as p
+  LEFT JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
+  GROUP BY p.id_producido";
+
+  //@BUG: Que pasa si hay mas de 1 ajuste beneficio?? (ver comentario mas abajo)
+  //      Me quedo con el maximo supongo (?)
+  private static $view_diferencia_dia = "CREATE OR REPLACE VIEW v_diferencia_dia AS
+  SELECT b.id_beneficio,b.fecha,b.id_casino,b.id_tipo_moneda,(IFNULL(MAX(p.suma),0) + IFNULL(MAX(ab.valor),0) - b.valor) as diferencia
+  FROM beneficio as b
+  LEFT JOIN v_producido_valor as p on (p.fecha = b.fecha AND p.id_casino = b.id_casino AND p.id_tipo_moneda = b.id_tipo_moneda)
+  LEFT JOIN ajuste_beneficio as ab ON ab.id_beneficio = b.id_beneficio
+  GROUP BY b.id_beneficio";
+
+  private static $view_diferencia_mes = "CREATE OR REPLACE VIEW v_diferencia_mes AS
+  SELECT b.id_casino,b.id_tipo_moneda,YEAR(b.fecha) AS anio,MONTH(b.fecha) AS mes,
+         IFNULL(SUM(ROUND(IFNULL(dd.diferencia,1)) <> 0),0) AS diferencias_mes
+  FROM beneficio as b
+  LEFT JOIN v_diferencia_dia as dd on (dd.id_beneficio = b.id_beneficio)
+  GROUP BY b.id_casino,b.id_tipo_moneda,YEAR(b.fecha),MONTH(b.fecha)";
+
+  private static function initViews(){
+    DB::beginTransaction();
+    try{
+      DB::statement(self::$view_producido_valor);
+      DB::statement(self::$view_diferencia_dia);
+      DB::statement(self::$view_diferencia_mes);
+    }
+    catch(\Exception $e){
+      DB::rollback();
+      throw $e;
+    } 
+  } 
+
   public function eliminarBeneficio($id_beneficio){
     Validator::make(['id_beneficio' => $id_beneficio]
                    ,['id_beneficio' => 'required|exists:beneficio,id_beneficio']
@@ -38,105 +76,41 @@ class BeneficioController extends Controller
   }
 
   public function buscarTodo(){
-
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Beneficios' ,'beneficios');
     return view('seccionBeneficios',['casinos' => $usuario->casinos,'tipos_moneda' => TipoMoneda::all()]);
-
   }
 
   public function buscarBeneficios(Request $request){
-    Validator::make($request->all(), [
-            'fecha_desde' => 'nullable|date',
-            'fecha_hasta' => 'nullable|date|after:fecha_desde'
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
+    $casinos = [];
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    foreach($usuario->casinos as $c) $casinos[] = $c->id_casino;
 
-    $query_conditions = " 1 = 1 ";
-
-    if(!empty($request->id_tipo_moneda) && $request->id_tipo_moneda != 0){
-
-      $query_conditions = $query_conditions." AND beneficio.id_tipo_moneda = ".$request->id_tipo_moneda;
-    }
-
+    $reglas = [];
+    if(!empty($request->id_casino))      $reglas[] = ['id_casino','=',$request->id_casino];
+    if(!empty($request->id_tipo_moneda)) $reglas[] = ['id_tipo_moneda','=',$request->id_tipo_moneda];
     if(!empty($request->fecha_desde)){
-
-      $query_conditions = $query_conditions." AND beneficio.fecha >= '".$request->fecha_desde."'";
-
+      $f = explode('-',$request->fecha_desde);
+      $reglas[] = ['anio','>=',$f[0]];
+      $reglas[] = ['mes','>=',$f[1]];
     }
     if(!empty($request->fecha_hasta)){
-
-      $query_conditions = $query_conditions." AND beneficio.fecha < '".$request->fecha_hasta."'";
-
+      $f = explode('-',$request->fecha_hasta);
+      $reglas[] = ['anio','<=',$f[0]];
+      $reglas[] = ['mes','<=',$f[1]];
     }
 
-    $casinos = array();
-    if($request->id_casino == 0){
-      $query_casinos = " (0";
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach($usuario->casinos as $casino){
-        $casinos[] = $casino->id_casino;
-        $query_casinos = $query_casinos.",".($casino->id_casino);
-      }
-      $query_casinos = $query_casinos.") ";
-    }else{
-      $casinos[] = $request->id_casino;
-      $query_casinos = " (".($request->id_casino).") ";
-    }
-
-    $sort_by = $request->sort_by;
-    $offset = ($request->page > 1) ? $request->page*$request->page_size : 0;
-    $paginacion = " LIMIT ".$request->page_size." OFFSET ".$offset;
-    if($request->sort_by != null){
-      $paginacion = " ORDER BY ".$request->sort_by['columna']." ".$request->sort_by['orden'].$paginacion;
-    }else{
-      $paginacion = " ORDER BY diferencias_mes.anio desc, diferencias_mes.mes desc".$paginacion;
-    }
-
-    $select = " SELECT tipo_moneda.descripcion AS tipo_moneda, casino.nombre as casino, diferencias_mes.*";
-
-    $query = "
-     FROM (SELECT SUM(CASE WHEN ROUND(diferencia_dia.valor) != 0 THEN 1 ELSE 0 END) AS diferencias_mes, beneficio.id_casino AS id_casino, beneficio.id_tipo_moneda AS id_tipo_moneda, YEAR(beneficio.fecha) AS anio, MONTH(beneficio.fecha) AS mes
-           FROM (SELECT beneficio_calculado.id_beneficio AS id_beneficio, ((beneficio_calculado.suma + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS valor
-                 FROM (SELECT beneficio.id_beneficio as id_beneficio, SUM(IFNULL(detalle_producido.valor,0)) AS suma
-                       FROM beneficio
-                       LEFT JOIN producido ON producido.fecha = beneficio.fecha AND producido.id_casino = beneficio.id_casino AND producido.id_tipo_moneda = beneficio.id_tipo_moneda
-                       LEFT JOIN detalle_producido ON detalle_producido.id_producido = producido.id_producido
-                       WHERE ".$query_conditions." AND beneficio.id_casino IN ".$query_casinos."
-                       GROUP BY beneficio.id_beneficio) AS beneficio_calculado
-                 LEFT JOIN ajuste_beneficio ON ajuste_beneficio.id_beneficio = beneficio_calculado.id_beneficio
-                 JOIN beneficio ON beneficio.id_beneficio = beneficio_calculado.id_beneficio) AS diferencia_dia
-           JOIN beneficio ON beneficio.id_beneficio = diferencia_dia.id_beneficio
-           GROUP BY beneficio.id_casino,beneficio.id_tipo_moneda,YEAR(beneficio.fecha),MONTH(beneficio.fecha)) AS diferencias_mes
-     JOIN casino ON casino.id_casino = diferencias_mes.id_casino
-     JOIN tipo_moneda ON tipo_moneda.id_tipo_moneda = diferencias_mes.id_tipo_moneda ";
-
-    $pdo = DB::connection('mysql')->getPdo();
-    $resultados = $pdo->query($select.$query.$paginacion);
-
-    $total = $pdo->query(" SELECT COUNT(*) as cantitad ".$query);
-
-    foreach($total as $tot){
-      $total = $tot['cantitad'];
-      break;
-    }
-
-    $retorno = array();
-    foreach($resultados as $row){
-      $pos = new \stdClass();
-      $pos->mes = $row['mes'];
-      $pos->anio = $row['anio'];
-      $pos->id_casino = $row['id_casino'];
-      $pos->casino = $row['casino'];
-      $pos->id_tipo_moneda = $row['id_tipo_moneda'];
-      $pos->tipo_moneda = $row['tipo_moneda'];
-      $pos->diferencias_mes = $row['diferencias_mes'];
-      $aux = BeneficioMensual::where([['id_casino',$row['id_casino']],['id_actividad',1],['id_tipo_moneda',$row['id_tipo_moneda']]])->whereYear('anio_mes',$row['anio'])->whereMonth('anio_mes',$row['mes'])->first();
-      $pos->id_beneficio_mensual = ($aux != null) ? $aux->id_beneficio_mensual : null;
-      $retorno[]= $pos;
-    }
-
-    return ['data' => $retorno,'total' => $total];
+    self::initViews();
+    return DB::table('v_diferencia_mes as vdm')
+    ->select('tm.descripcion as tipo_moneda','c.nombre as casino','vdm.*','bm.id_beneficio_mensual')
+    ->join('casino as c','c.id_casino','=','vdm.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
+    ->leftJoin('beneficio_mensual as bm',function($j){
+      return $j->on('bm.id_casino','=','vdm.id_casino')->on('bm.id_tipo_moneda','=','vdm.id_tipo_moneda')
+      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(vdm.anio,vdm.mes)'))->where('bm.id_actividad','=',1);
+    })
+    ->whereIn('vdm.id_casino',$casinos)->where($reglas)
+    ->orderBy(DB::raw('MAKEDATE(vdm.anio,vdm.mes)'),'desc')->paginate($request->page_size);
   }
 
   public function obtenerBeneficiosParaValidar(Request $request){
@@ -144,33 +118,37 @@ class BeneficioController extends Controller
 
     return ['resultados' => $resultados];
   }
-  // cami coments
-  //desde el modal de ajustar beneficios,
-  //directamente se ajusta desde ahi cada beneficio.
-  //y en la pantalla le indica como queda la diferencia, segun los
-  //valores que habia recibido cuando abrio el modal.
-  //o sea, que si yo ajusto 20 mil veces la misma fecha,
-  // a las modificaciones anteriores no las elimina!!! WTF!?
+
   public function ajustarBeneficio(Request $request){
     Validator::make($request->all(), [
-            'valor' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-            'id_beneficio' => 'required|exists:beneficio,id_beneficio'
+      'valor' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'id_beneficio' => 'required|exists:beneficio,id_beneficio'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    $ajuste = new AjusteBeneficio();
-    $ajuste->valor = $request->valor;
-    $ajuste->id_beneficio = $request->id_beneficio;
-    $ajuste->save();
+    // Aca antes generaba un ajuste nuevo por cada vez que tocaba ajustar... si hay algun bug en beneficios viejos es 
+    // probablemente por eso. Octavio 2021-07-06
 
-    return ['ajuste' => $ajuste];
+    $ab = Beneficio::find($request->id_beneficio)->ajuste_beneficio;
+    if(is_null($ab)){
+      $ab = new AjusteBeneficio;
+      $ab->valor = 0;
+      $ab->id_beneficio = $request->id_beneficio;
+    }
+
+    DB::transaction(function() use (&$ab,$request){
+      $ab->valor = $request->valor;
+      $ab->save();
+    });
+
+    return ['ajuste' => $ab];
   }
 
   public function validarBeneficios(Request $request){
     $validator = Validator::make($request->all(), [
-            'benficios_ajustados' => 'nullable',
-            'benficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
-            'benficios_ajustados.*.observacion' => 'nullable|max:500'
+      'beneficios_ajustados' => 'nullable',
+      'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
+      'beneficios_ajustados.*.observacion' => 'nullable|max:500'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
     if(isset($validator))
@@ -266,22 +244,13 @@ class BeneficioController extends Controller
 
   public function validarBeneficiosSinProducidos(Request $request){
     $validator = Validator::make($request->all(), [
-            'benficios_ajustados' => 'nullable',
-            'benficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
-            'benficios_ajustados.*.observacion' => 'nullable|max:500'
+      'beneficios_ajustados' => 'nullable',
+      'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
+      'beneficios_ajustados.*.observacion' => 'nullable|max:500'
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
-    if(isset($validator))
-    {
-      if ($validator->fails())
-      {
-        return [
-              'errors' => $v->getMessageBag()->toArray()
-          ];
-      }
-    }
+
     $errors = null;
-    //dd($validator);
     if($request->beneficios_ajustados != null){
       foreach($request->beneficios_ajustados as $beneficio_ajustado){
         $ben = Beneficio::find($beneficio_ajustado['id_beneficio']);
@@ -312,8 +281,7 @@ class BeneficioController extends Controller
 
       if(isset($errors))
       {
-        return response()->json($errors->toArray(), 404);
-
+        return response()->json($errors->toArray(), 422);
       }
 
       $ben = Beneficio::find($request->beneficios_ajustados[0]['id_beneficio']);
@@ -338,17 +306,13 @@ class BeneficioController extends Controller
         }
       }
      // como se esta intentando validar dias sin producidos, se genera el mensual de todas formas
-        $beneficio_mensual = new BeneficioMensual;
-        $beneficio_mensual->id_casino = $ben->id_casino;
-        $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
-        $beneficio_mensual->id_actividad = 1;
-        $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01'; // Ej: 2017-08-01
-        //$porcentaje = Porcentaje::where([['id_casino',$ben->id_casino],['id_actividad',1]])->first();
-        //$beneficio_mensual->canon = ($acumulado - iea)*($porcentaje->valor);
-        $beneficio_mensual->bruto = $acumulado;
-        //$beneficio_mensual->iea = algo;
-        $beneficio_mensual->save();
-      
+      $beneficio_mensual = new BeneficioMensual;
+      $beneficio_mensual->id_casino = $ben->id_casino;
+      $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
+      $beneficio_mensual->id_actividad = 1;
+      $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01'; // Ej: 2017-08-01
+      $beneficio_mensual->bruto = $acumulado;
+      $beneficio_mensual->save();
     }
     return "true";
   }
@@ -370,26 +334,24 @@ class BeneficioController extends Controller
   }
 
   private function obtenerBeneficiosPorMes($id_casino,$id_tipo_moneda,$anio,$mes){
-    $resultados = DB::table('beneficio')->select('beneficio.id_beneficio as id_beneficio','beneficio.fecha as fecha',
-                                                  DB::raw('(CAST(beneficio.valor AS DECIMAL(15,2))) as beneficio'),
-                                                  DB::raw('(CAST((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) AS DECIMAL(15,2))) AS beneficio_calculado'),
-                                                  DB::raw('(CAST(((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS DECIMAL(15,2))) AS diferencia'),
-                                                  DB::raw('CASE WHEN ((IFNULL(producido.id_producido,0)) != 0) THEN 1 ELSE 0 END AS existe_producido'),
-                                                  'producido.id_producido as id_producido')
-                                        ->leftJoin('producido',function ($leftJoin) use ($id_casino,$id_tipo_moneda,$anio,$mes){
-                                          $leftJoin->on('producido.fecha','=','beneficio.fecha')
-                                               ->where([['producido.id_casino','=',$id_casino],['producido.id_tipo_moneda','=',$id_tipo_moneda]])
-                                               ->whereMonth('producido.fecha',$mes)
-                                               ->whereYear('producido.fecha',$anio);
-                                          })
-                                        ->leftJoin('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-                                        ->leftJoin('ajuste_beneficio','ajuste_beneficio.id_beneficio','=','beneficio.id_beneficio')
-                                        ->where([['beneficio.id_casino',$id_casino],['beneficio.id_tipo_moneda',$id_tipo_moneda]])
-                                        ->whereMonth('beneficio.fecha',$mes)
-                                        ->whereYear('beneficio.fecha',$anio)
-                                        ->groupBy('beneficio.valor','beneficio.fecha','beneficio.id_beneficio','producido.id_producido','ajuste_beneficio.valor')
-                                        ->orderBy('beneficio.fecha','asc')
-                                        ->get();
+    $resultados = DB::table('beneficio')
+    ->select('beneficio.id_beneficio','beneficio.fecha','producido.id_producido',
+      DB::raw('(CAST(beneficio.valor AS DECIMAL(15,2))) as beneficio'),
+      DB::raw('(CAST((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) AS DECIMAL(15,2))) AS beneficio_calculado'),
+      DB::raw('(CAST(((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS DECIMAL(15,2))) AS diferencia')
+    )
+    ->leftJoin('producido',function ($leftJoin){
+      $leftJoin->on('producido.fecha','=','beneficio.fecha')->on('producido.id_casino','=','beneficio.id_casino')
+      ->on('producido.id_tipo_moneda','=','beneficio.id_tipo_moneda');
+    })
+    ->leftJoin('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
+    ->leftJoin('ajuste_beneficio','ajuste_beneficio.id_beneficio','=','beneficio.id_beneficio')
+    ->where([['beneficio.id_casino',$id_casino],['beneficio.id_tipo_moneda',$id_tipo_moneda]])
+    ->whereMonth('beneficio.fecha',$mes)
+    ->whereYear('beneficio.fecha',$anio)
+    ->groupBy('beneficio.valor','beneficio.fecha','beneficio.id_beneficio','producido.id_producido','ajuste_beneficio.valor')
+    ->orderBy('beneficio.fecha','asc')
+    ->get();
     return $resultados;
   }
 
@@ -409,82 +371,27 @@ class BeneficioController extends Controller
     para cada fecha del mes
   */
 
-
   public function generarPlanilla($id_casino,$id_tipo_moneda,$anio,$mes){
-
-    $nombreCasino = DB::table('casino')->select('casino.nombre as nombre')
-                                         ->where('casino.id_casino',$id_casino)
-                                         ->first();
-
-    $tipoMoneda = DB::table('tipo_moneda')->select('tipo_moneda.descripcion as tipo_moneda')
-                                           ->where('tipo_moneda.id_tipo_moneda',$id_tipo_moneda)
-                                           ->first();
-
     $ben = new \stdClass();
-    $ben->casino = $nombreCasino->nombre;
-    $ben->moneda = $tipoMoneda->tipo_moneda;
-    if($ben->moneda == 'ARS'){
-         $ben->moneda = 'Pesos';
-         }
-       else{
-         $ben->moneda = 'Dólares';
-         }
+    $ben->casino = Casino::find($id_casino)->nombre;
+    $ben->moneda = TipoMoneda::find($id_tipo_moneda)->descripcion;
+    if($ben->moneda == 'ARS') $ben->moneda = 'Pesos';
+    else if($ben->moneda == 'USD') $ben->moneda = 'Dólares';
 
-    switch ($mes) {
-         case 1:
-             $mesEdit = "Enero";
-             break;
-         case 2:
-             $mesEdit = "Febrero";
-             break;
-         case 3:
-             $mesEdit = "Marzo";
-             break;
-         case 4:
-             $mesEdit = "Abril";
-             break;
-         case 5:
-             $mesEdit = "Mayo";
-             break;
-         case 6:
-             $mesEdit = "Junio";
-             break;
-         case 7:
-             $mesEdit = "Julio";
-             break;
-         case 8:
-             $mesEdit = "Agosto";
-             break;
-         case 9:
-             $mesEdit = "Septiembre";
-             break;
-         case 10:
-             $mesEdit = "Octubre";
-             break;
-         case 11:
-             $mesEdit = "Noviembre";
-             break;
-         case 12:
-             $mesEdit = "Diciembre";
-             break;
-     }
-    $ben->mes = $mesEdit;
+    $meses = ["0","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    $ben->mes = $mes;
+    if(array_key_exists($mes,$meses)) $ben->mes = $meses[$mes];
     $ben->anio = $anio;
 
     $resultados = $this->obtenerBeneficiosPorMes($id_casino,$id_tipo_moneda,$anio,$mes);
 
-    $ajustes = array();
+    $ajustes = [];
     foreach ($resultados as $resultado){//resultado:
       $res = new \stdClass();
-
-      $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-      $mes = $resultado->fecha[5].$resultado->fecha[6];
-      $dia = $resultado->fecha[8].$resultado->fecha[9];
-      $res->fecha = $dia."-".$mes."-".$año;
-
+      $res->fecha      = implode('-',array_reverse(explode('-',$resultado->fecha)));
       $res->bcalculado = number_format($resultado->beneficio_calculado, 2, ",", ".");
       $res->bimportado = number_format($resultado->beneficio, 2, ",", ".");
-      $res->dif = number_format($resultado->diferencia, 2, ",", ".");
+      $res->dif        = number_format($resultado->diferencia, 2, ",", ".");
       $ajustes[] = $res;
     }
 
@@ -497,8 +404,6 @@ class BeneficioController extends Controller
 
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
-
 }
