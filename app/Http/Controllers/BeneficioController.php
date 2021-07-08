@@ -45,7 +45,8 @@ class BeneficioController extends Controller
          IFNULL(SUM(ROUND(dd.diferencia,2) <> 0.00),0) AS diferencias_mes
   FROM beneficio as b
   LEFT JOIN v_diferencia_dia as dd on (dd.id_beneficio = b.id_beneficio)
-  GROUP BY b.id_casino,b.id_tipo_moneda,YEAR(b.fecha),MONTH(b.fecha)";
+  GROUP BY b.id_casino,b.id_tipo_moneda,YEAR(b.fecha),MONTH(b.fecha)
+  ORDER BY NULL";
 
   private static function initViews(){
     DB::beginTransaction();
