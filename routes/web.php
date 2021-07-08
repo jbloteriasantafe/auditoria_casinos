@@ -361,6 +361,7 @@ Contadores
 ***********/
 Route::delete('contadores/eliminarContador/{id}','ContadorController@eliminarContador');
 Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarProducido');
+Route::delete('beneficios/eliminarBeneficios/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@eliminarBeneficios');
 Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
 Route::get('importaciones','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
 Route::post('importaciones/buscar','ImportacionController@buscar');

@@ -354,6 +354,10 @@ $(document).on('click','.borrar',function(){
   var id_importacion = $(this).val();
   //Mirar en la tabla los tipos de archivos listados (1:contadores;2:producidos;3:beneficios).
   var tipo_archivo = $('#tablaImportaciones').attr('data-tipo');
+  const casino = $(this).attr('data-casino');
+  const moneda = $(this).attr('data-moneda');
+  const anio   = $(this).attr('data-anio');
+  const mes    = $(this).attr('data-mes');
   var nombre_tipo_archivo;
 
   switch (tipo_archivo) {
@@ -370,7 +374,8 @@ $(document).on('click','.borrar',function(){
 
   //Se muestra el modal de confirmación de eliminación
   //Se le pasa el tipo de archivo y el id del archivo
-  $('#btn-eliminarModal').val(id_importacion).attr('data-tipo',tipo_archivo);
+  $('#btn-eliminarModal').val(id_importacion).attr('data-tipo',tipo_archivo)
+  .attr('data-casino',casino).attr('data-moneda',moneda).attr('data-anio',anio).attr('data-mes',mes);
   $('#titulo-modal-eliminar').text('¿Seguro desea eliminar el '+ nombre_tipo_archivo + '?');
   $('#modalEliminar').modal('show');
 });
@@ -396,7 +401,8 @@ $('#btn-eliminarModal').click(function (e) {
       url = "producidos/eliminarProducido/" + id_importacion;
       break;
     case '3':
-      url = "beneficios/eliminarBeneficio/" + id_importacion;
+      url = "beneficios/eliminarBeneficios/"
+          + $(this).attr('data-casino')+'/'+$(this).attr('data-moneda')+'/'+$(this).attr('data-anio')+'/'+$(this).attr('data-mes');
       break;
   }
 
@@ -1328,7 +1334,11 @@ function agregarFilasImportaciones(data, id) {
                                               .attr('data-moneda', data.id_tipo_moneda)
                                               .append($('<i>').addClass('far fa-fw fa-file-alt'))
                          )
-                         .append($('<button>').addClass('btn btn-danger borrar').val(id)
+                         .append($('<button>').addClass('btn btn-danger borrar')
+                                              .attr('data-mes', data.mes)
+                                              .attr('data-anio', data.anio)
+                                              .attr('data-casino', data.id_casino)
+                                              .attr('data-moneda', data.id_tipo_moneda)
                                               .append($('<i>').addClass('fa fa-fw fa-trash-alt'))
 
                          )

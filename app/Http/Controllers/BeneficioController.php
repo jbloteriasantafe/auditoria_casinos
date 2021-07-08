@@ -60,13 +60,37 @@ class BeneficioController extends Controller
     } 
   } 
 
-  public function eliminarBeneficio($id_beneficio){
-    Validator::make(['id_beneficio' => $id_beneficio]
-                   ,['id_beneficio' => 'required|exists:beneficio,id_beneficio']
-                   , array(), self::$atributos)->after(function($validator){
-                   })->validate();
+  public function eliminarBeneficios($id_casino,$id_tipo_moneda,$anio,$mes){//@TODO: validar acceso a casinos del usuario
+    $bens = Beneficio::where([['id_casino','=',$id_casino],['id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('fecha',$anio)->whereMonth('fecha',$mes)->get();
+    DB::beginTransaction();
+    try{
+      foreach($bens as $b){
+        $this->eliminarBeneficio($b->id_beneficio,false);
+      }
+    }
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
+    }
+    DB::commit();
+    return 1;
+  }
 
-    Beneficio::destroy($id_beneficio);
+  public function eliminarBeneficio($id_beneficio,$validar = true){
+    if($validar) Validator::make(['id_beneficio' => $id_beneficio]
+    ,['id_beneficio' => 'required|exists:beneficio,id_beneficio']
+    , array(), self::$atributos)->sometimes('id_beneficio','exists:beneficio,id_beneficio',function($input){
+      $ben = Beneficio::find($input['id_beneficio']);
+      return !$ben->validado;
+    })->validate();
+
+    DB::transaction(function() use ($id_beneficio){
+      $ben = Beneficio::find($id_beneficio);
+      $ab = $ben->ajuste_beneficio;
+      if(!is_null($ab)) $ab->delete();
+      $ben->delete();
+    });
   }
 
   public function buscarTodo(){
@@ -155,7 +179,7 @@ class BeneficioController extends Controller
       }
     }
     $errors = null;
-    //dd($validator);
+
     if($request->beneficios_ajustados != null){
       foreach($request->beneficios_ajustados as $beneficio_ajustado){
         $ben = Beneficio::find($beneficio_ajustado['id_beneficio']);
