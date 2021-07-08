@@ -752,6 +752,7 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->valor = $producido->recalcularValor();
     $producido->save();
   //fin de implementacion
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
@@ -1085,6 +1086,7 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->valor = $producido->recalcularValor();
     $producido->save();
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];

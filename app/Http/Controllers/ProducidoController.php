@@ -371,48 +371,59 @@ class ProducidoController extends Controller
     if($diferencia != 0) return ['todas_ajustadas' => 0,'hay_diferencia' => 1];
       
     $producido = $detalle_producido->producido;
-    if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
-      //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
-      $detalle_inicio->coinin     = $request['coinin_inicial']     * $request['denominacion'];//Se guarda en plata
-      $detalle_inicio->coinout    = $request['coinout_inicial']    * $request['denominacion'];
-      $detalle_inicio->jackpot    = $request['jackpot_inicial']    * $request['denominacion'];
-      $detalle_inicio->progresivo = $request['progresivo_inicial'] * $request['denominacion'];
-      //Si el casino es Rosario, se tiene que cargar la denominacion de carga
-      if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
-      $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
-    }
-    if(in_array($request['id_tipo_ajuste'],[3,6])){//Le guardo el contador final
-      $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion'];
-      $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion'];
-      $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion'];
-      $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion'];
-      if($producido->id_casino == 3) $detalle_final->denominacion_carga = $request['denominacion'];
-      $detalle_final->save();
-    }
-    if(in_array($request['id_tipo_ajuste'],[4,6])){//Le guardo el producido
-      $detalle_producido->valor = $request['producido'];
-    }
+    DB::beginTransaction();
+    try{
+      if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
+        //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
+        $detalle_inicio->coinin     = $request['coinin_inicial']     * $request['denominacion'];//Se guarda en plata
+        $detalle_inicio->coinout    = $request['coinout_inicial']    * $request['denominacion'];
+        $detalle_inicio->jackpot    = $request['jackpot_inicial']    * $request['denominacion'];
+        $detalle_inicio->progresivo = $request['progresivo_inicial'] * $request['denominacion'];
+        //Si el casino es Rosario, se tiene que cargar la denominacion de carga
+        if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
+        $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
+      }
+      if(in_array($request['id_tipo_ajuste'],[3,6])){//Le guardo el contador final
+        $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion'];
+        $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion'];
+        $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion'];
+        $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion'];
+        if($producido->id_casino == 3) $detalle_final->denominacion_carga = $request['denominacion'];
+        $detalle_final->save();
+      }
+      if(in_array($request['id_tipo_ajuste'],[4,6])){//Le guardo el producido
+        $producido->valor -= $detalle_producido->valor;//Le saco al total lo que tenia
+        $detalle_producido->valor = $request['producido'];
+        $producido->valor += $detalle_producido->valor;//Le agrego al total el nuevo valor
+        $producido->save();
+      }
 
-    //Se agregan las observaciones, estas son independientes del tipo de ajuste
-    $detalle_producido->observacion    = $request['observacion'];
-    $detalle_producido->id_tipo_ajuste = $request['id_tipo_ajuste'];
-    $detalle_producido->save();
+      //Se agregan las observaciones, estas son independientes del tipo de ajuste
+      $detalle_producido->observacion    = $request['observacion'];
+      $detalle_producido->id_tipo_ajuste = $request['id_tipo_ajuste'];
+      $detalle_producido->save();
 
-    //Me fijo si faltan ajustes
-    $faltan_ajustes = DB::table('producido as p')
-    ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
-    //Con este JOIN me quedo solo con los detalles que tenian diferencias al momento de ajustar
-    ->join('ajuste_producido as ap','ap.id_detalle_producido','=','dp.id_detalle_producido')
-    //Si les falta el tipo de ajuste, faltan ajustar
-    ->whereNull('dp.id_tipo_ajuste')->where('p.id_producido','=',$producido->id_producido)->get()->count() > 0;
+      //Me fijo si faltan ajustes
+      $faltan_ajustes = DB::table('producido as p')
+      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+      //Con este JOIN me quedo solo con los detalles que tenian diferencias al momento de ajustar
+      ->join('ajuste_producido as ap','ap.id_detalle_producido','=','dp.id_detalle_producido')
+      //Si les falta el tipo de ajuste, faltan ajustar
+      ->whereNull('dp.id_tipo_ajuste')->where('p.id_producido','=',$producido->id_producido)->get()->count() > 0;
 
-    if(!$faltan_ajustes){ //Si no faltan, valido el producido y cierro el contador final
-      $producido = Producido::find($request->id_producido);
-      $producido->validado = 1 ;
-      $producido->save();
-      $contador_horario = $detalle_final->contador_horario;
-      $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
-      $contador_horario->save();
+      if(!$faltan_ajustes){ //Si no faltan, valido el producido y cierro el contador final
+        $producido = Producido::find($request->id_producido);
+        $producido->validado = 1 ;
+        $producido->save();
+        $contador_horario = $detalle_final->contador_horario;
+        $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
+        $contador_horario->save();
+      }
+      DB::commit();
+    }
+    catch(Exception $e){
+      DB::rollBack();
+      throw $e;
     }
 
     return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];

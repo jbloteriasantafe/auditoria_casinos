@@ -29,26 +29,20 @@ class BeneficioController extends Controller
 
   private static $atributos=[];
 
-  //Aca en principio se puede agrupar por id_producido... hay 1 solo con la misma fecha,casino y moneda
-  //@SPEED: precalcular la suma y guardarla en el producido (OJO cambiarla si se ajusta el Detalle Producido)
-  private static $view_producido_valor = "CREATE OR REPLACE VIEW v_producido_valor AS
-  SELECT p.fecha,p.id_casino,p.id_tipo_moneda,SUM(IFNULL(dp.valor,0)) as suma
-  FROM producido as p
-  LEFT JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
-  GROUP BY p.id_producido";
-
   //@BUG: Que pasa si hay mas de 1 ajuste beneficio?? (ver comentario mas abajo)
-  //      Me quedo con el maximo supongo (?)
+  //@TODO: convertir ajuste_beneficio.valor y beneficio.valor a DECIMAL(15,2) para evitar castear tanto
   private static $view_diferencia_dia = "CREATE OR REPLACE VIEW v_diferencia_dia AS
-  SELECT b.id_beneficio,b.fecha,b.id_casino,b.id_tipo_moneda,(IFNULL(MAX(p.suma),0) + IFNULL(MAX(ab.valor),0) - b.valor) as diferencia
+  SELECT b.id_beneficio,b.fecha,b.id_casino,b.id_tipo_moneda,p.id_producido,
+         CAST(b.valor AS DECIMAL(15,2)) as beneficio,
+         CAST((IFNULL(p.valor,0) + IFNULL(ab.valor,0)) AS DECIMAL(15,2)) as beneficio_calculado,
+         CAST((IFNULL(p.valor,0) + IFNULL(ab.valor,0) - b.valor) AS DECIMAL(15,2)) AS diferencia
   FROM beneficio as b
-  LEFT JOIN v_producido_valor as p on (p.fecha = b.fecha AND p.id_casino = b.id_casino AND p.id_tipo_moneda = b.id_tipo_moneda)
-  LEFT JOIN ajuste_beneficio as ab ON ab.id_beneficio = b.id_beneficio
-  GROUP BY b.id_beneficio";
+  LEFT JOIN producido as p on (p.fecha = b.fecha AND p.id_casino = b.id_casino AND p.id_tipo_moneda = b.id_tipo_moneda)
+  LEFT JOIN ajuste_beneficio as ab ON ab.id_beneficio = b.id_beneficio";
 
   private static $view_diferencia_mes = "CREATE OR REPLACE VIEW v_diferencia_mes AS
   SELECT b.id_casino,b.id_tipo_moneda,YEAR(b.fecha) AS anio,MONTH(b.fecha) AS mes,
-         IFNULL(SUM(ROUND(IFNULL(dd.diferencia,1)) <> 0),0) AS diferencias_mes
+         IFNULL(SUM(ROUND(dd.diferencia,2) <> 0.00),0) AS diferencias_mes
   FROM beneficio as b
   LEFT JOIN v_diferencia_dia as dd on (dd.id_beneficio = b.id_beneficio)
   GROUP BY b.id_casino,b.id_tipo_moneda,YEAR(b.fecha),MONTH(b.fecha)";
@@ -56,7 +50,6 @@ class BeneficioController extends Controller
   private static function initViews(){
     DB::beginTransaction();
     try{
-      DB::statement(self::$view_producido_valor);
       DB::statement(self::$view_diferencia_dia);
       DB::statement(self::$view_diferencia_mes);
     }
@@ -226,11 +219,8 @@ class BeneficioController extends Controller
         $beneficio_mensual->id_casino = $ben->id_casino;
         $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
         $beneficio_mensual->id_actividad = 1;
-        $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01'; // Ej: 2017-08-01
-        //$porcentaje = Porcentaje::where([['id_casino',$ben->id_casino],['id_actividad',1]])->first();
-        //$beneficio_mensual->canon = ($acumulado - iea)*($porcentaje->valor);
+        $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01';
         $beneficio_mensual->bruto = $acumulado;
-        //$beneficio_mensual->iea = algo;
         $beneficio_mensual->save();
       }else{
         return response()->json("Faltan importar beneficios", 404);
@@ -334,43 +324,15 @@ class BeneficioController extends Controller
   }
 
   private function obtenerBeneficiosPorMes($id_casino,$id_tipo_moneda,$anio,$mes){
-    $resultados = DB::table('beneficio')
-    ->select('beneficio.id_beneficio','beneficio.fecha','producido.id_producido',
-      DB::raw('(CAST(beneficio.valor AS DECIMAL(15,2))) as beneficio'),
-      DB::raw('(CAST((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) AS DECIMAL(15,2))) AS beneficio_calculado'),
-      DB::raw('(CAST(((SUM(IFNULL(detalle_producido.valor,0)) + IFNULL(ajuste_beneficio.valor,0)) - beneficio.valor) AS DECIMAL(15,2))) AS diferencia')
-    )
-    ->leftJoin('producido',function ($leftJoin){
-      $leftJoin->on('producido.fecha','=','beneficio.fecha')->on('producido.id_casino','=','beneficio.id_casino')
-      ->on('producido.id_tipo_moneda','=','beneficio.id_tipo_moneda');
-    })
-    ->leftJoin('detalle_producido','detalle_producido.id_producido','=','producido.id_producido')
-    ->leftJoin('ajuste_beneficio','ajuste_beneficio.id_beneficio','=','beneficio.id_beneficio')
-    ->where([['beneficio.id_casino',$id_casino],['beneficio.id_tipo_moneda',$id_tipo_moneda]])
-    ->whereMonth('beneficio.fecha',$mes)
-    ->whereYear('beneficio.fecha',$anio)
-    ->groupBy('beneficio.valor','beneficio.fecha','beneficio.id_beneficio','producido.id_producido','ajuste_beneficio.valor')
-    ->orderBy('beneficio.fecha','asc')
-    ->get();
+    $resultados =  DB::table('v_diferencia_dia')
+    ->select('id_beneficio','fecha','id_producido','beneficio','beneficio_calculado','diferencia')
+    ->where([['id_casino','=',$id_casino],['id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereMonth('fecha',$mes)
+    ->whereYear('fecha',$anio)
+    ->orderBy('fecha','asc')->get();
     return $resultados;
   }
-
-  /*^^^^
-  *|||||
-  //con imaginacion son flechas
-  *
-  * retorna : un array con :
-    id_beneficio	822
-    fecha	2018-06-01
-    beneficio	3465750.37
-    beneficio_calculado	3465750.37
-    diferencia	0.00
-    existe_producido	1
-
-
-    para cada fecha del mes
-  */
-
+  
   public function generarPlanilla($id_casino,$id_tipo_moneda,$anio,$mes){
     $ben = new \stdClass();
     $ben->casino = Casino::find($id_casino)->nombre;
