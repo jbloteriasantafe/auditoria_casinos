@@ -40,7 +40,7 @@
     <?php
     $cols_x_pag = 4;
     $ancho_tabla = (100.0/$cols_x_pag);
-    $filas_por_col = 24.0;
+    $filas_por_col = 25.0;
     $posicion = [
      0 =>  'position: absolute;top: 120px;left: -5%;',
      1 =>  'position: absolute;top: 120px;left: 22%;',
