@@ -229,13 +229,13 @@ function guardarFilaDiferenciaCero(){ //POST CON DATOS CARGADOS
 
   const formData = {
     denominacion: $('#data-denominacion').val(),
-    coinin_inicial:     parseInt($('#coininIni').val()),
+    coinin_inicio:     parseInt($('#coininIni').val()),
     coinin_final:       parseInt($('#coininFin').val()),
-    coinout_inicial:    parseInt($('#coinoutIni').val()),
+    coinout_inicio:    parseInt($('#coinoutIni').val()),
     coinout_final:      parseInt($('#coinoutFin').val()),
-    jackpot_inicial:    parseInt($('#jackIni').val()),
+    jackpot_inicio:    parseInt($('#jackIni').val()),
     jackpot_final:      parseInt($('#jackFin').val()),
-    progresivo_inicial: parseInt($('#progIni').val()),
+    progresivo_inicio: parseInt($('#progIni').val()),
     progresivo_final:   parseInt($('#progFin').val()),
     id_detalle_producido:        $('#data-producido').val(),
     id_detalle_contador_final:   $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null,

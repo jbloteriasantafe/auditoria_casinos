@@ -285,9 +285,9 @@ class ProducidoController extends Controller
     if($posible_reset_contadores){
       //No estoy seguro porque a los finales les suma los iniciales...
       //No seria equivalente a poner los iniciales en 0? ver recalcularDiferencia
-      foreach($contadores as $c) $diff[$t.'_final'] += $diff[$t.'_inicial'];
+      foreach($contadores as $c) $diff[$t.'_final'] += $diff[$t.'_inicio'];
       $diferencia = $this->recalcularDiferencia($diff);
-      foreach($contadores as $c) $diff[$t.'_final'] -= $diff[$t.'_inicial'];
+      foreach($contadores as $c) $diff[$t.'_final'] -= $diff[$t.'_inicio'];
       if($diferencia == 0){
         $detalle_producido = DetalleProducido::find($diff['id_detalle_producido']);
         $detalle_producido->id_tipo_ajuste = 2;
@@ -303,13 +303,13 @@ class ProducidoController extends Controller
   public function guardarAjuste(Request $request){
     Validator::make($request->all(), [
       'denominacion'       => 'required|numeric',
-      'coinin_inicial'     => 'required|integer',//Los contadores vienen EN CREDITOS
+      'coinin_inicio'     => 'required|integer',//Los contadores vienen EN CREDITOS
       'coinin_final'       => 'required|integer',
-      'coinout_inicial'    => 'required|integer',
+      'coinout_inicio'    => 'required|integer',
       'coinout_final'      => 'required|integer',
-      'jackpot_inicial'    => 'required|integer',
+      'jackpot_inicio'    => 'required|integer',
       'jackpot_final'      => 'required|integer',
-      'progresivo_inicial' => 'required|integer',
+      'progresivo_inicio' => 'required|integer',
       'progresivo_final'   => 'required|integer',
       'id_detalle_producido'        => 'required|exists:detalle_producido,id_detalle_producido',
       'id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
@@ -352,10 +352,10 @@ class ProducidoController extends Controller
     // $detalle_producido->valor es el producido INFORMADO POR EL CASINO en el producido (no tiene errores de vuelta de contadores, reset, etc)
     //@BUG: Si se modifican los contadores iniciales, no puede ser que den diferencias para atras???????
     if(in_array($request['id_tipo_ajuste'],[1,2,3,4])){
-      $request['coinin_inicial']     = $detalle_inicial->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
-      $request['coinout_inicial']    = $detalle_inicial->coinout / $request['denominacion'];
-      $request['jackpot_inicial']    = $detalle_inicial->jackpot / $request['denominacion'];
-      $request['progresivo_inicial'] = $detalle_inicial->progresivo / $request['denominacion'];
+      $request['coinin_inicio']     = $detalle_inicial->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
+      $request['coinout_inicio']    = $detalle_inicial->coinout / $request['denominacion'];
+      $request['jackpot_inicio']    = $detalle_inicial->jackpot / $request['denominacion'];
+      $request['progresivo_inicio'] = $detalle_inicial->progresivo / $request['denominacion'];
     }
     if(in_array($request['id_tipo_ajuste'],[4,5])){
       $request['coinin_final']     = $detalle_final->coinin / $request['denominacion'];
@@ -375,10 +375,10 @@ class ProducidoController extends Controller
     try{
       if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
         //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
-        $detalle_inicio->coinin     = $request['coinin_inicial']     * $request['denominacion'];//Se guarda en plata
-        $detalle_inicio->coinout    = $request['coinout_inicial']    * $request['denominacion'];
-        $detalle_inicio->jackpot    = $request['jackpot_inicial']    * $request['denominacion'];
-        $detalle_inicio->progresivo = $request['progresivo_inicial'] * $request['denominacion'];
+        $detalle_inicio->coinin     = $request['coinin_inicio']     * $request['denominacion'];//Se guarda en plata
+        $detalle_inicio->coinout    = $request['coinout_inicio']    * $request['denominacion'];
+        $detalle_inicio->jackpot    = $request['jackpot_inicio']    * $request['denominacion'];
+        $detalle_inicio->progresivo = $request['progresivo_inicio'] * $request['denominacion'];
         //Si el casino es Rosario, se tiene que cargar la denominacion de carga
         if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
         $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
