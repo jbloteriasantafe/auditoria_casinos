@@ -83,9 +83,12 @@ $(document).on('change','#tipoAjuste',function(){
 $(document).on('focusout' ,'#frmCargaProducidos input' , function(e){
   if($(this).val() == '') $(this).val(0);
 
-  const val = $(this).val().replaceAll(/^0+[1-9][0-9]*/g,function(match){
+const val = $(this).val().replaceAll(/(^|[-+*/])0+[1-9][0-9]*/g,function(match){
     //Elimino los 0s de adelante para evitar que javascript interprete numeros como octales >:(
     //Osea pasa 0123+004123*0532 a 123+4123*532
+    if(['-','+','*','/'].indexOf(match[0]) != -1){//Si el primer caracter es un operador
+      return match[0]+match.substring(1).replace(/^0+/g,"");
+    }
     return match.replace(/^0+/g,"");
   });
   //Solo permite {NUMERO OPERADOR} {NUMERO OPERADOR} ... NUMERO
