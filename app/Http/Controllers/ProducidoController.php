@@ -501,8 +501,9 @@ class ProducidoController extends Controller
     if($pro->tipo_moneda == 'ARS')      $pro->tipo_moneda = 'Pesos';
     else if($pro->tipo_moneda == 'USB') $pro->tipo_moneda = 'Dólares';
     $pro->fecha_prod = implode('-',array_reverse(explode('-',$producido->fecha)));
-
+    $pro->valor      = number_format($producido->valor,2,',','.');
     $detalles = [];
+
     foreach($resultados as $resultado){
       $res = new \stdClass();
       $res->maquina = $resultado->nro_maquina;

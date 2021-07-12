@@ -31,11 +31,14 @@
       <img src="img/logos/banner_nuevo2_landscape.png" width="900">
       <h2><span>RMTM09 | Producidos diarios por máquina tragamonedas (MTM) en {{$pro->tipo_moneda}}</span></h2>
     </div>
+    <!-- Esto es hacky, habria que usar una tabla -->
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy);?></span></div>
     <div class="camposInfo" style="top:88px; left: 0%;"><b>Fecha de producido:</b> {{$pro->fecha_prod}}</div>
     <div class="camposInfo" style="top:88px; left: 25%;"><b>Casino:</b> {{$pro->casinoNom}}</div>
     <div class="camposInfo" style="top:88px; left: 40%;"><b>Maquinas con producidos:</b> {{count($detalles)}}</div>
+    <div class="camposInfo" style="top:88px; left: 65% !important;"><b>Total:</b></div>
+    <div class="camposInfo" style="top:88px; left: 70% !important">{{$pro->valor}}</div>
     <br>
     <?php
     $cols_x_pag = 4;
