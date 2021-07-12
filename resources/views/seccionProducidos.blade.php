@@ -157,7 +157,8 @@ use Illuminate\Http\Request;
     </td>
     <td class="col-xs-2 acciones">
       <button class="btn btn-warning carga" title="VALIDAR PRODUCIDO"><i class="fa fa-fw fa-upload"></i></button>
-      <button class="btn btn-info planilla" title="PLANILLA"><i class="fa fa-fw fa-print"></i></button>
+      <button class="btn btn-info planilla" title="DIFERENCIAS"><i class="fa fa-fw fa-print"></i></button>
+      <button class="btn btn-info producido" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
     </td>
   </tr>
 </table>

@@ -428,9 +428,9 @@ class ProducidoController extends Controller
 
     return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];
   }
-  // generarPlanilla crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
+  // Crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
   // junto a los ajustes , ya sean automaticos o manual
-  public function generarPlanilla($id_producido){
+  public function generarPlanillaDiferencias($id_producido){
     $resultados = DB::table('detalle_producido')
     ->join('ajuste_producido','detalle_producido.id_detalle_producido','=','ajuste_producido.id_detalle_producido')
     ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
@@ -470,7 +470,47 @@ class ProducidoController extends Controller
       }
     };
 
-    $view = View::make('planillaProducidos',compact('ajustes','pro','MTMobservaciones'));
+    $view = View::make('planillaProducidosDiferencias',compact('ajustes','pro','MTMobservaciones'));
+
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
+  //Devuelvo TODOS los producidos (distintos de 0)
+  public function generarPlanillaProducido($id_producido){
+    $resultados = DB::table('detalle_producido')
+    ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
+    ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
+    ->where('detalle_producido.id_producido',$id_producido)
+    ->select('maquina.nro_admin as nro_maquina','detalle_producido.valor')
+    ->orderBy('nro_maquina','asc')
+    ->where('detalle_producido.valor','<>',0)
+    ->get();
+
+    $producido = Producido::find($id_producido);
+    $pro = new \stdClass();
+    $pro->casinoNom   = $producido->casino->nombre;
+    $pro->tipo_moneda = $producido->tipo_moneda->descripcion;
+    if($pro->tipo_moneda == 'ARS')      $pro->tipo_moneda = 'Pesos';
+    else if($pro->tipo_moneda == 'USB') $pro->tipo_moneda = 'Dólares';
+    $pro->fecha_prod = implode('-',array_reverse(explode('-',$producido->fecha)));
+
+    $detalles = [];
+    foreach($resultados as $resultado){
+      $res = new \stdClass();
+      $res->maquina = $resultado->nro_maquina;
+      $res->valor   = number_format($resultado->valor, 2, ",", ".");
+      $detalles[] = $res;
+    };
+
+    $view = View::make('planillaProducidos',compact('detalles','pro'));
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

@@ -302,9 +302,13 @@ function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
   $('#descripcion_validacion').text('');
 }
 
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
+//Planilla de diferencias producido vs contadores (con el ajuste)
 $(document).on('click','.planilla',function(){
-  window.open('producidos/generarPlanilla/' + $(this).val(),'_blank');
+  window.open('producidos/generarPlanillaDiferencias/' + $(this).val(),'_blank');
+});
+
+$(document).on('click','.producido',function(){
+  window.open('producidos/generarPlanillaProducido/' + $(this).val(),'_blank');
 });
 
 //función para generar el listado inicial

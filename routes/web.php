@@ -480,7 +480,8 @@ PRODUCIDOS-AJUSTES PRODUCIDO
 Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccion_producidos'],function (){
   Route::get('','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
   Route::post('/buscarProducidos','ProducidoController@buscarProducidos');
-  Route::get('/generarPlanilla/{id_producido}','ProducidoController@generarPlanilla');
+  Route::get('/generarPlanillaDiferencias/{id_producido}','ProducidoController@generarPlanillaDiferencias');
+  Route::get('/generarPlanillaProducido/{id_producido}','ProducidoController@generarPlanillaProducido');
   Route::post('/guardarAjuste','ProducidoController@guardarAjuste');
   Route::get('/datosAjusteMTM/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
   Route::get('/ajustarProducido/{id_producido}','ProducidoController@ajustarProducido');
@@ -508,7 +509,7 @@ Route::group(['prefix' => 'beneficios','middleware' => 'tiene_permiso:ver_seccio
   Route::post('/validarBeneficios','BeneficioController@validarBeneficios');
   Route::post('/validarBeneficiosSinProducidos','BeneficioController@validarBeneficiosSinProducidos');
   Route::get('/generarPlanilla/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@generarPlanilla');
-  Route::get('/generarPlanillaProducido/{id_producido}','ProducidoController@generarPlanilla');
+  Route::get('/generarPlanillaDiferenciasProducido/{id_producido}','ProducidoController@generarPlanillaDiferencias');
   Route::post('/cargarImpuesto','BeneficioController@cargarImpuesto');
 });
 

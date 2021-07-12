@@ -230,7 +230,7 @@ function generarFilaModal(beneficio){
 
 $(document).on('click','.ver-producido',function(e){
   e.preventDefault();
-  window.open('beneficios/generarPlanillaProducido/' + $(this).attr('data-idProducido'),'_blank');
+  window.open('beneficios/generarPlanillaDiferenciasProducido/' + $(this).attr('data-idProducido'),'_blank');
 });
 
 //Generar las filas para la tabla de los beneficios mensuales
