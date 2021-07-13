@@ -69,14 +69,14 @@
     @if($start<$end)
     <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <tr>
-        <th class="tablaInicio">MTM</th>
-        <th class="tablaInicio">PRODUCIDO</th>
+        <th class="tablaInicio" style="text-align: center;">MTM</th>
+        <th class="tablaInicio" style="text-align: center;">PRODUCIDO</th>
       </tr>
       @for($i=$start;$i<$end;$i++)
       <?php $d = $detalles[$i] ?>
       <tr>
-        <td class="tablaCampos">{{$d->maquina}}</td>
-        <td class="tablaCampos">{{$d->valor}}</td>
+        <td class="tablaCampos" style="text-align: center;">{{$d->maquina}}</td>
+        <td class="tablaCampos" style="text-align: right;">{{$d->valor}}</td>
       </tr>
       @endfor
     </table>
