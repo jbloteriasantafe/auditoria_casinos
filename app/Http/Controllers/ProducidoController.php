@@ -412,7 +412,6 @@ class ProducidoController extends Controller
       ->whereNull('dp.id_tipo_ajuste')->where('p.id_producido','=',$producido->id_producido)->get()->count() > 0;
 
       if(!$faltan_ajustes){ //Si no faltan, valido el producido y cierro el contador final
-        $producido = Producido::find($producido->id_producido);
         $producido->validado = 1 ;
         $producido->save();
         $contador_horario = $detalle_final->contador_horario;
