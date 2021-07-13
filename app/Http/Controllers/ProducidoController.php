@@ -352,10 +352,10 @@ class ProducidoController extends Controller
     // $detalle_producido->valor es el producido INFORMADO POR EL CASINO en el producido (no tiene errores de vuelta de contadores, reset, etc)
     //@BUG: Si se modifican los contadores iniciales, no puede ser que den diferencias para atras???????
     if(in_array($request['id_tipo_ajuste'],[1,2,3,4])){
-      $request['coinin_inicio']     = $detalle_inicial->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
-      $request['coinout_inicio']    = $detalle_inicial->coinout / $request['denominacion'];
-      $request['jackpot_inicio']    = $detalle_inicial->jackpot / $request['denominacion'];
-      $request['progresivo_inicio'] = $detalle_inicial->progresivo / $request['denominacion'];
+      $request['coinin_inicio']     = $detalle_inicio->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
+      $request['coinout_inicio']    = $detalle_inicio->coinout / $request['denominacion'];
+      $request['jackpot_inicio']    = $detalle_inicio->jackpot / $request['denominacion'];
+      $request['progresivo_inicio'] = $detalle_inicio->progresivo / $request['denominacion'];
     }
     if(in_array($request['id_tipo_ajuste'],[4,5])){
       $request['coinin_final']     = $detalle_final->coinin / $request['denominacion'];
