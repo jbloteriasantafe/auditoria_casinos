@@ -77,6 +77,29 @@ $(document).on('change','#tipoAjuste',function(){
   //Vuelvo a los valores originales
   $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
   $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
+  const permitir_ajuste_automatico = [3,5];
+  $('#ajustarProducido').attr('disabled',!permitir_ajuste_automatico.includes(id_tipo_ajuste));
+});
+
+$('#ajustarProducido').click(function(){
+  switch($('#tipoAjuste').val()){
+    case '5'://Cambio contadores iniciales
+    {
+      $('#coininIni').val($('#coininFin').val());
+      $('#coinoutIni').val($('#coinoutFin').val());
+      $('#jackIni').val($('#jackFin').val());
+      $('#progIni').val($('#progFin').val()).focusout();
+    }break;
+    case '3'://Cambio contadores iniciales
+    {
+      $('#coininFin').val($('#coininIni').val());
+      $('#coinoutFin').val($('#coinoutIni').val());
+      $('#jackFin').val($('#jackIni').val());
+      $('#progFin').val($('#progIni').val()).focusout();
+    }break;
+    default:{
+    }break;
+  }
 });
 
 //Permite hacer aritmetica basica en los campos

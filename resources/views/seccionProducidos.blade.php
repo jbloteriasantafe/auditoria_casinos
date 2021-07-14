@@ -214,6 +214,11 @@ use Illuminate\Http\Request;
                         <option class="default1" value="0" >-Tipo Ajuste-</option>
                       </select>
                     </div>
+                    <div class="col-lg-1">
+                      <button type="button" class="btn btn-info btn-sucess" id="ajustarProducido" title="AJUSTAR">
+                        <i class="fa fa-fw fa-sync"></i>
+                      </button>
+                    </div>
                   </div>
                   <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
