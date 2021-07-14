@@ -90,10 +90,27 @@ $('#ajustarProducido').click(function(){
       const fin  = $('#coininFin,#coinoutFin,#jackFin,#progFin')
       .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
       const ceros = '0|0|0|0';
+      const dif = parseFloat($('#diferencias').text());
 
       let ajuste = null;
       if     (ini == ceros && fin != ceros) ajuste = "5";
       else if(ini != ceros && fin == ceros) ajuste = "3";
+      //No estoy seguro si esto agarra 100% de los casos
+      else if((dif%1000000) == 0 && dif != 0){//No deberia haber dif = 0 pero bueno por las dudas chequeo
+        const conts = ['coinin','coinout','jack','prog'];
+        let contadorMenor = false;
+        //Chequeo si algun contador final es menor al inicial
+        for(const idx in conts){
+          const c = conts[cidx];
+          const ini = parseInt($('#'+c+'Ini').val());
+          const fin = parseInt($('#'+c+'Fin').val());
+          if(fin < ini){
+            contadorMenor = true;
+            break;
+          }
+        }
+        if(contadorMenor) ajuste = '1';
+      }
 
       if(ajuste == null) return;
 
