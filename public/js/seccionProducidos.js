@@ -77,12 +77,31 @@ $(document).on('change','#tipoAjuste',function(){
   //Vuelvo a los valores originales
   $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
   $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
-  const permitir_ajuste_automatico = [3,5];
+  const permitir_ajuste_automatico = [0,3,5];
   $('#ajustarProducido').attr('disabled',!permitir_ajuste_automatico.includes(id_tipo_ajuste));
 });
 
 $('#ajustarProducido').click(function(){
   switch($('#tipoAjuste').val()){
+    case '0':
+    {//No selecciono nada
+      const ini = $('#coininIni,#coinoutIni,#jackIni,#progIni')
+      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
+      const fin  = $('#coininFin,#coinoutFin,#jackFin,#progFin')
+      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
+      const ceros = '0|0|0|0';
+
+      let ajuste = null;
+      if     (ini == ceros && fin != ceros) ajuste = "5";
+      else if(ini != ceros && fin == ceros) ajuste = "3";
+      console.log(ini);
+      console.log(fin);
+      console.log(ajuste);
+      if(ajuste == null) return;
+
+      $('#tipoAjuste').val(ajuste).change();
+      $('#ajustarProducido').click();
+    }
     case '5'://Cambio contadores iniciales
     {
       $('#coininIni').val($('#coininFin').val());
@@ -90,7 +109,7 @@ $('#ajustarProducido').click(function(){
       $('#jackIni').val($('#jackFin').val());
       $('#progIni').val($('#progFin').val()).focusout();
     }break;
-    case '3'://Cambio contadores iniciales
+    case '3'://Cambio contadores finales
     {
       $('#coininFin').val($('#coininIni').val());
       $('#coinoutFin').val($('#coinoutIni').val());
