@@ -94,9 +94,7 @@ $('#ajustarProducido').click(function(){
       let ajuste = null;
       if     (ini == ceros && fin != ceros) ajuste = "5";
       else if(ini != ceros && fin == ceros) ajuste = "3";
-      console.log(ini);
-      console.log(fin);
-      console.log(ajuste);
+
       if(ajuste == null) return;
 
       $('#tipoAjuste').val(ajuste).change();
