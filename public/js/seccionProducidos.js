@@ -116,7 +116,7 @@ $('#ajustarProducido').click(function(){
 
       $('#tipoAjuste').val(ajuste).change();
       $('#ajustarProducido').click();
-    }
+    }break;
     case '5'://Cambio contadores iniciales
     {
       $('#coininIni').val($('#coininFin').val());
