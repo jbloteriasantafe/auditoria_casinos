@@ -101,7 +101,7 @@ $('#ajustarProducido').click(function(){
         let contadorMenor = false;
         //Chequeo si algun contador final es menor al inicial
         for(const idx in conts){
-          const c = conts[cidx];
+          const c = conts[idx];
           const ini = parseInt($('#'+c+'Ini').val());
           const fin = parseInt($('#'+c+'Fin').val());
           if(fin < ini){
