@@ -66,7 +66,6 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
 
 function detectarVueltaContadores(){
   const conts = ['coinin','coinout','jack','prog'];
-  let contadorMenor = null;
   //Chequeo si algun contador final es menor al inicial
   for(const idx in conts){
     const c = conts[idx];

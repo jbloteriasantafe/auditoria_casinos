@@ -105,17 +105,17 @@ class BeneficioController extends Controller
     foreach($usuario->casinos as $c) $casinos[] = $c->id_casino;
 
     $reglas = [];
-    if(!empty($request->id_casino))      $reglas[] = ['id_casino','=',$request->id_casino];
-    if(!empty($request->id_tipo_moneda)) $reglas[] = ['id_tipo_moneda','=',$request->id_tipo_moneda];
+    if(!empty($request->id_casino))      $reglas[] = ['vdm.id_casino','=',$request->id_casino];
+    if(!empty($request->id_tipo_moneda)) $reglas[] = ['vdm.id_tipo_moneda','=',$request->id_tipo_moneda];
     if(!empty($request->fecha_desde)){
       $f = explode('-',$request->fecha_desde);
-      $reglas[] = ['anio','>=',$f[0]];
-      $reglas[] = ['mes','>=',$f[1]];
+      $reglas[] = ['vdm.anio','>=',$f[0]];
+      $reglas[] = ['vdm.mes','>=',$f[1]];
     }
     if(!empty($request->fecha_hasta)){
       $f = explode('-',$request->fecha_hasta);
-      $reglas[] = ['anio','<=',$f[0]];
-      $reglas[] = ['mes','<=',$f[1]];
+      $reglas[] = ['vdm.anio','<=',$f[0]];
+      $reglas[] = ['vdm.mes','<=',$f[1]];
     }
 
     self::initViews();
