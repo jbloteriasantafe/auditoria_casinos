@@ -64,6 +64,19 @@ $(document).on('input', '#frmCargaProducidos input' , function(e){
   }
 })
 
+function detectarVueltaContadores(){
+  const conts = ['coinin','coinout','jack','prog'];
+  let contadorMenor = null;
+  //Chequeo si algun contador final es menor al inicial
+  for(const idx in conts){
+    const c = conts[idx];
+    const ini = parseInt($('#'+c+'Ini').val());
+    const fin = parseInt($('#'+c+'Fin').val());
+    if(fin < ini) return c;
+  }
+  return null;
+}
+
 $(document).on('change','#tipoAjuste',function(){
   //Ver tabla en ProducidoController:guardarAjuste
   const permitir_finales   = [1,2,3,6];
@@ -77,7 +90,7 @@ $(document).on('change','#tipoAjuste',function(){
   //Vuelvo a los valores originales
   $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
   $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
-  const permitir_ajuste_automatico = [0,3,5];
+  const permitir_ajuste_automatico = [0,1,3,5];
   $('#ajustarProducido').attr('disabled',!permitir_ajuste_automatico.includes(id_tipo_ajuste));
 });
 
@@ -96,21 +109,8 @@ $('#ajustarProducido').click(function(){
       if     (ini == ceros && fin != ceros) ajuste = "5";
       else if(ini != ceros && fin == ceros) ajuste = "3";
       //No estoy seguro si esto agarra 100% de los casos
-      else if((dif%1000000) == 0 && dif != 0){//No deberia haber dif = 0 pero bueno por las dudas chequeo
-        const conts = ['coinin','coinout','jack','prog'];
-        let contadorMenor = false;
-        //Chequeo si algun contador final es menor al inicial
-        for(const idx in conts){
-          const c = conts[idx];
-          const ini = parseInt($('#'+c+'Ini').val());
-          const fin = parseInt($('#'+c+'Fin').val());
-          if(fin < ini){
-            contadorMenor = true;
-            break;
-          }
-        }
-        if(contadorMenor) ajuste = '1';
-      }
+      //No deberia haber dif = 0 pero bueno por las dudas chequeo
+      else if((dif%1000000) == 0 && dif != 0 && detectarVueltaContadores() != null) ajuste = '1';
 
       if(ajuste == null) return;
 
@@ -130,6 +130,14 @@ $('#ajustarProducido').click(function(){
       $('#coinoutFin').val($('#coinoutIni').val());
       $('#jackFin').val($('#jackIni').val());
       $('#progFin').val($('#progIni').val()).focusout();
+    }break;
+    case '1'://Vuelta de contadores
+    {
+      const c = detectarVueltaContadores();
+      if(c == null) break;
+      const fix = parseFloat($('#diferencias').text())/parseFloat($('#data-denominacion').val());
+      const contador = $('#'+c+'Fin');
+      contador.val(parseFloat(contador.val())+fix).focusout();
     }break;
     default:{
     }break;
