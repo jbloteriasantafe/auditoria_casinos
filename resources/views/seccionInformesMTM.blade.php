@@ -15,13 +15,27 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
 @endsection
+<?php
+function moneda($id_tipo_moneda){
+  if($id_tipo_moneda == 1) return '$';
+  if($id_tipo_moneda == 2) return 'U$S';
+  return $id_tipo_moneda;
+}
+function mes($mes_num){
+  $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  if(!array_key_exists($mes_num-1,$meses)) return $mes_num;
+  return $meses[$mes_num-1];
+}
+function anio_mes($anio,$mes){
+  return $anio.' '.mes($mes);
+}
+?>
 
         <style>
         .imgwrapper {
           width: 80%;
         }
         </style>
-
                 <div class="row">
 
                   <div class="col-md-4">
@@ -47,18 +61,22 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
-                                     @foreach($beneficios_sfe as $BSF)
+                                     @foreach($beneficios_sfe as $b)
                                       <tr>
-                                        <td class="col-xs-8">{{$BSF->anio_mes}}</td>
+                                        <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
                                         <td class="col-xs-4">
-                                          @if($BSF->estado == 1)
-                                            <button data-anio="{{$BSF->anio}}" data-mes="{{$BSF->mes}}" data-casino="{{$BSF->casino}}" data-moneda="{{$BSF->moneda}}" class="btn btn-info planilla detalle" type="button">
+                                          @if($b->estado == 1)
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                             </button>
                                           @endif
-                                          @if($BSF->estado == 0)
+                                          @if($b->estado == 0)
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                                          </a>
+                                          @elseif($b->id_beneficio_mensual)
+                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
+                                            <i class="fa fa-check" style="color: green;"></i>
                                           </a>
                                           @endif
                                         </td>
@@ -95,18 +113,22 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
-                                    @foreach($beneficios_mel as $BMEL)
+                                    @foreach($beneficios_mel as $b)
                                       <tr id="">
-                                        <td class="col-xs-8">{{$BMEL->anio_mes}}</td>
+                                        <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
                                         <td class="col-xs-4">
-                                          @if($BMEL->estado == 1)
-                                          <button data-anio="{{$BMEL->anio}}" data-mes="{{$BMEL->mes}}" data-casino="{{$BMEL->casino}}" data-moneda="{{$BMEL->moneda}}" class="btn btn-info planilla detalle" type="button">
+                                          @if($b->estado == 1)
+                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                           </button>
                                           @endif
-                                          @if($BMEL->estado == 0)
+                                          @if($b->estado == 0)
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                                          </a>
+                                          @elseif($b->id_beneficio_mensual)
+                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
+                                            <i class="fa fa-check" style="color: green;"></i>
                                           </a>
                                           @endif
                                       </tr>
@@ -143,19 +165,23 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
-                                    @foreach($beneficios_ros as $BROS)
+                                    @foreach($beneficios_ros as $b)
                                       <tr>
-                                        <td class="col-xs-5">{{$BROS->anio_mes}}</td>
-                                        <td class="col-xs-5">{{$BROS->moneda}}</td>
+                                        <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
+                                        <td class="col-xs-5">{{moneda($b->id_tipo_moneda)}}</td>
                                         <td class="col-xs-2">
-                                          @if($BROS->estado == 1)
-                                            <button data-anio="{{$BROS->anio}}" data-mes="{{$BROS->mes}}" data-casino="{{$BROS->casino}}" data-moneda="{{$BROS->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
+                                          @if($b->estado == 1)
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                             </button>
                                           @endif
-                                          @if($BROS->estado == 0)
+                                          @if($b->estado == 0)
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                                          </a>
+                                          @elseif($b->id_beneficio_mensual)
+                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
+                                            <i class="fa fa-check" style="color: green;"></i>
                                           </a>
                                           @endif
                                         </td>
@@ -172,49 +198,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
             </div>
             <!-- row -->
-
-
-        <!-- Modal planilla relevamientos -->
-        <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-              <div class="modal-dialog" style="width:80%;">
-                 <div class="modal-content">
-                   <div class="modal-header modalNuevo">
-                     <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                     <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                     <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                    </div>
-
-                    <div  id="colapsadoCargar" class="collapse in">
-
-                    <div class="modal-body modalCuerpo">
-
-                      <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-
-                              <div class="row">
-                                  <div class="col-md-12">
-                                      <!-- Carga de archivos! | Uno para el modal de nuevo y otro para modificar -->
-                                      <div class="zona-file-lg">
-                                          <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                      </div>
-
-                                      <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                                  </div>
-                              </div>
-
-                      </form>
-
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                      <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                      <input type="hidden" id="id_informe" value="0">
-                    </div>
-                  </div>
-                </div>
-              </div>
-        </div>
-
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

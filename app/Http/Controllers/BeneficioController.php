@@ -48,7 +48,7 @@ class BeneficioController extends Controller
   GROUP BY b.id_casino,b.id_tipo_moneda,YEAR(b.fecha),MONTH(b.fecha)
   ORDER BY NULL";
 
-  private static function initViews(){
+  public static function initViews(){
     DB::beginTransaction();
     try{
       DB::statement(self::$view_diferencia_dia);
