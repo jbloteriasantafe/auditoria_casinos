@@ -74,7 +74,7 @@ function anio_mes($anio,$mes){
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
                                           </a>
-                                          @elseif($b->id_beneficio_mensual)
+                                          @elseif(!is_null($b->id_beneficio_mensual))
                                           <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
                                             <i class="fa fa-check" style="color: green;"></i>
                                           </a>
@@ -126,7 +126,7 @@ function anio_mes($anio,$mes){
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
                                           </a>
-                                          @elseif($b->id_beneficio_mensual)
+                                          @elseif(!is_null($b->id_beneficio_mensual))
                                           <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
                                             <i class="fa fa-check" style="color: green;"></i>
                                           </a>
@@ -179,7 +179,7 @@ function anio_mes($anio,$mes){
                                           <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                                             <i class="fa fa-exclamation" style="color: #FFA726;"></i>
                                           </a>
-                                          @elseif($b->id_beneficio_mensual)
+                                          @elseif(!is_null($b->id_beneficio_mensual))
                                           <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
                                             <i class="fa fa-check" style="color: green;"></i>
                                           </a>
