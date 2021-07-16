@@ -133,9 +133,11 @@ $('#ajustarProducido').click(function(){
     }break;
     case '1'://Vuelta de contadores
     {
+      const dif = parseFloat($('#diferencias').text());
+      if((dif%1000000) != 0) break;
       const c = detectarVueltaContadores();
       if(c == null) break;
-      const fix = parseFloat($('#diferencias').text())/parseFloat($('#data-denominacion').val());
+      const fix = Math.abs(dif/parseFloat($('#data-denominacion').val()));
       const contador = $('#'+c+'Fin');
       contador.val(parseFloat(contador.val())+fix).focusout();
     }break;
