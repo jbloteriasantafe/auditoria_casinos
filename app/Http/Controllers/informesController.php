@@ -198,7 +198,7 @@ class informesController extends Controller
     BeneficioController::initViews();
     //@HACK @TODO: generalizar a N casinos y N monedas
     $beneficios = DB::table('v_diferencia_mes as vdm')
-    ->select('vdm.id_casino as casino','vdm.*','bm.id_beneficio_mensual',DB::raw('"1" as estado'))
+    ->select('vdm.*','bm.id_beneficio_mensual',DB::raw('"1" as estado'))
     ->join('casino as c','c.id_casino','=','vdm.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
     ->leftJoin('beneficio_mensual as bm',function($j){
@@ -224,9 +224,11 @@ class informesController extends Controller
       usort($bcasino,function($a,$b){
         if(intval($a->anio) > intval($b->anio)) return true;
         if(intval($a->mes)  > intval($b->mes))  return true;
+        if($a->id_beneficio_mensual > $b->id_beneficio_mensual) return true;
         return false;
       });
     }
+
     UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
 
     return view('seccionInformesMTM',['beneficios_mel' => $beneficios_x_casino[1],

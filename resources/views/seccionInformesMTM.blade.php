@@ -66,7 +66,7 @@ function anio_mes($anio,$mes){
                                         <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
                                         <td class="col-xs-4">
                                           @if($b->estado == 1)
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                             </button>
                                           @endif
@@ -118,7 +118,7 @@ function anio_mes($anio,$mes){
                                         <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
                                         <td class="col-xs-4">
                                           @if($b->estado == 1)
-                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
+                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                           </button>
                                           @endif
@@ -171,7 +171,7 @@ function anio_mes($anio,$mes){
                                         <td class="col-xs-5">{{moneda($b->id_tipo_moneda)}}</td>
                                         <td class="col-xs-2">
                                           @if($b->estado == 1)
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
                                             </button>
                                           @endif
