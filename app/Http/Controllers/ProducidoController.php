@@ -252,6 +252,7 @@ class ProducidoController extends Controller
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
   public function probarAjusteAutomatico($diff){
+    $dif = $diff->toArray();
     $contadores = ['coinin','coinout','jackpot','progresivo'];
     //si 1 algun contador final es menor que el inicial -> posible vuelta de contadores
     //si TODOS los contadores finales son menores a los iniciales (o cero) -> posible reset
@@ -261,17 +262,17 @@ class ProducidoController extends Controller
     foreach($contadores as $idx => $c){
       $contador_final  = $c.'_final';
       $contador_inicio = $c.'_inicio';
-      $final_menor_que_inicio = $diff[$contador_final] < $diff[$contador_inicio];
-      $es_cero = $diff[$contador_inicio] == 0 && $diff[$contador_final] == $diff[$contador_inicio];
+      $final_menor_que_inicio = $dif[$contador_final] < $dif[$contador_inicio];
+      $es_cero = $dif[$contador_inicio] == 0 && $dif[$contador_final] == $diff[$contador_inicio];
       $posible_reset_contadores = $posible_reset_contadores && ($final_menor_que_inicio || $es_cero);
-      if($final_menor_que_inicio && fmod($diff['diferencia'],1000000) == 0){
+      if($final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
-        $vuelta = abs($diff['diferencia']/$diff['denominacion']);
+        $vuelta = abs($dif['diferencia']/$dif['denominacion']);
         $diff[$contador_final] += $vuelta;
-        $diferencia = $this->recalcularDiferencia($diff);
+        $diferencia = $this->recalcularDiferencia($dif);
         $diff[$contador_final] -= $vuelta;//Lo vuelvo al original
         if($diferencia == 0){
-          $detalle_producido = DetalleProducido::find($diff['id_detalle_producido']);
+          $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
           $detalle_producido->id_tipo_ajuste = 1;
           $detalle_producido->save();
           return true;
@@ -281,12 +282,12 @@ class ProducidoController extends Controller
     if($posible_reset_contadores){
       //Se le suma los iniciales, si esto explica la diferencia (da 0 recalculada), lo seteamos.
       //Sino, siguio contando despues del reset y lo tienen que ver los auditores manualmente
-      foreach($contadores as $c) $diff[$t.'_final'] += $diff[$t.'_inicio'];
+      foreach($contadores as $c) $dif[$t.'_final'] += $dif[$t.'_inicio'];
       $diferencia = $this->recalcularDiferencia($diff);
       //Lo devuelvo al valor original por si se agrega algun otro ajuste automatico... en principio superflua esta linea
-      foreach($contadores as $c) $diff[$t.'_final'] -= $diff[$t.'_inicio'];
+      foreach($contadores as $c) $dif[$t.'_final'] -= $dif[$t.'_inicio'];
       if($diferencia == 0){//Reset de contadores _NO_ afecta nada en la BD (solo el tipo de ajuste). Ver tabla abajo.
-        $detalle_producido = DetalleProducido::find($diff['id_detalle_producido']);
+        $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
         $detalle_producido->id_tipo_ajuste = 2;
         $detalle_producido->save();
         return true;
