@@ -183,8 +183,7 @@ class ProducidoController extends Controller
     DB::transaction(function() use ($id_producido){
       $prod = Producido::find($id_producido);
       foreach($prod->detalles as $d){
-        $a = $d->ajuste_producido;
-        if(!is_null($a)) $a->delete();
+        AjusteProducido::where('id_detalle_producido',$d->id_detalle_producido)->delete();
         $d->delete();
       }
       $prod->delete();
