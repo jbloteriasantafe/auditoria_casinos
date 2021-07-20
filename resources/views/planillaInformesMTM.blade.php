@@ -48,6 +48,7 @@
     <table>
       <tr>
         <th class="tablaInicio">FECHA</th>
+        <th class="tablaInicio">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario')
@@ -55,7 +56,7 @@
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$)</th>
-        <th class="tablaInicio">COTIZACIÓN (*)</th>
+        <th class="tablaInicio">COTIZACIÓN<sup>*</sup></th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
         <th class="tablaInicio">BENEFICIO</th>
@@ -64,6 +65,7 @@
       @foreach ($beneficios as $b)
       <tr>
         <td class="tablaCampos centrar">{{$b->fecha}}</td>
+        <td class="tablaCampos centrar">{{$b->cantidad_maquinas}}</td>
         <td class="tablaCampos">{{$b->apostado}}</td>
         <td class="tablaCampos">{{$b->premios}}</td>
         @if ($sum->casino != 'Rosario')
@@ -82,6 +84,7 @@
     <br><br>
     <table>
       <tr>
+        <th class="tablaInicio">MAQUINAS<sup>**</sup></th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario')
@@ -95,6 +98,7 @@
         @endif
       </tr>
       <tr>
+        <td class="tablaCampos centrar">{{$sum->cantidad_maquinas}}</td>
         <td class="tablaCampos centrar">{{$sum->totalApostado}}</td>
         <td class="tablaCampos centrar">{{$sum->totalPremios}}</td>
         @if ($sum->casino != 'Rosario')
@@ -110,7 +114,7 @@
     </table>
     @if ($sum->tipoMoneda == 'US$')
     <div>
-      <p > 
+      <p> 
         <FONT SIZE=1> <strong>* </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16) <br>
         <i> "... se utilizará como tipo de cambio para efectuar la conversión a pesos, el valor del dólar 
           oficial tipo comprador (información suministrada por el Banco de la Nación Argentina) correspondiente a la fecha de producción
@@ -120,5 +124,8 @@
       </p>
     </div>
     @endif
+    <div>
+      <p><FONT SIZE=1> <strong>** </strong>Valor inexacto, solo indica un limite inferior.</FONT></p>
+    </div>
   </body>
 </html>
