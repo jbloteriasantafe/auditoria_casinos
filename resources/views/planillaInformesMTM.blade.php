@@ -48,7 +48,7 @@
     <table>
       <tr>
         <th class="tablaInicio">FECHA</th>
-        <th class="tablaInicio">MAQUINAS<sup>*</sup></th>
+        <th class="tablaInicio">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario')
@@ -56,7 +56,7 @@
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$)</th>
-        <th class="tablaInicio">COTIZACIÓN<sup>**</sup></th>
+        <th class="tablaInicio">COTIZACIÓN<sup>*</sup></th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
         <th class="tablaInicio">BENEFICIO</th>
@@ -84,7 +84,7 @@
     <br><br>
     <table>
       <tr>
-        <th class="tablaInicio">MAQUINAS<sup>*</sup></th>
+        <th class="tablaInicio">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario')
@@ -112,13 +112,10 @@
         @endif
       </tr>
     </table>
-    <div>
-      <p><FONT SIZE=1> <strong>* </strong>Valor inexacto, solo indica un limite inferior.</FONT></p>
-    </div>
     @if ($sum->tipoMoneda == 'US$')
     <div>
       <p> 
-        <FONT SIZE=1> <strong>** </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16) <br>
+        <FONT SIZE=1> <strong>* </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16) <br>
         <i> "... se utilizará como tipo de cambio para efectuar la conversión a pesos, el valor del dólar 
           oficial tipo comprador (información suministrada por el Banco de la Nación Argentina) correspondiente a la fecha de producción
             de las MTM. Para el caso de los días Sábados, Domingos y Feriados, se utilizará como tipo de cambio, el del último día hábil disponible.."
