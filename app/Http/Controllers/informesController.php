@@ -37,7 +37,8 @@ class informesController extends Controller
 
     //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
     $beneficios = DB::table('beneficio as b')
-    ->select('b.cantidad_maquinas',
+    ->select('b.fecha as fecha_iso',
+      DB::raw('0 as cantidad_maquinas'),
       DB::raw('DATE_FORMAT(b.fecha,"%d-%m-%Y") as fecha'),
       DB::raw('FORMAT(b.coinin,2,"es_AR")  as apostado'),
       DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
@@ -49,28 +50,39 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
     ->where($condicion)->orderBy('b.fecha','asc')->get();
 
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda]];
+
+    foreach($beneficios as $b){
+      //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
+      $maquinas = DB::table('producido as p')
+      ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
+      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+      ->where($condicion_p)->where('p.fecha','=',$b->fecha_iso)->groupBy("p.id_producido")->first();
+      if($maquinas) $b->cantidad_maquinas = $maquinas->cantidad_maquinas;
+    }
+
     $sum = DB::table('beneficio as b')->select('c.nombre as casino','tm.descripcion as tipoMoneda',
+        DB::raw('0 as cantidad_maquinas'),
         DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
         DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
         DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
-        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos'),//Para dolares
-        DB::raw('0 as cantidad_maquinas')
+        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
     ->join('casino as c','c.id_casino','=','b.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
     ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
-    $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
-      [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
-      
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
+                    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
+
     //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
     $maquinas = DB::table('producido as p')
     ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
-    ->where($condicion)->groupBy(DB::raw("'constant'"))->first();//Agrupo por una constante porque quiero contar todo
-    if(!is_null($maquinas)) $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
+    ->where($condicion_p)->groupBy(DB::raw("'constant'"))->first();//Agrupo por una constante porque quiero contar todo
+    if($maquinas) $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
 
     $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];

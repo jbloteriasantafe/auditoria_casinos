@@ -686,6 +686,7 @@ class LectorCSVController extends Controller
 
     $pdo->exec($query);
 
+    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
     $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
                                   $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
 
@@ -1090,6 +1091,7 @@ class LectorCSVController extends Controller
     DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
+    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
     $cantidad_maquinas = Maquina::where('id_casino','=',3)->whereHas('estado_maquina',function($q){
                                   $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
 
