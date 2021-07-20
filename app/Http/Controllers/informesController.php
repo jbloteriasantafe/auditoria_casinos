@@ -31,8 +31,9 @@ class informesController extends Controller
       PARA PANTALLAS DE INFORMES
     */
 
-  public function generarPlanilla(int $year,int $mes,int $id_casino,int $tipo_moneda){
-    $condicion = [['b.id_casino','=',$id_casino],['b.id_tipo_moneda','=',$tipo_moneda]];
+  public function generarPlanilla(int $anio,int $mes,int $id_casino,int $tipo_moneda){
+    $condicion = [['b.id_casino','=',$id_casino],['b.id_tipo_moneda','=',$tipo_moneda],
+                  [DB::raw('YEAR(b.fecha)'),'=',$anio],[DB::raw('MONTH(b.fecha)'),'=',$mes]];
 
     //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
     $beneficios = DB::table('beneficio as b')
@@ -42,43 +43,33 @@ class informesController extends Controller
       DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
       DB::raw('FORMAT(b.jackpot,2,"es_AR") as pmayores'),
       DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
-      DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficioDolares'),//Para dolares
-      DB::raw('IF(c.valor IS NULL,"-",FORMAT(c.valor,3,"es_AR"))         as cotizacion'),//Para dolares
-      DB::raw('IF(c.valor IS NULL,"-",FORMAT(b.valor*c.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR"))         as cotizacion'),//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
     )
-    ->leftJoin('cotizacion as c','c.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
-    ->where($condicion)->whereYear('b.fecha','=',$year)->whereMonth('b.fecha','=',$mes)
-    ->orderBy('b.fecha','asc')->get();
+    ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
+    ->where($condicion)->orderBy('b.fecha','asc')->get();
 
     $sum = DB::table('beneficio as b')->select('c.nombre as casino','tm.descripcion as tipoMoneda',
         DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
         DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
         DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
-        DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficioDolares'),//Para dolares
         DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
     ->join('casino as c','c.id_casino','=','b.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
-    ->where($condicion)->whereYear('b.fecha','=',$year)->whereMonth('b.fecha','=',$mes)
-    ->groupBy('c.nombre','tm.descripcion')->first();
+    ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
     $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
     $sum->mes = $mes . '';//to String
 
-    $view = null;
-    if($tipo_moneda == 2){
-      $sum->tipoMoneda = 'US$';
-      $view = View::make('planillaInformesMTMdolar',compact('beneficios','sum'));
-    }
-    else if($tipo_moneda == 1){
-      $sum->tipoMoneda = '$';
-      $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
-    }
+    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
+    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
