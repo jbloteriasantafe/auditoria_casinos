@@ -50,7 +50,7 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
     ->where($condicion)->orderBy('b.fecha','asc')->get();
 
-    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda]];
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0]];
 
     foreach($beneficios as $b){
       //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
@@ -74,7 +74,7 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
     ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
-    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0],
                     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
     //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
