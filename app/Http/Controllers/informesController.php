@@ -32,63 +32,52 @@ class informesController extends Controller
     */
 
   public function generarPlanilla(int $year,int $mes,int $id_casino,int $tipo_moneda){
-    $condicion = [['beneficio.id_casino','=',$id_casino],['beneficio.id_tipo_moneda','=',$tipo_moneda]];
+    $condicion = [['b.id_casino','=',$id_casino],['b.id_tipo_moneda','=',$tipo_moneda]];
 
-    $resultados = DB::table('beneficio')->select('fecha','cantidad_maquinas','coinin','coinout','jackpot','valor','promedio_por_maquina','porcentaje_devolucion')
-                                        ->where($condicion)
-                                        ->whereYear('fecha','=',$year)
-                                        ->whereMonth('fecha','=',$mes)
-                                        ->orderBy('fecha','asc')
-                                        ->get();
+    //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
+    $beneficios = DB::table('beneficio as b')
+    ->select(
+      DB::raw('DATE_FORMAT(b.fecha,"%d-%m-%Y") as fecha'),
+      DB::raw('FORMAT(b.coinin,2,"es_AR")  as apostado'),
+      DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
+      DB::raw('FORMAT(b.jackpot,2,"es_AR") as pmayores'),
+      DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
+      DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficioDolares'),//Para dolares
+      DB::raw('IF(c.valor IS NULL,"-",FORMAT(c.valor,3,"es_AR"))         as cotizacion'),//Para dolares
+      DB::raw('IF(c.valor IS NULL,"-",FORMAT(b.valor*c.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+    )
+    ->leftJoin('cotizacion as c','c.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
+    ->where($condicion)->whereYear('b.fecha','=',$year)->whereMonth('b.fecha','=',$mes)
+    ->orderBy('b.fecha','asc')->get();
 
-    $ajustes = [];
-    if ($tipo_moneda!=2){
-      foreach($resultados as $resultado){
-        $res = new \stdClass();
-        $res->fecha     = implode('-',array_reverse(explode('-',$resultado->fecha)));
-        $res->maq       = $resultado->cantidad_maquinas;
-        $res->apostado  = number_format($resultado->coinin, 2, ",", ".");
-        $res->premios   = number_format($resultado->coinout, 2, ",", ".");
-        $res->pmayores  = number_format($resultado->jackpot, 2, ",", ".");
-        $res->beneficio = number_format($resultado->valor, 2, ",", ".");
-        $res->prom = $resultado->promedio_por_maquina;
-        $res->dev = $resultado->porcentaje_devolucion;
-        $ajustes[] = $res;
-      };
-    }
-    else{
-      $ajustes = $this->generarAjusteCotizado($resultados);
-    }
-
-    $sum = DB::table('beneficio')->select(DB::raw('FORMAT(SUM(coinin),2,"es_AR") as totalApostado'),
-        DB::raw('FORMAT(SUM(coinout),2,"es_AR") as totalPremios'),
-        DB::raw('FORMAT(SUM(jackpot),2,"es_AR") as totalPmayores'),
-        DB::raw('FORMAT(SUM(valor),2,"es_AR") as totalBeneficio'),
-        DB::raw('FORMAT(SUM(valor),2,"es_AR") as totalBeneficioDolares'),
-        DB::raw('ROUND(AVG(promedio_por_maquina),2) as total_promedio'),
-        DB::raw('ROUND(AVG(porcentaje_devolucion),2) as total_devolucion'),
-        'casino.nombre as casino','tipo_moneda.descripcion as tipoMoneda')
-    ->join('casino','casino.id_casino','=','beneficio.id_casino')
-    ->join('tipo_moneda','tipo_moneda.id_tipo_moneda','=','beneficio.id_tipo_moneda')
-    ->where($condicion)
-    ->whereYear('fecha','=',$year)
-    ->whereMonth('fecha','=',$mes)
-    ->groupBy('casino.nombre','tipo_moneda.descripcion')->first();
+    $sum = DB::table('beneficio as b')->select('c.nombre as casino','tm.descripcion as tipoMoneda',
+        DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
+        DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
+        DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
+        DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
+        DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficioDolares'),//Para dolares
+        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
+    )
+    ->join('casino as c','c.id_casino','=','b.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
+    ->where($condicion)->whereYear('b.fecha','=',$year)->whereMonth('b.fecha','=',$mes)
+    ->groupBy('c.nombre','tm.descripcion')->first();
 
     $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
     $sum->mes = $mes . '';//to String
 
-    if ($id_casino==3 && $tipo_moneda==2){
-      $sum->totalBeneficioPesos = end($ajustes)->beneficioPesosTotal;
-    }
-    
-    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
-    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
-
     $view = null;
-    if ($id_casino==3 && $tipo_moneda==2) $view = View::make('planillaInformesMTMdolar',compact('ajustes','sum'));
-    else $view = View::make('planillaInformesMTM',compact('ajustes','sum'));
+    if($tipo_moneda == 2){
+      $sum->tipoMoneda = 'US$';
+      $view = View::make('planillaInformesMTMdolar',compact('beneficios','sum'));
+    }
+    else if($tipo_moneda == 1){
+      $sum->tipoMoneda = '$';
+      $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
+    }
+    else return "Moneda no soportada";
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -99,66 +88,6 @@ class informesController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-  }
-
-  private function generarAjustes($resultados,$id_moneda){
-    $ajustes = [];
-    if ($id_moneda!=2){
-      foreach($resultados as $resultado){
-        $res = new \stdClass();
-        $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-        $mes = $resultado->fecha[5].$resultado->fecha[6];
-        $dia = $resultado->fecha[8].$resultado->fecha[9];
-        $res->fecha = $dia."-".$mes."-".$año;
-        $res->maq = $resultado->cantidad_maquinas;
-        $res->apostado = number_format($resultado->coinin, 2, ",", ".");
-        $res->premios = number_format($resultado->coinout, 2, ",", ".");
-        $res->pmayores = number_format($resultado->jackpot, 2, ",", ".");
-        $res->beneficio = number_format($resultado->valor, 2, ",", ".");
-        $res->prom = $resultado->promedio_por_maquina;
-        $res->dev = $resultado->porcentaje_devolucion;
-        $ajustes[] = $res;
-      };
-      return $ajustes;
-    }
-    
-    return $this->generarAjusteCotizado($resultados);
-  }
-
-  private function generarAjusteCotizado($resultados){
-    $beneficioPesosTotal=0;
-    //trabajar el caso de rosasrio
-    foreach($resultados as $resultado){
-      $res = new \stdClass();
-      $cotizacion=Cotizacion::Find($resultado->fecha);
-      
-      $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-      $mes = $resultado->fecha[5].$resultado->fecha[6];
-      $dia = $resultado->fecha[8].$resultado->fecha[9];
-      $res->fecha = $dia."-".$mes."-".$año;
-      $res->maq = $resultado->cantidad_maquinas;
-      $res->apostado = number_format($resultado->coinin, 2, ",", ".");
-      $res->premios = number_format($resultado->coinout, 2, ",", ".");
-      $res->pmayores = number_format($resultado->jackpot, 2, ",", ".");
-      $res->beneficioDolares = number_format($resultado->valor, 2, ",", ".");
-
-      $res->prom = $resultado->promedio_por_maquina;
-      $res->dev = $resultado->porcentaje_devolucion;
-
-      if (!$cotizacion){
-        $res->cotizacion="-";
-        $res->beneficioPesos="-";
-        $res->beneficioPesosTotal=number_format($beneficioPesosTotal, 2, ",", ".");;
-      }else{
-        $res->cotizacion=number_format($cotizacion->valor, 3, ",", ".");
-        $valorConv=$resultado->valor * $cotizacion->valor;
-        $res->beneficioPesos=number_format($valorConv, 2, ",", ".");
-        $beneficioPesosTotal=$beneficioPesosTotal + $valorConv;
-        $res->beneficioPesosTotal= number_format($beneficioPesosTotal, 2, ",", ".");
-      }
-      $ajustes[] = $res;
-    };
-    return $ajustes;
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){

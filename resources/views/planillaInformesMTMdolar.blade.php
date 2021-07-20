@@ -23,15 +23,9 @@ tr:nth-child(even) {
   <head>
     <meta charset="utf-8">
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
@@ -54,17 +48,15 @@ tr:nth-child(even) {
               <table>
                 <tr>
                   <th class="tablaInicio">FECHA</th>
-                  {{-- <th class="tablaInicio">MTM</th> --}}
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
                   <th class="tablaInicio">BENEFICIO (US$)</th>
                   <th class="tablaInicio">COTIZACIÓN (*)</th>
                   <th class="tablaInicio">BENEFICIO ($)</th>
                 </tr>
-                @foreach ($ajustes as $ajuste)
+                @foreach ($beneficios as $ajuste)
                 <tr>
                   <td class="tablaCampos">{{$ajuste->fecha}}</td>
-                  {{-- <td class="tablaCampos">{{$ajuste->maq}}</td> --}}
                   <td class="tablaCampos">{{$ajuste->apostado}}</td>
                   <td class="tablaCampos">{{$ajuste->premios}}</td>
                   <td class="tablaCampos">{{$ajuste->beneficioDolares}}</td>

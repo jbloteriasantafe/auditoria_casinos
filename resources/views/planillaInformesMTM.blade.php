@@ -23,15 +23,9 @@ tr:nth-child(even) {
   <head>
     <meta charset="utf-8">
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
@@ -54,28 +48,22 @@ tr:nth-child(even) {
               <table>
                 <tr>
                   <th class="tablaInicio">FECHA</th>
-                  {{-- <th class="tablaInicio">MTM</th> --}}
                   <th class="tablaInicio">APOSTADO</th>
                   <th class="tablaInicio">PREMIOS</th>
                   @if ($sum->casino != 'Rosario')
                   <th class="tablaInicio">P.MAYORES</th>
                   @endif
                   <th class="tablaInicio">BENEFICIO</th>
-                  {{-- <th class="tablaInicio">PROM.</th>
-                  <th class="tablaInicio">%DEV</th> --}}
                 </tr>
-                @foreach ($ajustes as $ajuste)
+                @foreach ($beneficios as $ajuste)
                 <tr>
                   <td class="tablaCampos">{{$ajuste->fecha}}</td>
-                  {{-- <td class="tablaCampos">{{$ajuste->maq}}</td> --}}
                   <td class="tablaCampos">{{$ajuste->apostado}}</td>
                   <td class="tablaCampos">{{$ajuste->premios}}</td>
                   @if ($sum->casino != 'Rosario')
                   <td class="tablaCampos">{{$ajuste->pmayores}}</td>
                   @endif
                   <td class="tablaCampos">{{$ajuste->beneficio}}</td>
-                  {{-- <td class="tablaCampos">{{$ajuste->prom}}</td>
-                  <td class="tablaCampos">{{$ajuste->dev}}</td> --}}
                 </tr>
                @endforeach
               </table>
@@ -90,8 +78,6 @@ tr:nth-child(even) {
                   <th class="tablaInicio">P.MAYORES</th>
                   @endif
                   <th class="tablaInicio">BENEFICIO</th>
-                  {{-- <th class="tablaInicio">PROMEDIO</th>
-                  <th class="tablaInicio">%DEV</th> --}}
                 </tr>
                 <tr>
                   <td class="tablaCampos">{{$sum->totalApostado}}</td>
@@ -100,8 +86,6 @@ tr:nth-child(even) {
                   <td class="tablaCampos">{{$sum->totalPmayores}}</td>
                   @endif
                   <td class="tablaCampos">{{$sum->totalBeneficio}}</td>
-                  {{-- <td class="tablaCampos">{{$sum->totalProm}}</td>
-                  <td class="tablaCampos">{{$sum->totalDev}}</td> --}}
                 </tr>
               </table>
   </body>
