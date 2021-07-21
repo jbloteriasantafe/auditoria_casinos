@@ -252,7 +252,6 @@ class ProducidoController extends Controller
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
   public function probarAjusteAutomatico($diff){
-    return false;//Probando
     $dif = json_decode(json_encode($diff),true);//stdClass->array, asi lo espera recalcularDiferencia
     $contadores = ['coinin','coinout','jackpot','progresivo'];
     //si 1 algun contador final es menor que el inicial -> posible vuelta de contadores
@@ -264,8 +263,11 @@ class ProducidoController extends Controller
       $contador_final  = $c.'_final';
       $contador_inicio = $c.'_inicio';
       $final_menor_que_inicio = $dif[$contador_final] < $dif[$contador_inicio];
-      $es_cero = $dif[$contador_inicio] == 0 && $dif[$contador_final] == $dif[$contador_inicio];
-      $posible_reset_contadores = $posible_reset_contadores && ($final_menor_que_inicio || $es_cero);
+      $posible_reset_contadores = $posible_reset_contadores && 
+        (//Si no chequeo que el final sea distinto de cero, agarra la falta de contadores como RESET (0, 0, 0, 0)
+           ($final_menor_que_inicio  && $dif[$contador_final] != 0)
+        || ($dif[$contador_inicio] == 0 && $dif[$contador_final] == 0)
+      );
       if($final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
         $vuelta = abs($dif['diferencia']/$dif['denominacion']);
