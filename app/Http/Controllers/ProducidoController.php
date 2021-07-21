@@ -282,10 +282,10 @@ class ProducidoController extends Controller
     if($posible_reset_contadores){
       //Se le suma los iniciales, si esto explica la diferencia (da 0 recalculada), lo seteamos.
       //Sino, siguio contando despues del reset y lo tienen que ver los auditores manualmente
-      foreach($contadores as $c) $dif[$t.'_final'] += $dif[$t.'_inicio'];
+      foreach($contadores as $c) $dif[$c.'_final'] += $dif[$c.'_inicio'];
       $diferencia = $this->recalcularDiferencia($dif);
       //Lo devuelvo al valor original por si se agrega algun otro ajuste automatico... en principio superflua esta linea
-      foreach($contadores as $c) $dif[$t.'_final'] -= $dif[$t.'_inicio'];
+      foreach($contadores as $c) $dif[$c.'_final'] -= $dif[$c.'_inicio'];
       if($diferencia == 0){//Reset de contadores _NO_ afecta nada en la BD (solo el tipo de ajuste). Ver tabla abajo.
         $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
         $detalle_producido->id_tipo_ajuste = 2;
