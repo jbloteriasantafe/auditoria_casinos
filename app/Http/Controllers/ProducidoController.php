@@ -252,6 +252,7 @@ class ProducidoController extends Controller
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
   public function probarAjusteAutomatico($diff){
+    return false;//Probando
     $dif = json_decode(json_encode($diff),true);//stdClass->array, asi lo espera recalcularDiferencia
     $contadores = ['coinin','coinout','jackpot','progresivo'];
     //si 1 algun contador final es menor que el inicial -> posible vuelta de contadores
