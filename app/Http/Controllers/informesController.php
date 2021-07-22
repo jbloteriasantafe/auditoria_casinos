@@ -92,7 +92,9 @@ class informesController extends Controller
     else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
+    $desde = '#';
+    $hasta = '#';
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -112,8 +114,9 @@ class informesController extends Controller
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
-    //Sumo el valor si la maquina existe en la BD (en principio siempre deberia ser asi...)
-    $suma    = 'SUM((dp.valor))';
+    $suma = 'SUM(IFNULL(dp.valor,0))';
+    $suma_cotizada = 'SUM(IFNULL(dp.valor,0)*IFNULL(cot.valor,0))';
+
     $beneficios = DB::table('producido as p')
     ->select(
       DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
@@ -123,7 +126,7 @@ class informesController extends Controller
       DB::raw('"" as pmayores'),
       DB::raw('FORMAT('.$suma.',2,"es_AR") as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
-      DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma.'*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
     )
     ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
     ->leftJoin('detalle_producido as dp',function($j){
@@ -144,7 +147,7 @@ class informesController extends Controller
       DB::raw('"" as totalPremios'),
       DB::raw('"" as totalPmayores'),
       DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficio'),
-      DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficioPesos')//Para dolares
+      DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
     ->join('casino as c','c.id_casino','=','p.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
@@ -168,7 +171,9 @@ class informesController extends Controller
     else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
+    $desde = $maqmenor < 0? '#' : $maqmenor;
+    $hasta = $maqmayor < 0? '#' : $maqmayor;
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());

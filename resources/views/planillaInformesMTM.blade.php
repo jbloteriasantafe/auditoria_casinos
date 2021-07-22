@@ -26,6 +26,7 @@
     background-color: #dddddd;
   }
   </style>
+  <?php $calculado = $desde != '#' || $hasta != '#';?>
   <head>
     <meta charset="utf-8">
     <title></title>
@@ -43,7 +44,7 @@
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
     <div class="primerEncabezado">Se han realizado los procedimientos de control correspondientes
     al mes de <b>{{$sum->mes}}</b> del <b>Casino de {{$sum->casino}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Máquinas Tragamonedas</b>
-    se obtuvo un beneficio de <b>{{$sum->tipoMoneda}} {{$sum->totalBeneficio}}</b>, detallando a continuación el producido diario.</div>
+    se obtuvo un beneficio de <b>{{$sum->tipoMoneda}} {{$sum->totalBeneficio}}</b>, detallando a continuación el producido diario. {{$calculado? 'MAQUINAS ('.$desde.'-'.$hasta.')' : ''}}</div>
     <br>
     <table>
       <tr>
@@ -55,11 +56,11 @@
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
-        <th class="tablaInicio">BENEFICIO (US$)</th>
+        <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
         <th class="tablaInicio">COTIZACIÓN<sup>*</sup></th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
-        <th class="tablaInicio">BENEFICIO</th>
+        <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
         @endif
       </tr>
       @foreach ($beneficios as $b)
@@ -91,10 +92,10 @@
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
-        <th class="tablaInicio">BENEFICIO (US$)</th>
+        <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
-        <th class="tablaInicio">BENEFICIO</th>
+        <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
         @endif
       </tr>
       <tr>
