@@ -10,5 +10,20 @@ $(document).ready(function(){
 //MUESTRA LA PLANILLA
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
-    window.open('informesMTM/generarPlanilla/' + $(this).attr('data-anio') +"/"+ $(this).attr('data-mes') +"/"+ $(this).attr('data-casino') +"/"+ $(this).attr('data-moneda'),'_blank');
+    const anio   = $(this).attr('data-anio');
+    const mes    = $(this).attr('data-mes');
+    const casino = $(this).attr('data-casino');
+    const moneda = $(this).attr('data-moneda');
+    let url = 'informesMTM/';
+    const maq1 = $('#maquinasMenor').val();
+    const maq2 = $('#maquinasMayor').val();
+    if(maq1.length > 0 || maq2.length > 0){
+      const m1 = maq1.length > 0? maq1 : -1;
+      const m2 = maq2.length > 0? maq2 : -1;
+      url += `generarPlanillaMaquinas/${anio}/${mes}/${casino}/${moneda}/${m1}/${m2}`;
+    }
+    else{
+      url += `generarPlanilla/${anio}/${mes}/${casino}/${moneda}`;
+    }
+    window.open(url,'_blank');
 });

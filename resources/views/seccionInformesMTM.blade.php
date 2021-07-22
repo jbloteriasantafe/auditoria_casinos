@@ -36,8 +36,28 @@ function anio_mes($anio,$mes){
           width: 80%;
         }
         </style>
+        <div class="row">
+          <div class="panel panel-default">
+            <div class="panel-heading collaped" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer" aria-expanded="true">
+              <h4>FILTROS<i class="fa fa-fw fa-angle-down"></i></h4>
+            </div>
+            <div id="collapseFiltros" class="panel-collapse collapse" aria-expanded="true">
+              <div class="panel-body">
                 <div class="row">
-
+                  <div class="col-md-4" style="text-align: center;">
+                    <h5>MÁQUINAS</h5>
+                    <div class="input-group">
+                      <input id="maquinasMenor" class="form-control" type="text" placeholder="0000" style="text-align: center;">
+                      <span class="input-group-addon">-</span>
+                      <input id="maquinasMayor" class="form-control" type="text" placeholder="XXXX" style="text-align: center;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+                <div class="row">
                   <div class="col-md-4">
                       <div class="row">
                           <div class="col-lg-12">

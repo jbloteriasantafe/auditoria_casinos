@@ -582,6 +582,7 @@ Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@ob
 //seccion informes mtm (pestaña informes)
 Route::get('informesMTM','informesController@obtenerUltimosBeneficiosPorCasino');
 Route::get('informesMTM/generarPlanilla/{year}/{mes}/{id_casino}/{id_tipo_moneda}','informesController@generarPlanilla');
+Route::get('informesMTM/generarPlanillaMaquinas/{year}/{mes}/{id_casino}/{id_tipo_moneda}/{maqmenor}/{maqmayor}','informesController@generarPlanillaMaquinas');
 
 Route::get('informesBingo',function(){
     return view('seccionInformesBingo');

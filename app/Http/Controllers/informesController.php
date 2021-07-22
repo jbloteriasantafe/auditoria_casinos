@@ -104,6 +104,82 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
+  public function generarPlanillaMaquinas(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $maqmenor,int $maqmayor){
+    // Este "requerimiento" es increiblemente complicado porque no tenemos cuanto apostaron y dieron premios las maquinas :)
+    // Se supone que podria sacarse a partir de los contadores, pero si hay vuelta de contadores o RESET de contadores
+    // No se modifican las filas de detalle_contador_horario para reflejarlo (solo se setea el tipo de ajuste), ergo
+    // es muuy dificil (imposible?) saber cuanto apostaron y dieron de premio en un dia una maquina...
+    $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
+    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
+
+    //Sumo el valor si la maquina existe en la BD (en principio siempre deberia ser asi...)
+    $suma    = 'SUM((dp.valor))';
+    $beneficios = DB::table('producido as p')
+    ->select(
+      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
+      DB::raw('DATE_FORMAT(p.fecha,"%d-%m-%Y") as fecha'),
+      DB::raw('"" as apostado'),
+      DB::raw('"" as premios'),
+      DB::raw('"" as pmayores'),
+      DB::raw('FORMAT('.$suma.',2,"es_AR") as beneficio'),
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma.'*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+    )
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->leftJoin('detalle_producido as dp',function($j){
+      return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
+    })
+    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
+      $condicion = [];
+      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
+      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
+      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    })
+    ->where($condicion)->where('dp.valor','<>',0)->groupBy('p.id_producido')->orderBy('p.fecha','asc')->get();
+
+    $sum = DB::table('producido as p')
+    ->select('c.nombre as casino','tm.descripcion as tipoMoneda',
+      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
+      DB::raw('"" as totalApostado'),
+      DB::raw('"" as totalPremios'),
+      DB::raw('"" as totalPmayores'),
+      DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficio'),
+      DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficioPesos')//Para dolares
+    )
+    ->join('casino as c','c.id_casino','=','p.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->leftJoin('detalle_producido as dp',function($j){
+      return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
+    })
+    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
+      $condicion = [];
+      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
+      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
+      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    })
+    ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
+
+    $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
+    $sum->mes = $mes . '';//to String
+
+    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
+    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
+    else return "Moneda no soportada";
+
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
   public function obtenerUltimosBeneficiosPorCasino(){
     BeneficioController::initViews();
     //@HACK @TODO: generalizar a N casinos y N monedas
