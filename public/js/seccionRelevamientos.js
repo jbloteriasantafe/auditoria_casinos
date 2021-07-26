@@ -1836,6 +1836,7 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
           cont6.prop('readonly',true);
           cont7.prop('readonly',true);
           cont8.prop('readonly',true);
+          fila.find('input').each(function(){$(this).attr('title',$(this).val());});
 
           $('.producido').show();
           $('.producido').parent().show();
