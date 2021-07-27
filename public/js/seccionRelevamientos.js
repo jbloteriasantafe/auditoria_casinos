@@ -1,5 +1,3 @@
-var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
 $(document).ready(function(){
   var truncadas=0;
   $('#barraMaquinas').attr('aria-expanded','true');
@@ -29,20 +27,19 @@ $(document).ready(function(){
     minuteStep: 5,
   });
 
-    $('#dtpBuscadorFecha').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'dd MM yyyy',
-      pickerPosition: "bottom-left",
-      startView: 2,
-      minView: 2,
-      ignoreReadonly: true,
-    });
+  $('#dtpBuscadorFecha').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+  });
 
   $('#btn-buscar').trigger('click',[1,10,'relevamiento.fecha','desc']);
-
 });
 
 $('#fecha').on('change', function (e) {
@@ -234,9 +231,6 @@ $('#btn-generar').click(function(e){
             url: 'relevamientos/crearRelevamiento',
             data: formData,
             dataType: 'json',
-            // processData: false,
-            // contentType:false,
-            // cache:false,
             beforeSend: function(data){
               //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
               if ($('#modalRelevamiento #casino option:selected').val() != "") {
@@ -273,10 +267,7 @@ $('#btn-generar').click(function(e){
               if(typeof response.id_sector !== 'undefined'){
                   mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
                   mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
-                  // $('#modalRelevamiento #sector').addClass('alerta');
-                  // $('#modalRelevamiento #casino').addClass('alerta');
               }
-
             } //error
         }); //$.ajax
 
@@ -628,7 +619,6 @@ $(document).on('click','.validar',function(e){
       $('#validarTecnico').val(data.relevamiento.tecnico);
       $('#observacion_validacion').val('');
       $('#tablaValidarRelevamiento tbody tr').remove();
-      //$('#observacion_fisca_validacion')-val(data.relevamiento.observacion_carga);
 
       var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
 
@@ -985,14 +975,8 @@ $('#modalMaquinasPorRelevamiento #sector').on('change',function(){
 
 //Según el tipo de tipo se bloquea la fecha o no
 $('#modalMaquinasPorRelevamiento #tipo_cantidad').change(function() {
-
-  console.log($(this).val());
-  console.log($("#modalMaquinasPorRelevamiento #tipo_cantidad option:selected").attr('id'));
-
   if ($("#modalMaquinasPorRelevamiento #tipo_cantidad option:selected").attr('id') == 1) {
-    console.log("Bloquear fechas!");
-
-      deshabilitarDTPmaquinasPorRelevamiento();
+    deshabilitarDTPmaquinasPorRelevamiento();
   }
   else {
     habilitarDTPmaquinasPorRelevamiento();
@@ -1004,7 +988,6 @@ var generarMaquinasPorRelevamiento = true;
 $('#btn-generarDeTodasFormas').click(function(){
     $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-    var tipo_cantidad = $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').val();
     var id_sector = $('#modalMaquinasPorRelevamiento #sector option:selected').val();
     var fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
     var fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
@@ -1407,53 +1390,42 @@ function habilitarBotonFinalizar(){
   var maquinasRelevadas = 0;
 
   $('#tablaCargaRelevamiento tbody tr').each(function(i){
-      cantidadMaquinas++;
-      var inputLleno = false;
-      var noToma = false;
+    cantidadMaquinas++;
+    var inputLleno = false;
+    var noToma = false;
 
-      // console.log(fila);
-      //Mirar si la fila tiene algun campo lleno
-      $(this).children('td').find('.contador').each(function (j){
-          if($(this).val().length > 0) inputLleno = true;
-      });
+    // console.log(fila);
+    //Mirar si la fila tiene algun campo lleno
+    $(this).children('td').find('.contador').each(function (j){
+        if($(this).val().length > 0) inputLleno = true;
+    });
 
-      //Mirar si seleccionó un tipo de no toma
-      if($(this).children('td').find('select').val() !== '') noToma = true;
+    //Mirar si seleccionó un tipo de no toma
+    if($(this).children('td').find('select').val() !== '') noToma = true;
 
-      //Si se lleno algun campo o se tifico la no toma, entonces la maquina está relevada
-      if (inputLleno || noToma) {
-          maquinasRelevadas++;
-      }
+    //Si se lleno algun campo o se tifico la no toma, entonces la maquina está relevada
+    if (inputLleno || noToma) {
+        maquinasRelevadas++;
+    }
   });
 
-  console.log(cantidadMaquinas,maquinasRelevadas);
   if(cantidadMaquinas == maquinasRelevadas) $('#btn-finalizar').show();
   else $('#btn-finalizar').hide();
 }
 
 $(document).on('click','.pop',function(e){
-    e.preventDefault();
-    // console.log('asd');
-    var fila = $(this).parent().parent();
+  e.preventDefault();
+  // console.log('asd');
+  var fila = $(this).parent().parent();
 
-    //Si está en crédito pasarla a pesos
-    if (fila.attr('data-medida') == 1) {
-        // fila.attr('data-medida','2'); //Se pasa a pesos
-        // $(this).find('i').removeClass('fa-life-ring').addClass('fa-usd'); //Se cambia el icono del botón
-        // $('.pop').popover('hide');
+  //Si está en crédito pasarla a pesos
+  if (fila.attr('data-medida') == 1) {
+  //Si está en PESOS pasarla a cŕedito y mostrar el pop
+  }else {
+  }
 
-    //Si está en PESOS pasarla a cŕedito y mostrar el pop
-    }else {
-        // fila.attr('data-medida','1'); //Se pasa a créditos
-        // $(this).find('i').removeClass('fa-usd').addClass('fa-life-ring');
-
-        // $('.pop').not(this).popover('hide');
-        // $(this).popover('show');
-    }
-
-    $('.pop').not(this).popover('hide');
-    $(this).popover('show');
-
+  $('.pop').not(this).popover('hide');
+  $(this).popover('show');
 });
 
 $(document).on('click','.cancelarAjuste',function(e){
@@ -1499,75 +1471,33 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 }
 
 $(document).on('click','.ajustar',function(e){
+  var medida = $(this).siblings('input:checked').val();
+  //var denominacion = $(this).siblings('input:text');
+  var fila = $(this).closest('tr');
+  var boton = $(this).closest('.popover').siblings('.pop');
 
-    var medida = $(this).siblings('input:checked').val();
-    //var denominacion = $(this).siblings('input:text');
-    var fila = $(this).closest('tr');
-
-    var boton = $(this).closest('.popover').siblings('.pop');
-
-
-    if (medida == 'credito'){
-        // //Si la denominación no está vacía
-        // if (denominacion.val() != '') {
-        //     fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
-        //     fila.attr('data-denominacion', denominacion.val()) //Cambia la denominacion
-        //     boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
-
-
-        //     enviarCambioDenominacion(fila.attr('id'), 1, denominacion.val());
-        // }
-        // //Complete el campo denominación
-        // else {
-        //     denominacion.addClass('alerta');
-        // }
-
-        //se cambia la denominacion por la que ya esta definida en el maestro de maquina
-
-          fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
-           // fila.attr('data-denominacion', 0.01) //Cambia la denominacion
-            boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
-
-
-            enviarCambioDenominacion(fila.attr('id'), 1, fila.attr('data-denominacion'));
-
-    }
-    else {
-
-        denMaestro=fila.attr('data-denominacion');
-
-        if (denMaestro==""){
-          denMaestro=0.01
-        }
-
-        fila.attr('data-medida', 2);
-        fila.attr('data-denominacion',denMaestro) //Cambia la denominacion
-        boton.find('i').removeClass('fa-life-ring').addClass('fa-usd-circle');
-
-        enviarCambioDenominacion(fila.attr('id'), 2, denMaestro);
+  if (medida == 'credito'){
+      //se cambia la denominacion por la que ya esta definida en el maestro de maquina
+    fila.attr('data-medida', 1); //Cambia el tipo de medida de la fila
+    boton.find('i').addClass('fa-life-ring').removeClass('fa-usd-circle'); //Cambia el icono del botón
+    enviarCambioDenominacion(fila.attr('id'), 1, fila.attr('data-denominacion'));
+  }
+  else {
+    denMaestro=fila.attr('data-denominacion');
+    if (denMaestro==""){
+      denMaestro=0.01
     }
 
+    fila.attr('data-medida', 2);
+    fila.attr('data-denominacion',denMaestro) //Cambia la denominacion
+    boton.find('i').removeClass('fa-life-ring').addClass('fa-usd-circle');
+
+    enviarCambioDenominacion(fila.attr('id'), 2, denMaestro);
+  }
 });
 
 $(document).on('click' , '.estadisticas_no_toma' , function (){
-  var url = 'http://' + window.location.host + "/relevamientos/estadisticas_no_toma/" + $(this).val();
-
-  var win = window.open(url, '_blank');
-
-  if (win) {
-      //Browser has allowed it to be opened
-      win.focus();
-    //  $(win.document.ready(function(){
-    //   $('#btn-buscarMTM').trigger('click');
-
-    //  }));
-
-  } else {
-      //Browser has blocked it
-      alert('Please allow popups for this website');
-  }
-
-
+  window.open('http://' + window.location.host + "/relevamientos/estadisticas_no_toma/" + $(this).val(), '_blank');
 })
 
 $(document).on('change','input:radio[name=medida]',function(){
@@ -1624,7 +1554,6 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos">'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      //+   '<input class="form-control denominacion" type="text" value="'+data.detalles[i].denominacion+'" placeholder="Denominación" ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
@@ -1638,7 +1567,6 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
                       +   '<input type="radio" name="medida" value="pesos" checked>'
                       +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
                       +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                     // +   '<input class="form-control denominacion" type="text" value="" placeholder="Denominación" disabled ><br>'
                       +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                       +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
                       + '</div>';
@@ -1660,8 +1588,6 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
       //Si la unidad de medida es PESOS
       else botonDenominacion.append($('<i>').addClass('fas fa-dollar-sign'));
 
-
-      // var columna = $('<td>');
       var cont1 = $('<input>').addClass('cont1 contador').addClass('form-control').val(data.detalles[i].detalle.cont1);
       var cont2 = $('<input>').addClass('cont2 contador').addClass('form-control').val(data.detalles[i].detalle.cont2);
       var cont3 = $('<input>').addClass('cont3 contador').addClass('form-control').val(data.detalles[i].detalle.cont3);
@@ -1981,15 +1907,11 @@ function calculoDiferencia(tablaRelevamientos){
                 var sumaxdenom = Number((suma * denominacion) );
                 var producidoxcien = Number(producido);
                 var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-                // var diferencia = Math.round((suma * denominacion) * 100) / 100 - (Math.round(producido * 100) / 100);//pesos - pesos
-                // diferencia = Math.round(diferencia * 100) / 100;
 
               }else{
                 var sumatrunc = Number(suma);
                 var producidoxcien = Number(producido);
                 var diferencia = Number(sumatrunc.toFixed(2)) - Number(producidoxcien.toFixed(2));
-                // Math.round(suma * 100) / 100 - (Math.round(producido * 100) / 100);
-                // diferencia = Math.round(diferencia * 100) / 100;
               }
               console.log('acac',diferencia);
               if (diferencia == 0 && inputValido) {
@@ -2059,45 +1981,6 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
           //SI HAY DIFERENCIA
-
-          // var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
-          // if (Number(resta.toFixed(2)) != 0) {
-          //   var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
-          //   var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
-
-
-    //       console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
-    //         console.log('MODULO DIFERENCIA', moduloDiferencia);
-    //         console.log('DIFERENCIA', diferenciaProducido);
-
-    //         if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
-    //           iconoPregunta.hide();
-    //           iconoCruz.hide();
-    //           iconoCheck.hide();
-    //           iconoAdmiracion.show();
-    //           truncadas++;
-    //           diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
-    //         }
-    //         else{
-    //           iconoPregunta.hide();
-    //           iconoCruz.show();
-    //           iconoCheck.hide();
-    //           iconoAdmiracion.hide();
-
-    //           diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
-    //         }
-    //       }
-    //       else {
-    //         iconoPregunta.hide();
-    //         iconoCruz.hide();
-    //         iconoCheck.show();
-    //         iconoAdmiracion.hide();
-
-    //         diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
-    //       }
-    //   }
-    // }
-
         //se cambio para considerar los contadores negativos
           var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
           if (Number(resta.toFixed(2)) != 0) {
@@ -2230,6 +2113,7 @@ function setCantidadMaquinasDefecto(valor) {
 }
 
 function SetCantidadMaquinasTemporales(valor) {
+  const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   var fecha_desde = valor.fecha_desde.split("-");
   fecha_desde = fecha_desde[2] + " " + nombreMeses[fecha_desde[1] - 1] + " " + fecha_desde[0];
   var fecha_hasta = valor.fecha_hasta.split("-");
@@ -2306,10 +2190,8 @@ function habilitarDTPmaquinasPorRelevamiento() {
 function deshabilitarDTPmaquinasPorRelevamiento() {
   $('#dtpFechaDesde input').prop('readonly',true);
   $('#dtpFechaHasta input').prop('readonly',true);
-
   $('#dtpFechaDesde input').val('');
   $('#dtpFechaHasta input').val('');
-
   $('#modalMaquinasPorRelevamiento #dtpFechaDesde').datetimepicker('remove');
   $('#modalMaquinasPorRelevamiento #dtpFechaHasta').datetimepicker('remove');
 }
@@ -2317,14 +2199,11 @@ function deshabilitarDTPmaquinasPorRelevamiento() {
 function bloquearDatosMaquinasPorRelevamiento() {
   $('#cantidad_maquinas_por_relevamiento').prop('readonly','true');
   $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',true);
-
   $('#modalMaquinasPorRelevamiento #casino').attr('disabled',true);
   $('#modalMaquinasPorRelevamiento #sector').attr('disabled',true);
   $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',true);
-
   $('#dtpFechaDesde input').prop('readonly',true);
   $('#dtpFechaHasta input').prop('readonly',true);
-
   $('#modalMaquinasPorRelevamiento #dtpFechaDesde').datetimepicker('remove');
   $('#modalMaquinasPorRelevamiento #dtpFechaHasta').datetimepicker('remove');
 }
@@ -2332,11 +2211,9 @@ function bloquearDatosMaquinasPorRelevamiento() {
 function desbloquearDatosMaquinasPorRelevamiento() {
   $('#cantidad_maquinas_por_relevamiento').prop('readonly',false);
   $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',false);
-
   $('#modalMaquinasPorRelevamiento #casino').attr('disabled',false);
   $('#modalMaquinasPorRelevamiento #sector').attr('disabled',false);
   $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',false);
-
   habilitarDTPmaquinasPorRelevamiento();
 }
 
@@ -2346,9 +2223,9 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaRelevamientos .activa').attr('value');
-  var orden = $('#tablaRelevamientos .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaRelevamientos .activa').attr('value');
+  const orden = $('#tablaRelevamientos .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
@@ -2370,28 +2247,22 @@ $(document).on('click','#tablaRelevamientos thead tr th[value]',function(e){
 });
 
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  })
+  $.ajaxSetup({headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') }});
 
+  size = 10;
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaRelevamientos .activa').attr('value'),orden: $('#tablaRelevamientos .activa').attr('estado')} ;
+  page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaRelevamientos .activa').attr('value'),orden: $('#tablaRelevamientos .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaRelevamientos th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
-  formData={
+  const formData = {
     fecha: $('#buscadorFecha').val(),
     casino: $('#buscadorCasino').val(),
     sector: $('#buscadorSector').val(),
@@ -2400,7 +2271,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-console.log(formData);
   $.ajax({
     type: "POST",
     url: 'relevamientos/buscarRelevamientos',
@@ -2409,12 +2279,36 @@ console.log(formData);
     success: function (resultados){
       $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
       $('#tablaRelevamientos tbody tr').remove();
-      for (var i = 0; i < resultados.data.length; i++) {
-        $('#tablaRelevamientos tbody').append(crearFilaTabla(resultados.data[i]));
+
+      let puede_ver = false;
+      $.ajax({//@HACK: devolderlo en resultados... o crear un molde ya filtrado por tipo de usuario en la vista
+        url: 'relevamientos/chequearRolFiscalizador',
+        async: false,
+        type: "GET",
+        success: function(data){ puede_ver = data != 1; },//solo si NO es fiscalizador puede ver... raro
+        error: function(error){ console.log(error); }
+      });
+
+      let puede_cargar = false;
+      let puede_validar = false;
+      $.ajax({//@HACK: devolderlo en resultados... o crear un molde ya filtrado por tipo de usuario en la vista
+        type: 'GET',
+        async: false,
+        url: 'usuarios/usuarioTienePermisos',
+        data: { permisos : ["relevamiento_cargar","relevamiento_validar"] },
+        dataType: 'json',
+        success: function(data) {
+          puede_cargar = !!data.relevamiento_cargar;
+          puede_validar = !!data.relevamiento_validar;
+        },
+        error: function(error) { console.log(error); },
+      });
+
+      for (let i = 0; i < resultados.data.length; i++) {
+        $('#tablaRelevamientos tbody').append(crearFilaTabla(resultados.data[i],puede_ver,puede_cargar,puede_validar));
       }
 
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-      mostrarIconosPorPermisos();
     },
     error: function (data) {
       console.log('Error:', data);
@@ -2422,180 +2316,60 @@ console.log(formData);
   });
 });
 //fila lista principal de relevamientos
-function crearFilaTabla(relevamiento){
+function crearFilaTabla(relevamiento,puede_ver,puede_cargar,puede_validar){
+  const subrelevamiento =  (relevamiento.subrelevamiento != null)? relevamiento.subrelevamiento : '';
+  const fila = $('<tr>').attr('id',relevamiento.id_relevamiento);
+  const boton = $('<button>').addClass('btn btn-info').attr('type','button').val(relevamiento.id_relevamiento)
+  .append($('<i>').addClass('fa-fw'));
+  const planilla  = boton.clone().addClass('planilla').attr('title','VER PLANILLA')
+                  .find('i').addClass('far fa-file-alt').closest('button');
+  const carga     = boton.clone().addClass('carga').attr('title','CARGAR RELEVAMIENTO')
+                .find('i').addClass('fa fa-upload').closest('button');
+  const validar   = boton.clone().addClass('validar').attr('title','VISAR RELEVAMIENTO')
+                .find('i').addClass('fa fa-check').closest('button');
+  const verDetalle = boton.clone().addClass('verDetalle').attr('title','VER RELEVAMIENTO')
+                .find('i').addClass('fa fa-search-plus').closest('button');
+  const imprimir   = boton.clone().addClass('imprimir').attr('title','IMPRIMIR PLANILLA')
+                .find('i').addClass('fa fa-print').closest('button');
+  const validado   = boton.clone().addClass('validado').attr('title','IMPRIMIR VISADO')
+                .find('i').addClass('fa fa-bookmark').closest('button');
+  
+  fila.append($('<td>').addClass('col-xs-2').text((convertirDate(relevamiento.fecha))))
+  .append($('<td>').addClass('col-xs-2').text(relevamiento.casino))
+  .append($('<td>').addClass('col-xs-2').text(relevamiento.sector))
+  .append($('<td>').addClass('col-xs-1').text(subrelevamiento))
+  .append($('<td>').addClass('col-xs-2')
+      .append($('<i>').addClass('iconoEstadoRelevamiento fas fa-fw fa-dot-circle'))
+      .append($('<span>').text(relevamiento.estado))
+  )
+  .append($('<td>').addClass('col-xs-3').append(planilla).append(carga).append(validar).append(verDetalle).append(imprimir).append(validado));
 
-  var subrelevamiento;
-  relevamiento.subrelevamiento != null ? subrelevamiento = relevamiento.subrelevamiento : subrelevamiento = '';
-  var fila = $(document.createElement('tr'));
-  fila.attr('id', relevamiento.id_relevamiento)
-      .append($('<td>').addClass('col-xs-2')
-          .text((convertirDate(relevamiento.fecha)))
-      )
-      .append($('<td>').addClass('col-xs-2')
-          .text(relevamiento.casino)
-      )
-      .append($('<td>').addClass('col-xs-2')
-          .text(relevamiento.sector)
-      )
-      .append($('<td>').addClass('col-xs-1')
-          .text(subrelevamiento)
-      )
-      .append($('<td>').addClass('col-xs-2')
-          .append($('<i>').addClass('iconoEstadoRelevamiento fas fa-fw fa-dot-circle'))
-          .append($('<span>').text(relevamiento.estado))
-      )
-      .append($('<td>').addClass('col-xs-3')
-          .append($('<button>').addClass('btn btn-info planilla').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
-              .append($('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt'))
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>').addClass('btn btn-warning carga').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','trigger':'hover','data-placement':'top','title':'CARGAR RELEVAMIENTO'})
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>').addClass('btn btn-success validar').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'VISAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>').addClass('btn btn-success verDetalle').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>').addClass('btn btn-success validado').attr('type','button').val(relevamiento.id_relevamiento)
-              .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR VISADO','data-delay':'{"show":"300", "hide":"100"}'})
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-bookmark'))
-          )
-      )
 
-      var icono_planilla = fila.find('.planilla');
-      var icono_carga = fila.find('.carga');
-      var icono_validacion = fila.find('.validar');
-      var icono_impirmir = fila.find('.imprimir');
-      var icono_validado = fila.find('.validado');
-      var icono_verDetalle = fila.find('.verDetalle');
+  //Qué ESTADO e ICONOS mostrar
+  const e = relevamiento.estado;
+  planilla  .toggle(['Generado'].includes(e));
+  carga     .toggle(puede_cargar  && ['Generado','Cargando'].includes(e));
+  validar   .toggle(puede_validar && ['Finalizado'].includes(e));
+  //No permitir ver cuando esta Generado (tira error de backend)
+  verDetalle.toggle(puede_ver     && ['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
+  imprimir  .toggle(['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
+  validado  .toggle(['Rel. Visado'].includes(e));
 
-      $.get('relevamientos/chequearRolFiscalizador', function(data){
-        if(data==1){
-          icono_verDetalle.hide();
-        }
-        else{
-          icono_verDetalle.show();
-        }
-      })
-    //Qué ESTADO e ICONOS mostrar
-    switch (relevamiento.estado) {
-      case 'Generado':
-          fila.find('.iconoEstadoRelevamiento').addClass('faGenerado');
-          icono_planilla.show();
-          icono_carga.show();
-          icono_validacion.hide();
-          icono_impirmir.hide();
-          icono_validado.hide();
-          icono_verDetalle.hide();
-
-          break;
-      case 'Cargando':
-          fila.find('.iconoEstadoRelevamiento').addClass('faCargando');
-          icono_planilla.hide();
-          icono_carga.show();
-          icono_validacion.hide();
-          icono_impirmir.show();
-          icono_validado.hide();
-          icono_verDetalle.hide();
-          break;
-      case 'Finalizado':
-          fila.find('.iconoEstadoRelevamiento').addClass('faFinalizado');
-
-          icono_validacion.show();
-          icono_impirmir.show();
-          icono_carga.hide();
-          icono_planilla.hide();
-          icono_validado.hide();
-          icono_verDetalle.hide();
-          break;
-      case 'Visado':
-          fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
-
-          icono_impirmir.show();
-          icono_validacion.hide();
-          icono_carga.hide();
-          icono_planilla.hide();
-          icono_validado.hide();
-          icono_verDetalle.show();
-          break;
-      case 'Rel. Visado':
-            fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
-
-            icono_impirmir.show();
-            icono_validacion.hide();
-            icono_carga.hide();
-            icono_planilla.hide();
-            icono_validado.show();
-            icono_verDetalle.show();
-            break;
-    }
-
-    return fila;
-}
-
-//Se usa para mostrar los iconos según los permisos del usuario
-function mostrarIconosPorPermisos(){
-    var formData = {
-        permisos : ["relevamiento_cargar","relevamiento_validar"],
-    }
-
-    $.ajax({
-      type: 'GET',
-      url: 'usuarios/usuarioTienePermisos',
-      data: formData,
-      dataType: 'json',
-      success: function(data) {
-        console.log(data.relevamiento_cargar);
-        console.log(data.relevamiento_validar);
-        //Para los iconos que no hay permisos: OCULTARLOS!
-        if (!data.relevamiento_cargar) $('.carga').hide();
-        if (!data.relevamiento_validar) $('.validar').hide();
-
-        // return data;
-      },
-      error: function(error) {
-          console.log(error);
-      },
-    });
+  const icono = {'Generado':'faGenerado','Cargando':'faCargando','Finalizado':'faFinalizado','Visado':'faVisado','Rel. Visado':'faValidado'};
+  fila.find('.iconoEstadoRelevamiento').addClass(icono[e]);
+  return fila;
 }
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('#buscadorCasino').on('change',function(){
-  var id_casino = $('option:selected' , this).val();
-  $('#buscadorSector').empty();
-  if(id_casino==0){
-    $('#buscadorSector').append($('<option>')
-        .val(0)
-        .text('-Todos los sectores-')
-      )
-  }else{
-      $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-
-          $('#buscadorSector').append($('<option>')
-            .val(0)
-            .text('-Todos los sectores-')
-          )
-
-        for (var i = 0; i < data.sectores.length; i++) {
-              $('#buscadorSector').append($('<option>')
-                  .val(data.sectores[i].id_sector)
-                  .text(data.sectores[i].descripcion)
-              )
-        }
-      });
+  const id_casino = $(this).find('option:selected').val();
+  $('#buscadorSector').empty().append($('<option>').val(0).text('-Todos los sectores-'));
+  if(id_casino!=0){ 
+    $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino,
+      function(data){
+        for (let i = 0; i < data.sectores.length; i++) 
+          $('#buscadorSector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion))
+      }
+    );
   }
 });
