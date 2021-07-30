@@ -1,16 +1,12 @@
 $(document).ready(function(){
-
   $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
-  $('#procedimientos').removeClass();
-  $('#procedimientos').addClass('subMenu2 collapse in');
-  $('#contadores').removeClass();
-  $('#contadores').addClass('subMenu3 collapse in');
+  $('#maquinas').removeClass().addClass('subMenu1 collapse in');
+  $('#procedimientos').removeClass().addClass('subMenu2 collapse in');
+  $('#contadores').removeClass().addClass('subMenu3 collapse in');
 
   $('.tituloSeccionPantalla').text('Producidos');
-  $('#opcProducidos').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-  $('#opcProducidos').addClass('opcionesSeleccionado');
+  $('#opcProducidos').addClass('opcionesSeleccionado')
+  .attr('style','border-left: 6px solid #673AB7; background-color: #131836;')
 
   $('#fecha').datetimepicker({
     language:  'es',
@@ -23,159 +19,150 @@ $(document).ready(function(){
     minView: 2,
     ignoreReadonly: true,
   });
-  $('#columnaDetalle').hide();
+  
+  $('#dtpFechaInicio,#dtpFechaFin').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd / mm / yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2
+  });
+
   $('#btn-buscar').trigger('click');
 });
 
-$(function () {
-    $('#dtpFechaInicio').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'dd / mm / yyyy',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2
-    });
-
-    $('#dtpFechaFin').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'dd / mm / yyyy',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2
-    });
-
-    $('#selectCasinos').val("0");
-    $('#fecha_inicio').val(" ");
-    $('#fecha_fin').val(" ");
-    $('#validado').val("-");
-    $('#B_fecha_inicio').val(" ");
-    $('#B_fecha_fin').val(" ");
-
-
-});
-
-var guardado = true;
-
-$('#btn-buscar').on('click' , function () {
-  const orden = $('#tablaImportacionesProducidos th.activa').attr('estado');
-  var busqueda = {
-    id_casino : $('#selectCasinos').val(),
-    fecha_inicio : $('#fecha_inicio').val(),
-    fecha_fin : $('#fecha_fin').val() ,
-    validado : $('#selectValidado').val(),
-    orden: orden? orden: ''
-  }
-
-  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  $.ajax({
-      type: 'GET',
-      url: 'producidos/buscarProducidos',
-      data: busqueda,
-      dataType: 'json',
-      success: function (data) {
-        $('#tablaImportacionesProducidos tbody').empty();
-        for (var i = 0; i < data.producidos.length; i++) {
-          agregarFilaTabla(data.producidos[i]);
-        }
-      },
-      error: function (data) {
-        console.log('ERROR');
-        console.log(data);
-
-      },
-  });
-
-})
-
 //SI INGRESA ALGO EN ALGUN INPUT, se recalcula la diferencia
+//Lo mas logico seria recalcular en el backend pero no hace tan responsive el input
 $(document).on('input', '#frmCargaProducidos input' , function(e){
-  /*calculo si se opera en el input*/
-  var input=$(this).val();
-  guardado = false;
-  salida=0;
+  $('#btn-salir').data('salida',false);
   $('#modalCargaProducidos .mensajeSalida span').hide();
-  $('#btn-guardar').show(); //guardado temporal, saca las diferencias 0
+
   //actualizo la diferencia
-  //calcularDiferencia($(this));
-  var denominacion = parseFloat($('#data-denominacion').val());
-  var coinin_inicial = parseInt($('#coininIni').val()) * denominacion;
-  var coinout_inicial = parseInt($('#coinoutIni').val()) * denominacion;
-  var jackpot_inicial = parseInt($('#jackIni').val()) * denominacion;
-  var progresivo_inicial =parseInt($('#progIni').val()) * denominacion;
-  var coinin_final = parseInt($('#coininFin').val()) * denominacion;
-  var coinout_final = parseInt($('#coinoutFin').val()) * denominacion;
-  var jackpot_final = parseInt($('#jackFin').val()) * denominacion;
-  var progresivo_final = parseInt($('#progFin').val()) * denominacion;
-  var producido_sistema = parseFloat($('#prodSist').val());
+  const denominacion       = parseFloat($('#data-denominacion').val());
+  const coinin_inicial     = parseInt($('#coininIni').val())  * denominacion;
+  const coinout_inicial    = parseInt($('#coinoutIni').val()) * denominacion;
+  const jackpot_inicial    = parseInt($('#jackIni').val())    * denominacion;
+  const progresivo_inicial = parseInt($('#progIni').val())    * denominacion;
+  const coinin_final       = parseInt($('#coininFin').val())  * denominacion;
+  const coinout_final      = parseInt($('#coinoutFin').val()) * denominacion;
+  const jackpot_final      = parseInt($('#jackFin').val())    * denominacion;
+  const progresivo_final   = parseInt($('#progFin').val())    * denominacion;
+  const producido_sistema  = parseFloat($('#prodSist').val());
+  const valor_final        = coinin_final   - coinout_final   - jackpot_final   - progresivo_final;
+  const valor_inicio       = coinin_inicial - coinout_inicial - jackpot_inicial - progresivo_inicial;
 
-
-  var producido_calculado=Math.round(((coinin_final - coinout_final - jackpot_final - progresivo_final) - (coinin_inicial - coinout_inicial - jackpot_inicial - progresivo_inicial)) * 100) / 100;
-  var diferencia =Math.round( (producido_calculado - producido_sistema) * 100) / 100;
-
+  //Aca esta redondeando a 2 digitos
+  const producido_calculado = Math.round((valor_final - valor_inicio)*100)/100;
+  const diferencia          = Math.round((producido_calculado - producido_sistema)*100)/100;
   $('#prodCalc').val(producido_calculado);
   $('#diferencias').text(diferencia);
   if(diferencia == 0){
-    $('#btn-guardar').hide();
     $('#btn-finalizar').show();
   }
-
-
 })
 
-$(document).on('input', '#frmCargaProducidos textarea' , function(e){
-  $('#btn-guardar').show()
-})
+function detectarVueltaContadores(){
+  const conts = ['coinin','coinout','jack','prog'];
+  //Chequeo si algun contador final es menor al inicial
+  for(const idx in conts){
+    const c = conts[idx];
+    const ini = parseInt($('#'+c+'Ini').val());
+    const fin = parseInt($('#'+c+'Fin').val());
+    if(fin < ini) return c;
+  }
+  return null;
+}
 
-$(document).on('change','#frmCargaProducidos observacionesAjuste',function(){
-  $(this).removeClass('alerta');
-})
+$(document).on('change','#tipoAjuste',function(){
+  //Ver tabla en ProducidoController:guardarAjuste
+  const permitir_finales   = [1,2,3,6];
+  const permitir_iniciales = [5,6];
+  const permitir_producido = [4,6];
+  const id_tipo_ajuste     = parseInt($(this).val());
 
-//sale del campo y deja vacio cambia por 0
-$(document).on('focusout' ,'#frmCargaProducidos input' , function(e){
-
-  // $("#frmCargaProducidos").find(':input').each(function() {
-    var input=$(this);
-    if($(this).val() == ''){
-      $(this).val(0)
-    }
-  // });
-
-  var valor_input=$(this).val();
-    //opero lo que haya escrito en el campo
-    if(valor_input != ''){
-      var arreglo = valor_input.split(/([-+*/])/);
-      if(arreglo[0] != '' && arreglo[1] != '' && arreglo[2] != ''){
-          switch (arreglo[1]) {
-            case "+":
-                var val= parseInt(arreglo[0])+parseInt(arreglo[2]);
-              break;
-            case "-":
-              var val= parseInt(arreglo[0])-parseInt(arreglo[2]);
-              break;
-            case "*":
-                var val= parseInt(arreglo[0]) * parseInt(arreglo[2]);
-              break;
-            case "/":
-                var val= parseInt(arreglo[0])/parseInt(arreglo[2]);
-              break;
-            default: val = valor_input; break;
-          }
-          input.val(val);
-      }
-    }
-    //calculoAritmetico(input , $(this));
-    $(this).trigger('input');
+  $('.cont_finales input').attr('disabled',!permitir_finales.includes(id_tipo_ajuste));
+  $('.cont_iniciales input').attr('disabled',!permitir_iniciales.includes(id_tipo_ajuste));
+  $('#prodSist').attr('disabled',!permitir_producido.includes(id_tipo_ajuste));
+  //Vuelvo a los valores originales
+  $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
+  $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
+  const permitir_ajuste_automatico = [0,1,3,5];
+  $('#ajustarProducido').attr('disabled',!permitir_ajuste_automatico.includes(id_tipo_ajuste));
 });
 
-//mostrar popover
-$(document).on('mouseenter','.popInfo',function(e){
-    $(this).popover('show');
+$('#ajustarProducido').click(function(){
+  switch($('#tipoAjuste').val()){
+    case '0':
+    {//No selecciono nada
+      const ini = $('#coininIni,#coinoutIni,#jackIni,#progIni')
+      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
+      const fin  = $('#coininFin,#coinoutFin,#jackFin,#progFin')
+      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
+      const ceros = '0|0|0|0';
+      const dif = parseFloat($('#diferencias').text());
+
+      let ajuste = null;
+      if     (ini == ceros && fin != ceros) ajuste = "5";
+      else if(ini != ceros && fin == ceros) ajuste = "3";
+      //No estoy seguro si esto agarra 100% de los casos
+      //No deberia haber dif = 0 pero bueno por las dudas chequeo
+      else if((dif%1000000) == 0 && dif != 0 && detectarVueltaContadores() != null) ajuste = '1';
+
+      if(ajuste == null) return;
+
+      $('#tipoAjuste').val(ajuste).change();
+      $('#ajustarProducido').click();
+    }break;
+    case '5'://Cambio contadores iniciales
+    {
+      $('#coininIni').val($('#coininFin').val());
+      $('#coinoutIni').val($('#coinoutFin').val());
+      $('#jackIni').val($('#jackFin').val());
+      $('#progIni').val($('#progFin').val()).focusout();
+    }break;
+    case '3'://Cambio contadores finales
+    {
+      $('#coininFin').val($('#coininIni').val());
+      $('#coinoutFin').val($('#coinoutIni').val());
+      $('#jackFin').val($('#jackIni').val());
+      $('#progFin').val($('#progIni').val()).focusout();
+    }break;
+    case '1'://Vuelta de contadores
+    {
+      const dif = parseFloat($('#diferencias').text());
+      if((dif%1000000) != 0) break;
+      const c = detectarVueltaContadores();
+      if(c == null) break;
+      const fix = Math.abs(dif/parseFloat($('#data-denominacion').val()));
+      const contador = $('#'+c+'Fin');
+      contador.val(parseFloat(contador.val())+fix).focusout();
+    }break;
+    default:{
+    }break;
+  }
+});
+
+//Permite hacer aritmetica basica en los campos
+$(document).on('focusout' ,'#frmCargaProducidos input' , function(e){
+  if($(this).val() == '') $(this).val(0);
+
+const val = $(this).val().replaceAll(/(^|[-+*/])0+[1-9][0-9]*/g,function(match){
+    //Elimino los 0s de adelante para evitar que javascript interprete numeros como octales >:(
+    //Osea pasa 0123+004123*0532 a 123+4123*532
+    if(['-','+','*','/'].indexOf(match[0]) != -1){//Si el primer caracter es un operador
+      return match[0]+match.substring(1).replace(/^0+/g,"");
+    }
+    return match.replace(/^0+/g,"");
+  });
+  //Solo permite {NUMERO OPERADOR} {NUMERO OPERADOR} ... NUMERO
+  //{} significa opcional, operadores validos - + * /
+  const valid = /^(-?[0-9]+[-+*/])*-?[0-9]+$/.test(val);
+  if(valid) $(this).val(eval(val));
+  else $(this).val(NaN);
+  $(this).trigger('input');
 });
 
 //AJUSTAR PRODUCIDO, boton de la lista
@@ -185,32 +172,23 @@ $(document).on('click','.carga',function(e){
   $('#mensajeExito').modal('hide');
 
   limpiarCuerpoTabla();
-  //ocultar mensaje de salida
-  salida = 0;
-  $('#modalCargaProducidos .mensajeSalida span').hide();
-  var tr_html =$(this).parent().parent();
 
-  var id_producidos =$(this).val();
+  //permitir salir y ocultar mensaje de salida
+  $('#btn-salir').data('salida',true);
+  $('#modalCargaProducidos .mensajeSalida span').hide();
+
+  const tr_html = $(this).parent().parent();
+  const id_producido = $(this).val();
   const moneda = tr_html.find('.tipo_moneda').text();
   const fecha_prod = tr_html.find('.fecha_producido').text();
   const casino = tr_html.find('.casino').text();
   $('#descripcion_validacion').text(casino+' - '+fecha_prod+' - $'+moneda);
   $('#maquinas_con_diferencias').text('---');
 
-  $('#modalCargaProducidos #id_producido').val(id_producidos);
+  $('#modalCargaProducidos #id_producido').val(id_producido);
   //ME TRAE LAS MÁQUINAS RELACIONADAS CON ESE PRODUCIDO, PRIMER TABLA DEL MODAL
-  $.get('producidos/maquinasProducidos/' + id_producidos, function(data){
-    if(data.validado.estaValidado == 0){
-      $('#descripcion_validacion').text(casino+' - '+data.fecha_produccion+' - $'+data.moneda.descripcion);
-      $('#maquinas_con_diferencias').text(data.producidos_con_diferencia.length);
-      for (var i = 0; i < data.producidos_con_diferencia.length; i++) {
-        var fila = generarFilaMaquina(data.producidos_con_diferencia[i].nro_admin,data.producidos_con_diferencia[i].id_maquina)//agregar otros datos para guardar en inputs ocultos
-        $('#cuerpoTabla').append(fila);
-        $('#btn-salir-validado').hide();
-        $('#btn-salir').show();
-      }
-    }
-    else {
+  $.get('producidos/ajustarProducido/' + id_producido, function(data){
+    if(data.validado.estaValidado){
       $('#btn-minimizar').hide();
       $('#cuerpoTabla').append(
         $('<div>').addClass('row').append(
@@ -222,230 +200,158 @@ $(document).on('click','.carga',function(e){
       $('#textoExito').hide();
       $('#btn-salir-validado').show();
       $('#btn-salir').hide();
-      cerrarContadoresYValidar($('#id_producido').val() ,data.validado.producido_fin);//como no hubo diferencias producido validado y contadores finales cerrados
+      $('#btn-buscar').click();
+      return;
+    }
+    $('#descripcion_validacion').text(casino+' - '+data.fecha_produccion+' - $'+data.moneda.descripcion);
+    $('#maquinas_con_diferencias').text(data.producidos_con_diferencia.length);
+    for (let i = 0; i < data.producidos_con_diferencia.length; i++) {
+      const fila = $('#filaClon').clone().removeAttr('id');
+      fila.attr('id',  data.producidos_con_diferencia[i].id_maquina);
+      fila.find('.nroAdm').text(data.producidos_con_diferencia[i].nro_admin);
+      fila.find('.infoMaq').val(data.producidos_con_diferencia[i].id_maquina);
+      $('#cuerpoTabla').append(fila);
+      $('#btn-salir-validado').hide();
+      $('#btn-salir').show();
     }
   });
   $('#frmCargaProducidos').attr('data-tipoMoneda' ,tr_html.find('.tipo_moneda').attr('data-tipo'));
   $('#modalCargaProducidos').modal('show');
-  $('#').modal('hide');
 });
 
 $('#btn-salir-validado').on('click', function(e){
-
-    $('#modalCargaProducidos').modal('hide');
-    $('#btn-buscar').trigger('click');
+  $('#modalCargaProducidos').modal('hide');
+  $('#btn-buscar').trigger('click');
 })
 //si presiona el ojo de alguna de las máquinas listadas
-$(document).on('click','.idMaqTabla',function(e){
-
-  $('#observacionesAjuste option').not('.default1').remove();
-  $('#cuerpoTabla tr').css('background-color','#FFFFFF');
+$(document).on('click','.infoMaq',function(e){
+  $('#tipoAjuste option').not('.default1').remove();
+  $('#tipoAjuste').change();
+  $('#cuerpoTabla .idMaqTabla').css('background-color','#FFFFFF');
   $(this).parent().css('background-color', '#FFCC80');
   $('#modalCargaProducidos .mensajeFin').hide();
 
-  // .css('style', 'background: #ccc')#FFCC80;
   e.preventDefault();
-  var id_maq=$(this).val();
-  var id_prod= $('#modalCargaProducidos #id_producido').val();
-
+  const id_maq = $(this).val();
+  const id_prod = $('#modalCargaProducidos #id_producido').val();
 
   //ME TRAE TODOS LOS DATOS DE UNA MÁQUINA DETERMINADA, AL PŔESIONAR EL OJO
-    $.get('producidos/ajustarProducido/' + id_maq + '/' + id_prod, function(data){
+  $.get('producidos/datosAjusteMTM/' + id_maq + '/' + id_prod, function(data){
+    $('#btn-finalizar').attr('data-id',id_maq);
 
-                    $('#btn-guardar').attr('data-id-maq', id_maq);
-                    $('#btn-finalizar').attr('data-id',id_maq);
+    $('#columnaDetalle').show();
+    $('#info-denominacion').html('CONTADORES EN CRÉDITOS, DENOMINACIÓN BASE "'+data.producidos_con_diferencia[0].denominacion+'" (Solo Rosario)');
+    $('#coinoutIni').val(data.producidos_con_diferencia[0].coinout_inicio);
+    $('#coininIni').val(data.producidos_con_diferencia[0].coinin_inicio);
+    $('#jackIni').val(data.producidos_con_diferencia[0].jackpot_inicio);
+    $('#progIni').val(data.producidos_con_diferencia[0].progresivo_inicio);
+    $('#coininFin').val(data.producidos_con_diferencia[0].coinin_final);
+    $('#coinoutFin').val(data.producidos_con_diferencia[0].coinout_final);
+    $('#jackFin').val(data.producidos_con_diferencia[0].jackpot_final);
+    $('#progFin').val(data.producidos_con_diferencia[0].progresivo_final);
+    $('#prodCalc').val(data.producidos_con_diferencia[0].delta).prop('disabled', true);
+    $('#prodSist').val(data.producidos_con_diferencia[0].producido);
 
-                    $('#columnaDetalle').show();
-                    $('#info-denominacion').html('CONTADORES EN CRÉDITOS, DENOMINACIÓN BASE "'+data.producidos_con_diferencia[0].denominacion+'" (Solo Rosario)');
-                    $('#coinoutIni').val(data.producidos_con_diferencia[0].coinout_inicio);
-                    $('#coininIni').val(data.producidos_con_diferencia[0].coinin_inicio);
-                    $('#jackIni').val(data.producidos_con_diferencia[0].jackpot_inicio);
-                    $('#progIni').val(data.producidos_con_diferencia[0].progresivo_inicio);
-                    $('#coininFin').val(data.producidos_con_diferencia[0].coinin_final);
-                    $('#coinoutFin').val(data.producidos_con_diferencia[0].coinout_final);
-                    $('#jackFin').val(data.producidos_con_diferencia[0].jackpot_final);
-                    $('#progFin').val(data.producidos_con_diferencia[0].progresivo_final);
-                    $('#prodCalc').val(data.producidos_con_diferencia[0].delta).prop('disabled', true);
-                    $('#prodSist').val(data.producidos_con_diferencia[0].producido_dinero);
-                    $('#diferencias').text(data.producidos_con_diferencia[0].diferencia).prop('disabled', true);
-                    for (var i = 0; i < data.tipos_ajuste.length; i++) {
-                        $('#observacionesAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));
-                    }
-                    //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
-                    $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
-                    //inputs ocultos en el form
-                    $('#data-denominacion').val(data.producidos_con_diferencia[0].denominacion);
-                    $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_contador_final);
-                    $('#data-detalle-inicial').val(data.producidos_con_diferencia[0].id_detalle_contador_inicial);
-                    $('#data-contador-final').val(data.id_contador_final);
-                    $('#data-contador-inicial').val(data.id_contador_inicial);
-                    $('#data-producido').val(data.producidos_con_diferencia[0].id_detalle_producido);
+    //Guardo los valores originales para researlos al cambio de TipoAjuste
+    $('.cont_finales input,.cont_iniciales input').each(function(){$(this).data('original',$(this).val());})
+    $('#prodSist').data('original',$('#prodSist').val());
 
-      })
+    $('#diferencias').text(data.producidos_con_diferencia[0].diferencia).prop('disabled', true);
+    for (let i = 0; i < data.tipos_ajuste.length; i++) {
+      $('#tipoAjuste').append($('<option>').val(data.tipos_ajuste[i].id_tipo_ajuste).text(data.tipos_ajuste[i].descripcion));
+    }
+    //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
+    $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
+    //inputs ocultos en el form
+    $('#data-denominacion').val(data.producidos_con_diferencia[0].denominacion);
+    $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_contador_final);
+    $('#data-detalle-inicial').val(data.producidos_con_diferencia[0].id_detalle_contador_inicial);
+    $('#data-producido').val(data.producidos_con_diferencia[0].id_detalle_producido);
+  });
 }); //PRESIONA UN OJITO
-
-//boton guarda temporal
-$("#btn-guardar").click(function(e){
-  e.preventDefault();
-  var id_maquina=$(this).attr('data-id-maq');
-  //Se envía el relevamiento para guardar con estado 2 = 'Carga parcial'
-  guardarFilaDiferenciaCero(2,id_maquina);
-  $('#modalCargaProducidos .mensajeSalida span').hide();
-});
 
 $("#btn-finalizar").click(function(e){
   e.preventDefault();
-  var id_maquina=$(this).attr('data-id');
-
-
-  //Se evnía el relevamiento para guardar con estado 2 = 'Carga parcial'
-  guardarFilaDiferenciaCero(3,id_maquina);
+  guardarFilaDiferenciaCero();
   $('#modalCargaProducidos .mensajeSalida span').hide();
-
-})
-
-$('.btn-ajustar').click(function(e){
-  e.preventDefault();
-  var id_producido = $(this).attr('data-producido');
-  $('.carga').each(function(index){
-    if(id_producido == $(this).val()){
-          $(this).trigger('click');
-    }
-  })
 })
 
 //SALIR DEL AJUSTE
-var salida; //cantidad de veces que se apreta salir
 $('#btn-salir').click(function(){
-  if (guardado) $('#modalCargaProducidos').modal('hide');
-  else{
-    if (salida == 0) {
-      $('#modalCargaProducidos .mensajeSalida span').show();
-      salida = 1;
-    }else {
-      $('#modalCargaProducidos').modal('hide');
-      guardado=1;
-    }
+  const salida = $(this).data('salida');
+  if(salida){
+    $('#modalCargaProducidos').modal('hide');
+    return;
   }
+  $('#modalCargaProducidos .mensajeSalida span').show();
+  $(this).data('salida',true);
 });
 
 /************   FUNCIONES   ***********/
-function generarFilaMaquina(nro_admin, id_maquina_final){//CARGA LA TABLA DE MÁQUINAS SOLAMENTE, DENTRO DEL MODAL
-
-  var fila=$('#filaClon').clone();
-
-  fila.removeAttr('id');
-  fila.attr('id',  id_maquina_final);
-
-  fila.find('.nroAdm').text(nro_admin);
-  fila.find('.idMaqTabla').val(id_maquina_final);
-
-  fila.css('display', 'block');
-
-      return  fila;
-}
-
-function guardarFilaDiferenciaCero(estado, id){ //POST CON DATOS CARGADOS
+function guardarFilaDiferenciaCero(){ //POST CON DATOS CARGADOS
+  if($('#diferencias').text()!='0') return;
 
   $('#mensajeExito').hide();
-  //estado -> generado, carga parcial, finalizado
-  var detalles_sin_diferencia = [];
-  var errores = 0 ;
 
-  var id_detalle_contador_final = $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null;
-  var id_detalle_contador_inicial = $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null;
-
-  var producido = {
-    id_maquina : id,
-    id_detalle_producido :  $('#data-producido').val(),
-    id_detalle_contador_final : id_detalle_contador_final,
-    id_detalle_contador_inicial : id_detalle_contador_inicial,
-    coinin_inicial : parseInt($('#coininIni').val()),
-    coinout_inicial : parseInt($('#coinoutIni').val()),
-    jackpot_inicial : $('#jackIni').val(),
-    progresivo_inicial : $('#progIni').val(),
-    coinin_final : parseInt($('#coininFin').val()),
-    coinout_final :parseInt($('#coinoutFin').val()),
-    jackpot_final : $('#jackFin').val(),
-    progresivo_final :$('#progFin').val(),
-    producido: $('#prodSist ').val(),
+  const formData = {
     denominacion: $('#data-denominacion').val(),
-    id_tipo_ajuste: $('#observacionesAjuste').val(),
-    prodObservaciones: $('#prodObservaciones').val(),
+    coinin_inicio:     parseInt($('#coininIni').val()),
+    coinin_final:       parseInt($('#coininFin').val()),
+    coinout_inicio:    parseInt($('#coinoutIni').val()),
+    coinout_final:      parseInt($('#coinoutFin').val()),
+    jackpot_inicio:    parseInt($('#jackIni').val()),
+    jackpot_final:      parseInt($('#jackFin').val()),
+    progresivo_inicio: parseInt($('#progIni').val()),
+    progresivo_final:   parseInt($('#progFin').val()),
+    id_detalle_producido:        $('#data-producido').val(),
+    id_detalle_contador_final:   $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null,
+    id_detalle_contador_inicial: $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null,
+    producido:         $('#prodSist').val(),
+    id_tipo_ajuste:    $('#tipoAjuste').val(),
+    observacion: $('#prodObservaciones').val(),
   };
 
-  detalles_sin_diferencia.push(producido);
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  $.ajax({
+      type: 'POST',
+      url: 'producidos/guardarAjuste',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        if(data.todas_ajustadas){
+          $('#columnaDetalle').hide();
+          $('#btn-finalizar').hide();
+          $('#modalCargaProducidos').modal('hide');
+          $('#mensajeExito h3').text('EXITO');
+          $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
+          $('#mensajeExito div').css('background-color','#4DB6AC');
+          $('#mensajeExito').show();
+          $('#btn-buscar').trigger('click');
+          return;
+        }
+        if(data.hay_diferencia){
+          $('#columnaDetalle').show();
+          $('#btn-finalizar').show();
+          $('#textoExito').text('Se encontraron diferencias al tratar de ajustar la maquina.').show();
+          return;
+        }
 
-  //si apreta guardar con todos arreglados
-   if(($('#diferencias').text()=='0') && ($('#observacionesAjuste').val() != 0)){
-     estado = 3 ;
-  }
-
-  if(errores == 0){
-    formData = {
-      producidos_ajustados : detalles_sin_diferencia,
-      estado : estado ,
-      id_contador_final :  $('#data-contador-final').val(),
-      id_contador_inicial: $('#data-contador-inicial').val(),
-      id_tipo_moneda : $('#frmCargaProducidos').attr('data-tipoMoneda'),
-      id_producido: $('#id_producido').val()
-    };
-
-    $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-    $.ajax({
-        type: 'POST',
-        url: 'producidos/guardarAjusteProducidos',
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-          switch (data.estado) {
-            case 1: //Ha finalizado el ajuste de UNA máquina
-              $('#columnaDetalle').hide();
-              $('#cuerpoTabla').find(id).remove();
-              $('#btn-finalizar').hide();
-              $('#modalCargaProducidos .mensajeFin').show();
-              $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
-            case 2: //GUARDADO TEMPORAL
-              for (var i = 0; i < data.resueltas.length; i++) {
-                $('#cuerpoTabla #' + data.resueltas[i]).remove();
-              }
-              $('#columnaDetalle').hide();
-              $('#textoExito').text('Se arreglaron ' + data.resueltas.length + ' máquinas. Y ocurrieron ' + data.errores.length + ' errores.');
-            break;
-            case 3: //SE HAN FINALIZADO LOS AJUSTES DE TODAS LAS MÁQUINAS
-              $('#columnaDetalle').hide();
-              $('#btn-finalizar').hide();
-              $('#btn-guardar').hide();
-              $('#modalCargaProducidos').modal('hide');
-
-              $('#mensajeExito h3').text('EXITO');
-              $('#mensajeExito p').text('Se han ajustado todas las diferencias correctamente.');
-              $('#mensajeExito div').css('background-color','#4DB6AC');
-              $('#mensajeExito').show();
-              $('#btn-buscar').trigger('click');
-
-              $('#tablaImportacionesProducidos #' + $('#id_producido').val()).find('td').eq(3).children()
-                    .replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
-            break;
-            default:
-            break;
-          }
-
-          guardado = true;
-          $('#btn-guardar').hide();
-        },
-        error: function (data) {
-          console.log('ERROR');
-          console.log(data);
-        },
-    });
-  }
+        $('#columnaDetalle').hide();
+        $('#btn-finalizar').hide();
+        $('#modalCargaProducidos .mensajeFin').show();
+        $('#maquinas_con_diferencias').text(parseInt($('#maquinas_con_diferencias').text())-1);
+        const fila = $('#cuerpoTabla #' + $("#btn-finalizar").attr('data-id'));
+        $('#textoExito').text('Maquina '+fila.find('.nroAdm').text()+' ajustada').show();
+        fila.remove();
+      },
+      error: function (data) {
+        console.log('ERROR');
+        console.log(data);
+      },
+  });
 };
 
 function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
-  $('#modalCargaProducidos').find('#data-contador-final').val("");
-  $('#modalCargaProducidos').find('#data-contador-inicial').val("");
-  $('#btn-guardar').hide();
   $('#btn-finalizar').hide();
   $('#cuerpoTabla').empty();
   $('#coinoutIni').val("");
@@ -459,172 +365,107 @@ function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
   $('#prodCalc').val("");
   $('#prodSist').val("");
   $('#diferencias').val("");
-  $('#denominacion').val("");
   $('#data-detalle-final').val("");
   $('#data-detalle-inicial').val("");
-  $('#observacionesAjuste option').not('.default1').remove();
-  $('#observacionesAjuste').val(0);
+  $('#tipoAjuste option').not('.default1').remove().val(0);
   $('#descripcion_validacion').text('');
-
 }
 
-function cerrarContadoresYValidar(id_producido , id_producido_final){
-
-  var tds_inicio = $('#tablaImportacionesProducidos #' + id_producido).find('td');
-  var tds_fin= $('#tablaImportacionesProducidos #' + id_producido_final).find('td');
-
-  tds_inicio.eq(3).children().replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
-  tds_inicio.eq(6).find('.carga').remove();
-  if(id_producido_final != 0 ){
-    tds_fin.eq(4).children()
-    .replaceWith('<i class="fa fa-fw fa-check" style="color:#66BB6A;">');
-      checkEstado(id_producido_final);
-  }
-
-}
-
-function checkEstado(id_producido){
-  $.get('producidos/checkEstado/' + id_producido, function(data){
-    if(data.estado == 1){
-      var boton = '<button class="btn btn-warning carga popInfo" type="button" value="' + id_producido + '" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Ajustar"><i class="fa fa-fw fa-upload"></i></button>'
-      $('#tablaImportacionesProducidos #' + id_producido).find('td').eq(6).prepend(boton);
-      $('.btn-ajustar').each(function (index){
-        if($(this).val() == data.id_casino){
-          $(this).attr('data-producido' , id_producido);
-        }
-      })
-    }else {
-      $('.btn-ajustar').each(function (index){
-        if($(this).val() == data.id_casino){
-          $(this).remove();
-        }
-      })
-    }
-  });
-}
-
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
+//Planilla de diferencias producido vs contadores (con el ajuste)
 $(document).on('click','.planilla',function(){
-    $('#alertaArchivo').hide();
+  window.open('producidos/generarPlanillaDiferencias/' + $(this).val(),'_blank');
+});
 
-    window.open('producidos/generarPlanilla/' + $(this).val(),'_blank');
-
-    // $("#cargaArchivo").fileinput('destroy').fileinput({
-    //   language: 'es',
-    //   showRemove: false,
-    //   showUpload: false,
-    //   showCaption: false,
-    //   showZoom: false,
-    //   browseClass: "btn btn-primary",
-    //   previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-    //   overwriteInitial: true,
-    //   initialPreviewAsData: true,
-    //   initialPreview: [
-    //     "/producidos/generarPlanilla/" + $(this).val(),
-    //   ],
-    //   initialPreviewConfig: [
-    //     {type:'pdf', caption: '', size: 1, width: "1000px", url: "{$url}", key: 1},
-    //   ],
-    //   allowedFileExtensions: ['pdf'],
-    // });
-    //
-    // $('#modalPlanilla').modal('show');
+$(document).on('click','.producido',function(){
+  window.open('producidos/generarPlanillaProducido/' + $(this).val(),'_blank');
 });
 
 //función para generar el listado inicial
-function agregarFilaTabla(producido, casino){
-  var color_rojo = '#EF5350';
-  var color_verde = '#66BB6A';
-  var icono_validado, icono_cont_ini , icono_cont_fin;
-  var color_validado, color_cont_ini, color_cont_fin;
-  //si ya esta validado
-  if(producido.producido.validado == 1) {
-     icono_validado = 'fa fa-fw fa-check';
-     color_validado = color_verde;
-  }else {
-      icono_validado= 'fas fa-fw fa-times';
-      color_validado = color_rojo;
-  }
-  if(producido.cerrado.length == 0) {
-    icono_cont_ini= 'fa fa-fw fa-check';
-    color_cont_ini = color_verde;
-  }else {
-    icono_cont_ini= 'fas fa-fw fa-times';
-    color_cont_ini = color_rojo;
+function agregarFilaTabla(producido){
+  const fila = $('#filaEjemploProducidos').clone().removeAttr('id');
+  fila.find('.casino').text(producido.casino);
+  fila.find('.fecha').text(producido.fecha);
+  fila.find('.moneda').text(producido.moneda);
+  fila.find('button').val(producido.id_producido);
+  //Tienen que estar el contador inicial importado (y cerrado), el contador final importado y el producido sin validar para permitir cargar
+  //El contador final es el que se va a "cerrar" cuando se validen los ajustes
+  if(producido.error_contador_ini != null || producido.error_contador_fin != null || producido.producido_validado != 0){
+    fila.find('.carga').remove();
   }
 
-  if(producido.validado.length == 0){
-    icono_cont_fin= 'fa fa-fw fa-check';
-    color_cont_fin = color_verde;
-  }else {
-    icono_cont_fin= 'fas fa-fw fa-times';
-    color_cont_fin = color_rojo;
-  }
-  // se saca la validacion de relevamientos visados porque dado un dia donde no se generen relevamientos,
-  // no se pueden seguir cargando producios, pero si se deja la marca que no se visaron
-   //if(producido.cerrado.length == 0 && producido.validado.length == 0 && producido.producido.validado == 0){
-    if(producido.cerrado.length == 0 && producido.producido.validado == 0){
-    var tr = $('<tr>').append($('<td>').addClass('col-xs-2 casino').text(producido.casino.nombre))
-                      .append($('<td>').addClass('col-xs-2 fecha_producido').text(producido.producido.fecha))
-                      .append($('<td>').addClass('col-xs-2 tipo_moneda').text(producido.tipo_moneda.descripcion))
-                      .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_validado).css('color', color_validado)))
-                      .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_ini).css('color', color_cont_ini)))
-                      .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_fin).css('color', color_cont_fin)))
-                      .append($('<td>').addClass('col-xs-1').append($('<button>')
-                          .append($('<i>')
-                              .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-upload')
-                          )
-                          .addClass('btn').addClass('btn-warning').addClass('carga').addClass('popInfo')
-                          .attr('value',producido.producido.id_producido)
-                      ))
-                      .append($('<td>').addClass('col-xs-1').append($('<button>')
-                          .append($('<i>')
-                              .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-print')
-                          )
-                          .addClass('btn').addClass('btn-info').addClass('planilla')
-                          .attr('value',producido.producido.id_producido)
-                      ));
-  }
+  fila.find('.producido_valido').find(producido.producido_validado == 1?
+    '.invalido' : '.valido').remove();
+  fila.find('.contador_inicial_cerrado').find(producido.error_contador_ini == null?
+    '.invalido' : '.valido').remove();
+  fila.find('.relevamiento_valido').find(producido.error_contador_fin == null && producido.error_relevamientos == null? 
+    '.invalido' : '.valido').remove();
 
-  else{
-  var tr = $('<tr>').append($('<td>').addClass('col-xs-2 casino').text(producido.casino.nombre))
-                    .append($('<td>').addClass('col-xs-2 fecha_producido').text(producido.producido.fecha))
-                    .append($('<td>').addClass('col-xs-2 tipo_moneda').text(producido.tipo_moneda.descripcion))
-                    .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_validado).css('color', color_validado)))
-                    .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_ini).css('color', color_cont_ini)))
-                    .append($('<td>').addClass('col-xs-1').append($('<i>').addClass(icono_cont_fin).css('color', color_cont_fin)))
-                    .append($('<td>').addClass('col-xs-2').append($('<button>')
-                        .append($('<i>')
-                            .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-print')
-                        )
-                        .addClass('btn').addClass('btn-info').addClass('planilla')
-                        .attr('value',producido.producido.id_producido)
-                    ));
-} //GENERA TABLA DE LISTADO PRINCIPAL
- $('#tablaImportacionesProducidos tbody').append(tr);
+  $('#tablaImportacionesProducidos tbody').append(fila);
 }
-
 
 $(document).on('click', '#tablaImportacionesProducidos thead tr th[value]', function(e) {
   $('#tablaImportacionesProducidos th').removeClass('activa');
   if ($(e.currentTarget).children('i').hasClass('fa-sort')) {
-      $(e.currentTarget).children('i')
-          .removeClass('fa-sort').addClass('fa fa-sort-desc')
-          .parent().addClass('activa').attr('estado', 'desc');
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado', 'desc');
   } else {
-      if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
-          $(e.currentTarget).children('i')
-              .removeClass('fa-sort-desc').addClass('fa fa-sort-asc')
-              .parent().addClass('activa').attr('estado', 'asc');
-      } else {
-          $(e.currentTarget).children('i')
-              .removeClass('fa-sort-asc').addClass('fa fa-sort')
-              .parent().attr('estado', '');
-      }
+    if ($(e.currentTarget).children('i').hasClass('fa-sort-desc')) {
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado', 'asc');
+    } else {
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+    }
   }
-  $('#tablaImportacionesProducidos th:not(.activa) i')
-      .removeClass().addClass('fa fa-sort')
-      .parent().attr('estado', '');
-  
-  $('#btn-buscar').click();
+  $('#tablaImportacionesProducidos th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+  clickIndice(e, $('#herramientasPaginacion').getCurrentPage(), $('#herramientasPaginacion').getPageSize());
+});
+
+function clickIndice(e, pageNumber, tam) {
+  if (e != null) {
+    e.preventDefault();
+  }
+  tam = (isNaN(tam)) ? $('#herramientasPaginacion').getPageSize() : tam;
+  const columna = $('#tablaImportacionesProducidos .activa').attr('value');
+  const orden = $('#tablaImportacionesProducidos .activa').attr('estado');
+  $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden]);
+}
+
+$('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
+  e.preventDefault();
+  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+
+  let size = 10;
+  //Fix error cuando librería saca los selectores
+  if (!isNaN($('#herramientasPaginacion').getPageSize())) {
+    size = $('#herramientasPaginacion').getPageSize();
+  }
+
+  page_size   = (page_size == null || isNaN(page_size)) ? size : page_size;
+  page_number = (pagina != null) ? pagina  : $('#herramientasPaginacion').getCurrentPage();
+  columna     = (columna != null)? columna : $('#tablaResultados .activa').attr('value');
+  orden       = (orden  != null) ? orden   : $('#tablaResultados .activa').attr('estado');
+  const formData = {
+    id_casino : $('#selectCasino').val(),
+    fecha_inicio : $('#fecha_inicio').val(),
+    fecha_fin : $('#fecha_fin').val(),
+    id_tipo_moneda : $('#selectMoneda').val(),
+    validado : $('#selectValidado').val(),
+    page: page_number,
+    sort_by: {columna: columna, orden: orden},
+    page_size: page_size,
+  };
+
+  $.ajax({
+    type: 'POST',
+    url: 'producidos/buscarProducidos',
+    data: formData,
+    dataType: 'json',
+    success: function(resultados) {
+        $('#herramientasPaginacion').generarTitulo(page_number, page_size, resultados.total,clickIndice);
+        $('#tablaImportacionesProducidos tbody').empty();
+        for (let i = 0; i < resultados.data.length; i++) {
+          agregarFilaTabla(resultados.data[i]);
+        }
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
+    },
+    error: function(data) { console.log('Error:', data); }
+  });
 });

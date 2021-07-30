@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 ?>
 
 @section('estilos')
+<link rel="stylesheet" href="/css/paginacion.css"/>
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -30,18 +31,17 @@ use Illuminate\Http\Request;
                         <div id="collapseFiltros" class="panel-collapse collapse">
                           <div class="panel-body">
                               <div class="row"> <!-- Primera fila -->
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Casino</h5>
-                                  <select class="form-control" id="selectCasinos">
-                                    <option value="0">- Seleccione un casino -</option>
-                                     @foreach ($casinos as $casino)
-                                     <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                  <select class="form-control" id="selectCasino">
+                                    <option value="" selected>- Todos los casinos -</option>
+                                     @foreach ($casinos as $c)
+                                     <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
                                      @endforeach
                                   </select>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Fecha de inicio</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaInicio' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
@@ -50,11 +50,9 @@ use Illuminate\Http\Request;
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
                                   </div>
-
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
                                   <h5>Fecha de finalización</h5>
-
                                   <div class="form-group">
                                      <div class='input-group date' id='dtpFechaFin' data-link-field="fecha_fin" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de Fin" id="B_fecha_fin"/>
@@ -63,9 +61,17 @@ use Illuminate\Http\Request;
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_fin" value=""/>
                                   </div>
-
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-4">
+                                  <h5>MONEDA</h5>
+                                  <select class="form-control" id="selectMoneda">
+                                    <option value="" selected>- Todas las monedas -</option>
+                                    @foreach($monedas as $m)
+                                    <option value="{{$m->id_tipo_moneda}}">{{$m->descripcion}}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="col-lg-4">
                                   <h5>Validado</h5>
                                   <select class="form-control" id="selectValidado">
                                     <option value="-">-</option>
@@ -98,19 +104,19 @@ use Illuminate\Http\Request;
                     <table id="tablaImportacionesProducidos" class="table table-fixed tablesorter">
                       <thead>
                         <tr>
-                          <th class="col-xs-2">CASINO</th>
-                          <th class="col-xs-2" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
-                          <th class="col-xs-1">MONEDA</th>
-                          <th class="col-xs-1">VALIDADO</th>
-                          <th class="col-xs-1">CONT INI</th>
-                          <th class="col-xs-2">RELEVAMIENTOS VISADOS</th>
+                          <th class="col-xs-1">CASINO</th>
+                          <th class="col-xs-2" style="text-align: center;" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                          <th class="col-xs-1" style="text-align: center;">MONEDA</th>
+                          <th class="col-xs-2" style="text-align: center;">VALIDADO</th>
+                          <th class="col-xs-2" style="text-align: center;">CONT INI</th>
+                          <th class="col-xs-2" style="text-align: center;">RELEVAMIENTOS VISADOS</th>
                           <th class="col-xs-2">ACCIÓN</th>
                         </tr>
                       </thead>
                       <tbody style="height: 350px;">
-
                       </tbody>
                     </table>
+                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                   </div>
                 </div>
                   </div>
@@ -119,57 +125,45 @@ use Illuminate\Http\Request;
             <!-- /.col-lg-12 col-xl-9 -->
             <div class="col-lg-12 col-xl-3">
               <div class="row">
-                @foreach($ultimos as $p_a_validar)
-                @if($p_a_validar['producido']!=null && empty($p_a_validar['validado']))
-                <div class="col-lg-12">
-                 <a href="" class="btn-ajustar" style="text-decoration: none;" value="{{$p_a_validar['producido']->id_casino}}" data-producido="{{$p_a_validar['producido']->id_producido}}">
-                  <div class="panel panel-default panelBotonNuevo">
-                      <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
-                      <div class="backgroundNuevo"></div>
-                      <div class="row">
-                          <div class="col-xs-12">
-                            <center>
-                                <h5 class="txtLogo">+<span style="font-size:100px; position:relative; top:-8px;">{{$p_a_validar['descripcion']}}</span></h5>
-                                <h4 class="txtNuevo">AJUSTAR ÚLTIMO PRODUCIDO</h4>
-                            </center>
-                          </div>
-                      </div>
-                  </div>
-                 </a>
-                </div>
-                @endif
-                @endforeach
-              </div>
-
-              <div class="row">
                 <div class="col-lg-12">
                   <a href="importaciones" style="text-decoration:none;">
-                      <div class="tarjetaSeccionMenor" align="center">
-                        <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
-                        <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                        <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                      </div>
-                  </a>
-                  <!-- <a href="importaciones" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor">
-                        <div class="imagenSeccionMenor" >
-                            <img src="/img/tarjetas/resoluciones.jpg" alt="">
-                        </div>
-                        <div class="fondoSeccionMenor">
-                            <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                            <img width="180" class="iconoSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                        </div>
+                    <div class="tarjetaSeccionMenor" align="center">
+                      <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
+                      <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
+                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
                     </div>
-                  </a> -->
+                  </a>
                 </div>
               </div>
-
             </div>
         </div>  <!-- /#row -->
 
+<table hidden>
+  <tr id="filaEjemploProducidos">
+    <td class="col-xs-1 casino">CASINO</td>
+    <td class="col-xs-2 fecha" style="text-align: center;">9999-99-99</td>
+    <td class="col-xs-1 moneda" style="text-align: center;">MONEDA</td>
+    <td class="col-xs-2 producido_valido" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 contador_inicial_cerrado" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 relevamiento_valido" style="text-align: center;">
+      <i class="fa fa-fw fa-check  valido"   style="color: #66BB6A"></i>
+      <i class="fas fa-fw fa-times invalido" style="color: #EF5350"></i>
+    </td>
+    <td class="col-xs-2 acciones">
+      <button class="btn btn-warning carga" title="VALIDAR PRODUCIDO"><i class="fa fa-fw fa-upload"></i></button>
+      <button class="btn btn-info planilla" title="DIFERENCIAS"><i class="fa fa-fw fa-print"></i></button>
+      <button class="btn btn-info producido" title="VER PRODUCIDO"><i class="fa fa-fw fa-search-plus"></i></button>
+    </td>
+  </tr>
+</table>
 
 <!--Modal nuevo para ajustes-->
-
 <div class="modal fade" id="modalCargaProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 60%;">
     <div class="modal-content" >
@@ -178,39 +172,34 @@ use Illuminate\Http\Request;
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title modalVerMas" id="myModalLabel">VALIDAR AJUSTES</h3>
       </div>
-
-      <div  id="colapsado" class="collapse in">
+      <div id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
-
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
-            <h6 style="padding-left:15px">
-              Máquinas con diferencias: 
-              <span id="maquinas_con_diferencias">---</span>
-            </h6>
+            <h6 style="padding-left:15px">Máquinas con diferencias: <span id="maquinas_con_diferencias">---</span></h6>
           </div>
           <div class="row" >
             <div class="col-md-3">
               <h6><b>MÁQUINAS</b></h6>
               <table id="tablaMaquinas" class="table" style="display: block;">
                 <thead style="display: block;position: relative;">
-                  <tr >
+                  <tr>
                     <th class="col-xs-2">Nº ADMIN</th>
                     <th class="col-xs-2"></th>
                   </tr>
                 </thead>
-                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;height: 700px;">
+                <tbody id="cuerpoTabla"  style="display: block;overflow: auto;max-height: 600px;">
                 </tbody>
               </table>
-              <table>
-              <tbody id="filaClon" style="display:none" class="filaCl" >
+              <table hidden>
+                <tr id="filaClon">
                   <td class="col-md-3 nroAdm" value=""> nro admin</td>
-                  <td class="col-md-2 idMaqTabla" value=""> <button type="button" class="btn btn-info infoMaq" value="">
-                    <i class="fa fa-fw fa-eye"></i>
-                  </button></td>
-              </tbody>
+                  <td class="col-md-2 idMaqTabla" value="">
+                    <button type="button" class="btn btn-info infoMaq" value=""><i class="fa fa-fw fa-eye"></i></button>
+                  </td>
+                </tr>
               </table>
-            </div> <!-- tablafechas -->
+            </div>
 
             <div id="columnaDetalle" class="col-md-9" style="border-right:2px solid #ccc;" hidden>
               <h6 id="detallesEs"><b>DETALLES</b></h6>
@@ -219,231 +208,117 @@ use Illuminate\Http\Request;
               <div class="detalleMaq" >
                 <h5 id="info-denominacion"></h5>
                 <form id="frmCargaProducidos" name="frmCargaProducidos" class="form-horizontal" novalidate="">
-
-                  <div class="row" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
+                  <div class="row" style="padding-bottom: 5px;">
+                    <div class="col-lg-6 col-lg-offset-3">
+                      <select class="form-control" id="tipoAjuste" style="text-align: center;">
+                        <option class="default1" value="0" >-Tipo Ajuste-</option>
+                      </select>
+                    </div>
+                    <div class="col-lg-1">
+                      <button type="button" class="btn btn-info btn-sucess" id="ajustarProducido" title="AJUSTAR">
+                        <i class="fa fa-fw fa-sync"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
                     <div class="col-lg-3">
                       <h5>COININ. INICIAL</h5>
                       <input id="coininIni" type="text" class="form-control">
-                      <br>
-                    </div> <!-- nro admin -->
+                    </div>
                     <div class="col-lg-3">
                       <h5>COINOUT INI.</h5>
                       <input id="coinoutIni" type="text" class="form-control" >
-                      <br>
-                    </div> <!-- Fisca toma -->
-
+                    </div>
                     <div class="col-lg-3">
                       <h5>JACKPOT INI.</h5>
                       <input id="jackIni" type="text" class="form-control">
-                      <br>
-                    </div> <!-- fisca carga-->
+                    </div>
                     <div class="col-lg-3">
                       <h5>PROG. INICIAL</h5>
                       <input id="progIni" type="text" class="form-control" >
-                      <br>
-                    </div> <!-- nro admin -->
-
+                    </div>
                   </div>
-
-                  <div class="row" style="border-left:1px solid #ccc;border-right:1px solid #ccc;">
-
-                    <br>
-
+                  <div class="row cont_finales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
                     <div class="col-lg-3">
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>COINOUT FINAL</h5>
                       <input id="coinoutFin" type="text" class="form-control">
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>JACKPOT FINAL</h5>
                       <input id="jackFin" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-3">
                       <h5>PROG. FINAL</h5>
                       <input id="progFin" type="text" class="form-control" >
-                      <br>
                     </div>
                   </div>
-
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
-                    <div class="col-lg-3">
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                    <div class="col-lg-4" style="text-align: center;">
                       <h5>PRODUC.CALC.</h5>
                       <input id="prodCalc" type="text" class="form-control" readonly="readonly">
-                      <br>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-4" style="text-align: center;">
                       <h5>PRODUCIDO SIST.</h5>
                       <input id="prodSist" type="text" class="form-control" >
-                      <br>
                     </div>
-
-                    <div class="col-lg-3">
-                        <h5>DIFERENCIAS</h5>
-                        <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
-                    </div>
-                    <div class="col-lg-3">
-                        <h5>OBSERVACIONES</h5>
-                        <select class="form-control" id="observacionesAjuste">
-                           <option class="default1" value="0">-Tipo Ajuste-</option>
-                        </select>
+                    <div class="col-lg-4" style="text-align: center;">
+                      <h5>DIFERENCIAS</h5>
+                      <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
                     </div>
                   </div>
-
-                  <div class="row" style=" border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-
-                      <div class="col-lg-12">
-                        <h5>OBSERVACIONES</h5>
-                        <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
-                        <br>
-                      </div>
-                      
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                    <div class="col-lg-12">
+                      <h5>OBSERVACIONES</h5>
+                      <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
                     </div>
-
+                  </div>
                   <div class="row" hidden>
                     <div class="col-lg-2">
                       <input id="data-denominacion" type="text" class="form-control" >
-                      <br>
-                    </div>
-                    <div class="col-lg-2">
-                      <input id="data-contador-final" type="text" class="form-control" >
-                      <br>
-                    </div>
-                    <div class="col-lg-2">
-                      <input id="data-contador-inicial" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-producido" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-detalle-inicial" type="text" class="form-control" >
-                      <br>
                     </div>
                     <div class="col-lg-2">
                       <input id="data-detalle-final" type="text" class="form-control" >
-                      <br>
                     </div>
                   </div>
                 </form>
-
               </div>
-
-
             </div>
           </div>  <!-- fin row inicial -->
-
           <div class="row" align="right" style="margin-right:20px; font-weight:bold">
           <h4 id="textoExito" hidden>Se arreglaron: 0 máquinas</h4>
       </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-warningModificar" id="btn-guardar" value="nuevo">GUARDAR TEMPORALMENTE</button>
         <button type="button" class="btn btn-warningModificar" id="btn-finalizar" value="nuevo">FINALIZAR AJUSTES</button>
         <button type="button" class="btn btn-default" id="btn-salir" >SALIR</button>
         <button type="button" class="btn btn-info success" id="btn-salir-validado" hidden="true">VALIDAR</button>
-
         <div class="mensajeSalida">
             <br>
-            <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS SIN GUARDAR</span>
+            <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS REALIZADOS</span>
             <br>
-            <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
-            <span style="font-family:'Roboto'; color:#555;">Presione GUARDAR TEMPORALMENTE para guardando los cambios y luego SALIR.</span>
+            <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir.</span>
         </div>
-
         <div class="mensajeFin" hidden>
-            <br>
-            <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
-            <br>
-
+          <br>
+          <span style="font-family:'Roboto-Black'; color:#66BB6A; font-size:16px;">Los ajustes se han guardado correctamente.</span>
+          <br>
         </div>
-
         <input type="hidden" id="id_producido" value="0">
-
-          </div> <!-- modal body -->
-      </div> <!--  modal colap-->
-    </div>  <!-- modal content -->
-  </div> <!--  modal dialog -->
+      </div> <!-- modal body -->
+    </div> <!--  modal colap-->
+  </div>  <!-- modal content -->
+</div> <!--  modal dialog -->
 </div> <!-- modal fade -->
-
-
-
-
-
-    <!-- Modal planilla relevamientos -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:80%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                  <div class="modal-body modalCuerpo">
-
-                    <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <!-- Carga de archivos! | Uno para el modal de nuevo y otro para modificar -->
-                                    <div class="zona-file-lg">
-                                        <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                    </div>
-
-                                    <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                                </div>
-                            </div>
-
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                    <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                    <input type="hidden" id="id_producido" value="0">
-                  </div>
-              </div>
-            </div>
-          </div>
-    </div>
-
-
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-title">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div>
-
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 
@@ -466,11 +341,9 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
+    <script src="/js/paginacion.js" charset="utf-8"></script>
     <script src="js/seccionProducidos.js" charset="utf-8"></script>
-
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
-
-
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

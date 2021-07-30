@@ -15,5 +15,4 @@ class AjusteBeneficio extends Model
   public function beneficio(){
     return $this->hasOne('App\Beneficio','id_beneficio','id_beneficio');
   }
-
 }

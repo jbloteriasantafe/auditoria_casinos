@@ -135,7 +135,6 @@ $(document).on('click','.validar',function(e){
 
   $.ajax({
       type: 'POST',
-      // url: 'beneficios/validarBeneficios',
       url: 'beneficios/obtenerBeneficiosParaValidar',
       data: formData,
       dataType: 'json',
@@ -191,205 +190,90 @@ function clickIndice(e,pageNumber,tam){
 
 //Generar las filas de los beneficios por cada día del mes para el modal
 function generarFilaModal(beneficio){
-  var fila = $(document.createElement('tr'));
+  const fila = $(document.createElement('tr'));
 
-  var boolProducido= false;
-
-  if(!beneficio.id_producido){
-    boolProducido=true
-  }
-
-  console.log(beneficio);
-
-  var diferencia = beneficio.diferencia;
-
-  /*********     CON LOS 4 CAMPOS!   ***************/
-  //Si la diferencia es MENOR A 0 se agrega al campo coinin
-  // var coinin = '<input class="form-control coinin" type="text" value="'+ diferencia * -1 +'" placeholder="COIN IN"><br>';
-  // var coinout = '<input class="form-control coinout" type="text" value="" placeholder="COIN OUT"><br>';
-  //Si es menor
-  // if (diferencia > 0) {
-  //   coinin = '<input class="form-control coinin" type="text" value="" placeholder="COIN IN"><br>';
-  //   coinout = '<input class="form-control coinout" type="text" value="'+ diferencia +'" placeholder="COIN OUT"><br>';
-  // }
-
-  // var formulario =  '<div align="right">'
-  //                 +   coinin
-  //                 +   coinout
-  //                 +   '<input class="form-control jackpot" type="text" value="" placeholder="JACKPOT"><br>'
-  //                 +   '<input class="form-control progresivo" type="text" value="" placeholder="PROGRESIVO"><br>'
-  //                 +   '<button id="'+ beneficio.id_beneficio +'" class="btn btn-successAceptar ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
-  //                 +   '<button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>'
-  //                 + '</div>'
-
-  var formulario =  '<div align="right">'
-                  +   '<input class="form-control valorAjuste" type="text" value="' + diferencia * -1 + '" placeholder="JACKPOT"><br>'
+  const formulario =  '<div align="right">'
+                  +   '<input class="form-control valorAjuste" type="text" value="' + (-beneficio.diferencia) + '" placeholder="JACKPOT"><br>'
                   +   '<button id="'+ beneficio.id_beneficio +'" class="btn btn-successAceptar ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
                   +   '<button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>'
-                  + '</div>';
-
+                  +   '</div>';
 
   fila.attr('id','id'+beneficio.id_beneficio)
-      .append($('<td>')
-          // .addClass('col-xs-1')
-          .text(beneficio.fecha)
-      )
-      .append($('<td>')
-          // .addClass('col-xs-2')
-          .text(beneficio.beneficio_calculado)
-      )
-      .append($('<td>')
-          // .addClass('col-xs-2')
-          .text(beneficio.beneficio)
-      )
-      .append($('<td>')
-          // .addClass('col-xs-2')
-          .text(diferencia)
-      )
-      .append($('<td>')
-          // .addClass('col-xs-1')
-          .append($('<button>')
-              .addClass('btn btn-success pop')
-              .attr('tabindex', 0)
-              .attr('data-trigger','manual')
-              .attr('data-toggle','popover')
-              .attr('data-html','true')
-              .attr('title','AJUSTE')
-              .attr('data-content',formulario)
-              .attr('disabled',(diferencia == 0))
-              .append($('<i>').addClass('fa fa-fw fa-wrench'))
-          )
-      )
-      .append($('<td>')
-          // .addClass('col-xs-4')
-          .append($('<textarea>').addClass('form-control').css('resize','vertical'))
-      )
-
-      .append($('<td>')
-      .append($('<button>')
-                          .append($('<i>')
-                              .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search')
-                          )
-                          .addClass('btn').addClass('btn-info').addClass('ver-producido')
-                          .attr('data-idProducido',beneficio.id_producido)
-                          .attr('disabled',boolProducido)
-                          .attr('title','DETALLES PRODUCIDO')
-                      ));
-
-    return fila;
+  .append($('<td>').text(beneficio.fecha))
+  .append($('<td>').text(beneficio.beneficio_calculado))
+  .append($('<td>').text(beneficio.beneficio))
+  .append($('<td>').text(beneficio.diferencia))
+  .append($('<td>').append($('<button>')
+    .addClass('btn btn-success pop')
+    .attr('tabindex', 0)
+    .attr('data-trigger','manual')
+    .attr('data-toggle','popover')
+    .attr('data-html','true')
+    .attr('title','AJUSTE')
+    .attr('data-content',formulario)
+    .attr('disabled',(beneficio.diferencia == 0))
+    .append($('<i>').addClass('fa fa-fw fa-wrench'))
+    )
+  )
+  .append($('<td>').append($('<textarea>').addClass('form-control').css('resize','vertical')))
+  .append($('<td>').append($('<button>')
+    .append($('<i>')
+        .addClass('fa').addClass('fa-fw').addClass('fa fa-fw fa-search')
+    )
+    .addClass('btn').addClass('btn-info').addClass('ver-producido')
+    .attr('data-idProducido',beneficio.id_producido)
+    .attr('disabled',!beneficio.id_producido)
+    .attr('title','DETALLES PRODUCIDO')
+  ));
+  return fila;
 }
 
 $(document).on('click','.ver-producido',function(e){
   e.preventDefault();
-  id_producido=$(this).attr('data-idProducido')
-  console.log(id_producido);
-  window.open('producidos/generarPlanilla/' + id_producido,'_blank');
+  window.open('beneficios/generarPlanillaDiferenciasProducido/' + $(this).attr('data-idProducido'),'_blank');
 });
 
 //Generar las filas para la tabla de los beneficios mensuales
 function generarFilaTabla(beneficio){
-      var fila = $(document.createElement('tr'));
-      var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-      fila.attr('id','beneficio' + beneficio.id_beneficio_mensual)
-          .append($('<td>')
-              .addClass('col-xs-2')
-              .text(beneficio.casino)
-          )
-          .append($('<td>')
-              .addClass('col-xs-2')
-              .text(meses[beneficio.mes - 1])
-          )
-          .append($('<td>')
-              .addClass('col-xs-1')
-              .text(beneficio.anio)
-          )
-          .append($('<td>')
-              .addClass('col-xs-2')
-              .text(beneficio.tipo_moneda)
-          )
-          .append($('<td>')
-              .addClass('col-xs-3')
-              .text(beneficio.diferencias_mes)
-          )
+  const fila = $('<tr>').attr('id','beneficio' + beneficio.id_beneficio_mensual)
+  .append($('<td>').addClass('col-xs-2').text(beneficio.casino))
+  .append($('<td>').addClass('col-xs-2').text(meses[beneficio.mes - 1]))
+  .append($('<td>').addClass('col-xs-1').text(beneficio.anio))
+  .append($('<td>').addClass('col-xs-2').text(beneficio.tipo_moneda))
+  .append($('<td>').addClass('col-xs-3').text(beneficio.diferencias_mes));
 
-        var formulario =  '<div align="center">'
-                          +   '<input class="form-control valorAjuste" type="text" value="" placeholder="IEA"><br>'
-                          +   '<button id="'+ beneficio.id_beneficio_mensual +'" class="btn btn-successAceptar cargarImpuesto" type="button" style="margin-right:8px;">CARGAR</button>'
-                          +   '<button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>'
-                          + '</div>';
-        // TODO cambiar , viene indefinido, no null
-        if(beneficio.id_beneficio_mensual !== null){
-          fila.append($('<td>')
-              .append($('<button>')
-                  .addClass('btn btn-success pop')
-                  .val(beneficio.id_beneficio_mensual)
-                  .attr('tabindex', 0)
-                  .attr('data-trigger','manual')
-                  .attr('data-toggle','popover')
-                  .attr('data-html','true')
-                  .attr('title','CARGAR IMPUESTO')
-                  .attr('data-placement','top')
-                  .attr('data-content',formulario)
-                  .append($('<i>').addClass('fa fa-fw fa-upload'))
-              )
-              .append($('<span>').text(' '))
-              .append($('<button>')
-                  .addClass('btn btn-info planilla popInfo')
-                  .attr('data-casino', beneficio.id_casino)
-                  .attr('data-tipo', beneficio.id_tipo_moneda)
-                  .attr('data-anio', beneficio.anio)
-                  .attr('data-mes',beneficio.mes)
-                  .val(beneficio.id_beneficio)
-                  //Descripcion del icono | Nombre de la acción
-                  .attr('tabindex', 0)
-                  .attr('data-trigger','hover')
-                  .attr('data-toggle','popover')
-                  .attr("data-placement" , "top")
-                  .attr('data-content','IMPRIMIR')
-                  //Icono
-                  .append($('<i>').addClass('fa fa-fw fa-print'))
-              )
-          );
-        }else{
-          fila.append($('<td>')
-              .append($('<button>')
-                  .addClass('btn btn-success validar popInfo')
-                  .attr('data-casino', beneficio.id_casino)
-                  .attr('data-tipo', beneficio.id_tipo_moneda)
-                  .attr('data-anio', beneficio.anio)
-                  .attr('data-mes',beneficio.mes)
-                  .val(beneficio.id_beneficio)
-                  //Descripcion del icono | Nombre de la acción
-                  .attr('tabindex', 0)
-                  .attr('data-trigger','hover')
-                  .attr('data-toggle','popover')
-                  .attr("data-placement" , "top")
-                  .attr('data-content','VALIDAR')
-                  //Icono
-                  .append($('<i>').addClass('fa fa-fw fa-check'))
-              )
-              .append($('<span>').text(' '))
-              .append($('<button>')
-                  .addClass('btn btn-info planilla popInfo')
-                  .attr('data-casino', beneficio.id_casino)
-                  .attr('data-tipo', beneficio.id_tipo_moneda)
-                  .attr('data-anio', beneficio.anio)
-                  .attr('data-mes',beneficio.mes)
-                  .val(beneficio.id_beneficio)
-                  //Descripcion del icono | Nombre de la acción
-                  .attr('tabindex', 0)
-                  .attr('data-trigger','hover')
-                  .attr('data-toggle','popover')
-                  .attr("data-placement" , "top")
-                  .attr('data-content','IMPRIMIR')
-                  //Icono
-                  .append($('<i>').addClass('fa fa-fw fa-print'))
-              )
-          );
-        }
+  const botones = $('<td>').append($('<button>').addClass('btn btn-info planilla popInfo')
+  .attr('data-trigger','hover').attr('data-content','IMPRIMIR')
+  .append($('<i>').addClass('fa fa-fw fa-print')));
 
-        return fila;
+  if(beneficio.id_beneficio_mensual){
+    const formulario = '<div align="center">'
+    + '<input class="form-control valorAjuste" type="text" value="" placeholder="IEA"><br>'
+    + '<button id="'+ beneficio.id_beneficio_mensual +'" class="btn btn-successAceptar cargarImpuesto" type="button" style="margin-right:8px;">CARGAR</button>'
+    + '<button class="btn btn-default cancelarAjuste" type="button">CANCELAR</button>'
+    + '</div>';
+    botones.prepend($('<button>').addClass('btn btn-success pop').attr('title','CARGAR IMPUESTO')
+    .attr('data-trigger','manual').attr('data-content',formulario).attr('data-html','true')
+    .append($('<i>').addClass('fa fa-fw fa-upload')));
+  }else{
+    botones.prepend($('<button>').addClass('btn btn-success validar popInfo').attr('data-content','VALIDAR')
+    .attr('data-trigger','hover')
+    .append($('<i>').addClass('fa fa-fw fa-check')));
+  }
+
+  botones.find('button').attr('data-casino', beneficio.id_casino)
+  .attr('data-tipo', beneficio.id_tipo_moneda)
+  .attr('data-anio', beneficio.anio)
+  .attr('data-mes',beneficio.mes)
+  .attr('data-toggle','popover')
+  .attr("data-placement" , "top")
+  .attr('tabindex', 0)
+  .val(beneficio.id_beneficio);
+
+  fila.append(botones);
+  return fila;
 }
 
 $(document).on('click','.cargarImpuesto',function(e){

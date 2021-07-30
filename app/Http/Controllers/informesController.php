@@ -19,10 +19,10 @@ use App\Isla;
 use App\TipoCausaNoToma;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\BeneficioController;
 
 class informesController extends Controller
 {
-
   private static $atributos = ['nro_admin' => 'Número de administración',
                                'id_casino' => 'ID de Casino'];
 
@@ -31,90 +31,70 @@ class informesController extends Controller
       PARA PANTALLAS DE INFORMES
     */
 
-  public function obtenerMes($mes_num){ // @params $mes_numer integer. Devuleve el mes correspondiente a un entero . @return String
-    switch ($mes_num) {
-        case 1:
-           $mesEdit = "Enero";
-           break;
-        case 2:
-           $mesEdit = "Febrero";
-           break;
-        case 3:
-           $mesEdit = "Marzo";
-           break;
-        case 4:
-           $mesEdit = "Abril";
-           break;
-        case 5:
-           $mesEdit = "Mayo";
-           break;
-       case 6:
-           $mesEdit = "Junio";
-           break;
-       case 7:
-           $mesEdit = "Julio";
-           break;
-       case 8:
-           $mesEdit = "Agosto";
-           break;
-       case 9:
-           $mesEdit = "Septiembre";
-           break;
-       case 10:
-           $mesEdit = "Octubre";
-           break;
-       case 11:
-           $mesEdit = "Noviembre";
-           break;
-       case 12:
-           $mesEdit = "Diciembre";
-           break;
+  public function generarPlanilla(int $anio,int $mes,int $id_casino,int $tipo_moneda){
+    $condicion = [['b.id_casino','=',$id_casino],['b.id_tipo_moneda','=',$tipo_moneda],
+                  [DB::raw('YEAR(b.fecha)'),'=',$anio],[DB::raw('MONTH(b.fecha)'),'=',$mes]];
+
+    //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
+    $beneficios = DB::table('beneficio as b')
+    ->select('b.fecha as fecha_iso',
+      DB::raw('0 as cantidad_maquinas'),
+      DB::raw('DATE_FORMAT(b.fecha,"%d-%m-%Y") as fecha'),
+      DB::raw('FORMAT(b.coinin,2,"es_AR")  as apostado'),
+      DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
+      DB::raw('FORMAT(b.jackpot,2,"es_AR") as pmayores'),
+      DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR"))         as cotizacion'),//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+    )
+    ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
+    ->where($condicion)->orderBy('b.fecha','asc')->get();
+
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0]];
+
+    foreach($beneficios as $b){
+      //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
+      $maquinas = DB::table('producido as p')
+      ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
+      ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+      ->where($condicion_p)->where('p.fecha','=',$b->fecha_iso)->groupBy("p.id_producido")->first();
+      if($maquinas) $b->cantidad_maquinas = $maquinas->cantidad_maquinas;
     }
-    return $mesEdit;
-  }
 
-  public function generarPlanilla($year,$mes,$id_casino,$tipo_moneda){
+    $sum = DB::table('beneficio as b')->select('c.nombre as casino','tm.descripcion as tipoMoneda',
+        DB::raw('0 as cantidad_maquinas'),
+        DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
+        DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
+        DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
+        DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
+        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
+    )
+    ->join('casino as c','c.id_casino','=','b.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
+    ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
-    $condicion = [['beneficio.id_casino','=',$id_casino],['beneficio.id_tipo_moneda','=',$tipo_moneda]];
+    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0],
+                    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
-    $resultados = DB::table('beneficio')->select('fecha','cantidad_maquinas','coinin','coinout','jackpot','valor','promedio_por_maquina','porcentaje_devolucion')
-                                        ->where($condicion)
-                                        ->whereYear('fecha','=',$year)
-                                        ->whereMonth('fecha','=',$mes)
-                                        ->orderBy('fecha','asc')
-                                        ->get();
+    //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
+    $maquinas = DB::table('producido as p')
+    ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
+    ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+    ->where($condicion_p)->groupBy(DB::raw("'constant'"))->first();//Agrupo por una constante porque quiero contar todo
+    if($maquinas) $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
 
-    $devuelveSumas = DB::table('beneficio')->select(DB::raw('SUM(coinin) as total_apostado'),
-                                                    DB::raw('SUM(coinout) as total_premios'),
-                                                    DB::raw('SUM(jackpot) as total_pmayores'),
-                                                    DB::raw('SUM(valor) as total_beneficio'),
-                                                    DB::raw('ROUND(AVG(promedio_por_maquina),2) as total_promedio'),
-                                                    DB::raw('ROUND(AVG(porcentaje_devolucion),2) as total_devolucion'),
-                                                    'casino.nombre as nombreCasino','tipo_moneda.descripcion as moneda')
-                                           ->join('casino','casino.id_casino','=','beneficio.id_casino')
-                                           ->join('tipo_moneda','tipo_moneda.id_tipo_moneda','=','beneficio.id_tipo_moneda')
-                                           ->where($condicion)
-                                           ->whereYear('fecha','=',$year)
-                                           ->whereMonth('fecha','=',$mes)
-                                           ->groupBy('casino.nombre','tipo_moneda.descripcion')->first();
-                                          //  dd($devuelveSumas);
+    $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
+    $sum->mes = $mes . '';//to String
 
-   $mesEdit = $this->obtenerMes($mes);
+    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
+    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
+    else return "Moneda no soportada";
 
-    $ajustes = $this->generarAjustes($resultados,$tipo_moneda);
-
-    $sum= $this->generarSuma($devuelveSumas,$tipo_moneda,$mesEdit);
-   
-    
-    
-    if ($id_casino==3 && $tipo_moneda==2 ){
-      $sum->totalBeneficioPesos= end($ajustes)->beneficioPesosTotal;
-      $view = View::make('planillaInformesMTMdolar',compact('ajustes','sum'));
-    }else{
-      $view = View::make('planillaInformesMTM',compact('ajustes','sum'));
-    }
-    
-
+    $desde = '#';
+    $hasta = '#';
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -124,232 +104,127 @@ class informesController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-
   }
 
-  private function generarAjustes($resultados,$id_moneda){
-    if ($id_moneda!=2){
-      foreach($resultados as $resultado){
-        $res = new \stdClass();
-        $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-        $mes = $resultado->fecha[5].$resultado->fecha[6];
-        $dia = $resultado->fecha[8].$resultado->fecha[9];
-        $res->fecha = $dia."-".$mes."-".$año;
-        $res->maq = $resultado->cantidad_maquinas;
-        $res->apostado = number_format($resultado->coinin, 2, ",", ".");
-        $res->premios = number_format($resultado->coinout, 2, ",", ".");
-        $res->pmayores = number_format($resultado->jackpot, 2, ",", ".");
-        $res->beneficio = number_format($resultado->valor, 2, ",", ".");
-        $res->prom = $resultado->promedio_por_maquina;
-        $res->dev = $resultado->porcentaje_devolucion;
-        $ajustes[] = $res;
-      };
-      return $ajustes;
-    }
+  public function generarPlanillaMaquinas(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $maqmenor,int $maqmayor){
+    // Este "requerimiento" es increiblemente complicado porque no tenemos cuanto apostaron y dieron premios las maquinas :)
+    // Se supone que podria sacarse a partir de los contadores, pero si hay vuelta de contadores o RESET de contadores
+    // No se modifican las filas de detalle_contador_horario para reflejarlo (solo se setea el tipo de ajuste), ergo
+    // es muuy dificil (imposible?) saber cuanto apostaron y dieron de premio en un dia una maquina...
+    $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
+    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
-    
-    return $this->generarAjusteCotizado($resultados);
-    
-  }
+    $suma = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
+    $suma_cotizada = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)*IFNULL(cot.valor,0)))';
 
+    $beneficios = DB::table('producido as p')
+    ->select(
+      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
+      DB::raw('DATE_FORMAT(p.fecha,"%d-%m-%Y") as fecha'),
+      DB::raw('"" as apostado'),
+      DB::raw('"" as premios'),
+      DB::raw('"" as pmayores'),
+      DB::raw('FORMAT('.$suma.',2,"es_AR") as beneficio'),
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
+    )
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->leftJoin('detalle_producido as dp',function($j){
+      return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
+    })
+    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
+      $condicion = [];
+      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
+      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
+      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    })
+    ->where($condicion)->where('dp.valor','<>',0)->groupBy('p.id_producido')->orderBy('p.fecha','asc')->get();
 
-  private function generarAjusteCotizado($resultados){
-    $beneficioPesosTotal=0;
-    //trabajar el caso de rosasrio
-    foreach($resultados as $resultado){
-      $res = new \stdClass();
-      $cotizacion=Cotizacion::Find($resultado->fecha);
-      
-      $año = $resultado->fecha[0].$resultado->fecha[1].$resultado->fecha[2].$resultado->fecha[3];
-      $mes = $resultado->fecha[5].$resultado->fecha[6];
-      $dia = $resultado->fecha[8].$resultado->fecha[9];
-      $res->fecha = $dia."-".$mes."-".$año;
-      $res->maq = $resultado->cantidad_maquinas;
-      $res->apostado = number_format($resultado->coinin, 2, ",", ".");
-      $res->premios = number_format($resultado->coinout, 2, ",", ".");
-      $res->pmayores = number_format($resultado->jackpot, 2, ",", ".");
-      $res->beneficioDolares = number_format($resultado->valor, 2, ",", ".");
+    $sum = DB::table('producido as p')
+    ->select('c.nombre as casino','tm.descripcion as tipoMoneda',
+      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
+      DB::raw('"" as totalApostado'),
+      DB::raw('"" as totalPremios'),
+      DB::raw('"" as totalPmayores'),
+      DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficio'),
+      DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
+    )
+    ->join('casino as c','c.id_casino','=','p.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->leftJoin('detalle_producido as dp',function($j){
+      return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
+    })
+    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
+      $condicion = [];
+      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
+      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
+      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    })
+    ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
-      $res->prom = $resultado->promedio_por_maquina;
-      $res->dev = $resultado->porcentaje_devolucion;
+    $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
+    $sum->mes = $mes . '';//to String
 
-      if (!$cotizacion){
-        $res->cotizacion="-";
-        $res->beneficioPesos="-";
-        $res->beneficioPesosTotal=number_format($beneficioPesosTotal, 2, ",", ".");;
-      }else{
-        $res->cotizacion=number_format($cotizacion->valor, 3, ",", ".");
-        $valorConv=$resultado->valor * $cotizacion->valor;
-        $res->beneficioPesos=number_format($valorConv, 2, ",", ".");
-        $beneficioPesosTotal=$beneficioPesosTotal + $valorConv;
-        $res->beneficioPesosTotal= number_format($beneficioPesosTotal, 2, ",", ".");
-      }
-      $ajustes[] = $res;
-    };
-    return $ajustes;
-  }
+    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
+    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
+    else return "Moneda no soportada";
 
-  
-  private function generarSuma($devuelveSumas,$id_moneda,$mesEdit){
-    if ($id_moneda!=2){
-      $sum = new \stdClass();
-      $sum->totalApostado = number_format($devuelveSumas->total_apostado, 2, ",", ".");
-      $sum->totalPremios = number_format($devuelveSumas->total_premios, 2, ",", ".");
-      $sum->totalPmayores = number_format($devuelveSumas->total_pmayores, 2, ",", ".");
-      $sum->totalBeneficio = number_format($devuelveSumas->total_beneficio, 2, ",", ".");
-      $sum->totalProm = $devuelveSumas->total_promedio;
-      $sum->totalDev = $devuelveSumas->total_devolucion;
-      $sum->mes = $mesEdit;
-      $sum->casino = $devuelveSumas->nombreCasino;
-  
-      if($devuelveSumas->moneda == 'ARS'){
-            $devuelveSumas->moneda = '$';
-            }
-            else{
-              $devuelveSumas->moneda = 'US$';
-      }
-  
-      $sum->tipoMoneda = $devuelveSumas->moneda;
-      return $sum;
-    }
+    $desde = $maqmenor < 0? '#' : $maqmenor;
+    $hasta = $maqmayor < 0? '#' : $maqmayor;
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
 
-    return $this->generarSumaCotizado($devuelveSumas,$id_moneda,$mesEdit);
-    
-    
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
-  }
-
-  private function generarSumaCotizado($devuelveSumas,$id_casino,$mesEdit){
-    // TODO remplazar valores debido al copiar petgar
-    $sum = new \stdClass();
-    $sum->totalApostado = number_format($devuelveSumas->total_apostado, 2, ",", ".");
-    $sum->totalPremios = number_format($devuelveSumas->total_premios, 2, ",", ".");
-    $sum->totalPmayores = number_format($devuelveSumas->total_pmayores, 2, ",", ".");
-    $sum->totalBeneficioDolares = number_format($devuelveSumas->total_beneficio, 2, ",", ".");
-    $sum->totalProm = $devuelveSumas->total_promedio;
-    $sum->totalDev = $devuelveSumas->total_devolucion;
-    $sum->mes = $mesEdit;
-    $sum->casino = $devuelveSumas->nombreCasino;
-
-
-    if($devuelveSumas->moneda == 'ARS'){
-          $devuelveSumas->moneda = '$';
-          }
-          else{
-            $devuelveSumas->moneda = 'US$';
-    }
-
-    $sum->tipoMoneda = $devuelveSumas->moneda;
-
-    return $sum;
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){
+    BeneficioController::initViews();
+    //@HACK @TODO: generalizar a N casinos y N monedas
+    $beneficios = DB::table('v_diferencia_mes as vdm')
+    ->select('vdm.*','bm.id_beneficio_mensual',DB::raw('"1" as estado'))
+    ->join('casino as c','c.id_casino','=','vdm.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
+    ->leftJoin('beneficio_mensual as bm',function($j){
+      return $j->on('bm.id_casino','=','vdm.id_casino')->on('bm.id_tipo_moneda','=','vdm.id_tipo_moneda')
+      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(vdm.anio,vdm.mes)'))->where('bm.id_actividad','=',1);
+    })->orderBy(DB::raw('MAKEDATE(vdm.anio,vdm.mes)'),'desc')->get();
+    $beneficios_x_casino = [1 => [],2 => [],3 => []];
+    foreach($beneficios as $b){
+      $beneficios_x_casino[$b->id_casino][] = $b;
+    }
 
-      $beneficios_mel = DB::table('beneficio_mensual')->where([['id_casino',1],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-      $beneficios_sfe = DB::table('beneficio_mensual')->where([['id_casino',2],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-      $beneficios_ros = DB::table('beneficio_mensual')->where([['id_casino',3],['id_actividad',1]])->orderBy('anio_mes','desc')->get();
-                           //->join('tipo_moneda','beneficio_mensual.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')->get();
+    $beneficios_mensuales_sin_beneficios = DB::table('beneficio_mensual as bm')
+    ->select('bm.*',DB::raw('"0" as estado'),DB::raw('YEAR(bm.anio_mes) as anio'),DB::raw('MONTH(bm.anio_mes) as mes'))
+    ->leftJoin('beneficio as b',function($j){
+      return $j->on('bm.id_casino','=','b.id_casino')->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
+      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(YEAR(b.fecha),MONTH(b.fecha))'));
+    })
+    ->where('bm.id_actividad',1)->whereNull('b.id_beneficio')->orderBy('bm.anio_mes','desc')->get();
+    foreach($beneficios_mensuales_sin_beneficios as $b){
+      $beneficios_x_casino[$b->id_casino][] = $b;
+    }
+    foreach($beneficios_x_casino as $bcasino){
+      usort($bcasino,function($a,$b){
+        if(intval($a->anio) > intval($b->anio)) return true;
+        if(intval($a->mes)  > intval($b->mes))  return true;
+        if($a->id_beneficio_mensual > $b->id_beneficio_mensual) return true;
+        return false;
+      });
+    }
 
-      $ajustesSF = array();
+    UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
 
-      foreach($beneficios_sfe as $resultado){
-        $resSF = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resSF->anio_mes = $mesEdit." ".$año;
-        $resSF->casino = $casino;
-        $resSF->anio = $año;
-        $resSF->mes = $mes;
-        $resSF->moneda = $tipoMoneda;
-        $resSF->estado = $verifica;
-        $ajustesSF[] = $resSF;
-      };
-
-      $ajustesMEL = array();
-      foreach($beneficios_mel as $resultado){
-        $resML = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resML->anio_mes = $mesEdit." ".$año;
-        $resML->casino = $casino;
-        $resML->anio = $año;
-        $resML->mes = $mes;
-        $resML->moneda = $tipoMoneda;
-        $resML->estado = $verifica;
-        $ajustesML[] = $resML;
-      };
-
-      $ajustesROS = array();
-      foreach($beneficios_ros as $resultado){
-        $resROS = new \stdClass();
-        $año = $resultado->anio_mes[0].$resultado->anio_mes[1].$resultado->anio_mes[2].$resultado->anio_mes[3];
-        $mes = $resultado->anio_mes[5].$resultado->anio_mes[6];
-        $casino = $resultado->id_casino;
-        $tipoMoneda = $resultado->id_tipo_moneda;
-        $verifica = $this->verficaCarga($año,$mes,$casino,$tipoMoneda);
-
-        $mesEdit = $this->obtenerMes($mes);
-
-        $resROS->anio_mes = $mesEdit." ".$año;
-        $resROS->casino = $casino;
-        $resROS->anio = $año;
-        $resROS->mes = $mes;
-        $resROS->moneda = $tipoMoneda;
-        if($resultado->id_tipo_moneda == '1'){
-              $resROS->moneda = '$';
-              }
-              else{
-                $resROS->moneda = 'U$S';
-        }
-        $resROS->id_tipo_moneda=$resultado->id_tipo_moneda;
-        $resROS->estado = $verifica;
-        $ajustesROS[] = $resROS;
-      };
-      UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
-
-      return view('seccionInformesMTM',['beneficios_mel' => $ajustesML,
-                      'beneficios_sfe' => $ajustesSF,
-                      'beneficios_ros' => $ajustesROS]);
-  }
-
-  public function verficaCarga($year,$mes,$id_casino,$tipo_moneda){
-
-      $condicion = [['beneficio.id_casino','=',$id_casino],['beneficio.id_tipo_moneda','=',$tipo_moneda]];
-
-      $devuelveSumas = DB::table('beneficio')->select(DB::raw('SUM(coinin) as total_apostado'),
-                                                      DB::raw('SUM(coinout) as total_premios'),
-                                                      DB::raw('SUM(jackpot) as total_pmayores'),
-                                                      DB::raw('SUM(valor) as total_beneficio'),
-                                                      DB::raw('ROUND(AVG(promedio_por_maquina),2) as total_promedio'),
-                                                      DB::raw('ROUND(AVG(porcentaje_devolucion),2) as total_devolucion'),
-                                                      'casino.nombre as nombreCasino','tipo_moneda.descripcion as moneda')
-                                             ->join('casino','casino.id_casino','=','beneficio.id_casino')
-                                             ->join('tipo_moneda','tipo_moneda.id_tipo_moneda','=','beneficio.id_tipo_moneda')
-                                             ->where($condicion)
-                                             ->whereYear('fecha','=',$year)
-                                             ->whereMonth('fecha','=',$mes)
-                                             ->groupBy('casino.nombre','tipo_moneda.descripcion')->first();
-
-      if($devuelveSumas == null){
-        return 0;
-      }
-      else{
-        return 1;
-      }
-
+    return view('seccionInformesMTM',['beneficios_mel' => $beneficios_x_casino[1],
+                    'beneficios_sfe' => $beneficios_x_casino[2],
+                    'beneficios_ros' => $beneficios_x_casino[3]]);
   }
 
   public function obtenerInformeEstadoParque(){
@@ -393,14 +268,7 @@ class informesController extends Controller
                               ->whereNull('maquina.deleted_at')
                               ->whereNull('maquina.id_isla')
                               ->first();
-    // if(is_numeric($id_casino)){
-    //   $pdo = DB::connection('mysql')->getPdo();
-    //   $string_query = sprintf("SELECT count(*) as cantidad from (SELECT isla.id_isla FROM maquina join isla on isla.id_isla = maquina.id_isla where isla.id_sector is null and maquina.id_casino =%d GROUP by isla.id_isla) as sub_tabla" , $id_casino );
-    //   $resultados = $pdo->query($string_query);
-    // }
-    // foreach ($resultados as $resultado) { //siempre devuelve un solo resultado, ya que es un count(*)
-    //   $islas_no_asignadas = $resultado;
-    // }
+
     $islas=DB::table("isla")
                 ->where("isla.id_casino","=",$id_casino)
                 ->join("sector","isla.id_sector","=","sector.id_sector")
@@ -418,7 +286,6 @@ class informesController extends Controller
     
     $sectores = array();
     foreach ($casino->sectores as $sector) {
-      //$aux = DB::table('maquina')->select(DB::raw('count(maquina.id_maquina) as cantidad'))->join('isla' , 'maquina.id_isla' , '=' , 'isla.id_isla' )->where([['maquina.id_casino' , $casino->id_casino] , ['isla.id_sector' , $sector->id_sector]])->first();
       $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $sector->cantidad_maquinas];
     }
 
@@ -428,7 +295,6 @@ class informesController extends Controller
                                                                       'total_habilitadas'  => $cantidad_habilitadas->cantidad,
                                                                       'total_deshabilitadas' => $cantidad_deshabilitadas]
           ];
-
   }
 
   public function buscarTodoInformeContable(){

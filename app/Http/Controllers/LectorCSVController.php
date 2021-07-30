@@ -662,25 +662,8 @@ class LectorCSVController extends Controller
     //si ya hay producidos para esa fecha pero aun no esta validado primero borra todos los detalles producido y luego el producido
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
     if($producidos != null){
-      foreach($producidos as $prod){
-        $query = sprintf(" DELETE FROM ajuste_producido
-                           WHERE id_detalle_producido IN (
-                             SELECT id_detalle_producido
-                             FROM detalle_producido
-                             WHERE id_producido = '%d'
-                           )",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM detalle_producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-      }
+      $pc = ProducidoController::getInstancia();
+      foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
     }
 
     $query = sprintf(" INSERT INTO detalle_producido (valor,id_maquina,id_producido)
@@ -703,9 +686,11 @@ class LectorCSVController extends Controller
 
     $pdo->exec($query);
 
+    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
     $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
                                   $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
 
+    //La ultima fila del producido tiene el beneficio del dia (Empieza con CTR)
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE beneficio
                       FIELDS TERMINATED BY ';'
@@ -726,15 +711,14 @@ class LectorCSVController extends Controller
 
     $pdo->exec($query);
 
+    //@BUG: Race condition
     $ben = Beneficio::find(DB::table('beneficio')->max('id_beneficio'));
-    if($ben != null){
+    if($ben != null){//Boro los duplicados para ese beneficio importado
       $beneficios = Beneficio::where([['id_beneficio','<>',$ben->id_beneficio],['id_casino','=',$casino],['fecha','=',$ben->fecha]])->get();
       if($beneficios != null){
-          foreach($beneficios as $beneficio){
-            $query = sprintf(" DELETE FROM beneficio
-                               WHERE id_beneficio = '%d'
-                               ",$beneficio->id_beneficio);
-            $pdo->exec($query);
+          if($beneficios != null){
+            $bc = BeneficioController::getInstancia();
+            foreach($beneficios as $b) $bc->eliminarBeneficio($b->id_beneficio,false);
           }
       }
       $ben->md5 = $md5;
@@ -769,15 +753,18 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->valor = $producido->recalcularValor();
     $producido->save();
   //fin de implementacion
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
+
   // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
   // solo se toma la linea de beneficio para insertar en la tabla real
   // luego se elimina los temporales
   public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
-
+    //@WARNING!!!: Esto nunca se usa, el beneficio para SFE MEL se obtiene directamente del producido (es la ultima fila). 
+    //No entiendo para que esta esta función...... Ver importarProducidoSantafeMelinque
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
@@ -785,6 +772,7 @@ class LectorCSVController extends Controller
     $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
                                    $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
 
+    //La ultima fila empieza en "CTR" (fijarse en el archivo). Solo importa 1 fila de todo el archivo.
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE beneficio
                       FIELDS TERMINATED BY ';'
@@ -805,29 +793,18 @@ class LectorCSVController extends Controller
                       DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash);
 
     $pdo->exec($query);
-    //usar query en vez de exec
 
+    //@BUG: Race condition
     $ben = Beneficio::find(DB::table('beneficio')->max('id_beneficio'));
-    if($ben != null){
-      $fecha=explode("-", $ben->fecha);
-      $beneficios = Beneficio::where([['id_beneficio','<>',$ben->id_beneficio],['id_casino','=',$casino]])
-                              ->whereYear('fecha','=',$fecha[0])
-                              ->whereMonth('fecha','=', $fecha[1])
-                              ->get();
-
+    if($ben != null){//Me fijo duplicados SOLO PARA EL ULTIMO (REPITO ES 1 SOLO QUE SE IMPORTA EN SFE/MEL)
+      $beneficios = Beneficio::where([['id_beneficio','<>',$ben->id_beneficio],['id_casino','=',$casino],['fecha','=',$ben->fecha]])->get();
       if($beneficios != null){
-        foreach($beneficios as $beneficio){
-          $query = sprintf(" DELETE FROM beneficio
-                             WHERE id_beneficio = '%d'
-                             ",$beneficio->id_beneficio);
-          $pdo->exec($query);
-        }
+        $bc = BeneficioController::getInstancia();
+        foreach($beneficios as $b) $bc->eliminarBeneficio($b->id_beneficio,false);
       }
     }
 
     $pdo=null;
-
-
     return ['id_beneficio' => $ben->id_beneficio,'fecha' => $ben->fecha,'casino' => $ben->casino->nombre,'tipo_moneda' => $ben->tipo_moneda->descripcion];
   }
   // importarContadorRosario misma metodologia que en santa fe, se tiene en cuenta el formato
@@ -962,31 +939,14 @@ class LectorCSVController extends Controller
     $producido->id_tipo_moneda = $id_tipo_moneda;
     $producido->save();
 
-    $pdo = DB::connection('mysql')->getPdo();
-    DB::connection()->disableQueryLog();
     $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',3],['fecha','=',$producido->fecha],['id_tipo_moneda',$id_tipo_moneda]])->get();
     if($producidos != null){
-      foreach($producidos as $prod){
-        $query = sprintf(" DELETE FROM ajuste_producido
-                           WHERE id_detalle_producido IN (
-                             SELECT id_detalle_producido
-                             FROM detalle_producido
-                             WHERE id_producido = '%d'
-                           )",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM detalle_producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-
-        $query = sprintf(" DELETE FROM producido
-                           WHERE id_producido = '%d'
-                           ",$prod->id_producido);
-        $pdo->exec($query);
-      }
+      $pc = ProducidoController::getInstancia();
+      foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
     }
 
+    $pdo = DB::connection('mysql')->getPdo();
+    DB::connection()->disableQueryLog();
 
     $path = $archivoCSV->getRealPath();
 
@@ -1119,6 +1079,7 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
+    $producido->valor = $producido->recalcularValor();
     $producido->save();
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
@@ -1126,15 +1087,16 @@ class LectorCSVController extends Controller
   // importarBeneficioRosario vuelca el contenido del csv en un temporal, formateando los datos necesarios
   // luego vuelca en la tabla real
   public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda){
-
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
+    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
     $cantidad_maquinas = Maquina::where('id_casino','=',3)->whereHas('estado_maquina',function($q){
                                   $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
 
-    $id_beneficio = DB::table('beneficio')->max('id_beneficio') + 1;
+    //@BUG: Race condition si dos personas importan al mismo tiempo
+    $proximo_id_beneficio = DB::table('beneficio')->max('id_beneficio') + 1;
 
     $query = sprintf("LOAD DATA local INFILE '%s'
                       INTO TABLE beneficio_temporal
@@ -1149,18 +1111,21 @@ class LectorCSVController extends Controller
                             coinout = CAST(REPLACE(REPLACE(@2,'.',''),',','.') as DECIMAL(15,2)),
                               valor = CAST(REPLACE(REPLACE(@3,'.',''),',','.') as DECIMAL(15,2)),
                        id_beneficio = '%d'
-                      ",$path,"%d/%m/%Y",$id_beneficio);
+                      ",$path,"%d/%m/%Y",$proximo_id_beneficio);
 
     $pdo->exec($query);
 
-    $query = sprintf(" DELETE FROM beneficio
-                       WHERE id_beneficio IN (SELECT b.id_beneficio
-                                              FROM (SELECT * FROM beneficio WHERE id_casino = 3 AND id_tipo_moneda = '%d') AS b
-                                              JOIN (SELECT * FROM beneficio_temporal WHERE id_beneficio = '%d') AS bt
-                                              ON b.fecha = bt.fecha)
-                       ",$id_tipo_moneda,$id_beneficio);
-    $pdo->exec($query);
+    //Borra los beneficios con las mismas fechas de los que importe
+    $bens = DB::table('beneficio as b')
+    ->select('b.id_beneficio')
+    ->join('beneficio_temporal as bt','bt.fecha','=','b.fecha')
+    ->where([['b.id_casino','=',3],['b.id_tipo_moneda','=',$id_tipo_moneda],['bt.id_beneficio','=',$proximo_id_beneficio]])->get();
+    if(!is_null($bens)){
+      $bc = BeneficioController::getInstancia();
+      foreach($bens as $b)  $bc->eliminarBeneficio($b->id_beneficio,false);
+    }
 
+    //Aca inserta MULTIPES beneficios (1 por fila en el CSV), aquel beneficio con id igual a $proximo_id_beneficio es el primero
     $query = sprintf(" INSERT INTO beneficio (id_casino,fecha,coinin,coinout,valor,porcentaje_devolucion,cantidad_maquinas,promedio_por_maquina,id_tipo_moneda,md5)
                        SELECT 3,fecha,coinin,coinout,valor,IF(coinin = 0,0,coinout/coinin),'%d',(valor/'%d'),'%d','%s'
                        FROM beneficio_temporal
@@ -1168,18 +1133,20 @@ class LectorCSVController extends Controller
                          AND fecha IS NOT NULL
                        ",$cantidad_maquinas,$cantidad_maquinas,$id_tipo_moneda,
                        DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash,
-                       $id_beneficio);
+                       $proximo_id_beneficio);
 
     $pdo->exec($query);
 
     $query = sprintf(" DELETE FROM beneficio_temporal
                        WHERE id_beneficio = '%d'
-                       ",$id_beneficio);
+                       ",$proximo_id_beneficio);
     $pdo->exec($query);
 
-    $cantidad_registros = Beneficio::where('id_beneficio','>=',$id_beneficio)->count();
+    //Obtengo todos los importados buscando >=
+    //@BUG: Mismo error, si importan dos personas al mismo tiempo esto se rompe todo, especialmente pq no es transaccional
+    $cantidad_registros = Beneficio::where('id_beneficio','>=',$proximo_id_beneficio)->count();
     $beneficios = DB::table('beneficio')->select('beneficio.id_beneficio','beneficio.fecha','tipo_moneda.descripcion','casino.nombre')
-                                        ->where('id_beneficio','>=',$id_beneficio)
+                                        ->where('id_beneficio','>=',$proximo_id_beneficio)
                                         ->join('casino','casino.id_casino','=','beneficio.id_casino')
                                         ->join('tipo_moneda','tipo_moneda.id_tipo_moneda','=','beneficio.id_tipo_moneda')->get();
     $pdo=null;

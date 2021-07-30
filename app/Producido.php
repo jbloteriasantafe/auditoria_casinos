@@ -10,7 +10,7 @@ class Producido extends Model
   protected $connection = 'mysql';
   protected $table = 'producido';
   protected $primaryKey = 'id_producido';
-  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda','md5');
+  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda','valor','md5');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
 
@@ -22,6 +22,10 @@ class Producido extends Model
       $ajuste =0;
     }
     return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor') + $ajuste;
+  }
+
+  public function recalcularValor(){
+    return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor');
   }
 
   public function casino(){
@@ -37,10 +41,6 @@ class Producido extends Model
   }
   public function tipo_moneda(){
     return $this->belongsTo('App\TipoMoneda','id_tipo_moneda','id_tipo_moneda');
-  }
-
-  public function ajuste_temporal_producido(){
-    return $this->HasMany('App\AjusteTemporalProducido','id_producido','id_producido');
   }
 
   public static function boot(){

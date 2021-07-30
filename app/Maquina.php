@@ -107,11 +107,6 @@ class Maquina extends Model
     return $this->HasMany('App\MovimientoIsla','id_maquina','id_maquina');
   }
 
-  public function ajuste_temporal_producido(){
-    return $this->HasMany('App\AjusteTemporalProducido','id_maquina','id_maquina');
-  }
-
-
   public static function boot(){
     parent::boot();
     Maquina::observe(new MaquinaObserver());
