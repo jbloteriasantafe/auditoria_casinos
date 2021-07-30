@@ -686,7 +686,7 @@ class AutoexclusionController extends Controller
       'ae_datos.nombre_localidad' => 'required|string|max:200',
       'ae_datos.nombre_provincia' => 'required|string|max:200',
       'ae_datos.telefono'         => 'required|string|max:200',
-      'ae_datos.correo'           => 'nullable|string|max:100',
+      'ae_datos.correo'           => 'required|string|max:100',
       'ae_datos.ocupacion'        => 'nullable|string|max:4|exists:ae_ocupacion,codigo',
       'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
       'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
@@ -705,7 +705,7 @@ class AutoexclusionController extends Controller
     $request = $request->all();
 
     //Sexo siempre viene asi que en realidad el tercer valor nunca se usa
-    $except = ['sexo'         => ['id_sexo',        'ae_sexo', 'O'],
+    $except = ['sexo'         => ['id_sexo',        'ae_sexo', 'X'],
                'ocupacion'    => ['id_ocupacion',   'ae_ocupacion', 'NC'],
                'capacitacion' => ['id_capacitacion','ae_capacitacion', 'NC'],
                'estado_civil' => ['id_estado_civil','ae_estado_civil', 'NC']];
