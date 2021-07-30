@@ -687,9 +687,9 @@ class AutoexclusionController extends Controller
       'ae_datos.nombre_provincia' => 'required|string|max:200',
       'ae_datos.telefono'         => 'required|string|max:200',
       'ae_datos.correo'           => 'nullable|string|max:100',
-      'ae_datos.ocupacion'        => 'required|string|max:4|exists:ae_ocupacion,codigo',
-      'ae_datos.capacitacion'     => 'required|string|max:4|exists:ae_capacitacion,codigo',
-      'ae_datos.estado_civil'     => 'required|string|max:4|exists:ae_estado_civil,codigo',
+      'ae_datos.ocupacion'        => 'nullable|string|max:4|exists:ae_ocupacion,codigo',
+      'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
+      'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
       'ae_estado.fecha_ae'        => 'required|date',
     ], array(), self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
@@ -702,11 +702,17 @@ class AutoexclusionController extends Controller
 
     if($validator->errors()->any()) return $this->errorOut($validator->errors());
 
+    $request = $request->all();
 
-    $except = ['sexo'         => ['id_sexo',        'ae_sexo'],
-               'ocupacion'    => ['id_ocupacion',   'ae_ocupacion'],
-               'capacitacion' => ['id_capacitacion','ae_capacitacion'],
-               'estado_civil' => ['id_estado_civil','ae_estado_civil']];
+    //Sexo siempre viene asi que en realidad el tercer valor nunca se usa
+    $except = ['sexo'         => ['id_sexo',        'ae_sexo', 'O'],
+               'ocupacion'    => ['id_ocupacion',   'ae_ocupacion', 'NC'],
+               'capacitacion' => ['id_capacitacion','ae_capacitacion', 'NC'],
+               'estado_civil' => ['id_estado_civil','ae_estado_civil', 'NC']];
+
+    foreach($except as $key => $defecto){//Pongo valores por defecto "No contesta" si no lo envia.
+      if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
+    }
 
     DB::transaction(function() use($request,$api_token,$except){
       $ae = new AE\Autoexcluido;
