@@ -186,9 +186,8 @@ $id_usuario = session('id_usuario');
               <div class="modal-dialog modal-lg">
                  <div class="modal-content">
                     <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
-                       <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                       <button id="btn-minimizarMRelevamientos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoMRelevamientos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                       <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoMRelevamientos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                        <h3 class="modal-title">SELECCIONAR MAQUINAS POR RELEVAMIENTO</h3>
                     </div> <!-- /.modal-header -->
 
@@ -365,9 +364,8 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO RELEVAMIENTO</h3>
                 </div>
 
@@ -489,7 +487,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                   <div class="modal-header modalNuevo">
-                      <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
                   </div>
@@ -512,9 +509,8 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarSinSistema" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">RELEVAMIENTO SIN SISTEMA</h3>
                 </div>
 
@@ -534,28 +530,10 @@ $id_usuario = session('id_usuario');
                                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                               </div>
                               <input type="hidden" id="fechaRelSinSistema_date" value=""/>
-
-<!--
-                              <div class='input-group date' id='fechaRelSinSistema' data-link-field="fechaRelSinSistema_date" data-link-format="yyyy-mm-dd">
-                                <input id="" type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaRelSinSistema_date" value=""/>
-                              </div> -->
-
-
                               <br>
                             </div>
                             <div class="col-md-6">
                               <h5>FECHA DE GENERACIÓN</h5>
-                              <!-- <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracion_date" data-link-format="yyyy-mm-dd">
-                                <input id="" type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaGeneracion_date" value=""/>
-                              </div> -->
                               <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracion_date" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                   <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
                                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -608,9 +586,7 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog" style="width:90%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
-                 <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">CARGAR RELEVAMIENTO</h3>
                 </div>
 
@@ -659,9 +635,7 @@ $id_usuario = session('id_usuario');
                             </div>
                             <div class="col-md-2">
                                 <h5>TÉCNICO</h5>
-                                <!-- <input id="tecnico" data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" type="text"class="form-control"> -->
                                 <input id="tecnico" type="text"class="form-control">
-
                             </div>
                             <div class="col-md-3">
                                 <h5>HORA EJECUCIÓN</h5>
@@ -737,9 +711,8 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| VISAR RELEVAMIENTO</h3>
                 </div>
 
@@ -793,8 +766,6 @@ $id_usuario = session('id_usuario');
                                               <th>CONTADOR 4</th>
                                               <th>CONTADOR 5</th>
                                               <th>CONTADOR 6</th>
-                                              <!-- <th>CONTADOR 7</th> -->
-                                              <!-- <th>CONTADOR 8</th> -->
                                               <th>P. CALCULADO ($)</th>
                                               <th>P. IMPORTADO ($)</th>
                                               <th>DIFERENCIA</th>
@@ -855,9 +826,8 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
                 </div>
 
@@ -883,7 +853,6 @@ $id_usuario = session('id_usuario');
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-infoBuscar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <!-- <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> -->
                   <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
                   <input type="hidden" id="id_relevamiento" value="0">
                 </div>

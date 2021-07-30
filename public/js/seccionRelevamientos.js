@@ -48,51 +48,7 @@ $('#fecha').on('change', function (e) {
 })
 
 //Opacidad del modal al minimizar
-$('#btn-minimizarNuevo').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarSinSistema').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarMRelevamientos').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarCargar').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarValidar').click(function(){
+$('.minimizar').click(function(){
   if($(this).data("minimizar")==true){
     $('.modal-backdrop').css('opacity','0.1');
     $(this).data("minimizar",false);
@@ -119,19 +75,11 @@ $(document).on('click','.pop',function(e){
     e.preventDefault();
 });
 
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-
-  $('.modal-title').text('| RELEVAMIENTOS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-	$('#modalAyuda').modal('show');
-});
-
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevoRelevamiento').click(function(e){
   e.preventDefault();
-  $('.modal-title').text('| NUEVO RELEVAMIENTO');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalRelevamiento .modal-title').text('| NUEVO RELEVAMIENTO');
+  $('#modalRelevamiento .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#frmRelevamiento').trigger('reset');
   $('#sector option').remove();
   $('#maquinas_pedido').hide();
@@ -840,8 +788,8 @@ $(document).on('click','.verDetalle',function(e){
 
 $('#btn-relevamientoSinSistema').click(function(e) {
   e.preventDefault();
-  $('.modal-title').text('| RELEVAMIENTO SIN SISTEMA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
+  $('#modalRelSinSistema .modal-title').text('| RELEVAMIENTO SIN SISTEMA');
+  $('#modalRelSinSistema .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
 
   $('#fechaGeneracion').datetimepicker({
     language:  'es',
@@ -874,7 +822,7 @@ $('#btn-relevamientoSinSistema').click(function(e) {
 $('#btn-maquinasPorRelevamiento').click(function(e) {
   e.preventDefault();
 
-  $('.modal-title').text('| MÁQUINAS POR RELEVAMIENTOS');
+  $('modalMaquinasPorRelevamiento .modal-title').text('| MÁQUINAS POR RELEVAMIENTOS');
   //Ocultar y mostrar botones necesarios
   $('#btn-generarMaquinasPorRelevamiento').show();
   $('#btn-generarDeTodasFormas').hide();
@@ -1330,51 +1278,19 @@ function enviarRelevamiento(estado) {
           mostrarErrorValidacion($('#inputFisca'),response.id_usuario_fiscalizador[0]);
         }
 
-        var i = 0;
-        var filaError = 0;
-        $('#tablaCargaRelevamiento tbody tr').each(function(){
+        let filaError = null;
+        $('#tablaCargaRelevamiento tbody tr').each(function(filaidx,fila){
           var error=' ';
-          if(typeof response['detalles.'+ i +'.cont1'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont1'),response['detalles.'+ i +'.cont1'][0],false);
+          for(let c = 1;c<=8;c++){
+            if(typeof response['detalles.'+ filaidx +'.cont' + c] !== 'undefined'){
+              filaError = fila;
+              mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ filaidx +'.cont'+c][0],false);
+            }
           }
-          if(typeof response['detalles.'+ i +'.cont2'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont2'),response['detalles.'+ i +'.cont2'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont3'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont3'),response['detalles.'+ i +'.cont3'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont4'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont4'),response['detalles.'+ i +'.cont4'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont5'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont5'),response['detalles.'+ i +'.cont5'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont6'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont6'),response['detalles.'+ i +'.cont6'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont7'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont7'),response['detalles.'+ i +'.cont7'][0],false);
-          }
-          if(typeof response['detalles.'+ i +'.cont8'] !== 'undefined'){
-            filaError = i;
-            mostrarErrorValidacion($(this).find('.cont8'),response['detalles.'+ i +'.cont8'][0],false);
-          }
-          i++;
         });
 
-        if(filaError >= 0)
-        {
-          var id_pos = $("#modalCargaRelevamiento #tablaCargaRelevamiento tbody tr:eq("+filaError+")").attr('id');
-          var pos = $('#' + id_pos).offset().top;
-          $("#modalCargaRelevamiento").animate({ scrollTop: pos }, "slow");
-
+        if(filaError != null){
+          $("#modalCargaRelevamiento").animate({ scrollTop: filaError.offset().top }, "slow");
         }
       },
   });
@@ -1415,15 +1331,6 @@ function habilitarBotonFinalizar(){
 
 $(document).on('click','.pop',function(e){
   e.preventDefault();
-  // console.log('asd');
-  var fila = $(this).parent().parent();
-
-  //Si está en crédito pasarla a pesos
-  if (fila.attr('data-medida') == 1) {
-  //Si está en PESOS pasarla a cŕedito y mostrar el pop
-  }else {
-  }
-
   $('.pop').not(this).popover('hide');
   $(this).popover('show');
 });
@@ -1472,7 +1379,6 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
 
 $(document).on('click','.ajustar',function(e){
   var medida = $(this).siblings('input:checked').val();
-  //var denominacion = $(this).siblings('input:text');
   var fila = $(this).closest('tr');
   var boton = $(this).closest('.popover').siblings('.pop');
 
