@@ -916,6 +916,42 @@ $id_usuario = session('id_usuario');
           </div>
     </div>
 
+    <table hidden>
+      <tr id="moldeTablaRelevamientos">
+        <td class="col-xs-2 fecha">99 DIC 9999</td>
+        <td class="col-xs-2 casino">CASINO</td>
+        <td class="col-xs-1 sector">SECTOR</td>
+        <td class="col-xs-2 subrelevamiento">-1</td>
+        <td class="col-xs-3 estado">
+          <i class="faGenerado iconoEstadoRelevamiento fas fa-fw fa-dot-circle"></i>
+          <i class="faCargando iconoEstadoRelevamiento fas fa-fw fa-dot-circle"></i>
+          <i class="faFinalizado iconoEstadoRelevamiento fas fa-fw fa-dot-circle"></i>
+          <i class="faVisado iconoEstadoRelevamiento fas fa-fw fa-dot-circle"></i>
+          <i class="faValidado iconoEstadoRelevamiento fas fa-fw fa-dot-circle"></i>
+          <span>ESTADO</span>
+        </td>
+        <td class="col-xs-2 accion">
+          <button class="btn btn-info planilla" type="button" title="VER PLANILLA">
+            <i class="far fa-fw fa-file-alt"></i>
+          </button>
+          <button class="btn btn-info carga" type="button" title="CARGAR RELEVAMIENTO">
+            <i class="fa fa-fw fa-upload"></i>
+          </button>
+          <button class="btn btn-info validar" type="button" title="VISAR RELEVAMIENTO">
+            <i class="fa fa-fw fa-check"></i>
+          </button>
+          <button class="btn btn-info verDetalle" type="button" title="VER RELEVAMIENTO">
+            <i class="fa fa-fw fa-search-plus"></i>
+          </button>
+          <button class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA">
+            <i class="fa fa-fw fa-print"></i>
+          </button>
+          <button class="btn btn-info validado" type="button" title="IMPRIMIR VISADO">
+            <i class="fa fa-fw fa-bookmark"></i>
+          </button>
+        </td>
+      </tr>
+    </table>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

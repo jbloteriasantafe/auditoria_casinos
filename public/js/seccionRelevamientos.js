@@ -2224,46 +2224,26 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 //fila lista principal de relevamientos
 function crearFilaTabla(relevamiento,puede_ver,puede_cargar,puede_validar){
   const subrelevamiento =  (relevamiento.subrelevamiento != null)? relevamiento.subrelevamiento : '';
-  const fila = $('<tr>').attr('id',relevamiento.id_relevamiento);
-  const boton = $('<button>').addClass('btn btn-info').attr('type','button').val(relevamiento.id_relevamiento)
-  .append($('<i>').addClass('fa-fw'));
-  const planilla  = boton.clone().addClass('planilla').attr('title','VER PLANILLA')
-                  .find('i').addClass('far fa-file-alt').closest('button');
-  const carga     = boton.clone().addClass('carga').attr('title','CARGAR RELEVAMIENTO')
-                .find('i').addClass('fa fa-upload').closest('button');
-  const validar   = boton.clone().addClass('validar').attr('title','VISAR RELEVAMIENTO')
-                .find('i').addClass('fa fa-check').closest('button');
-  const verDetalle = boton.clone().addClass('verDetalle').attr('title','VER RELEVAMIENTO')
-                .find('i').addClass('fa fa-search-plus').closest('button');
-  const imprimir   = boton.clone().addClass('imprimir').attr('title','IMPRIMIR PLANILLA')
-                .find('i').addClass('fa fa-print').closest('button');
-  const validado   = boton.clone().addClass('validado').attr('title','IMPRIMIR VISADO')
-                .find('i').addClass('fa fa-bookmark').closest('button');
-  
-  fila.append($('<td>').addClass('col-xs-2').text((convertirDate(relevamiento.fecha))))
-  .append($('<td>').addClass('col-xs-2').text(relevamiento.casino))
-  .append($('<td>').addClass('col-xs-2').text(relevamiento.sector))
-  .append($('<td>').addClass('col-xs-1').text(subrelevamiento))
-  .append($('<td>').addClass('col-xs-2')
-      .append($('<i>').addClass('iconoEstadoRelevamiento fas fa-fw fa-dot-circle'))
-      .append($('<span>').text(relevamiento.estado))
-  )
-  .append($('<td>').addClass('col-xs-3').append(planilla).append(carga).append(validar).append(verDetalle).append(imprimir).append(validado));
-
-
-  //Qué ESTADO e ICONOS mostrar
-  const e = relevamiento.estado;
-  planilla  .toggle(['Generado'].includes(e));
-  carga     .toggle(puede_cargar  && ['Generado','Cargando'].includes(e));
-  validar   .toggle(puede_validar && ['Finalizado'].includes(e));
-  //No permitir ver cuando esta Generado (tira error de backend)
-  verDetalle.toggle(puede_ver     && ['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
-  imprimir  .toggle(['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
-  validado  .toggle(['Rel. Visado'].includes(e));
-
+  const f = $('#moldeTablaRelevamientos').clone().removeAttr('id');
+  f.find('.fecha').text(convertirDate(relevamiento.fecha));
+  f.find('.casino').text(relevamiento.casino);
+  f.find('.sector').text(relevamiento.sector);
+  f.find('.subrelevamiento').text(subrelevamiento);
   const icono = {'Generado':'faGenerado','Cargando':'faCargando','Finalizado':'faFinalizado','Visado':'faVisado','Rel. Visado':'faValidado'};
-  fila.find('.iconoEstadoRelevamiento').addClass(icono[e]);
-  return fila;
+  const e = relevamiento.estado;
+  f.find('.estado span').text(e);
+  f.find('.estado i').not('.'+icono[e]).remove();
+  
+  f.find('button').val(relevamiento.id_relevamiento);
+  f.find('.planilla')  .toggle(['Generado'].includes(e));
+  f.find('.carga')     .toggle(puede_cargar  && ['Generado','Cargando'].includes(e));
+  f.find('.validar')   .toggle(puede_validar && ['Finalizado'].includes(e));
+  //No permitir ver cuando esta Generado (tira error de backend)
+  f.find('.verDetalle').toggle(puede_ver     && ['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
+  f.find('.imprimir')  .toggle(['Cargando','Finalizado','Visado','Rel. Visado'].includes(e));
+  f.find('.validado')  .toggle(['Rel. Visado'].includes(e));
+  
+  return f;
 }
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
