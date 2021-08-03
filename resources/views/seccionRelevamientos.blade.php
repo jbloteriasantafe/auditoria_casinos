@@ -951,7 +951,83 @@ $id_usuario = session('id_usuario');
           </button>
         </td>
       </tr>
+      <tr id="moldeTablaCargaRelevamientos">
+        <td class="maquina"></td>
+        @for($c=1;$c<=8;$c++)
+        <td {{$c >= 7? 'hidden' : ''}}><input class="cont{{$c}} contador form-control"/></td>
+        @endfor
+        <td class="producido_calc" style="text-align: right;" hidden><input class="producidoCalculado form-control" hidden/></td>
+        <td class="producido"      style="text-align: right;" hidden><input class="producido form-control" hidden/></td>
+        <td class="diferencia"     style="text-align: right;" hidden><input class="diferencia form-control" hidden/></td>
+        <td style="text-align: center;">
+          <i class="fa fa-times" style="color:#EF5350;" hidden></i>
+          <i class="fa fa-check" style="color:#66BB6A;" hidden></i>
+          <i class="fa fa-ban" style="color:#1E90FF;" hidden></i>
+          <a class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover">
+            <i class="pop fa fa-exclamation" style="color:#FFA726;" hidden></i> 
+          </a>
+          <a class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover">
+            <i class="pop fa fa-question" style="color:#42A5F5;" hidden></i> 
+          </a>
+        </td>
+        @for($c=1;$c<=8;$c++)
+        <td hidden><input class="formulaCont{{$c}} fcont" hidden/></td>
+        @endfor
+        @for($c=1;$c<=8;$c++)
+        <td hidden><input class="formulaOper{{$c}} fcont" hidden/></td>
+        @endfor
+        <td>
+          <select class="tipo_causa_no_toma form-control">
+            <option value="" selected></option>
+          </select>
+        </td>
+        <td hidden>
+          <button data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" title="AJUSTE"
+                  type="button" class="btn btn-warning pop medida"
+                  data-content=''>
+            <i class="fa fa-fw fa-life-ring"></i>
+            <i class="fas fa-dollar-sign"></i>
+          </button>
+        </td>
+        <td>
+          <select class="a_pedido form-control acciones_validacion" data-maquina="">
+            <option value="0">NO</option>
+            <option value="1">1 día</option>
+            <option value="5">5 días</option>
+            <option value="10">10 días</option>
+            <option value="15">15 días</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-success estadisticas_no_toma acciones_validacion" type="button">
+            <i class="fas fa-fw fa-external-link-square-alt"></i>
+          </button>
+        </td>
+      </tr>
     </table>
+
+    <div hidden>
+      <div id="moldeUnidadMedida" align="left">
+        <input type="radio" name="medida" value="credito" class="um_credito">
+        <i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>
+        <span style="position:relative;top:-3px;">
+          Cŕedito
+        </span>
+        <br>
+        <input type="radio" name="medida" value="pesos" class="um_pesos">
+        <i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>
+        <span style="position:relative;top:-3px;">
+          Pesos
+        </span>
+        <br><br>
+        <button class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">
+          AJUSTAR
+        </button>
+        <button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">
+          CANCELAR
+        </button>
+      </div>
+    </div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

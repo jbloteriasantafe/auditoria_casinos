@@ -1422,289 +1422,81 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
 
   //se cargan las observaciones del fiscalizador si es que hay
   $('#observacion_fisca_validacion').val(data.relevamiento.observacion_carga);
+  const validando = estadoRelevamiento == 'Validar';
+  const cargando  = estadoRelevamiento == 'Carga';
 
-  for (var i = 0; i < data.detalles.length; i++) {
-      //Hacer un for por todo los tipos de no toma para cargar el select
-      var tipoNoToma = $('<select>').addClass('tipo_causa_no_toma form-control');
-      tipoNoToma.append($('<option>').text('').val(''));
+  for (let i = 0; i < data.detalles.length; i++) {//@TODO: simplificar este FOR
+    const d = data.detalles[i];
+    const f = $('#moldeTablaCargaRelevamientos').clone().attr('id',d.detalle.id_detalle_relevamiento)
+              .attr('data-medida', d.unidad_medida.id_unidad_medida)
+              .attr('data-denominacion', d.denominacion);
 
-      for (var j = 0; j < data.tipos_causa_no_toma.length; j++) {
-          var tipo = data.tipos_causa_no_toma[j].descripcion;
-          var id = data.tipos_causa_no_toma[j].id_tipo_causa_no_toma;
-          tipoNoToma.append($('<option>').text(tipo).val(id).attr('disabled',data.tipos_causa_no_toma[j].deprecado == 1? true : false));
+    f.find('.maquina').text(d.maquina);
+
+    for(let c=1;c<=8;c++){
+      const cont = 'cont'+c;
+      const readonly = validando || (cargando && d.formula != null  && d.formula[cont] == null);
+      f.find('.'+cont).val(d.detalle[cont]).prop('readonly',readonly);
+    }
+    
+    for (let j = 0; j < data.tipos_causa_no_toma.length; j++) {
+      const tipo = data.tipos_causa_no_toma[j].descripcion;
+      const id   = data.tipos_causa_no_toma[j].id_tipo_causa_no_toma;
+      const deprecado = data.tipos_causa_no_toma[j].deprecado == 1;
+      f.find('.tipo_causa_no_toma').append($('<option>').text(tipo).val(id).attr('disabled',deprecado));
+    }
+    f.find('.tipo_causa_no_toma').val(d.tipo_causa_no_toma);
+
+    const contentUnidadMedida = $('#moldeUnidadMedida').clone().removeAttr('id');
+    if(d.unidad_medida.id_unidad_medida == 1){//Creditos
+      contentUnidadMedida.find('.um_credito').attr('checked',true);
+      f.find('.medida').find('i.fa-dollar-sign').remove();
+    }
+    else{//Pesos
+      contentUnidadMedida.find('.um_pesos').attr('checked',true);
+      f.find('.medida').find('i.fa-life-ring').remove();
+    }
+    contentUnidadMedida.find('.ajustar').val(d.unidad_medida.id_unidad_medida);
+    f.find('.medida').attr('data-content',contentUnidadMedida[0].outerHTML).parent().toggle(validando);
+    
+    const dif = d.detalle.diferencia;    
+    f.find('.acciones_validacion').toggle(validando && 
+      (d.tipo_causa_no_toma != null || dif == null || (dif != 0 && ( dif %1000000 != 0))));
+
+    f.find('.fcont,.foper').val(null);
+    if (d.formula != null){//@TODO: Pasar a .data()
+      for(let c=1;c<=8;c++){
+        f.find('.formulaCont'+c).val(d.formula['cont'+c]);
+        f.find('.formulaOper'+c).val(d.formula['operador'+c]);
       }
+    }
 
-      tipoNoToma.val(data.detalles[i].tipo_causa_no_toma);
+    if (d.producido != null) {
+      f.find('.producido').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido)
+      .prop('readonly',validando).toggle(validando);
+    }
 
-      //  Unidad de medida: 1-Crédito, 2-Pesos      |    Denominación: para créditos
+    if (d.producido_calculado_relevado != null) {
+      f.find('.producidoCalculado').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido_calculado_relevado)
+      .toggle(validando);
+    }
 
-      var fila = $('<tr>').attr('id', data.detalles[i].detalle.id_detalle_relevamiento)
-                          .attr('data-medida', data.detalles[i].unidad_medida.id_unidad_medida)
-                          .attr('data-denominacion', data.detalles[i].denominacion);
+    f.find('.diferencia').prop('readonly',validando).toggle(validando);
 
-
-      /*** PARA CONTROLAR LA UNIDAD DE MEDIDA ***/
-
-      var unidadMedida = data.detalles[i].unidad_medida.id_unidad_medida;
-
-      console.log(unidadMedida);
-
-      var formulario = "";
-
-      //Si la unidad es CRéDITO
-      if (unidadMedida == 1) {
-          formulario =  '<div align="left">'
-                      +   '<input type="radio" name="medida" value="credito" checked>'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
-                      +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
-                      +   '<input type="radio" name="medida" value="pesos">'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
-                      +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
-                      +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
-                      + '</div>';
-      }
-      //Si la unidad es PESOS
-      else {
-          formulario =  '<div align="left">'
-                      +   '<input type="radio" name="medida" value="credito">'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>'
-                      +               '<span style="position:relative;top:-3px;"> Cŕedito</span><br>'
-                      +   '<input type="radio" name="medida" value="pesos" checked>'
-                      +               '<i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>'
-                      +               '<span style="position:relative;top:-3px;"> Pesos</span> <br><br>'
-                      +   '<button id="'+ data.detalles[i].unidad_medida.id_unidad_medida +'" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>'
-                      +   '<button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>'
-                      + '</div>';
-      }
-
-
-      var botonDenominacion = $('<button>')
-                                      .attr('data-trigger','manual')
-                                      .attr('data-toggle','popover')
-                                      .attr('data-placement','left')
-                                      .attr('data-html','true')
-                                      .attr('title','AJUSTE')
-                                      .attr('data-content',formulario)
-                                      .attr('type','button')
-                                      .addClass('btn btn-warning pop medida')
-
-      //Si la unidad de medida es CRÉDITO
-      if (unidadMedida == 1) botonDenominacion.append($('<i>').addClass('fa fa-fw fa-life-ring'));
-      //Si la unidad de medida es PESOS
-      else botonDenominacion.append($('<i>').addClass('fas fa-dollar-sign'));
-
-      var cont1 = $('<input>').addClass('cont1 contador').addClass('form-control').val(data.detalles[i].detalle.cont1);
-      var cont2 = $('<input>').addClass('cont2 contador').addClass('form-control').val(data.detalles[i].detalle.cont2);
-      var cont3 = $('<input>').addClass('cont3 contador').addClass('form-control').val(data.detalles[i].detalle.cont3);
-      var cont4 = $('<input>').addClass('cont4 contador').addClass('form-control').val(data.detalles[i].detalle.cont4);
-      var cont5 = $('<input>').addClass('cont5 contador').addClass('form-control').val(data.detalles[i].detalle.cont5);
-      var cont6 = $('<input>').addClass('cont6 contador').addClass('form-control').val(data.detalles[i].detalle.cont6);
-      var cont7 = $('<input>').addClass('cont7 contador').addClass('form-control').val(data.detalles[i].detalle.cont7);
-      var cont8 = $('<input>').addClass('cont8 contador').addClass('form-control').val(data.detalles[i].detalle.cont8);
-
-      if (data.detalles[i].formula != null){
-        var formulaCont1 = $('<input>').addClass('formulaCont1').val(data.detalles[i].formula.cont1).hide();
-        var formulaCont2 = $('<input>').addClass('formulaCont2').val(data.detalles[i].formula.cont2).hide();
-        var formulaCont3 = $('<input>').addClass('formulaCont3').val(data.detalles[i].formula.cont3).hide();
-        var formulaCont4 = $('<input>').addClass('formulaCont4').val(data.detalles[i].formula.cont4).hide();
-        var formulaCont5 = $('<input>').addClass('formulaCont5').val(data.detalles[i].formula.cont5).hide();
-        var formulaCont6 = $('<input>').addClass('formulaCont6').val(data.detalles[i].formula.cont6).hide();
-        var formulaCont7 = $('<input>').addClass('formulaCont7').val(data.detalles[i].formula.cont7).hide();
-        var formulaCont8 = $('<input>').addClass('formulaCont8').val(data.detalles[i].formula.cont8).hide();
-        var formulaOper1 = $('<input>').addClass('formulaOper1').val(data.detalles[i].formula.operador1).hide();
-        var formulaOper2 = $('<input>').addClass('formulaOper2').val(data.detalles[i].formula.operador2).hide();
-        var formulaOper3 = $('<input>').addClass('formulaOper3').val(data.detalles[i].formula.operador3).hide();
-        var formulaOper4 = $('<input>').addClass('formulaOper4').val(data.detalles[i].formula.operador4).hide();
-        var formulaOper5 = $('<input>').addClass('formulaOper5').val(data.detalles[i].formula.operador5).hide();
-        var formulaOper6 = $('<input>').addClass('formulaOper6').val(data.detalles[i].formula.operador6).hide();
-        var formulaOper7 = $('<input>').addClass('formulaOper7').val(data.detalles[i].formula.operador7).hide();
-        var formulaOper8 = $('<input>').addClass('formulaOper8').val(data.detalles[i].formula.operador8).hide();
+    if(validando){
+      let notoma = '';
+      if (d.tipo_causa_no_toma != null) {
+        notoma = data.tipos_causa_no_toma[parseInt(d.tipo_causa_no_toma) - 1].descripcion;
       }else {
-        var formulaCont1 = $('<input>').addClass('formulaCont1').val(null).hide();
-        var formulaCont2 = $('<input>').addClass('formulaCont2').val(null).hide();
-        var formulaCont3 = $('<input>').addClass('formulaCont3').val(null).hide();
-        var formulaCont4 = $('<input>').addClass('formulaCont4').val(null).hide();
-        var formulaCont5 = $('<input>').addClass('formulaCont5').val(null).hide();
-        var formulaCont6 = $('<input>').addClass('formulaCont6').val(null).hide();
-        var formulaCont7 = $('<input>').addClass('formulaCont7').val(null).hide();
-        var formulaCont8 = $('<input>').addClass('formulaCont8').val(null).hide();
-        var formulaOper1 = $('<input>').addClass('formulaOper1').val(null).hide();
-        var formulaOper2 = $('<input>').addClass('formulaOper2').val(null).hide();
-        var formulaOper3 = $('<input>').addClass('formulaOper3').val(null).hide();
-        var formulaOper4 = $('<input>').addClass('formulaOper4').val(null).hide();
-        var formulaOper5 = $('<input>').addClass('formulaOper5').val(null).hide();
-        var formulaOper6 = $('<input>').addClass('formulaOper6').val(null).hide();
-        var formulaOper7 = $('<input>').addClass('formulaOper7').val(null).hide();
-        var formulaOper8 = $('<input>').addClass('formulaOper8').val(null).hide();
+        //AGREGAR REDIRECCION A ESTADISTICAS
       }
-
-      console.log('estado es ',estadoRelevamiento);
-
-      //PARTE DE PRODUCIDOS
-      if (data.detalles[i].producido != null) {
-          var producido = $('<input>').addClass('producido form-control').css('text-align','right').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(data.detalles[i].producido).hide();
-      }else {
-          var producido = $('<input>').addClass('producido form-control').css('text-align','right').val('').hide();
+      const inotoma = $('<input>').addClass('tipo_causa_no_toma form-control').val(notoma).prop('readonly',true);
+      if (inotoma.val() != '') {
+        inotoma.css('border','2px solid #1E90FF').css('color','#1E90FF');
       }
-
-      if (data.detalles[i].detalle.producido_calculado_relevado != null) {
-          var producidoCalculado = $('<input>').addClass('producidoCalculado form-control').css('text-align','right').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(data.detalles[i].detalle.producido_calculado_relevado).hide();
-      }else {
-          var producidoCalculado = $('<input>').addClass('producidoCalculado form-control').css('text-align','right').val('').hide();
-      }
-
-      var diferencia = $('<input>').addClass('diferencia form-control').css('text-align','right').val('').hide();
-
-      var a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,data.detalles[i].detalle.id_maquina)
-                                                                     .append($('<option>').val(0).text('NO'))
-                                                                     .append($('<option>').val(1).text('1 día'))
-                                                                     .append($('<option>').val(5).text('5 días'))
-                                                                     .append($('<option>').val(10).text('10 días'))
-                                                                     .append($('<option>').val(15).text('15 días'));
-      var a_pedido_dos = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
-                                  .attr('type' , 'button')
-                                  .val(data.detalles[i].detalle.id_maquina)
-                                  .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'));
-      if(estadoRelevamiento == 'Validar'){
-        var diff = data.detalles[i].detalle.diferencia;
-        if(data.detalles[i].tipo_causa_no_toma != null
-          || diff == null
-          || (diff != 0 && ( diff %1000000 != 0))  
-        ) {
-
-          a_pedido_dos.show();
-          a_pedido.show();
-
-        }
-        else{
-          a_pedido_dos.hide();
-          a_pedido.hide();
-        }
-      }else{
-        a_pedido_dos.hide();
-        a_pedido.hide();
-      }
-      //Habilita los inputs necesarios según la fórmula
-      if (estadoRelevamiento == 'Carga') {
-          if (data.detalles[i].formula != null) {
-            data.detalles[i].formula.cont1 == null ? cont1.prop('readonly',true) : cont1.prop('readonly',false);
-            data.detalles[i].formula.cont2 == null ? cont2.prop('readonly',true) : cont2.prop('readonly',false);
-            data.detalles[i].formula.cont3 == null ? cont3.prop('readonly',true) : cont3.prop('readonly',false);
-            data.detalles[i].formula.cont4 == null ? cont4.prop('readonly',true) : cont4.prop('readonly',false);
-            data.detalles[i].formula.cont5 == null ? cont5.prop('readonly',true) : cont5.prop('readonly',false);
-            data.detalles[i].formula.cont6 == null ? cont6.prop('readonly',true) : cont6.prop('readonly',false);
-            data.detalles[i].formula.cont7 == null ? cont7.prop('readonly',true) : cont7.prop('readonly',false);
-            data.detalles[i].formula.cont8 == null ? cont8.prop('readonly',true) : cont8.prop('readonly',false);
-          }
-      }
-
-      tabla.append(fila
-      .append($('<td>').text(data.detalles[i].maquina))
-      .append($('<td>').append(cont1))
-      .append($('<td>').append(cont2))
-      .append($('<td>').append(cont3))
-      .append($('<td>').append(cont4))
-      .append($('<td>').append(cont5))
-      .append($('<td>').append(cont6))
-      .append($('<td>').append(cont7).hide())
-      .append($('<td>').append(cont8).hide())
-      .append($('<td>').append(producidoCalculado).hide())
-      .append($('<td>').append(producido).hide())
-      .append($('<td>').append(diferencia).hide())
-      .append($('<td>').css('text-align','center')
-              .append($('<i>').addClass('fa').addClass('fa-times').css('color','#EF5350').hide())
-              .append($('<i>').addClass('fa').addClass('fa-check').css('color','#66BB6A').hide())
-              .append($('<i>').addClass('fa').addClass('fa-ban').css('color','#1E90FF').hide())
-              .append($('<a>')
-                  .addClass('pop')
-                  .attr("data-content", 'Contadores importados truncados')
-                  .attr("data-placement" , "top")
-                  .attr("rel","popover")
-                  .attr("data-trigger" , "hover")
-                  .append($('<i>').addClass('pop').addClass('fa').addClass('fa-exclamation')
-                                  .css('color','#FFA726'))
-              )
-              .append($('<a>')
-                  .addClass('pop')
-                  .attr("data-content", 'No se importaron contadores')
-                  .attr("data-placement" , "top")
-                  .attr("rel","popover")
-                  .attr("data-trigger" , "hover")
-                  .append($('<i>').addClass('pop').addClass('fa').addClass('fa-question')
-                                  .css('color','#42A5F5'))
-              )
-          )
-
-      .append(formulaCont1)
-      .append(formulaCont2)
-      .append(formulaCont3)
-      .append(formulaCont4)
-      .append(formulaCont5)
-      .append(formulaCont6)
-      .append(formulaCont7)
-      .append(formulaCont8)
-      .append(formulaOper1)
-      .append(formulaOper2)
-      .append(formulaOper3)
-      .append(formulaOper4)
-      .append(formulaOper5)
-      .append(formulaOper6)
-      .append(formulaOper7)
-      .append(formulaOper8)
-      .append($('<td>').append(tipoNoToma))
-      .append($('<td>').append(botonDenominacion).hide())
-      .append($('<td>').append(a_pedido))
-      .append($('<td>').append(a_pedido_dos))
-      );
-
-
-      if(estadoRelevamiento == 'Validar'){
-          cont1.prop('readonly',true);
-          cont2.prop('readonly',true);
-          cont3.prop('readonly',true);
-          cont4.prop('readonly',true);
-          cont5.prop('readonly',true);
-          cont6.prop('readonly',true);
-          cont7.prop('readonly',true);
-          cont8.prop('readonly',true);
-          fila.find('input').each(function(){$(this).attr('title',$(this).val());});
-
-          $('.producido').show();
-          $('.producido').parent().show();
-
-          $('.producidoCalculado').show();
-          $('.producidoCalculado').parent().show();
-
-          $('.diferencia').show();
-          $('.diferencia').parent().show();
-
-
-
-          var causa_notoma = '';
-
-          if (data.detalles[i].tipo_causa_no_toma != null) {
-             causa_notoma = data.tipos_causa_no_toma[parseInt(data.detalles[i].tipo_causa_no_toma) - 1].descripcion;
-             console.log(data.tipos_causa_no_toma[parseInt(data.detalles[i].tipo_causa_no_toma) - 1].descripcion);
-          }else {
-            //AGREGAR REDIRECCION A ESTADISTICAS
-          }
-
-          var input_notoma = $('<input>').addClass('tipo_causa_no_toma form-control').val(causa_notoma);
-
-          if (input_notoma.val() != '') {
-              input_notoma.css('border','2px solid #1E90FF').css('color','#1E90FF');
-          }
-
-          $('#tablaValidarRelevamiento #' + data.detalles[i].detalle.id_detalle_relevamiento).find('td').find('.tipo_causa_no_toma').replaceWith(input_notoma);
-
-          producido.prop('readonly',true);
-          producidoCalculado.prop('readonly',true);
-          diferencia.prop('readonly',true);
-          $('.tipo_causa_no_toma').prop('readonly',true);
-
-          botonDenominacion.parent().show();
-      }
+      f.find('.tipo_causa_no_toma').replaceWith(inotoma);
+    }
+    tabla.append(f);
   }
 
   $('.pop').popover({
