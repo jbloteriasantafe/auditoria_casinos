@@ -974,7 +974,7 @@ $id_usuario = session('id_usuario');
         <td hidden><input class="formulaCont{{$c}} fcont" hidden/></td>
         @endfor
         @for($c=1;$c<=8;$c++)
-        <td hidden><input class="formulaOper{{$c}} fcont" hidden/></td>
+        <td hidden><input class="formulaOper{{$c}} foper" hidden/></td>
         @endfor
         <td>
           <select class="tipo_causa_no_toma form-control">
