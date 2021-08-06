@@ -59,19 +59,15 @@ $(document).ready(function(){
 });
 
 $('#fecha').on('change', function (e) {
-    $(this).trigger('focusin');
-    habilitarBotonGuardar();
+  $(this).trigger('focusin');
+  habilitarBotonGuardar();
 })
 
 //Opacidad del modal al minimizar
 $('.minimizar').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+  const minimizar = $(this).data("minimizar")==true;
+  $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
+  $(this).data("minimizar",!minimizar);
 });
 
 $(".pop").hover(function(){
@@ -88,14 +84,12 @@ $('.modal').on('hidden.bs.modal', function() {
 })
 
 $(document).on('click','.pop',function(e){
-    e.preventDefault();
+  e.preventDefault();
 });
 
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevoRelevamiento').click(function(e){
   e.preventDefault();
-  $('#modalRelevamiento .modal-title').text('| NUEVO RELEVAMIENTO');
-  $('#modalRelevamiento .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#frmRelevamiento').trigger('reset');
   $('#sector option').remove();
   $('#maquinas_pedido').hide();
@@ -111,42 +105,6 @@ $('#btn-nuevoRelevamiento').click(function(e){
     $('#fechaActual').val(fecha);
     $('#fechaDate').val(data.fechaDate);
   });
-});
-
-$('#casinoSinSistema').on('change', function(){
-  var id_casino = $('#casinoSinSistema option:selected').attr('id');
-
-  $('#sectorSinSistema option').remove();
-
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-    console.log(data);
-    for (var i = 0; i < data.sectores.length; i++) {
-      $('#sectorSinSistema')
-          .append($('<option>')
-              .val(data.sectores[i].id_sector)
-              .text(data.sectores[i].descripcion)
-          )
-    }
-  });
-
-  ocultarErrorValidacion($('#sectorSinSistema'));
-});
-
-//MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('#modalRelevamiento #casino').on('change',function(){
-  const id_casino = $('#modalRelevamiento #casino').val();
-
-  $('#modalRelevamiento #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-    for (let i = 0; i < data.sectores.length; i++) {
-      const op = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
-      $('#modalRelevamiento #sector').append(op)
-    }
-    maquinasAPedido();
-    existeRelevamiento();
-  });
-
-  $('#modalRelevamiento #sector').removeClass('alerta');
 });
 
 $('#modalRelevamiento #sector').on('change',function(){
@@ -276,22 +234,16 @@ $(document).on('click','.carga',function(e){
   $('#btn-finalizar').hide();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
-      console.log('DAT::',data);
       $('#cargaFechaActual').val(data.relevamiento.fecha);
       $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
       $('#cargaCasino').val(data.casino);
       $('#cargaSector').val(data.sector);
-
       $('#fecha').val(data.relevamiento.fecha_ejecucion);
       $('#fecha_ejecucion').val(data.relevamiento.fecha_ejecucion);
-
       $('#tecnico').val(data.relevamiento.tecnico);
-
+      $('#fiscaCarga').val(data.usuario_actual.usuario.nombre);// si el relevamiento no tiene usuario fizcalizador se le asigna el actual
       if (data.usuario_cargador != null) {
-          $('#fiscaCarga').val(data.usuario_cargador.nombre);
-      }else {
-
-          $('#fiscaCarga').val(data.usuario_actual.usuario.nombre);// si el relevamiento no tiene usuario fizcalizador se le asigna el actual
+        $('#fiscaCarga').val(data.usuario_cargador.nombre);
       }
 
       $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
@@ -302,15 +254,12 @@ $(document).on('click','.carga',function(e){
 
       $('#tablaCargaRelevamiento tbody tr').remove();
 
-      var tablaCargaRelevamiento = $('#tablaCargaRelevamiento tbody');
+      const tablaCargaRelevamiento = $('#tablaCargaRelevamiento tbody');
 
       cargarTablaRelevamientos(data, tablaCargaRelevamiento, 'Carga');
-
       calculoDiferencia(tablaCargaRelevamiento);
-
       habilitarBotonFinalizar();
   });
-
   $('#modalCargaRelevamiento').modal('show');
 });
 
@@ -318,164 +267,75 @@ var guardado;
 
 //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
 $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:radio):not('.denominacion')", function(){
-    habilitarBotonGuardar();
+  habilitarBotonGuardar();
 
-    //Fijarse si se habilita o deshabilita el tipo no toma
-    if($(this).val() != '') $(this).parent().parent().find('td').children('.tipo_causa_no_toma').val('');
+  const fila = $(this).parent().parent();
+  //Fijarse si se habilita o deshabilita el tipo no toma
+  if($(this).val() != '') fila.children('.tipo_causa_no_toma').val('');
 
-    habilitarBotonFinalizar();
+  habilitarBotonFinalizar();
 
-    var id_detalle_relevamiento = $(this).parent().parent().attr('id');
-
-    if ($(this).parent().parent().find('td').children('.producido').val() == '') {
-      console.log('No hay producido');
-        //Mostrar signo de pregunta
-        $(this).parent().parent().find('td').children('i.fa-question').show();
-        $(this).parent().parent().find('td').children('i.fa-times').hide();
-        $(this).parent().parent().find('td').children('i.fa-check').hide();
-        $(this).parent().parent().find('td').children('i.fa-exclamation').hide();
-        $(this).parent().parent().find('td').children('i.fa-ban').hide();
-    }else{
-
-      producido = parseFloat($(this).parent().parent().find('td').children('.producido').val());
-
-      formulaCont1 = $(this).parent().parent().children('.formulaCont1').val();
-      formulaCont2 = $(this).parent().parent().children('.formulaCont2').val();
-      formulaCont3 = $(this).parent().parent().children('.formulaCont3').val();
-      formulaCont4 = $(this).parent().parent().children('.formulaCont4').val();
-      formulaCont5 = $(this).parent().parent().children('.formulaCont5').val();
-      formulaCont6 = $(this).parent().parent().children('.formulaCont6').val();
-      formulaCont7 = $(this).parent().parent().children('.formulaCont7').val();
-      formulaCont8 = $(this).parent().parent().children('.formulaCont8').val();
-
-      operador1 = $(this).parent().parent().children('.formulaOper1').val();
-      operador2 = $(this).parent().parent().children('.formulaOper2').val();
-      operador3 = $(this).parent().parent().children('.formulaOper3').val();
-      operador4 = $(this).parent().parent().children('.formulaOper4').val();
-      operador5 = $(this).parent().parent().children('.formulaOper5').val();
-      operador6 = $(this).parent().parent().children('.formulaOper6').val();
-      operador7 = $(this).parent().parent().children('.formulaOper7').val();
-      operador8 = $(this).parent().parent().children('.formulaOper8').val();
-
-      contador1 = $(this).parent().parent().find('td').children('.cont1').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont1').val().replace(/,/g,".")) : 0;
-      contador2 = $(this).parent().parent().find('td').children('.cont2').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont2').val().replace(/,/g,".")) : 0;
-      contador3 = $(this).parent().parent().find('td').children('.cont3').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont3').val().replace(/,/g,".")) : 0;
-      contador4 = $(this).parent().parent().find('td').children('.cont4').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont4').val().replace(/,/g,".")) : 0;
-      contador5 = $(this).parent().parent().find('td').children('.cont5').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont5').val().replace(/,/g,".")) : 0;
-      contador6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont6').val().replace(/,/g,".")) : 0;
-      contador7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont7').val().replace(/,/g,".")) : 0;
-      contador8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont8').val().replace(/,/g,".")) : 0;
-
-      var suma = 0;
-
-      input1 = $(this).parent().parent().find('td').children('.cont1').val() != '' ? true : false;
-      input2 = $(this).parent().parent().find('td').children('.cont2').val() != '' ? true : false;
-      input3 = $(this).parent().parent().find('td').children('.cont3').val() != '' ? true : false;
-      input4 = $(this).parent().parent().find('td').children('.cont4').val() != '' ? true : false;
-      input5 = $(this).parent().parent().find('td').children('.cont5').val() != '' ? true : false;
-      input6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? true : false;
-      input7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? true : false;
-      input8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? true : false;
-
-      if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
-          inputValido=true;
-      }else{
-          inputValido=false;
-      }
-
-      //FALTA VALIDAR QUE EL INPUT ESTÉ LLENO
-      if (formulaCont1 != '') {
-        suma = contador1;
-      }
-      if (formulaCont2 != '') {
-        if (operador1 == '+') suma += contador2;
-        else suma -= contador2;
-      }
-      if (formulaCont3 != '') {
-        if (operador2 == '+') suma += contador3;
-        else suma -= contador3;
-      }
-      if (formulaCont4 != '') {
-        if (operador3 == '+') suma += contador4;
-        else suma -= contador4;
-      }
-      if (formulaCont5 != '') {
-        if (operador4 == '+') suma += contador5;
-        else suma -= contador5;
-      }
-      if (formulaCont6 != '') {
-        if (operador5 == '+') suma += contador6;
-        else suma -= contador6;
-      }
-      if (formulaCont7 != '') {
-        if (operador6 == '+') suma += contador7;
-        else suma -= contador7;
-      }
-      if (formulaCont8 != '') {
-        if (operador7 == '+') suma += contador8;
-        else suma -= contador8;
-      }
-
-      var renglon_actual = $(this).parent().parent();
-
-      if(renglon_actual.attr('data-medida') == 1){//si trabjo en credito
-        var denominacion = renglon_actual.attr('data-denominacion');
-        var sumaxdenom = Number((suma * denominacion) );
-        var producidoxcien = Number(producido);
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-
-      }else{
-        var sumaxdenom = Number(suma);
-        var producidoxcien = Number(producido);
-        //se contempla la posibilidad de que los contadores den negativo
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-      }
-      //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
-      diferencia= Number(diferencia.toFixed(2));
-      console.log('acac');
-
-      if (diferencia == 0 && inputValido) {
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').hide();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').show();
-          renglon_actual.find('i.fa-exclamation').hide();
-        } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').hide();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').hide();
-          renglon_actual.find('i.fa-exclamation').show();
-        } else {
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').show();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').hide();
-          renglon_actual.find('i.fa-exclamation').hide();
-        }
-
-
-      console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
-      console.log("Producido: " + producido);
-      console.log("Diferencia: " + diferencia);
+  const producido = parseFloat(fila.find('input.producido').val());
+  fila.find('.icono-estado i').hide();
+  if (isNaN(producido)) {//No hay producido
+    //Mostrar signo de pregunta
+    fila.find('.icono-estado i.fa-question').show();
+    return;
   }
 
+  let suma = 0;
+  let inputValido = false;
+  for(let c = 1;c<=8;c++){
+    const formulaCont  = fila.find('.formulaCont'+c).val();
+    const operador     = fila.find('.formulaOper'+c).val();
+    const contador_str = fila.find('.cont'+c).val();
+    const contador     = contador_str != ''? parseFloat(contador_str.replace(/,/g,".")) : 0;
+
+    inputValido = inputValido || (contador_str != '');
+    if(formulaCont == '') continue;
+
+    if(c == 1){//@BUG: Ignora el signo del primer contador... no se si es correcto
+      suma = contador;
+    }
+    else{
+      const contador_signo = operador == '+'? contador : -contador;
+      suma += contador_signo;
+    }
+  }
+
+  let diferencia = 0;
+  {
+    let sumaxdenom = suma;
+    if(fila.attr('data-medida') == 1){//si trabjo en credito
+      sumaxdenom  = suma * Number(fila.attr('data-denominacion'));
+    }
+    const suma_redondeada = Number(sumaxdenom.toFixed(2));
+    const producido_redondeado = Number(Number(producido).toFixed(2));
+    //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
+    diferencia = Number((suma_redondeada-producido_redondeado).toFixed(2));
+  }
+  
+  if (diferencia == 0 && inputValido) {
+    fila.find('.icono-estado i.fa-check').show();
+  } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+    fila.find('.icono-estado i.fa-exclamation').show();
+  } else {
+    fila.find('.icono-estado i.fa-times').show();
+  }
+
+  console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
+  console.log("Producido: " + producido);
+  console.log("Diferencia: " + diferencia);
 });
 
-$('#modalCargaRelevamiento').on('input', "input", function(){
-  habilitarBotonGuardar();
-});
+$('#modalCargaRelevamiento').on('input', "input", habilitarBotonGuardar);
 
 $(document).on('change','.tipo_causa_no_toma',function(){
+  const fila = $(this).parent().parent();
+  fila.find('.icono-estado i').hide();
+  fila.find('.icono-estado i.fa-ban').show();
   //Si se elige algun tipo de no toma se vacian las cargas de contadores
-  $(this).parent().parent().find('td').children('.contador').val('');
-  //Se cambia el icono de diferencia
-  $(this).parent().parent().find('td').find('i.fa-question').hide();
-  $(this).parent().parent().find('td').find('i.fa-times').hide();
-  $(this).parent().parent().find('td').find('i.fa-ban').show();//para no toma
-  $(this).parent().parent().find('td').find('i.fa-check').hide();
-  $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
-
+  fila.find('.contador').val('');
   habilitarBotonGuardar();
   habilitarBotonFinalizar();
 });
@@ -540,6 +400,7 @@ $(document).on('click','.validar',function(e){
   $('#btn-finalizarValidacion').show();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
+    $('#modalValidarRelevamiento .modal-title').text('| VISAR RELEVAMIENTO');
     $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha));
     $('#validarCasino').val(data.casino);
     $('#validarSector').val(data.sector);
@@ -553,9 +414,8 @@ $(document).on('click','.validar',function(e){
 
     cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
     calculoDiferenciaValidar(tablaValidarRelevamiento, data);
+    $('#modalValidarRelevamiento').modal('show');
   });
-
-  $('#modalValidarRelevamiento').modal('show');
 })
 
 //validar
@@ -612,11 +472,8 @@ $('#btn-finalizarValidacion').click(function(e){
 $(document).on('click','.verDetalle',function(e){
   e.preventDefault();
 
-  var id_rel=$(this).val();
-
-  $.get('relevamientos/verRelevamientoVisado/' + id_rel, function(data){
-    console.log('rv', data);
-    $('#modalValidarRelevamiento .modal-title').text('DETALLES RELEVAMIENTO VISADO');
+  $.get('relevamientos/verRelevamientoVisado/' + $(this).val(), function(data){
+    $('#modalValidarRelevamiento .modal-title').text('| DETALLES RELEVAMIENTO VISADO');
 
     $('#frmValidarRelevamiento').trigger('reset');
     $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha_generacion));
@@ -630,130 +487,36 @@ $(document).on('click','.verDetalle',function(e){
     $('#tablaValidarRelevamiento tbody tr').remove();
     $('#btn-finalizarValidacion').hide();
 
-    for (var i = 0; i < data.detalles.length; i++) {
-
-      var fila= $(document.createElement('tr'));
-
-      fila.attr('id', data.detalles[i].id_detalle_relevamiento)
-      .append($('<td>').css('align','center')
-      .text(data.detalles[i].nro_admin))
-
-      if(data.detalles[i].detalle.cont1 != null){
-        fila.append($('<td>').css('align','center')
-        .text(data.detalles[i].detalle.cont1))
+    for (let i = 0; i < data.detalles.length; i++) {
+      const d = data.detalles[i];
+      //el removeAttr es importante, por algun motivo si lo modifico derecho mantiene la referencia al molde
+      const fila = $('#moldeVerRelevamiento').clone().removeAttr('id').attr('id',d.id_detalle_relevamiento);
+      fila.find('.nro_admin').text(d.nro_admin);
+      for(let c=1;c<=8;c++){
+        const cont = d.detalle['cont'+c];
+        //Si es 7,8 solo se muestra cuando no es nulo (ver el molde)
+        if(cont != null) fila.find('.cont'+c).text(cont).show();
       }
-      else{
-        fila.append($('<td>')
-        .text(' - ')).css('align','center')
+      if(d.detalle.producido_calculado_relevado != null){
+        fila.find('.producido_calculado_relevado').text(d.detalle.producido_calculado_relevado);
       }
-      if(data.detalles[i].detalle.cont2 != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont2).css('text-align','center'))
+      if(d.detalle.producido_importado != null){
+        fila.find('.producido_importado').text(d.detalle.producido_importado);
       }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
+      if(d.detalle.diferencia != null){
+        fila.find('.diferencia').text(d.detalle.diferencia);
       }
-      if(data.detalles[i].detalle.cont3!= null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont3).css('text-align','center'))
+      if(d.tipo_no_toma != null){
+        fila.find('.tipo_no_toma').text(d.tipo_no_toma);
       }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
+      fila.find('.denominacion').text(d.denominacion);
+      if(d.mtm_pedido != null){
+        fila.find('.mtm_pedido').text(d.mtm_pedido.fecha);
       }
-
-      if(data.detalles[i].detalle.cont4 != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont4).css('text-align','center'))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-      if(data.detalles[i].detalle.cont5 != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont5).css('text-align','center'))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-      if(data.detalles[i].detalle.cont6 != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont6).css('text-align','center'))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-      if(data.detalles[i].detalle.cont7 != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.cont7).css('text-align','center'))
-      }
-
-      if(data.detalles[i].detalle.cont8 != null){
-        fila.append($('<td>').css('text-align','center')
-        .text(data.detalles[i].detalle.cont8).css('text-align','center'))
-      }
-
-
-      if(data.detalles[i].detalle.producido_calculado_relevado != null){
-        fila.append($('<td>').css('text-align','center')
-        .text(data.detalles[i].detalle.producido_calculado_relevado))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-
-      if(data.detalles[i].detalle.producido_importado != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.producido_importado))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-
-      if(data.detalles[i].detalle.diferencia != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].detalle.diferencia))
-      }
-      else{
-        fila.append($('<td>').css('text-align','center')
-        .text(' - '))
-      }
-
-      fila.append($('<td>')
-      .text(' '))
-
-      if(data.detalles[i].tipo_no_toma != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].tipo_no_toma).prop('disabled', true))
-      }
-      else{
-        fila.append($('<td>')
-        .text(' - ').prop('disabled', true))
-      }
-      fila.append($('<td>')
-      .text(data.detalles[i].denominacion).prop('disabled', true))
-      if(data.detalles[i].mtm_pedido != null){
-        fila.append($('<td>')
-        .text(data.detalles[i].mtm_pedido.fecha).prop('disabled', true))
-      }
-      else{
-        fila.append($('<td>')
-        .text(' ').prop('disabled', true))
-      }
-
       $('#tablaValidarRelevamiento tbody').append(fila);
     }
-
     $('#modalValidarRelevamiento').modal('show');
   })
-
-
 });
 
 $('#btn-relevamientoSinSistema').click(function(e) {
@@ -853,18 +616,6 @@ $('#fechaRelSinSistema input').on('change',function(e) {
 });
 
 //MODAL DE CANTIDAD DE MÁQUINAS POR RELEVAMIENTOS |  DEFAULT Y TEMPORALES
-//Obtener las máquinas para cada relevamiento según el sector
-$('#modalMaquinasPorRelevamiento #casino').on('change',function(){
-  $('#modalMaquinasPorRelevamiento #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + $('#modalMaquinasPorRelevamiento #casino').val(), function(data){
-    for (let i = 0; i < data.sectores.length; i++) {
-      const op = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
-      $('#modalMaquinasPorRelevamiento #sector').append(op);
-    }
-    maquinasPorRelevamiento();
-  });
-});
-
 $('#modalMaquinasPorRelevamiento #sector').on('change',maquinasPorRelevamiento);
 
 //Según el tipo de tipo se bloquea la fecha o no
@@ -1325,18 +1076,15 @@ $(document).on('change','input:radio[name=medida]',function(){
   }
 });
 
-function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRelevamiento){
-  var data = dataRelevamiento;
-  var tabla = tablaRelevamientos;
-
+function cargarTablaRelevamientos(data, tabla, estado){
   //se cargan las observaciones del fiscalizador si es que hay
   $('#observacion_fisca_validacion').val(data.relevamiento.observacion_carga);
-  const validando = estadoRelevamiento == 'Validar';
-  const cargando  = estadoRelevamiento == 'Carga';
+  const validando = estado == 'Validar';
+  const cargando  = estado == 'Carga';
 
   for (let i = 0; i < data.detalles.length; i++) {//@TODO: simplificar este FOR
     const d = data.detalles[i];
-    const f = $('#moldeTablaCargaRelevamientos').clone().attr('id',d.detalle.id_detalle_relevamiento)
+    const f = $('#moldeTablaCargaRelevamientos').clone().removeAttr('id').attr('id',d.detalle.id_detalle_relevamiento)
               .attr('data-medida', d.unidad_medida.id_unidad_medida)
               .attr('data-denominacion', d.denominacion);
 
@@ -1881,15 +1629,47 @@ function crearFilaTabla(relevamiento,puede_ver,puede_cargar,puede_validar){
 }
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('#buscadorCasino').on('change',function(){
-  const id_casino = $(this).find('option:selected').val();
-  $('#buscadorSector').empty().append($('<option>').val(0).text('-Todos los sectores-'));
-  if(id_casino!=0){ 
-    $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino,
-      function(data){
-        for (let i = 0; i < data.sectores.length; i++) 
-          $('#buscadorSector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion))
-      }
-    );
+function cargarSectores(id_casino,select,postAppend = function(x){}){
+  select.empty();
+  if(id_casino == ""){
+    postAppend(false);
+    return;
   }
+  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+    for (let i = 0; i < data.sectores.length; i++) {
+      const op = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
+      select.append(op);
+    }
+    postAppend(true);
+  });
+}
+
+$('#buscadorCasino').on('change',function(){
+  cargarSectores($(this).val(),$('#buscadorSector'),function(cargo){
+    if(!cargo) $('#buscadorSector').empty();
+    $('#buscadorSector').prepend($('<option>').val("").text('-Todos los sectores-'));
+    $('#buscadorSector').val("");
+  });
+});
+
+$('#casinoSinSistema').on('change', function(){
+  cargarSectores($('#casinoSinSistema').val(),$('#sectorSinSistema'))
+  ocultarErrorValidacion($('#sectorSinSistema'));
+});
+
+$('#modalRelevamiento #casino').on('change',function(){
+  cargarSectores($('#modalRelevamiento #casino').val(),$('#modalRelevamiento #sector'),function(cargo){
+    if(!cargo) return;
+    maquinasAPedido();
+    existeRelevamiento();
+  });
+  $('#modalRelevamiento #sector').removeClass('alerta');
+});
+
+//Obtener las máquinas para cada relevamiento según el sector
+$('#modalMaquinasPorRelevamiento #casino').on('change',function(){
+  cargarSectores($('#modalMaquinasPorRelevamiento #casino').val(),$('#modalMaquinasPorRelevamiento #sector'),function(cargo){
+    if(!cargo) return;
+    maquinasPorRelevamiento();
+  });
 });

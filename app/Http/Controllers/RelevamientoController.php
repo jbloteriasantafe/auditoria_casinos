@@ -116,10 +116,10 @@ class RelevamientoController extends Controller
     if(isset($request->fecha)){
       $reglas[]=['relevamiento.fecha', '=', $request->fecha];
     }
-    if($request->casino!=0){
+    if(!empty($request->casino)){
       $reglas[]=['casino.id_casino', '=', $request->casino];
     }
-    if($request->sector != 0){
+    if(!empty($request->sector)){
       $reglas[]=['sector.id_sector', '=', $request->sector];
     }
     if($request->estadoRelevamiento != 0){

@@ -110,7 +110,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                 <div class="col-md-3">
                                     <h5>Casino</h5>
                                     <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                                        <option value="0">-Todos los Casinos-</option>
+                                        <option value="">-Todos los Casinos-</option>
                                         @foreach($casinos as $casino)
                                         <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                         @endforeach
@@ -359,7 +359,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
     <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO RELEVAMIENTO</h3>
@@ -544,7 +544,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                               <select id="casinoSinSistema" class="form-control" name="">
                                 <option value="">- Seleccione un casino -</option>
                                 @foreach ($usuario->casinos as $casino)
-                                <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                 @endforeach
                               </select>
                               <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>
@@ -950,7 +950,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
         <td class="producido_calc" style="text-align: right;" hidden><input class="producidoCalculado form-control" hidden/></td>
         <td class="producido"      style="text-align: right;" hidden><input class="producido form-control" hidden/></td>
         <td class="diferencia"     style="text-align: right;" hidden><input class="diferencia form-control" hidden/></td>
-        <td style="text-align: center;">
+        <td class="icono-estado" style="text-align: center;">
           <i class="fa fa-times" style="color:#EF5350;" hidden></i>
           <i class="fa fa-check" style="color:#66BB6A;" hidden></i>
           <i class="fa fa-ban" style="color:#1E90FF;" hidden></i>
@@ -994,6 +994,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
             <i class="fas fa-fw fa-external-link-square-alt"></i>
           </button>
         </td>
+      </tr>
+      <tr id="moldeVerRelevamiento">
+        <td class="nro_admin" style="text-align: center">&nbsp;</td>
+        @for($c=1;$c<=8;$c++)
+        <td {{$c >= 7? 'hidden' : ''}} class="cont{{$c}}" style="text-align: center" > - </td>
+        @endfor
+        <td class="producido_calculado_relevado" style="text-align: center"> - </td>
+        <td class="producido_importado" style="text-align: center"> - </td>
+        <td class="diferencia" style="text-align: center"> - </td>
+        <td>&nbsp;</td>
+        <td class="tipo_no_toma"> - </td>
+        <td class="denominacion">0</td>
+        <td class="mtm_pedido">&nbsp;</td>
       </tr>
     </table>
 
