@@ -39,6 +39,22 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
+  $.get('obtenerFechaActual', function (data) {
+    $('#modalMaquinasPorRelevamiento #dtpFechaDesde,#dtpFechaHasta').datetimepicker({
+      todayBtn:  1,
+      language:  'es',
+      autoclose: 1,
+      todayHighlight: 1,
+      format: 'dd MM yyyy',
+      pickerPosition: "bottom-left",
+      startView: 2,
+      minView: 2,
+      ignoreReadonly: true,
+      minuteStep: 5,
+      startDate: data.fechaDate,
+    });
+  });
+
   $('#btn-buscar').trigger('click',[1,10,'relevamiento.fecha','desc']);
 });
 
@@ -113,24 +129,19 @@ $('#casinoSinSistema').on('change', function(){
     }
   });
 
-  // $('#sectorSinSistema').removeClass('alerta');
   ocultarErrorValidacion($('#sectorSinSistema'));
 });
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('#modalRelevamiento #casino').on('change',function(){
-  var id_casino = $('#modalRelevamiento #casino option:selected').attr('id');
+  const id_casino = $('#modalRelevamiento #casino').val();
 
   $('#modalRelevamiento #sector option').remove();
   $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-    for (var i = 0; i < data.sectores.length; i++) {
-      $('#modalRelevamiento #sector')
-          .append($('<option>')
-              .val(data.sectores[i].id_sector)
-              .text(data.sectores[i].descripcion)
-          )
+    for (let i = 0; i < data.sectores.length; i++) {
+      const op = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
+      $('#modalRelevamiento #sector').append(op)
     }
-
     maquinasAPedido();
     existeRelevamiento();
   });
@@ -158,79 +169,62 @@ $('#btn-cancelarConfirmacion').click(function(){
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
-
-  switch ($('#modalRelevamiento #existeRelevamiento').val()) {
-    case '0':
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
-        var id_sector = $('#modalRelevamiento #sector option:selected').val();
-
-        if (typeof id_sector == 'undefined') id_sector = 0;
-
-        var formData = {
-          id_sector: id_sector,
-          cantidad_maquinas: $('#cantidad_maquinas').val(),
-          cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
-        }
-
-
-        $.ajax({
-            type: "POST",
-            url: 'relevamientos/crearRelevamiento',
-            data: formData,
-            dataType: 'json',
-            beforeSend: function(data){
-              //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
-              if ($('#modalRelevamiento #casino option:selected').val() != "") {
-                  $('#modalRelevamiento').find('.modal-footer').children().hide();
-                  $('#modalRelevamiento').find('.modal-body').children().hide();
-                  $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
-              }
-            },
-            success: function (data) {
-
-                $('#btn-buscar').click();
-                $('#modalRelevamiento').modal('hide');
-
-                var iframe;
-                iframe = document.getElementById("download-container");
-                if (iframe === null){
-                    iframe = document.createElement('iframe');
-                    iframe.id = "download-container";
-                    iframe.style.visibility = 'hidden';
-                    document.body.appendChild(iframe);
-                }
-
-                iframe.src = data.url_zip;
-            },
-            error: function (data) {
-
-              $('#modalRelevamiento').find('.modal-footer').children().show();
-              $('#modalRelevamiento').find('.modal-body').children().show();
-              $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
-
-              var response = JSON.parse(data.responseText);
-
-              //mostrar error
-              if(typeof response.id_sector !== 'undefined'){
-                  mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
-                  mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
-              }
-            } //error
-        }); //$.ajax
-
-        break;
-    case '1':
-        $('#modalRelevamiento').modal('hide');
-        $('#modalRelevamiento #existeRelevamiento').val(0);
-        $('#confirmacionGenerarRelevamiento').modal('show');
-        break;
-    case '2':
-        $('#modalRelevamiento').modal('hide');
-        $('#modalRelevamiento #existeRelevamiento').val(0);
-        $('#imposibleGenerarRelevamiento').modal('show');
-        break;
+  const existeRelevamiento = $('#modalRelevamiento #existeRelevamiento').val();
+  if(existeRelevamiento == "1" || existeRelevamiento == "2"){
+    $('#modalRelevamiento').modal('hide');
+    $('#modalRelevamiento #existeRelevamiento').val(0);
+    $('#confirmacionGenerarRelevamiento').modal('show');
+    return;
   }
+  if(existeRelevamiento != "0"){
+    console.log('UNREACHABLE');
+    return;
+  }
+
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  const id_sector = $('#modalRelevamiento #sector').val();
+
+  $.ajax({
+    type: "POST",
+    url: 'relevamientos/crearRelevamiento',
+    data: {
+      id_sector: id_sector == null? 0 : id_sector,
+      cantidad_maquinas: $('#cantidad_maquinas').val(),
+      cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
+    },
+    dataType: 'json',
+    beforeSend: function(data){
+      //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
+      if ($('#modalRelevamiento #casino').val() != "") {
+        $('#modalRelevamiento').find('.modal-footer').children().hide();
+        $('#modalRelevamiento').find('.modal-body').children().hide();
+        $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').show();
+      }
+    },
+    success: function (data) {
+        $('#btn-buscar').click();
+        $('#modalRelevamiento').modal('hide');
+        let iframe = document.getElementById("download-container");
+        if (iframe === null){//Crea una ventana de descarga del zip
+          iframe = document.createElement('iframe');
+          iframe.id = "download-container";
+          iframe.style.visibility = 'hidden';
+          document.body.appendChild(iframe);
+        }
+        iframe.src = data.url_zip;
+    },
+    error: function (data) {
+      $('#modalRelevamiento').find('.modal-footer').children().show();
+      $('#modalRelevamiento').find('.modal-body').children().show();
+      $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
+      var response = JSON.parse(data.responseText);
+      //mostrar error
+      if(typeof response.id_sector !== 'undefined'){
+        mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
+        mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
+      }
+    } //error
+  }); //$.ajax
 });
 
 $('#btn-volver').click(function(){
@@ -473,54 +467,47 @@ $('#modalCargaRelevamiento').on('input', "input", function(){
 });
 
 $(document).on('change','.tipo_causa_no_toma',function(){
-    //Si se elige algun tipo de no toma se vacian las cargas de contadores
-    $(this).parent().parent().find('td').children('.contador').val('');
-    //Se cambia el icono de diferencia
-    $(this).parent().parent().find('td').find('i.fa-question').hide();
-    $(this).parent().parent().find('td').find('i.fa-times').hide();
-    $(this).parent().parent().find('td').find('i.fa-ban').show();//para no toma
-    $(this).parent().parent().find('td').find('i.fa-check').hide();
-    $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
+  //Si se elige algun tipo de no toma se vacian las cargas de contadores
+  $(this).parent().parent().find('td').children('.contador').val('');
+  //Se cambia el icono de diferencia
+  $(this).parent().parent().find('td').find('i.fa-question').hide();
+  $(this).parent().parent().find('td').find('i.fa-times').hide();
+  $(this).parent().parent().find('td').find('i.fa-ban').show();//para no toma
+  $(this).parent().parent().find('td').find('i.fa-check').hide();
+  $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
 
-    habilitarBotonGuardar();
-    habilitarBotonFinalizar();
+  habilitarBotonGuardar();
+  habilitarBotonFinalizar();
 });
 
 //SALIR DEL RELEVAMIENTO
 var salida; //cantidad de veces que se apreta salir
 $('#btn-salir').click(function(){
-
   //Si está guardado deja cerrar el modal
-  if (guardado) $('#modalCargaRelevamiento').modal('hide');
+  if (guardado || salida != 0) $('#modalCargaRelevamiento').modal('hide');
   //Si no está guardado
-  else{
-    if (salida == 0) {
-      $('#modalCargaRelevamiento .mensajeSalida').show();
-      $("#modalCargaRelevamiento").animate({ scrollTop: $('.mensajeSalida').offset().top }, "slow");
-      salida = 1;
-    }else {
-      $('#modalCargaRelevamiento').modal('hide');
-    }
+  if (salida == 0) {
+    $('#modalCargaRelevamiento .mensajeSalida').show();
+    $("#modalCargaRelevamiento").animate({ scrollTop: $('.mensajeSalida').offset().top }, "slow");
+    salida = 1;
   }
 });
 
 //FINALIZAR EL RELEVAMIENTO
 $('#btn-finalizar').click(function(e){
   e.preventDefault();
-  //Se evnía el relevamiento para guardar con estado 3 = 'Finalizado'
+  //Se envía el relevamiento para guardar con estado 3 = 'Finalizado'
   enviarRelevamiento(3);
   $('#modalValidarRelevamiento').modal('hide');
-
 });
 
 //GUARDAR TEMPORALMENTE EL RELEVAMIENTO
 $('#btn-guardar').click(function(e){
   e.preventDefault();
-  //Se evnía el relevamiento para guardar con estado 2 = 'Carga parcial'
+  //Se envía el relevamiento para guardar con estado 2 = 'Carga parcial'
   enviarRelevamiento(2);
   $('#modalCargaRelevamiento .mensajeSalida').hide();
   $('#modalValidarRelevamiento').modal('hide');
-
 });
 
 $('select').focusin(function(e){
@@ -528,51 +515,44 @@ $('select').focusin(function(e){
 });
 
 $(document).on('click','.validado',function(){
-    window.open('relevamientos/generarPlanillaValidado/' + $(this).val(),'_blank');
+  window.open('relevamientos/generarPlanillaValidado/' + $(this).val(),'_blank');
 })
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
-    // $('#alertaArchivo').hide();
-
-    window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
+  window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
 });
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-    $('#alertaArchivo').hide();
-
-    window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
-
+  $('#alertaArchivo').hide();
+  window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
 });
 
 //VALIDAR EL RELEVAMIENTO
 $(document).on('click','.validar',function(e){
   e.preventDefault();
   truncadas=0;
-  var id_relevamiento = $(this).val();
-  console.log(id_relevamiento);
+  const id_relevamiento = $(this).val();
   $('#modalValidarRelevamiento #id_relevamiento').val(id_relevamiento);
 
   $('#mensajeValidacion').hide();
   $('#btn-finalizarValidacion').show();
 
   $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(data){
+    $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha));
+    $('#validarCasino').val(data.casino);
+    $('#validarSector').val(data.sector);
+    $('#validarFiscaToma').val(data.usuario_fiscalizador.nombre);
+    $('#validarFiscaCarga').val(data.usuario_cargador.nombre );
+    $('#validarTecnico').val(data.relevamiento.tecnico);
+    $('#observacion_validacion').val('');
+    $('#tablaValidarRelevamiento tbody tr').remove();
 
-      $('#validarFechaActual').val(convertirDate(data.relevamiento.fecha));
-      $('#validarCasino').val(data.casino);
-      $('#validarSector').val(data.sector);
-      $('#validarFiscaToma').val(data.usuario_fiscalizador.nombre);
-      $('#validarFiscaCarga').val(data.usuario_cargador.nombre );
-      $('#validarTecnico').val(data.relevamiento.tecnico);
-      $('#observacion_validacion').val('');
-      $('#tablaValidarRelevamiento tbody tr').remove();
+    var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
 
-      var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
-
-      cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
-      calculoDiferenciaValidar(tablaValidarRelevamiento, data);
-
+    cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
+    calculoDiferenciaValidar(tablaValidarRelevamiento, data);
   });
 
   $('#modalValidarRelevamiento').modal('show');
@@ -580,62 +560,52 @@ $(document).on('click','.validar',function(e){
 
 //validar
 $('#btn-finalizarValidacion').click(function(e){
+  $('#modalValidarRelevamiento').modal('hide');
 
-    $('#modalValidarRelevamiento').modal('hide');
+  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  let maquinas_a_pedido=[];
+  let data=[];
+  $('#tablaValidarRelevamiento tbody tr').each(function(){
+    const datos = {
+      id_detalle_relevamiento: $(this).attr('id'),
+      denominacion: $(this).attr('data-denominacion'),
+      diferencia: $(this).find('.diferencia').val(),
+      importado: $(this).find('.producido').val()
+    }
+    data.push(datos)
 
-    $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-    var id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();
-    var maquinas_a_pedido=[];
-    var data=[];
-
-    $('#tablaValidarRelevamiento tbody tr').each(function(){
-      var datos={
-        id_detalle_relevamiento: $(this).attr('id'),
-        denominacion: $(this).attr('data-denominacion'),
-        diferencia: $(this).find('.diferencia').val(),
-        importado: $(this).find('.producido').val()
-      }
-      console.log('da',datos);
-      data.push(datos)
-
-      if($(this).find('.a_pedido').length){
-        if($(this).find('.a_pedido').val() != 0){
-          var maquina = {
-            id: $(this).find('.a_pedido').attr('data-maquina'),
-            en_dias: $(this).find('.a_pedido').val(),
-          }
-          maquinas_a_pedido.push(maquina);
+    if($(this).find('.a_pedido').length){
+      if($(this).find('.a_pedido').val() != 0){
+        const maquina = {
+          id: $(this).find('.a_pedido').attr('data-maquina'),
+          en_dias: $(this).find('.a_pedido').val(),
         }
+        maquinas_a_pedido.push(maquina);
       }
-    })
+    }
+  })
 
-    var formData = {
-      id_relevamiento: id_relevamiento,
+  $.ajax({
+    type: 'POST',
+    url: 'relevamientos/validarRelevamiento',
+    data: {
+      id_relevamiento: $('#modalValidarRelevamiento #id_relevamiento').val(),
       observacion_validacion: $('#observacion_validacion').val(),
       maquinas_a_pedido: maquinas_a_pedido,
       truncadas:truncadas,
       data
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: 'relevamientos/validarRelevamiento',
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-          $('#btn-buscar').trigger('click');
-          $('#modalValidarRelevamiento').modal('hide');
-
-        },
-        error: function (data) {
-          console.log('MAL');
-          console.log(data);
-
-          $('#mensajeValidacion').show();
-          $("#modalValidarRelevamiento").animate({ scrollTop: $('#mensajeValidacion').offset().top }, "slow");
-        },
-    });
-
+    },
+    dataType: 'json',
+    success: function (data) {
+      $('#btn-buscar').trigger('click');
+      $('#modalValidarRelevamiento').modal('hide');
+    },
+    error: function (data) {
+      console.log(data);
+      $('#mensajeValidacion').show();
+      $("#modalValidarRelevamiento").animate({ scrollTop: $('#mensajeValidacion').offset().top }, "slow");
+    },
+  });
 });
 
 
@@ -788,9 +758,6 @@ $(document).on('click','.verDetalle',function(e){
 
 $('#btn-relevamientoSinSistema').click(function(e) {
   e.preventDefault();
-  $('#modalRelSinSistema .modal-title').text('| RELEVAMIENTO SIN SISTEMA');
-  $('#modalRelSinSistema .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-
   $('#fechaGeneracion').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -821,32 +788,22 @@ $('#btn-relevamientoSinSistema').click(function(e) {
 //ABRIR MODAL DE CARGAR MAQUINAS POR RELEVAMIENTO
 $('#btn-maquinasPorRelevamiento').click(function(e) {
   e.preventDefault();
-
-  $('modalMaquinasPorRelevamiento .modal-title').text('| MÁQUINAS POR RELEVAMIENTOS');
   //Ocultar y mostrar botones necesarios
   $('#btn-generarMaquinasPorRelevamiento').show();
   $('#btn-generarDeTodasFormas').hide();
   $('#mensajeTemporal').hide();
   $('#btn-cancelarTemporal').hide();
-
   $('#frmMaquinasPorRelevamiento').trigger('reset');
-  $('#sector option').remove();
+  $('#modalMaquinasPorRelevamiento #casino').change();
+  $('#modalMaquinasPorRelevamiento #tipo_cantidad').change();
   $('#modalMaquinasPorRelevamiento').modal('show');
   $('#modalMaquinasPorRelevamiento').find('.modal-body').children('#iconoCarga').hide();
-
   $('#modalMaquinasPorRelevamiento #detalles').hide();
-
-  habilitarDTPmaquinasPorRelevamiento();
 });
 
 //Generar el relevamiento de backup
 $('#btn-backup').click(function(e){
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   e.preventDefault();
 
@@ -855,8 +812,6 @@ $('#btn-backup').click(function(e){
     fecha_generacion: $('#fechaGeneracion_date').val(),
     id_sector: $('#sectorSinSistema').val(),
   }
-
-  console.log(formData);
 
   $.ajax({
       type: "POST",
@@ -900,83 +855,55 @@ $('#fechaRelSinSistema input').on('change',function(e) {
 //MODAL DE CANTIDAD DE MÁQUINAS POR RELEVAMIENTOS |  DEFAULT Y TEMPORALES
 //Obtener las máquinas para cada relevamiento según el sector
 $('#modalMaquinasPorRelevamiento #casino').on('change',function(){
-  var id_casino = $('#modalMaquinasPorRelevamiento #casino option:selected').attr('id');
-
   $('#modalMaquinasPorRelevamiento #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-
-    for (var i = 0; i < data.sectores.length; i++) {
-      $('#modalMaquinasPorRelevamiento #sector')
-          .append($('<option>')
-              .val(data.sectores[i].id_sector)
-              .text(data.sectores[i].descripcion)
-          )
+  $.get("sectores/obtenerSectoresPorCasino/" + $('#modalMaquinasPorRelevamiento #casino').val(), function(data){
+    for (let i = 0; i < data.sectores.length; i++) {
+      const op = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
+      $('#modalMaquinasPorRelevamiento #sector').append(op);
     }
-
     maquinasPorRelevamiento();
   });
 });
 
-$('#modalMaquinasPorRelevamiento #sector').on('change',function(){
-    maquinasPorRelevamiento();
-});
+$('#modalMaquinasPorRelevamiento #sector').on('change',maquinasPorRelevamiento);
 
 //Según el tipo de tipo se bloquea la fecha o no
 $('#modalMaquinasPorRelevamiento #tipo_cantidad').change(function() {
-  if ($("#modalMaquinasPorRelevamiento #tipo_cantidad option:selected").attr('id') == 1) {
-    deshabilitarDTPmaquinasPorRelevamiento();
-  }
-  else {
-    habilitarDTPmaquinasPorRelevamiento();
-  }
+  const habilitar = $("#modalMaquinasPorRelevamiento #tipo_cantidad").val() != 1;
+  toggleDTPmaquinasPorRelevamiento(habilitar);
 });
 
 var generarMaquinasPorRelevamiento = true;
 
 $('#btn-generarDeTodasFormas').click(function(){
-    $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-    var id_sector = $('#modalMaquinasPorRelevamiento #sector option:selected').val();
-    var fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
-    var fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
-    var id_tipo_cantidad_maquinas_por_relevamiento = $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').attr('id');
-    var cantidad_maquinas = $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val();
+  const formData = {
+    id_sector:         $('#modalMaquinasPorRelevamiento #sector').val(),
+    id_tipo_cantidad_maquinas_por_relevamiento: 
+                       $('#modalMaquinasPorRelevamiento #tipo_cantidad').val(),
+    fecha_desde:       $('#modalMaquinasPorRelevamiento #fecha_desde').val(),
+    fecha_hasta:       $('#modalMaquinasPorRelevamiento #fecha_hasta').val(),
+    cantidad_maquinas: $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val(),
+  };
 
-    var formData = {
-      id_sector: id_sector,
-      id_tipo_cantidad_maquinas_por_relevamiento: id_tipo_cantidad_maquinas_por_relevamiento,
-      fecha_desde: fecha_desde,
-      fecha_hasta: fecha_hasta,
-      cantidad_maquinas: cantidad_maquinas,
-    }
-
-    console.log(formData);
-
-    $.ajax({
-        type: "POST",
-        url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            //Habilitar botón originales y sacar los temporales
-            $('#btn-generarMaquinasPorRelevamiento').show();
-            $('#btn-generarDeTodasFormas').hide();
-            $('#mensajeTemporal').hide();
-            $('#btn-cancelarTemporal').hide();
-
-            desbloquearDatosMaquinasPorRelevamiento();
-
-            //Modificar defecto y/o agregar temporal
-            setCantidadMaquinas(data);
-
-            //Mostrar mensaje de éxito
-
-        },
-        error: function (data) {
-          console.log(data);
-        }
-    });
+  $.ajax({
+    type: "POST",
+    url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      //Habilitar botón originales y sacar los temporales
+      $('#btn-generarMaquinasPorRelevamiento').show();
+      $('#btn-generarDeTodasFormas').hide();
+      $('#mensajeTemporal').hide();
+      $('#btn-cancelarTemporal').hide();
+      desbloquearDatosMaquinasPorRelevamiento();
+      //Modificar defecto y/o agregar temporal
+      setCantidadMaquinas(data);
+    },
+    error: function (data) { console.log(data); }
+  });
 });
 
 //Si se cancela la generación temporal se ocultan los boton y se muestran los originales
@@ -992,16 +919,14 @@ $('#btn-cancelarTemporal').click(function(){
 $('#btn-generarMaquinasPorRelevamiento').click(function(){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  var tipo_cantidad = $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').val();
   var id_sector = $('#modalMaquinasPorRelevamiento #sector option:selected').val();
   var fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
   var fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
-  var id_tipo_cantidad_maquinas_por_relevamiento = $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').attr('id');
+  var id_tipo_cantidad_maquinas_por_relevamiento = $('#modalMaquinasPorRelevamiento #tipo_cantidad').val();
   var cantidad_maquinas = $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val();
 
   //Todo para TEMPORAL
-  if (tipo_cantidad == "Temporal") {
-
+  if ($('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').text() == "Temporal") {
     //Preguntar si las fechas para cantidad TEMPORAL se pisan
     //SOLO PARA UN MENSAJE DE ALERTA AL USUARIO
     $.get('relevamientos/existeCantidadTemporalMaquinas/' + id_sector + "/" + fecha_desde + "/" + fecha_hasta, function(data){
@@ -1036,11 +961,8 @@ $('#btn-generarMaquinasPorRelevamiento').click(function(){
                   data: formData,
                   dataType: 'json',
                   success: function (data) {
-                      console.log(data);
                       //Modificar defecto y/o agregar temporal
                       setCantidadMaquinas(data);
-                      //Mostrar mensaje de éxito
-
                   },
                   error: function (data) {
                     console.log(data);
@@ -1086,30 +1008,17 @@ $('#btn-generarMaquinasPorRelevamiento').click(function(){
 //Borrar una cantidad temporal de máquinas por relevamientos
 $('#modalMaquinasPorRelevamiento').on('click','.borrarCantidadTemporal', function(e){
   e.preventDefault();
-
-  console.log('CLICK');
-  var id_cantidad_maquinas_por_relevamiento = $(this).parent().parent().attr('id');
-
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
-  var formData = {
-    id_cantidad_maquinas_por_relevamiento: id_cantidad_maquinas_por_relevamiento
-  }
-
   $.ajax({
       type: "POST",
       url: 'relevamientos/eliminarCantidadMaquinasPorRelevamiento',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
-          maquinasPorRelevamiento();
+      data: {
+        id_cantidad_maquinas_por_relevamiento: $(this).parent().parent().attr('id')
       },
-      error: function (error) {
-        console.log('Error: ', error);
-      }
+      dataType: 'json',
+      success: maquinasPorRelevamiento,
+      error: function (error) { console.log(error); }
   });
-
 });
 
 $(document).on('focusin' , 'input' , function(e){
@@ -1723,94 +1632,69 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
 }
 
 function maquinasAPedido(){
-  var id_sector = $('#modalRelevamiento #sector option:selected').val();
-
-  var fecha = $('#fechaDate').val();
+  const id_sector = $('#modalRelevamiento #sector').val();
+  const fecha = $('#fechaDate').val();
 
   $.get("relevamientos/obtenerCantidadMaquinasRelevamientoHoy/" + id_sector, function(cantidad){
-      $('#modalRelevamiento #cantidad_maquinas').val(cantidad);
+    $('#modalRelevamiento #cantidad_maquinas').val(cantidad);
   });
 
   $.get("mtm_a_pedido/obtenerMtmAPedido/" + fecha + "/" + id_sector, function(data){
-      console.log(data);
-      var cantidad = data.cantidad;
-
-      if (cantidad == 0){
-        $('#maquinas_pedido').hide();
-      }else {
-        if (cantidad == 1) $('#maquinas_pedido').find('span').text('Este sector tiene ' + cantidad + ' máquina a pedido.');
-        else $('#maquinas_pedido').find('span').text('Este sector tiene ' + cantidad + ' máquinas a pedido.');
-
-        $('#maquinas_pedido').show();
-      }
+    const c = data.cantidad;
+    if (c == 0){
+      $('#maquinas_pedido').hide();
+      return;
+    }
+    $('#maquinas_pedido').find('span').text(`Este sector tiene ${c} máquina${c==1? '' : 's'} a pedido.`);
+    $('#maquinas_pedido').show();
   });
 }
 
 function existeRelevamiento(){
-  var id_sector = $('#modalRelevamiento #sector option:selected').val();
-  $.get('relevamientos/existeRelevamiento/' + id_sector, function(data){
-      //Se guarda un valor que indica que para el SECTOR y la FECHA ACTUAL:
-          // 0: No existe relevamiento generado.
-          // 1: Solamente está generado y se puede volver a generar.
-          // 2: El relevamiento empezó a cargarse, entonces no se puede volver a generar.
-      $('#modalRelevamiento #existeRelevamiento').val(data);
+  //Se guarda un valor que indica que para el SECTOR y la FECHA ACTUAL
+  $.get('relevamientos/existeRelevamiento/' + $('#modalRelevamiento #sector').val(), function(data){
+    //0: No existe 1: Está generado (se puede volver a generar) 2: Empezo a cargarse (no se puede volver a generar)
+    $('#modalRelevamiento #existeRelevamiento').val(data);
   });
 }
 
 /* Funciones de MÁQUINAS POR RELEVAMIENTO */
 function maquinasPorRelevamiento() {
-  var id_sector = $('#modalMaquinasPorRelevamiento #sector option:selected').val();
-  console.log(id_sector);
-
+  const id_sector = $('#modalMaquinasPorRelevamiento #sector').val();
   //Si se elige correctamente un sector se muestran los detalles
-  if (typeof id_sector !== 'undefined') {
-      $.get('relevamientos/obtenerCantidadMaquinasPorRelevamiento/' + id_sector, function(data){
-          console.log(data);
-          setCantidadMaquinas(data);
-          //Mostrar detalles
-          $('#modalMaquinasPorRelevamiento #detalles').show();
-      });
+  if(id_sector == null){
+    $('#modalMaquinasPorRelevamiento #detalles').hide();
+    return;
   }
-  else {
-      //Ocultar detalles
-      $('#modalMaquinasPorRelevamiento #detalles').hide();
-  }
-
+  $.get('relevamientos/obtenerCantidadMaquinasPorRelevamiento/' + id_sector, function(data){
+    setCantidadMaquinas(data);
+    //Mostrar detalles
+    $('#modalMaquinasPorRelevamiento #detalles').show();
+  });
 }
 
 function setCantidadMaquinas(data) {
   $('#maquinas_temporales tbody tr').remove();
   $('#maquinas_temporales').hide();
   $('#maquinas_defecto').text("-");
+  if(data.length == 0) return;
 
-  if (data.length != 0) {
-      console.log("Hay algo");
-
-      $.each(data, function(i, valor){
-          //MÁQUINAS POR DEFECTO
-          if(valor.fecha_desde == null && valor.fecha_hasta == null) {
-              console.log("Defecto");
-              console.log(valor);
-
-              setCantidadMaquinasDefecto(valor);
-          }
-          //MÁQUINAS TEMPORALES
-          else {
-              console.log("Temporal");
-              console.log(valor);
-
-              SetCantidadMaquinasTemporales(valor);
-          }
-      });
-
-  }
+  $.each(data, function(i, valor){
+    //MÁQUINAS POR DEFECTO
+    if(valor.fecha_desde == null && valor.fecha_hasta == null) {
+      setCantidadMaquinasDefecto(valor);
+      return;
+    }
+    //MÁQUINAS TEMPORALES
+    setCantidadMaquinasTemporales(valor);
+  });
 }
 
 function setCantidadMaquinasDefecto(valor) {
   $('#maquinas_defecto').text(valor.cantidad);
 }
 
-function SetCantidadMaquinasTemporales(valor) {
+function setCantidadMaquinasTemporales(valor) {
   const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   var fecha_desde = valor.fecha_desde.split("-");
   fecha_desde = fecha_desde[2] + " " + nombreMeses[fecha_desde[1] - 1] + " " + fecha_desde[0];
@@ -1844,54 +1728,12 @@ function SetCantidadMaquinasTemporales(valor) {
   $('#maquinas_temporales').show();
 }
 
-function habilitarDTPmaquinasPorRelevamiento() {
-  $('#dtpFechaDesde input').prop('readonly',false);
-  $('#dtpFechaHasta input').prop('readonly',false);
-
-  var fechaActual;
-
-  $.get('obtenerFechaActual', function (data) {
-      fechaActual = data.fechaDate;
-      console.log(fechaActual);
-
-      $('#modalMaquinasPorRelevamiento #dtpFechaDesde').datetimepicker({
-        todayBtn:  1,
-        language:  'es',
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'dd MM yyyy',
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        minuteStep: 5,
-        startDate: fechaActual,
-      });
-
-      $('#modalMaquinasPorRelevamiento #dtpFechaHasta').datetimepicker({
-        todayBtn:  1,
-        language:  'es',
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'dd MM yyyy',
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        minuteStep: 5,
-        startDate: fechaActual,
-      });
-  });
-
-}
-
-function deshabilitarDTPmaquinasPorRelevamiento() {
-  $('#dtpFechaDesde input').prop('readonly',true);
-  $('#dtpFechaHasta input').prop('readonly',true);
-  $('#dtpFechaDesde input').val('');
-  $('#dtpFechaHasta input').val('');
-  $('#modalMaquinasPorRelevamiento #dtpFechaDesde').datetimepicker('remove');
-  $('#modalMaquinasPorRelevamiento #dtpFechaHasta').datetimepicker('remove');
+function toggleDTPmaquinasPorRelevamiento(habilitado) {
+  $('#dtpFechaDesde').data('datetimepicker').reset();
+  $('#dtpFechaHasta').data('datetimepicker').reset();
+  $('#dtpFechaDesde input,#dtpFechaHasta input').prop('readonly',!habilitado).toggle(habilitado);
+  $('#dtpFechaDesde span,#dtpFechaHasta span').toggle(habilitado);
+  $('#dtpFechaDesde,#dtpFechaHasta').siblings('h5').toggle(habilitado);
 }
 
 function bloquearDatosMaquinasPorRelevamiento() {
@@ -1912,7 +1754,7 @@ function desbloquearDatosMaquinasPorRelevamiento() {
   $('#modalMaquinasPorRelevamiento #casino').attr('disabled',false);
   $('#modalMaquinasPorRelevamiento #sector').attr('disabled',false);
   $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',false);
-  habilitarDTPmaquinasPorRelevamiento();
+  toggleDTPmaquinasPorRelevamiento(true);
 }
 
 

@@ -9,10 +9,10 @@ use App\Http\Controllers\AuthenticationController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
 $id_usuario = session('id_usuario');
+$usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
 ?>
 
 @section('estilos')
-<!-- <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/> -->
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -20,7 +20,6 @@ $id_usuario = session('id_usuario');
 <link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
-
         <div class="row">
             <div class="col-xl-3">
               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'relevamiento_cargar'))
@@ -188,7 +187,7 @@ $id_usuario = session('id_usuario');
                     <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                        <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoMRelevamientos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                       <h3 class="modal-title">SELECCIONAR MAQUINAS POR RELEVAMIENTO</h3>
+                       <h3 class="modal-title">| MÁQUINAS POR RELEVAMIENTOS</h3>
                     </div> <!-- /.modal-header -->
 
                 <div  id="colapsadoMRelevamientos" class="collapse in">
@@ -202,11 +201,9 @@ $id_usuario = session('id_usuario');
                                   <div class="col-md-4">
                                       <h5>CASINO</h5>
                                       <select id="casino" class="form-control" name="">
-                                          <option value="">- Seleccione un casino -</option>
-                                          <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                           @foreach ($usuario['usuario']->casinos as $casino)
-                                           <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
-                                           @endforeach
+                                        @foreach ($usuario->casinos as $idx => $casino)
+                                        <option value="{{$casino->id_casino}}" {{$idx == 0? 'selected' : ''}}>{{$casino->nombre}}</option>
+                                        @endforeach
                                       </select>
                                       <br> <span id="alertaCasino" class="alertaSpan"></span>
                                   </div>
@@ -222,9 +219,8 @@ $id_usuario = session('id_usuario');
                                   <div class="col-md-4">
                                     <h5>TIPO</h5>
                                     <select id="tipo_cantidad" class="form-control" name="">
-                                        <option value="">- Seleccione el tipo -</option>
-                                        @foreach($tipos_cantidad as $tipo_cantidad)
-                                        <option id="{{$tipo_cantidad->id_tipo_cantidad_maquinas_por_relevamiento}}">
+                                        @foreach($tipos_cantidad as $idx => $tipo_cantidad)
+                                        <option value="{{$tipo_cantidad->id_tipo_cantidad_maquinas_por_relevamiento}}" {{$idx == 0? 'selected' : ''}}>
                                           {{$tipo_cantidad->descripcion}}
                                         </option>
                                         @endforeach
@@ -374,26 +370,22 @@ $id_usuario = session('id_usuario');
                 <div class="modal-body modalCuerpo">
 
                   <form id="frmRelevamiento" name="frmRelevamiento" class="form-horizontal" novalidate="">
-
                           <div class="row">
                             <div class="col-md-12">
                               <h5>FECHA DE RELEVAMIENTO</h5>
-                              <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
                               <input id="fechaActual" type='text' class="form-control" disabled style="text-align:center;">
                               <input id="fechaDate" type="text" name="" hidden>
                               <br>
                             </div>
                           </div>
-
                           <div class="row">
                             <div class="col-md-6">
                               <h5>CASINO</h5>
                               <select id="casino" class="form-control" name="">
-                                  <option value="">- Seleccione un casino -</option>
-                                  <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                   @foreach ($usuario['usuario']->casinos as $casino)
-                                   <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
-                                   @endforeach
+                                <option value="">- Seleccione un casino -</option>
+                                @foreach ($usuario->casinos as $casino)
+                                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                @endforeach
                               </select>
                               <br> <span id="alertaCasino" class="alertaSpan"></span>
                             </div>
@@ -508,10 +500,10 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalRelSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">RELEVAMIENTO SIN SISTEMA</h3>
+                 <h3 class="modal-title">| RELEVAMIENTO SIN SISTEMA</h3>
                 </div>
 
                 <div  id="colapsadoSinSistema" class="collapse in">
@@ -550,11 +542,10 @@ $id_usuario = session('id_usuario');
                             <div class="col-md-6">
                               <h5>CASINO</h5>
                               <select id="casinoSinSistema" class="form-control" name="">
-                                  <option value="">- Seleccione un casino -</option>
-                                  <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                   @foreach ($usuario['usuario']->casinos as $casino)
-                                   <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
-                                   @endforeach
+                                <option value="">- Seleccione un casino -</option>
+                                @foreach ($usuario->casinos as $casino)
+                                <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                                @endforeach
                               </select>
                               <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>
                             </div>
