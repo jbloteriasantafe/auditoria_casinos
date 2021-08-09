@@ -313,7 +313,9 @@ class ProducidoController extends Controller
     }
 
     // Si falta el contador inicial, busco el ultimo que tenemos
-    if($dif['id_detalle_contador_inicial'] == null){
+    // Pueden ser ambos nulos, cuando falta en ambos dias el contador de la maquina y el producido reportado es != 0
+    // Ese caso lo ven los auditores manualmente
+    if($dif['id_detalle_contador_inicial'] == null && $dif['id_detalle_contador_final'] != null){
       // Aca nunca deberia ser nulo el final, no pueden ser ambos nulos porque darian 0 de diferencia y no entraria a esta función
       $id_contador_final    = DetalleContadorHorario::find($dif['id_detalle_contador_final'])->id_contador_horario;
       $fecha_contador_final = ContadorHorario::find($id_contador_final)->fecha;
