@@ -279,37 +279,13 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
     return;
   }
 
-  let suma = 0;
-  let inputValido = false;
-  for(let c = 1;c<=8;c++){
-    const formulaCont  = fila.find('.formulaCont'+c).val();
-    const operador     = fila.find('.formulaOper'+c).val();
-    const contador_str = fila.find('.cont'+c).val();
-    const contador     = contador_str != ''? parseFloat(contador_str.replace(/,/g,".")) : 0;
-
-    inputValido = inputValido || (contador_str != '');
-    if(formulaCont == '') continue;
-
-    if(c == 1){//@BUG: Ignora el signo del primer contador... no se si es correcto
-      suma = contador;
-    }
-    else{
-      const contador_signo = operador == '+'? contador : -contador;
-      suma += contador_signo;
-    }
-  }
-
-  let diferencia = 0;
-  {
-    let sumaxdenom = suma;
-    if(fila.attr('data-medida') == 1){//si trabjo en credito
-      sumaxdenom  = suma * Number(fila.attr('data-denominacion'));
-    }
-    const suma_redondeada = Number(sumaxdenom.toFixed(2));
-    const producido_redondeado = Number(Number(producido).toFixed(2));
-    //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
-    diferencia = Number((suma_redondeada-producido_redondeado).toFixed(2));
-  }
+  const aux = producidoCalculadoRelevado(fila);
+  const suma = aux.producido_calculado;
+  const inputValido = aux.inputValido;
+  const suma_redondeada = Number(suma.toFixed(2));
+  const producido_redondeado = Number(Number(producido).toFixed(2));
+  //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
+  const diferencia = Number((suma_redondeada-producido_redondeado).toFixed(2));
   
   if (diferencia == 0 && inputValido) {
     fila.find('.icono-estado i.fa-check').show();
@@ -487,7 +463,7 @@ $(document).on('click','.verDetalle',function(e){
       //el removeAttr es importante, por algun motivo si lo modifico derecho mantiene la referencia al molde
       const fila = $('#moldeVerRelevamiento').clone().removeAttr('id').attr('id',d.id_detalle_relevamiento);
       fila.find('.nro_admin').text(d.nro_admin);
-      for(let c=1;c<=8;c++){
+      for(let c = 1;c<=8;c++){
         const cont = d.detalle['cont'+c];
         //Si es 7,8 solo se muestra cuando no es nulo (ver el molde)
         if(cont != null) fila.find('.cont'+c).text(cont).show();
@@ -713,77 +689,27 @@ $(document).on('focusin' , 'input' , function(e){
   $(this).removeClass('alerta');
 })
 
-function producidoCalculadoRelevado(fila){ //funcion que calcula el producido
-  var suma = 0;
-  var unidad_medida = fila.attr('data-medida');
-  var denominacion =  fila.attr('data-denominacion');
-  formulaCont1 = fila.find('.formulaCont1').val();
-  formulaCont2 = fila.find('.formulaCont2').val();
-  formulaCont3 = fila.find('.formulaCont3').val();
-  formulaCont4 = fila.find('.formulaCont4').val();
-  formulaCont5 = fila.find('.formulaCont5').val();
-  formulaCont6 = fila.find('.formulaCont6').val();
-  formulaCont7 = fila.find('.formulaCont7').val();
-  formulaCont8 = fila.find('.formulaCont8').val();
+function producidoCalculadoRelevado(fila){
+  let suma = 0;
+  let inputValido = false;
+  for(let c = 1;c<=8;c++){
+    const formulaCont  = fila.find('input.formulaCont'+c).val()
+    if(formulaCont == '') continue;
+    const operador     = fila.find('input.formulaOper'+c).val();
+    const contador_str = fila.find('input.cont'+c).val().replace(/,/g,".");
+    const contador     = contador_str != ''? parseFloat(contador_str) : 0;
+    inputValido = inputValido || (contador_str != '');
 
-  operador1 = fila.find('.formulaOper1').val();
-  operador2 = fila.find('.formulaOper2').val();
-  operador3 = fila.find('.formulaOper3').val();
-  operador4 = fila.find('.formulaOper4').val();
-  operador5 = fila.find('.formulaOper5').val();
-  operador6 = fila.find('.formulaOper6').val();
-  operador7 = fila.find('.formulaOper7').val();
-  operador8 = fila.find('.formulaOper8').val();
-
-  producido = parseFloat(fila.find('td').find('.producido').val());
-
-  contador1 = fila.find('td').find('.cont1').val() != '' ? parseFloat(fila.find('td').find('.cont1').val().replace(/,/g,".")) : 0;
-  contador2 = fila.find('td').find('.cont2').val() != '' ? parseFloat(fila.find('td').find('.cont2').val().replace(/,/g,".")) : 0;
-  contador3 = fila.find('td').find('.cont3').val() != '' ? parseFloat(fila.find('td').find('.cont3').val().replace(/,/g,".")) : 0;
-  contador4 = fila.find('td').find('.cont4').val() != '' ? parseFloat(fila.find('td').find('.cont4').val().replace(/,/g,".")) : 0;
-  contador5 = fila.find('td').find('.cont5').val() != '' ? parseFloat(fila.find('td').find('.cont5').val().replace(/,/g,".")) : 0;
-  contador6 = fila.find('td').find('.cont6').val() != '' ? parseFloat(fila.find('td').find('.cont6').val().replace(/,/g,".")) : 0;
-  contador7 = fila.find('td').find('.cont7').val() != '' ? parseFloat(fila.find('td').find('.cont7').val().replace(/,/g,".")) : 0;
-  contador8 = fila.find('td').find('.cont8').val() != '' ? parseFloat(fila.find('td').find('.cont8').val().replace(/,/g,".")) : 0;
-
-  //FALTA VALIDAR QUE EL INPUT ESTÉ LLENO
-  if (formulaCont1 != '') {
-    suma = contador1;
+    if(c == 1) suma = contador;//@BUG? No tenemos en cuenta el signo en el primer contador?
+    else{
+      const contador_signo = operador == '+'? contador : -contador;
+      suma += contador_signo;
+    }
   }
-  if (formulaCont2 != '') {
-    if (operador1 == '+') suma += contador2;
-    else suma -= contador2;
+  if(fila.attr('data-medida') == 1){
+     suma = suma * fila.attr('data-denominacion');
   }
-  if (formulaCont3 != '') {
-    if (operador2 == '+') suma += contador3;
-    else suma -= contador3;
-  }
-  if (formulaCont4 != '') {
-    if (operador3 == '+') suma += contador4;
-    else suma -= contador4;
-  }
-  if (formulaCont5 != '') {
-    if (operador4 == '+') suma += contador5;
-    else suma -= contador5;
-  }
-  if (formulaCont6 != '') {
-    if (operador5 == '+') suma += contador6;
-    else suma -= contador6;
-  }
-  if (formulaCont7 != '') {
-    if (operador6 == '+') suma += contador7;
-    else suma -= contador7;
-  }
-  if (formulaCont8 != '') {
-    if (operador7 == '+') suma += contador8;
-    else suma -= contador8;
-  }
-
-  if(unidad_medida == 1){
-     suma = suma * denominacion;
-  }
-
-  return suma;
+  return {producido_calculado: suma,inputValido: inputValido};
 }
 
 function enviarRelevamiento(estado) {
@@ -797,7 +723,7 @@ function enviarRelevamiento(estado) {
       if (estado == 3) {
         //Si no tiene una causa de no toma se calcula el producido
         if ($(this).children().children('.tipo_causa_no_toma').val() == '') {
-            calculado = producidoCalculadoRelevado($(this)); //calculado relevado siempre se trabaja en dinero, no en creditos
+            calculado = producidoCalculadoRelevado($(this)).producido_calculado; //calculado relevado siempre se trabaja en dinero, no en creditos
             calculado = Math.round(calculado*100)/100;
         }
       }
@@ -1026,7 +952,7 @@ function cargarTablaRelevamientos(data, tabla, estado){
 
     f.find('.maquina').text(d.maquina);
 
-    for(let c=1;c<=8;c++){
+    for(let c = 1;c<=8;c++){
       const cont = 'cont'+c;
       const readonly = validando || (cargando && d.formula != null  && d.formula[cont] == null);
       f.find('.'+cont).val(d.detalle[cont]).prop('readonly',readonly);
@@ -1058,7 +984,7 @@ function cargarTablaRelevamientos(data, tabla, estado){
 
     f.find('.fcont,.foper').val(null);
     if (d.formula != null){//@TODO: Pasar a .data()
-      for(let c=1;c<=8;c++){
+      for(let c = 1;c<=8;c++){
         f.find('.formulaCont'+c).val(d.formula['cont'+c]);
         f.find('.formulaOper'+c).val(d.formula['operador'+c]);
       }
