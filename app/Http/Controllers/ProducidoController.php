@@ -276,7 +276,7 @@ class ProducidoController extends Controller
         $dif[$contador_final] -= $vuelta;//Lo vuelvo al original
         if($diferencia == 0){
           $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
-          $detalle_producido->id_tipo_ajuste = 1;
+          $detalle_producido->id_tipo_ajuste = 1;//Vuelta de Contadores
           $detalle_producido->save();
           return true;
         }
@@ -291,10 +291,62 @@ class ProducidoController extends Controller
       foreach($contadores as $c) $dif[$c.'_final'] -= $dif[$c.'_inicio'];
       if($diferencia == 0){//Reset de contadores _NO_ afecta nada en la BD (solo el tipo de ajuste). Ver tabla abajo.
         $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
-        $detalle_producido->id_tipo_ajuste = 2;
+        $detalle_producido->id_tipo_ajuste = 2;//Reset de contadores
         $detalle_producido->save();
         return true;
       }
+    }
+
+    // Si falta el contador final y el producido es 0, quiere decir que apagaron/dieron de baja la maquina
+    // lo ajusto como falta de contadores finales
+    // Si el producido _NO_ es cero, tienen que validarlo a pata viendo de donde produce y porque no reporta
+    if($dif['id_detalle_contador_final'] == null && $dif['producido'] == 0){
+      // Aca hay una diferencia con el guardarAjuste, no le creamos contadores finales para que no los siga arrastrando para
+      // siempre si apagan o dan de baja la maquina (entraria siempre a este ajuste porque tendria contador inicial y no final al proximo dia).
+      // Solo le seteamos el tipo de ajuste.
+      $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
+      $detalle_producido->id_tipo_ajuste = 3;//Cambio/Falta cont. Finales 
+      $detalle_producido->save();
+      return true;
+    }
+
+    // Si falta el contador inicial, busco el ultimo que tenemos
+    if($dif['id_detalle_contador_inicial'] == null){
+      // Aca nunca deberia ser nulo el final, no pueden ser ambos nulos porque darian 0 de diferencia y no entraria a esta función
+      $id_contador_final    = DetalleContadorHorario::find($dif['id_detalle_contador_final'])->id_contador_horario;
+      $fecha_contador_final = ContadorHorario::find($id_contador_final)->fecha;
+      $ultimo_dc = DB::table('detalle_contador_horario as dc')
+      ->select('dc.*')
+      ->join('contador_horario as c','c.id_contador_horario','=','dc.id_contador_horario')
+      // Busco los contadores de la maquina, con fecha menor a la final, ordeno por fecha y me quedo con el ultimo
+      // En principio se podria buscar por id_contador_horario < sin el join... es mas robusto creo asi
+      ->where([['dc.id_maquina','=',$dif['id_maquina']],['c.fecha','<',$fecha_contador_final]])
+      ->orderBy('c.fecha','desc')->take(1)->get();
+
+      // Le transpaso los valores al inicio
+      if($ultimo_dc == null){
+        // Si es nulo, es la primera vez que entra la maquina en nuestra BD
+        // Le transpaso los finales y solo se va a validar cuando el producido es 0
+        foreach($contadores as $c) $dif[$c.'_inicio'] = $dif[$c.'_final'];
+      }
+      else{
+        // En la BD estan en plata, lo paso a creditos
+        foreach($contadores as $c) $dif[$c.'_inicio'] = ($ultimo_dc->{$c} / $dif['denominacion']);
+      }
+
+      $diferencia = $this->recalcularDiferencia($dif);
+      // Si la diferencia _NO_ es cero, lo mas probable que tomaron el contador de otra hora para el producido
+      // Tienen que verificarlo a pata los auditores
+      if($diferencia == 0){
+        $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
+        $detalle_producido->id_tipo_ajuste = 5;//Cambio Cont. Iniciales
+        $detalle_producido->save();
+        //@BUG?: Le creo contadores iniciales? creo que mejor no... para evitar "invalidar" el producido validado anterior
+        return true;
+      }
+
+      // Vuelvo a los valores originales, por si agregamos mas ajustes automaticos
+      foreach($contadores as $c) $dif[$c.'_inicio'] = 0;
     }
     return false;
   }
