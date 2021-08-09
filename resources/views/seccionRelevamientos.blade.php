@@ -195,9 +195,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                     <div class="modal-body modalCuerpo">
 
                       <form id="frmMaquinasPorRelevamiento" name="frmMaquinasPorRelevamiento" class="form-horizontal" novalidate="">
-
                               <div class="row">
-
                                   <div class="col-md-4">
                                       <h5>CASINO</h5>
                                       <select id="casino" class="form-control" name="">
@@ -207,7 +205,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                       </select>
                                       <br> <span id="alertaCasino" class="alertaSpan"></span>
                                   </div>
-
                                   <div class="col-md-4">
                                     <h5>SECTOR</h5>
                                     <select id="sector" class="form-control" name="">
@@ -215,81 +212,50 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                     </select>
                                     <br> <span id="alertaSector" class="alertaSpan"></span>
                                   </div>
-
                                   <div class="col-md-4">
                                     <h5>TIPO</h5>
                                     <select id="tipo_cantidad" class="form-control" name="">
-                                        @foreach($tipos_cantidad as $idx => $tipo_cantidad)
-                                        <option value="{{$tipo_cantidad->id_tipo_cantidad_maquinas_por_relevamiento}}" {{$idx == 0? 'selected' : ''}}>
-                                          {{$tipo_cantidad->descripcion}}
-                                        </option>
-                                        @endforeach
+                                      @foreach($tipos_cantidad as $idx => $tipo_cantidad)
+                                      <option value="{{$tipo_cantidad->id_tipo_cantidad_maquinas_por_relevamiento}}" {{$idx == 0? 'selected' : ''}}>{{$tipo_cantidad->descripcion}}</option>
+                                      @endforeach
                                     </select>
                                     <br> <span id="alertaTipoCantidad" class="alertaSpan"></span>
                                   </div>
-
                               </div>
-
                               <div class="row">
-
-                                <div class="col-md-4">
-                                  <h5>FECHA DESDE</h5>
-                                  <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
-
-
-                                     <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                     </div>
-                                     <input class="form-control" type="hidden" id="fecha_desde" value=""/>
-
-
-
-                                  <!-- <input id="fechaDesde" type='text' class="form-control" readonly>
-                                  <input id="fechaDesdeDate" type="text" name="" hidden> -->
-
-                                </div>
-
-                                <div class="col-md-4">
-                                  <h5>FECHA HASTA</h5>
-                                  <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
-
-
-                                     <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input type='text' class="form-control" placeholder="Fecha Hasta" id="B_fecha_inicio"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                     </div>
-                                     <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
-
-
-                                  <!-- <input id="fechaHasta" type='text' class="form-control" readonly>
-                                  <input id="fechaHastaDate" type="text" name="" hidden> -->
-
-                                </div>
-
                                 <div class="col-md-4">
                                   <h5>MÁQUINAS</h5>
-                                  <!-- <input id="cantidad_maquinas" type="text" class="form-control" name="" value=""> -->
                                   <div class="input-group number-spinner">
                                     <span class="input-group-btn">
-                                      <!-- <button class="btn btn-default" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></button> -->
                                       <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
                                     </span>
                                     <input id="cantidad_maquinas_por_relevamiento" type="text" class="form-control text-center" value="1">
                                     <span class="input-group-btn">
-                                      <!-- <button class="btn btn-default" data-dir="up"><span class="glyphicon glyphicon-plus"></span></button> -->
                                       <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
                                     </span>
                                   </div>
                                 </div>
-
+                                <div class="col-md-4">
+                                  <h5>FECHA DESDE</h5>
+                                  <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                                    <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
+                                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+                                  <input class="form-control" type="hidden" id="fecha_desde" value=""/>
+                                </div>
+                                <div class="col-md-4">
+                                  <h5>FECHA HASTA</h5>
+                                  <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+                                    <input type='text' class="form-control" placeholder="Fecha Hasta" id="B_fecha_inicio"/>
+                                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                  </div>
+                                  <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
+                                </div>
                               </div>
-
                               <br>
                               <br>
-
                               <!-- DETALLES DE LAS MÁQUINAS POR DEFAULT Y TEMPORALES -->
                               <div id="detalles" class="row">
                                   <div class="col-md-12">

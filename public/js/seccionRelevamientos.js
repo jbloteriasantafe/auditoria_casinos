@@ -1,5 +1,4 @@
 $(document).ready(function(){
-  var truncadas=0;
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
   $('#maquinas').addClass('subMenu1 collapse in');
@@ -35,6 +34,18 @@ $(document).ready(function(){
     format: 'dd MM yyyy',
     pickerPosition: "bottom-left",
     startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+  });
+
+  $('#fechaGeneracion,#fechaRelSinSistema').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd MM yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
     minView: 2,
     ignoreReadonly: true,
   });
@@ -80,7 +91,6 @@ $(".pop").mouseleave(function(){
 
 $('.modal').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($('.form-control'));
-  $(document).find('.sector').empty();
 })
 
 $(document).on('click','.pop',function(e){
@@ -108,9 +118,9 @@ $('#btn-nuevoRelevamiento').click(function(e){
 });
 
 $('#modalRelevamiento #sector').on('change',function(){
-    maquinasAPedido();
-    //Acá se pregunta si para el sector y la fecha actual ya se genero un relevamiento.
-    existeRelevamiento();
+  maquinasAPedido();
+  //Acá se pregunta si para el sector y la fecha actual ya se genero un relevamiento.
+  existeRelevamiento();
 });
 
 //GENERAR RELEVAMIENTO SOBRE SECTOR CON RELEVAMIENTO EXISTENTE
@@ -190,21 +200,6 @@ $('#btn-volver').click(function(){
     $('#modalRelevamiento').modal('show');
 });
 
-$('#modalRelSinSistema').on('hidden.bs.modal', function(){
-  $('#casinoSinSistema').val("");
-  $('#sectorSinSistema option').remove();
-
-  $('#fechaRelSinSistema').datetimepicker('remove');
-  $('#fechaGeneracion').datetimepicker('remove');
-
-  $('#fechaRelSinSistema input').val('');
-  $('#fechaRelSinSistema_date').val('');
-
-  $('#fechaGeneracion input').val('');
-  $('#fechaGeneracion_date').val('');
-
-});
-
 $('#modalCargaRelevamiento').on('hidden.bs.modal', function(){
   //limpiar modal
   $('#modalCargaRelevamiento #frmCargaRelevamiento').trigger('reset');
@@ -213,20 +208,23 @@ $('#modalCargaRelevamiento').on('hidden.bs.modal', function(){
 
 $('#modalMaquinasPorRelevamiento').on('hidden.bs.modal', function(){
   //resetearModal
-  desbloquearDatosMaquinasPorRelevamiento();
+  bloquearDatosMaquinasPorRelevamiento(false);
 });
 
+let truncadas = 0;
+let guardado = true;
+let salida = 0; //cantidad de veces que se apreta salir
+
 $(document).on('click','.carga',function(e){
-  truncadas=0;
   e.preventDefault();
 
-  //ocultar mensaje de salida
-  salida = 0;
+  truncadas = 0;
+  salida = 0;//ocultar mensaje de salida
   guardado = true;
   $('#modalCargaRelevamiento .mensajeSalida').hide();
   $("#modalCargaRelevamiento").animate({ scrollTop: 0 }, "slow");
 
-  var id_relevamiento = $(this).val();
+  const id_relevamiento = $(this).val();
   $('#id_relevamiento').val(id_relevamiento);
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
@@ -257,13 +255,11 @@ $(document).on('click','.carga',function(e){
       const tablaCargaRelevamiento = $('#tablaCargaRelevamiento tbody');
 
       cargarTablaRelevamientos(data, tablaCargaRelevamiento, 'Carga');
-      calculoDiferencia(tablaCargaRelevamiento);
+      tablaCargaRelevamiento.find('input').trigger('input');
       habilitarBotonFinalizar();
   });
   $('#modalCargaRelevamiento').modal('show');
 });
-
-var guardado;
 
 //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
 $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:radio):not('.denominacion')", function(){
@@ -323,7 +319,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
     fila.find('.icono-estado i.fa-times').show();
   }
 
-  console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
+  console.log("La suma es: " + (Math.round(suma * 100) / 100) * fila.attr('data-denominacion'));
   console.log("Producido: " + producido);
   console.log("Diferencia: " + diferencia);
 });
@@ -341,7 +337,6 @@ $(document).on('change','.tipo_causa_no_toma',function(){
 });
 
 //SALIR DEL RELEVAMIENTO
-var salida; //cantidad de veces que se apreta salir
 $('#btn-salir').click(function(){
   //Si está guardado deja cerrar el modal
   if (guardado || salida != 0) $('#modalCargaRelevamiento').modal('hide');
@@ -521,30 +516,10 @@ $(document).on('click','.verDetalle',function(e){
 
 $('#btn-relevamientoSinSistema').click(function(e) {
   e.preventDefault();
-  $('#fechaGeneracion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#fechaRelSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
+  $('#fechaGeneracion').data('datetimepicker').reset();
+  $('#fechaRelSinSistema').data('datetimepicker').reset();
+  $('#casinoSinSistema').val("");
+  $('#sectorSinSistema option').remove();
   $('#modalRelSinSistema').modal('show');
 });
 
@@ -649,7 +624,7 @@ $('#btn-generarDeTodasFormas').click(function(){
       $('#btn-generarDeTodasFormas').hide();
       $('#mensajeTemporal').hide();
       $('#btn-cancelarTemporal').hide();
-      desbloquearDatosMaquinasPorRelevamiento();
+      bloquearDatosMaquinasPorRelevamiento(false);
       //Modificar defecto y/o agregar temporal
       setCantidadMaquinas(data);
     },
@@ -663,97 +638,59 @@ $('#btn-cancelarTemporal').click(function(){
   $('#btn-generarDeTodasFormas').hide();
   $('#mensajeTemporal').hide();
   $('#btn-cancelarTemporal').hide();
-
-  desbloquearDatosMaquinasPorRelevamiento();
+  bloquearDatosMaquinasPorRelevamiento(false);
 });
 
 $('#btn-generarMaquinasPorRelevamiento').click(function(){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  var id_sector = $('#modalMaquinasPorRelevamiento #sector option:selected').val();
-  var fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
-  var fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
-  var id_tipo_cantidad_maquinas_por_relevamiento = $('#modalMaquinasPorRelevamiento #tipo_cantidad').val();
-  var cantidad_maquinas = $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val();
+  const id_sector = $('#modalMaquinasPorRelevamiento #sector').val();
+  const fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
+  const fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
 
-  //Todo para TEMPORAL
-  if ($('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').text() == "Temporal") {
+  if($('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').text() == "Temporal"){
     //Preguntar si las fechas para cantidad TEMPORAL se pisan
-    //SOLO PARA UN MENSAJE DE ALERTA AL USUARIO
-    $.get('relevamientos/existeCantidadTemporalMaquinas/' + id_sector + "/" + fecha_desde + "/" + fecha_hasta, function(data){
-          console.log(data);
-
-          //Si el intervalo de fechas se pisa con uno definido anteriormente
-          if (data.existe) {
-              //Mostrar mensaje y habilitar boton para generar de todas formas con las fechas elegidas
-              $('#btn-generarMaquinasPorRelevamiento').hide();
-
-              $('#mensajeTemporal').show();
-              $('#btn-generarDeTodasFormas').show();
-              $('#btn-cancelarTemporal').show();
-
-              //Deshabilitar todos los inputs
-              bloquearDatosMaquinasPorRelevamiento();
-          }
-          else {
-              var formData = {
-                id_sector: id_sector,
-                id_tipo_cantidad_maquinas_por_relevamiento: id_tipo_cantidad_maquinas_por_relevamiento,
-                fecha_desde: fecha_desde,
-                fecha_hasta: fecha_hasta,
-                cantidad_maquinas: cantidad_maquinas,
-              }
-
-              console.log(formData);
-
-              $.ajax({
-                  type: "POST",
-                  url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
-                  data: formData,
-                  dataType: 'json',
-                  success: function (data) {
-                      //Modificar defecto y/o agregar temporal
-                      setCantidadMaquinas(data);
-                  },
-                  error: function (data) {
-                    console.log(data);
-                  }
-              });
-          }
+    let existe = false;
+    $.ajax({
+      url: 'relevamientos/existeCantidadTemporalMaquinas/' + id_sector + "/" + fecha_desde + "/" + fecha_hasta,
+      async: false,//REQUEST SINCRONICO!! @HACK: Habria que obtener un error en el request de abajo y manejarlo asi, mas simple...
+      type: "GET",
+      success: function(data){
+        existe = data.existe;
+      },
+      error: function(error){ console.log(error); }
     });
+    if(existe){
+      //Mostrar mensaje y habilitar boton para generar de todas formas con las fechas elegidas
+      $('#btn-generarMaquinasPorRelevamiento').hide();
+      $('#mensajeTemporal').show();
+      $('#btn-generarDeTodasFormas').show();
+      $('#btn-cancelarTemporal').show();
+      //Deshabilitar todos los inputs
+      bloquearDatosMaquinasPorRelevamiento(true);
+      return;
+    }
   }
 
-  //Todo para DEFAULT
-  else {
-    var formData = {
+  $.ajax({
+    type: "POST",
+    url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
+    data: {
       id_sector: id_sector,
-      id_tipo_cantidad_maquinas_por_relevamiento: id_tipo_cantidad_maquinas_por_relevamiento,
+      id_tipo_cantidad_maquinas_por_relevamiento: $('#modalMaquinasPorRelevamiento #tipo_cantidad').val(),
       fecha_desde: fecha_desde,
       fecha_hasta: fecha_hasta,
-      cantidad_maquinas: cantidad_maquinas,
+      cantidad_maquinas: $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val(),
+    },
+    dataType: 'json',
+    success: function (data) {
+      //Modificar defecto y/o agregar temporal
+      setCantidadMaquinas(data);
+    },
+    error: function (data) {
+      console.log(data);
     }
-
-    console.log(formData);
-
-    $.ajax({
-        type: "POST",
-        url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            //Modificar defecto y/o agregar temporal
-            setCantidadMaquinas(data);
-            //Mostrar mensaje de éxito
-
-        },
-        error: function (data) {
-          console.log(data);
-        }
-    });
-  }
-
-
+  });
 });
 
 //Borrar una cantidad temporal de máquinas por relevamientos
@@ -970,7 +907,6 @@ function habilitarBotonFinalizar(){
     var inputLleno = false;
     var noToma = false;
 
-    // console.log(fila);
     //Mirar si la fila tiene algun campo lleno
     $(this).children('td').find('.contador').each(function (j){
         if($(this).val().length > 0) inputLleno = true;
@@ -1158,138 +1094,6 @@ function cargarTablaRelevamientos(data, tabla, estado){
 
   $('.pop').popover({
     html:true
-  });
-}
-
-function calculoDiferencia(tablaRelevamientos){
-  //Calcular las diferencias
-  tablaRelevamientos.find('tr').each(function(){
-  var renglon_actual = $(this);
-  // $('#tablaCargaRelevamiento tbody tr').each(function () {
-      if ($(this).find('td').find('.producido').val() == '') {
-          $(this).find('i.fa-question').show();
-          $(this).find('i.fa-times').hide();
-          $(this).find('i.fa-ban').hide();
-          $(this).find('i.fa-check').hide();
-          $(this).find('i.fa-exclamation').hide();
-      }else{
-              formulaCont1 = $(this).find('.formulaCont1').val();
-              formulaCont2 = $(this).find('.formulaCont2').val();
-              formulaCont3 = $(this).find('.formulaCont3').val();
-              formulaCont4 = $(this).find('.formulaCont4').val();
-              formulaCont5 = $(this).find('.formulaCont5').val();
-              formulaCont6 = $(this).find('.formulaCont6').val();
-              formulaCont7 = $(this).find('.formulaCont7').val();
-              formulaCont8 = $(this).find('.formulaCont8').val();
-
-              operador1 = $(this).find('.formulaOper1').val();
-              operador2 = $(this).find('.formulaOper2').val();
-              operador3 = $(this).find('.formulaOper3').val();
-              operador4 = $(this).find('.formulaOper4').val();
-              operador5 = $(this).find('.formulaOper5').val();
-              operador6 = $(this).find('.formulaOper6').val();
-              operador7 = $(this).find('.formulaOper7').val();
-              operador8 = $(this).find('.formulaOper8').val();
-
-              producido = parseFloat($(this).find('td').find('.producido').val());
-
-              contador1 = $(this).find('.cont1').val() != '' ? parseFloat($(this).find('.cont1').val().replace(/,/g,".")) : 0;
-              contador2 = $(this).find('.cont2').val() != '' ? parseFloat($(this).find('.cont2').val().replace(/,/g,".")) : 0;
-              contador3 = $(this).find('.cont3').val() != '' ? parseFloat($(this).find('.cont3').val().replace(/,/g,".")) : 0;
-              contador4 = $(this).find('.cont4').val() != '' ? parseFloat($(this).find('.cont4').val().replace(/,/g,".")) : 0;
-              contador5 = $(this).find('.cont5').val() != '' ? parseFloat($(this).find('.cont5').val().replace(/,/g,".")) : 0;
-              contador6 = $(this).find('.cont6').val() != '' ? parseFloat($(this).find('.cont6').val().replace(/,/g,".")) : 0;
-              contador7 = $(this).find('.cont7').val() != '' ? parseFloat($(this).find('.cont7').val().replace(/,/g,".")) : 0;
-              contador8 = $(this).find('.cont8').val() != '' ? parseFloat($(this).find('.cont8').val().replace(/,/g,".")) : 0;
-
-              var suma = 0;
-
-              var i = 1;
-
-              // Se valida que almenos un input este lleno
-              input1 = $(this).find('.cont1').val() != '' ? true : false;
-              input2 = $(this).find('.cont2').val() != '' ? true : false;
-              input3 = $(this).find('.cont3').val() != '' ? true : false;
-              input4 = $(this).find('.cont4').val() != '' ? true : false;
-              input5 = $(this).find('.cont5').val() != '' ? true : false;
-              input6 = $(this).find('.cont6').val() != '' ? true : false;
-              input7 = $(this).find('.cont7').val() != '' ? true : false;
-              input8 = $(this).find('.cont8').val() != '' ? true : false;
-
-              if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
-                inputValido=true;
-              }else{
-                inputValido=false;
-              }
-              console.log("valor del input 1", $(this).find('.cont1').val() )
-              if (formulaCont1 != '') {
-                suma = contador1;
-              }
-              if (formulaCont2 != '') {
-                if (operador1 == '+') suma += contador2;
-                else suma -= contador2;
-              }
-              if (formulaCont3 != '') {
-                if (operador2 == '+') suma += contador3;
-                else suma -= contador3;
-              }
-              if (formulaCont4 != '') {
-                if (operador3 == '+') suma += contador4;
-                else suma -= contador4;
-              }
-              if (formulaCont5 != '') {
-                if (operador4 == '+') suma += contador5;
-                else suma -= contador5;
-              }
-              if (formulaCont6 != '') {
-                if (operador5 == '+') suma += contador6;
-                else suma -= contador6;
-              }
-              if (formulaCont7 != '') {
-                if (operador6 == '+') suma += contador7;
-                else suma -= contador7;
-              }
-              if (formulaCont8 != '') {
-                if (operador7 == '+') suma += contador8;
-                else suma -= contador8;
-              }
-
-              var renglon_actual = $(this);
-
-              if(renglon_actual.attr('data-medida') == 1){//si trabjo en credito
-                //suma es creditos
-                var denominacion = renglon_actual.attr('data-denominacion');
-                var sumaxdenom = Number((suma * denominacion) );
-                var producidoxcien = Number(producido);
-                var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-
-              }else{
-                var sumatrunc = Number(suma);
-                var producidoxcien = Number(producido);
-                var diferencia = Number(sumatrunc.toFixed(2)) - Number(producidoxcien.toFixed(2));
-              }
-              console.log('acac',diferencia);
-              if (diferencia == 0 && inputValido) {
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').hide();
-                  renglon_actual.find('i.fa-check').show();
-                  renglon_actual.find('i.fa-exclamation').hide();
-                  renglon_actual.find('i.fa-ban').hide();
-                } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').hide();
-                  renglon_actual.find('i.fa-check').hide();
-                  renglon_actual.find('i.fa-exclamation').show();
-                  renglon_actual.find('i.fa-ban').hide();
-                } else {
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').show();
-                  renglon_actual.find('i.fa-check').hide();
-                  renglon_actual.find('i.fa-exclamation').hide();
-                  renglon_actual.find('i.fa-ban').hide();
-                }
-
-      }
   });
 }
 
@@ -1484,27 +1288,15 @@ function toggleDTPmaquinasPorRelevamiento(habilitado) {
   $('#dtpFechaDesde,#dtpFechaHasta').siblings('h5').toggle(habilitado);
 }
 
-function bloquearDatosMaquinasPorRelevamiento() {
-  $('#cantidad_maquinas_por_relevamiento').prop('readonly','true');
-  $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',true);
-  $('#modalMaquinasPorRelevamiento #casino').attr('disabled',true);
-  $('#modalMaquinasPorRelevamiento #sector').attr('disabled',true);
-  $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',true);
-  $('#dtpFechaDesde input').prop('readonly',true);
-  $('#dtpFechaHasta input').prop('readonly',true);
-  $('#modalMaquinasPorRelevamiento #dtpFechaDesde').datetimepicker('remove');
-  $('#modalMaquinasPorRelevamiento #dtpFechaHasta').datetimepicker('remove');
+function bloquearDatosMaquinasPorRelevamiento(bloquear) {
+  $('#cantidad_maquinas_por_relevamiento').prop('readonly',bloquear);
+  $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',bloquear);
+  $('#modalMaquinasPorRelevamiento #casino').attr('disabled',bloquear);
+  $('#modalMaquinasPorRelevamiento #sector').attr('disabled',bloquear);
+  $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',bloquear);
+  $('#dtpFechaDesde input').prop('readonly',bloquear).parent().find('span').toggle(!bloquear);
+  $('#dtpFechaHasta input').prop('readonly',bloquear).parent().find('span').toggle(!bloquear);
 }
-
-function desbloquearDatosMaquinasPorRelevamiento() {
-  $('#cantidad_maquinas_por_relevamiento').prop('readonly',false);
-  $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',false);
-  $('#modalMaquinasPorRelevamiento #casino').attr('disabled',false);
-  $('#modalMaquinasPorRelevamiento #sector').attr('disabled',false);
-  $('#modalMaquinasPorRelevamiento #tipo_cantidad').attr('disabled',false);
-  toggleDTPmaquinasPorRelevamiento(true);
-}
-
 
 /*****************PAGINACION******************/
 function clickIndice(e,pageNumber,tam){
