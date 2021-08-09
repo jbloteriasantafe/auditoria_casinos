@@ -259,6 +259,7 @@ class ProducidoController extends Controller
     //  (esto es por ejemplo si tenemos iniciales 23 32 0 0 y finales 1 3 0 0, hay que agarra los 0)
     //@SPEED: Chequeable por query de BD
     $posible_reset_contadores = true;
+    $finales_todos_ceros = true;
     foreach($contadores as $idx => $c){
       $contador_final  = $c.'_final';
       $contador_inicio = $c.'_inicio';
@@ -268,6 +269,7 @@ class ProducidoController extends Controller
            ($final_menor_que_inicio  && $dif[$contador_final] != 0)
         || ($dif[$contador_inicio] == 0 && $dif[$contador_final] == 0)
       );
+      $finales_todos_ceros = $finales_todos_ceros && $dif[$contador_final] == 0;
       if($final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
         $vuelta = abs($dif['diferencia']/$dif['denominacion']);
@@ -300,7 +302,7 @@ class ProducidoController extends Controller
     // Si falta el contador final y el producido es 0, quiere decir que apagaron/dieron de baja la maquina
     // lo ajusto como falta de contadores finales
     // Si el producido _NO_ es cero, tienen que validarlo a pata viendo de donde produce y porque no reporta
-    if($dif['id_detalle_contador_final'] == null && $dif['producido'] == 0){
+    if($finales_todos_ceros && $dif['producido'] == 0){
       // Aca hay una diferencia con el guardarAjuste, no le creamos contadores finales para que no los siga arrastrando para
       // siempre si apagan o dan de baja la maquina (entraria siempre a este ajuste porque tendria contador inicial y no final al proximo dia).
       // Solo le seteamos el tipo de ajuste.
