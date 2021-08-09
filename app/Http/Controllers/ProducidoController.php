@@ -321,7 +321,7 @@ class ProducidoController extends Controller
       // Busco los contadores de la maquina, con fecha menor a la final, ordeno por fecha y me quedo con el ultimo
       // En principio se podria buscar por id_contador_horario < sin el join... es mas robusto creo asi
       ->where([['dc.id_maquina','=',$dif['id_maquina']],['c.fecha','<',$fecha_contador_final]])
-      ->orderBy('c.fecha','desc')->take(1)->get();
+      ->orderBy('c.fecha','desc')->take(1)->get()->first();
 
       // Le transpaso los valores al inicio
       if($ultimo_dc == null){
