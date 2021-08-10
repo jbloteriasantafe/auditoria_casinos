@@ -8,7 +8,7 @@ class CapacitacionAE extends Model
   protected $connection = 'mysql';
   protected $table = 'ae_capacitacion';
   protected $primaryKey = 'id_capacitacion';
-  protected $visible = array('id_capacitacion','descripcion');
+  protected $visible = array('id_capacitacion','descripcion','codigo');
   public $timestamps = false;
 
   public function autoexcluidos(){

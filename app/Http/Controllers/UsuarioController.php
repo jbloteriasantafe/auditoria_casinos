@@ -14,6 +14,7 @@ use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
+use App\Http\Controllers\AuthenticationController;
 
 class UsuarioController extends Controller
 {
@@ -283,6 +284,8 @@ class UsuarioController extends Controller
 
   //sin la session iniciada usa esta funcion ----
   public function buscarUsuario($id_usuario){
+    //@BUG si id_usuario = 0
+    if(empty($id_usuario) && $id_usuario !== 0) return ['usuario' => null, 'roles' => null, 'casinos' => null];
     $usuario = Usuario::find($id_usuario);
     return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
   }
@@ -406,7 +409,8 @@ class UsuarioController extends Controller
   }
 
   public function quienSoy(){
-    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
+    $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
+    $usuario = $this->buscarUsuario($id_usuario)['usuario'];
     return ['usuario' => $usuario];
   }
 

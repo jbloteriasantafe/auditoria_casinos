@@ -8,7 +8,7 @@ class EstadoCivilAE extends Model
   protected $connection = 'mysql';
   protected $table = 'ae_estado_civil';
   protected $primaryKey = 'id_estado_civil';
-  protected $visible = array('id_estado_civil','descripcion');
+  protected $visible = array('id_estado_civil','descripcion','codigo');
   public $timestamps = false;
 
   public function autoexcluidos(){

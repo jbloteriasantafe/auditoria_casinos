@@ -75,6 +75,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden,async=true)
         casino:      $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",
         plataforma:  $('#buscadorCasino').val() < 0? -$('#buscadorCasino').val() : "",
         estado:    $('#buscadorEstado').val(),
+        finalizo:  $('#finalizoAE').val(),
         apellido:  $('#buscadorApellido').val(),
         dia_semanal: $('#buscadorDia').val(),
         edad_desde: $('#buscadorRangoEtarioD').val(),
@@ -226,6 +227,9 @@ $('#agregarCSV').click(function(){
 
   const estado = $('#buscadorEstado').val() == ''? '\xa0' : $('#buscadorEstado option:selected').text();
   assign(fila.find('.estado'),estado);
+
+  const finalizoAE = $('#finalizoAE').val() == ''? '\xa0' : $('#finalizoAE option:selected').text();
+  assign(fila.find('.finalizoAE'),finalizoAE);
 
   assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
 

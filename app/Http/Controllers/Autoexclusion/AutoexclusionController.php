@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Autoexclusion;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
 use Dompdf\Dompdf;
 use View;
 use Validator;
@@ -19,8 +20,7 @@ use Illuminate\Validation\Rule;
 
 class AutoexclusionController extends Controller
 {
-    private static $atributos = [
-    ];
+    private static $atributos = [];
 
     private static $instance;
     public static function getInstancia(){
@@ -28,6 +28,10 @@ class AutoexclusionController extends Controller
           self::$instance = new AutoexclusionController();
       }
       return self::$instance;
+    }
+
+    public function __construct(){//Actualizar estados antes de cada request
+      $this->actualizarVencidosRenovados();
     }
 
     public function index($dni = ''){
@@ -55,7 +59,6 @@ class AutoexclusionController extends Controller
 
     //Función para buscar los autoexcluidos existentes en el sistema
     public function buscarAutoexcluidos(Request $request){
-      $this->actualizarVencidosRenovados();
       $reglas = Array();
 
       if(!empty($request->apellido)){
@@ -146,7 +149,7 @@ class AutoexclusionController extends Controller
         'ae_datos.apellido'         => 'required|string|max:100',
         'ae_datos.nombres'          => 'required|string|max:150',
         'ae_datos.fecha_nacimiento' => 'required|date',
-        'ae_datos.id_sexo'          => 'required|integer',
+        'ae_datos.id_sexo'          => 'required|integer|exists:ae_sexo,id_sexo',
         'ae_datos.domicilio'        => 'required|string|max:100',
         'ae_datos.nro_domicilio'    => 'required|string|max:11',
         'ae_datos.piso'             => 'nullable|string|max:5',
@@ -169,9 +172,6 @@ class AutoexclusionController extends Controller
         'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
         'ae_estado.id_plataforma'     => 'nullable|integer|exists:plataforma,id_plataforma',
         'ae_estado.fecha_ae'          => 'required|date',
-        'ae_estado.fecha_vencimiento' => 'required|date',
-        'ae_estado.fecha_renovacion'  => 'required|date',
-        'ae_estado.fecha_cierre_ae'   => 'required|date',
         'hace_encuesta'                         => 'required|boolean',
         'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
         'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
@@ -263,18 +263,9 @@ class AutoexclusionController extends Controller
         }
         $contacto->save();
 
-        $estado = $ae->estado;
-        if(is_null($estado)){
-          $estado = new AE\EstadoAE;
-          $estado->id_autoexcluido = $ae->id_autoexcluido;
-        }
-
-        $estado->id_usuario = $user->id_usuario;
-        $ae_estado = $request['ae_estado'];
-        foreach($ae_estado as $key => $val){
-          $estado->{$key} = $val;
-        }
-        $estado->save();
+        $estado = $request['ae_estado'];
+        $estado['id_usuario'] = $user->id_usuario;
+        $this->setearEstado($ae,$estado);
 
         $encuesta = $ae->encuesta;
         if($request['hace_encuesta']){
@@ -297,8 +288,31 @@ class AutoexclusionController extends Controller
       });
       return ['nuevo' => $esNuevo];
     }
+
+    private function setearEstado($ae,$ae_estado){
+      $estado = $ae->estado;
+      if(is_null($estado)){
+        $estado = new AE\EstadoAE;
+        $estado->id_autoexcluido = $ae->id_autoexcluido;
+      }
+
+      foreach($ae_estado as $key => $val){
+        $estado->{$key} = $val;
+      }
+      $fecha_ae = date_create_from_format('Y-m-d',$estado->fecha_ae);
+      // @BUG? (definir bien los limites): Si quiero ser compatible
+      // con el el frontend tengo que ponerle 1 dia menos
+      $estado->fecha_renovacion  = (clone $fecha_ae)->modify('+149 day')->format('Y-m-d');
+      $estado->fecha_vencimiento = (clone $fecha_ae)->modify('+179 day')->format('Y-m-d');
+      $estado->fecha_cierre_ae   = (clone $fecha_ae)->modify('+364 day')->format('Y-m-d');
+      $estado->fecha_revocacion_ae = null;
+      if($estado->id_nombre_estado == 4){//Fin por AE
+        $estado->fecha_revocacion_ae = date('Y-m-d');
+      }
+      $estado->save();
+    }
  
-    public function subirImportacionArchivos($ae,$ae_importacion) {
+    private function subirImportacionArchivos($ae,$ae_importacion) {
       $importacion = $ae->importacion;
       if (is_null($importacion)){
         $importacion = new AE\ImportacionAE;
@@ -373,26 +387,28 @@ class AutoexclusionController extends Controller
       return ['codigo' => 200];
     }
 
-    //Función para obtener los datos de un autoexcluido a partir de un DNI
-    public function existeAutoexcluido($dni){
-      $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
-      $todos_vencidos = true;
-      foreach($aes as $ae){
-        $e = $ae->estado;
-        $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
-        $todos_vencidos = $vencido && $todos_vencidos;
-        if(!$todos_vencidos) break;
-      }
-      //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
-      if($todos_vencidos){
-        //Si ya estuvo AE retorno -1 sino 0
-        if(count($aes) > 0) return -1;
-        else return 0;
-      }
+  //Función para obtener los datos de un autoexcluido a partir de un DNI
+  public function existeAutoexcluido($dni){//NO CAMBIAR SIN VERIFICAR QUE LAS FUNCIONES API_* SIGAN ESTANDO CORRECTAS
+    $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
+    $todos_vencidos = true;
+    foreach($aes as $ae){
+      $e = $ae->estado;
+      $vencido = $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+      $todos_vencidos = $vencido && $todos_vencidos;
+      if(!$todos_vencidos) break;
+    }
+    //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
+    if($todos_vencidos){
+      //Si ya estuvo AE retorno -1 sino 0
+      if(count($aes) > 0) return -1;
+      else return 0;
+    }
 
-      //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarl
-      $ae = AE\Autoexcluido::where('nro_dni',$dni)->orderBy('id_autoexcluido','desc')->first();
-      return $ae->id_autoexcluido;
+    //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarlo
+    $ae = AE\Autoexcluido::where('nro_dni',$dni)
+    ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
+    ->orderBy('ae_estado.fecha_ae','desc')->first();
+    return $ae->id_autoexcluido;
   }
 
   public function buscarAutoexcluido ($id) {
@@ -505,6 +521,11 @@ class AutoexclusionController extends Controller
       'fecha_cierre_definitivo' => date('d/m/Y', strtotime($ae->estado->fecha_cierre_ae))
     );
 
+    //Si revoco, le permitimos entrar a partir de la fecha del vencimiento
+    if(!is_null($ae->estado->fecha_revocacion_ae)){
+      $datos['fecha_cierre_definitivo'] = date('d/m/Y',strtotime($ae->estado->fecha_vencimiento));
+    }
+
     $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -540,24 +561,25 @@ class AutoexclusionController extends Controller
   public function cambiarEstadoAE($id,$id_estado){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae = AE\Autoexcluido::find($id);
+    if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
     $estado = $ae->estado;
-    Validator::make(
-      ['id_autoexcluido' => $id],
-      ['id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido'], 
-      array(), self::$atributos)->after(function($validator) use ($usuario,$estado,$ae,$id_estado){
-        if(  !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor) 
-          || is_null($estado) 
-          || (!is_null($estado->id_casino) && !$usuario->usuarioTieneCasino($estado->id_casino))
-          || (!is_null($estado->id_plataforma) && !($usuario->es_auditor || $usuario->es_superusuario))
-        )
-        {
-          $validator->errors()->add('rol', 'No puede realizar esa acción');
-          return;
-        }
-        if($ae->estado_transicionable != $id_estado){
-          $validator->errors()->add('id_autoexcluido','No puede cambiar a ese estado');
-        }
-    })->validate();
+
+    $usuario_valido = ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor);
+    if(!$usuario_valido
+      || (!is_null($estado->id_casino) && !$usuario->usuarioTieneCasino($estado->id_casino))
+      || (!is_null($estado->id_plataforma) && !($usuario->es_auditor || $usuario->es_superusuario))
+    ){
+      return $this->errorOut(['rol' => 'No puede realizar esa acción']);
+    }
+
+    if($ae->estado_transicionable != $id_estado){
+      return $this->errorOut(['id_autoexcluido' => 'No puede cambiar a ese estado']);
+    }
+
+    if($estado->id_nombre_estado == $id_estado){
+      return $this->errorOut(['id_autoexcluido' => 'Ya se encuentra en ese estado']);
+    }
+
     if($id_estado == 4){//Si es fin por AE guardo la fecha que lo pidio revocar.
       $estado->fecha_revocacion_ae = date('Y-m-d');
     }
@@ -571,7 +593,7 @@ class AutoexclusionController extends Controller
   public function actualizarVencidosRenovados(){
     DB::transaction(function (){
       $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->get();
-      foreach($vigentes as $v){
+      foreach($vigentes as $v){//Vigentes que pasan a renovados por 1er AE o que vencieron
         $ae = $v->ae;
         $nuevo_estado = $ae->estado_transicionable;
         //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
@@ -579,25 +601,25 @@ class AutoexclusionController extends Controller
           $v->id_nombre_estado = 2;
           $v->save();
         }
-        if($nuevo_estado == 5){//Vencido, para las segundas o + AEs en general
+        if($nuevo_estado == 5){//Vencido
           $v->id_nombre_estado = 5;
           $v->save();
         }
       }
     });
-    DB::transaction(function (){
-      $renovados = AE\EstadoAE::where('id_nombre_estado',[2,7])->get();
-      foreach($renovados as $r){
-        $ae = $r->ae;
+    DB::transaction(function (){//Renovados que vencieron a los 12 meses o finalizados que vencieron a los 6 meses
+      $renovados_y_finalizados = AE\EstadoAE::whereIn('id_nombre_estado',[2,4])->get();
+      foreach($renovados_y_finalizados as $e){
+        $ae = $e->ae;
         $nuevo_estado = $ae->estado_transicionable;
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
         if($nuevo_estado == 5){//Vencido
-          $r->id_nombre_estado = 5;
-          $r->save();
+          $e->id_nombre_estado = 5;
+          $e->save();
         }
       }
     });
   }
+
   public function eliminarAE($id_autoexcluido){
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$usuario->es_superusuario) return;
@@ -619,5 +641,110 @@ class AutoexclusionController extends Controller
       $ae->delete();
     });
     return 1;
+  }
+
+  public function API_fechas(Request $request,string $dni){
+    $id = $this->existeAutoexcluido($dni);
+    //0 No tuvo, -1 Ya tuvo y estan vencidos
+    if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
+    
+    $ae = AE\Autoexcluido::find($id);
+    //No deberia pasar pero lo dejo chequeado por las dudas
+    if(is_null($ae)) return $this->errorOut(['error' => 'ERROR UNREACHABLE']);
+
+    $e = $ae->estado;
+    $ret = ['fecha_ae' => $e->fecha_ae,'fecha_cierre_ae' => $e->fecha_cierre_ae];
+    if($ae->es_primer_ae){
+      $ret['fecha_renovacion']  = $e->fecha_renovacion;
+      $ret['fecha_vencimiento'] = $e->fecha_vencimiento;
+      if(!is_null($e->fecha_revocacion_ae)) $ret['fecha_revocacion_ae'] = $e->fecha_revocacion_ae;
+    }
+    return $ret;
+  }
+
+  public function API_finalizar(Request $request,string $dni){
+    $id = $this->existeAutoexcluido($dni);
+    if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
+    $ret = $this->cambiarEstadoAE($id,4);//Fin. por AE
+    return $ret !== 1? $ret : response()->json('Finalizado',200);
+  }
+
+  public function API_agregar(Request $request){
+    $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
+
+    $validator = Validator::make($request->all(), [
+      'ae_datos.nro_dni'          => 'required|integer',
+      'ae_datos.apellido'         => 'required|string|max:100',
+      'ae_datos.nombres'          => 'required|string|max:150',
+      'ae_datos.fecha_nacimiento' => 'required|date',
+      'ae_datos.sexo'             => 'required|string|max:4|exists:ae_sexo,codigo',
+      'ae_datos.domicilio'        => 'required|string|max:100',
+      'ae_datos.nro_domicilio'    => 'required|integer',
+      'ae_datos.piso'             => 'nullable|string|max:5',
+      'ae_datos.dpto'             => 'nullable|string|max:5',
+      'ae_datos.codigo_postal'    => 'required|string|max:10',
+      'ae_datos.nombre_localidad' => 'required|string|max:200',
+      'ae_datos.nombre_provincia' => 'required|string|max:200',
+      'ae_datos.telefono'         => 'required|string|max:200',
+      'ae_datos.correo'           => 'required|string|max:100',
+      'ae_datos.ocupacion'        => 'nullable|string|max:4|exists:ae_ocupacion,codigo',
+      'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
+      'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
+      'ae_estado.fecha_ae'        => 'required|date',
+    ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $id = $this->existeAutoexcluido($data['ae_datos']['nro_dni']);
+      if($id > 0){
+        return $validator->errors()->add('nro_dni','AE VIGENTE');
+      }
+    });
+
+    if($validator->errors()->any()) return $this->errorOut($validator->errors());
+
+    $request = $request->all();
+
+    //Sexo siempre viene asi que en realidad el tercer valor nunca se usa
+    $except = ['sexo'         => ['id_sexo',        'ae_sexo', 'X'],
+               'ocupacion'    => ['id_ocupacion',   'ae_ocupacion', 'NC'],
+               'capacitacion' => ['id_capacitacion','ae_capacitacion', 'NC'],
+               'estado_civil' => ['id_estado_civil','ae_estado_civil', 'NC']];
+
+    foreach($except as $key => $defecto){//Pongo valores por defecto "No contesta" si no lo envia.
+      if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
+    }
+
+    DB::transaction(function() use($request,$api_token,$except){
+      $ae = new AE\Autoexcluido;
+      $ae_datos = $request['ae_datos'];
+
+      foreach($ae_datos as $key => $val){
+        if(!array_key_exists($key,$except)) $ae->{$key} = $val;
+        else{
+          $table = $except[$key][1];
+          $id_name = $except[$key][0];
+          $row = DB::table($table)->select($id_name)->where('codigo',$val)->get()->first();
+          $ae->{$id_name} = $row->{$id_name};
+        }
+      }
+      $ae->save();
+
+      $contacto = new AE\ContactoAE;
+      $contacto->id_autoexcluido = $ae->id_autoexcluido;
+      $contacto->save();
+
+      $ae_estado = $request['ae_estado'];
+      $ae_estado['id_usuario'] = $api_token->usuario->id_usuario;
+      $ae_estado['id_nombre_estado'] = 1;//Vigente
+      $ae_estado['id_plataforma'] = $api_token->id_plataforma;
+      $this->setearEstado($ae,$ae_estado);
+      $this->subirImportacionArchivos($ae,[]);
+    });
+
+    return response()->json('Agregado',200);
+  }
+
+  private function errorOut($map){
+    return response()->json($map,422);
   }
 }

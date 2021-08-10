@@ -15,35 +15,30 @@ class CheckPermission
      * @param  \Closure  $next
      * @return mixed
      */
+
     public function handle($request, Closure $next, ...$permisos)
     {
+      $AC = AuthenticationController::getInstancia();
+      $id_usuario = $AC->obtenerIdUsuario();
+
+      if(is_null($id_usuario)) return $this->errorOut($request);
+
+      if(empty($permisos)) return $next($request);
+
+      foreach($permisos as $permiso){
+        if(!$AC->usuarioTienePermiso($id_usuario,$permiso)){
+          return $this->errorOut($request);
+        }
+      }
+      return $next($request);
+    }
+
+    private function errorOut($request){
       $url_to_redirect = 'inicio';
-      $id_usuario = $request->session()->has('id_usuario') ? $request->session()->get('id_usuario') : null;
-      if($id_usuario != null){
-        if(!empty($permisos)){
-          foreach($permisos as $permiso){
-            if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,$permiso)){
-                if($request->ajax()){
-                  return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],351,[['Content-Type','application/json']]);
-                }
-                else{
-                  return redirect($url_to_redirect);
-                }
-            }
-          }
-          return $next($request);
-        }
-        else{
-          return $next($request);
-        }
+      if($request->ajax()){
+        return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],
+                                351,[['Content-Type','application/json']]);
       }
-      else{
-        if($request->ajax()){
-          return response()->json(['mensaje' => 'No tiene los permisos necesarios para realizar dicha acción.','url' => $url_to_redirect],351,[['Content-Type','application/json']]);
-        }
-        else{
-          return redirect($url_to_redirect);
-        }
-      }
+      return redirect($url_to_redirect);
     }
 }
