@@ -900,13 +900,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
         <td class="producido"      style="text-align: right;" hidden><input class="producido form-control" hidden/></td>
         <td class="diferencia"     style="text-align: right;" hidden><input class="diferencia form-control" hidden/></td>
         <td class="icono-estado" style="text-align: center;">
-          <i class="fa fa-times" style="color:#EF5350;" hidden></i>
-          <i class="fa fa-check" style="color:#66BB6A;" hidden></i>
-          <i class="fa fa-ban" style="color:#1E90FF;" hidden></i>
-          <a class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover">
+          <i class="fa fa-times cruz icono" style="color:#EF5350;" hidden></i>
+          <i class="fa fa-check check icono" style="color:#66BB6A;" hidden></i>
+          <i class="fa fa-ban no_toma icono" style="color:#1E90FF;" hidden></i>
+          <a class="pop admiracion icono" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover">
             <i class="pop fa fa-exclamation" style="color:#FFA726;" hidden></i> 
           </a>
-          <a class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover">
+          <a class="pop pregunta icono" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover">
             <i class="pop fa fa-question" style="color:#42A5F5;" hidden></i> 
           </a>
         </td>

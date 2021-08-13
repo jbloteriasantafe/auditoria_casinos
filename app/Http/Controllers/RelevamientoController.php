@@ -132,15 +132,11 @@ class RelevamientoController extends Controller
     ->join('casino' , 'sector.id_casino' , '=' , 'casino.id_casino')
     ->join('estado_relevamiento' , 'relevamiento.id_estado_relevamiento' , '=' , 'estado_relevamiento.id_estado_relevamiento')
     ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
     ->where($reglas)
     ->whereIn('casino.id_casino' , $casinos)
     ->where('backup' , '=', 0)->paginate($request->page_size);
-
-    // foreach ($resultados as $resultado) {
-    //   $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha));
-    // }
 
     return $resultados;
   }

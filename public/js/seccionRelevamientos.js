@@ -251,9 +251,7 @@ $(document).on('click','.carga',function(e){
       }
 
       $('#tablaCargaRelevamiento tbody tr').remove();
-
       const tablaCargaRelevamiento = $('#tablaCargaRelevamiento tbody');
-
       cargarTablaRelevamientos(data, tablaCargaRelevamiento, 'Carga');
       tablaCargaRelevamiento.find('input').trigger('input');
       habilitarBotonFinalizar();
@@ -380,11 +378,8 @@ $(document).on('click','.validar',function(e){
     $('#validarTecnico').val(data.relevamiento.tecnico);
     $('#observacion_validacion').val('');
     $('#tablaValidarRelevamiento tbody tr').remove();
-
-    var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
-
-    cargarTablaRelevamientos(data, tablaValidarRelevamiento, 'Validar');
-    calculoDiferenciaValidar(tablaValidarRelevamiento, data);
+    cargarTablaRelevamientos(data, $('#tablaValidarRelevamiento tbody'), 'Validar');
+    calculoDiferenciaValidar(data);
     $('#modalValidarRelevamiento').modal('show');
   });
 })
@@ -840,9 +835,8 @@ function enviarCambioDenominacion(id_maquina, medida, denominacion) {
       //Volver a cargar la tabla y ver la diferencia
       $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(dataRelevamiento){
           $('#tablaValidarRelevamiento tbody tr').remove();
-          const tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
-          cargarTablaRelevamientos(dataRelevamiento, tablaValidarRelevamiento, 'Validar');
-          calculoDiferenciaValidar(tablaValidarRelevamiento, dataRelevamiento);
+          cargarTablaRelevamientos(dataRelevamiento, $('#tablaValidarRelevamiento tbody'), 'Validar');
+          calculoDiferenciaValidar(dataRelevamiento);
       });
     },
     error: function(error){
@@ -943,15 +937,14 @@ function cargarTablaRelevamientos(data, tabla, estado){
     }
 
     if (d.producido != null) {
-      f.find('.producido').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido)
-      .prop('readonly',validando).toggle(validando);
+      f.find('.producido').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido);
+    }
+    if (d.detalle.producido_calculado_relevado != null) {
+      f.find('.producidoCalculado').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.detalle.producido_calculado_relevado);
     }
 
-    if (d.producido_calculado_relevado != null) {
-      f.find('.producidoCalculado').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido_calculado_relevado)
-      .toggle(validando);
-    }
-
+    f.find('.producido').prop('readonly',validando).toggle(validando);
+    f.find('.producidoCalculado').prop('readonly',validando).toggle(validando).parent().toggle(validando);
     f.find('.diferencia').prop('readonly',validando).toggle(validando);
 
     if(validando){
@@ -975,88 +968,63 @@ function cargarTablaRelevamientos(data, tabla, estado){
   });
 }
 
-function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
+function calculoDiferenciaValidar(data){
     //debido a que el metodo se llama en ultima instancia para validar, ahi empieza el contador desde cero
     truncadas=0;
-    for (var i = 0; i < data.detalles.length; i++) {
+    for (let i = 0; i < data.detalles.length; i++) {
+      const d = data.detalles[i];
+      const fila = $('#tablaValidarRelevamiento tbody').find('#'+d.detalle.id_detalle_relevamiento);
+      const diferencia = fila.find('input.diferencia');
 
-      var id_detalle = data.detalles[i].detalle.id_detalle_relevamiento;
-      console.log('id_detalle_relevamiento: ', id_detalle);
-
-      var iconoPregunta = tablaValidarRelevamiento.find('#' + id_detalle + ' a i.fa-question').hide();
-      var iconoCruz = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-times').hide();
-      var iconoNoToma = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-ban').hide();
-      var iconoCheck = tablaValidarRelevamiento.find('#' + id_detalle).find('td i.fa-check').show();
-      var iconoAdmiracion = tablaValidarRelevamiento.find('#' + id_detalle + ' i.fa-exclamation').hide();
-      var diferencia = tablaValidarRelevamiento.find('#' + id_detalle + ' td input.diferencia');
-
-      if(data.detalles[i].detalle.producido_calculado_relevado == null){
-        diferencia.val( math.abs(Number(data.detalles[i].producido))).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
-        iconoPregunta.hide();
-        iconoCruz.show();
-        iconoCheck.hide();
-        iconoAdmiracion.hide();
-        iconoNoToma.hide();
+      if(d.detalle.producido_calculado_relevado == null){
+        diferencia.val(math.abs(Number(d.producido)))
+        .css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
+        fila.find('.icono-estado .icono').hide();
+        fila.find('.icono-estado .cruz').show();
       }
       //si no se importaron contadores muestra = ?
-      if(data.detalles[i].producido == null) {
-        diferencia.val(data.detalles[i].detalle.producido_calculado_relevado).css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
-        iconoPregunta.show();
-        iconoCruz.hide();
-        iconoCheck.hide();
-        iconoAdmiracion.hide();
-        iconoNoToma.hide();
+      if(d.producido == null) {
+        diferencia.val(d.detalle.producido_calculado_relevado)
+        .css('border',' 2px solid rgb(239, 83, 80)').css('color','rgb(239, 83, 80)');
+        fila.find('.icono-estado .icono').hide();
+        fila.find('.icono-estado .pregunta').show();
       }
       //Si hay causa no toma = x
-      else if(data.detalles[i].tipo_causa_no_toma != null) {
-        iconoPregunta.hide();
-        iconoCruz.hide();
-        iconoCheck.hide();
-        iconoNoToma.show();
-        iconoAdmiracion.hide();
+      else if(d.tipo_causa_no_toma != null) {
+        fila.find('.icono-estado .icono').hide();
+        fila.find('.icono-estado .no_toma').show();
       }
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
-          //SI HAY DIFERENCIA
+        //SI HAY DIFERENCIA
         //se cambio para considerar los contadores negativos
-          var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
-          if (Number(resta.toFixed(2)) != 0) {
-            var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
-            var moduloDiferencia = Number(resta.toFixed(2));
-            moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
+        const resta = d.detalle.producido_calculado_relevado-d.producido;
+        if (Number(resta.toFixed(2)) != 0) {
+          const diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
+          let moduloDiferencia = Number(resta.toFixed(2));
+          moduloDiferencia = math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
 
-            console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
-            console.log('MODULO DIFERENCIA', moduloDiferencia);
-            console.log('DIFERENCIA', diferenciaProducido);
+          console.log(math.abs(d.detalle.producido_calculado_relevado),"-",math.abs(d.producido));
+          console.log('MODULO DIFERENCIA', moduloDiferencia);
+          console.log('DIFERENCIA', diferenciaProducido);
 
-            if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
-              iconoPregunta.hide();
-              iconoCruz.hide();
-              iconoCheck.hide();
-              iconoAdmiracion.show();
-              iconoNoToma.hide();
-              truncadas++;
-              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #FFA726').css('color','#FFA726');
-            }
-            else{
-              iconoPregunta.hide();
-              iconoCruz.show();
-              iconoNoToma.hide();
-              iconoCheck.hide();
-              iconoAdmiracion.hide();
-
-              diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #EF5350').css('color','#EF5350');
-            }
+          if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
+            fila.find('.icono-estado .icono').hide();
+            fila.find('.icono-estado .admiracion').show();
+            truncadas++;
+            diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #FFA726').css('color','#FFA726');
           }
-          else {
-            iconoPregunta.hide();
-            iconoCruz.hide();
-            iconoCheck.show();
-            iconoNoToma.hide();
-            iconoAdmiracion.hide();
-
-            diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
+          else{
+            fila.find('.icono-estado .icono').hide();
+            fila.find('.icono-estado .cruz').show();
+            diferencia.val(math.abs(resta.toFixed(2))).css('border','2px solid #EF5350').css('color','#EF5350');
           }
+        }
+        else {
+          fila.find('.icono-estado .icono').hide();
+          fila.find('.icono-estado .check').show();
+          diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
+        }
       }
     }
 }
