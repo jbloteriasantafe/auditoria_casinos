@@ -92,6 +92,14 @@ background-color: #4CAF50;
                               @endforeach
                             </select>
                         </div>
+                        <div class="col-md-2">
+                          <h5>Finalizo la AE</h5>
+                          <select id="finalizoAE" class="form-control" title="FINALIZO EL AE ANTES DEL VENCIMIENTO DEL PRIMER PERIODO">
+                            <option selected value="">--</option>
+                            <option value="0">NO</option>
+                            <option value="1">SI</option>
+                          </select>
+                        </div>
                         <div class="col-md-3">
                             <h5>Apellido</h5>
                             <input class="form-control" id="buscadorApellido" value=""/>
@@ -109,21 +117,21 @@ background-color: #4CAF50;
                             <option value="7">Domingo</option>
                           </select>
                         </div>
-                        <div class="col-md-2">
+                    </div>
+                    <div class="row">
+                      <div class="col-md-2">
                           <h5>Rango etario</h5>
                           <div class="input-group">
                               <input id="buscadorRangoEtarioD" class="form-control input-sm" value=""/>
                               <span class="input-group-btn" style="width:0px;"></span>
                               <input id="buscadorRangoEtarioH" class="form-control input-sm" value=""/>
                           </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-3">
+                      </div>
+                      <div class="col-md-2">
                           <h5>DNI</h5>
                           <input class="form-control" id="buscadorDni" value=""/>
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-2">
                           <h5>Sexo</h5>
                           <select id="buscadorSexo" class="form-control" name="">
                             <option selected="" value="">- Todos -</option>
@@ -390,8 +398,9 @@ background-color: #4CAF50;
           <thead>
             <tr>
               <th class="smalltext casino_plataforma" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
-              <th class="smalltext estado" style="width: 7%;" data-busq="#buscadorEstado">Estado</th>
-              <th class="smalltext apellido" style="width: 7%;" data-busq="#buscadorApellido">Apellido</th>
+              <th class="smalltext estado" style="width: 6%;" data-busq="#buscadorEstado">Estado</th>
+              <th class="smalltext finalizoAE" style="width: 2%;" data-busq="#finalizoAE">FIN. AE</th>
+              <th class="smalltext apellido" style="width: 6%;" data-busq="#buscadorApellido">Apellido</th>
               <th class="smalltext dia_semanal" style="width: 4%" data-busq="#buscadorDia">Día</th>
               <th class="smalltext rango_etario" style="width: 4%" data-busq="#buscadorRangoEtario" rango>Rango Etario</th>
               <th class="smalltext dni" style="width: 7%;" data-busq="#buscadorDni">DNI</th>
@@ -419,8 +428,9 @@ background-color: #4CAF50;
           <tbody>
             <tr class="filaTablaCSV" style="display: none">
               <td class="smalltext casino_plataforma"    style="width: 4%;">CAS</td>
-              <td class="smalltext estado"    style="width: 7%;">ESTADO</td>
-              <td class="smalltext apellido"  style="width: 7%;">APELLIDO</td>
+              <td class="smalltext estado"    style="width: 6%;">ESTADO</td>
+              <td class="smalltext finalizoAE"    style="width: 2%;">FINALIZO AE</td>
+              <td class="smalltext apellido"  style="width: 6%;">APELLIDO</td>
               <td class="smalltext dia_semanal" style="width: 4%">DIA</td>
               <td class="smalltext rango_etario" style="width: 4%">00-99</td>
               <td class="smalltext dni"       style="width: 7%;">DNI</td>

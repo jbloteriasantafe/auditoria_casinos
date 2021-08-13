@@ -118,6 +118,10 @@ class Usuario extends Model
       return $this->hasMany('App\Autoexclusion\EstadoAE','id_usuario','id_usuario');
     }
 
+    public function APITokens(){
+      return $this->hasMany('App\APIToken','id_usuario','id_usuario');
+    }
+
     public static function boot(){
           parent::boot();
           Usuario::observe(new UsuarioObserver());

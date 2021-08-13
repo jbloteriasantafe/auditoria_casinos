@@ -1,0 +1,374 @@
+openapi: '3.0.2'
+
+info:
+  title: 'SistemOn.Line API'
+  version: '0.1'
+  contact:
+    name: 'Loteria Santa Fe'
+    
+servers:
+  - url: 'http://10.1.121.22:8000/API'
+    description: 'Prueba'
+  - url: 'http://localhost:8000/API'
+    description: 'Prueba local'
+
+tags:
+  - name: AE
+    description: Operaciones sobre Autoexcluidos
+    
+paths:
+  "/AE/fechas/{DNI}":
+    get:
+      summary: 'Obtener fechas de AE'
+      tags:
+        - AE
+      operationId: fechas
+      parameters:
+        - name: API-Token
+          in: header
+          description: 'Token del cliente'
+          required: true
+          schema:
+            type: string
+        - name: DNI
+          in: path
+          description: 'DNI de la persona'
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 'Fechas pertinentes al AE'
+          content:
+            application/json:
+              examples:
+                FINALIZABLE:
+                  value:
+                    {
+                      "fecha_ae": "2020-12-01",
+                      "fecha_cierre_ae": "2021-11-30",
+                      "fecha_renovacion": "2021-04-29",
+                      "fecha_vencimiento": "2021-05-29"
+                    }
+                FINALIZADO:
+                  value:
+                    {
+                      "fecha_ae": "2020-11-23",
+                      "fecha_cierre_ae": "2021-11-22",
+                      "fecha_renovacion": "2021-04-21",
+                      "fecha_vencimiento": "2021-05-21",
+                      "fecha_revocacion_ae": "2021-05-21"
+                    }
+                NO_FINALIZABLE:
+                  value:
+                    {
+                      "fecha_ae": "2021-03-25",
+                      "fecha_cierre_ae": "2022-03-24"
+                    }
+                  
+        "422":
+          description: 'JSON con mensaje de error'
+          content:
+            application/json:
+              examples:
+                SIN_AE:
+                  value:
+                    {
+                      "error" : "SIN AE"
+                    }
+                                     
+  "/AE/finalizar/{DNI}":
+    get:
+      summary: 'Finalizar un AE'
+      tags:
+        - AE
+      operationId: finalizar
+      parameters:
+        - name: API-Token
+          in: header
+          description: 'Token del cliente'
+          required: true
+          schema:
+            type: string
+        - name: DNI
+          in: path
+          description: 'DNI de la persona'
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 'Finalizado'
+          content:
+            application/json:
+              examples:
+                FINALIZADO:
+                  value: 'Finalizado'
+        "422":
+          description: 'JSON con mensaje de error'
+          content:
+            application/json:
+              examples:
+                SIN_AE:
+                  value:
+                    {
+                      "error" : "SIN AE"
+                    }
+                NO_FINALIZABLE:
+                  value:
+                    {
+                      "id_autoexcluido" : "No puede cambiar a ese estado"
+                    }
+                YA_FINALIZO:
+                  value:
+                    {
+                      "id_autoexcluido" : "Ya se encuentra en ese estado"
+                    }                    
+  "/AE/agregar":
+    post:
+      summary: 'Agregar AE'
+      tags:
+        - AE
+      operationId: agregar
+      parameters:
+        - name: API-Token
+          in: header
+          description: 'Token del cliente'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Datos del AE'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/entrada_agregar'
+      responses:
+        "200":
+          description: 'Agregado'
+          content:
+            application/json:
+              examples:
+                AGREGADO:
+                  value: "Agregado"
+        "422":
+          description: 'Errores'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errores_agregar'
+            
+components:
+  schemas:
+    entrada_agregar:
+      type: object
+      properties:
+        ae_datos:
+          $ref: '#/components/schemas/ae_datos'
+        ae_estado:
+          $ref: '#/components/schemas/ae_estado'
+      required:
+        - ae_datos
+        - ae_estado
+              
+    ae_estado:
+      type: object
+      properties:
+        fecha_ae:
+          type: string
+          format: date
+      required:
+        - fecha_ae
+        
+    ae_datos:
+      type: object
+      properties:
+        nro_dni:
+          type: integer
+        apellido:
+          type: string  
+          maxLength: 100
+        nombres:
+          type: string  
+          maxLength: 150
+        fecha_nacimiento:
+          type: string
+          format: date
+        sexo:
+          type: string  
+          maxLength: 4
+          enum: [O, M, F]
+          description: >
+            Código:
+             * `O` - Otro
+             * `M` - Masculino
+             * `F` - Femenino
+        domicilio:
+          type: string  
+          maxLength: 100
+        nro_domicilio:
+          type: integer 
+        piso:
+          type: string  
+          maxLength: 5
+        dpto:
+          type: string  
+          maxLength: 5
+        codigo_postal:
+          type: string  
+          maxLength: 10
+        nombre_localidad:
+          type: string  
+          maxLength: 200
+        nombre_provincia:
+          type: string  
+          maxLength: 200
+        telefono:
+          type: string  
+          maxLength: 200
+        correo:
+          type: string  
+          format: email
+          maxLength: 100
+        ocupacion:
+          type: string  
+          maxLength: 4
+          enum: [E,C,I,PI,A,ES,J,AC,EP,D,O,NC]
+          default: NC
+          description: >
+            Código:
+             * `E` - Empleado
+             * `C` - Comerciante
+             * `I` - Industrial
+             * `PI` - Profesional Independiente
+             * `A - Autonomo
+             * `ES` - Estudiante
+             * `J` - Jubilado
+             * `AC` - Ama de Casa
+             * `EP` - Empleado Publico
+             * `D` - Desoucpado
+             * `O` - Otra
+             * `NC` - No Contesta
+        capacitacion:
+          type: string  
+          maxLength: 4
+          enum: [P,S,T,U,O,NC]
+          default: NC
+          description: >
+            Código:
+             * `P` - Primaria
+             * `S` - Secundaria
+             * `T` - Terciaria
+             * `U` - Universitaria
+             * `O - Otra
+             * `NC` - No Contesta
+        estado_civil:
+          type: string 
+          maxLength: 4
+          enum: [S,C,S/D,U,V,NC]
+          default: NC
+          description: >
+            Código:
+             * `S` - Soltero
+             * `C` - Casado
+             * `S/D` - Separado / Divorciado
+             * `U` - Unido de Hecho
+             * `V - Viudo
+             * `NC` - No Contesta  
+      required:
+        - nro_dni
+        - apellido
+        - nombres
+        - fecha_nacimiento
+        - sexo
+        - domiclio
+        - nro_domicilio
+        - nombre_localidad
+        - nombre_provincia
+        - ocupacion
+        - capacitacion
+        - estado_civil
+
+    errores_agregar:
+      type: object
+      properties:
+        ae_datos.nro_dni:
+          $ref: '#/components/schemas/val_int_req'
+        ae_datos.apellido:
+          $ref: '#/components/schemas/val_str_req'
+        ae_datos.fecha_nacimiento:
+          $ref: '#/components/schemas/val_date_req'
+        ae_datos.sexo:
+          $ref: '#/components/schemas/val_str_req_exist'
+        ae_datos.domicilio:
+          $ref: '#/components/schemas/val_str_req'
+        ae_datos.nro_domicilio:
+          $ref: '#/components/schemas/val_int_req'
+        ae_datos.piso:
+          $ref: '#/components/schemas/val_str'
+        ae_datos.dpto:
+          $ref: '#/components/schemas/val_str'
+        ae_datos.codigo_postal:
+          $ref: '#/components/schemas/val_str'
+        ae_datos.nombre_localidad:
+          $ref: '#/components/schemas/val_str_req'
+        ae_datos.nombre_provincia:
+          $ref: '#/components/schemas/val_str_req'
+        ae_datos.telefono:
+          $ref: '#/components/schemas/val_str_req'
+        ae_datos.correo:
+          $ref: '#/components/schemas/val_str'
+        ae_datos.ocupacion:
+          $ref: '#/components/schemas/val_str_req_exist'
+        ae_datos.capacitacion:
+          $ref: '#/components/schemas/val_str_req_exist'
+        ae_datos.estado_civil:
+          $ref: '#/components/schemas/val_str_req_exist'
+        ae_estado.fecha_ae:
+          $ref: '#/components/schemas/val_date_req'
+          
+    val_int_req:
+      type: array
+      items:
+        type: string
+        enum:
+          - validation.required
+          - validation.integer
+        
+    val_str:
+      type: array
+      items:
+        type: string
+        enum:
+          - validation.string
+          - validation.max.string      
+        
+    val_str_req:
+      type: array
+      items:
+        type: string
+        enum:
+          - validation.required
+          - validation.string
+          - validation.max.string
+        
+    val_str_req_exist:
+      type: array
+      items:
+        type: string
+        enum:
+          - validation.required
+          - validation.string
+          - validation.max.string
+          - validation.exists
+        
+    val_date_req:
+      type: array
+      items:
+        type: string
+        enum:
+          - validation.required
+          - validation.date        
+
+        

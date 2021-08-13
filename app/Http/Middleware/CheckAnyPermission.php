@@ -15,35 +15,30 @@ class CheckAnyPermission
      * @param  \Closure  $next
      * @return mixed
      */
+
     public function handle($request, Closure $next, ...$permisos)
     {
-      $url_to_redirect = 'inicio';
-      $id_usuario = $request->session()->has('id_usuario') ? $request->session()->get('id_usuario') : null;
-      if($id_usuario != null){
-        if(!empty($permisos)){
-          foreach($permisos as $permiso){
-            if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,$permiso)){
-                return $next($request);
-            }
-          }
-          if($request->ajax()){
-            return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],351,[['Content-Type','application/json']]);
-          }
-          else{
-            return redirect($url_to_redirect);
-          }
-        }
-        else{
+      $AC = AuthenticationController::getInstancia();
+      $id_usuario = $AC->obtenerIdUsuario();
+
+      if(is_null($id_usuario)) return $this->errorOut($request);
+
+      if(empty($permisos)) return $next($request);
+
+      foreach($permisos as $permiso){
+        if($AC->usuarioTienePermiso($id_usuario,$permiso)){
           return $next($request);
         }
       }
-      else{
-        if($request->ajax()){
-          return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],351,[['Content-Type','application/json']]);
-        }
-        else{
-          return redirect($url_to_redirect);
-        }
+      return $this->errorOut($request);
+    }
+
+    private function errorOut($request){
+      $url_to_redirect = 'inicio';
+      if($request->ajax()){
+        return response()->json(['mensaje' => 'No tiene los permisos encesarios para realizar dicha acción.','url' => $url_to_redirect],
+                                351,[['Content-Type','application/json']]);
       }
+      return redirect($url_to_redirect);
     }
 }

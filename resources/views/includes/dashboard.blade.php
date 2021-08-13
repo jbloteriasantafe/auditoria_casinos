@@ -893,37 +893,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             </div>
                           </li>
                           @endif
-
-                          @if($usuario['usuario']->es_superusuario && AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_vencimientos'))
-                          <li>
-                            <div style="color: grey;" id="opcVencimientos" class="opcionesHover" 
-                            @if(false)
-                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/vencimientos'" 
-                            @endif
-                            style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('usuario','iconoUsuarios')
-                              </span>
-                              <span>Vencimientos</span>
-                            </div>
-                          </li>
-                          @endif
-
-                          @if($usuario['usuario']->es_superusuario && AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_finalizadas'))
-                          <li>
-                            <div style="color: grey;" id="opcAutoexclusionesFinalizadas" class="opcionesHover"
-                            @if(false) 
-                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusionesFinalizadas'" 
-                            @endif
-                            style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('expedientes','iconoExpedientes')
-                              </span>
-                              <span>Autoexclusiones finalizadas</span>
-                            </div>
-                          </li>
-                          @endif
-
+                          
                           @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado')
                           || AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_galeria'))
                           <li>
