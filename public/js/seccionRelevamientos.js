@@ -782,28 +782,23 @@ function habilitarBotonGuardar(){
 }
 
 function habilitarBotonFinalizar(){
-  var cantidadMaquinas = 0;
-  var maquinasRelevadas = 0;
-
-  $('#tablaCargaRelevamiento tbody tr').each(function(i){
-    cantidadMaquinas++;
-    var inputLleno = false;
-    var noToma = false;
-
+  let maquinasRelevadas = 0;
+  const cantidadMaquinas = $('#tablaCargaRelevamiento tbody tr').each(function(i){
+    let inputLleno = false;
     //Mirar si la fila tiene algun campo lleno
-    $(this).children('td').find('.contador').each(function (j){
-        if($(this).val().length > 0) inputLleno = true;
+    $(this).children('td').find('.contador').each(function(){
+      if($(this).val().length > 0) inputLleno = true;
     });
 
     //Mirar si seleccionó un tipo de no toma
-    if($(this).children('td').find('select').val() !== '') noToma = true;
+    const noToma = $(this).children('td').find('select').val() !== '';
 
-    //Si se lleno algun campo o se tifico la no toma, entonces la maquina está relevada
+    //Si se lleno algun campo o se selecciono una opcion de no toma, entonces la maquina está relevada
     if (inputLleno || noToma) {
-        maquinasRelevadas++;
+      maquinasRelevadas++;
     }
-  });
-
+  }).length;
+  console.log(cantidadMaquinas,maquinasRelevadas);
   if(cantidadMaquinas == maquinasRelevadas) $('#btn-finalizar').show();
   else $('#btn-finalizar').hide();
 }
