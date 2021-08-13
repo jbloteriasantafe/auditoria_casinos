@@ -19,6 +19,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="css/lista-datos.css">
+<style>
+.estilo_badge{
+  background-color: #6dc7be;
+  font-family: Roboto-Regular;
+  font-size: 18px;
+}
+</style>
 @endsection
         <div class="row">
             <div class="col-xl-3">
@@ -61,7 +68,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
               @endif
 
               @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'relevamiento_selec_maquinas_por_relevamiento'))
-
                   <div class="col-xl-12 col-md-4">
                    <a href="" id="btn-maquinasPorRelevamiento" style="text-decoration: none;">
                     <div class="panel panel-default panelBotonNuevo">
@@ -81,9 +87,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
               @endif
               </div>
             </div>
-
-
-
 
             <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
               <!-- FILTROS -->
@@ -150,9 +153,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                     <div class="panel-heading">
                         <h4>Últimos relevamientos</h4>
                     </div>
-                    <!-- <div class="panel-heading">
-                        <h4 id="tituloTabla" class="nombreTabla"></h4>
-                    </div> -->
                     <div class="panel-body">
                       <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                         <thead>
@@ -166,7 +166,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                           </tr>
                         </thead>
                         <tbody style="height:275px;">
-
                         </tbody>
                       </table>
                       <legend></legend>
@@ -267,7 +266,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                             <h5>MÁQUINAS POR DEFECTO</h5>
                                         </div>
                                         <div class="col-xs-6 col-md-4">
-                                            <span id="maquinas_defecto" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:5px;">15</span>
+                                            <span id="maquinas_defecto" class="badge estilo_badge" style="margin-top:5px;">15</span>
                                         </div>
                                     </div> <!-- /.row -->
 
@@ -277,23 +276,12 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                         <div class="col-md-12">
                                               <table id="maquinas_temporales" class="table">
                                                 <thead>
-                                                    <th>DESDE FECHA</th>
-                                                    <th>HASTA FECHA</th>
-                                                    <th>CANTIDAD DE MÁQUINAS</th>
-                                                    <th>ACCIÓN</th>
+                                                    <th style="text-align:center">DESDE</th>
+                                                    <th style="text-align:center">HASTA</th>
+                                                    <th style="text-align:center">CANTIDAD DE MÁQUINAS</th>
+                                                    <th style="text-align:center">ACCIÓN</th>
                                                 </thead>
                                                 <tbody>
-                                                    <tr>
-                                                      <td>12 Agosto 2017</td>
-                                                      <td>18 Agosto 2017</td>
-                                                      <td><span style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;" class="badge">21</span></td>
-                                                      <td><i class="fa fa-trash"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                      <td>25 Septiembre 2017</td>
-                                                      <td>27 Septiembre 2017</td>
-                                                      <td><span style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;" class="badge">12</span></td>
-                                                    </tr>
                                                 </tbody>
                                               </table>
                                         </div>
@@ -416,7 +404,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
           <div class="modal-dialog">
              <div class="modal-content">
                   <div class="modal-header modalNuevo">
-                      <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
                   </div>
@@ -609,7 +596,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                           <br>
 
                           <div class="row">
-                              <div class="col-md-12">
+                              <div class="col-md-12" style="overflow-y: scroll;max-height: 400px;">
                                   <table id="tablaCargaRelevamiento" class="table">
                                       <thead>
                                           <tr>
@@ -625,8 +612,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                           </tr>
                                       </thead>
                                       <tbody>
-
-
                                       </tbody>
                                   </table>
                               </div>
@@ -639,8 +624,6 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
                                 <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
                               </div>
                           </div>
-
-
                   </form>
 
                 </div>
@@ -973,6 +956,18 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuari
         <td class="tipo_no_toma"> - </td>
         <td class="denominacion">0</td>
         <td class="mtm_pedido">&nbsp;</td>
+      </tr>
+      <tr id="moldeMaquinasTemporales">
+        <td class="fecha_desde" style="text-align: center;">99 Enero 9999</td>
+        <td class="fecha_hasta" style="text-align: center;">99 Diciembre 9999</td>
+        <td style="text-align: center;">
+          <span class="badge estilo_badge cantidad">1234</span>
+        </td>
+        <td>
+          <button type="button" class="btn btn-danger borrarCantidadTemporal">
+            <i class="fa fa-fw fa-trash"></i>
+          </button>
+        </td>
       </tr>
     </table>
 

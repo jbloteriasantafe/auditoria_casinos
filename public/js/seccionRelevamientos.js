@@ -257,8 +257,8 @@ $(document).on('click','.carga',function(e){
       cargarTablaRelevamientos(data, tablaCargaRelevamiento, 'Carga');
       tablaCargaRelevamiento.find('input').trigger('input');
       habilitarBotonFinalizar();
+      $('#modalCargaRelevamiento').modal('show');
   });
-  $('#modalCargaRelevamiento').modal('show');
 });
 
 //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
@@ -518,48 +518,33 @@ $('#btn-maquinasPorRelevamiento').click(function(e) {
 //Generar el relevamiento de backup
 $('#btn-backup').click(function(e){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
   e.preventDefault();
-
-  var formData = {
-    fecha: $('#fechaRelSinSistema_date').val(),
-    fecha_generacion: $('#fechaGeneracion_date').val(),
-    id_sector: $('#sectorSinSistema').val(),
-  }
-
   $.ajax({
-      type: "POST",
-      url: 'relevamientos/usarRelevamientoBackUp',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data);
-            $('#btn-buscar').trigger('click');
-            $('#modalRelSinSistema').modal('hide');
-
-      },
-      error: function (data) {
-        console.log('ERROR!');
-        console.log(data);
-
-        var response = JSON.parse(data.responseText);
-
-        if(typeof response.id_sector !== 'undefined'){
-          mostrarErrorValidacion($('#casinoSinSistema'), response.id_sector[0],false);
-          mostrarErrorValidacion($('#sectorSinSistema'), response.id_sector[0],false);
-        }
-
-        if(typeof response.fecha !== 'undefined') {
-          mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
-        }
-
-        if(typeof response.fecha_generacion !== 'undefined') {
-          mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
-        }
-
+    type: "POST",
+    url: 'relevamientos/usarRelevamientoBackUp',
+    data: {
+      fecha: $('#fechaRelSinSistema_date').val(),
+      fecha_generacion: $('#fechaGeneracion_date').val(),
+      id_sector: $('#sectorSinSistema').val(),
+    },
+    dataType: 'json',
+    success: function (data) {
+      $('#btn-buscar').trigger('click');
+      $('#modalRelSinSistema').modal('hide');
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      if(typeof response.id_sector !== 'undefined'){
+        mostrarErrorValidacion($('#casinoSinSistema,#sectorSinSistema'), response.id_sector[0],false);
       }
+      if(typeof response.fecha !== 'undefined') {
+        mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
+      }
+      if(typeof response.fecha_generacion !== 'undefined') {
+        mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
+      }
+    }
   });
-
 });
 
 $('#fechaRelSinSistema input').on('change',function(e) {
@@ -574,8 +559,6 @@ $('#modalMaquinasPorRelevamiento #tipo_cantidad').change(function() {
   const habilitar = $("#modalMaquinasPorRelevamiento #tipo_cantidad").val() != 1;
   toggleDTPmaquinasPorRelevamiento(habilitar);
 });
-
-var generarMaquinasPorRelevamiento = true;
 
 $('#btn-generarDeTodasFormas').click(function(){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -620,7 +603,7 @@ $('#btn-cancelarTemporal').click(function(){
 $('#btn-generarMaquinasPorRelevamiento').click(function(){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  const id_sector = $('#modalMaquinasPorRelevamiento #sector').val();
+  const id_sector   = $('#modalMaquinasPorRelevamiento #sector').val();
   const fecha_desde = $('#modalMaquinasPorRelevamiento #fecha_desde').val();
   const fecha_hasta = $('#modalMaquinasPorRelevamiento #fecha_hasta').val();
 
@@ -715,107 +698,86 @@ function producidoCalculadoRelevado(fila){
 function enviarRelevamiento(estado) {
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  var detalles = [];
-
+  const detalles = [];
   $('#tablaCargaRelevamiento tbody tr').each(function(){
-      var calculado = '';
+      let calculado = '';
       //Si se envía para finalizar se guarda el producido calculado
       if (estado == 3) {
         //Si no tiene una causa de no toma se calcula el producido
-        if ($(this).children().children('.tipo_causa_no_toma').val() == '') {
-            calculado = producidoCalculadoRelevado($(this)).producido_calculado; //calculado relevado siempre se trabaja en dinero, no en creditos
-            calculado = Math.round(calculado*100)/100;
+        if ($(this).find('.tipo_causa_no_toma').val() == '') {
+          calculado = producidoCalculadoRelevado($(this)).producido_calculado; //calculado relevado siempre se trabaja en dinero, no en creditos
+          calculado = Math.round(calculado*100)/100;
         }
       }
 
-      var detalle = {
+      const detalle = {
         id_unidad_medida: $(this).attr('data-medida'),
         denominacion: $(this).attr('data-denominacion'),
         id_detalle_relevamiento: $(this).attr('id'),
-        cont1: $(this).children().children('.cont1').val().replace(/,/g,"."),
-        cont2: $(this).children().children('.cont2').val().replace(/,/g,"."),
-        cont3: $(this).children().children('.cont3').val().replace(/,/g,"."),
-        cont4: $(this).children().children('.cont4').val().replace(/,/g,"."),
-        cont5: $(this).children().children('.cont5').val().replace(/,/g,"."),
-        cont6: $(this).children().children('.cont6').val().replace(/,/g,"."),
-        cont7: $(this).children().children('.cont7').val().replace(/,/g,"."),
-        cont8: $(this).children().children('.cont8').val().replace(/,/g,"."),
-
         id_tipo_causa_no_toma: $(this).children().children('.tipo_causa_no_toma').val(),
         producido_calculado_relevado: calculado,
       };
+      for(let c=1;c<=8;c++) detalle['cont'+c] = $(this).find('.cont'+c).val().replace(/,/g,".")
 
       detalles.push(detalle);
   });
-  if (detalles.length == 0) {
-       detalles = 0;
-  }
-  //EL ESTADO EN 2 (SE GUARDÓ PARCIALMENTE)
-  var formData = {
-    id_relevamiento: $('#modalCargaRelevamiento #id_relevamiento').val(),
-    id_usuario_fiscalizador: $('#inputFisca').obtenerElementoSeleccionado(),
-    observacion_carga: $('#observacion_carga').val(),
-    tecnico: $('#tecnico').val(),
-    hora_ejecucion: $('#fecha_ejecucion').val(),
-    estado: estado,
-    detalles: detalles,
-    truncadas:truncadas
-  }
-
 
   $.ajax({
-      type: 'POST',
-      url: 'relevamientos/cargarRelevamiento',
-      dataType: 'JSON',
-      data: formData,
-      success: function (data) {
+    type: 'POST',
+    url: 'relevamientos/cargarRelevamiento',
+    dataType: 'JSON',
+    data: {
+      id_relevamiento: $('#modalCargaRelevamiento #id_relevamiento').val(),
+      id_usuario_fiscalizador: $('#inputFisca').obtenerElementoSeleccionado(),
+      observacion_carga: $('#observacion_carga').val(),
+      tecnico: $('#tecnico').val(),
+      hora_ejecucion: $('#fecha_ejecucion').val(),
+      estado: estado,
+      detalles: detalles.length == 0? 0 : detalles,
+      truncadas:truncadas
+    },
+    success: function (data) {
+      $('#btn-buscar').trigger('click');
+      guardado = true;
+      $('#btn-guardar').hide();
+      if (estado == 3) {
+        $('#modalCargaRelevamiento').modal('hide');
+      }
+    },
+    error: function (data) {
+      const response = data.responseJSON;
 
-        $('#btn-buscar').trigger('click');
+      if(typeof response.tecnico                 !== 'undefined'
+      || typeof response.fecha_ejecucion         !== 'undefined'
+      || typeof response.id_usuario_fiscalizador !== 'undefined'){
+        $("#modalCargaRelevamiento").animate({ scrollTop: 0 }, "slow");
+      }
 
-        guardado = true;
-        $('#btn-guardar').hide();
+      if(typeof response.tecnico !== 'undefined'){
+        mostrarErrorValidacion($('#tecnico'),response.tecnico[0]);
+      }
+      if(typeof response.fecha_ejecucion !== 'undefined'){
+        mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0]);
 
-        if (estado == 3) {
-          $('#modalCargaRelevamiento').modal('hide');
-        }
-      },
-      error: function (data) {
+      }
+      if(typeof response.id_usuario_fiscalizador !== 'undefined'){
+        mostrarErrorValidacion($('#inputFisca'),response.id_usuario_fiscalizador[0]);
+      }
 
-        var response = JSON.parse(data.responseText);
-
-        if(    typeof response.tecnico !== 'undefined'
-            || typeof response.fecha_ejecucion !== 'undefined'
-            || typeof response.id_usuario_fiscalizador !== 'undefined')
-        {
-          $("#modalCargaRelevamiento").animate({ scrollTop: 0 }, "slow");
-        }
-
-        if(typeof response.tecnico !== 'undefined'){
-          mostrarErrorValidacion($('#tecnico'),response.tecnico[0]);
-        }
-        if(typeof response.fecha_ejecucion !== 'undefined'){
-          mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0]);
-
-        }
-        if(typeof response.id_usuario_fiscalizador !== 'undefined'){
-          mostrarErrorValidacion($('#inputFisca'),response.id_usuario_fiscalizador[0]);
-        }
-
-        let filaError = null;
-        $('#tablaCargaRelevamiento tbody tr').each(function(filaidx,fila){
-          var error=' ';
-          for(let c = 1;c<=8;c++){
-            if(typeof response['detalles.'+ filaidx +'.cont' + c] !== 'undefined'){
-              filaError = fila;
-              mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ filaidx +'.cont'+c][0],false);
-            }
+      let filaError = null;
+      $('#tablaCargaRelevamiento tbody tr').each(function(filaidx,fila){
+        for(let c = 1;c<=8;c++){
+          if(typeof response['detalles.'+ filaidx +'.cont' + c] !== 'undefined'){
+            filaError = fila;
+            mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ filaidx +'.cont'+c][0],false);
           }
-        });
-
-        if(filaError != null){
-          $("#modalCargaRelevamiento").animate({ scrollTop: filaError.offset().top }, "slow");
         }
-      },
+      });
+
+      if(filaError != null){
+        $("#modalCargaRelevamiento").animate({ scrollTop: filaError.offset().top }, "slow");
+      }
+    }
   });
 }
 
@@ -862,41 +824,31 @@ $(document).on('click','.cancelarAjuste',function(e){
 });
 
 function enviarCambioDenominacion(id_maquina, medida, denominacion) {
-    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
-    var formData = {
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: 'relevamientos/modificarDenominacionYUnidad',
+    data: {
       id_detalle_relevamiento: id_maquina,
       id_unidad_medida: medida,
       denominacion: denominacion,
-    }
-
-    $.ajax({
-      type: "POST",
-      url: 'relevamientos/modificarDenominacionYUnidad',
-      data: formData,
-      dataType: 'json',
-      success: function(data){
-          $('.pop').popover('hide');
-
-          var id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();
-
-          //Volver a cargar la tabla y ver la diferencia
-          $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(dataRelevamiento){
-
-              $('#tablaValidarRelevamiento tbody tr').remove();
-
-              var tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
-
-              cargarTablaRelevamientos(dataRelevamiento, tablaValidarRelevamiento, 'Validar');
-              calculoDiferenciaValidar(tablaValidarRelevamiento, dataRelevamiento);
-          });
-
-          console.log(data);
-      },
-      error: function(error){
-          console.log('Error de cambio denominacion: ', error);
-      },
-    });
+    },
+    dataType: 'json',
+    success: function(data){
+      $('.pop').popover('hide');
+      const id_relevamiento = $('#modalValidarRelevamiento #id_relevamiento').val();
+      //Volver a cargar la tabla y ver la diferencia
+      $.get('relevamientos/obtenerRelevamiento/' + id_relevamiento, function(dataRelevamiento){
+          $('#tablaValidarRelevamiento tbody tr').remove();
+          const tablaValidarRelevamiento = $('#tablaValidarRelevamiento tbody');
+          cargarTablaRelevamientos(dataRelevamiento, tablaValidarRelevamiento, 'Validar');
+          calculoDiferenciaValidar(tablaValidarRelevamiento, dataRelevamiento);
+      });
+    },
+    error: function(error){
+        console.log('Error de cambio denominacion: ', error);
+    },
+  });
 }
 
 $(document).on('click','.ajustar',function(e){
@@ -1160,50 +1112,26 @@ function setCantidadMaquinas(data) {
   $.each(data, function(i, valor){
     //MÁQUINAS POR DEFECTO
     if(valor.fecha_desde == null && valor.fecha_hasta == null) {
-      setCantidadMaquinasDefecto(valor);
+      $('#maquinas_defecto').text(valor.cantidad);
       return;
     }
     //MÁQUINAS TEMPORALES
-    setCantidadMaquinasTemporales(valor);
+    $('#maquinas_temporales tbody').append(filaCantidadMaquinasTemporales(valor));
   });
-}
-
-function setCantidadMaquinasDefecto(valor) {
-  $('#maquinas_defecto').text(valor.cantidad);
-}
-
-function setCantidadMaquinasTemporales(valor) {
-  const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-  var fecha_desde = valor.fecha_desde.split("-");
-  fecha_desde = fecha_desde[2] + " " + nombreMeses[fecha_desde[1] - 1] + " " + fecha_desde[0];
-  var fecha_hasta = valor.fecha_hasta.split("-");
-  fecha_hasta = fecha_hasta[2] + " " + nombreMeses[fecha_hasta[1] - 1] + " " + fecha_hasta[0];
-
-  var cantidad = $('<span>').addClass('badge').text(valor.cantidad)
-                            .css('background-color','#6dc7be')
-                            .css('font-family','Roboto-Regular')
-                            .css('font-size','18px')
-
-
-
-  $('#maquinas_temporales tbody').append(
-      $('<tr>').attr('id', valor.id_cantidad_maquinas_por_relevamiento)
-          .append($('<td>').text(fecha_desde)) //fecha_desde
-          .append($('<td>').text(fecha_hasta)) //fecha_hasta
-          .append($('<td>').append(cantidad)) //cantidad_maquinas
-          .append($('<td>')
-              .append($('<button>')
-                  .attr('type','button')
-                  .addClass('btn btn-danger borrarCantidadTemporal')
-                  .append(
-                      $('<i>').addClass('fa fa-fw fa-trash')
-                  )
-              )
-            ) //icono para borrar
-  )
 
   //Si hay máquinas temporales MOSTRAR TABLA
-  $('#maquinas_temporales').show();
+  $('#maquinas_temporales').toggle($('#maquinas_temporales tbody tr').length > 0);
+}
+
+function filaCantidadMaquinasTemporales(valor) {
+  const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const fd = valor.fecha_desde.split("-");
+  const fh = valor.fecha_hasta.split("-");
+  const fila = $('#moldeMaquinasTemporales').clone().removeAttr('id').attr('id',valor.id_cantidad_maquinas_por_relevamiento);
+  fila.find('.fecha_desde').text(fd[2] + " " + nombreMeses[fd[1] - 1] + " " + fd[0]);
+  fila.find('.fecha_hasta').text(fh[2] + " " + nombreMeses[fh[1] - 1] + " " + fh[0]);
+  fila.find('.cantidad').text(valor.cantidad);
+  return fila;
 }
 
 function toggleDTPmaquinasPorRelevamiento(habilitado) {
