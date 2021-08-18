@@ -141,6 +141,8 @@ class AutoexclusionController extends Controller
     }
 
     //Función para agregar un nuevo autoexcluido complet, o editar uno existente
+    //@TODO: Agregar poder enviar la fecha de revocacion si se elige Fin. Por AE en el estado
+    //@TODO: Verificar conflico de fechas segun la fecha_ae
     public function agregarAE(Request $request){
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
@@ -297,7 +299,6 @@ class AutoexclusionController extends Controller
       $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
       $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
       $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
-      $ret->fecha_revocacion_ae = date('Y-m-d');
       return $ret;
     }
 
@@ -308,16 +309,20 @@ class AutoexclusionController extends Controller
         $estado->id_autoexcluido = $ae->id_autoexcluido;
       }
 
-      foreach($ae_estado as $key => $val){
+      foreach($ae_estado as $key => $val){//Traspasa todos los valores enviados al objeto
         $estado->{$key} = $val;
       }
+
       $fs = $this->generarFechas($estado->fecha_ae);
       $estado->fecha_renovacion    = $fs->fecha_renovacion;
       $estado->fecha_vencimiento   = $fs->fecha_vencimiento;
       $estado->fecha_cierre_ae     = $fs->fecha_cierre_ae;
-      $estado->fecha_revocacion_ae = null;
       if($estado->id_nombre_estado == 4){//Fin por AE
-        $estado->fecha_revocacion_ae = $fs->fecha_revocacion_ae;
+        //Si no seteo la fecha de revocacion y lo mando a Finalizar, pongo la de hoy... 
+        //Es MUY IMPORTANTE que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
+        if(empty($estado->fecha_revocacion_ae)){
+          $estado->fecha_revocacion_ae = date('Y-m-d');
+        }
       }
       $estado->save();
     }
@@ -797,12 +802,27 @@ class AutoexclusionController extends Controller
       'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
       'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
       'ae_estado.fecha_ae'        => 'required|date',
+      'ae_estado.fecha_revocacion_ae' => 'nullable|date'
     ], array(), self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $se_puede_agregar = $this->verificarConflictoFechas($data['ae_datos']['nro_dni'],$data['ae_estado']['fecha_ae'],false);
       if($se_puede_agregar > 0){
         return $validator->errors()->add('nro_dni','AE VIGENTE');
+      }
+      if(!empty($data['ae_estado']['fecha_revocacion_ae'])){//Si envia uno finalizado
+        //Verificar que sea su primer autoexclusion
+        if($this->existeAutoexcluido($data['ae_datos']['nro_dni']) != 0){
+          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE repetido');
+        }
+        //Verificar que la fecha de revocacion tenga sentido (este dentro de (frenov,fvencimiento])
+        $fs = $this->generarFechas($data['ae_estado']['fecha_ae']);
+        if($data['ae_estado']['fecha_revocacion_ae'] <= $fs->fecha_renovacion){
+          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+        }
+        if($data['ae_estado']['fecha_revocacion_ae'] > $fs->fecha_vencimiento){
+          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+        }
       }
     });
 
@@ -841,8 +861,13 @@ class AutoexclusionController extends Controller
 
       $ae_estado = $request['ae_estado'];
       $ae_estado['id_usuario'] = $api_token->usuario->id_usuario;
-      $ae_estado['id_nombre_estado'] = 1;//Vigente
+      if(empty($ae_estado['fecha_revocacion_ae'])){
+        $ae_estado['id_nombre_estado'] = 1;//Vigente
+      }else{
+        $ae_estado['id_nombre_estado'] = 4;//Fin. por AE
+      }
       $ae_estado['id_plataforma'] = $api_token->id_plataforma;
+
       $this->setearEstado($ae,$ae_estado);
       $this->subirImportacionArchivos($ae,[]);
     });
