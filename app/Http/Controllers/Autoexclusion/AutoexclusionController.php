@@ -114,19 +114,19 @@ class AutoexclusionController extends Controller
       }
 
       $resultados = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_estado.*', 
-        'ae_importacion.foto1','ae_importacion.foto2','ae_importacion.scandni','ae_importacion.solicitud_ae','ae_importacion.solicitud_revocacion','ae_importacion.caratula',
-                 'ae_nombre_estado.descripcion as desc_estado')
-        ->selectRaw('IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
-        ->join('ae_importacion'    , 'ae_datos.id_autoexcluido' , '=' , 'ae_importacion.id_autoexcluido')
+        ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
+                     ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
+                     ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,ae_nombre_estado.descripcion as desc_estado,
+                     IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
         ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
-        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')->whereNull('ae_importacion.deleted_at')
+        ->leftJoin('ae_datos as ae_datos2','ae_datos2.nro_dni','=','ae_datos.nro_dni')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')//->whereNull('ae_datos2.deleted_at')
         ->when($sort_by,function($query) use ($sort_by){
-                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                    })
+          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        })
         ->where($reglas)
         ->paginate($request->page_size);
 
@@ -604,6 +604,8 @@ class AutoexclusionController extends Controller
 
   //Esta funcion se fija sobre todos los AE los que estan para cambiar a vencido/renovado y lo hace
   //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
+  //@SPEEDUP: Agregar timestamp de ultima actualización...,
+  //solo es necesaria 1 por dia, asi se podria filtrar la busqueda a los que estan desactualizados
   public function actualizarVencidosRenovados(){
     DB::transaction(function (){
       $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->get();

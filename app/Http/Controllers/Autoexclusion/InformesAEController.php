@@ -114,8 +114,12 @@ class InformesAEController extends Controller
       }
 
       $resultados = DB::table('ae_datos')
-        ->select('ae_datos.*', 'ae_estado.*', 'ae_nombre_estado.descripcion as estado')
-        ->selectRaw('IFNULL(casino.codigo,plataforma.codigo) as casino_plataforma')
+        ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, 
+                     ae_datos.nombres,ae_datos.nombre_localidad,ae_datos.nombre_provincia,
+                     ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento,
+                     ae_estado.fecha_revocacion_ae,ae_estado.fecha_cierre_ae,ae_estado.id_nombre_estado,
+                     ae_estado.id_casino,ae_estado.id_plataforma,ae_nombre_estado.descripcion as estado,
+                     IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
@@ -125,7 +129,7 @@ class InformesAEController extends Controller
                         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
                     })
         ->where($reglas)
-        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at');
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')->whereNull('ae_encuesta.deleted_at');
 
       if(!is_null($request->finalizo)){
           if($request->finalizo) $resultados = $resultados->whereNotNull('ae_estado.fecha_revocacion_ae');
