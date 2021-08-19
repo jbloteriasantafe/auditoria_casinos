@@ -189,14 +189,15 @@ function generarFilaTabla(unAutoexcluido) {
     fila.find('.provincia').text(unAutoexcluido.nombre_provincia).attr('title',unAutoexcluido.nombre_provincia);
 
     fila.find('.fecha_ae').text(convertir_fecha(unAutoexcluido.fecha_ae));
-    fila.find('.fecha_vencimiento_primer_periodo').text(convertir_fecha(unAutoexcluido.fecha_vencimiento));
-    fila.find('.fecha_finalizacion').text(convertir_fecha(unAutoexcluido.fecha_revocacion_ae));
+    fila.find('.fecha_vencimiento').text(convertir_fecha(unAutoexcluido.fecha_vencimiento));
+    fila.find('.fecha_revocacion_ae').text(convertir_fecha(unAutoexcluido.fecha_revocacion_ae));
     fila.find('.fecha_cierre_ae').text(convertir_fecha(unAutoexcluido.fecha_cierre_ae));
-
     if(!unAutoexcluido.es_primer_ae){
         fila.find('td').css('font-style','italic');
-        fila.find('.fecha_finalizacion').text('-').attr('title','-');
-        fila.find('.fecha_vencimiento_primer_periodo').text('-').attr('title','-');
+        if(!unAutoexcluido.fecha_revocacion_ae){
+            fila.find('.fecha_revocacion_ae').text('-').attr('title','-');
+            fila.find('.fecha_vencimiento').text('-').attr('title','-');
+        }
     }
     fila.css('display', 'flow-root');
     return fila;

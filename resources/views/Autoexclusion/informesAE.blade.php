@@ -369,8 +369,8 @@ background-color: #4CAF50;
                     <td style="width: 9%;" class="localidad"></td>
                     <td style="width: 9%;" class="provincia" ></td>
                     <td style="width: 8%;" class="fecha_ae" ></td>
-                    <td style="width: 8%;" class="fecha_vencimiento_primer_periodo" ></td>
-                    <td style="width: 8%;" class="fecha_finalizacion" ></td>
+                    <td style="width: 8%;" class="fecha_vencimiento" ></td>
+                    <td style="width: 8%;" class="fecha_revocacion_ae" ></td>
                     <td style="width: 8%;" class="fecha_cierre_ae" ></td>
                     </td>
                   </tr>
