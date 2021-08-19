@@ -122,8 +122,7 @@ class AutoexclusionController extends Controller
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
-        ->leftJoin('ae_datos as ae_datos2','ae_datos2.nro_dni','=','ae_datos.nro_dni')
-        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')//->whereNull('ae_datos2.deleted_at')
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
         ->when($sort_by,function($query) use ($sort_by){
           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
         })
@@ -142,7 +141,7 @@ class AutoexclusionController extends Controller
 
     //Función para agregar un nuevo autoexcluido complet, o editar uno existente
     //@TODO: Agregar poder enviar la fecha de revocacion si se elige Fin. Por AE en el estado
-    //@TODO: Verificar conflico de fechas segun la fecha_ae
+    //@TODO: Verificar conflico de fechas segun la fecha_ae, como esta ahora asume que fecha_ae es siempre la ultima AE
     public function agregarAE(Request $request){
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
@@ -309,21 +308,34 @@ class AutoexclusionController extends Controller
         $estado->id_autoexcluido = $ae->id_autoexcluido;
       }
 
+      //@IMPORTANTE: que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
+      if($ae_estado['id_nombre_estado'] == 4){//Fin por AE
+        if(!empty($estado->fecha_revocacion_ae)){//Si ya tenia una fecha_revocacion_ae, le dejo esa
+          $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
+        }
+        else if(empty($ae_estado['fecha_revocacion_ae'])){//Le pongo la de hoy si no me mando una  
+          $ae_estado['fecha_revocacion_ae'] = date('Y-m-d');
+        }
+      }
+      //Si lo modificaron a vencido o estaba vencido y lo corrigieron (ej el apellido, la dirección, etc), mantenerle la fecha de revocacion
+      //@IMPORTANTE: Si se le quiere sacar la fecha_revocacion_ae a un vencido, ponerlo primero en vigente u otro estado
+      else if($ae_estado['id_nombre_estado'] == 5){//Vencido
+        $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
+      }
+      //En cualquier otro caso, se le limpia la fecha de revocación
+      else{
+        $ae_estado['fecha_revocacion_ae'] = null;
+      }
+
       foreach($ae_estado as $key => $val){//Traspasa todos los valores enviados al objeto
         $estado->{$key} = $val;
       }
 
       $fs = $this->generarFechas($estado->fecha_ae);
-      $estado->fecha_renovacion    = $fs->fecha_renovacion;
-      $estado->fecha_vencimiento   = $fs->fecha_vencimiento;
-      $estado->fecha_cierre_ae     = $fs->fecha_cierre_ae;
-      if($estado->id_nombre_estado == 4){//Fin por AE
-        //Si no seteo la fecha de revocacion y lo mando a Finalizar, pongo la de hoy... 
-        //Es MUY IMPORTANTE que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
-        if(empty($estado->fecha_revocacion_ae)){
-          $estado->fecha_revocacion_ae = date('Y-m-d');
-        }
-      }
+      $estado->fecha_renovacion  = $fs->fecha_renovacion;
+      $estado->fecha_vencimiento = $fs->fecha_vencimiento;
+      $estado->fecha_cierre_ae   = $fs->fecha_cierre_ae;
+      $estado->ultima_actualizacion_estado = null;
       $estado->save();
     }
  
@@ -598,40 +610,45 @@ class AutoexclusionController extends Controller
       $estado->fecha_revocacion_ae = date('Y-m-d');
     }
     $estado->id_nombre_estado = $id_estado;
+    $estado->ultima_actualizacion_estado = null;
     $estado->save();
     return 1;
   }
 
   //Esta funcion se fija sobre todos los AE los que estan para cambiar a vencido/renovado y lo hace
   //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
-  //@SPEEDUP: Agregar timestamp de ultima actualización...,
-  //solo es necesaria 1 por dia, asi se podria filtrar la busqueda a los que estan desactualizados
   public function actualizarVencidosRenovados(){
+    //solo es necesaria 1 actualizacion por dia, se filtran todos los que no fueron actualizados hoy
     DB::transaction(function (){
-      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->get();
+      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->where(function($q){
+        return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',DB::raw('CURRENT_DATE()'));
+      })->get();
       foreach($vigentes as $v){//Vigentes que pasan a renovados por 1er AE o que vencieron
         $ae = $v->ae;
         $nuevo_estado = $ae->estado_transicionable;
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta
+        $v->ultima_actualizacion_estado = date('Y-m-d');
+        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta, por si esta mal el codigo de getEstadoTransicionable
         if($nuevo_estado == 2){//Renovado
           $v->id_nombre_estado = 2;
-          $v->save();
         }
         if($nuevo_estado == 5){//Vencido
           $v->id_nombre_estado = 5;
-          $v->save();
         }
+        $v->save();        
       }
     });
     DB::transaction(function (){//Renovados que vencieron a los 12 meses o finalizados que vencieron a los 6 meses
-      $renovados_y_finalizados = AE\EstadoAE::whereIn('id_nombre_estado',[2,4])->get();
+      $renovados_y_finalizados = AE\EstadoAE::whereIn('id_nombre_estado',[2,4])->where(function($q){
+        return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',DB::raw('CURRENT_DATE()'));
+      })->get();
       foreach($renovados_y_finalizados as $e){
         $ae = $e->ae;
         $nuevo_estado = $ae->estado_transicionable;
+        $e->ultima_actualizacion_estado = date('Y-m-d');
         if($nuevo_estado == 5){//Vencido
           $e->id_nombre_estado = 5;
-          $e->save();
         }
+        $e->save();
       }
     });
   }

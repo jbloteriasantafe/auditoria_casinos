@@ -14,7 +14,7 @@ class EstadoAE extends Model
   protected $visible = array('id_estado','id_nombre_estado','id_casino','id_plataforma',
                               'fecha_ae','fecha_vencimiento',
                               'fecha_renovacion', 'fecha_cierre_ae', 'fecha_revocacion_ae',
-                              'id_usuario',  'id_autoexcluido'
+                              'id_usuario',  'id_autoexcluido','ultima_actualizacion_estado'
                               );
   protected $fillable = ['id_nombre_estado','id_casino','id_plataforma',
                               'fecha_ae','fecha_vencimiento',
