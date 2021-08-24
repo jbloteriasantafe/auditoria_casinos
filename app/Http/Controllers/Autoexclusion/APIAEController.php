@@ -184,27 +184,27 @@ class APIAEController extends Controller
           $data = $validator->getData();
           $se_puede_agregar = $this->verificarConflictoFechas($data['ae_datos']['nro_dni'],$data['ae_estado']['fecha_ae'],false);
           if($se_puede_agregar > 0){
-            return $validator->errors()->add('nro_dni','AE VIGENTE');
+            return $validator->errors()->add('ae_datos.nro_dni','AE VIGENTE');
           }
           if($data['ae_estado']['fecha_ae'] > date('Y-m-d')){
-            return $validator->errors()->add('fecha_ae','No puede agregar un AE en esa fecha');
+            return $validator->errors()->add('ae_estado.fecha_ae','No puede agregar un AE en esa fecha');
           }
           if(!empty($data['ae_estado']['fecha_revocacion_ae'])){//Si envia uno finalizado
             //Verificar que sea su primer autoexclusion
             $AEC = AutoexclusionController::getInstancia(false);
             if($AEC->existeAutoexcluido($data['ae_datos']['nro_dni']) != 0){
-              return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE repetido');
+              return $validator->errors()->add('ae_estado.fecha_revocacion_ae','No puede finalizar un AE repetido');
             }
             //Verificar que la fecha de revocacion tenga sentido (este dentro de (frenov,fvencimiento])
             $fs = $AEC->generarFechas($data['ae_estado']['fecha_ae']);
             if($data['ae_estado']['fecha_revocacion_ae'] <= $fs->fecha_renovacion){
-              return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+              return $validator->errors()->add('ae_estado.fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
             }
             if($data['ae_estado']['fecha_revocacion_ae'] > $fs->fecha_vencimiento){
-              return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+              return $validator->errors()->add('ae_estado.fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
             }
             if($data['ae_estado']['fecha_revocacion_ae'] > date('Y-m-d')){
-              return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+              return $validator->errors()->add('ae_estado.fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
             }
           }
         });
