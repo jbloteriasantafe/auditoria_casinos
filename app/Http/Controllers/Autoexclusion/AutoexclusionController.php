@@ -23,15 +23,15 @@ class AutoexclusionController extends Controller
     private static $atributos = [];
 
     private static $instance;
-    public static function getInstancia(){
+    public static function getInstancia($actualizar = true){
       if (!isset(self::$instance)){
-          self::$instance = new AutoexclusionController();
+          self::$instance = new AutoexclusionController($actualizar);
       }
       return self::$instance;
     }
 
-    public function __construct(){//Actualizar estados antes de cada request
-      $this->actualizarVencidosRenovados();
+    public function __construct($actualizar = true){//Actualizar estados antes de cada request
+      if($actualizar) $this->actualizarVencidosRenovados();
     }
 
     public function index($dni = ''){
@@ -290,7 +290,7 @@ class AutoexclusionController extends Controller
       return ['nuevo' => $esNuevo];
     }
 
-    private function generarFechas($fecha_ae){
+    public function generarFechas($fecha_ae){//Usado en APIAEController
       $date_ae = date_create_from_format('Y-m-d',$fecha_ae);
       $ret = new \stdClass();
       // @BUG? (definir bien los limites): Si quiero ser compatible
@@ -301,7 +301,7 @@ class AutoexclusionController extends Controller
       return $ret;
     }
 
-    private function setearEstado($ae,$ae_estado){
+    public function setearEstado($ae,$ae_estado){//Usado en APIAEController
       $estado = $ae->estado;
       if(is_null($estado)){
         $estado = new AE\EstadoAE;
@@ -339,7 +339,7 @@ class AutoexclusionController extends Controller
       $estado->save();
     }
  
-    private function subirImportacionArchivos($ae,$ae_importacion) {
+    public function subirImportacionArchivos($ae,$ae_importacion) {//Usado en APIAEController
       $importacion = $ae->importacion;
       if (is_null($importacion)){
         $importacion = new AE\ImportacionAE;
@@ -414,7 +414,7 @@ class AutoexclusionController extends Controller
       return ['codigo' => 200];
     }
 
-  public function existeAutoexcluido($dni){//NO CAMBIAR SIN VERIFICAR QUE LAS FUNCIONES API_* SIGAN ESTANDO CORRECTAS
+  public function existeAutoexcluido($dni){//Usado en APIAEController
     $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
     $todos_vencidos = true;
     foreach($aes as $ae){
@@ -584,7 +584,7 @@ class AutoexclusionController extends Controller
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
-  public function cambiarEstadoAE($id,$id_estado){
+  public function cambiarEstadoAE($id,$id_estado){//Usado en APIAEController
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae = AE\Autoexcluido::find($id);
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
@@ -617,7 +617,7 @@ class AutoexclusionController extends Controller
 
   //Esta funcion se fija sobre todos los AE los que estan para cambiar a vencido/renovado y lo hace
   //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
-  public function actualizarVencidosRenovados(){
+  public function actualizarVencidosRenovados(){//Usado en APIAE,GaleriaImagenes e InformesAE
     //solo es necesaria 1 actualizacion por dia, se filtran todos los que no fueron actualizados hoy
     DB::transaction(function (){
       $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->where(function($q){
@@ -675,225 +675,6 @@ class AutoexclusionController extends Controller
     });
     return 1;
   }
-
-  public function API_fechas(Request $request,string $dni){
-    $id = $this->existeAutoexcluido($dni);
-    //0 No tuvo, -1 Ya tuvo y estan vencidos
-    if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
-    
-    $ae = AE\Autoexcluido::find($id);
-    //No deberia pasar pero lo dejo chequeado por las dudas
-    if(is_null($ae)) return $this->errorOut(['error' => 'ERROR UNREACHABLE']);
-
-    $e = $ae->estado;
-    $ret = ['fecha_ae' => $e->fecha_ae,'fecha_cierre_ae' => $e->fecha_cierre_ae];
-    if($ae->es_primer_ae){
-      $ret['fecha_renovacion']  = $e->fecha_renovacion;
-      $ret['fecha_vencimiento'] = $e->fecha_vencimiento;
-      if(!is_null($e->fecha_revocacion_ae)) $ret['fecha_revocacion_ae'] = $e->fecha_revocacion_ae;
-    }
-    return $ret;
-  }
-
-  public function API_finalizar(Request $request,string $dni){
-    $id = $this->existeAutoexcluido($dni);
-    if($id <= 0) return $this->errorOut(['error' => 'SIN AE']);
-    $ret = $this->cambiarEstadoAE($id,4);//Fin. por AE
-    return $ret !== 1? $ret : response()->json('Finalizado',200);
-  }
-
-  private function verificarConflictoFechas($dni,$fecha_ae,bool $finalizado){//Verifico que no pise a algun AE ya en la BD
-    $q = DB::table('ae_datos as aed')->select('aee.*')
-    ->join('ae_estado as aee','aee.id_autoexcluido','=','aed.id_autoexcluido')
-    ->whereNull('aed.deleted_at')->whereNull('aee.deleted_at')
-    ->where('aed.nro_dni','=',$dni);
-
-    /*
-    Agarra dos casos (el de abajo es el que se agregaria)
-
-    fecha_ae                                         fecha_cierre_ae
-        ┌──────────────────────────────────────────────┐
-        │                                              │
-            │                                              │
-            └──────────────────────────────────────────────┘
-        $fecha_ae
-    fecha_ae                                         fecha_cierre_ae
-        ┌──────────────────────────────────────────────┐
-        │                                              │
-            │                      │
-            └──────────────────────┘
-        $fecha_ae
-    */
-    $dentro_algun_completo =  (clone $q)->whereNull('aee.fecha_revocacion_ae')
-    ->where('aee.fecha_ae','<=',$fecha_ae)->where('aee.fecha_cierre_ae','>=',$fecha_ae)
-    ->count() > 0;
-    if($dentro_algun_completo) return 1;
-
-    /*
-    Agarra dos casos (el de abajo es el que se agregaria)
-
-    fecha_ae                 fecha_vencimiento
-        ┌──────────────────────┐
-        │                      │
-            │                                              │
-            └──────────────────────────────────────────────┘
-        $fecha_ae
-    fecha_ae                 fecha_vencimiento
-        ┌──────────────────────┐
-        │                      │
-            │                      │
-            └──────────────────────┘
-        $fecha_ae
-    */
-    $dentro_algun_finalizado = (clone $q)->whereNotNull('aee.fecha_revocacion_ae')
-    ->where('aee.fecha_ae','<=',$fecha_ae)->where('aee.fecha_vencimiento','>=',$fecha_ae)
-    ->count() > 0;
-    if($dentro_algun_finalizado) return 2;
-
-    $fecha_fin = null;
-    {
-      $fechas = $this->generarFechas($fecha_ae);
-      if($finalizado) $fecha_fin = $fechas->fecha_vencimiento;
-      else            $fecha_fin = $fechas->fecha_cierre_ae;
-    }
-
-    /*
-    Agarra dos casos (el de abajo es el que se agregaria)
-                              fecha_ae                                         fecha_cierre_ae
-                                    ┌──────────────────────────────────────────────┐
-                                    │                                              │
-                            │                      │
-                            └──────────────────────┘
-                                              $fecha_fin
-                              fecha_ae                                         fecha_cierre_ae
-                                    ┌──────────────────────────────────────────────┐
-                                    │                                              │
-    │                                              │
-    └──────────────────────────────────────────────┘
-                                              $fecha_fin
-    */
-    $se_extiende_dentro_de_alguno_ya_existente_completo = (clone $q)->whereNull('aee.fecha_revocacion_ae')
-    ->where('aee.fecha_ae','<=',$fecha_fin)->where('aee.fecha_cierre_ae','>=',$fecha_fin)
-    ->count() > 0;
-    if($se_extiende_dentro_de_alguno_ya_existente_completo) return 3;
-
-    /*
-    Agarra dos casos (el de abajo es el que se agregaria)
-                              fecha_ae                    fecha_vencimiento
-                                    ┌──────────────────────┐
-                                    │                      │
-                            │                      │
-                            └──────────────────────┘
-                                              $fecha_fin
-                              fecha_ae                    fecha_vencimiento
-                                    ┌──────────────────────┐
-                                    │                      │
-    │                                              │
-    └──────────────────────────────────────────────┘
-                                              $fecha_fin
-    */
-    $se_extiende_dentro_de_alguno_ya_existente_finalizado = (clone $q)->whereNotNull('aee.fecha_revocacion_ae')
-    ->where('aee.fecha_ae','<=',$fecha_fin)->where('aee.fecha_vencimiento','>=',$fecha_fin)
-    ->count() > 0;
-    if($se_extiende_dentro_de_alguno_ya_existente_finalizado) return 4;
-
-    return 0;
-  }
-
-  public function API_agregar(Request $request){
-    $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
-    $validator = Validator::make($request->all(), [
-      'ae_datos.nro_dni'          => 'required|integer',
-      'ae_datos.apellido'         => 'required|string|max:100',
-      'ae_datos.nombres'          => 'required|string|max:150',
-      'ae_datos.fecha_nacimiento' => 'required|date',
-      'ae_datos.sexo'             => 'required|string|max:4|exists:ae_sexo,codigo',
-      'ae_datos.domicilio'        => 'required|string|max:100',
-      'ae_datos.nro_domicilio'    => 'required|integer',
-      'ae_datos.piso'             => 'nullable|string|max:5',
-      'ae_datos.dpto'             => 'nullable|string|max:5',
-      'ae_datos.codigo_postal'    => 'required|string|max:10',
-      'ae_datos.nombre_localidad' => 'required|string|max:200',
-      'ae_datos.nombre_provincia' => 'required|string|max:200',
-      'ae_datos.telefono'         => 'required|string|max:200',
-      'ae_datos.correo'           => 'required|string|max:100',
-      'ae_datos.ocupacion'        => 'nullable|string|max:4|exists:ae_ocupacion,codigo',
-      'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
-      'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
-      'ae_estado.fecha_ae'        => 'required|date',
-      'ae_estado.fecha_revocacion_ae' => 'nullable|date'
-    ], array(), self::$atributos)->after(function($validator){
-      if($validator->errors()->any()) return;
-      $data = $validator->getData();
-      $se_puede_agregar = $this->verificarConflictoFechas($data['ae_datos']['nro_dni'],$data['ae_estado']['fecha_ae'],false);
-      if($se_puede_agregar > 0){
-        return $validator->errors()->add('nro_dni','AE VIGENTE');
-      }
-      if(!empty($data['ae_estado']['fecha_revocacion_ae'])){//Si envia uno finalizado
-        //Verificar que sea su primer autoexclusion
-        if($this->existeAutoexcluido($data['ae_datos']['nro_dni']) != 0){
-          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE repetido');
-        }
-        //Verificar que la fecha de revocacion tenga sentido (este dentro de (frenov,fvencimiento])
-        $fs = $this->generarFechas($data['ae_estado']['fecha_ae']);
-        if($data['ae_estado']['fecha_revocacion_ae'] <= $fs->fecha_renovacion){
-          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
-        }
-        if($data['ae_estado']['fecha_revocacion_ae'] > $fs->fecha_vencimiento){
-          return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
-        }
-      }
-    });
-
-    if($validator->errors()->any()) return $this->errorOut($validator->errors());
-
-    $request = $request->all();
-
-    //Sexo siempre viene asi que en realidad el tercer valor nunca se usa
-    $except = ['sexo'         => ['id_sexo',        'ae_sexo', 'X'],
-               'ocupacion'    => ['id_ocupacion',   'ae_ocupacion', 'NC'],
-               'capacitacion' => ['id_capacitacion','ae_capacitacion', 'NC'],
-               'estado_civil' => ['id_estado_civil','ae_estado_civil', 'NC']];
-
-    foreach($except as $key => $defecto){//Pongo valores por defecto "No contesta" si no lo envia.
-      if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
-    }
-
-    DB::transaction(function() use($request,$api_token,$except){
-      $ae = new AE\Autoexcluido;
-      $ae_datos = $request['ae_datos'];
-
-      foreach($ae_datos as $key => $val){
-        if(!array_key_exists($key,$except)) $ae->{$key} = $val;
-        else{
-          $table = $except[$key][1];
-          $id_name = $except[$key][0];
-          $row = DB::table($table)->select($id_name)->where('codigo',$val)->get()->first();
-          $ae->{$id_name} = $row->{$id_name};
-        }
-      }
-      $ae->save();
-
-      $contacto = new AE\ContactoAE;
-      $contacto->id_autoexcluido = $ae->id_autoexcluido;
-      $contacto->save();
-
-      $ae_estado = $request['ae_estado'];
-      $ae_estado['id_usuario'] = $api_token->usuario->id_usuario;
-      if(empty($ae_estado['fecha_revocacion_ae'])){
-        $ae_estado['id_nombre_estado'] = 1;//Vigente
-      }else{
-        $ae_estado['id_nombre_estado'] = 4;//Fin. por AE
-      }
-      $ae_estado['id_plataforma'] = $api_token->id_plataforma;
-
-      $this->setearEstado($ae,$ae_estado);
-      $this->subirImportacionArchivos($ae,[]);
-    });
-
-    return response()->json('Agregado',200);
-  }
-
   private function errorOut($map){
     return response()->json($map,422);
   }

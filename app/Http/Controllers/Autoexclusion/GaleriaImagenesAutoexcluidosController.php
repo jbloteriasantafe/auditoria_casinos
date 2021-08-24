@@ -20,8 +20,18 @@ use Illuminate\Support\Facades\DB;
 
 class GaleriaImagenesAutoexcluidosController extends Controller
 {
-    private static $atributos = [
-    ];
+    private static $atributos = [];
+    private static $instance;
+    public static function getInstancia($actualizar = true){
+      if (!isset(self::$instance)){
+          self::$instance = new GaleriaImagenesAutoexcluidosController($actualizar);
+      }
+      return self::$instance;
+    }
+
+    public function __construct($actualizar = true){//Actualizar estados antes de cada request
+      if($actualizar) AutoexclusionController::getInstancia(false)->actualizarVencidosRenovados();
+    }
 
     public function todo($dni = null){
       UsuarioController::getInstancia()->agregarSeccionReciente('Galería Autoexcluidos' , 'galeriaAE');
@@ -43,7 +53,6 @@ class GaleriaImagenesAutoexcluidosController extends Controller
     }
 
     public function getPathsFotosAutoexcluidos (Request $request) {
-      AutoexclusionController::getInstancia()->actualizarVencidosRenovados();
       $reglas = Array();
 
       //filtro de búsqueda por apellido
@@ -99,8 +108,6 @@ class GaleriaImagenesAutoexcluidosController extends Controller
 
     //Retorna el estado de su ultima autoexclusió
     public function getDatosUnAutoexcluido ($nro_dni) {
-      AutoexclusionController::getInstancia()->actualizarVencidosRenovados();
-      
       $resultado = DB::table('ae_datos')
         ->select('ae_datos.*', 'ae_estado.*', 'ae_nombre_estado.descripcion as estado')
         ->selectRaw('IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
@@ -115,5 +122,4 @@ class GaleriaImagenesAutoexcluidosController extends Controller
 
       return $resultado;
     }
-
 }

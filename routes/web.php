@@ -893,8 +893,8 @@ Route::group(['prefix' =>'API/'],function(){
     Route::get('/',function(){//Para probar el acceso
       return 1;
     });
-    Route::get('/fechas/{DNI}','Autoexclusion\AutoexclusionController@API_fechas');
-    Route::get('/finalizar/{DNI}','Autoexclusion\AutoexclusionController@API_finalizar');
-    Route::post('/agregar','Autoexclusion\AutoexclusionController@API_agregar');
+    Route::get('/fechas/{DNI}','Autoexclusion\APIAEController@fechas');
+    Route::get('/finalizar/{DNI}','Autoexclusion\APIAEController@finalizar');
+    Route::post('/agregar','Autoexclusion\APIAEController@agregar');
   });
 });
