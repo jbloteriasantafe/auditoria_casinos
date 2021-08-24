@@ -186,6 +186,9 @@ class APIAEController extends Controller
           if($se_puede_agregar > 0){
             return $validator->errors()->add('nro_dni','AE VIGENTE');
           }
+          if($data['ae_estado']['fecha_ae'] > date('Y-m-d')){
+            return $validator->errors()->add('fecha_ae','No puede agregar un AE en esa fecha');
+          }
           if(!empty($data['ae_estado']['fecha_revocacion_ae'])){//Si envia uno finalizado
             //Verificar que sea su primer autoexclusion
             $AEC = AutoexclusionController::getInstancia(false);
@@ -198,6 +201,9 @@ class APIAEController extends Controller
               return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
             }
             if($data['ae_estado']['fecha_revocacion_ae'] > $fs->fecha_vencimiento){
+              return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
+            }
+            if($data['ae_estado']['fecha_revocacion_ae'] > date('Y-m-d')){
               return $validator->errors()->add('fecha_revocacion_ae','No puede finalizar un AE en esa fecha');
             }
           }
