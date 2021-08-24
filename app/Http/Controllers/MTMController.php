@@ -11,7 +11,6 @@ use App\TipoGabinete;
 use App\TipoMoneda;
 use App\UnidadMedida;
 use App\Maquina;
-use App\TipoProgresivo;
 use App\Casino;
 use App\Isla;
 use App\Juego;
@@ -72,11 +71,10 @@ class MTMController extends Controller
     $tipos = TipoMaquina::all();
     $monedas = TipoMoneda::all();
     $gabinetes = TipoGabinete::all();
-    $tipo_progresivos = ['LINKEADO', 'INDIVIDUAL'];
     $estados = EstadoMaquina::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Máquinas' ,'maquinas');
-    return view('seccionMaquinas', ['unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 'monedas' => $monedas , 'gabinetes' => $gabinetes , 'tipo_progresivos' => $tipo_progresivos, 'estados' => $estados]);
+    return view('seccionMaquinas', ['unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 'monedas' => $monedas , 'gabinetes' => $gabinetes, 'estados' => $estados]);
   }
 
   public function obtenerConfiguracionMaquina($id){

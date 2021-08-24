@@ -36,10 +36,6 @@ class RelevamientoMovimiento extends Model
       return $this->hasMany('App\TomaRelevamientoMovimiento','id_relevamiento_movimiento','id_relev_mov');
   }
 
-  public function toma_relevamiento_modificada(){
-      return $this->hasOne('App\TomaRelModificada','id_relevamiento_movimiento','id_relev_mov');
-  }
-
   public function fiscalizador(){
     return $this->belongsTo('App\Usuario','id_fisca','id_usuario');
   }

@@ -30,7 +30,6 @@ use App\Formula;
 use App\TipoGabinete;
 use App\UnidadMedida;
 use App\Maquina;
-use App\TipoProgresivo;
 use App\Casino;
 use App\Isla;
 use App\Juego;

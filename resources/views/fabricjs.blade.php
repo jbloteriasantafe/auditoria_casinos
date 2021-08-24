@@ -42,45 +42,6 @@
 
     //Estructura JSON para dibujar islas y máquinas
     var listaIslas = [
-        // {
-        //   nro_isla: 16,
-        //   top: 300,
-        //   left: 150,
-        //   maquinas: [
-        //       {
-        //         nro_admin: 1234,
-        //         top: 30,
-        //         left: 30,
-        //       },
-        //       {
-        //         nro_admin: 4321,
-        //         top: 5,
-        //         left: 8,
-        //       }
-        //   ],
-        // },
-        // {
-        //   nro_isla: 18,
-        //   top: 100,
-        //   left: 450,
-        //   maquinas: [
-        //       {
-        //         nro_admin: 6543,
-        //         top: 5,
-        //         left: 6,
-        //       },
-        //       {
-        //         nro_admin: 2383,
-        //         top: 12,
-        //         left: 30,
-        //       },
-        //       {
-        //         nro_admin: 8761,
-        //         top: 12,
-        //         left: 11,
-        //       }
-        //   ],
-        // }
     ];
 
 
@@ -120,8 +81,6 @@
     function dibujarLayout() {
         //Crear todas las islas
         for (var i = 0; i < listaIslas.length; i++) {
-            // console.log('Isla: ', listaIslas[i].nro_isla);
-
             canvas.add(new fabric.Rect({
                 id: listaIslas[i].nro_isla,
                 type: 'isla',
@@ -139,21 +98,6 @@
 
             //Crear todas las máquinas
             for (var j = 0; j < listaIslas[i].maquinas.length; j++) {
-                  // console.log('Máquina: ', listaIslas[i].maquinas[j]);
-
-                  // canvas.add(new fabric.Circle({
-                  //    radius: 15,
-                  //    id: listaIslas[i].maquinas[j].nro_admin,
-                  //    isla: listaIslas[i].nro_isla,
-                  //    type: 'maquina',
-                  //   //  width: 10,
-                  //   //  height: 10,
-                  //    fill: '#afa',
-                  //    top: listaIslas[i].top + listaIslas[i].maquinas[j].top,
-                  //    left: listaIslas[i].left + listaIslas[i].maquinas[j].left,
-                  //    hasControls: false,
-                  //    index: 6,
-                  // }));
                   var texto = listaIslas[i].maquinas[j].nro_admin.toString();
 
                   var circle = new fabric.Circle({
@@ -210,7 +154,6 @@
                 if (objeto.type == 'maquina' && e.target.intersectsWithObject(objeto) && objeto.isla == e.target.id) {
                     objetosMaquinas.push(objeto);
                 }
-                // e.target.intersectsWithObject(objeto) && objeto.type == 'maquina' ? objetosMaquinas.push(objeto) : null;
             });
 
             canvas.sendToBack(e.target); //Se manda al fondo la isla seleccionada
@@ -284,21 +227,11 @@
             }
 
         }
-
-        // e.target.set('strokeWidth', e.target.strokeWidth / Math.max(e.target.scaleX, e.target.scaleY));
-        //No cambiar escala del borde
-        // e.target.set('widthStroke', e.target.origStrokeWidth / Math.max(e.target.scaleX, e.target.scaleY));
-
     });
 
     canvas.on('object:modified',function(e){
 
     });
-
-
-
-
-
 
 </script>
 @endsection

@@ -73,30 +73,6 @@ $('#btn-buscar').click(function(e){
         $('#modalDetallesParque').modal('show');
     });
   }
-  // $.get('/informesMTM/obtenerEstadoParqueDeCasino/' + id , function(data){
-  //     $('#total_habilitadas').text(data.totales.total_habilitadas);
-  //     $('#total_deshabilitadas').text(data.totales.total_deshabilitadas);
-  //     $('#islas_asignadas').text(data.totales.islas_no_asignadas);
-  //     $('#maquinas_asignadas').text(data.totales.total_no_asignadas);
-  //     habilitadas = data.totales.total_habilitadas;
-  //     deshabilitadas = data.totales.total_deshabilitadas;
-  //     for (var i = 0; i < data.sectores.length; i++) {
-  //       generarFilaTabla(data.casino.nombre, data.sectores[i].descripcion ,data.sectores[i].cantidad);
-  //     }
-  //     var foot = $('<tr>').css('font-weight','bold').append($('<td>')
-  //                               .addClass('col-xs-3')
-  //                               .text("Total de casino: ")
-  //                           )
-  //                           .append($('<td>')
-  //                               .addClass('col-xs-5')
-  //                               .text(' ')
-  //                           )
-  //                           .append($('<td>')
-  //                               .addClass('col-xs-4')
-  //                               .text(data.totales.total_casino)
-  //                           )
-  //     $('#tablaSectores tfoot').append(foot)
-  // })
 });
 
 $('#modalDetallesParque').on('shown.bs.modal',function(){
@@ -158,10 +134,6 @@ $(document).on('click','.detalle',function(){
 });
 
 function generarFilaSector(sector, cantidad) {
-  // <div class="filaSector">
-  //   <span class="nombreSector">ZONA 1</span>
-  //   <span class="cantMaquinasSector">100 MTM</span>
-  // </div>
   var fila = $('#filaModelo').clone().show();
   $('#sectores').append(fila);
 
@@ -170,13 +142,6 @@ function generarFilaSector(sector, cantidad) {
   fila.attr('id','sector' + sector.id_sector);
   fila.find('.nombreSector').text(sector);
   fila.find('.cantMaquinasSector').text(cantidad);
-
-  // var fila = $('<div>').addClass('filaSector').attr('id','sector' + sector.id_sector);
-  //
-  // fila.append($('<span>').addClass('nombreSector').text(sector));
-  // fila.append($('<span>').addClass('cantMaquinasSector').text(cantidad));
-
-
 }
 
 function generarFilaTabla(casino, sector ,cantidad){

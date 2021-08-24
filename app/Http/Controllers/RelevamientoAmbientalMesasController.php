@@ -11,7 +11,6 @@ use App\Isla;
 use App\EstadoRelevamiento;
 use App\RelevamientoAmbiental;
 use App\DetalleRelevamientoAmbiental;
-use App\CantidadPersonas;
 use App\Turno;
 use App\Usuario;
 use App\InformeControlAmbiental;

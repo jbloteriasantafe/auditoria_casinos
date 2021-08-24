@@ -220,7 +220,6 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('/modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('/buscarMaquinas', 'MTMController@buscarMaquinas');
   Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
-  // Route::get('/buscarMaquinaPorNumeroMarcaYModelo/{busqueda}/casino/{casino}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
 });
 //Lo necesitan los auditores
@@ -627,27 +626,6 @@ Route::get('pruebas/generarPlanillaPruebaDeProgresivos/{id_prueba_progresivo}','
 PRUEBAS DE DESARROLLO - AUXILIAR
 ****************************/
 
-Route::get('prueba',function(){
-  return view('prueba');
-})->middleware('tiene_permiso:ver_pruebas_desarrollo');
-
-Route::post('prueba/actualizarMaestroRosario', 'LectorCSVController@actualizaMaestroRosario');
-Route::post('prueba/actualizarMaestroMelincue','LectorCSVController@actualizarMaestroMelincue');
-
-Route::get('prueba/validador','pruebaController@validador');
-
-Route::get('/prueba/estado_actividades','MenuContadoresController@estado_actividades');
-
-Route::get('pruebaMovimientos',function(){
-  return view('pruebaMovimientos');
-});
-
-Route::post('pruebaMovimientos/pruebasVarias', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@planillaRosario');
-
-Route::get('listaDatos',function(){
-  return view('listaDatos');
-});
-
 Route::get('fabricjs',function(){
   return view('fabricjs');
 });
@@ -660,8 +638,6 @@ Route::get('plano',function(){
 Route::get('calendario_eventos',function(){
     return view('calendar');
 });
-
-Route::get('error','RelevamientoController@crearPlanillaValidado');
 
 /*SECCION MESAS DE PAÑO*/
 Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');

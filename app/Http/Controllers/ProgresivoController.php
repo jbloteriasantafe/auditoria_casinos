@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Progresivo;
-use App\TipoProgresivo;
 use App\Juego;
 use App\Pozo;
 use App\NivelProgresivo;
@@ -13,7 +12,6 @@ use App\Casino;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\TipoProgresivoController;
 use Illuminate\Support\Facades\Storage;
 
 class ProgresivoController extends Controller
