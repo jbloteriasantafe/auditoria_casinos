@@ -667,7 +667,7 @@ class LogMovimientoController extends Controller
         'apuesta_max' => 'required|numeric|max:900000',
         'cant_lineas' => 'required|numeric|max:100000',
         'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'denominacion' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'denominacion' => 'required|string|max:64',
         'cant_creditos' => 'required|numeric',
         'fecha_sala' => 'required|date',
         'observaciones' => 'nullable|max:280',
