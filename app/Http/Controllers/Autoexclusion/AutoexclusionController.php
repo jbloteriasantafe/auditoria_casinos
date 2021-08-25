@@ -112,13 +112,16 @@ class AutoexclusionController extends Controller
       if(!empty($request->sort_by)){
         $sort_by = $request->sort_by;
       }
-
+      
       $resultados = DB::table('ae_datos')
         ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
                      ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
                      ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,ae_nombre_estado.descripcion as desc_estado,
-                     IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
+                     IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
+                     ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
+                     ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
         ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
+        ->leftJoin('ae_importacion', 'ae_importacion.id_autoexcluido','=','ae_datos.id_autoexcluido')
         ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
         ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
