@@ -523,7 +523,8 @@ class LogMovimientoController extends Controller
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
             'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido, 
             'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion,
-            'nro_exp_org' => $log->nro_exp_org,'nro_exp_interno' => $log->nro_exp_interno,'nro_exp_control' => $log->nro_exp_control];
+            'nro_exp_org' => $log->nro_exp_org,'nro_exp_interno' => $log->nro_exp_interno,'nro_exp_control' => $log->nro_exp_control,
+            'nro_disposicion' => $log->nro_disposicion,'nro_disposicion_anio' => $log->nro_disposicion_anio];
   }
 
   public function imprimirFiscalizacion($id_fiscalizacion_movimiento){
@@ -1196,6 +1197,7 @@ class LogMovimientoController extends Controller
      'tipo_movimiento' =>  $log->tipo_movimiento_str() , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
      'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
+     'nro_disposicion' => $log->nro_disposicion, 'nro_disposicion_anio' => $log->nro_disposicion_anio,
      'datos_ultimo_relev' => $datos_ultimo_relev ];
   }
 
@@ -1211,6 +1213,8 @@ class LogMovimientoController extends Controller
           'nro_exp_org' => 'nullable|string',
           'nro_exp_interno' => 'nullable|string',
           'nro_exp_control' => 'nullable|string',
+          'nro_disposicion' => 'nullable|string',
+          'nro_disposicion_anio' => 'nullable|string',
       ], array(), self::$atributos)->after(function ($validator){})->validate();
 
       $reglas=array();
@@ -1243,6 +1247,13 @@ class LogMovimientoController extends Controller
       }
       if(isset($request->nro_exp_control)){
         $reglas[] = ['log_movimiento.nro_exp_control','=',$request->nro_exp_control];
+      }
+
+      if(isset($request->nro_disposicion)){
+        $reglas[] = ['log_movimiento.nro_disposicion','LIKE',$request->nro_disposicion.'%'];
+      }
+      if(isset($request->nro_disposicion_anio)){
+        $reglas[] = ['log_movimiento.nro_disposicion_anio','LIKE',$request->nro_disposicion_anio.'%'];
       }
 
       $casinos = array();
@@ -1409,7 +1420,8 @@ class LogMovimientoController extends Controller
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => null,
             'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido,
             'casino' => $log->casino,
-            'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control
+            'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
+            'nro_disposicion' => $log->nro_disposicion,'nro_disposicion_anio' => $log->nro_disposicion_anio
           ];
   }
 
@@ -1428,6 +1440,8 @@ class LogMovimientoController extends Controller
       'nro_exp_org' => 'nullable|string|max:5',
       'nro_exp_interno' =>  'nullable|string|max:7',
       'nro_exp_control' => 'nullable|string|max:1',
+      'nro_disposicion' => 'nullable|string|max:3',
+      'nro_disposicion_anio' => 'nullable|string|max:2',
       'estado' => ['required', Rule::in(['valido', 'error']) ]
     ], array(), self::$atributos)->after(function($validator) use (&$logMov,&$relevMov,$id_usuario,&$es_intervencion_mtm){
       if(count($validator->errors()) == 0){
@@ -1458,6 +1472,8 @@ class LogMovimientoController extends Controller
       $logMov->nro_exp_org = is_null($request->nro_exp_org)? '' : $request->nro_exp_org;
       $logMov->nro_exp_interno = is_null($request->nro_exp_interno)? '' : $request->nro_exp_interno;
       $logMov->nro_exp_control = is_null($request->nro_exp_control)? '' : $request->nro_exp_control;
+      $logMov->nro_disposicion = is_null($request->nro_disposicion)? '' : $request->nro_disposicion;
+      $logMov->nro_disposicion_anio = is_null($request->nro_disposicion_anio)? '': $request->nro_disposicion_anio;
       $logMov->save();
       if($this->noEsControlador($id_usuario,$logMov)){
         $logMov->controladores()->attach($id_usuario);

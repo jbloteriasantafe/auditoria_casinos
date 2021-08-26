@@ -14,7 +14,7 @@ $(document).on('click', '.boton_validar', function () {
         divRelMovCargarRelevamientos([],{},-1);
         divRelMovEsconderDetalleRelevamiento();
         divRelMovSetearTipo(data.tipo_mov,data.sentido);
-        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
         $('#modalValidacion').modal('show');
     });
 });
@@ -24,7 +24,7 @@ function mostrarFiscalizacion(id_fiscalizacion){
     $.get('movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
       divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
       divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
-      divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+      divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
       let dibujos = {3 : 'fa-check', 4 : 'fa-search-plus'};
       divRelMovCargarRelevamientos(data.relevamientos,dibujos,4);
       divRelMovSetearModo('VER');
@@ -43,7 +43,7 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
     $('#modalValidacion').attr('data-rel', id_rel);
     $.get('movimientos/obtenerRelevamientoToma/' + id_rel + '/' + toma, function(data){
         divRelMovSetearModo(data.relevamiento.id_estado_relevamiento == 3? 'VALIDAR' : 'VER');
-        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+        divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
         divRelMovSetear(data);
         divRelMovMostrarDetalleRelevamiento();
     });
@@ -74,7 +74,9 @@ function validar(id_rel, val) {
         observacion: datos.observacionesAdm,
         nro_exp_org: datos.nro_exp_org,
         nro_exp_interno: datos.nro_exp_interno,
-        nro_exp_control: datos.nro_exp_control,        
+        nro_exp_control: datos.nro_exp_control,  
+        nro_disposicion: datos.nro_disposicion,
+        nro_disposicion_anio: datos.nro_disposicion_anio,      
         estado: val,
     }
 

@@ -8,11 +8,11 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 <div id="divRelMov">
 <div class="row"> 
-    <div class="col-md-4">
+    <div class="col-md-3">
         <h5 class="row">Tipo Movimiento</h5>
         <input class="row form-control tipoMov" type="text" autocomplete="off" readonly="">
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <h5 class="row">Sentido</h5>
         <input class="row form-control sentidoMov" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
     </div>
@@ -20,8 +20,15 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
         <h5 class="row">Expediente</h5>
         <div class="row">
             <div class="col-md-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx" maxlength=5></div>
-            <div class="col-md-5"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx" maxlength=7></div>
-            <div class="col-md-2"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x" maxlength=1></div>
+            <div class="col-md-4"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx" maxlength=7></div>
+            <div class="col-md-3"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x" maxlength=1></div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <h5 class="row">Disposicion</h5>
+        <div class="row">
+            <div class="col-md-7"><input class="form-control disposicion" type="text" autocomplete="off" disabled="disabled" placeholder="xxx" maxlength=3></div>
+            <div class="col-md-5"><input class="form-control disposicion_anio" type="text" autocomplete="off" disabled="disabled" placeholder="xx" maxlength=2></div>
         </div>
     </div>
 </div>

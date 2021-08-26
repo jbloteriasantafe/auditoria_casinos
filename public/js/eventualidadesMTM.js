@@ -145,7 +145,7 @@ function mostrarFiscalizacion(id_mov,modo,refrescando = false){
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
     divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
-    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus',6 : 'fa-search-plus'};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,-1);
     divRelMovSetearModo("VER");
@@ -196,7 +196,7 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
     else{ //VER por defecto
       divRelMovSetearModo("VER");
     }
-    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
     divRelMovSetear(data);
     divRelMovMostrarDetalleRelevamiento();
   })
@@ -278,7 +278,9 @@ function validar(estado){
     estado: estado,
     nro_exp_org: datos.nro_exp_org,
     nro_exp_interno: datos.nro_exp_interno,
-    nro_exp_control: datos.nro_exp_control
+    nro_exp_control: datos.nro_exp_control,
+    nro_disposicion: datos.nro_disposicion,
+    nro_disposicion_anio: datos.nro_disposicion_anio,
   }
 
   $.ajax({
@@ -363,6 +365,8 @@ $('#btn-buscarEventualidadMTM').click(function(e,pagina,tam,columna,orden){
     nro_exp_org: $('#B_nro_exp_org').val(),
     nro_exp_interno: $('#B_nro_exp_interno').val(),
     nro_exp_control: $('#B_nro_exp_control').val(),
+    nro_disposicion: $('#B_nro_disposicion').val(),
+    nro_disposicion_anio: $('#B_nro_disposicion_anio').val(),
     page: page,
     sort_by: sort_by,
     page_size: page_size,

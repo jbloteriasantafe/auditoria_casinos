@@ -64,7 +64,7 @@ function mostrarFiscalizacion(id_fiscalizacion,modo,refrescando = false){
   $.get('/relevamientos_movimientos/obtenerRelevamientosFiscalizacion/' + id_fiscalizacion, function(data){
     divRelMovSetearUsuarios(data.casino,data.cargador,data.fiscalizador);
     divRelMovSetearTipo(data.tipo_movimiento,data.sentido);
-    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
     let dibujos = {3 : 'fa-search-plus', 4 : 'fa-search-plus'};
     divRelMovCargarRelevamientos(data.relevamientos,dibujos,3);
     divRelMovSetearModo("VER");
@@ -98,7 +98,7 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
       divRelMovSetearModo("VER");
     }
     divRelMovSetear(data);
-    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control);
+    divRelMovSetearExp(data.nro_exp_org,data.nro_exp_interno,data.nro_exp_control,data.nro_disposicion,data.nro_disposicion_anio);
     divRelMovMostrarDetalleRelevamiento();
   });
 });
