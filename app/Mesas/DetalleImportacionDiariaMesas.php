@@ -107,7 +107,7 @@ class DetalleImportacionDiariaMesas extends Model
     $fecha = $imp->fecha;
     $id_moneda = $imp->id_moneda;
     $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->first();
+    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
 
     if(!is_null($cierre)){
       $this->id_cierre_mesa = $cierre->id_cierre_mesa;
@@ -132,7 +132,7 @@ class DetalleImportacionDiariaMesas extends Model
     $id_moneda = $imp->id_moneda;
     $fecha = date("Y-m-d", strtotime($imp->fecha . " -1 days"));
     $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->orderBy('fecha','desc')->first();
+    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
 
     if(!is_null($cierre)){
       $this->id_cierre_mesa_anterior = $cierre->id_cierre_mesa;
