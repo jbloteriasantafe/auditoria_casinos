@@ -23,9 +23,9 @@
     </div>
     <hr style="border-bottom: 0px">
 
-    <p style="margin-left: 18.375%;width: 63.25%;margin-right: 18.375%;
+    <p style="margin-left: 13.375%;width: 73.25%;margin-right: 13.375%;
     text-align: center;font-family: Arial, sans-serif;font-weight: bold;border-bottom: 1px solid black;">
-      CONSTANCIA DE AUTOEXCLUSIÓN VENCIDA
+      CONSTANCIA DE AUTOEXCLUSIÓN CONCLUIDA
     </p>
 
     <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;">
@@ -34,9 +34,9 @@
 
     <div class="primerEncabezado" style="font-size:13px">
       <p>Por la presente dejamos constancia que <b>{{$datos['apellido_y_nombre']}}</b>, documento de identidad <b>{{$datos['dni']}}</b>,
-      con domicilio en <b>{{$datos['domicilio_completo']}}</b>, de la localidad de <b>{{$datos['localidad']}}</b>, ingresar a partir
-      de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b>, a los casinos de la provincia de Santa Fe, ya que su período de
-      autoexclusión ha vencido segun Resolución V.P.E 270/10.</p>
+      con domicilio en <b>{{$datos['domicilio_completo']}}</b>, de la localidad de <b>{{$datos['localidad']}}</b>, puede ingresar a partir
+      de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b>, a los casinos de la provincia de Santa Fe (físicos y en linea), ya que su período de
+      autoexclusión ha vencido segun Resolución V.P.E 270/10 y S.S.</p>
     </div>
     <table style="table-layout: fixed;width: 100%;margin-top: 20%;">
       <tr>
