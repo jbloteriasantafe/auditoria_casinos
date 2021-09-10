@@ -34,8 +34,12 @@
 
     <div class="primerEncabezado" style="font-size:13px">
       <p>Por la presente dejamos constancia que <b>{{$datos['apellido_y_nombre']}}</b>, documento de identidad <b>{{$datos['dni']}}</b>,
-      con domicilio en <b>{{$datos['domicilio_completo']}}</b>, de la localidad de <b>{{$datos['localidad']}}</b>, puede ingresar a partir
-      de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b>, a los casinos de la provincia de Santa Fe (físicos y en linea), ya que su período de
+      @if(explode(' ',$datos['domicilio_completo'])[0] == '-' || explode(' ',$datos['domicilio_completo'])[1] == '0')
+      @else
+      con domicilio en <b>{{$datos['domicilio_completo']}}</b>,
+      @endif
+       de la localidad de <b>{{$datos['localidad']}}</b>, puede ingresar a partir
+      de la fecha <b>{{$datos['fecha_cierre_definitivo']}}</b> a los casinos de la provincia de Santa Fe (físicos y en linea) ya que su período de
       autoexclusión ha vencido segun Resolución V.P.E 270/10 y S.S.</p>
     </div>
     <table style="table-layout: fixed;width: 100%;margin-top: 20%;">
