@@ -7,6 +7,8 @@ use App\ContadorHorario;
 use App\DetalleContadorHorario;
 use Validator;
 use Illuminate\Support\Facades\DB;
+use App\TipoMoneda;
+use App\Http\Controllers\UsuarioController;
 
 class ContadorController extends Controller
 {
@@ -122,4 +124,29 @@ class ContadorController extends Controller
     return ['importado' => $importado , 'cerrado' => $cerrado, 'detalle' =>$detalle];
   }
 
+  public function buscarTodo(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    return view('seccionContadores',['casinos' => $user->casinos,'tipo_monedas' => TipoMoneda::all()]);
+  }
+
+  public function buscarContadores(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $cas = [];
+    foreach($user->casinos as $c) $cas[] = $c->id_casino;
+
+    $reglas = [];
+    if($request->id_casino != "") $reglas[] = ['ch.id_casino','=',$request->id_casino];
+    if($request->id_tipo_moneda != "") $reglas[] = ['ch.id_tipo_moneda','=',$request->id_tipo_moneda];
+    if($request->fecha_desde != "") $reglas[] = ['ch.fecha','>=',$request->fecha_desde];
+    if($request->fecha_hasta != "") $reglas[] = ['ch.fecha','<=',$request->fecha_hasta];
+
+    $resultados = DB::table('contador_horario as ch')
+    ->select('ch.id_contador_horario','ch.fecha','c.nombre as casino','tm.descripcion as moneda',DB::raw('RAND()>0.5 as alertas_validadas'))
+    ->join('casino as c','c.id_casino','=','ch.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','ch.id_tipo_moneda')
+    ->whereIn('ch.id_casino',$cas)->where($reglas)
+    ->orderBy('fecha','desc')
+    ->paginate($request->page_size);
+    return $resultados;
+  }
 }

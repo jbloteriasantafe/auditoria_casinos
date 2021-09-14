@@ -473,6 +473,13 @@ Route::get('mtm_a_pedido/obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoC
 Route::post('mtm_a_pedido/buscarMTMaPedido','MaquinaAPedidoController@buscarMTMaPedido');
 Route::post('mtm_a_pedido/guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
 Route::delete('mtm_a_pedido/eliminarMmtAPedido/{id}','MaquinaAPedidoController@eliminarMTMAPedido');
+
+Route::group(['prefix' => 'contadores', 'middleware' => 'tiene_permiso:ver_seccion_contadores'],function(){
+  Route::get('/','ContadorController@buscarTodo');
+  Route::post('/buscarContadores','ContadorController@buscarContadores');
+});
+
+
 /*******************
 PRODUCIDOS-AJUSTES PRODUCIDO
 ******************/

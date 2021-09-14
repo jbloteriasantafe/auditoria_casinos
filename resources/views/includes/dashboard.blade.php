@@ -497,7 +497,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                 </div>
                                 <!-- TERCER NIVEL -->
                                 @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos','ver_seccion_relevamientos_progresivos',
-                                                                                                                    'ver_seccion_mtm_a_pedido','ver_seccion_producidos',
+                                                                                                                    'ver_seccion_mtm_a_pedido','ver_seccion_contadores','ver_seccion_producidos',
                                                                                                                     'ver_seccion_beneficios']))
                                <ul class="subMenu2 collapse" id="procedimientos">
                                    <li>
@@ -535,6 +535,13 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          <li>
                                            <div id="opcMTMaPedido" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/mtm_a_pedido'" href="#" style="cursor: pointer;">
                                              <span>MTM a pedido</span>
+                                           </div>
+                                         </li>
+                                         @endif
+                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_contadores'))
+                                         <li>
+                                           <div id="opcContadores" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/contadores'" href="#" style="cursor: pointer;">
+                                             <span>Contadores</span>
                                            </div>
                                          </li>
                                          @endif
