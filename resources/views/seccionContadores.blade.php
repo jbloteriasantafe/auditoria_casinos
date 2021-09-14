@@ -18,6 +18,9 @@
 #tablaContadores > tbody > tr > td {
   text-align: center;
 }
+#maquinasModal > tbody > tr > td {
+  text-align: center;
+}
 </style>
 @endsection
 
@@ -163,173 +166,124 @@
 
         </div> <!-- /.row -->
 
-    <div class="modal fade" id="modalValidarBeneficio" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:70%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">VALIDAR BENEFICIOS</h3>
+    <div class="modal fade" id="modalContadores" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog" style="width:70%;">
+        <div class="modal-content">
+          <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
+            <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+            <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+            <h3 class="modal-title">CONTADORES</h3>
+          </div>
+          <div  id="colapsadoCargar" class="collapse in">
+            <div class="modal-body modalCuerpo">
+              <div class="row">
+                <div class="col-md-3">
+                  <h5>Casino</h5>
+                  <input type="text" readonly="true" id="casinoModal" disabled class="form-control">
                 </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-                  <form id="frmValidarBeneficio" name="frmValidarBeneficio" class="form-horizontal" novalidate="">
-                          <div class="row">
-                            <div class="col-md-3">
-                              <h5>Casino</h5>
-                              <input type="text" readonly="true" id="casinoModal" disabled class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                              <h5>Tipo Moneda</h5>
-                              <input type="text" readonly="true" id="tipoMonedaModal" disabled class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                              <h5>Año</h5>
-                              <input type="text" readonly="true" id="anioModal" disabled class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                              <h5>Mes</h5>
-                              <input type="text" readonly="true" id="mesModal" disabled class="form-control">
-                            </div>
-                          </div>
-                          <br>
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <table id="tablaModal" class="table">
-                                      <thead>
-                                        <tr>
-                                            <th width="10%">FECHA</th>
-                                            <th width="12%">CALCULADO</th>
-                                            <th width="12%">BENEFICIO</th>
-                                            <th width="12%">DIFERENCIA</th>
-                                            <th width="3%"></th>
-                                            <th width="49%">OBSERVACIÓN</th>
-                                            <th width="3%"></th>
-                                        </tr>
-                                      </thead>
-                                      <tbody id="cuerpoTabla" style="color:black;">
-
-
-                                      </tbody>
-                                  </table>
-                              </div>
-                          </div>
-
-                          <br>
-                  </form>
-                  <div class="row" align="left" style="margin-right:10px; font-weight:bold">
-                      <h4 id="textoExito"></h4>
+                <div class="col-md-3">
+                  <h5>Moneda</h5>
+                  <input type="text" readonly="true" id="monedaModal" disabled class="form-control">
+                </div>
+                <div class="col-md-3">
+                  <h5>Fecha</h5>
+                  <input type="text" readonly="true" id="fechaModal" disabled class="form-control">
+                </div>
+                <div class="col-md-3">
+                  <h5>Alertas</h5>
+                  <input type="text" readonly="true" id="alertasModal" disabled class="form-control">
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-md-3" style="border-right: 1px solid #ddd;height: 700px;">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <input type="checkbox" id="verSoloAlertasModal" class="form-check-input">
+                      <label class="form-check-label" for="verSoloAlertasModal">VER SOLO ALERTAS</label>
+                    </div>
+                  </div>
+                  <div class="row" style="overflow-y: scroll;">
+                    <table id="maquinasModal" class="col-md-12 table">
+                      <tr>
+                        <td>9999</td>
+                        <td>
+                          <button class="btn btn-info verContador" title="VER CONTADOR">
+                            <i class="fa fa-fw fa-search-plus"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </table>
                   </div>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-validar-si" value="nuevo">SI</button>
-                  <button type="button" class="btn btn-warningModificar" id="btn-validar" value="nuevo">VALIDAR BENEFICIOS</button>
-                  <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_beneficio" value="0">
+                <div class="col-md-9">
+                  <div class="row">
+                    <div class="col-md-4 col-md-offset-8">
+                      <h5>MÁQUINA</h5>
+                      <input id="maquinaModal" readonly disabled class="form-control"/>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <h5>CONTADORES</h5>
+                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border: 1px solid #ddd">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>HORA</th>
+                            <th>ISLA</th>
+                            <th>COININ</th>
+                            <th>COINOUT</th>
+                            <th>JACKPOT</th>
+                            <th>PROGRESIVO</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>HORA</td>
+                            <td>ISLA</td>
+                            <td>COININ</td>
+                            <td>COINOUT</td>
+                            <td>JACKPOT</td>
+                            <td>PROGRESIVO</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <h5>ALERTAS</h5>
+                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border: 1px solid #ddd">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>HORA</th>
+                            <th>DESCRIPCION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><a>HORA</a></td>
+                            <td>DESCRIPCION</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <h5 class="col-md-offset-1">OBSERVACIONES</h5>
+                    <textarea class="col-md-10 col-md-offset-1" style="height: 125px;"></textarea>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-    </div>
-
-    <!-- Modal planilla relevamientos -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:80%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-                  <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <div class="zona-file-lg">
-                                      <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                  </div>
-                                  <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                              </div>
-                          </div>
-
-                  </form>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_relevamiento" value="0">
-                </div>
-              </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" id="btn-validar">VALIDAR</button>
+              <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
             </div>
           </div>
-    </div>
-
-
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-title">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body franjaRojaModal">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong>¿Seguro desea eliminar Producido? Podría ocasionar errores serios en el sistema.</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div>
-
-    
-    <!-- Modal cotizacion -->
-      <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg"  >
-              <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
-                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                  <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
-                </div>
-
-                <div class="modal-body" style="background-color: white;">
-
-                    <div class="row" style="padding-bottom: 15px;">
-                        <div class="col-md-12">
-                            <div id="calendarioInicioBeneficio"></div>
-                      </div>
-
-                </div>
-
-                <div class="modal-footer">
-                  <label id="labelCotizacion" for="number"> </label>
-                  <input id="valorCotizacion" type="number" step="0.001" min="25" max="200" placeholder="xx,xxx">
-                  <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
-                </div> 
-            </div>
-          </div>
+        </div>
       </div>
-    
-
+    </div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

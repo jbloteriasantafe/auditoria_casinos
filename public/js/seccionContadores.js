@@ -94,3 +94,11 @@ function clickIndice(e,pageNumber,tam){
   const orden = $('#tablaContadores .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
+
+$(document).on('click','.ver',function(){
+  const fila = $(this).closest('tr');
+  $('#casinoModal').val(fila.find('.casino').text());
+  $('#monedaModal').val(fila.find('.moneda').text());
+  $('#fechaModal').val(fila.find('.fecha').text());
+  $('#modalContadores').modal('show');
+});
