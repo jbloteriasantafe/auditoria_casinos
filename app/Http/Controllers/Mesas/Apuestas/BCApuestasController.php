@@ -209,7 +209,7 @@ class BCApuestasController extends Controller
               'relevamiento' => $relevamieno,
               'estados'=> $estados,
               'fecha' => $relevamieno->fecha,
-              'turno' => $relevamieno->turno
+              'turno' => $relevamieno->turno()->withTrashed()->get()
               ];
   }
 
