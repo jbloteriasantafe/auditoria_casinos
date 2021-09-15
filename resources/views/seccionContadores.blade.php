@@ -111,9 +111,9 @@
                               <table id="tablaContadores" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col-xs-3">FECHA</th>
-                                    <th class="col-xs-2">CASINO</th>
-                                    <th class="col-xs-2">MONEDA</th>
+                                    <th class="col-xs-3" value="ch.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="c.nombre" estado="">CASINO<i class="fa fa-sort"></i></th>
+                                    <th class="col-xs-2" value="tm.descripcion" estado="">MONEDA<i class="fa fa-sort"></i></th>
                                     <th class="col-xs-2">VALIDADO</th>
                                     <th class="col-xs-3">ACCIÓN</th>
                                   </tr>

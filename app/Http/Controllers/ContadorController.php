@@ -139,13 +139,15 @@ class ContadorController extends Controller
     if($request->id_tipo_moneda != "") $reglas[] = ['ch.id_tipo_moneda','=',$request->id_tipo_moneda];
     if($request->fecha_desde != "") $reglas[] = ['ch.fecha','>=',$request->fecha_desde];
     if($request->fecha_hasta != "") $reglas[] = ['ch.fecha','<=',$request->fecha_hasta];
+    $sort_by = ['columna' => 'ch.id_contador_horario','orden' => 'desc'];
+    if(!empty($request->sort_by)) $sort_by = $request->sort_by;
 
     $resultados = DB::table('contador_horario as ch')
     ->select('ch.id_contador_horario','ch.fecha','c.nombre as casino','tm.descripcion as moneda',DB::raw('RAND()>0.5 as alertas_validadas'))
     ->join('casino as c','c.id_casino','=','ch.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','ch.id_tipo_moneda')
     ->whereIn('ch.id_casino',$cas)->where($reglas)
-    ->orderBy('fecha','desc')
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->paginate($request->page_size);
     return $resultados;
   }

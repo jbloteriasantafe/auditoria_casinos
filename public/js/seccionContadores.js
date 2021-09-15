@@ -39,7 +39,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
   page_size = (page_size == null || isNaN(page_size))? size : page_size;
   const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaBeneficios .activa').attr('value'),orden: $('#tablaBeneficios .activa').attr('estado')} ;
+  const sort_by = (columna != null) ? {columna: columna,orden: orden} : {columna: $('#tablaContadores .activa').attr('value'),orden: $('#tablaContadores .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaContadores th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
@@ -94,6 +94,23 @@ function clickIndice(e,pageNumber,tam){
   const orden = $('#tablaContadores .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
+
+$(document).on('click','#tablaContadores thead tr th[value]',function(e){
+  $('#tablaContadores th').removeClass('activa');
+  if($(e.currentTarget).children('i').hasClass('fa-sort')){
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+  }
+  else{
+    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    }
+    else{
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+    }
+  }
+  $('#tablaContadores th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
+});
 
 $(document).on('click','.ver',function(){
   const fila = $(this).closest('tr');
