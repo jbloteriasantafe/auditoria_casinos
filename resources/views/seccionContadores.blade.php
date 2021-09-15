@@ -21,6 +21,18 @@
 #maquinasModal > tbody > tr > td {
   text-align: center;
 }
+#tablaAlertasCabeceraModal > thead > tr > th {
+  text-align: center;
+}
+#tablaAlertasModal > tbody > tr > td {
+  text-align: center;
+}
+#tablaDetallesCabeceraModal > thead > tr > th {
+  text-align: center;
+}
+#tablaDetallesModal > tbody > tr > td {
+  text-align: center;
+}
 </style>
 @endsection
 
@@ -232,47 +244,59 @@
                   </div>
                   <div class="row">
                     <h5>CONTADORES</h5>
-                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border: 1px solid #ddd">
-                      <table class="table">
+                    <div class="col-md-12">
+                      <table class="table" style="margin-bottom: 0px;" id="tablaDetallesCabeceraModal">
                         <thead>
                           <tr>
-                            <th>HORA</th>
-                            <th>ISLA</th>
-                            <th>COININ</th>
-                            <th>COINOUT</th>
-                            <th>JACKPOT</th>
-                            <th>PROGRESIVO</th>
+                            <th class="col-md-2">HORA</th>
+                            <th class="col-md-2">ISLA</th>
+                            <th class="col-md-2">COININ</th>
+                            <th class="col-md-2">COINOUT</th>
+                            <th class="col-md-2">JACKPOT</th>
+                            <th class="col-md-2">PROGRESIVO</th>
                           </tr>
                         </thead>
+                      </table>
+                    </div>
+                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border-bottom: 1px solid #ddd">
+                      <table class="table" id="tablaDetallesModal">
                         <tbody>
-                          <tr>
-                            <td>HORA</td>
-                            <td>ISLA</td>
-                            <td>COININ</td>
-                            <td>COINOUT</td>
-                            <td>JACKPOT</td>
-                            <td>PROGRESIVO</td>
-                          </tr>
                         </tbody>
+                      </table>
+                      <table hidden>
+                        <tr id="filaEjemploDetalle">
+                          <td class="hora col-md-2">HORA</td>
+                          <td class="isla col-md-2">ISLA</td>
+                          <td class="coinin col-md-2">COININ</td>
+                          <td class="coinout col-md-2">COINOUT</td>
+                          <td class="jackpot col-md-2">JACKPOT</td>
+                          <td class="progresivo col-md-2">PROGRESIVO</td>
+                        </tr>
                       </table>
                     </div>
                   </div>
                   <div class="row">
                     <h5>ALERTAS</h5>
-                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border: 1px solid #ddd">
-                      <table class="table">
+                    <div class="col-md-12">
+                      <table class="table" style="margin-bottom: 0px;" id="tablaAlertasCabeceraModal">
                         <thead>
                           <tr>
-                            <th>HORA</th>
-                            <th>DESCRIPCION</th>
+                            <th class="col-md-2">HORA</th>
+                            <th class="col-md-10">DESCRIPCION</th>
                           </tr>
                         </thead>
+                      </table>
+                    </div> 
+                    <div class="col-md-12" style="height: 200px;overflow-y: scroll;border-bottom: 1px solid #ddd">
+                      <table class="table" id="tablaAlertasModal">
                         <tbody>
-                          <tr>
-                            <td><a>HORA</a></td>
-                            <td>DESCRIPCION</td>
-                          </tr>
                         </tbody>
+                      </table>
+                      <table hidden><!-- si le pongo "descripcion" me agarra el estilo de un CSS perdido y me lo oculta -->
+                        <tr id="filaEjemploAlerta">
+                          <td class="col-md-2"><a class="hora">HORA</a></td>
+                          <td class="col-md-10 descripcion_alerta">DESCRIPCION</td> 
+                        </tr>
                       </table>
                     </div>
                   </div>

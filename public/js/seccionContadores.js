@@ -30,7 +30,6 @@ $(document).ready(function(){
   $('#btn-buscar').trigger('click');
 });
 
-//Filtro de búsqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   //Fix error cuando librería saca los selectores
   let size = 10;
@@ -166,5 +165,34 @@ function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
 
 $(document).on('click','.verContadores',function(){
   $('#maquinaModal').val($(this).closest('tr').find('.nro_admin').text());
-  $('#detalleModal').show();
+  $('#btn-validar').val($(this).val());
+  $.get('/contadores/obtenerDetalleCompleto/'+$(this).val(),function(data){
+    $('#tablaDetallesModal tbody').empty();
+    for(const idx in data.detalles){
+      const d = data.detalles[idx];
+      const fila = $('#filaEjemploDetalle').clone().removeAttr('id');
+      fila.find('.hora').text(d.hora);
+      fila.find('.isla').text(d.isla);
+      fila.find('.coinin').text(d.coinin);
+      fila.find('.coinout').text(d.coinout);
+      fila.find('.jackpot').text(d.jackpot);
+      fila.find('.progresivo').text(d.progresivo);
+      $('#tablaDetallesModal tbody').append(fila);
+    }
+    $('#tablaAlertasModal tbody').empty();
+    for(const idx in data.alertas){
+      const a = data.alertas[idx];
+      const fila = $('#filaEjemploAlerta').clone().removeAttr('id');
+      fila.find('.hora').text(a.hora);
+      fila.find('.descripcion_alerta').text(a.descripcion);
+      $('#tablaAlertasModal tbody').append(fila);
+    }
+    $('#estadoModal').val(data.estado);
+    $('#observacionesModal').val(data.observaciones);
+    $('#detalleModal').show();
+  });
 });
+
+$('#btn-validar').click(function(){
+  console.log($(this).val());
+})

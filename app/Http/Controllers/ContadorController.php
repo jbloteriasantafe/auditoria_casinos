@@ -154,9 +154,26 @@ class ContadorController extends Controller
 
   public function obtenerDetalles($id_contador_horario){
     $detalles = DB::table('detalle_contador_horario')
-    ->select('maquina.nro_admin','detalle_contador_horario.id_contador_horario')
+    ->select('maquina.nro_admin','detalle_contador_horario.id_detalle_contador_horario')
     ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
     ->where('id_contador_horario',$id_contador_horario)->get();
     return ['detalles' => $detalles,'alertas' => 9999999];
+  }
+
+  public function obtenerDetalleCompleto($id_detalle_contador_horario){
+    //@STUB: tal vez guardar los demas horarios en un CSV y consultarlos aca, total es algo que se consultaria 1 sola vez
+    //Si guardamos el CSV que mandan ellos, tendrian que mandarlo ordenado por NRO_ADMIN y luego por HORA para hacer la busqueda eficiente.
+    $detalles = DB::table('detalle_contador_horario as dch')
+    ->selectRaw('"07:00" as hora,"SIN INF." as isla, dch.coinin, dch.coinout, dch.jackpot, dch.progresivo')
+    ->where('dch.id_detalle_contador_horario',$id_detalle_contador_horario)->get();
+    $alertas = [
+      [
+        'hora' => '9:99', 'descripcion' => 'TEST!'
+      ],
+      [
+        'hora' => '99:09', 'descripcion' => '......TEST!'
+      ]
+    ];
+    return ['estado' => 'SIN DETALLES','detalles' => $detalles,'alertas' => $alertas,'observaciones' => 'OBSERVACIONES TEST'];
   }
 }

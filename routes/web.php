@@ -478,6 +478,7 @@ Route::group(['prefix' => 'contadores', 'middleware' => 'tiene_permiso:ver_secci
   Route::get('/','ContadorController@buscarTodo');
   Route::post('/buscarContadores','ContadorController@buscarContadores');
   Route::get('/obtenerDetalles/{id_contador_horario}','ContadorController@obtenerDetalles');
+  Route::get('/obtenerDetalleCompleto/{id_detalle_contador_horario}','ContadorController@obtenerDetalleCompleto');
 });
 
 
