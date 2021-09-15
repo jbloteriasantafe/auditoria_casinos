@@ -149,4 +149,12 @@ class ContadorController extends Controller
     ->paginate($request->page_size);
     return $resultados;
   }
+
+  public function obtenerDetalles($id_contador_horario){
+    $detalles = DB::table('detalle_contador_horario')
+    ->select('maquina.nro_admin','detalle_contador_horario.id_contador_horario')
+    ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
+    ->where('id_contador_horario',$id_contador_horario)->get();
+    return ['detalles' => $detalles,'alertas' => 9999999];
+  }
 }

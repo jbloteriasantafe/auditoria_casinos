@@ -477,6 +477,7 @@ Route::delete('mtm_a_pedido/eliminarMmtAPedido/{id}','MaquinaAPedidoController@e
 Route::group(['prefix' => 'contadores', 'middleware' => 'tiene_permiso:ver_seccion_contadores'],function(){
   Route::get('/','ContadorController@buscarTodo');
   Route::post('/buscarContadores','ContadorController@buscarContadores');
+  Route::get('/obtenerDetalles/{id_contador_horario}','ContadorController@obtenerDetalles');
 });
 
 

@@ -97,8 +97,57 @@ function clickIndice(e,pageNumber,tam){
 
 $(document).on('click','.ver',function(){
   const fila = $(this).closest('tr');
-  $('#casinoModal').val(fila.find('.casino').text());
-  $('#monedaModal').val(fila.find('.moneda').text());
-  $('#fechaModal').val(fila.find('.fecha').text());
-  $('#modalContadores').modal('show');
+  const casino = fila.find('.casino').text();
+  const moneda = fila.find('.moneda').text();
+  const fecha  = fila.find('.fecha').text();
+  modalContadores($(this).val(),casino,moneda,fecha,'ver');
+});
+
+$(document).on('click','.validar',function(){
+  const fila = $(this).closest('tr');
+  const casino = fila.find('.casino').text();
+  const moneda = fila.find('.moneda').text();
+  const fecha  = fila.find('.fecha').text();
+  modalContadores($(this).val(),casino,moneda,fecha,'validar');
+});
+
+function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
+  $('#casinoModal').val(casino);
+  $('#monedaModal').val(moneda);
+  $('#fechaModal').val(fecha);
+  $('#verSoloAlertasModal').prop('checked',true);
+
+  if(modo == 'validar'){
+    $('#modalContadores .modal-header').css('background','rgb(60, 204, 134)')
+    .find('.modal-title').text('VALIDAR ALERTAS DE CONTADORES');
+    $('#observacionesModal').val('').attr('disabled',false);
+    $('#btn-validar').attr('disabled',false).show();
+  }
+  else if(modo == 'ver'){
+    $('#modalContadores .modal-header').css('background','#4FC3F7')
+    .find('.modal-title').text('VER CONTADORES');
+    $('#observacionesModal').val('').attr('disabled',true);
+    $('#btn-validar').attr('disabled',true).hide();
+  }
+  else return;
+
+  $('#detalleModal').hide();
+
+  $.get('/contadores/obtenerDetalles/'+id_contador_horario,function(data){
+    $('#maquinasModal').empty();
+    for(const idx in data.detalles){
+      const m = data.detalles[idx];
+      const fila = $('#filaEjemploMaquina').clone().removeAttr('id');
+      fila.find('.nro_admin').text(m.nro_admin);
+      fila.find('button').val(m.id_detalle_contador_horario);
+      $('#maquinasModal').append(fila);
+    }
+    $('#alertasModal').val(data.alertas);
+    $('#modalContadores').modal('show');
+  });
+}
+
+$(document).on('click','.verContadores',function(){
+  $('#maquinaModal').val($(this).closest('tr').find('.nro_admin').text());
+  $('#detalleModal').show();
 });

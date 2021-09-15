@@ -42,7 +42,7 @@
                                     @if($casinos->count() == 1)
                                     <option id="{{$casinos[0]->id_casino}}" value="{{$casinos[0]->id_casino}}">{{$casinos[0]->nombre}}</option>
                                     @else
-                                    <option value="">- Casino -</option>
+                                    <option value="">- TODOS -</option>
                                      @foreach ($casinos as $casino)
                                      <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                      @endforeach
@@ -52,7 +52,7 @@
                                 <div class="col-lg-2">
                                   <h5>Moneda</h5>
                                   <select class="form-control" id="selectTipoMoneda">
-                                    <option value="">- Moneda -</option>
+                                    <option value="">- TODAS -</option>
                                      @foreach ($tipo_monedas as $tipo_moneda)
                                      <option id="{{$tipo_moneda->id_tipo_moneda}}" value="{{$tipo_moneda->id_tipo_moneda}}">{{$tipo_moneda->descripcion}}</option>
                                      @endforeach
@@ -203,12 +203,15 @@
                       <label class="form-check-label" for="verSoloAlertasModal">VER SOLO ALERTAS</label>
                     </div>
                   </div>
-                  <div class="row" style="overflow-y: scroll;">
+                  <div class="row" style="overflow-y: scroll;max-height: 95%;">
+                    <h5 style="text-align: center;">MÁQUINAS</h5>
                     <table id="maquinasModal" class="col-md-12 table">
-                      <tr>
-                        <td>9999</td>
+                    </table>
+                    <table hidden>
+                      <tr id="filaEjemploMaquina">
+                        <td class="nro_admin">9999</td>
                         <td>
-                          <button class="btn btn-info verContador" title="VER CONTADOR">
+                          <button class="btn btn-info verContadores" title="VER CONTADORES">
                             <i class="fa fa-fw fa-search-plus"></i>
                           </button>
                         </td>
@@ -216,11 +219,15 @@
                     </table>
                   </div>
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-9" id="detalleModal">
                   <div class="row">
-                    <div class="col-md-4 col-md-offset-8">
+                    <div class="col-md-4">
                       <h5>MÁQUINA</h5>
                       <input id="maquinaModal" readonly disabled class="form-control"/>
+                    </div>
+                    <div class="col-md-4">
+                      <h5>ESTADO</h5>
+                      <input id="estadoModal" readonly disabled class="form-control"/>
                     </div>
                   </div>
                   <div class="row">
@@ -270,14 +277,21 @@
                     </div>
                   </div>
                   <div class="row">
-                    <h5 class="col-md-offset-1">OBSERVACIONES</h5>
-                    <textarea class="col-md-10 col-md-offset-1" style="height: 125px;"></textarea>
+                    <div class="col-md-10 col-md-offset-1">
+                      <h5>OBSERVACIONES</h5>
+                      <textarea class="form-control" style="height: 125px;" id="observacionesModal"></textarea>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-md-1 col-md-offset-5">
+                      <button type="button" class="btn btn-success" id="btn-validar">VALIDAR</button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-default" id="btn-validar">VALIDAR</button>
               <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal">SALIR</button>
             </div>
           </div>
