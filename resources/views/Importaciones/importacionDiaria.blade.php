@@ -9,6 +9,9 @@
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
+<link rel='stylesheet' href='/css/fullcalendar.min.css'/>
+<link rel="stylesheet" href="css/zona-file-large.css">
+<link rel="stylesheet" href="css/paginacion.css">
 <style>
 .small{
   font-size: 85%;
@@ -17,7 +20,12 @@
 </style>
 @endsection
 @section('contenidoVista')
-
+<?php
+use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\UsuarioController;
+$id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+setlocale(LC_TIME, 'es_ES.UTF-8');
+?>
 <div class="col-lg-12">
   <div class="row">
     <div class="col-xl-3">
@@ -38,6 +46,17 @@
             </div>
           </a>
         </div>
+        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'cotizar_dolar_peso'))  
+        <div class="col-md-12">
+          <a id="btn-cotizacion" href="" style="text-decoration:none;">
+            <div class="tarjetaSeccionMenor" align="center">
+              <h2 class="tituloFondoMenor"> COTIZACIÓN</h2>
+              <h2 class="tituloSeccionMenor">COTIZACIÓN </h2>
+              <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/peso-dollar.svg" alt="">
+            </div>
+          </a>
+        </div>
+        @endif
       </div>
     </div>
     <div class="col-xl-9">
@@ -379,10 +398,6 @@
                     @endforeach
                   </select>
                 </div>
-                <div class="col-xs-3 rowCotizacionDiaria">
-                  <h5>COTIZACIÓN DOLAR</h5>
-                  <input id="cotizacion_diaria" type="text" class="form-control" value="">
-                </div>
               </form>
 
               <div id="rowArchivo" class="row" style="">
@@ -626,6 +641,28 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"  >
+      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+          <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+          <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+          <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
+        </div>
+        <div class="modal-body" style="background-color: white;">
+            <div class="row" style="padding-bottom: 15px;">
+                <div class="col-md-12">
+                    <div id="calendarioInicioBeneficio"></div>
+              </div>
+        </div>
+        <div class="modal-footer">
+          <label id="labelCotizacion" for="number"> </label>
+          <input id="valorCotizacion" type="number" step="0.001" min="25" max="200" placeholder="xx,xxx">
+          <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
+        </div> 
+    </div>
+  </div>
+</div>
 <!-- FIN MODALES DIARIOS -->
 
 <meta name="_token" content="{!! csrf_token() !!}" />
@@ -656,10 +693,15 @@
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
   <script src="js/inputSpinner.js" type="text/javascript"></script>
-  <script src="/js/lista-datos.js" type="text/javascript"></script>
+  <script src="js/lista-datos.js" type="text/javascript"></script>
   <script src="js/fileinput.min.js" type="text/javascript"></script>
-  <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="js/math.min.js" type="text/javascript"></script>
-  <script src="js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
+  <script src='js/moment.min.js' type="text/javascript"></script>
+  <script src='js/fullcalendar.min.js'  type="text/javascript"></script>
+  <script src="js/locale-all.js"  type="text/javascript"></script>
+  <!-- JavaScript paginacion -->
+  <script src="js/paginacion.js" charset="utf-8"></script>
+  <!-- JavaScript personalizado -->
+  <script src="/js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
 @endsection

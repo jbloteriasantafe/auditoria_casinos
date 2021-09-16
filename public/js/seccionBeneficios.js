@@ -562,10 +562,7 @@ $('#guardarCotizacion').on('click',function(){
       $('#labelCotizacion').attr("data-fecha","");
       $('#valorCotizacion').val("");
     }
-
-
   });
-
 });
 
 function cambioMes(s){

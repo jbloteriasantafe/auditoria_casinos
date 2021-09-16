@@ -59,15 +59,12 @@ $('#archivo').on('change',function(){
 //boton grande de importar
 $('#btn-importar').on('click', function(e){
   e.preventDefault();
-  $('#cotizacion_diaria').prop('readonly',true);
-
   ocultarErrorValidacion($('#B_fecha_imp'));
   ocultarErrorValidacion($('#monedaSel'));
   ocultarErrorValidacion($('#casinoSel'));
   $('#B_fecha_imp').val("");
   $('#casinoSel').val('0');
   $('#monedaSel').val('0');
-  $('#cotizacion_diaria').val("");
   $('#modalImportacionDiaria').find('.modal-footer').children().show();
   $('#modalImportacionDiaria').find('.modal-body').children().show();
   $('#iconoCarga').hide();
@@ -89,11 +86,6 @@ $('#btn-importar').on('click', function(e){
   $('#mensajeErrorJuegos').hide();
 });
 
-$(document).on('change','#monedaSel',function(){
-  $('#cotizacion_diaria').val('');
-  $('#cotizacion_diaria').prop('readonly',$(this).val() == 1 || $(this).val() == 0);
-});
-
 $(document).on('click', '#archivo', function(){
   $('#modalImportacionDiaria #mensajeInvalido').hide();
 });
@@ -108,7 +100,6 @@ $('#btn-guardarDiario').on('click', function(e){
   formData.append('fecha', $('#fecha_importacion').val());
   formData.append('id_moneda', $('#monedaSel').val());
   formData.append('id_casino', $('#casinoSel').val());
-  formData.append('cotizacion_diaria', $('#cotizacion_diaria').val());
 
   //Si subió archivo lo guarda
   if($('#modalImportacionDiaria #archivo').attr('data-borrado') == 'false' && $('#modalImportacionDiaria #archivo')[0].files[0] != null){
@@ -507,3 +498,87 @@ function generarFilaCierre(data){
   fila.css('display', '');
   return fila;
 }
+
+
+$('#btn-cotizacion').on('click', function(e){
+  e.preventDefault();
+  //limpio modal
+  $('#labelCotizacion').html("");
+  $('#labelCotizacion').attr("data-fecha","");
+  $('#valorCotizacion').val("");
+  //inicio calendario
+  $('#calendarioInicioBeneficio').fullCalendar({  // assign calendar
+    locale: 'es',
+    backgroundColor: "#f00",
+    eventTextColor:'yellow',
+    editable: false,
+    selectable: true, 
+    allDaySlot: false,
+    selectAllow:false, 
+    customButtons: {
+      nextCustom: {
+        text: 'Siguiente',
+        click: function() {
+          cambioMes('next');
+        }
+      },
+      prevCustom: {
+        text: 'Anterior',
+        click: function() {
+          cambioMes('prev');
+        }
+      },
+    },
+    events: function(start, end, timezone, callback) {
+      $.ajax({
+        url: 'cotizacion/obtenerCotizaciones/'+ start.format('YYYY-MM'),
+        type:"GET",
+        success: function(doc) {
+          var events = [];
+          $(doc).each(function() {
+            var numero=""+$(this).attr('valor');
+            events.push({
+              title:"" + numero.replace(".", ","),
+              start: $(this).attr('fecha')
+            });
+          });
+          callback(events);
+        }
+      });
+    },
+    dayClick: function(date) {
+      $('#labelCotizacion').html('Guardar cotización para el día '+ '<u>'  +date.format('DD/M/YYYY') + '</u>' );
+      $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
+      $('#valorCotizacion').val("");
+      $('#valorCotizacion').focus();
+    },
+  });
+
+  $('#modal-cotizacion').modal('show')
+});
+
+$('#guardarCotizacion').on('click',function(){
+  fecha=$('#labelCotizacion').attr('data-fecha');
+  valor= $('#valorCotizacion').val();
+  formData={
+    fecha: fecha,
+    valor: valor,
+  }
+  $.ajax({
+    type: 'POST',
+    url: 'cotizacion/guardarCotizacion',
+    data: formData,
+    success: function (data) {
+     $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
+      //limpio modal
+      $('#labelCotizacion').html("");
+      $('#labelCotizacion').attr("data-fecha","");
+      $('#valorCotizacion').val("");
+    }
+  });
+});
+
+function cambioMes(s){
+  $('#calendarioInicioBeneficio').fullCalendar(s);
+  $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
+};

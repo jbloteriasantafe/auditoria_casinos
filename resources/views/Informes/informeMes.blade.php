@@ -95,7 +95,7 @@
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['utilidad']}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}} %</td>
             @if($moneda['moneda'] != 'ARS')
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['cotizacion']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['cotizacion_diaria']}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
             @endif
           </tr>

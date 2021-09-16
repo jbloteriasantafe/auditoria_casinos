@@ -117,7 +117,6 @@ public function importarDiario(Request $request){
       'id_casino' => 'required|exists:casino,id_casino',
       'id_moneda' => 'required|exists:moneda,id_moneda',
       'fecha' => 'required|date',
-      'cotizacion_diaria' => ['nullable','required_if:id_moneda,2','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'archivo' => 'required|file',
     ], array(), self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
@@ -147,9 +146,6 @@ public function importarDiario(Request $request){
       $importacion->fecha = $fecha;
       $importacion->moneda()->associate($id_moneda);
       $importacion->casino()->associate($id_casino);
-      if(!empty($request->cotizacion_diaria)){
-        $importacion->cotizacion = str_replace(',','.',$request->cotizacion_diaria);
-      }
       $importacion->validado = 0;
       $importacion->save();
       $iid = $importacion->id_importacion_diaria_mesas;

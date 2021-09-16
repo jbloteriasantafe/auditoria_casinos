@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Mesas;
+use App\Cotizacion;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,15 +21,20 @@ class ImportacionDiariaMesas extends Model
                              'retiros',
                              'utilidad',
                              'saldo_fichas',
-                             'cotizacion',
                              'observacion',
+                             'cotizacion_diaria',//dinamico
                              'hold',//dinamico
                              'conversion_total',//dinamico
                              'saldo_fichas_relevado',//dinamico
                              'diferencia_saldo_fichas',//dinamico
                              'ajuste_fichas',//dinamico
                            );
-  protected $appends = array('hold','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
+  protected $appends = array('cotizacion_diaria','hold','conversion_total','saldo_fichas_relevado','diferencia_saldo_fichas','ajuste_fichas');
+
+  public function getCotizacionDiariaAttribute(){
+    $c = Cotizacion::where('fecha',$this->fecha)->get()->first();
+    return is_null($c)? null : $c->valor;
+  }
 
   public function getHoldAttribute(){
      if($this->droop != 0){
@@ -39,11 +45,12 @@ class ImportacionDiariaMesas extends Model
   }
 
   public function getConversionTotalAttribute(){
-     if($this->cotizacion != 0 && $this->cotizacion != null){
-       return round($this->cotizacion * $this->utilidad,3);
-     }else{
-       return '--';
-     }
+    $cot = $this->cotizacion_diaria;
+    if($cot != null){
+      return round($cot * $this->utilidad,3);
+    }else{
+      return '--';
+    }
   }
 
   public function getSaldoFichasRelevadoAttribute(){

@@ -83,7 +83,7 @@
           <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->retiros}}</td>
           <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->utilidad}}</td>
           @if($importacion->moneda->siglas != 'ARS')
-          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</td>
+          <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->cotizacion_diaria}}</td>
           <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->conversion}}</td>
           @endif
           <td class="tablaCampos" style="font-size:10px; border-color: gray;">{{$d->hold}}</td>
@@ -102,7 +102,7 @@
           <th style="font-size:10px; border-color: gray;">{{$importacion->retiros}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->utilidad}}</th>
           @if($importacion->moneda->siglas != 'ARS')
-          <th style="font-size:10px; border-color: gray;">{{$importacion->cotizacion}}</th>
+          <th style="font-size:10px; border-color: gray;">{{$importacion->cotizacion_diaria}}</th>
           <th style="font-size:10px; border-color: gray;">{{$importacion->conversion_total}}</th>
           @endif
           <th style="font-size:10px; border-color: gray;">{{$importacion->hold}}</th>

@@ -25,6 +25,7 @@ class DetalleImportacionDiariaMesas extends Model
                              'id_cierre_mesa',//Se setea una vez validada la importacion
                              'id_cierre_mesa_anterior',//Se setea una vez validada la importacion
                              'observacion',
+                             'cotizacion_diaria',//dinamico
                              'hold',//dinamico
                              'conversion',//dinamico
                              'cierre',//dinamico
@@ -33,6 +34,10 @@ class DetalleImportacionDiariaMesas extends Model
                              'diferencia_saldo_fichas'//dinamico
                            );
   protected $appends = array('hold','conversion','cierre','cierre_anterior','saldo_fichas_relevado','diferencia_saldo_fichas');
+
+  public function getCotizacionDiariaAttribute(){
+    return $this->importacion_diaria_mesas->cotizacion_diaria;
+  }
 
   public function getHoldAttribute(){
       if($this->droop != 0){
@@ -43,11 +48,11 @@ class DetalleImportacionDiariaMesas extends Model
   }
 
   public function getConversionAttribute(){
-    $cotizacion = $this->importacion_diaria_mesas->cotizacion;
+    $cotizacion = $this->cotizacion_diaria;
     if(empty($cotizacion)) return '--';
-    
-    return round($this->importacion_diaria_mesas->cotizacion * $this->utilidad,3);
+    return round($cotizacion * $this->utilidad,3);
   }
+
   public function importacion_diaria_mesas(){
     return $this->belongsTo('App\Mesas\ImportacionDiariaMesas','id_importacion_diaria_mesas','id_importacion_diaria_mesas');
   }
