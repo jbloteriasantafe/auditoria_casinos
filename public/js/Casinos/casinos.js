@@ -134,7 +134,8 @@ $('#btn-guardar').on('click',function(e){
        desde:$(this).find('.desde').val(),
        hasta:$(this).find('.hasta').val(),
        entrada:$(this).find('.hrI').val(),
-       salida:$(this).find('.hrF').val()
+       salida:$(this).find('.hrF').val(),
+       hora_propuesta: $(this).find('.hrP').val(),
     }
 
     turnos.push(turno);
@@ -271,7 +272,6 @@ $(document).on('click', '.okTurnos',function(e){
   var cantidad= $('.cant_turno').val();
 
   for (var i = 0; i < cantidad; i++) {
-    var nro=i+1;
     var fila = $(document.createElement('tr'));
 
     fila.append($('<td>').append($('<input>').addClass('col-md-1 nro_turno').addClass('form-control').css('text-align','center')))
@@ -293,8 +293,7 @@ $(document).on('click', '.okTurnos',function(e){
               .append($('<option>').val(6).text('Sábado').append($('</option>')))))
         .append($('<td>').append($('<input>').addClass('col-md-2 hrI').attr('type','time').css('text-align','center').addClass('form-control')))
         .append($('<td>').append($('<input>').addClass('col-md-2 hrF').attr('type','time').addClass('form-control')))
-
-
+        .append($('<td>').append($('<input>').addClass('col-md-2 hrP').attr('type','time').addClass('form-control')))
 
     $('#tablaTurnos tbody').append(fila);
   }
@@ -471,8 +470,9 @@ $('#btn-preModificar').on('click',function(e){
                   m = '-';
 
                 }
-                fila1.append($('<td>').append($('<input>').addClass('col-md-2 hrFmodif').attr('type','time').val(h + ':' + m).addClass('form-control')))
-                fila1.append($('<td>').append($('<button>').addClass('btn btn-successAceptar eliminarTurno').val(data.turnos[i].id_turno).append($('<i>').addClass('fa fa-fw fa-trash'))))
+                fila1.append($('<td>').append($('<input>').addClass('col-md-2 hrFmodif').attr('type','time').val(h + ':' + m).addClass('form-control')));
+                fila1.append($('<td>').append($('<input>').addClass('col-md-2 hrPmodif form-control').attr('type','time').val(data.turnos[i].hora_propuesta.split(':').slice(0,2).join(':'))));
+                fila1.append($('<td>').append($('<button>').addClass('btn btn-successAceptar eliminarTurno').val(data.turnos[i].id_turno).append($('<i>').addClass('fa fa-fw fa-trash'))));
 
                 fila1.find('.desdeModif').val(data.turnos[i].dia_desde).prop('selected',true);
                 fila1.find('.hastaModif').val(data.turnos[i].dia_hasta).prop('selected',true);
@@ -515,6 +515,7 @@ $(document).on('click','.masTurnos',function(){
 
       .append($('<td>').append($('<input>').addClass('col-md-2 hrImodif').attr('type','time').css('text-align','center').addClass('form-control')))
       .append($('<td>').append($('<input>').addClass('col-md-2 hrFmodif').attr('type','time').addClass('form-control')))
+      .append($('<td>').append($('<input>').addClass('col-md-2 hrPmodif').attr('type','time').addClass('form-control')))
       fila1.append($('<td>').append($('<button>').addClass('btn btn-successAceptar eliminarTurnoSinID').append($('<i>').addClass('fa fa-fw fa-trash'))))
 
       $('#tablaTurnosModif').append(fila1);
@@ -564,6 +565,7 @@ $('#btn-modificarCas').on('click',function(e){
       hasta:$(this).find('.hastaModif').val(),
       entrada:$(this).find('.hrImodif').val(),
       salida:$(this).find('.hrFmodif').val(),
+      hora_propuesta: $(this).find('.hrPmodif').val(),
     }
 
     turnos.push(turno);

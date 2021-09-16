@@ -60,10 +60,9 @@ class TurnosController extends Controller
       $nuevoTurno->entrada = $turno['entrada'];
       $nuevoTurno->salida = $turno['salida'];
       $nuevoTurno->nro_turno = $turno['nro'];
-      $nuevoTurno->hora_propuesta = $turno['salida'];
+      $nuevoTurno->hora_propuesta = $turno['hora_propuesta'];
       $nuevoTurno->casino()->associate($casino);
       $nuevoTurno->save();
-
   }
 
   public function buscarTurnos($nro_turno){
@@ -82,8 +81,4 @@ class TurnosController extends Controller
     }
     return ['turnos' => $trr];
   }
-
-
-
-
 }

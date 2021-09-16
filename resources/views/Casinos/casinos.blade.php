@@ -159,11 +159,12 @@ use App\Http\Controllers\UsuarioController;
 
               <table class="table table-sorter" id="tablaTurnos" hidden="true" >
                 <thead>
-                  <th class="col-md-1"> <h6 style="font-size:16px; text-align:center !important;color:#212121"> Número:</h6></th>
+                  <th class="col-md-1"> <h6 style="font-size:16px; text-align:center !important;color:#212121">Nro:</h6></th>
                   <th class="col-md-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Desde:</h6></th>
                   <th class="col-md-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Hasta:</h6></th>
                   <th class="col-md-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Entrada:</h6></th>
                   <th class="col-md-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Salida:</h6></th>
+                  <th class="col-md-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">H. Propuesta:</h6></th>
                 </thead>
                 <tbody>
 
@@ -325,12 +326,13 @@ use App\Http\Controllers\UsuarioController;
               <div class="row">
                 <table class="table table-sorter" id="tablaTurnosModif">
                   <thead>
-                    <th class="col-xs-2"> <h6 style="font-size:16px; text-align:center !important;color:#212121"> Número:</h6></th>
+                    <th class="col-xs-1"> <h6 style="font-size:16px; text-align:center !important;color:#212121">Nro:</h6></th>
                     <th class="col-xs-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Desde:</h6></th>
                     <th class="col-xs-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Hasta:</h6></th>
                     <th class="col-xs-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Entrada:</h6></th>
                     <th class="col-xs-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">Salida:</h6></th>
-                    <th class="col-xs-2"></th>
+                    <th class="col-xs-2"><h6 style="font-size:16px; text-align:center !important;color:#212121">H. propuesta:</h6></th>
+                    <th class="col-xs-1"></th>
                   </thead>
                   <tbody height="auto" width="100%">
                   </tbody>

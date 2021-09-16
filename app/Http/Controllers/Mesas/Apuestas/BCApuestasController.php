@@ -249,7 +249,7 @@ class BCApuestasController extends Controller
 
 
     return ['relevamiento_apuestas' => $relevamiento,
-            'turno' => $relevamiento->turno,
+            'turno' => $relevamiento->turno()->withTrashed()->get(),
             'detalles' => $detalles,
             'estados' => $estados,
             'fiscalizadores' => $relevamiento->fiscalizadores,

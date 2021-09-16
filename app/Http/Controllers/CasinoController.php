@@ -68,12 +68,7 @@ class CasinoController extends Controller
     ];
   }
 
-
-
-
-
   public function obtenerTurno($id){
-
     $dia_semana = date('w');
 
     // // desde la base se gestiona al domingo como 7
@@ -129,6 +124,7 @@ class CasinoController extends Controller
       'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
       'turnos.*.entrada' => 'required|date_format:H:i',
       'turnos.*.salida' => 'required|date_format:H:i',
+      'turnos.*.hora_propuesta' => 'required|date_format:H:i',
       'fecha_inicio' => 'required|date_format:Y-m-d',
       'porcentaje_sorteo_mesas' => 'required|integer|max:100',
       'fichas_pesos' => 'nullable',
@@ -138,9 +134,7 @@ class CasinoController extends Controller
       'fichas_nuevas' => 'nullable',
       'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
-    ],array(),self::$atributos)->after(function ($validator){
-      if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
-    })->validate();
+    ],array(),self::$atributos)->after(function ($validator){})->validate();
     if(isset($validator)){
       if ($validator->fails()){
         return ['errors' => $validator->messages()->toJson()];
@@ -192,6 +186,7 @@ class CasinoController extends Controller
       'turnos.*.hasta' => ['required','regex:/^[1-7]$/'],
       'turnos.*.entrada' => 'required|date_format:H:i',
       'turnos.*.salida' => 'required|date_format:H:i',
+      'turnos.*.hora_propuesta' => 'required|date_format:H:i',
       'porcentaje_sorteo_mesas' => 'required|integer|max:100',
       'fichas_pesos' => 'nullable',
       'fichas_pesos.*.id_ficha' => 'required|exists:ficha,id_ficha',
@@ -200,15 +195,7 @@ class CasinoController extends Controller
       'fichas_nuevas' => 'nullable',
       'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
-    ],array(),self::$atributos)->after(function ($validator){
-      if(!empty($validator->getData()['turnos']))$validator = $this->validarTurnos($validator);
-    })->validate();
-
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+    ],array(),self::$atributos)->after(function ($validator){})->validate();
 
     $casino = Casino::find($request->id_casino);
     $casino->codigo = $request->codigo;
@@ -256,9 +243,10 @@ private function asociarTurnos($turnos, $casino){
     $array_nuevos = array();
     //update or create
     foreach ($turnos as $t) {
-      $tuur = Turno::updateOrCreate(['nro_turno' => $t['nro'], 'dia_desde' => $t['desde'],
-                              'dia_hasta'=> $t['hasta'], 'entrada'=>$t['entrada'],
-                              'salida'=>$t['salida'], 'id_casino'=>$casino->id_casino]);
+      $tuur = Turno::updateOrCreate(['nro_turno' => $t['nro'],   'dia_desde' => $t['desde'],
+                                     'dia_hasta' => $t['hasta'], 'entrada'   => $t['entrada'],
+                                     'salida' => $t['salida'],   'hora_propuesta' => $t['hora_propuesta'],
+                                     'id_casino' => $casino->id_casino]);
       $array_nuevos[] = $tuur->id_turno;
     }
     //y despues las que tenia left outer join las nuevas con collections las eliminadas
@@ -288,82 +276,6 @@ private function asociarTurnos($turnos, $casino){
     return $todos;
   }
 
-  //1 lunes,...,7 Domingo
-  public function validarTurnos($validator){
-    //valido que no estén repetidos ->collect
-    //que no se solapen
-    //dd('00:30'<= '00:00','01:00'<= '05:00'); parece que compara bien php por mas que sean string
-
-    $collection = collect([]);
-    foreach ($validator->getData()['turnos'] as $turno) {
-      if(empty($turno['salida'])){
-        $validator->errors()->add('turnos', 'Verifique que los turnos se hayan ingresado.');
-        return $validator;
-      }
-      $turnoObj = new Turno();
-      $turnoObj->dia_desde = $turno['desde'];
-      $turnoObj->dia_hasta = $turno['hasta'];
-      $turnoObj->entrada = $turno['entrada'];
-      $turnoObj->salida = $turno['salida'];
-      $turnoObj->nro_turno = $turno['nro'];
-
-      $hh = explode(':', $turno['salida']);
-      if($hh[0] == '00'){
-        $hora_salida = '23:00';
-      }else{
-        $nro_hora = $hh[0]-1;
-        $hora_salida =  $nro_hora.':'.'00';
-      }
-
-      $turnoObj->hora_propuesta = $hora_salida;
-      $turnoObj->casino()->associate(0);
-
-      $collection->push($turnoObj);
-    }
-    foreach ($collection as $turno) {
-      $ddesde = $turno->dia_desde;
-      $dhasta = $turno->dia_hasta;
-      $hdesde = $turno->entrada;
-      $hhasta = $turno->salida;
-      //obtengo todos los turnos que esten entre esos dias
-      $filteredHEntrada = $collection->filter(function ($value, $key) use ($ddesde,$dhasta,$hdesde,$hhasta){
-        //dd($value es el turno,$key);
-        //si es que hay turnos que esten entre los dias del $turno -> la hora no se
-        //debe solapar con la de $turno -> chequeo que la hora de inicio este
-        //entre las horas y que la hora de salida este como hora de entrada en otro turno.
-        return (($value->dia_desde >= $ddesde && $value->dia_hasta <= $dhasta) &&
-                (
-                  ($hdesde < $hhasta && $value->entrada >= $hdesde && $value->entrada <= $hhasta) ||
-                  ($hdesde > $hhasta && (($value->entrada >= $hdesde && $value->entrada <= '00:00') ||
-                                          ($value->entrada < $hhasta && $value->entrada >= '00:00')
-                                        )
-                  )
-                )
-               );
-      });
-
-      // if(count($filteredHEntrada)>1){
-      //   $validator->errors()->add('turnos', 'Verifique el solapamiento entre turnos por la hora de entrada.');
-      //   return $validator;
-      // }
-      $nro_turno = $turno->nro_turno;
-
-      $filteredHSalida = $collection->filter(function ($value, $key) use ($nro_turno,$ddesde,$dhasta,$hdesde,$hhasta){
-        //filtro los turnos que tienen los mismos dias, busco el turno anterior y checkeo que la salida sea igual a la entrada de el del loop
-        return (($value->dia_desde >= $ddesde && $value->dia_hasta <= $dhasta) &&
-                (
-                  ($value->nro_turno + 1) == $nro_turno && $value->salida != $hhasta
-                )
-               );
-      });
-
-      // if(count($filteredHSalida)>1){
-      //   $validator->errors()->add('turnos', 'Verifique el solapamiento entre turnos por la hora de salida.');
-      //   return $validator;
-      // }
-    }
-
-  }
   public function getFichas(Request $request){
     $fichas = Ficha::groupBy('id_moneda','id_ficha','valor_ficha','created_at','deleted_at','updated_at')->orderBy('valor_ficha','asc')->get()->toArray();
     return ['fichas' => $fichas];

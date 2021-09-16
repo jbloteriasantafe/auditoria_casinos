@@ -464,7 +464,7 @@ $(document).on('click', '.cargarApuesta', function(e){
              }
       $('#hora_prop_carga').val(hs + ':' + mm).prop('readonly',true);
 
-      $('#turnoRelevado').val(data.turno.nro_turno).prop('readonly', true);
+      $('#turnoRelevado').val(data.turno.length > 0? data.turno[0].nro_turno : '').prop('readonly', true);
 
       var aux_nro_fila = 0;
 
@@ -637,7 +637,7 @@ $(document).on('click', '.modificarApuesta', function(e){
        }
 
        $('#B_fecha_modificar').val(data.relevamiento_apuestas.fecha).prop('readonly',true);
-       $('#turnoRelevadoMod').val(data.turno.nro_turno).prop('readonly', true);
+       $('#turnoRelevadoMod').val(data.turno.length > 0? data.turno[0].nro_turno : '').prop('readonly', true);
        $('#obsModificacion').val(data.relevamiento_apuestas.observaciones);
 
        if(data.relevamiento_apuestas.hora_ejecucion != null){
@@ -809,7 +809,7 @@ $(document).on('click', '.validarApuesta', function(e){
        }
 
        $('#B_fecha_val').text(data.relevamiento_apuestas.fecha).prop('readonly',true);
-       $('#turnoRelevadoVal').text(data.turno.id_turno).prop('readonly', true);
+       $('#turnoRelevadoVal').text(data.turno.length > 0? data.turno[0].id_turno : '').prop('readonly', true);
        $('#obsFiscalizador').val(data.relevamiento_apuestas.observaciones);
        $('#obsFiscalizador').prop('disabled',true);
 

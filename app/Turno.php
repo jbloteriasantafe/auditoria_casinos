@@ -26,7 +26,7 @@ class Turno extends Model
   public $timestamps = false;
 
   protected $fillable = ['nro_turno','dia_desde','dia_hasta','entrada',
-                               'salida','id_casino'];
+                               'salida','id_casino','hora_propuesta'];
 
   protected $appends = array('nombre_dia_desde','nombre_dia_hasta');
 

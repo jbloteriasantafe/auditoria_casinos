@@ -66,10 +66,9 @@ class TurnosController extends Controller
       $nuevoTurno->salida = $turno['salida'];
       $nuevoTurno->nro_turno = $turno['nro'];
       $time = Carbon::createFromTimeString($turno['salida'], 'America/Argentina/Buenos_Aires');
-      $nuevoTurno->hora_propuesta = $time->subHour();
+      $nuevoTurno->hora_propuesta = $turno['hora_propuesta'];
       $nuevoTurno->casino()->associate($casino);
       $nuevoTurno->save();
-
   }
 
   public function buscarTurnos($nro_turno){
@@ -88,5 +87,4 @@ class TurnosController extends Controller
     }
     return ['turnos' => $trr];
   }
-
 }

@@ -154,8 +154,7 @@ class GenerarPlanillasController extends Controller
       }
       return false;
     }
-
-
+    
     //falta agregarle nro de pagina .-
     private function generarPlanilla( $id_relevamiento,
                                       Turno $turno, $fecha_backup, Casino $casino){
