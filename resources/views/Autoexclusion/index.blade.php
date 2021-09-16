@@ -351,8 +351,7 @@ input[required], select[required]{
                       </div>
                       <div class="col-lg-3">
                         <h5>ESTADO CIVIL</h5>
-                        <select id="id_estado_civil" class="form-control selectEstadoCivil" name="id_estado_civil" required>
-                          <option selected="" value="">Seleccionar Valor</option>
+                        <select id="id_estado_civil" class="form-control selectEstadoCivil" name="id_estado_civil" required disabled>
                           @foreach ($estados_civiles as $estado_civil)
                             <option id="{{$estado_civil->id_estado_civil}}" value="{{$estado_civil->id_estado_civil}}">{{$estado_civil->descripcion}}</option>
                           @endforeach
@@ -396,8 +395,7 @@ input[required], select[required]{
                       </div>
                       <div class="col-lg-6">
                         <h5>OCUPACIÓN</h5>
-                        <select id="id_ocupacion" class="form-control" required>
-                            <option selected="" value="">Seleccionar Valor</option>
+                        <select id="id_ocupacion" class="form-control" required disabled>
                             @foreach($ocupaciones as $ocupacion)
                             <option value="{{$ocupacion->id_ocupacion}}">{{$ocupacion->nombre}}</option>
                             @endforeach
@@ -405,8 +403,7 @@ input[required], select[required]{
                       </div>
                       <div class="col-lg-6">
                         <h5>CAPACITACIÓN</h5>
-                        <select id="id_capacitacion" class="form-control" required>
-                          <option selected="" value="">Seleccionar Valor</option>
+                        <select id="id_capacitacion" class="form-control" required disabled>
                           @foreach ($capacitaciones as $capacitacion)
                             <option id="{{$capacitacion->id_capacitacion}}" value="{{$capacitacion->id_capacitacion}}">{{$capacitacion->descripcion}}</option>
                           @endforeach

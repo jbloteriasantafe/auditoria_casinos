@@ -293,6 +293,9 @@ function modalAgregarEditarAE(dni,id_autoexcluido = null){
   $('#modalAgregarAE .modal-title').text('| AGREGAR AUTOEXCLUIDO');
   $('#modalAgregarAE').attr('modo','agregar');
   $('#modalAgregarAE').attr('id-autoexcluido',-1);
+  $('#id_estado_civil').val(6);//No contesta
+  $('#id_capacitacion').val(6);//No contesta
+  $('#id_ocupacion').val(12);//No contesta
   if(id_autoexcluido !== null){
     $('#modalAgregarAE .modal-title').text('| EDITAR AUTOEXCLUIDO');
     $('#modalAgregarAE').attr('modo','editar');
