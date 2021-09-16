@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
-<link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="css/paginacion.css">
 <style>
 .small{
@@ -401,16 +400,16 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
               </form>
 
               <div id="rowArchivo" class="row" style="">
-                      <div class="col-xs-12">
-                        <div class="zona-file">
-                          <h5>ARCHIVO</h5>
-                            <input id="archivo" data-borrado="false" type="file" name="" >
-                            <br> <span id="alertaArchivo" class="alertaSpan"></span>
-                        </div>
-                      </div>
+                <div class="col-xs-12">
+                  <div class="zona-file">
+                    <h5>ARCHIVO</h5>
+                      <input id="archivo" data-borrado="false" type="file" name="" >
+                      <br> <span id="alertaArchivo" class="alertaSpan"></span>
+                  </div>
+                </div>
+                @include('includes.md5hash')
               </div>
-
-
+              
 
               <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
                       <div class="col-md-12">
@@ -694,7 +693,9 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="js/lista-datos.js" type="text/javascript"></script>
+  <!-- Custom input Bootstrap -->
   <script src="js/fileinput.min.js" type="text/javascript"></script>
+  <script src="js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="js/math.min.js" type="text/javascript"></script>
   <script src='js/moment.min.js' type="text/javascript"></script>
@@ -704,4 +705,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
   <script src="js/paginacion.js" charset="utf-8"></script>
   <!-- JavaScript personalizado -->
   <script src="/js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
+  <script src="/js/md5.js" charset="utf-8"></script>
 @endsection
