@@ -38,7 +38,7 @@ class AutoexclusionController extends Controller
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
-      $estados_elegibles = $estados_autoexclusion;
+      $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
 
       if(!($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor))
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();

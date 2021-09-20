@@ -8,7 +8,7 @@ class NombreEstadoAutoexclusion extends Model
   protected $connection = 'mysql';
   protected $table = 'ae_nombre_estado';
   protected $primaryKey = 'id_nombre_estado';
-  protected $visible = array('id_nombre_estado','descripcion');
+  protected $visible = array('id_nombre_estado','descripcion','deprecado');
   public $timestamps = false;
 
   public function estados(){
