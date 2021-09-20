@@ -114,17 +114,19 @@ class informesController extends Controller
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
-    $suma = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
+    $suma_a = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.apuesta,0)))';
+    $suma_p = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.premio,0)))';
+    $suma_v = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
     $suma_cotizada = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)*IFNULL(cot.valor,0)))';
 
     $beneficios = DB::table('producido as p')
     ->select(
       DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
       DB::raw('DATE_FORMAT(p.fecha,"%d-%m-%Y") as fecha'),
-      DB::raw('"" as apostado'),
-      DB::raw('"" as premios'),
+      DB::raw('FORMAT('.$suma_a.',2,"es_AR") as apostado'),
+      DB::raw('FORMAT('.$suma_p.',2,"es_AR") as premios'),
       DB::raw('"" as pmayores'),
-      DB::raw('FORMAT('.$suma.',2,"es_AR") as beneficio'),
+      DB::raw('FORMAT('.$suma_v.',2,"es_AR") as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
     )
@@ -143,10 +145,10 @@ class informesController extends Controller
     $sum = DB::table('producido as p')
     ->select('c.nombre as casino','tm.descripcion as tipoMoneda',
       DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
-      DB::raw('"" as totalApostado'),
-      DB::raw('"" as totalPremios'),
+      DB::raw('FORMAT('.$suma_a.',2,"es_AR") as totalApostado'),
+      DB::raw('FORMAT('.$suma_p.',2,"es_AR") as totalPremios'),
       DB::raw('"" as totalPmayores'),
-      DB::raw('FORMAT('.$suma.',2,"es_AR") as totalBeneficio'),
+      DB::raw('FORMAT('.$suma_v.',2,"es_AR") as totalBeneficio'),
       DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
     ->join('casino as c','c.id_casino','=','p.id_casino')

@@ -10,7 +10,7 @@ class Producido extends Model
   protected $connection = 'mysql';
   protected $table = 'producido';
   protected $primaryKey = 'id_producido';
-  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda','valor','md5');
+  protected $visible = array('id_producido','fecha','validado','beneficio_calculado','id_tipo_moneda','apuesta','premio','valor','md5');
   public $timestamps = false;
   protected $appends = array('beneficio_calculado');
 
@@ -24,8 +24,8 @@ class Producido extends Model
     return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor') + $ajuste;
   }
 
-  public function recalcularValor(){
-    return DetalleProducido::where('id_producido','=',$this->id_producido)->sum('valor');
+  public function recalcular($col){
+    return DetalleProducido::where('id_producido','=',$this->id_producido)->sum($col);
   }
 
   public function casino(){

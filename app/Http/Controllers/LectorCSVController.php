@@ -264,7 +264,9 @@ class LectorCSVController extends Controller
                        SET id_producido = '%d',
                                 maquina = CAST(@1 as UNSIGNED),
                                   fecha = STR_TO_DATE(@2,'%s'),
-                                  valor = CAST(REPLACE(@11,',','.') as DECIMAL(15,2))
+                                  apuesta = CAST(REPLACE(@6,',','.') as DECIMAL(15,2)),
+                                  premio  = CAST(REPLACE(@7,',','.') as DECIMAL(15,2)),
+                                  valor   = CAST(REPLACE(@11,',','.') as DECIMAL(15,2))
                       ",$path,$casino,$producido->id_producido,"%Y%m%d");
 
     $pdo->exec($query);
@@ -295,9 +297,9 @@ class LectorCSVController extends Controller
       foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
     }
 
-    $query = sprintf(" INSERT INTO detalle_producido (valor,id_maquina,id_producido)
-                       SELECT prod_a.valor,mtm.id_maquina,'%d'
-                       FROM maquina AS mtm,(SELECT SUM(valor) AS valor, maquina
+    $query = sprintf(" INSERT INTO detalle_producido (apuesta,premio,valor,id_maquina,id_producido)
+                       SELECT prod_a.apuesta,prod_a.premio,prod_a.valor,mtm.id_maquina,'%d'
+                       FROM maquina AS mtm,(SELECT SUM(apuesta) AS apuesta,SUM(premio) AS premio,SUM(valor) AS valor, maquina
                                             FROM producido_temporal
                                             WHERE id_producido = '%d'
                                             GROUP BY maquina) AS prod_a
@@ -382,7 +384,9 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
-    $producido->valor = $producido->recalcularValor();
+    $producido->apuesta = $producido->recalcular('apuesta');
+    $producido->premio = $producido->recalcular('premio');
+    $producido->valor = $producido->recalcular('valor');
     $producido->save();
   //fin de implementacion
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
@@ -708,7 +712,7 @@ class LectorCSVController extends Controller
     }
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
-    $producido->valor = $producido->recalcularValor();
+    $producido->valor = $producido->recalcular('valor');
     $producido->save();
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];

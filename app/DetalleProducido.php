@@ -9,7 +9,7 @@ class DetalleProducido extends Model
   protected $connection = 'mysql';
   protected $table = 'detalle_producido';
   protected $primaryKey = 'id_detalle_producido';
-  protected $visible = array('id_detalle_producido','valor');
+  protected $visible = array('id_detalle_producido','apuesta','premio','valor');
   public $timestamps = false;
 
   public function maquina(){
