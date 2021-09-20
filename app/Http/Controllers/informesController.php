@@ -114,8 +114,8 @@ class informesController extends Controller
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
-    $suma_a = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.apuesta,0)))';
-    $suma_p = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.premio,0)))';
+    $suma_a = 'SUM(IF(p.apuesta IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.apuesta,0)))';
+    $suma_p = 'SUM(IF(p.premio IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.premio,0)))';;
     $suma_v = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
     $suma_cotizada = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)*IFNULL(cot.valor,0)))';
 
