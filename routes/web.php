@@ -33,6 +33,40 @@ Route::get('inicio',function(){
     return view('seccionInicio' ,['ultimas_visitadas' =>$usuario->secciones_recientes]);
 });
 
+Route::post('enviarTicket',function(Request $request){
+  /* 
+   $data['attachments'][] =
+  array('filename.pdf' =>
+    'data:image/png;base64,' .
+        base64_encode(file_get_contents('/path/to/filename.pdf')));
+  */
+  $data = array(
+    'name'      =>  $request->name,
+    'email'     =>  $request->email,
+    'subject'   =>  $request->subject,
+    'message'   =>  $request->message,
+    'ip'        =>  $_SERVER['REMOTE_ADDR'],
+    'attachments' => array(),
+  );
+
+  set_time_limit(30);
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, 'http://10.1.121.25/osTicket/api/http.php/tickets.json');
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+  curl_setopt($ch, CURLOPT_USERAGENT, 'osTicket API Client v1.7');
+  curl_setopt($ch, CURLOPT_HEADER, FALSE);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:', 'X-API-Key: 14C4C2A8161F6728C74D92C58B6DF990'));
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  $result = curl_exec($ch);
+  $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  if ($code != 201) return response()->json($result,422);
+  $ticket_id = (int) $result;
+  return $ticket_id;
+});
+
 Route::get('configCuenta','UsuarioController@configUsuario');
 Route::post('configCuenta/modificarPassword','UsuarioController@modificarPassword');
 Route::post('configCuenta/modificarImagen','UsuarioController@modificarImagen');

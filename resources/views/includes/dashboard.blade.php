@@ -104,7 +104,48 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                   <?php
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+                    $nombre = $usuario['usuario']->nombre;
+                    $email = $usuario['usuario']->email;
                   ?>
+
+                  <li>
+                    <button id="ticket" type="button" class="iconoBarraSuperior btn btn-link"><i class="far fa-envelope fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></button>
+                    <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <i class="fa fa-times"></i>
+                            </button>
+                            <h3 class="modal-title">Crear ticket</h3>
+                          </div>
+                          <div class="modal-body">
+                            <div class="row">
+                              <div class="col-md-12">
+                                <input class="form-control ticket-asunto" placeholder="Asunto"/>
+                              </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                              <div class="col-md-12">
+                                <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
+                              </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                              <h5>Adjunto</h5>
+                              <input type="file" class="form-control-file ticket-adjunto" multiple/>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-primary ticket-enviar" data-nombre="{{$nombre}}" data-email="{{$email}}">Enviar</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
                   <li class="dropdown" id="marcaLeido" onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')" style="right:1%;">
                     <!--Icono de notificaciones -->
 
@@ -145,9 +186,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                   <img src="/img/logos/logo_nuevo2_bn.png" alt="" width="55%" style="margin-top: 6px;">
                 </a>
             </div>
-            <!-- <div class="scrollMenu"> -->
-
-
               <div class="contenedorMenu">
                 <div class="contenedorUsuario">
                   <?php
@@ -1118,14 +1156,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                 </div>
               </div>
         </div>
-
-        <!-- animacion -->
-        <!-- <div id="animation_container" style="background-color:rgba(255, 255, 255, 1.00); width:400px; height:300px">
-          <canvas id="canvas" width="30%" height="" style="position: absolute; display: block; background-color:rgba(255, 255, 255, 1.00);"></canvas>
-          <div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:400px; height:300px; position: absolute; left: 0px; top: 0px; display: block;">
-          </div>
-        </div> -->
-
         <!-- HASTA ACA -->
 
     </div>
@@ -1178,5 +1208,41 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     @section('scripts')
     @show
 
+    <script type="text/javascript">
+        $('#ticket').click(function(e){
+          e.preventDefault();
+          $('#modalTicket .ticket-asunto').val('');
+          $('#modalTicket .ticket-mensaje').val('');
+          $('#modalTicket .ticket-adjunto').val('');
+          $('#modalTicket').modal('show');
+        });
+
+        $('#modalTicket .ticket-enviar').click(function(e){
+          e.preventDefault();
+          const asunto  = $('#modalTicket .ticket-asunto').val();
+          const mensaje = $('#modalTicket .ticket-mensaje').val();
+          const nombre  = $(this).attr('data-nombre');
+          const email   = $(this).attr('data-email');
+          $.ajax({
+            type: "POST",
+            url: '/enviarTicket',
+            data: {
+              'name' : nombre,
+              'email' : email,
+              'subject': asunto,
+              'message': mensaje,
+              'attachments' : [] //@TODO: Adjuntar archivos
+            },
+            success: function (data) {
+              console.log(data);
+              $('#modalTicket').modal('hide');
+            },
+            error: function (data) {
+              console.log(data);
+              $('#modalTicket').modal('hide');
+            }
+          });
+        });
+    </script>
   </body>
 </html>
