@@ -26,7 +26,9 @@
     background-color: #dddddd;
   }
   </style>
-  <?php $calculado = $desde != '#' || $hasta != '#';?>
+  @php 
+  $calculado = $desde != '#' || $hasta != '#';
+  @endphp
   <head>
     <meta charset="utf-8">
     <title></title>
@@ -52,7 +54,7 @@
         <th class="tablaInicio">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
-        @if ($sum->casino != 'Rosario')
+        @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
@@ -69,7 +71,7 @@
         <td class="tablaCampos centrar">{{$b->cantidad_maquinas}}</td>
         <td class="tablaCampos">{{$b->apostado}}</td>
         <td class="tablaCampos">{{$b->premios}}</td>
-        @if ($sum->casino != 'Rosario')
+        @if ($sum->casino != 'Rosario' && !$calculado)
         <td class="tablaCampos">{{$b->pmayores}}</td>
         @endif
         @if ($sum->tipoMoneda == 'US$')
@@ -88,7 +90,7 @@
         <th class="tablaInicio">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
-        @if ($sum->casino != 'Rosario')
+        @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
@@ -102,7 +104,7 @@
         <td class="tablaCampos centrar">{{$sum->cantidad_maquinas}}</td>
         <td class="tablaCampos centrar">{{$sum->totalApostado}}</td>
         <td class="tablaCampos centrar">{{$sum->totalPremios}}</td>
-        @if ($sum->casino != 'Rosario')
+        @if ($sum->casino != 'Rosario' && !$calculado)
         <td class="tablaCampos centrar">{{$sum->totalPmayores}}</td>
         @endif
         @if ($sum->tipoMoneda == 'US$')
