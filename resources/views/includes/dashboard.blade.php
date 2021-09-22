@@ -104,8 +104,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
                   <?php
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                    $nombre = $usuario['usuario']->nombre;
-                    $email = $usuario['usuario']->email;
                   ?>
 
                   <li>
@@ -138,7 +136,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                             </div>
                           </div>
                           <div class="modal-footer">
-                            <button type="button" class="btn btn-primary ticket-enviar" data-nombre="{{$nombre}}" data-email="{{$email}}">Enviar</button>
+                            <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                           </div>
                         </div>
@@ -1219,28 +1217,51 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
 
         $('#modalTicket .ticket-enviar').click(function(e){
           e.preventDefault();
-          const asunto  = $('#modalTicket .ticket-asunto').val();
-          const mensaje = $('#modalTicket .ticket-mensaje').val();
-          const nombre  = $(this).attr('data-nombre');
-          const email   = $(this).attr('data-email');
-          $.ajax({
-            type: "POST",
-            url: '/enviarTicket',
-            data: {
-              'name' : nombre,
-              'email' : email,
-              'subject': asunto,
-              'message': mensaje,
-              'attachments' : [] //@TODO: Adjuntar archivos
-            },
-            success: function (data) {
-              console.log(data);
-              $('#modalTicket').modal('hide');
-            },
-            error: function (data) {
-              console.log(data);
-              $('#modalTicket').modal('hide');
-            }
+
+          function leerArchivos(idx,result,done){
+            const files = $('#modalTicket .ticket-adjunto')[0].files;
+            if(idx >= files.length) return done(result);
+          
+            const file_reader = new FileReader();
+            const file = files[idx];
+            file_reader.onload = function(){
+              const aux = {};
+              aux[file.name] = file_reader.result;
+              leerArchivos(idx+1,result.concat([aux]),done);
+            };
+            file_reader.readAsDataURL(file);
+          };
+
+          leerArchivos(0,[],function(archivos){
+            const asunto  = $('#modalTicket .ticket-asunto').val();
+            const mensaje = $('#modalTicket .ticket-mensaje').val();
+            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+            $.ajax({
+              type: "POST",
+              url: '/enviarTicket',
+              data: {
+                'subject': asunto,
+                'message': mensaje,
+                'attachments' : archivos
+              },
+              success: function (data) {
+                $('#mensajeExito p').text('Ticket #'+data+' creado');
+                $('#mensajeExito').hide();
+                setTimeout(function() {
+                  $('#mensajeExito').show();
+                }, 250);
+                $('#modalTicket').modal('hide');
+              },
+              error: function (data) {
+                $('#mensajeError .textoMensaje').empty();
+                $('#mensajeError .textoMensaje').append($('<h4>'+data+'</h4>'));
+                $('#mensajeError').hide();
+                setTimeout(function() {
+                  $('#mensajeError').show();
+                }, 250);
+                $('#modalTicket').modal('hide');
+              }
+            });
           });
         });
     </script>

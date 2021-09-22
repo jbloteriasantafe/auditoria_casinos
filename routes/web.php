@@ -34,21 +34,16 @@ Route::get('inicio',function(){
 });
 
 Route::post('enviarTicket',function(Request $request){
-  /* 
-   $data['attachments'][] =
-  array('filename.pdf' =>
-    'data:image/png;base64,' .
-        base64_encode(file_get_contents('/path/to/filename.pdf')));
-  */
+  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $data = array(
-    'name'      =>  $request->name,
-    'email'     =>  $request->email,
+    'name'      =>  $usuario->nombre,
+    'email'     =>  $usuario->email,
     'subject'   =>  $request->subject,
     'message'   =>  $request->message,
     'ip'        =>  $_SERVER['REMOTE_ADDR'],
-    'attachments' => array(),
+    'attachments' => $request->attachments,
   );
-
+  
   set_time_limit(30);
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://10.1.121.25/osTicket/api/http.php/tickets.json');
