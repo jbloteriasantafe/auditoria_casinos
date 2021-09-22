@@ -105,7 +105,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                   <?php
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                   ?>
-
+                  @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
                   <li>
                     <button id="ticket" type="button" class="iconoBarraSuperior btn btn-link"><i class="far fa-envelope fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></button>
                     <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
@@ -143,6 +143,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                       </div>
                     </div>
                   </li>
+                  @endif
 
                   <li class="dropdown" id="marcaLeido" onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')" style="right:1%;">
                     <!--Icono de notificaciones -->
