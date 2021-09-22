@@ -4,7 +4,7 @@ var id_tipo_moneda;
 var fecha_date;
 
 //Tamaños de los diferentes archivos CSV
-var COL_PROD_ROS = 2;
+var COL_PROD_ROS = 4;
 var COL_PROD_SFE = 32;
 var COL_BEN_ROS = 8;
 

@@ -620,7 +620,7 @@ class LectorCSVController extends Controller
             continue;
           }
           $campos = explode(";",$line);
-          if(count($campos)!=5){
+          if(count($campos)!=7){
             $errstr = "Error al parsear linea ".($nline+1);
             return ['errores' => [$errstr]];
           }
@@ -630,6 +630,8 @@ class LectorCSVController extends Controller
           $ubicacion = $campos[2];//No se usa
           $periodo = $campos[3];//No se usa
           $total = trim($campos[4]);//Le saco el fin de linea
+          $apuesta = trim($campos[5]);
+          $premios = trim($campos[6]);
 
           if($maquina == "99990"){
             continue;//Ignoro maquina especial
@@ -644,13 +646,17 @@ class LectorCSVController extends Controller
             $errstr .= "\nUbicacion ".$ubicacion;
             $errstr .= "\nPeriodo ".$periodo;
             $errstr .= "\nTotal ".$total;
+            $errstr .= "\nApuesta ".$apuesta;
+            $errstr .= "\nPremios ".$premios;
             return ['errores' => [$errstr]];
           }
-          $total = str_replace('.','',$total); //Le saco el separador de los miles
-          $total = str_replace(',','.',$total); //Cambio la coma por el punto
-          $total = floatval($total);//Parseo el numero
+          $total = str_replace(',','.',str_replace('.','',$total)); //Le saco el separador de los miles, Cambio la coma por el punto
+          $apuesta = str_replace(',','.',str_replace('.','',$apuesta));
+          $premios = str_replace(',','.',str_replace('.','',$premios));
           $arreglo_a_insertar[] = [
-            "valor" => $total,
+            "valor" => floatval($total),
+            "apuesta" => floatval($apuesta),
+            "premio" => floatval($premios),
             "maquina"=>$maquina,
             "id_producido"=>$producido->id_producido,
             "fecha"=>$fecha
@@ -665,9 +671,9 @@ class LectorCSVController extends Controller
 
       DB::table('producido_temporal')->insert($arreglo_a_insertar); 
     } //FIN FORMA NUEVA
-        
-    $query = sprintf("INSERT INTO detalle_producido (valor,id_maquina,id_producido)
-                      SELECT prod.valor, mtm.id_maquina, prod.id_producido
+
+    $query = sprintf("INSERT INTO detalle_producido (apuesta,premio,valor,id_maquina,id_producido)
+                      SELECT prod.apuesta,prod.premio,prod.valor, mtm.id_maquina, prod.id_producido
                       FROM producido_temporal AS prod
                       JOIN maquina as mtm on (mtm.nro_admin = prod.maquina and mtm.deleted_at IS NULL and mtm.id_tipo_moneda = '%d')
                       WHERE prod.id_producido = '%d'
@@ -713,6 +719,8 @@ class LectorCSVController extends Controller
     $producido->cant_mtm_forzadas=$cant_mtm_forzadas;
     $producido->id_mtm_forzadas=implode(",",$id_mtm_forzadas);
     $producido->valor = $producido->recalcular('valor');
+    $producido->apuesta = $producido->recalcular('apuesta');
+    $producido->premio = $producido->recalcular('premio');
     $producido->save();
 
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
