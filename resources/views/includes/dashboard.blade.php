@@ -100,8 +100,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
               </ul>
 
               <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
-              <ul class="opcionesBarraSuperior" style=" width:20%;float:right;">
-
+              <ul class="opcionesBarraSuperior">
                   <?php
                     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
                   ?>
