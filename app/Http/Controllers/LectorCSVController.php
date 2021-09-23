@@ -165,11 +165,12 @@ class LectorCSVController extends Controller
                                       horario = STR_TO_DATE(@0,'%s'),
                                       tipo = @1,
                                       maquina = @3,
-                                      coinin = CAST(REPLACE(@6,',','.') as DECIMAL(15,2)),
-                                      coinout = CAST(REPLACE(@8,',','.') as DECIMAL(15,2)),
-                                      jackpot = CAST(REPLACE(@12,',','.') as DECIMAL(15,2)),
-                                      fecha = STR_TO_DATE(@16,'%s')
-                      ",$path,$contador->id_contador_horario,"%d/%m/%Y %H:%i:%s","%d/%m/%Y");
+                                      coinin = CAST(REPLACE(@7,',','.') as DECIMAL(15,2)),
+                                      coinout = CAST(REPLACE(@9,',','.') as DECIMAL(15,2)),
+                                      jackpot = CAST(REPLACE(@13,',','.') as DECIMAL(15,2)),
+                                      fecha = STR_TO_DATE(@17,'%s'),
+                                      isla = @5
+                      ",$path,$contador->id_contador_horario,"%Y/%m/%d %H:%i","%Y/%m/%d");
 
     $pdo->exec($query);
 
@@ -204,8 +205,8 @@ class LectorCSVController extends Controller
 
     //cambiar sentencia para actualizar los campos de contadores donde la mtm y el id contador sean iguales
 
-    $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario)
-                       SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario
+    $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario,isla)
+                       SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario, ct.isla
                        FROM contadores_temporal AS ct, maquina AS mtm,
                             (SELECT MAX(horario) AS horario, maquina
                              FROM contadores_temporal
@@ -495,7 +496,8 @@ class LectorCSVController extends Controller
                                            coinin = CAST(REPLACE(@2,',','.') as DECIMAL(15,2)),
                                           coinout = CAST(REPLACE(@3,',','.') as DECIMAL(15,2)),
                                           jackpot = CAST(REPLACE(@14,',','.') as DECIMAL(15,2)),
-                                       progresivo = CAST(REPLACE(@15,',','.') as DECIMAL(15,2))
+                                       progresivo = CAST(REPLACE(@15,',','.') as DECIMAL(15,2)),
+                                             isla = (@0 DIV 100)
                           ",$path,$contador->id_contador_horario);
 
         $pdo->exec($query);
@@ -506,9 +508,9 @@ class LectorCSVController extends Controller
         DB::table('contadores_temporal')->where('id_contadores_temporal','=',$last_id)->delete();
 
 
-        $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario,denominacion_carga)
+        $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario,denominacion_carga,isla)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
-                                  ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario, mtm.denominacion
+                                  ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario, mtm.denominacion, ct.isla
                            FROM contadores_temporal AS ct 
                            RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
                            WHERE ct.id_contador_horario = '%d'

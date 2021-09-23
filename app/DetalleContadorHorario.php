@@ -9,7 +9,7 @@ class DetalleContadorHorario extends Model
   protected $connection = 'mysql';
   protected $table = 'detalle_contador_horario';
   protected $primaryKey = 'id_detalle_contador_horario';
-  protected $visible = array('id_detalle_contador_horario','coinin','coinout','jackpot','progresivo','id_contador_horario');
+  protected $visible = array('id_detalle_contador_horario','isla','coinin','coinout','jackpot','progresivo','id_contador_horario');
   public $timestamps = false;
 
   public function maquina(){

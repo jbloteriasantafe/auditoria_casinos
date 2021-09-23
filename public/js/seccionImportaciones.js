@@ -652,7 +652,7 @@ function procesarDatosContador(e) {
       }
       return;
     }
-    if(cols.length == 17){//Santa Fe o Melinque
+    if(cols.length == 18){//Santa Fe o Melinque
       //@HACK: tendria que existir un casino_tiene_moneda o algo por el estilo
       //Lo hardcodeo a que SFE/MEL sea siempre sea pesos.
       $('#contSelMoneda').val(1);
@@ -665,7 +665,7 @@ function procesarDatosContador(e) {
       $('#contSelCasino option[value="2"]').prop('disabled',false);
       if(lineas.length >= 3){//Si tiene maquinas, saco la fecha y casino de ahi.
         const primer_renglon = lineas[1].split(';');
-        const fecha = primer_renglon[16];
+        const fecha = primer_renglon[17];
         console.log('fecha',fecha);
         $('#fecha input').val(fecha);
         ddmmyyyy = fecha.split("/");
