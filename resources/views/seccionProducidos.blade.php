@@ -220,43 +220,43 @@ use Illuminate\Http\Request;
                       </button>
                     </div>
                   </div>
-                  <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;" >
-                    <div class="col-lg-3">
+                  <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;" >
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>COININ. INICIAL</h5>
                       <input id="coininIni" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>COINOUT INI.</h5>
                       <input id="coinoutIni" type="text" class="form-control" >
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>JACKPOT INI.</h5>
                       <input id="jackIni" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3"style="text-align: center;">
                       <h5>PROG. INICIAL</h5>
                       <input id="progIni" type="text" class="form-control" >
                     </div>
                   </div>
-                  <div class="row cont_finales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <div class="col-lg-3">
+                  <div class="row cont_finales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>COINOUT FINAL</h5>
                       <input id="coinoutFin" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>JACKPOT FINAL</h5>
                       <input id="jackFin" type="text" class="form-control" >
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3" style="text-align: center;">
                       <h5>PROG. FINAL</h5>
                       <input id="progFin" type="text" class="form-control" >
                     </div>
                   </div>
-                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
                     <div class="col-lg-4" style="text-align: center;">
                       <h5>PRODUC.CALC.</h5>
                       <input id="prodCalc" type="text" class="form-control" readonly="readonly">
@@ -270,10 +270,20 @@ use Illuminate\Http\Request;
                       <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
                     </div>
                   </div>
-                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:30px; padding-bottom:30px;">
-                    <div class="col-lg-12">
-                      <h5>OBSERVACIONES</h5>
-                      <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
+                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <h5>OBSERVACIONES</h5>
+                        <textarea id="prodObservaciones" class="form-control" style="resize:vertical;"></textarea>
+                      </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-lg-1 col-lg-offset-10">
+                        <button id="crearTicket" type="button" class="btn btn-default" title="CREAR TICKET">
+                          <i class="far fa-envelope"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div class="row" hidden>
