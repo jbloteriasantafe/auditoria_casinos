@@ -566,17 +566,14 @@ class ProducidoController extends Controller
       $res->valor   = number_format($resultado->valor, 2, ",", ".");
       $detalles[] = $res;
     };
-
+    
     $view = View::make('planillaProducidos',compact('detalles','pro'));
-
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
-
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 

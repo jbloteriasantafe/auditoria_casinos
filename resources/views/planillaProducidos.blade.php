@@ -7,15 +7,24 @@
     border-collapse: collapse;
     width: 100%;
   }
-
   td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
   }
-
   tr:nth-child(even) {
     background-color: #dddddd;
+  }
+  
+  .center {
+    text-align: center;
+    font-size: 7.5 !important;
+    padding: 0 !important;
+  }
+  .right {
+    text-align: right;
+    font-size: 7.5 !important;
+    padding: 0 !important;
   }
   </style>
   <head>
@@ -45,10 +54,10 @@
     $ancho_tabla = (100.0/$cols_x_pag);
     $filas_por_col = 25.0;
     $posicion = [
-     0 =>  'position: absolute;top: 120px;left: -5%;',
-     1 =>  'position: absolute;top: 120px;left: 22%;',
-     2 =>  'position: absolute;top: 120px;left: 48%;',
-     3 =>  'position: absolute;top: 120px;left: 75%;'
+      0 =>  'position: absolute;top: 120px;left: -5%;',
+      1 =>  'position: absolute;top: 120px;left: 22%;',
+      2 =>  'position: absolute;top: 120px;left: 48%;',
+      3 =>  'position: absolute;top: 120px;left: 75%;'
     ];
     $filas_por_pag = $filas_por_col*$cols_x_pag;
     $paginas = ceil(count($detalles)/$filas_por_pag);
@@ -69,14 +78,14 @@
     @if($start<$end)
     <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <tr>
-        <th class="tablaInicio" style="text-align: center;">MTM</th>
-        <th class="tablaInicio" style="text-align: center;">PRODUCIDO</th>
+        <th class="tablaInicio center">MTM</th>
+        <th class="tablaInicio center">PRODUCIDO</th>
       </tr>
       @for($i=$start;$i<$end;$i++)
       <?php $d = $detalles[$i] ?>
       <tr>
-        <td class="tablaCampos" style="text-align: center;">{{$d->maquina}}</td>
-        <td class="tablaCampos" style="text-align: right;">{{$d->valor}}</td>
+        <td class="tablaCampos center">{{$d->maquina}}</td>
+        <td class="tablaCampos right">{{$d->valor}}</td>
       </tr>
       @endfor
     </table>
