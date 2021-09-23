@@ -18,6 +18,7 @@ use Dompdf\Dompdf;
 use App\TipoAjuste;
 use App\Http\Controllers\FormatoController;
 use Illuminate\Validation\Rule;
+use App\PdfParalelo;
 
 class ProducidoController extends Controller
 {
@@ -558,7 +559,7 @@ class ProducidoController extends Controller
     else if($pro->tipo_moneda == 'USB') $pro->tipo_moneda = 'Dólares';
     $pro->fecha_prod = implode('-',array_reverse(explode('-',$producido->fecha)));
     $pro->valor      = number_format($producido->valor,2,',','.');
-    $detalles = [];
+    $todos_los_detalles = [];
 
     foreach($resultados as $resultado){
       $res = new \stdClass();
@@ -566,17 +567,27 @@ class ProducidoController extends Controller
       $res->apuesta = is_null($resultado->apuesta)? '- - -' : number_format($resultado->apuesta, 2, ",", ".");
       $res->premio  = is_null($resultado->premio)? '- - -' : number_format($resultado->premio, 2, ",", ".");
       $res->valor   = number_format($resultado->valor, 2, ",", ".");
-      $detalles[] = $res;
+      $todos_los_detalles[] = $res;
     };
     
-    $view = View::make('planillaProducidos',compact('detalles','pro'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    $cols_x_pag = 3;
+    $filas_por_col = 68;
+    $detalles_por_pagina = $cols_x_pag * $filas_por_col;
+    $paginas_por_pdf = 5;
+    $detalles_por_pdf = $paginas_por_pdf*$detalles_por_pagina;
+    $cantidad_totales = count($todos_los_detalles);
+    $chunked_detalles = array_chunk($todos_los_detalles,$detalles_por_pdf);
+    $chunked_compacts = [];
+    foreach($chunked_detalles as $chunk){
+      $detalles = $chunk;
+      $chunked_compacts[] = compact('pro','detalles','cantidad_totales','cols_x_pag','filas_por_col');
+    }
+
+    $paginas = ceil($cantidad_totales / $detalles_por_pagina);
+    $salida = PdfParalelo::generarPdf('planillaProducidos',$chunked_compacts,"",$paginas_por_pdf,$paginas);
+
+    if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
+    return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);
   }
 
   public function estaValidadoMaquina($fecha,$id_maquina){

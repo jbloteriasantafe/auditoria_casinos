@@ -1,5 +1,27 @@
 <!DOCTYPE html>
+<?php
+  $ancho_total_pagina = 106.6;
+  $inicio_pagina = -6;
+  $ancho_divisiones = $ancho_total_pagina/$cols_x_pag;
+  
+  $pad_fijo = 1.0;
+  //La tabla mide la division menos los 2 pads (1 de cada lado)
+  $ancho_tabla = $ancho_divisiones - 2*$pad_fijo;
 
+  $posicion = [];
+  {
+    $posx = $inicio_pagina + $pad_fijo;
+    $posicion[0] = 'position: absolute;left:'.$posx.'%;';
+    for($col=1;$col<$cols_x_pag;$col++){
+      $posx += $ancho_tabla;
+      $posx += 2*$pad_fijo;
+      $posicion[$col] = 'position: absolute;left:'.$posx.'%;';
+    }
+  }
+
+  $filas_por_pag = $filas_por_col*$cols_x_pag;
+  $paginas = ceil(count($detalles) /$filas_por_pag);
+?>
 <html>
   <style>
   table {
@@ -36,6 +58,10 @@
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
+    @for($p = 0;$p < $paginas;$p++)
+    @if($p != 0)
+    <div style="page-break-after:always;"></div>
+    @endif
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_landscape.png" width="900">
       <h2><span>RMTM09 | Producidos diarios por máquina tragamonedas (MTM) en {{$pro->tipo_moneda}}</span></h2>
@@ -45,39 +71,10 @@
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy);?></span></div>
     <div class="camposInfo" style="top:88px; left: 0%;"><b>Fecha de producido:</b> {{$pro->fecha_prod}}</div>
     <div class="camposInfo" style="top:88px; left: 25%;"><b>Casino:</b> {{$pro->casinoNom}}</div>
-    <div class="camposInfo" style="top:88px; left: 40%;"><b>Maquinas con producidos:</b> {{count($detalles)}}</div>
+    <div class="camposInfo" style="top:88px; left: 40%;"><b>Maquinas con producidos:</b> {{$cantidad_totales}}</div>
     <div class="camposInfo" style="top:88px; left: 65% !important;"><b>Total:</b></div>
     <div class="camposInfo" style="top:88px; left: 70% !important">{{$pro->valor}}</div>
     <br>
-    <?php
-    $ancho_total_pagina = 106.6;
-    $inicio_pagina = -6;
-    $cols_x_pag = 3.0;
-    $ancho_divisiones = $ancho_total_pagina/$cols_x_pag;
-    
-    $pad_fijo = 1.0;
-    //La tabla mide la division menos los 2 pads (1 de cada lado)
-    $ancho_tabla = $ancho_divisiones - 2*$pad_fijo;
-
-    $posicion = [];
-    {
-      $posx = $inicio_pagina + $pad_fijo;
-      $posicion[0] = 'position: absolute;left:'.$posx.'%;';
-      for($col=1;$col<$cols_x_pag;$col++){
-        $posx += $ancho_tabla;
-        $posx += 2*$pad_fijo;
-        $posicion[$col] = 'position: absolute;left:'.$posx.'%;';
-      }
-    }
-
-    $filas_por_col = 68.0;
-    $filas_por_pag = $filas_por_col*$cols_x_pag;
-    $paginas = ceil(count($detalles) /$filas_por_pag);
-    ?>
-    @for($p = 0;$p < $paginas;$p++)
-    @if($p != 0)
-    <div style="page-break-after:always;"></div>
-    @endif
     <?php
       $startidxpag = $p*$filas_por_pag;
       $endidxpag   = ($p+1)*$filas_por_pag;
