@@ -50,17 +50,29 @@
     <div class="camposInfo" style="top:88px; left: 70% !important">{{$pro->valor}}</div>
     <br>
     <?php
-    $cols_x_pag = 4;
-    $ancho_tabla = (100.0/$cols_x_pag);
-    $filas_por_col = 25.0;
-    $posicion = [
-      0 =>  'position: absolute;top: 120px;left: -5%;',
-      1 =>  'position: absolute;top: 120px;left: 22%;',
-      2 =>  'position: absolute;top: 120px;left: 48%;',
-      3 =>  'position: absolute;top: 120px;left: 75%;'
-    ];
+    $ancho_total_pagina = 106.6;
+    $inicio_pagina = -6;
+    $cols_x_pag = 3.0;
+    $ancho_divisiones = $ancho_total_pagina/$cols_x_pag;
+    
+    $pad_fijo = 1.0;
+    //La tabla mide la division menos los 2 pads (1 de cada lado)
+    $ancho_tabla = $ancho_divisiones - 2*$pad_fijo;
+
+    $posicion = [];
+    {
+      $posx = $inicio_pagina + $pad_fijo;
+      $posicion[0] = 'position: absolute;left:'.$posx.'%;';
+      for($col=1;$col<$cols_x_pag;$col++){
+        $posx += $ancho_tabla;
+        $posx += 2*$pad_fijo;
+        $posicion[$col] = 'position: absolute;left:'.$posx.'%;';
+      }
+    }
+
+    $filas_por_col = 68.0;
     $filas_por_pag = $filas_por_col*$cols_x_pag;
-    $paginas = ceil(count($detalles)/$filas_por_pag);
+    $paginas = ceil(count($detalles) /$filas_por_pag);
     ?>
     @for($p = 0;$p < $paginas;$p++)
     @if($p != 0)
@@ -79,12 +91,16 @@
     <table style="table-layout:fixed;width: {{$ancho_tabla}}%;{{$posicion[$col%$cols_x_pag]}}">
       <tr>
         <th class="tablaInicio center">MTM</th>
+        <th class="tablaInicio center">APUESTA</th>
+        <th class="tablaInicio center">PREMIO</th>
         <th class="tablaInicio center">PRODUCIDO</th>
       </tr>
       @for($i=$start;$i<$end;$i++)
       <?php $d = $detalles[$i] ?>
       <tr>
         <td class="tablaCampos center">{{$d->maquina}}</td>
+        <td class="tablaCampos right">{{$d->apuesta}}</td>
+        <td class="tablaCampos right">{{$d->premio}}</td>
         <td class="tablaCampos right">{{$d->valor}}</td>
       </tr>
       @endfor

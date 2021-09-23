@@ -545,7 +545,7 @@ class ProducidoController extends Controller
     ->leftJoin('tipo_ajuste','detalle_producido.id_tipo_ajuste','=','tipo_ajuste.id_tipo_ajuste')
     ->join('maquina', 'maquina.id_maquina','=','detalle_producido.id_maquina')
     ->where('detalle_producido.id_producido',$id_producido)
-    ->select('maquina.nro_admin as nro_maquina','detalle_producido.valor')
+    ->select('maquina.nro_admin as nro_maquina','detalle_producido.valor','detalle_producido.apuesta','detalle_producido.premio')
     ->orderBy('nro_maquina','asc')
     ->where('detalle_producido.valor','<>',0)
     ->get();
@@ -563,6 +563,8 @@ class ProducidoController extends Controller
     foreach($resultados as $resultado){
       $res = new \stdClass();
       $res->maquina = $resultado->nro_maquina;
+      $res->apuesta = is_null($resultado->apuesta)? '- - -' : number_format($resultado->apuesta, 2, ",", ".");
+      $res->premio  = is_null($resultado->premio)? '- - -' : number_format($resultado->premio, 2, ",", ".");
       $res->valor   = number_format($resultado->valor, 2, ",", ".");
       $detalles[] = $res;
     };
