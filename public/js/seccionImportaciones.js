@@ -669,7 +669,7 @@ function procesarDatosContador(e) {
         console.log('fecha',fecha);
         $('#fecha input').val(fecha);
         ddmmyyyy = fecha.split("/");
-        isofecha = ddmmyyyy[2] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[0];
+        isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2];
         $('#fecha_hidden').val(isofecha);
         //@HACK: consultar la base de dato por nro_admin.
         const casino = primer_renglon[3] < 2000? 1 : 2;
