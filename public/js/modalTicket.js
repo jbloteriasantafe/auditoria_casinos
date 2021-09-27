@@ -27,7 +27,7 @@ $('#ticket').click(function(e){
     leerArchivos(0,[],function(archivos){
         const asunto  = $('#modalTicket .ticket-asunto').val();
         const mensaje = $('#modalTicket .ticket-mensaje').val();
-        enviarTicker(asunto,mensaje,archivos);
+        enviarTicket(asunto,mensaje,archivos);
     });
 });
 
