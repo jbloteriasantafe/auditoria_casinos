@@ -27,7 +27,7 @@
   }
   </style>
   @php 
-  $calculado = $desde != '#' || $hasta != '#';
+  $calculado = !is_null($desde_hasta);
   @endphp
   <head>
     <meta charset="utf-8">
@@ -46,7 +46,8 @@
     <div class="camposInfo" style="right:0px;"><span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></span></div>
     <div class="primerEncabezado">Se han realizado los procedimientos de control correspondientes
     al mes de <b>{{$sum->mes}}</b> del <b>Casino de {{$sum->casino}}</b>.<br>Teniendo en cuenta lo anterior, se informa que para <b>Máquinas Tragamonedas</b>
-    se obtuvo un beneficio de <b>{{$sum->tipoMoneda}} {{$sum->totalBeneficio}}</b>, detallando a continuación el producido diario. {{$calculado? 'MAQUINAS ('.$desde.'-'.$hasta.')' : ''}}</div>
+    se obtuvo un beneficio de <b>{{$sum->tipoMoneda}} {{$sum->totalBeneficio}}</b>, detallando a continuación el producido diario. 
+    <span style="font-size: 60%;">{{$calculado? 'MAQUINAS ('.$desde_hasta.')' : ''}}</span> </div>
     <br>
     <table>
       <tr>

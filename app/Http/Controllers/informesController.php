@@ -92,9 +92,8 @@ class informesController extends Controller
     else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
-    $desde = '#';
-    $hasta = '#';
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
+    $desde_hasta = null;
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -106,11 +105,7 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  public function generarPlanillaMaquinas(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $maqmenor,int $maqmayor){
-    // Este "requerimiento" es increiblemente complicado porque no tenemos cuanto apostaron y dieron premios las maquinas :)
-    // Se supone que podria sacarse a partir de los contadores, pero si hay vuelta de contadores o RESET de contadores
-    // No se modifican las filas de detalle_contador_horario para reflejarlo (solo se setea el tipo de ajuste), ergo
-    // es muuy dificil (imposible?) saber cuanto apostaron y dieron de premio en un dia una maquina...
+  private function generarPlanillaNroAdmins(int  $anio,int $mes,int $id_casino,int $tipo_moneda,array $nro_admins){
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
@@ -134,11 +129,10 @@ class informesController extends Controller
     ->leftJoin('detalle_producido as dp',function($j){
       return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
     })
-    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
-      $condicion = [];
-      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
-      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
-      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    ->leftJoin('maquina as m',function($j) use ($nro_admins){
+      $j->on('m.id_maquina','=','dp.id_maquina');
+      if(is_null($nro_admins)) return;
+      return $j->whereIn('m.nro_admin',$nro_admins);
     })
     ->where($condicion)->where('dp.valor','<>',0)->groupBy('p.id_producido')->orderBy('p.fecha','asc')->get();
 
@@ -157,11 +151,10 @@ class informesController extends Controller
     ->leftJoin('detalle_producido as dp',function($j){
       return $j->on('dp.id_producido','=','p.id_producido')->where('dp.valor','<>',0);
     })
-    ->leftJoin('maquina as m',function($j) use ($maqmenor,$maqmayor){
-      $condicion = [];
-      if($maqmenor != -1) $condicion[] = ['m.nro_admin','>=',$maqmenor];
-      if($maqmayor != -1) $condicion[] = ['m.nro_admin','<=',$maqmayor];
-      return $j->on('m.id_maquina','=','dp.id_maquina')->where($condicion);
+    ->leftJoin('maquina as m',function($j) use ($nro_admins){
+      $j->on('m.id_maquina','=','dp.id_maquina');
+      if(is_null($nro_admins)) return;
+      return $j->whereIn('m.nro_admin',$nro_admins);
     })
     ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
@@ -173,9 +166,23 @@ class informesController extends Controller
     else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
-    $desde = $maqmenor < 0? '#' : $maqmenor;
-    $hasta = $maqmayor < 0? '#' : $maqmayor;
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde','hasta'));
+    //@WARNING: espera que nro_admins este ordenado ascendentemente
+    $rangos = [];
+    $current_min = +INF;
+    foreach($nro_admins as $idx => $n){
+      if($idx == 0){//Primera vez en el loop
+        $current_min = $n;
+        continue;
+      }
+      if($n == ($nro_admins[$idx-1]+1)){//Si es mas grande por 1, sigue estando OK el rango
+        continue;
+      }
+      //Se rompio el rango
+      $rangos[] = $current_min.'-'.$nro_admins[$idx-1];
+      $current_min = $n;
+    }
+    $desde_hasta = implode(',',$rangos);
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -185,6 +192,20 @@ class informesController extends Controller
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+  }
+
+  public function generarPlanillaMaquinas(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $maqmenor,int $maqmayor){
+    $reglas = [['id_casino','=',$id_casino]];
+    if($maqmenor != -1) $reglas[] = ['nro_admin','>=',$maqmenor];
+    if($maqmayor != -1) $reglas[] = ['nro_admin','<=',$maqmayor];
+    $maqs = Maquina::where($reglas)->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
+    return $this->generarPlanillaNroAdmins($anio,$mes,$id_casino,$tipo_moneda,$maqs);
+  }
+  
+  public function generarPlanillaIsla(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $nro_isla){
+    $maqs = Isla::where([['id_casino','=',$id_casino],['nro_isla','=',$nro_isla]])
+    ->get()->first()->maquinas()->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
+    return $this->generarPlanillaNroAdmins($anio,$mes,$id_casino,$tipo_moneda,$maqs);
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){

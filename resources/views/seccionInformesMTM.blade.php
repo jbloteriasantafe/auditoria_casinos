@@ -52,6 +52,10 @@ function anio_mes($anio,$mes){
                       <input id="maquinasMayor" class="form-control" type="text" placeholder="XXXX" style="text-align: center;">
                     </div>
                   </div>
+                  <div class="col-md-3" style="text-align: center;">
+                    <h5>ISLA</h5>
+                    <input id="isla" class="form-control" type="text" placeholder="XXX" style="text-align: center;">
+                  </div>
                 </div>
               </div>
             </div>
