@@ -218,6 +218,7 @@ class LectorCSVController extends Controller
                          AND ct.tipo IN ('AJU','')
                          AND ct.maquina = mtm.nro_admin
                          AND mtm.id_casino = '%d'
+                         AND mtm.deleted_at IS NULL
                        ",$contador->id_contador_horario,$contador->id_contador_horario,$casino);
 
     $pdo->exec($query);
@@ -507,12 +508,11 @@ class LectorCSVController extends Controller
         $last_id = $last_id[0]->max;
         DB::table('contadores_temporal')->where('id_contadores_temporal','=',$last_id)->delete();
 
-
         $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,progresivo,id_maquina,id_contador_horario,denominacion_carga,isla)
                            SELECT ct.coinin * mtm.denominacion, ct.coinout * mtm.denominacion, ct.jackpot * mtm.denominacion,
                                   ct.progresivo * mtm.denominacion, mtm.id_maquina, ct.id_contador_horario, mtm.denominacion, ct.isla
                            FROM contadores_temporal AS ct 
-                           RIGHT JOIN maquina AS mtm ON ct.maquina = mtm.nro_admin
+                           RIGHT JOIN maquina AS mtm ON (ct.maquina = mtm.nro_admin and mtm.deleted_at IS NULL)
                            WHERE ct.id_contador_horario = '%d'
                              AND ct.maquina = mtm.nro_admin
                              AND mtm.id_casino = 3
@@ -528,14 +528,14 @@ class LectorCSVController extends Controller
           (SELECT distinct
           ct.maquina
           FROM contadores_temporal AS ct 
-          LEFT JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d)
+          LEFT JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d and mtm.deleted_at IS NULL)
           WHERE ct.id_contador_horario = %d) 
         as largo
         LEFT JOIN
           (SELECT distinct
           ct.maquina
           FROM contadores_temporal AS ct 
-          JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d)
+          JOIN maquina mtm on (ct.maquina = mtm.nro_admin and mtm.id_casino = %d and mtm.deleted_at IS NULL)
           WHERE ct.id_contador_horario = %d) 
         as corto on (largo.maquina = corto.maquina)
         WHERE corto.maquina IS NULL",3,$contador->id_contador_horario,3,$contador->id_contador_horario);
