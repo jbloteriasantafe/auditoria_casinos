@@ -26,9 +26,16 @@
     background-color: #dddddd;
   }
   </style>
-  @php 
+  <?php 
   $calculado = !is_null($desde_hasta);
-  @endphp
+  $mostrar_total_apostadoypremios = true;
+  foreach($beneficios as $b){
+    if($b->apostado == '' || $b->premios == ''){
+      $mostrar_total_apostadoypremios = false;
+      break;
+    }
+  }
+  ?>
   <head>
     <meta charset="utf-8">
     <title></title>
@@ -103,8 +110,8 @@
       </tr>
       <tr>
         <td class="tablaCampos centrar">{{$sum->cantidad_maquinas}}</td>
-        <td class="tablaCampos centrar">{{$sum->totalApostado}}</td>
-        <td class="tablaCampos centrar">{{$sum->totalPremios}}</td>
+        <td class="tablaCampos centrar">{{$mostrar_total_apostadoypremios? $sum->totalApostado : ''}}</td>
+        <td class="tablaCampos centrar">{{$mostrar_total_apostadoypremios? $sum->totalPremios  : ''}}</td>
         @if ($sum->casino != 'Rosario' && !$calculado)
         <td class="tablaCampos centrar">{{$sum->totalPmayores}}</td>
         @endif
