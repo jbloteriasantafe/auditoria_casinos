@@ -50,7 +50,7 @@ class ABMCierreController extends Controller
   }
 
   public function guardar(Request $request){
-    $validator=  Validator::make($request->all(),[
+    $validator =  Validator::make($request->all(),[
       'fecha' => 'required|date',
       'hora_inicio' => 'nullable|date_format:"H:i"',
       'hora_fin' => 'nullable|date_format:"H:i"',
@@ -59,7 +59,6 @@ class ABMCierreController extends Controller
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fichas' => 'required',
-      //'id_juego_mesa'=> 'required|exists:juego_mesa,id_juego_mesa',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
       'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_moneda' => 'required|exists:moneda,id_moneda',
@@ -90,11 +89,7 @@ class ABMCierreController extends Controller
        $validator = $this->validarFichas($validator);
      }
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($request->id_casino)){
       $cierre = new Cierre;

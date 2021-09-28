@@ -57,7 +57,7 @@ $('#archivo').on('change',function(){
 });
 
 //boton grande de importar
-$('#btn-importar').on('click', function(e){
+$('#btn-importar,#btn-importarCierres').on('click', function(e){
   e.preventDefault();
   ocultarErrorValidacion($('#B_fecha_imp'));
   ocultarErrorValidacion($('#monedaSel'));
@@ -68,6 +68,18 @@ $('#btn-importar').on('click', function(e){
   $('#modalImportacionDiaria').find('.modal-footer').children().show();
   $('#modalImportacionDiaria').find('.modal-body').children().show();
   $('#iconoCarga').hide();
+
+  if($(this).attr('id') == 'btn-importar'){
+    $('#modalImportacionDiaria .modal-title').text('| IMPORTAR INFORME DIARIO DE MESAS');
+    $('#modalImportacionDiaria .modal-header').css('background-color','#6dc7be');
+    $('#btn-guardarDiario').data('modo','importacionDiaria');
+  }
+  else if($(this).attr('id') == 'btn-importarCierres'){
+    $('#modalImportacionDiaria .modal-title').text('| IMPORTAR CIERRES DE MESAS');
+    $('#modalImportacionDiaria .modal-header').css('background-color','rgb(113, 191, 154)');
+    $('#btn-guardarDiario').data('modo','cierres');
+  }
+  else return;
 
   //Mostrar: rowArchivo
   $('#modalImportacionDiaria #rowArchivo').show();
@@ -106,9 +118,13 @@ $('#btn-guardarDiario').on('click', function(e){
     formData.append('archivo' , $('#modalImportacionDiaria #archivo')[0].files[0]);
   }
 
+  let url = '';
+  if($(this).data('modo') == 'importacionDiaria') url = 'importacionDiaria/importar';
+  if($(this).data('modo') == 'cierres')           url = 'importacionDiaria/importarCierres';
+
   $.ajax({
     type: "POST",
-    url: 'importacionDiaria/importar',
+    url: url,
     data: formData,
     processData: false,
     contentType:false,
@@ -152,6 +168,10 @@ $('#btn-guardarDiario').on('click', function(e){
       if(typeof response.id_moneda !== 'undefined') mostrarErrorValidacion($('#monedaSel'),response.id_moneda[0],false);
       if(typeof response.error !== 'undefined'){
         $('#mensajeErrorJuegos #span').empty().append('<p>'+response.error.join('</p><p>')+'</p>');
+        $('#mensajeErrorJuegos').show();
+      }
+      if(typeof response.archivo !== 'undefined'){
+        $('#mensajeErrorJuegos #span').empty().append('<p>'+response.archivo.join('</p><p>')+'</p>');
         $('#mensajeErrorJuegos').show();
       }
     }

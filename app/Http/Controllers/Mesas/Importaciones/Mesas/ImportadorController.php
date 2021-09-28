@@ -26,11 +26,13 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
 use App\Mesas\Mesa;
+use App\Mesas\Ficha;
 use App\Mesas\Moneda;
 use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
+use App\Mesas\DetalleCierre;
 
 use App\Mesas\ImportacionDiariaMesas;
 use App\Mesas\DetalleImportacionDiariaMesas;
@@ -112,6 +114,158 @@ class ImportadorController extends Controller
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
 }
 
+public function importarCierres(Request $request){
+  $header_esperado = ['nro_admin','cod_juego','hora_apertura','hora_cierre','anticipos','total'];
+  $fichas_totales = 16;
+  for($i=1;$i<=$fichas_totales;$i++){
+    $header_esperado[] = 'ficha_valor'.$i;
+    $header_esperado[] = 'importe'.$i;
+  }
+  $header_esperado_inv = [];
+  foreach($header_esperado as $idx => $nombre) $header_esperado_inv[$nombre] = $idx;
+
+  $validator =  Validator::make($request->all(),[
+    'id_casino' => 'required|exists:casino,id_casino',
+    'id_moneda' => 'required|exists:moneda,id_moneda',
+    'fecha' => 'required|date',
+    'archivo' => 'required|file',
+  ], array(), self::$atributos)->after(function($validator) use ($header_esperado){
+    if($validator->errors()->any()) return;
+    $fecha = $validator->getData()['fecha'];
+    if($fecha >= date('Y-m-d')){
+      $validator->errors()->add('fecha', 'No es posible importar una fecha futura.');
+      return;
+    }
+    $archivo = $validator->getData()['archivo'];
+    $headers = [];
+    $handle = fopen($archivo->getRealPath(), 'r');
+
+    $recibido = fgetcsv($handle,1600,';','"');
+    $recibido2 = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
+    foreach($recibido as $h) $recibido2[] = utf8_encode($h);
+    
+    if($recibido2 != $header_esperado){
+      $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
+      fclose($handle);
+      return;
+    }
+    fclose($handle);
+  })->validate();
+
+  $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+  $id_casino = $request->id_casino;
+  $id_moneda = $request->id_moneda;
+  $fecha     = $request->fecha;
+  $handle  = fopen($request->archivo->getRealPath(), 'r');
+  $return  = [];
+  $primero = true;
+
+  $errores = [];
+  DB::beginTransaction();
+  try{ 
+    while(($fila = fgetcsv($handle,1600,';','"')) !== FALSE){
+      if($primero){//Ignoro la primer fila porque es el header
+        $primero = false;
+        continue;
+      }
+      //Si no tiene nro_admin o no abrio lo ignoro
+      $nro_admin = $fila[$header_esperado_inv['nro_admin']];
+      $hora_apertura = $fila[$header_esperado_inv['hora_apertura']];
+      $hora_cierre = $fila[$header_esperado_inv['hora_cierre']];
+      if($nro_admin == "" || $hora_apertura == "0" || $hora_cierre == "0") continue;
+      $cod_juego = $fila[$header_esperado_inv['cod_juego']];
+      $anticipos = str_replace(',','.',$fila[$header_esperado_inv['anticipos']]);
+      $total     = str_replace(',','.',$fila[$header_esperado_inv['total']]);
+      $fichas = [];
+      for($i=1;$i<=$fichas_totales;$i++){
+        $ficha_valor = str_replace(',','.',$fila[$header_esperado_inv['ficha_valor'.$i]]);
+        $importe     = str_replace(',','.',$fila[$header_esperado_inv['importe'.$i]]);
+        if(floatval($ficha_valor) == 0 || floatval($importe) == 0) continue;
+        $fichas[] = ['ficha_valor' => $ficha_valor,'importe' => $importe];
+      }
+      $error = $this->crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
+      if(!is_null($error)) $errores[] = $error;
+    }
+    DB::commit();
+  }
+  catch(Exception $e){
+    DB::rollback();
+    fclose($handle);
+    throw $e;
+  }
+  fclose($handle);
+
+  if(count($error) > 0){
+    DB::rollback();
+    return response()->json(['archivo' => $errores],422);
+  }
+  return 0;
+}
+
+private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
+  $cierre = new Cierre;
+  $cierre->fecha = $fecha;
+  $cierre->hora_inicio = $hora_apertura;
+  $cierre->hora_fin    = $hora_cierre;
+  $cierre->total_pesos_fichas_c = $total;
+  $cierre->total_anticipos_c    = $anticipos;
+  $cierre->id_casino  = $id_casino;
+  $cierre->id_fiscalizador = $id_usuario;
+  $cierre->id_moneda  = $id_moneda;
+
+  $juego = JuegoMesa::withTrashed()->where('juego_mesa.id_casino',$id_casino)
+  ->where(function($q) use ($cod_juego){
+    return $q->where('juego_mesa.siglas','like',$cod_juego)->orWhere('juego_mesa.nombre_juego','like',$cod_juego);
+  })
+  ->where(function ($q) use ($fecha){
+    return $q->whereNull('juego_mesa.deleted_at')->orWhere('juego_mesa.deleted_at','>',$fecha);
+  })->get()->first();
+  if(is_null($juego)) return 'NO SE ENCONTRO EL JUEGO '.$cod_juego;
+
+  $mesa = $juego->mesas()
+  ->where('mesa_de_panio.nro_admin','=',$nro_admin)
+  ->where(function($q) use ($fecha){
+    return $q->whereNull('mesa_de_panio.deleted_at')->orWhere('mesa_de_panio.deleted_at','>',$fecha);
+  })
+  ->where(function($q) use ($id_moneda){//Multimoneda o coincide la moneda
+    return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
+  })->get()->first();
+  if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
+
+  $cierre->id_tipo_mesa = $juego->id_tipo_mesa;
+  $cierre->id_mesa_de_panio = $mesa->id_mesa_de_panio;
+  $cierre->save();
+
+  $total_validacion = 0;
+
+  foreach($fichas as $f){
+    if(($f['importe'] % $f['ficha_valor']) != 0) return 'ERROR EL MONTO '.$f['importe'].' NO ES MULTIPLO DE '.$f['ficha_valor'];
+
+    $ficha = Ficha::withTrashed()->where([['ficha.valor_ficha','=',$f['ficha_valor']],['ficha.id_moneda','=',$id_moneda]])
+    ->join('ficha_tiene_casino',function($j) use ($id_casino,$fecha){
+      return $j->on('ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
+      ->where('ficha_tiene_casino.id_casino','=',$id_casino);
+    })
+    ->where(function($q) use ($fecha){
+      return $q->whereNull('ficha.deleted_at')->orWhere('ficha.deleted_at','>',$fecha);
+    })
+    ->where(function($q) use ($fecha){
+      return $q->whereNull('ficha_tiene_casino.deleted_at')->orWhere('ficha_tiene_casino.deleted_at','>',$fecha);
+    })->get()->first();
+    
+    if(is_null($ficha)) return 'NO SE ENCONTRO LA FICHA DE '.$f['ficha_valor'];
+    $d = new DetalleCierre;
+    $d->id_ficha = $ficha->id_ficha;
+    $d->monto_ficha = $f['importe'];
+    $d->id_cierre_mesa = $cierre->id_cierre_mesa;
+    $d->save();
+    $total_validacion+=floatval($f['importe']);
+  }
+
+  if(floatval($total) != $total_validacion) return 'ERROR EL MONTO TOTAL ('.$total.') NO COINCIDE CON EL DE LAS FICHAS ('.$total_validacion.')';
+  return null;
+}
+
 public function importarDiario(Request $request){
     $validator =  Validator::make($request->all(),[
       'id_casino' => 'required|exists:casino,id_casino',
@@ -125,6 +279,22 @@ public function importarDiario(Request $request){
         $validator->errors()->add('fecha', 'No es posible importar una fecha futura.');
         return;
       }
+      $archivo = $validator->getData()['archivo'];
+      $headers = [];
+      $handle = fopen($archivo->getRealPath(), 'r');
+
+      $recibido = fgetcsv($handle,1600,';','"');
+      $recibido2 = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
+      foreach($recibido as $h) $recibido2[] = utf8_encode($h);
+      
+      $esperado = ['JUEGO','N°MESA','DROP','UTILIDAD','FILL','CREDIT'];
+
+      if($recibido2 != $esperado){
+        $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
+        fclose($handle);
+        return;
+      }
+      fclose($handle);
     })->validate();
 
     DB::transaction(function() use ($request,&$importacion){

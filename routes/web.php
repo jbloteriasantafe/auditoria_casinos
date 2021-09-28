@@ -766,6 +766,7 @@ Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m
 Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function (){
   Route::get('/','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
   Route::post('/importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario')->middleware(['tiene_permiso:m_importar']);
+  Route::post('/importarCierres','Mesas\Importaciones\Mesas\ImportadorController@importarCierres')->middleware(['tiene_permiso:m_importar']);
   Route::post('/filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
   Route::get('/verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
   Route::get('/imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');

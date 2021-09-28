@@ -45,6 +45,22 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
             </div>
           </a>
         </div>
+        <div class="col-md-12">
+          <a href="" id="btn-importarCierres" dusk="btn-nuevo" style="text-decoration: none;">
+            <div class="panel panel-default panelBotonNuevo">
+              <center><img class="imgNuevo" src="/img/logos/informes_white.png"><center>
+              <div class="backgroundNuevo"></div>
+              <div class="row">
+                <div class="col-xs-12">
+                  <center>
+                      <h5 class="txtLogo">+</h5>
+                      <h4 class="txtNuevo">IMPORTAR CIERRES</h4>
+                  </center>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'cotizar_dolar_peso'))  
         <div class="col-md-12">
           <a id="btn-cotizacion" href="" style="text-decoration:none;">
