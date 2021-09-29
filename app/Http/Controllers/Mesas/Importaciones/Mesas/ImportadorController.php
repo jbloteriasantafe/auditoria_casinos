@@ -399,30 +399,34 @@ public function importarDiario(Request $request){
     $fecha = $fecha->format('Y-m-d');
 
     $mes = date('m',strtotime($fecha));
-    $arreglo = [];
-    $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
+    $fechas = [];
     while(date('m',strtotime($fecha)) == $mes){
-      $importacion = ImportacionDiariaMesas::where($reglas)->where('fecha','=',$fecha)->whereNull('deleted_at')->first();
-      $tiene_cierre = false;
-      if(!is_null($importacion)){
-        $tiene_cierre = true;
-        $detalles = $importacion->detalles;
-        foreach($detalles as $d){
-          if(!$tiene_cierre) break;
-          $tiene_cierre &= !is_null($d->cierre) && !is_null($d->cierre_anterior);
-        }
-      }
-      $arreglo[] = ["fecha" => $fecha,"importacion" => $importacion,"tiene_cierre" => $tiene_cierre];
+      $fechas[] = 'select "'.$fecha.'" as fecha';
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
     }
+    $tabla_fechas = '('.implode(' union all ',$fechas).') as fechas';
+    $ret = DB::table(DB::raw($tabla_fechas))
+    ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado, 0 as tiene_cierre')
+    ->leftJoin('importacion_diaria_mesas as idm',function($j) use ($request) {
+      $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
+      return $j->on('idm.fecha','=','fechas.fecha')->where($reglas)->whereNull('idm.deleted_at');
+    })
+    ->orderBy('fechas.fecha',$request->sort_by["orden"])
+    ->get();
 
-    if($request->sort_by["columna"] == "fecha" && $request->sort_by["orden"] == "desc"){
-      $arreglo = array_reverse($arreglo);
-    }
-
-    return ["importaciones" => $arreglo,
-            "casino" => Casino::find($request->id_casino)->nombre, 
-            "moneda" => Moneda::find($request->id_moneda)->siglas];
+    $ret->transform(function ($row){
+      if(is_null($row->id_importacion_diaria_mesas)) return $row;
+      $imp = ImportacionDiariaMesas::find($row->id_importacion_diaria_mesas);
+      if(is_null($imp)) return $row;
+      $detalles = $imp->detalles;
+      foreach($detalles as $d){
+        if(is_null($d->cierre)) return $row;
+        if(is_null($d->cierre_anterior)) return $row;
+      }
+      $row->tiene_cierre = 1;
+      return $row;
+    });
+    return $ret;
   }
 
   public function guardarImportacionDiaria(Request $request){

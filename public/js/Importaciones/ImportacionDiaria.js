@@ -215,8 +215,8 @@ $('#buscar-importacionesDiarias').click(function(e){
     dataType: 'json',
 
     success: function (data){
-      for (let i = 0; i < data.importaciones.length; i++) {
-        $('#cuerpoTablaImpD').append(generarFilaImportaciones(data.casino,data.moneda,data.importaciones[i]));
+      for (let i = 0; i < data.length; i++) {
+        $('#cuerpoTablaImpD').append(generarFilaImportaciones(data[i]));
       }
     },
     error: function(data){ console.log(data); },
@@ -228,23 +228,21 @@ $('#btn-informeMensual').click(function(e){
   window.open('importacionDiaria/imprimirMensual/' + $('#dtpFecha_hidden').val() + '/' + $('#filtroCas').val(),'_blank');
 });
 
-function generarFilaImportaciones(casino,moneda,imp){
+function generarFilaImportaciones(imp){
   const fila = $('#moldeFilaImpD').clone();
-  const id = imp.importacion == null? "" : imp.importacion.id_importacion_diaria_mesas;
+  const id = imp.id_importacion_diaria_mesas;
   fila.attr('id', id);
   fila.find('.d_fecha').text(imp.fecha);
-  fila.find('.d_casino').text(casino);
-  fila.find('.d_moneda').text(moneda);
 
   const classbool = ['fas fa-fw fa-times','fas fa-check-circle'];
   const colorbool = ['#D32F2F','#4CAF50'];
-  const importado = (imp.importacion !== null) | 0; //cast to int
+  const importado = (id !== null) | 0; //cast to int
   const cierre = imp.tiene_cierre | 0;
-  const validado = (imp.importacion !== null && imp.importacion.validado) | 0;
+  const validado = (id !== null && imp.validado) | 0;
   fila.find('.d_importado').append($('<i>').addClass(classbool[importado]).css('color',colorbool[importado]).css('text-align','center'));
   fila.find('.d_relevado' ).append($('<i>').addClass(classbool[cierre]   ).css('color',colorbool[cierre]   ).css('text-align','center'));
   fila.find('.d_validado' ).append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
-  if(id === ""){
+  if(id == null){
     fila.find('.d_accion').empty().append('<span>&nbsp;</span>');
   }
   else fila.find('button').val(id);

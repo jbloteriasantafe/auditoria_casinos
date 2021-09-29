@@ -143,12 +143,10 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                     <table id="tablaResultadosDiarios" class="table table-fixed tablesorter ">
                       <thead>
                         <tr align="center" >
-                          <th class="col-xs-2 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
-                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">CASINO</th>
-                          <th class="col-xs-2"style="font-size:14px; text-align:center !important;">MONEDA</th>
-                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">IMP.</th>
-                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">REL.</th>
-                          <th class="col-xs-1" style="font-size:14px; text-align:center !important;">VAL.</th>
+                          <th class="col-xs-3 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">IMP.</th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">REL.</th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">VAL.</th>
                           <th class="col-xs-3"  style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
@@ -158,12 +156,10 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                     <table>
                       <tbody>
                         <tr id="moldeFilaImpD" class="filaClone" style="display:none">
-                          <td class="col-xs-2 d_fecha" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 d_casino" style="text-align:center !important;"></td>
-                          <td class="col-xs-2 d_moneda" style="text-align:center !important;"></td>
-                          <td class="col-xs-1 d_importado" style="text-align:center !important;"></td>
-                          <td class="col-xs-1 d_relevado" style="text-align:center !important;"></td>
-                          <td class="col-xs-1 d_validado" style="text-align:center !important;"></td>
+                          <td class="col-xs-3 d_fecha" style="text-align:center !important;"></td>
+                          <td class="col-xs-2 d_importado" style="text-align:center !important;"></td>
+                          <td class="col-xs-2 d_relevado" style="text-align:center !important;"></td>
+                          <td class="col-xs-2 d_validado" style="text-align:center !important;"></td>
                           <td class="col-xs-3 d_accion" style="text-align:center !important;">
                             <button type="button" class="btn btn-info infoImpD" value="" >
                                     <i class="fas fa-fw fa-search-plus"></i>
