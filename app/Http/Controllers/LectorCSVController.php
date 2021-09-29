@@ -160,15 +160,15 @@ class LectorCSVController extends Controller
                       ESCAPED BY '\"'
                       LINES TERMINATED BY '\\n'
                       IGNORE 1 LINES
-                      (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16)
+                      (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)
                       SET id_contador_horario = '%d',
-                                      horario = STR_TO_DATE(@0,'%s'),
+                                      horario = STR_TO_DATE(trim(both '\\r\\n' from @0),'%s'),
                                       tipo = @1,
                                       maquina = @3,
                                       coinin = CAST(REPLACE(@7,',','.') as DECIMAL(15,2)),
                                       coinout = CAST(REPLACE(@9,',','.') as DECIMAL(15,2)),
                                       jackpot = CAST(REPLACE(@13,',','.') as DECIMAL(15,2)),
-                                      fecha = STR_TO_DATE(@17,'%s'),
+                                      fecha = STR_TO_DATE(trim(both '\\r\\n' from @17),'%s'),
                                       isla = @5
                       ",$path,$contador->id_contador_horario,"%Y/%m/%d %H:%i","%Y/%m/%d");
 

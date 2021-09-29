@@ -665,12 +665,12 @@ function procesarDatosContador(e) {
       $('#contSelCasino option[value="2"]').prop('disabled',false);
       if(lineas.length >= 3){//Si tiene maquinas, saco la fecha y casino de ahi.
         const primer_renglon = lineas[1].split(';');
-        const fecha = primer_renglon[17];
-        console.log('fecha',fecha);
-        $('#fecha input').val(fecha);
-        ddmmyyyy = fecha.split("/");
-        isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2];
-        $('#fecha_hidden').val(isofecha);
+        const fecha = primer_renglon[primer_renglon.length-1];
+        const ddmmyyyy = fecha.trim().split("/");
+        const isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2]+'T00:00:00.0';
+        const date = new Date(isofecha);
+        console.log('fecha',isofecha,date);
+        $('#modalImportacionContadores #fecha').data('datetimepicker').setDate(date);
         //@HACK: consultar la base de dato por nro_admin.
         const casino = primer_renglon[3] < 2000? 1 : 2;
         $('#contSelCasino').val(casino);
