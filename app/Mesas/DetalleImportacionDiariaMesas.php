@@ -94,52 +94,50 @@ class DetalleImportacionDiariaMesas extends Model
     return $mesa;
   }
 
+  private function getCierre($fecha){;
+    $mesa = $this->mesa();
+    if(is_null($mesa)) return null;
+    $imp = $this->importacion_diaria_mesas;
+    $id_moneda = $imp->id_moneda;
+    $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
+    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
+    return $cierre;
+  }
+
   //Si en algun momento se quisiera que se actualice de todos modos, llamar el metodo con el valor en true
-  public function getCierreAttribute($actualizar_igual = false){
+  public function getCierreAttribute($actualizar = false){
     $imp = $this->importacion_diaria_mesas;
     //Si esta validado, retorno lo que esta
-    if(!$actualizar_igual && $imp->validado){
+    if(!$actualizar && $imp->validado){
       return is_null($this->id_cierre_mesa)? null : Cierre::withTrashed()->find($this->id_cierre_mesa);
     }
     //Si no esta validado y ya esta seteado, lo retorno
-    if(!$actualizar_igual && !is_null($this->id_cierre_mesa)){
+    if(!$actualizar && !is_null($this->id_cierre_mesa)){
       $cierre = Cierre::find($this->id_cierre_mesa);
       //Si lo borraron, sigo de largo para actualizarlo al mas actual
       if(!is_null($cierre)) return $cierre;
     }
     //Si no esta validado, y no esta seteado, trato de buscarle un cierre (y lo seteo)
-    $mesa = $this->mesa();
-    if(is_null($mesa)) return null;
-    $fecha = $imp->fecha;
-    $id_moneda = $imp->id_moneda;
-    $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
-
+    $cierre = $this->getCierre($imp->fecha);
     if(!is_null($cierre)){
       $this->id_cierre_mesa = $cierre->id_cierre_mesa;
       $this->save();//@SLOW si se actualizan muchos cierres al mismo tiempo
     }
     return $cierre;
   }
-  public function getCierreAnteriorAttribute($actualizar_igual = false){
+  public function getCierreAnteriorAttribute($actualizar = false){
     $imp = $this->importacion_diaria_mesas;
 
-    if(!$actualizar_igual && $imp->validado){
+    if(!$actualizar && $imp->validado){
       return is_null($this->id_cierre_mesa_anterior)? null : Cierre::withTrashed()->find($this->id_cierre_mesa_anterior);
     }
 
-    if(!$actualizar_igual && !is_null($this->id_cierre_mesa_anterior)){
+    if(!$actualizar && !is_null($this->id_cierre_mesa_anterior)){
       $cierre = Cierre::find($this->id_cierre_mesa_anterior);
       if(!is_null($cierre)) return $cierre;
     }
 
-    $mesa = $this->mesa();
-    if(is_null($mesa)) return null;
-    $id_moneda = $imp->id_moneda;
-    $fecha = date("Y-m-d", strtotime($imp->fecha . " -1 days"));
-    $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
-
+    $cierre = $this->getCierre(date("Y-m-d", strtotime($imp->fecha . " -1 days")));
     if(!is_null($cierre)){
       $this->id_cierre_mesa_anterior = $cierre->id_cierre_mesa;
       $this->save();

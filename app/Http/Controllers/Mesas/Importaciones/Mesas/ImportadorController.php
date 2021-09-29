@@ -406,7 +406,7 @@ public function importarDiario(Request $request){
       $tiene_cierre = false;
       if(!is_null($importacion)){
         $tiene_cierre = true;
-        $detalles = $importacion->detalles()->orderBy('siglas_juego','asc')->orderBy('nro_mesa','asc')->get();
+        $detalles = $importacion->detalles;
         foreach($detalles as $d){
           if(!$tiene_cierre) break;
           $tiene_cierre &= !is_null($d->cierre) && !is_null($d->cierre_anterior);
