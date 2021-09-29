@@ -162,7 +162,7 @@ public function importarCierres(Request $request){
 
   $errores = [];
   DB::beginTransaction();
-  try{ 
+  try{
     while(($fila = fgetcsv($handle,1600,';','"')) !== FALSE){
       if($primero){//Ignoro la primer fila porque es el header
         $primero = false;
@@ -186,7 +186,6 @@ public function importarCierres(Request $request){
       $error = $this->crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
       if(!is_null($error)) $errores[] = $error;
     }
-    DB::commit();
   }
   catch(Exception $e){
     DB::rollback();
@@ -199,20 +198,11 @@ public function importarCierres(Request $request){
     DB::rollback();
     return response()->json(['archivo' => $errores],422);
   }
+  DB::commit();
   return 0;
 }
 
 private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
-  $cierre = new Cierre;
-  $cierre->fecha = $fecha;
-  $cierre->hora_inicio = $hora_apertura;
-  $cierre->hora_fin    = $hora_cierre;
-  $cierre->total_pesos_fichas_c = $total;
-  $cierre->total_anticipos_c    = $anticipos;
-  $cierre->id_casino  = $id_casino;
-  $cierre->id_fiscalizador = $id_usuario;
-  $cierre->id_moneda  = $id_moneda;
-
   $juego = JuegoMesa::withTrashed()->where('juego_mesa.id_casino',$id_casino)
   ->where(function($q) use ($cod_juego){
     return $q->where('juego_mesa.siglas','like',$cod_juego)->orWhere('juego_mesa.nombre_juego','like',$cod_juego);
@@ -232,8 +222,23 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   })->get()->first();
   if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
 
-  $cierre->id_tipo_mesa = $juego->id_tipo_mesa;
-  $cierre->id_mesa_de_panio = $mesa->id_mesa_de_panio;
+
+  $ya_existe = Cierre::where([['id_casino','=',$id_casino],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio],
+                              ['id_moneda','=',$id_moneda],['fecha','=',$fecha]])->count() > 0;
+
+  if($ya_existe) return 'YA EXISTE UN CIERRE PARA LA MESA '.$cod_juego.' '.$nro_admin.' EN LA FECHA '.$fecha;
+  
+  $cierre = new Cierre;
+  $cierre->fecha                = $fecha;
+  $cierre->hora_inicio          = $hora_apertura;
+  $cierre->hora_fin             = $hora_cierre;
+  $cierre->total_pesos_fichas_c = $total;
+  $cierre->total_anticipos_c    = $anticipos;
+  $cierre->id_casino            = $id_casino;
+  $cierre->id_fiscalizador      = $id_usuario;
+  $cierre->id_moneda            = $id_moneda;
+  $cierre->id_tipo_mesa         = $juego->id_tipo_mesa;
+  $cierre->id_mesa_de_panio     = $mesa->id_mesa_de_panio;
   $cierre->save();
 
   $total_validacion = 0;
@@ -255,11 +260,11 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
     
     if(is_null($ficha)) return 'NO SE ENCONTRO LA FICHA DE '.$f['ficha_valor'];
     $d = new DetalleCierre;
-    $d->id_ficha = $ficha->id_ficha;
-    $d->monto_ficha = $f['importe'];
+    $d->id_ficha       = $ficha->id_ficha;
+    $d->monto_ficha    = $f['importe'];
     $d->id_cierre_mesa = $cierre->id_cierre_mesa;
     $d->save();
-    $total_validacion+=floatval($f['importe']);
+    $total_validacion +=floatval($f['importe']);
   }
 
   if(floatval($total) != $total_validacion) return 'ERROR EL MONTO TOTAL ('.$total.') NO COINCIDE CON EL DE LAS FICHAS ('.$total_validacion.')';
