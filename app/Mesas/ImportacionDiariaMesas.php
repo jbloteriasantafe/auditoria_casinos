@@ -16,7 +16,8 @@ class ImportacionDiariaMesas extends Model
                              'validado',
                              'id_casino',
                              'id_moneda',
-                             'droop',
+                             'droop',//TOTAL
+                             'droop_tarjeta',//Subtotal en tarjeta
                              'reposiciones',
                              'retiros',
                              'utilidad',

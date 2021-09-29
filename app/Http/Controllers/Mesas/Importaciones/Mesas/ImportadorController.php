@@ -291,9 +291,7 @@ public function importarDiario(Request $request){
       $recibido = fgetcsv($handle,1600,';','"');
       $recibido2 = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
       foreach($recibido as $h) $recibido2[] = utf8_encode($h);
-      
-      $esperado = ['JUEGO','N°MESA','DROP','UTILIDAD','FILL','CREDIT'];
-
+      $esperado = ['JUEGO','N°MESA','DROP','DROP TARJETA','UTILIDAD','FILL','CREDIT'];
       if($recibido2 != $esperado){
         $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
         fclose($handle);
@@ -343,14 +341,15 @@ public function importarDiario(Request $request){
       ESCAPED BY '\"'
       LINES TERMINATED BY '\\n'
       IGNORE 1 LINES
-      (@0,@1,@2,@3,@4,@5)
+      (@0,@1,@2,@3,@4,@5,@6)
       SET id_archivo = '%d',
           row_1      = @0,
           row_2      = @1,
           row_3      = CAST(REPLACE(REPLACE(@2,'.',''),',','.') as DECIMAL(15,2)),
-          row_4      = CAST(REPLACE(REPLACE(@3,'.',''),',','.') as DECIMAL(15,2)),
-          row_5      = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2)),
-          row_6      = CAST(REPLACE(REPLACE(@5,'.',''),',','.') as DECIMAL(15,2))",
+          row_10     = CAST(REPLACE(REPLACE(@3,'.',''),',','.') as DECIMAL(15,2)),
+          row_4      = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2)),
+          row_5      = CAST(REPLACE(REPLACE(@5,'.',''),',','.') as DECIMAL(15,2)),
+          row_6      = CAST(REPLACE(REPLACE(@6,'.',''),',','.') as DECIMAL(15,2))",
           $path,$iid, $fecha
       );
 
@@ -358,10 +357,10 @@ public function importarDiario(Request $request){
 
       //@HACK: saldo_fichas calculado a pata hasta que lo manden en el archivo
       $crea_detalles = sprintf("INSERT INTO detalle_importacion_diaria_mesas
-        (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, utilidad, reposiciones, retiros, 
+        (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, droop_tarjeta, utilidad, reposiciones, retiros, 
         saldo_fichas)
         SELECT 
-        csv.id_archivo, csv.row_1, csv.row_2, csv.row_3, csv.row_4, csv.row_5, csv.row_6,
+        csv.id_archivo, csv.row_1, csv.row_2, csv.row_3,csv.row_10, csv.row_4, csv.row_5, csv.row_6,
         (csv.row_4 - csv.row_3 + csv.row_5 - csv.row_6)
         FROM filas_csv_mesas_bingos as csv
         WHERE csv.id_archivo = '%d' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';",
@@ -371,15 +370,15 @@ public function importarDiario(Request $request){
 
       $setea_totales = sprintf("UPDATE importacion_diaria_mesas i,
       (
-        SELECT SUM(d.droop) as droop    , SUM(d.utilidad) as utilidad, SUM(d.reposiciones) as reposiciones,
-               SUM(d.retiros) as retiros, SUM(d.saldo_fichas) as saldo_fichas
+        SELECT SUM(d.droop) as droop              , SUM(d.droop_tarjeta) as droop_tarjeta , SUM(d.utilidad) as utilidad,
+               SUM(d.reposiciones) as reposiciones, SUM(d.retiros) as retiros             , SUM(d.saldo_fichas) as saldo_fichas
         FROM detalle_importacion_diaria_mesas d
         WHERE d.id_importacion_diaria_mesas = '%d'
         GROUP BY d.id_importacion_diaria_mesas
       ) total
-      SET i.droop        = IFNULL(total.droop,0)       , i.utilidad = IFNULL(total.utilidad,0),
-          i.reposiciones = IFNULL(total.reposiciones,0), i.retiros  = IFNULL(total.retiros,0),
-          i.saldo_fichas = IFNULL(total.saldo_fichas,0)
+      SET i.droop    = IFNULL(total.droop,0),    i.droop_tarjeta = IFNULL(total.droop_tarjeta,0),
+          i.utilidad = IFNULL(total.utilidad,0), i.reposiciones = IFNULL(total.reposiciones,0), 
+          i.retiros  = IFNULL(total.retiros,0),  i.saldo_fichas = IFNULL(total.saldo_fichas,0)
       WHERE i.id_importacion_diaria_mesas = '%d'",$iid,$iid);
 
       $pdo->exec($setea_totales);

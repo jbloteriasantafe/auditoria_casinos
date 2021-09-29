@@ -16,7 +16,8 @@ class DetalleImportacionDiariaMesas extends Model
                              'id_importacion_diaria_mesas',
                              'siglas_juego',
                              'nro_mesa',//es el nro_admin de la mesa
-                             'droop',
+                             'droop',//TOTAL
+                             'droop_tarjeta',//Subtotal en tarjeta
                              'reposiciones',
                              'retiros',
                              'utilidad',
