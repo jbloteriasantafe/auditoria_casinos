@@ -142,11 +142,11 @@ class LectorCSVController extends Controller
   // genera un join con las maquinas para tener valores de maquinas que existan en el maestro de mtm
   // y con esto se va agregado en los detalles_contadores
   // luego elimina los temporales
-  public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$casino){
+  public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$casino,$md5){
     $contador = new ContadorHorario;
     $contador->id_casino = $casino;
     $contador->cerrado = 0;
-    $contador->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $contador->md5 = $md5;
     $contador->save();
 
     $pdo = DB::connection('mysql')->getPdo();
@@ -244,12 +244,11 @@ class LectorCSVController extends Controller
   // producido 0 y se genera un log en el archivo de producido
   // como santa fe y melincue tiene en el archivo el beneficio en su ultima linea
   // tambien se crea el archivo de beneficio
-  public function importarProducidoSantaFeMelincue($archivoCSV,$casino){
+  public function importarProducidoSantaFeMelincue($archivoCSV,$casino,$md5){
     $producido = new Producido;
     $producido->id_casino = $casino;
     $producido->validado = 0;
-    $md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
-    $producido->md5 = $md5; 
+    $producido->md5 = $md5;
     $producido->save();
 
     $pdo = DB::connection('mysql')->getPdo();
@@ -397,7 +396,7 @@ class LectorCSVController extends Controller
   // importarBeneficioSantaFeMelincue se crea temporal insertando todos los valores del csv
   // solo se toma la linea de beneficio para insertar en la tabla real
   // luego se elimina los temporales
-  public function importarBeneficioSantaFeMelincue($archivoCSV,$casino){
+  public function importarBeneficioSantaFeMelincue($archivoCSV,$casino,$md5){
     //@WARNING!!!: Esto nunca se usa, el beneficio para SFE MEL se obtiene directamente del producido (es la ultima fila). 
     //No entiendo para que esta esta función...... Ver importarProducidoSantafeMelinque
     $pdo = DB::connection('mysql')->getPdo();
@@ -424,8 +423,7 @@ class LectorCSVController extends Controller
               porcentaje_devolucion = 100*(CAST(REPLACE(@5,',','.') as DECIMAL(15,2)) + CAST(REPLACE(@6,',','.') as DECIMAL(15,2)))/(CAST(REPLACE(@4,',','.') as DECIMAL(15,2))),
                   cantidad_maquinas = '%d',
                promedio_por_maquina = CAST(REPLACE(@9,',','.') as DECIMAL(15,2))/'%d
-                                md5 = '%s'",$path,$casino,"%Y%m%d",$cantidad_maquinas,$cantidad_maquinas,
-                      DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash);
+                                md5 = '%s'",$path,$casino,"%Y%m%d",$cantidad_maquinas,$cantidad_maquinas,$md5);
 
     $pdo->exec($query);
 
@@ -447,12 +445,12 @@ class LectorCSVController extends Controller
   // se tiene en cuenta la denominacion de carga, esto permite realziar las transformaciones de
   // creadito a plata, esta denominacion la toma del maestro de maquinas
   // se deja de manera estatica la denominacion que se tomo al momento de cargar
-  public function importarContadorRosario($archivoCSV,$fecha,$id_tipo_moneda){
+  public function importarContadorRosario($archivoCSV,$fecha,$id_tipo_moneda,$md5){
         $contador = new ContadorHorario;
         $contador->id_casino = 3;
         $contador->cerrado = 0;
         $contador->fecha = $fecha;
-        $contador->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+        $contador->md5 = $md5;
         $contador->id_tipo_moneda = $id_tipo_moneda;
         $contador->save();
 
@@ -564,11 +562,11 @@ class LectorCSVController extends Controller
   // luego se realiza el join con mtm para importar producidos en maquinas que existan en el maestro y sean validas
   // se considera la posibilidad que en el archivo no se envien reportes de mtm (diversos motivos)
   // en ese caso se fuerza el valor de producido a cero y se genera un log de las maquinas que no reportaron
-  public function importarProducidoRosario($archivoCSV,$fecha,$id_tipo_moneda){
+  public function importarProducidoRosario($archivoCSV,$fecha,$id_tipo_moneda,$md5){
     $producido = new Producido;
     $producido->id_casino = 3;
     $producido->validado = 0;
-    $producido->md5 = DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash;
+    $producido->md5 = $md5;
     $producido->fecha = $fecha;
 
     $producido->id_tipo_moneda = $id_tipo_moneda;
@@ -729,7 +727,7 @@ class LectorCSVController extends Controller
   }
   // importarBeneficioRosario vuelca el contenido del csv en un temporal, formateando los datos necesarios
   // luego vuelca en la tabla real
-  public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda){
+  public function importarBeneficioRosario($archivoCSV,$id_tipo_moneda,$md5){
     $pdo = DB::connection('mysql')->getPdo();
     DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
@@ -775,7 +773,7 @@ class LectorCSVController extends Controller
                        WHERE id_beneficio = '%d'
                          AND fecha IS NOT NULL
                        ",$cantidad_maquinas,$cantidad_maquinas,$id_tipo_moneda,
-                       DB::select(DB::raw('SELECT md5(?) as hash'),[file_get_contents($archivoCSV)])[0]->hash,
+                       $md5,
                        $proximo_id_beneficio);
 
     $pdo->exec($query);

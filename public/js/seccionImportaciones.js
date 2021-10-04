@@ -492,6 +492,8 @@ $('#btn-guardarContador').on('click', function(e){
   }
   formData.append('id_tipo_moneda', monedaCont);
 
+  formData.append('md5',$('#modalImportacionContadores .hashCalculado').val());
+
 
   $('#casinoInfoImportacion').val(casinoCont);
   $('#monedaInfoImportacion').val(monedaCont);
@@ -795,6 +797,7 @@ $('#btn-guardarProducido').on('click',function(e){
   formData.append('id_casino', id_casino);
   formData.append('fecha', fecha_date);
   formData.append('id_tipo_moneda',id_tipo_moneda);
+  formData.append('md5',$('#modalImportacionProducidos .hashCalculado').val());
 
 
   $('#casinoInfoImportacion').val(id_casino);
@@ -1111,6 +1114,7 @@ $('#btn-guardarBeneficio').on('click', function(e){
   formData.append('id_casino', 3);
   formData.append('fecha', fecha_date);
   formData.append('id_tipo_moneda',id_tipo_moneda);
+  formData.append('md5',$('#modalImportacionBeneficios .hashCalculado').val());
 
   $('#casinoInfoImportacion').val(3);
   $('#monedaInfoImportacion').val(id_tipo_moneda);
