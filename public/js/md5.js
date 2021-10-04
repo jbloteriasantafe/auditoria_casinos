@@ -6,26 +6,12 @@ function md5(input,file){
         progress = (progress + 1)%4;
     },100);
 
-    var formData = new FormData();
-    formData.append('archivo',file);
-
-    $.ajax({
-        type: "POST",
-        url: 'hashearArchivo/md5',
-        data: formData,
-        processData: false,
-        contentType:false,
-        cache:false,
-        success: function(x){
-            clearInterval(loading);
-            input.val(x).change();
-        },
-        error: function(x){
-            clearInterval(loading);
-            input.val('ERROR').change();
-            console.log(x);
-        }
-    });
+    const file_reader = new FileReader();
+    file_reader.onload = function(){
+        input.val(SparkMD5.hash(file_reader.result)).change();//Asegurarse de cargar sparkmd5 antes de este archivo!!
+        clearInterval(loading);
+    };
+    file_reader.readAsText(file);
 }
   
 function compararHash(div){

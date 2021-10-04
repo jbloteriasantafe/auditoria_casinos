@@ -400,7 +400,6 @@ Route::post('importaciones/importarBeneficio','ImportacionController@importarBen
 Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
 Route::post('importaciones/previewProducidos','ImportacionController@previewProducidos');
 Route::post('importaciones/previewContadores','ImportacionController@previewContadores');
-Route::post('hashearArchivo/{tipo}','ImportacionController@hashearArchivo');
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');
