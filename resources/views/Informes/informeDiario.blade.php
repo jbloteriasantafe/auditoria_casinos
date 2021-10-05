@@ -38,7 +38,7 @@
   }
   </style>
   <?php 
-  function string_number($s,$n = 2){
+  $string_number = function ($s,$n = 2){
     if(is_null($s) || $s === "" || $s === "--") return $s;
     $s = str_replace(",","",$s);
     $coma = str_replace(".",",",$s);
@@ -102,18 +102,18 @@
         <tr>
           <td class="tablaCampos text_field">{{$d->siglas_juego}}</td>
           <td class="tablaCampos text_field">{{$d->nro_mesa}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->droop)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->reposiciones)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->retiros)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->utilidad)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->droop)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->reposiciones)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->retiros)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->utilidad)}}</td>
           @if($importacion->moneda->siglas != 'ARS')
           <td class="tablaCampos number_field">{{$d->cotizacion_diaria? number_format($d->cotizacion_diaria,3,",","") : ""}}</td>
           <td class="tablaCampos number_field">{{$d->cotizacion_diaria? number_format($d->conversion,2,",","") : ""}}</td>
           @endif
-          <td class="tablaCampos number_field">{{string_number($d->hold)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->saldo_fichas)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->saldo_fichas_relevado)}}</td>
-          <td class="tablaCampos number_field">{{string_number($d->diferencia_saldo_fichas)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->hold)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->saldo_fichas)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->saldo_fichas_relevado)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->diferencia_saldo_fichas)}}</td>
           <td class="tablaCampos number_field">{{number_format($d->ajuste_fichas,2,",","")}}</td>
         </tr>
         @endforeach
@@ -121,17 +121,17 @@
         <tr>
           <th class="text_field">TOTALES</th>
           <th class="text_field">--</th>
-          <th class="number_field">{{string_number($importacion->droop)}}</th>
-          <th class="number_field">{{string_number($importacion->reposiciones)}}</th>
-          <th class="number_field">{{string_number($importacion->retiros)}}</th>
-          <th class="number_field">{{string_number($importacion->utilidad)}}</th>
+          <th class="number_field">{{$string_number($importacion->droop)}}</th>
+          <th class="number_field">{{$string_number($importacion->reposiciones)}}</th>
+          <th class="number_field">{{$string_number($importacion->retiros)}}</th>
+          <th class="number_field">{{$string_number($importacion->utilidad)}}</th>
           @if($importacion->moneda->siglas != 'ARS')
           <th class="number_field">{{$importacion->cotizacion_diaria? number_format($importacion->cotizacion_diaria,3,",","") : ""}}</th>
           <th class="number_field">{{$importacion->cotizacion_diaria? number_format($importacion->conversion_total,3,",","") : ""}}</th>
           @endif
-          <th class="number_field">{{string_number($importacion->hold)}}</th>
-          <th class="number_field">{{string_number($importacion->saldo_fichas)}}</th>
-          <th class="number_field">{{string_number($importacion->saldo_fichas_relevado)}}</th>
+          <th class="number_field">{{$string_number($importacion->hold)}}</th>
+          <th class="number_field">{{$string_number($importacion->saldo_fichas)}}</th>
+          <th class="number_field">{{$string_number($importacion->saldo_fichas_relevado)}}</th>
           <th class="number_field">{{number_format($importacion->diferencia_saldo_fichas,2,",","")}}</th>
           <th class="number_field">{{number_format($importacion->ajuste_fichas,"2",",","")}}</th>
         </tr>
