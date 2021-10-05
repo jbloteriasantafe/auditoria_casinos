@@ -68,7 +68,7 @@ class ImportacionDiariaMesas extends Model
   }
 
   public function getDiferenciaSaldoFichasAttribute(){
-    return $this->saldo_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas;
+    return $this->saldo_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas + $this->propina;
   }
 
   public function actualizarCierres($actualizar_igual = false){
