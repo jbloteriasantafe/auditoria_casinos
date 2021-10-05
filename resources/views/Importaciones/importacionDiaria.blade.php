@@ -16,7 +16,7 @@
   font-size: 85%;
   text-align: center;
   padding: 1px !important;
-  width: {{100.0/13.0}}%;
+  width: {{100.0/14.0}}%;
 }
 </style>
 @endsection
@@ -523,6 +523,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <th class="small">UTIL.</th>
                 <th class="small">HOLD %</th>
                 <th class="small">SALDO FICHAS</th>
+                <th class="small">PROPINA</th>
                 <th class="small">SALDO FICHAS (Rel.)</th>
                 <th class="small">DIFF</th>
                 <th class="small">AJUSTE</th>
@@ -550,6 +551,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                     <td class="v_utilidad small">-9999999.99</td>
                     <td class="v_hold small">-9999999.99</td>
                     <td class="v_saldofichas small" style="border-left: solid 1px #ddd;">-9999999.99</td>
+                    <td class="v_propina small">-1234.56</td>
                     <td class="v_saldofichas_rel small">-9999999.99</td>
                     <td class="v_diff small">-9999999.99</td>
                     <td class="v_ajuste small">-9999.99</td>

@@ -481,6 +481,7 @@ function generarFilaVerImp(data){
   text(fila.find('.v_drop'),data.droop);
   text(fila.find('.v_drop_tarjeta'),data.droop_tarjeta);
   text(fila.find('.v_saldofichas'),data.saldo_fichas);
+  text(fila.find('.v_propina'),data.propina? data.propina : "");
   text(fila.find('.v_saldofichas_rel'),data.saldo_fichas_relevado);
   text(fila.find('.v_diff'),data.diferencia_saldo_fichas);
   fila.find('.v_diff').css('background-color',data.diferencia_saldo_fichas == 0.00? 'rgb(220,255,220)' : 'rgb(255,220,220)');
