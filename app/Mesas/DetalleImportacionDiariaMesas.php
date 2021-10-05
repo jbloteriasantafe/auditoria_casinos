@@ -22,6 +22,7 @@ class DetalleImportacionDiariaMesas extends Model
                              'retiros',
                              'utilidad',
                              'saldo_fichas',
+                             'propina',
                              'ajuste_fichas',
                              'id_cierre_mesa',//Se setea una vez validada la importacion
                              'id_cierre_mesa_anterior',//Se setea una vez validada la importacion

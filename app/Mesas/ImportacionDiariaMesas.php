@@ -22,6 +22,7 @@ class ImportacionDiariaMesas extends Model
                              'retiros',
                              'utilidad',
                              'saldo_fichas',
+                             'propina',
                              'observacion',
                              'cotizacion_diaria',//dinamico
                              'hold',//dinamico
