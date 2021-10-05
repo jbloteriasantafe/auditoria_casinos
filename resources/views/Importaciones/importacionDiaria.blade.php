@@ -15,6 +15,8 @@
 .small{
   font-size: 85%;
   text-align: center;
+  padding: 1px !important;
+  width: {{100.0/13.0}}%;
 }
 </style>
 @endsection
@@ -471,7 +473,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
 <!-- Modal para agregar observación -->
 <div class="modal fade" id="modalVerImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-lg" style="width:60%">
+  <div class="modal-dialog modal-lg" style="width:90%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -508,22 +510,23 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
         </div>
         <hr>
         <div class="row">
-         <div class="col-xs-12">
+         <div class="col-xs-12" style="border-bottom: 1px solid #d1d1d1;">
           <table class="table table-fixed" style="margin-bottom: 0px;">
             <thead>
               <tr>
-                <th class="col-xs-1 small">JUEGO</th>
-                <th class="col-xs-1 small">NRO MESA</th>
-                <th class="col-xs-1 small">DROP</th>
-                <th class="col-xs-1 small">REPOS.</th>
-                <th class="col-xs-1 small">RETIROS</th>
-                <th class="col-xs-1 small">UTIL.</th>
-                <th class="col-xs-1 small">HOLD %</th>
-                <th class="col-xs-1 small">SALDO FICHAS</th>
-                <th class="col-xs-1 small">SALDO FICHAS (Rel.)</th>
-                <th class="col-xs-1 small">DIFF</th>
-                <th class="col-xs-1 small">AJUSTE</th>
-                <th class="col-xs-1 small">&nbsp;</th>
+                <th class="small">JUEGO</th>
+                <th class="small">NRO MESA</th>
+                <th class="small">DROP (TOTAL)</th>
+                <th class="small">DROP (TARJ.)</th>
+                <th class="small">REPOS.</th>
+                <th class="small">RETIROS</th>
+                <th class="small">UTIL.</th>
+                <th class="small">HOLD %</th>
+                <th class="small">SALDO FICHAS</th>
+                <th class="small">SALDO FICHAS (Rel.)</th>
+                <th class="small">DIFF</th>
+                <th class="small">AJUSTE</th>
+                <th class="small">&nbsp;</th>
               </tr>
             </thead>
           </table>
@@ -538,18 +541,19 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
               </table>
               <table class="table" style="padding:0px !important" hidden>
                   <tr id="moldeImpDiarios" class="filaClone" style="display:none">
-                    <td class="col-xs-1 v_juego small">JJJJJJ</td>
-                    <td class="col-xs-1 v_mesa small">999999</td>
-                    <td class="col-xs-1 v_drop small" >-9999999.99</td>
-                    <td class="col-xs-1 v_reposiciones small">-9999999.99</td>
-                    <td class="col-xs-1 v_retiros small">-9999999.99</td>
-                    <td class="col-xs-1 v_utilidad small">-9999999.99</td>
-                    <td class="col-xs-1 v_hold small">-9999999.99</td>
-                    <td class="col-xs-1 v_saldofichas small" style="border-left: solid 1px #ddd;">-9999999.99</td>
-                    <td class="col-xs-1 v_saldofichas_rel small">-9999999.99</td>
-                    <td class="col-xs-1 v_diff small">-9999999.99</td>
-                    <td class="col-xs-1 v_ajuste small" style="border-right: solid 1px #ddd;">-9999.99</td>
-                    <td class="col-xs-1 v_ajustar_td small">
+                    <td class="v_juego small">JJJJJJ</td>
+                    <td class="v_mesa small">999999</td>
+                    <td class="v_drop small">-9999999.99</td>
+                    <td class="v_drop_tarjeta small">-123456.789</td>
+                    <td class="v_reposiciones small">-9999999.99</td>
+                    <td class="v_retiros small">-9999999.99</td>
+                    <td class="v_utilidad small">-9999999.99</td>
+                    <td class="v_hold small">-9999999.99</td>
+                    <td class="v_saldofichas small" style="border-left: solid 1px #ddd;">-9999999.99</td>
+                    <td class="v_saldofichas_rel small">-9999999.99</td>
+                    <td class="v_diff small">-9999999.99</td>
+                    <td class="v_ajuste small">-9999.99</td>
+                    <td class="v_ajustar_td small">
                       <button type="button" class="btn btn-info v_ajustar">
                         <i class="fas fa-fw fa-wrench"></i>
                       </button>

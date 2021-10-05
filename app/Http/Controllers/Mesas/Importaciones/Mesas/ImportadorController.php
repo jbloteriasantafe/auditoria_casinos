@@ -333,6 +333,7 @@ public function importarDiario(Request $request){
         row_4 utilidad
         row_5 fill//reposiciones
         row_6 credit//retiros
+        row_10 drop_tarjeta
       */
       $query = sprintf("LOAD DATA local INFILE '%s'
       INTO TABLE filas_csv_mesas_bingos

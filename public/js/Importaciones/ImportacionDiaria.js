@@ -479,6 +479,7 @@ function generarFilaVerImp(data){
   text(fila.find('.v_juego'),data.siglas_juego);
   text(fila.find('.v_mesa'),data.nro_mesa);
   text(fila.find('.v_drop'),data.droop);
+  text(fila.find('.v_drop_tarjeta'),data.droop_tarjeta);
   text(fila.find('.v_saldofichas'),data.saldo_fichas);
   text(fila.find('.v_saldofichas_rel'),data.saldo_fichas_relevado);
   text(fila.find('.v_diff'),data.diferencia_saldo_fichas);
