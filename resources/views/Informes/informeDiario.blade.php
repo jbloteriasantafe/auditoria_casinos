@@ -27,13 +27,13 @@
   .text_field {
     text-align: center;
     padding: 0px;
-    font-size:10px !important;
+    font-size:9px !important;
     border-color: gray;
   }
   .number_field {
     text-align: right;
     padding: 0px;
-    font-size:10px !important;
+    font-size:9px !important;
     border-color: gray;
   }
   </style>
@@ -42,9 +42,12 @@
     if(is_null($s) || $s === "" || $s === "--") return $s;
     $s = str_replace(",","",$s);
     $coma = str_replace(".",",",$s);
-    $poscero = strpos(",",$coma);
-    if($poscero === false) return $coma.=",".str_repeat("0",$n);
-    return $coma.str_repeat("0",$ceros);
+    $poscero = strpos($coma,",");
+    if($poscero == false) return $coma.",".str_repeat("0",$n);
+    $ceros = strlen($coma)-$poscero-1;
+    $n -= $ceros;
+    if($n < 0) return $coma;
+    return $coma.str_repeat("0",$n);
   }
   ?>
 
@@ -78,8 +81,8 @@
     <table style="table-layout: fixed;">
       <thead>
         <tr>
-          <th class="tablaInicio text_field" style="background-color: #c0c0c0;">JUEGO</th>
-          <th class="tablaInicio text_field" style="background-color: #c0c0c0;">MESA</th>
+          <th class="tablaInicio text_field" style="background-color: #c0c0c0;width: 7%;">JUEGO</th>
+          <th class="tablaInicio text_field" style="background-color: #c0c0c0;width: 5%;">MESA</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">DROP</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">REPOS.</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">RETIROS</th>
@@ -88,8 +91,9 @@
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">COTIZA CIÓN</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">CONVER SIÓN</th>
           @endif
-          <th class="tablaInicio text_field" style="background-color: #c0c0c0;">HOLD</th>
+          <th class="tablaInicio text_field" style="background-color: #c0c0c0;width: 6%;">HOLD</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">SALDO EN FICHAS</th>
+          <th class="tablaInicio text_field" style="background-color: #c0c0c0;">PROPINA</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">SALDO EN FICHAS (Rel.)</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">DIF.</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">AJUSTE</th>
@@ -110,8 +114,9 @@
           <td class="tablaCampos number_field">{{$d->cotizacion_diaria? number_format($d->cotizacion_diaria,3,",","") : ""}}</td>
           <td class="tablaCampos number_field">{{$d->cotizacion_diaria? number_format($d->conversion,2,",","") : ""}}</td>
           @endif
-          <td class="tablaCampos number_field">{{$string_number($d->hold)}}</td>
+          <td class="tablaCampos number_field">{{$d->hold != "--"? number_format($d->hold,2,",","")  : ""}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->saldo_fichas)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->propina)}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->saldo_fichas_relevado)}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->diferencia_saldo_fichas)}}</td>
           <td class="tablaCampos number_field">{{number_format($d->ajuste_fichas,2,",","")}}</td>
@@ -129,8 +134,9 @@
           <th class="number_field">{{$importacion->cotizacion_diaria? number_format($importacion->cotizacion_diaria,3,",","") : ""}}</th>
           <th class="number_field">{{$importacion->cotizacion_diaria? number_format($importacion->conversion_total,3,",","") : ""}}</th>
           @endif
-          <th class="number_field">{{$string_number($importacion->hold)}}</th>
+          <th class="number_field">{{$importacion->hold != "--"? number_format($importacion->hold,2,",","")  : ""}}</th>
           <th class="number_field">{{$string_number($importacion->saldo_fichas)}}</th>
+          <td class="number_field">{{$string_number($importacion->propina)}}</td>
           <th class="number_field">{{$string_number($importacion->saldo_fichas_relevado)}}</th>
           <th class="number_field">{{number_format($importacion->diferencia_saldo_fichas,2,",","")}}</th>
           <th class="number_field">{{number_format($importacion->ajuste_fichas,"2",",","")}}</th>
