@@ -223,10 +223,12 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
 
 
-  $ya_existe = Cierre::where([['id_casino','=',$id_casino],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio],
-                              ['id_moneda','=',$id_moneda],['fecha','=',$fecha]])->count() > 0;
+  $ya_existe = Cierre::where([
+    ['id_casino','=',$id_casino],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio],['id_moneda','=',$id_moneda],
+    ['fecha','=',$fecha],['hora_inicio','=',$hora_apertura.':00'],['hora_fin','=',$hora_cierre.':00']
+  ])->get()->count() > 0;
 
-  if($ya_existe) return 'YA EXISTE UN CIERRE PARA LA MESA '.$cod_juego.' '.$nro_admin.' EN LA FECHA '.$fecha;
+  if($ya_existe) return 'YA EXISTE UN CIERRE PARA LA MESA '.$cod_juego.' '.$nro_admin.' EN LA FECHA '.$fecha.' '.$hora_apertura.'-'.$hora_cierre;
   
   $cierre = new Cierre;
   $cierre->fecha                = $fecha;
