@@ -100,9 +100,22 @@ class DetalleImportacionDiariaMesas extends Model
     if(is_null($mesa)) return null;
     $imp = $this->importacion_diaria_mesas;
     $id_moneda = $imp->id_moneda;
-    $cierre =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->first();
-    return $cierre;
+    $cierres =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
+    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->get()->toArray();
+    usort($cierres,function($c1,$c2){
+      $c1_pasa_el_dia = $c1['hora_inicio'] > $c1['hora_fin'];
+      $c2_pasa_el_dia = $c2['hora_inicio'] > $c2['hora_fin'];
+      if( $c1_pasa_el_dia && !$c2_pasa_el_dia) return  1;//C1 cierra despues, se le da prioridad
+      if(!$c1_pasa_el_dia &&  $c2_pasa_el_dia) return -1;//C2 cierra despues, se le da prioridad
+      if( $c1_pasa_el_dia ==  $c2_pasa_el_dia){//Si ambos terminan en el mismo dia, nos quedamos con el que cerro mas tarde
+        if($c2['hora_fin'] > $c1['hora_fin']) return -1;//C2 cierra despues, se le da prioridad
+        if($c2['hora_fin'] < $c1['hora_fin']) return  1;//C1 cierra despues, se le da prioridad
+      }
+      return 0;//Son iguales, indiferente
+    });
+    return count($cierres) > 0? 
+      Cierre::find($cierres[count($cierres)-1]['id_cierre_mesa']) 
+    : null;
   }
 
   //Si en algun momento se quisiera que se actualice de todos modos, llamar el metodo con el valor en true
