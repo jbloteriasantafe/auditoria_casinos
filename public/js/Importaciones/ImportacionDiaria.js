@@ -411,7 +411,7 @@ $(document).on('click','.v_ajustar',function(e){
   const cierre_anterior = fila.data('cierre_anterior');
   const estado_cierre_anterior = fila.data('estado_cierre_anterior');
   if(cierre != null){
-    $('#cierre').find('.fecha_cierre').text(cierre.fecha);
+    $('#cierre').find('.fecha_cierre').text(cierre.fecha+" "+cierre.hora_inicio_format+"-"+cierre.hora_fin_format);
     $('#cierre').find('.estado_cierre').text(estado_cierre);
     $('#cierre').find('.fichas_cierre').text(clearNull(cierre.total_pesos_fichas_c));
   }
@@ -421,7 +421,7 @@ $(document).on('click','.v_ajustar',function(e){
     $('#cierre').find('.fichas_cierre').text('--');
   }
   if(cierre_anterior != null){
-    $('#cierre_anterior').find('.fecha_cierre').text(cierre_anterior.fecha);
+    $('#cierre_anterior').find('.fecha_cierre').text(cierre_anterior.fecha+" "+cierre_anterior.hora_inicio_format+"-"+cierre_anterior.hora_fin_format);
     $('#cierre_anterior').find('.estado_cierre').text(estado_cierre_anterior);
     $('#cierre_anterior').find('.fichas_cierre').text(clearNull(cierre_anterior.total_pesos_fichas_c));
   }
