@@ -2242,7 +2242,7 @@ function SetCantidadMaquinasTemporales(valor) {
 
 
 
-  $('#maquinas_temporales tbody').append(
+  $('#maquinas_temporales tbody').prepend(
       $('<tr>').attr('id', valor.id_cantidad_maquinas_por_relevamiento)
           .append($('<td>').text(fecha_desde)) //fecha_desde
           .append($('<td>').text(fecha_hasta)) //fecha_hasta

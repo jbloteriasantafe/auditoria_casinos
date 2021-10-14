@@ -1275,7 +1275,7 @@ class RelevamientoController extends Controller
                       ->join('tipo_cantidad_maquinas_por_relevamiento','cantidad_maquinas_por_relevamiento.id_tipo_cantidad_maquinas_por_relevamiento'
                             ,'=','tipo_cantidad_maquinas_por_relevamiento.id_tipo_cantidad_maquinas_por_relevamiento')
                       ->where('cantidad_maquinas_por_relevamiento.id_sector','=',$id_sector)
-                      ->orderBy('cantidad_maquinas_por_relevamiento.fecha_hasta','desc')
+                      ->orderBy('cantidad_maquinas_por_relevamiento.fecha_hasta','asc')
                       ->get();
 
     return $resultados;
