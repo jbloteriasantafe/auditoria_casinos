@@ -432,7 +432,7 @@ $(document).on('click','.v_ajustar',function(e){
   }
   const ajuste = fila.data('ajuste_fichas');
   const observaciones = fila.data('observacion');
-  const habilitar_ajuste = (fila.data('diferencia') != 0.0) && ($('#guardar-observacion').data('modo') == "validar");
+  const habilitar_ajuste = (fila.data('diferencia') != 0.0 || ajuste != 0.0) && ($('#guardar-observacion').data('modo') == "validar");
   $('#ajuste .ajuste').val(ajuste).attr('disabled',!habilitar_ajuste);
   $('#ajuste .observaciones').val(observaciones);
   $('#confirmar_ajuste').val(fila.attr('id'));
@@ -501,10 +501,10 @@ function generarFilaVerImp(data){
   if(!data.cierre || !data.cierre_anterior){
     fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRES');
   }
-  if(data.diferencia_saldo_fichas == 0.0){
+  if(data.diferencia_saldo_fichas == 0.0 && data.ajuste_fichas == 0.0){
     fila.find('.v_ajustar i').removeClass('fa-wrench').addClass('fa-search-plus');
-    fila.data('diferencia',data.diferencia_saldo_fichas);
   }
+  fila.data('diferencia',data.diferencia_saldo_fichas);
   fila.css('display', '');
   return fila;
 }
