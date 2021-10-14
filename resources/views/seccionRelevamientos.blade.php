@@ -313,7 +313,7 @@ $id_usuario = session('id_usuario');
                                     <br>
 
                                     <div class="row">
-                                        <div class="col-md-12">
+                                        <div class="col-md-12" style="height: 350px; overflow-y: scroll;">
                                               <table id="maquinas_temporales" class="table">
                                                 <thead>
                                                     <th>DESDE FECHA</th>
