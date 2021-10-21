@@ -62,6 +62,7 @@ input[required], select[required]{
 @section('contenidoVista')
 <div class="col-xl-2">
   <div class="row">
+    @if($usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas'))
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-agregar-ae" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -80,6 +81,7 @@ input[required], select[required]{
         </div>
       </a>
     </div>
+    @endif
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-ver-formularios-ae" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -260,7 +262,7 @@ input[required], select[required]{
                   <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-search-plus"></i>
                   </button>
-                  @if($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor)
+                  @if($usuario->tienePermiso('modificar_ae'))
                   <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                     <i class="fa fa-fw fa-pencil-alt"></i>
                   </button>
@@ -446,7 +448,7 @@ input[required], select[required]{
                           <option selected="" value="">- Seleccione un casino -</option>
                           <?php 
                             $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
-                            $plats_creacion = ($usuario->es_auditor || $usuario->es_superusuario)? $plataformas : [];
+                            $plats_creacion = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas : [];
                           ?>
                           @foreach($cas_creacion as $casino)
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>

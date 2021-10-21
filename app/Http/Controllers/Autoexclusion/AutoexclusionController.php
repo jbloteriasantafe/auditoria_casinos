@@ -40,7 +40,7 @@ class AutoexclusionController extends Controller
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
       $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
 
-      if(!($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor))
+      if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
 
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
@@ -203,7 +203,7 @@ class AutoexclusionController extends Controller
           if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
             $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
           }
-          else if(!is_null($id_plataforma) && !$user->es_auditor){
+          else if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
             $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a esa plataforma');
           }
           else if(is_null($id_casino) == is_null($id_plataforma)){
@@ -395,7 +395,7 @@ class AutoexclusionController extends Controller
               $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
               return;
             }
-            if(!is_null($id_plataforma) && !$user->es_auditor){
+            if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
               $validator->errors()->add('ae_estado.id_plataforma', 'No tiene acceso a esa plataforma');
               return;
             }
@@ -593,10 +593,10 @@ class AutoexclusionController extends Controller
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
     $estado = $ae->estado;
 
-    $usuario_valido = ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor);
+    $usuario_valido = $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
     if(!$usuario_valido
       || (!is_null($estado->id_casino) && !$usuario->usuarioTieneCasino($estado->id_casino))
-      || (!is_null($estado->id_plataforma) && !($usuario->es_auditor || $usuario->es_superusuario))
+      || (!is_null($estado->id_plataforma) && !$usuario->tienePermiso('aym_ae_plataformas'))
     ){
       return $this->errorOut(['rol' => 'No puede realizar esa acción']);
     }
