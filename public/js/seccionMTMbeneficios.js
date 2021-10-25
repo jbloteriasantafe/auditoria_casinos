@@ -39,7 +39,7 @@ $('#maquinasMenor,maquinasMayor,#isla').change(function(){
   const isla = $('#isla').val().length > 0;
   if(mmenor || mmayor){
     $('#isla').val("").attr('disabled',true);
-    $$('#maquinasMenor,#maquinasMayor').attr('disabled',false);
+    $('#maquinasMenor,#maquinasMayor').attr('disabled',false);
   }
   else if(isla){
     $('#maquinasMenor,#maquinasMayor').val("").attr('disabled',true);
