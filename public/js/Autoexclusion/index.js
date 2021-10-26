@@ -694,7 +694,7 @@ function validarDatosPersonales(){
     }
   });
   $('.step2 input[alpha]').each(function(){
-    if(!/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]*$/.test($(this).val())){
+    if(!/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚäëïöüÄËÏÖÜ]*$/.test($(this).val())){
       mostrarErrorValidacion($(this) , 'El campo no puede contener números' , false);
       valid = 0;
     }
