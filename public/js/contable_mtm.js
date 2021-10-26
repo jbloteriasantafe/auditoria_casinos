@@ -120,7 +120,7 @@ $('#btn-buscarMTM').click(function(e) {
         $('#producido').text(addCommas(data.producido));
         for (var i = 0; i < data.datos.length; i++) {
             fechas.push(data.datos[i].fecha);
-            datos.push(data.datos[i].valor);
+            datos.push(parseFloat(data.datos[i].valor));
         }
 
         estado = data.arreglo;
@@ -203,11 +203,6 @@ $('#modalMaquinaContable').on('hidden.bs.modal', function() {
 
 /******* GRÁFICOS ********/
 function generarGraficoMTM(fechas, data) {
-    //Armar los arreglos
-    // for (var i = 0; i < data.length; i++) {
-    //   data[i]
-    // }
-
     Highcharts.chart('graficoSeguimientoContadores', {
         chart: {
             backgroundColor: "#fff",
@@ -237,11 +232,6 @@ function generarGraficoMTM(fechas, data) {
             title: {
                 text: ''
             },
-            // labels: {
-            //     formatter: function () {
-            //         return this.value / 1000000 + "M";
-            //     }
-            // }
         },
         tooltip: {
             split: true,
@@ -273,17 +263,8 @@ function generarGraficoMTM(fechas, data) {
             name: 'MTM',
             data: data,
             color: '#00E676',
-            // },{
-            //     name: 'BINGO',
-            //     data: brutoMesas,
-            //     color: colorBingo,
-            // },{
-            //     name: 'MESAS',
-            //     data: brutoBingo,
-            //     color: colorMesas,
         }]
     });
-
 }
 
 function mostrarEstado(posicion) {
