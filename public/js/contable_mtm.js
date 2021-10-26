@@ -184,10 +184,8 @@ $('#btn-buscarMTM').click(function(e) {
         }
         setTimeout(function(){
             generarGraficoMTM(fechas, datos);
-        },200);
+        },500);
     })
-
-
 });
 
 $('#modalMaquinaContable').on('shown.bs.modal', function() {
