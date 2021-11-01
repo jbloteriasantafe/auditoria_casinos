@@ -41,8 +41,11 @@ Route::post('enviarTicket',function(Request $request){
     'subject'   =>  $request->subject,
     'message'   =>  $request->message,
     'ip'        =>  $_SERVER['REMOTE_ADDR'],
-    'attachments' => $request->attachments,
   );
+
+  if(!empty($request->attachments)){
+    $data['attachments'] = $request->attachments;
+  }
   
   set_time_limit(30);
   $ch = curl_init();
