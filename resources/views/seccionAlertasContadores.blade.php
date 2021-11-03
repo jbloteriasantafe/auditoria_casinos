@@ -37,7 +37,37 @@
 @endsection
 
         <div class="row">
-
+            <div class="col-xl-3">
+              <div class="row">
+                <div class="col-md-12">
+                  <a href="" id="btn-importarPolleos" style="text-decoration: none;">
+                  <div class="panel panel-default panelBotonNuevo">
+                      <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
+                      <div class="backgroundNuevo"></div>
+                      <div class="row">
+                          <div class="col-xs-12">
+                            <center>
+                                <h5 class="txtLogo">+</span></h5>
+                                <h4 class="txtNuevo">IMPORTAR POLLEOS</h4>
+                            </center>
+                          </div>
+                      </div>
+                  </center></center></div>
+                  </a>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <a href="importaciones" style="text-decoration:none;">
+                    <div class="tarjetaSeccionMenor" align="center">
+                      <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
+                      <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
+                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div> <!-- /.col-md-3 -->
             <div class="col-xl-9">
                 <div class="row"> <!-- FILTROS -->
                       <div class="col-md-12">
@@ -112,15 +142,14 @@
                         </div> <!-- /.panel -->
                       </div>
                 </div>
-
                 <div class="row"> <!-- TABLA -->
                       <div class="col-md-12">
                           <div class="panel panel-default">
                             <div class="panel-heading">
-                                <h4>ÚLTIMOS CONTADORES</h4>
+                                <h4>POLLEOS</h4>
                             </div>
                             <div class="panel-body">
-                              <table id="tablaContadores" class="table table-fixed tablesorter">
+                              <table id="tablaPolleos" class="table table-fixed tablesorter">
                                 <thead>
                                   <tr>
                                     <th class="col-xs-3" value="ch.fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
@@ -161,30 +190,15 @@
                 </td>
               </tr>
             </table>
-
-            <div class="col-xl-3">
-              <div class="row">
-                <div class="col-md-12">
-                  <a href="importaciones" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor" align="center">
-                      <h2 class="tituloFondoMenor">IMPORTACIONES</h2>
-                      <h2 class="tituloSeccionMenor">IMPORTACIONES</h2>
-                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/importaciones_white.png" alt="">
-                    </div>
-                  </a>
-                </div>
-              </div>
-            </div> <!-- /.col-md-3 -->
-
         </div> <!-- /.row -->
 
-    <div class="modal fade" id="modalContadores" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modalPolleos" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:70%;">
         <div class="modal-content">
           <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FFB74D;">
             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
             <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-            <h3 class="modal-title">CONTADORES</h3>
+            <h3 class="modal-title">POLLEOS</h3>
           </div>
           <div  id="colapsadoCargar" class="collapse in">
             <div class="modal-body modalCuerpo">
@@ -223,7 +237,7 @@
                       <tr id="filaEjemploMaquina">
                         <td class="nro_admin">9999</td>
                         <td>
-                          <button class="btn btn-info verContadores" title="VER CONTADORES">
+                          <button class="btn btn-info verPolleos" title="VER POLLEOS">
                             <i class="fa fa-fw fa-search-plus"></i>
                           </button>
                         </td>
@@ -329,12 +343,12 @@
 
     <!-- Comienza modal de ayuda -->
     @section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| CONTADORES</h3>
+    <h3 class="modal-title" style="color: #fff;">| Alertas Contadores</h3>
     @endsection
     @section('contenidoAyuda')
     <div class="col-md-12">
       <p>
-        En esta sección se obtienen alertas sobre la evolución de los contadores individuales para cada maquina.
+        En esta sección se obtienen y asignan alertas sobre la evolución de los contadores individuales, polleados cada hora, para cada maquina.
       </p>
     </div>
     @endsection

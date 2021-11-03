@@ -3,8 +3,8 @@ $(document).ready(function(){
   $('#maquinas').removeClass().addClass('subMenu1 collapse in');
   $('#procedimientos').removeClass().addClass('subMenu2 collapse in');
   $('#contadores').removeClass().addClass('subMenu3 collapse in');
-  $('.tituloSeccionPantalla').text('Contadores');
-  $('#opcContadores').attr('style','border-left: 6px solid #673AB7; background-color: #131836;').addClass('opcionesSeleccionado');
+  $('.tituloSeccionPantalla').text('Alertas Contadores');
+  $('#opcAlertasContadores').attr('style','border-left: 6px solid #673AB7; background-color: #131836;').addClass('opcionesSeleccionado');
 
   $('#dtpFechaDesde').datetimepicker({
     language:  'es',
@@ -38,9 +38,9 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
   page_size = (page_size == null || isNaN(page_size))? size : page_size;
   const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  const sort_by = (columna != null) ? {columna: columna,orden: orden} : {columna: $('#tablaContadores .activa').attr('value'),orden: $('#tablaContadores .activa').attr('estado')} ;
+  const sort_by = (columna != null) ? {columna: columna,orden: orden} : {columna: $('#tablaPolleos .activa').attr('value'),orden: $('#tablaPolleos .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
-    $('#tablaContadores th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
+    $('#tablaPolleos th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -58,7 +58,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   $.ajax({
     type: 'POST',
-    url: 'alertas_contadores/buscarContadores',
+    url: 'alertas_contadores/buscarPolleos',
     data: formData,
     dataType: 'json',
     success: function (resultados) {
@@ -89,13 +89,13 @@ function clickIndice(e,pageNumber,tam){
     e.preventDefault();
   }
   tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  const columna = $('#tablaContadores .activa').attr('value');
-  const orden = $('#tablaContadores .activa').attr('estado');
+  const columna = $('#tablaPolleos .activa').attr('value');
+  const orden = $('#tablaPolleos .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
-$(document).on('click','#tablaContadores thead tr th[value]',function(e){
-  $('#tablaContadores th').removeClass('activa');
+$(document).on('click','#tablaPolleos thead tr th[value]',function(e){
+  $('#tablaPolleos th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
     $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
   }
@@ -107,7 +107,7 @@ $(document).on('click','#tablaContadores thead tr th[value]',function(e){
       $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaContadores th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaPolleos th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
@@ -116,7 +116,7 @@ $(document).on('click','.ver',function(){
   const casino = fila.find('.casino').text();
   const moneda = fila.find('.moneda').text();
   const fecha  = fila.find('.fecha').text();
-  modalContadores($(this).val(),casino,moneda,fecha,'ver');
+  modalPolleos($(this).val(),casino,moneda,fecha,'ver');
 });
 
 $(document).on('click','.validar',function(){
@@ -124,24 +124,24 @@ $(document).on('click','.validar',function(){
   const casino = fila.find('.casino').text();
   const moneda = fila.find('.moneda').text();
   const fecha  = fila.find('.fecha').text();
-  modalContadores($(this).val(),casino,moneda,fecha,'validar');
+  modalPolleos($(this).val(),casino,moneda,fecha,'validar');
 });
 
-function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
+function modalPolleos(id_contador_horario,casino,moneda,fecha,modo){
   $('#casinoModal').val(casino);
   $('#monedaModal').val(moneda);
   $('#fechaModal').val(fecha);
   $('#verSoloAlertasModal').prop('checked',true);
 
   if(modo == 'validar'){
-    $('#modalContadores .modal-header').css('background','rgb(60, 204, 134)')
-    .find('.modal-title').text('VALIDAR ALERTAS DE CONTADORES');
+    $('#modalPolleos .modal-header').css('background','rgb(60, 204, 134)')
+    .find('.modal-title').text('VALIDAR ALERTAS DE POLLEOS');
     $('#observacionesModal').val('').attr('disabled',false);
     $('#btn-validar').attr('disabled',false).show();
   }
   else if(modo == 'ver'){
-    $('#modalContadores .modal-header').css('background','#4FC3F7')
-    .find('.modal-title').text('VER CONTADORES');
+    $('#modalPolleos .modal-header').css('background','#4FC3F7')
+    .find('.modal-title').text('VER POLLEOS');
     $('#observacionesModal').val('').attr('disabled',true);
     $('#btn-validar').attr('disabled',true).hide();
   }
@@ -159,11 +159,11 @@ function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
       $('#maquinasModal').append(fila);
     }
     $('#alertasModal').val(data.alertas);
-    $('#modalContadores').modal('show');
+    $('#modalPolleos').modal('show');
   });
 }
 
-$(document).on('click','.verContadores',function(){
+$(document).on('click','.verPolleos',function(){
   $('#maquinaModal').val($(this).closest('tr').find('.nro_admin').text());
   $('#btn-validar').val($(this).val());
   $.get('/alertas_contadores/obtenerDetalleCompleto/'+$(this).val(),function(data){

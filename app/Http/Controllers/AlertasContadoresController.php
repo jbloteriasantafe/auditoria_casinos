@@ -28,7 +28,7 @@ class AlertasContadoresController extends Controller
     return view('seccionAlertasContadores',['casinos' => $user->casinos,'tipo_monedas' => TipoMoneda::all()]);
   }
 
-  public function buscarContadores(Request $request){
+  public function buscarPolleos(Request $request){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $cas = [];
     foreach($user->casinos as $c) $cas[] = $c->id_casino;
@@ -40,7 +40,7 @@ class AlertasContadoresController extends Controller
     if($request->fecha_hasta != "") $reglas[] = ['ch.fecha','<=',$request->fecha_hasta];
     $sort_by = ['columna' => 'ch.id_contador_horario','orden' => 'desc'];
     if(!empty($request->sort_by)) $sort_by = $request->sort_by;
-
+    //@TODO: Armar una tabla de metadatos para los archivos que se busca
     $resultados = DB::table('contador_horario as ch')
     ->select('ch.id_contador_horario','ch.fecha','c.nombre as casino','tm.descripcion as moneda',DB::raw('RAND()>0.5 as alertas_validadas'))
     ->join('casino as c','c.id_casino','=','ch.id_casino')
@@ -51,20 +51,21 @@ class AlertasContadoresController extends Controller
     return $resultados;
   }
 
-  public function obtenerDetalles($id_contador_horario){
+  public function obtenerDetalles($id_polleo){//@TODO: Consultar la fila en la tabla de polleo y las alertas asociadas
     $detalles = DB::table('detalle_contador_horario')
     ->select('maquina.nro_admin','detalle_contador_horario.id_detalle_contador_horario')
     ->join('maquina','maquina.id_maquina','=','detalle_contador_horario.id_maquina')
-    ->where('id_contador_horario',$id_contador_horario)->get();
+    ->where('id_contador_horario',$id_polleo)->get();
     return ['detalles' => $detalles,'alertas' => 9999999];
   }
 
-  public function obtenerDetalleCompleto($id_detalle_contador_horario){
+  //@TODO: Consultar la fila, las alertas asociadas y el archivo. Habria que agregarle otro parametro para la maquina
+  public function obtenerDetalleCompleto($id_polleo){
     //@STUB: tal vez guardar los demas horarios en un CSV y consultarlos aca, total es algo que se consultaria 1 sola vez
     //Si guardamos el CSV que mandan ellos, tendrian que mandarlo ordenado por NRO_ADMIN y luego por HORA para hacer la busqueda eficiente.
     $detalles = DB::table('detalle_contador_horario as dch')
     ->selectRaw('"07:00" as hora,IFNULL(dch.isla,"SIN INF.") as isla, dch.coinin, dch.coinout, dch.jackpot, dch.progresivo')
-    ->where('dch.id_detalle_contador_horario',$id_detalle_contador_horario)->get();
+    ->where('dch.id_detalle_contador_horario',$id_polleo)->get();
     $alertas = [
       [
         'hora' => '9:99', 'descripcion' => 'TEST!'
@@ -74,5 +75,23 @@ class AlertasContadoresController extends Controller
       ]
     ];
     return ['estado' => 'SIN DETALLES','detalles' => $detalles,'alertas' => $alertas,'observaciones' => 'OBSERVACIONES TEST'];
+  }
+
+  public function importarPolleos(Request $request){
+    Validator::make($request->all(),[
+      'id_casino' => 'required|integer|exists:casino,id_casino',
+      'fecha' => 'nullable|date',
+      'archivo' => 'required|mimes:csv,txt',
+      'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
+      'md5' => 'required|string|max:32'
+    ], array(), self::$atributos)->after(function($validator){
+      if(!$validator->errors()->any()){
+        $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        if(!$user->usuarioTieneCasino($validator->getData()['id_casino'])){
+          $validator->errors()->add('id_casino','No Puede acceder a ese casino');
+      }
+    }
+    })->validate();
+    return "DONE!";
   }
 }

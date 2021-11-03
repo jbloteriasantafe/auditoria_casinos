@@ -507,9 +507,10 @@ Route::delete('mtm_a_pedido/eliminarMmtAPedido/{id}','MaquinaAPedidoController@e
 
 Route::group(['prefix' => 'alertas_contadores', 'middleware' => 'tiene_permiso:ver_seccion_contadores'],function(){
   Route::get('/','AlertasContadoresController@buscarTodo');
-  Route::post('/buscarContadores','AlertasContadoresController@buscarContadores');
-  Route::get('/obtenerDetalles/{id_contador_horario}','AlertasContadoresController@obtenerDetalles');
-  Route::get('/obtenerDetalleCompleto/{id_detalle_contador_horario}','AlertasContadoresController@obtenerDetalleCompleto');
+  Route::post('/buscarPolleos','AlertasContadoresController@buscarPolleos');
+  Route::get('/obtenerDetalles/{id_polleo}','AlertasContadoresController@obtenerDetalles');
+  Route::get('/obtenerDetalleCompleto/{id_polleo}','AlertasContadoresController@obtenerDetalleCompleto');
+  Route::post('/importarPolleos','AlertasContadoresController@importarPolleos');
 });
 
 /*******************
