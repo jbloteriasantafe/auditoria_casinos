@@ -576,8 +576,8 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
                                          @endif
                                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_contadores'))
                                          <li>
-                                           <div id="opcContadores" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/contadores'" href="#" style="cursor: pointer;">
-                                             <span>Contadores</span>
+                                           <div id="opcAlertasContadores" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/alertas_contadores'" href="#" style="cursor: pointer;">
+                                             <span>Alertas Contadores</span>
                                            </div>
                                          </li>
                                          @endif

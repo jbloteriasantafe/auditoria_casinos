@@ -58,7 +58,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   $.ajax({
     type: 'POST',
-    url: 'contadores/buscarContadores',
+    url: 'alertas_contadores/buscarContadores',
     data: formData,
     dataType: 'json',
     success: function (resultados) {
@@ -149,7 +149,7 @@ function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
 
   $('#detalleModal').hide();
 
-  $.get('/contadores/obtenerDetalles/'+id_contador_horario,function(data){
+  $.get('/alertas_contadores/obtenerDetalles/'+id_contador_horario,function(data){
     $('#maquinasModal').empty();
     for(const idx in data.detalles){
       const m = data.detalles[idx];
@@ -166,7 +166,7 @@ function modalContadores(id_contador_horario,casino,moneda,fecha,modo){
 $(document).on('click','.verContadores',function(){
   $('#maquinaModal').val($(this).closest('tr').find('.nro_admin').text());
   $('#btn-validar').val($(this).val());
-  $.get('/contadores/obtenerDetalleCompleto/'+$(this).val(),function(data){
+  $.get('/alertas_contadores/obtenerDetalleCompleto/'+$(this).val(),function(data){
     $('#tablaDetallesModal tbody').empty();
     for(const idx in data.detalles){
       const d = data.detalles[idx];

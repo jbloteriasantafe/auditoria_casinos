@@ -350,7 +350,7 @@
     <script src='/js/locale-all.js'></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionContadores.js" charset="utf-8"></script>-
+    <script src="js/seccionAlertasContadores.js" charset="utf-8"></script>-
     
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
