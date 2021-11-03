@@ -155,7 +155,7 @@ function modalPolleos(id_contador_horario,casino,moneda,fecha,modo){
       const m = data.detalles[idx];
       const fila = $('#filaEjemploMaquina').clone().removeAttr('id');
       fila.find('.nro_admin').text(m.nro_admin);
-      fila.find('button').val(m.id_detalle_contador_horario);
+      fila.find('button').val(id_contador_horario);
       $('#maquinasModal').append(fila);
     }
     $('#alertasModal').val(data.alertas);
@@ -164,9 +164,10 @@ function modalPolleos(id_contador_horario,casino,moneda,fecha,modo){
 }
 
 $(document).on('click','.verPolleos',function(){
-  $('#maquinaModal').val($(this).closest('tr').find('.nro_admin').text());
+  const nro_admin = $(this).closest('tr').find('.nro_admin').text();
+  $('#maquinaModal').val(nro_admin);
   $('#btn-validar').val($(this).val());
-  $.get('/alertas_contadores/obtenerDetalleCompleto/'+$(this).val(),function(data){
+  $.get('/alertas_contadores/obtenerDetalleCompleto/'+$(this).val()+'/'+nro_admin,function(data){
     $('#tablaDetallesModal tbody').empty();
     for(const idx in data.detalles){
       const d = data.detalles[idx];

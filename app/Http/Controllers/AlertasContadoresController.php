@@ -12,8 +12,6 @@ use App\Http\Controllers\UsuarioController;
 
 class AlertasContadoresController extends Controller
 {
-  private static $atributos = [
-  ];
   private static $instance;
 
   public static function getInstancia() {
@@ -60,12 +58,14 @@ class AlertasContadoresController extends Controller
   }
 
   //@TODO: Consultar la fila, las alertas asociadas y el archivo. Habria que agregarle otro parametro para la maquina
-  public function obtenerDetalleCompleto($id_polleo){
+  public function obtenerDetalleCompleto($id_polleo,$nro_admin){
     //@STUB: tal vez guardar los demas horarios en un CSV y consultarlos aca, total es algo que se consultaria 1 sola vez
     //Si guardamos el CSV que mandan ellos, tendrian que mandarlo ordenado por NRO_ADMIN y luego por HORA para hacer la busqueda eficiente.
     $detalles = DB::table('detalle_contador_horario as dch')
+    ->join('maquina as m','m.id_maquina','=','dch.id_maquina')
     ->selectRaw('"07:00" as hora,IFNULL(dch.isla,"SIN INF.") as isla, dch.coinin, dch.coinout, dch.jackpot, dch.progresivo')
-    ->where('dch.id_detalle_contador_horario',$id_polleo)->get();
+    ->where('dch.id_contador_horario',$id_polleo)
+    ->where('m.nro_admin',$nro_admin)->get();
     $alertas = [
       [
         'hora' => '9:99', 'descripcion' => 'TEST!'
@@ -84,7 +84,7 @@ class AlertasContadoresController extends Controller
       'archivo' => 'required|mimes:csv,txt',
       'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
       'md5' => 'required|string|max:32'
-    ], array(), self::$atributos)->after(function($validator){
+    ], array(), [])->after(function($validator){
       if(!$validator->errors()->any()){
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         if(!$user->usuarioTieneCasino($validator->getData()['id_casino'])){

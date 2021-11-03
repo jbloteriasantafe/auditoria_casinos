@@ -509,7 +509,7 @@ Route::group(['prefix' => 'alertas_contadores', 'middleware' => 'tiene_permiso:v
   Route::get('/','AlertasContadoresController@buscarTodo');
   Route::post('/buscarPolleos','AlertasContadoresController@buscarPolleos');
   Route::get('/obtenerDetalles/{id_polleo}','AlertasContadoresController@obtenerDetalles');
-  Route::get('/obtenerDetalleCompleto/{id_polleo}','AlertasContadoresController@obtenerDetalleCompleto');
+  Route::get('/obtenerDetalleCompleto/{id_polleo}/{nro_admin}','AlertasContadoresController@obtenerDetalleCompleto');
   Route::post('/importarPolleos','AlertasContadoresController@importarPolleos');
 });
 
