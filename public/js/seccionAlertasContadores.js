@@ -6,22 +6,12 @@ $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Alertas Contadores');
   $('#opcAlertasContadores').attr('style','border-left: 6px solid #673AB7; background-color: #131836;').addClass('opcionesSeleccionado');
 
-  $('#dtpFechaDesde').datetimepicker({
+  $('#dtpFechaDesde,#dtpFechaHasta,#impDtpFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
     showClear: true,
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2
-  });
-
-  $('#dtpFechaHasta').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
     pickerPosition: "bottom-left",
     startView: 4,
     minView: 2
@@ -197,3 +187,97 @@ $(document).on('click','.verPolleos',function(){
 $('#btn-validar').click(function(){
   console.log($(this).val());
 })
+
+$('#btn-importarPolleos').click(function(e){
+  e.preventDefault();
+  ocultarErrorValidacion($('#modalImportacion input,#modalImportacion select'))
+  $("#modalImportacion #archivo").fileinput({
+    language: 'es',
+    showRemove: false,
+    showUpload: false,
+    showCaption: false,
+    showZoom: false,
+    browseClass: "btn btn-primary",
+    previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+    overwriteInitial: false,
+    initialPreviewAsData: true,
+    dropZoneEnabled: false,
+    preferIconicPreview: true,
+    previewFileIconSettings: {
+      'csv': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>',
+      'txt': '<i class="far fa-file-alt fa-6" aria-hidden="true"></i>'
+    },
+    allowedFileExtensions: ['csv','txt'],
+  });
+  $('#modalImportacion #archivo')[0].files[0] = null;
+  $('#modalImportacion #archivo').attr('data-borrado','false');
+
+  $('#modalImportacion select').val("");
+  $('#modalImportacion .hashCalculado').val("");
+  $('#modalImportacion .hashRecibido').val("");
+  $('#impDtpFecha').data('datetimepicker').reset();
+  $('#modalImportacion').modal('show');
+})
+
+$('#btnImportar').click(function(e){
+  e.preventDefault();
+})
+
+$('#btnImportar').click(function(e){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  e.preventDefault();
+  
+  const formData = new FormData();
+  formData.append('id_casino', $('#impSelCasino').val());
+  formData.append('fecha', $('#fecha_importacion_hidden').val());
+  formData.append('id_tipo_moneda', $('#impSelMoneda').val());
+  formData.append('md5',$('#modalImportacion .hashCalculado').val());
+  formData.append('archivo' , $('#modalImportacion #archivo')[0].files[0]);
+
+  $.ajax({
+      type: "POST",
+      url: 'alertas_contadores/importarPolleos',
+      data: formData,
+      processData: false,
+      contentType:false,
+      cache:false,
+      success: function (data) {
+        console.log(data);
+        $('#modalImportacion').modal('hide');
+        $('#btn-buscar').click();
+        $('#mensajeExito .textoMensaje').empty()
+        .append($('<h3>').append('EXITO'))
+        .append($('<h4>').append('Polleos importados correctamente'));
+        $('#mensajeExito').toggleClass('mostrarBotones',false);
+        $('#mensajeExito').toggleClass('fijarMensaje',false);
+        $('#mensajeExito').hide();
+        setTimeout(function() {
+            $('#mensajeExito').show();
+        }, 250);
+      },
+      error: function (data) {
+        const json = data.responseJSON;
+        if(json.id_casino !== 'undefined'){
+          mostrarErrorValidacion($('#impSelCasino'),'Valor incorrecto',true);
+        }
+        if(json.fecha !== 'undefined'){
+          mostrarErrorValidacion($('#impDtpFecha input'),'Valor incorrecto',true);
+        }
+        if(json.id_tipo_moneda !== 'undefined'){
+          mostrarErrorValidacion($('#impSelMoneda'),'Valor incorrecto',true);
+        }
+        if(json.archivo !== 'undefined'){
+          mensajeError('Archivo incorrecto');
+        }
+      }
+  });
+});
+
+function mensajeError(msg){
+  $('#mensajeError .textoMensaje').empty();
+  $('#mensajeError .textoMensaje').append($('<h4>'+msg+'</h4>'));
+  $('#mensajeError').hide();
+  setTimeout(function() {
+    $('#mensajeError').show();
+  }, 250);
+}

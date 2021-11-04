@@ -8,17 +8,13 @@
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
-<link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="css/paginacion.css">
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 <style>
-#tablaContadores > thead > tr > th {
+#tablaPolleos > thead > tr > th {
   text-align: center;
 }
-#tablaContadores > tbody > tr > td {
-  text-align: center;
-}
-#maquinasModal > tbody > tr > td {
+#tablaPolleos > tbody > tr > td {
   text-align: center;
 }
 #tablaAlertasCabeceraModal > thead > tr > th {
@@ -337,6 +333,69 @@
       </div>
     </div>
 
+    <div class="modal fade" id="modalImportacion" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"  style="font-family:'Roboto-Black';color:white;background-color:#4D7AFF;">
+            <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+            <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+            <h3 class="modal-title">IMPORTAR POLLEOS</h3>
+          </div>
+          <div id="colapsado" class="collapse in">
+            <div class="modal-body modalCuerpo">
+              <div id="rowArchivo" class="row" style="">
+                <div class="col-xs-12">
+                  <h5>ARCHIVO</h5>
+                  <div class="zona-file">
+                    <input id="archivo" data-borrado="false" type="file" name="" >
+                    <br> <span id="alertaArchivo" class="alertaSpan"></span>
+                  </div>
+                </div>
+                @include('includes.md5hash')
+                <div class="row">
+                  <div class="row">
+                    <div class="col-xs-5">
+                      <h5>FECHA</h5>
+                        <div id="impDtpFecha" class='input-group date' data-link-field="fecha_importacion_hidden" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
+                          <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                        <input type="hidden" id="fecha_importacion_hidden" value=""/>
+                      </div>
+                      <div class="col-xs-4">
+                        <h5>CASINO</h5>
+                        <select id="impSelCasino" class="form-control">
+                          <option value="">Seleccione</option>
+                          @foreach ($casinos as $casino)
+                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                      <div class="col-xs-3">
+                        <h5>MONEDA</h5>
+                        <select id="impSelMoneda" class="form-control">
+                          <option value="">Seleccione</option>
+                          @foreach($tipo_monedas as $tipo)
+                          <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-successAceptar" id="btnImportar" hidden value="nuevo"> SUBIR</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
+                <input type="hidden" id="tipoImportacion" name="" value="">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
@@ -355,19 +414,16 @@
     <!-- Termina modal de ayuda -->
 
     @section('scripts')
-    <!-- JavaScript paginacion -->
     <script src="js/paginacion.js" charset="utf-8"></script>
+    <script src="js/seccionAlertasContadores.js" charset="utf-8"></script>
 
-    
-    <script src='/js/moment.min.js'></script>
-    <script src='/js/fullcalendar.min.js'></script>
-    <script src='/js/locale-all.js'></script>
+    <script src="js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
+    <script src="js/md5.js" charset="utf-8"></script>
 
-    <!-- JavaScript personalizado -->
-    <script src="js/seccionAlertasContadores.js" charset="utf-8"></script>-
-    
-    <!-- DateTimePicker JavaScript -->
+    <script src="js/fileinput.min.js" type="text/javascript"></script>
+    <script src="js/locales/es.js" type="text/javascript"></script>
+    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
+
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
     @endsection

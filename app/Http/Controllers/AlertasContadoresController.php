@@ -57,7 +57,6 @@ class AlertasContadoresController extends Controller
     return ['detalles' => $detalles,'alertas' => 9999999];
   }
 
-  //@TODO: Consultar la fila, las alertas asociadas y el archivo. Habria que agregarle otro parametro para la maquina
   public function obtenerDetalleCompleto($id_polleo,$nro_admin){
     //@STUB: tal vez guardar los demas horarios en un CSV y consultarlos aca, total es algo que se consultaria 1 sola vez
     //Si guardamos el CSV que mandan ellos, tendrian que mandarlo ordenado por NRO_ADMIN y luego por HORA para hacer la busqueda eficiente.
@@ -80,9 +79,9 @@ class AlertasContadoresController extends Controller
   public function importarPolleos(Request $request){
     Validator::make($request->all(),[
       'id_casino' => 'required|integer|exists:casino,id_casino',
-      'fecha' => 'nullable|date',
+      'fecha' => 'required|date',
       'archivo' => 'required|mimes:csv,txt',
-      'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
+      'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
       'md5' => 'required|string|max:32'
     ], array(), [])->after(function($validator){
       if(!$validator->errors()->any()){
