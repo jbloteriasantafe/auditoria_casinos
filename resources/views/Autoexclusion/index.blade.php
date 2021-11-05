@@ -100,6 +100,26 @@ input[required], select[required]{
         </div>
       </a>
     </div>
+    @if($usuario->es_superusuario || $usuario->es_auditor)
+    <div class="col-xl-12 col-md-4">
+      <a href="" id="btn-descargar-ae" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center>
+            <img class="imgNuevo" src="/img/logos/CSV_white.png">
+          </center>
+          <div class="backgroundNuevo"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo" style="font-size: 165px !important;">↓</h5>
+                <h4 class="txtNuevo"><br>DESCARGAR AEs</h4>
+              </center>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    @endif
   </div>
 </div>
 <div class="col-xl-10">

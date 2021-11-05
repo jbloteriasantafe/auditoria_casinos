@@ -681,4 +681,47 @@ class AutoexclusionController extends Controller
   private function errorOut($map){
     return response()->json($map,422);
   }
+
+  public function BDCSV(){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->es_superusuario && !$user->es_auditor) return 'NO PUEDE ACCEDER A ESA FUNCIÓN';
+
+    $filename = 'ae_bd_'.date('Ymdhis').'.csv';
+
+    if(!$fhandle = fopen($filename,'w')){
+      return 'NO SE PUEDE CREAR EL ARCHIVO';
+    }
+
+    $primer_ae = true;
+    $query = DB::table('ae_datos as ad')
+    ->selectRaw("ae.fecha_ae, ae.fecha_renovacion, ae.fecha_vencimiento, ae.fecha_revocacion_ae, ae.fecha_cierre_ae,
+    CASE 
+        WHEN ane.id_nombre_estado = 6 THEN 'Pendiente de val.'
+        WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
+        ELSE ane.descripcion
+    END as estado,
+    ad.nro_dni,ad.nombres,ad.apellido,ad.fecha_nacimiento,
+    s.codigo as sexo,
+    ad.telefono, ad.correo, ad.nombre_provincia, ad.nombre_localidad, ad.codigo_postal, ad.domicilio, ad.nro_domicilio")
+    ->join('ae_sexo as s','s.id_sexo','=','ad.id_sexo')
+    ->join('ae_estado as ae','ae.id_autoexcluido','=','ad.id_autoexcluido')
+    ->join('ae_nombre_estado as ane','ane.id_nombre_estado','=','ae.id_nombre_estado')
+    ->whereNull('ad.deleted_at')->whereNull('ae.deleted_at')->orderBy('ae.fecha_ae','desc')->chunk(1000,function($aes) use (&$fhandle,&$primer_ae){
+      $aes2 = json_decode(json_encode($aes), true);
+      foreach($aes2 as $ae){
+        //$aux = json_decode(json_encode($ae), true);
+        if($primer_ae){//Saco las columnas del primer ae
+          fputcsv($fhandle,array_keys($ae),";",'"',"\\");
+          $primer_ae = false;
+        }
+        fputcsv($fhandle,array_values($ae),";",'"',"\\");
+      }
+    });
+    fclose($fhandle);
+
+    $headers = array(
+      "Content-type" => "text/csv",
+    );
+    return response()->download($filename,$filename,$headers)->deleteFileAfterSend(true);
+  }
 }

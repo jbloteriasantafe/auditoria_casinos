@@ -320,6 +320,10 @@ $('#btn-ver-formularios-ae').click(function(e){
   $('#modalFormulariosAE').modal('show');
 });
 
+$('#btn-descargar-ae').click(function(e){
+  e.preventDefault();
+  window.open('autoexclusion/BDCSV','_blank');
+});
 
 //función para autocompletar el input de provincia
 function cargarProvincias(){
